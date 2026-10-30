@@ -1,0 +1,61 @@
+{
+  "name": "tcl-initial4",
+  "exit": 1,
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix5/build/tomokv-climonfix5-initial4"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server"
+  },
+  "source_commit": "5bac881e57c83322a94b24d82a31215bdb6130ed",
+  "binary": "/home/user/Projects/cx-climonfix5/build/tomokv-climonfix5-initial4",
+  "binary_sha256": "12ccc556f71f1166324e57d21da275635493b9e78536b6f0cfd2666db8f80f9d",
+  "binary_unchanged": true,
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "log": "docs/climonfix5/jobs/tcl-initial4.log",
+  "log_sha256": "34ea5f474ec9d8c175adbd58253941acfd476c9a297658ebc07896f6f0b3209c",
+  "artifacts": "/home/user/Projects/cx-climonfix5/build/gate-run.ClSnSR",
+  "rows": [
+    {
+      "verdict": "PARTIAL",
+      "seconds": "0",
+      "label": "GATE_ONLY_JOBS=redis_tcl; NOT A RECEIPT"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "0.000000",
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "219.660000",
+      "label": "Redis 7.4.10 Tcl passing subset (2s)"
+    },
+    {
+      "verdict": "FAIL",
+      "seconds": "212.190000",
+      "label": "Redis 7.4.10 Tcl passing subset (1s)"
+    }
+  ],
+  "passed": 2,
+  "failed": 2
+}

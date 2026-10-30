@@ -1,0 +1,201 @@
+{
+  "binary_sha256": "ef368a64f969aa5b44dead90743d70949dc6681f949c0171726d0f46d826dc52",
+  "files": {
+    "unit/pubsub": {
+      "extra_args": [],
+      "known_setup_errors": [],
+      "passed_tests": [
+        "Keyspace notifications: expired events (background expire) in tests/unit/pubsub.tcl",
+        "Keyspace notifications: expired events (triggered expire) in tests/unit/pubsub.tcl",
+        "Keyspace notifications: general events test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: hash events test (hashtable) in tests/unit/pubsub.tcl",
+        "Keyspace notifications: list events test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: new key test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: set events test in tests/unit/pubsub.tcl",
+        "Keyspace notifications: test CONFIG GET/SET of event flags in tests/unit/pubsub.tcl",
+        "Keyspace notifications: we are able to mask events in tests/unit/pubsub.tcl",
+        "Keyspace notifications: we can receive both kind of events in tests/unit/pubsub.tcl",
+        "Keyspace notifications: zset events test in tests/unit/pubsub.tcl",
+        "Mix SUBSCRIBE and PSUBSCRIBE in tests/unit/pubsub.tcl",
+        "NUMPATs returns the number of unique patterns in tests/unit/pubsub.tcl",
+        "NUMSUB returns numbers, not strings (#1561) in tests/unit/pubsub.tcl",
+        "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "PUBLISH/PSUBSCRIBE basics in tests/unit/pubsub.tcl",
+        "PUBLISH/PSUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+        "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "PUBLISH/SUBSCRIBE basics in tests/unit/pubsub.tcl",
+        "PUBLISH/SUBSCRIBE with two clients in tests/unit/pubsub.tcl",
+        "PUNSUBSCRIBE and UNSUBSCRIBE should always reply in tests/unit/pubsub.tcl",
+        "PUNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
+        "Pub/Sub PING on RESP2 in tests/unit/pubsub.tcl",
+        "Pub/Sub PING on RESP3 in tests/unit/pubsub.tcl",
+        "SUBSCRIBE to one channel more than once in tests/unit/pubsub.tcl",
+        "UNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl"
+      ],
+      "seconds": {
+        "1s": 0.72,
+        "2s": 0.82
+      },
+      "sha256": "9d1d72ed2de74741ec115ab85024b0f9b2c5641cd67da1f491a6fb3ca83e5c32",
+      "skip_tests": {
+        "Keyspace notifications: evicted events": "hung on TomoKV 2s in the survey",
+        "Keyspace notifications: hash events test (listpackex)": "failed on TomoKV 2s in the survey",
+        "Keyspace notifications: stream events test": "failed on TomoKV 2s in the survey",
+        "Keyspace notifications: we receive keyevent notifications": "hung on TomoKV 2s in the survey",
+        "Keyspace notifications: we receive keyspace notifications": "hung on TomoKV 2s in the survey",
+        "PubSub messages with CLIENT REPLY OFF": "hung on TomoKV 2s in the survey",
+        "psubscribe  fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "psubscribe succeeds with small pattern but fails with large pattern due to OOM": "failed on TomoKV 2s in the survey",
+        "psubscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "psubscribe with large pattern name fails due to OOM": "failed on TomoKV 2s in the survey",
+        "publish to self inside multi": "failed on TomoKV 2s in the survey",
+        "publish to self inside script": "failed on TomoKV 2s in the survey",
+        "ssubscribe  fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "ssubscribe succeeds with small channel but fails with large channel due to OOM": "failed on TomoKV 2s in the survey",
+        "ssubscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "ssubscribe with large shard channel name fails due to OOM": "failed on TomoKV 2s in the survey",
+        "subscribe  fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "subscribe succeeds with small channel but fails with large channel due to OOM": "failed on TomoKV 2s in the survey",
+        "subscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
+        "subscribe with large channel name fails due to OOM": "failed on TomoKV 2s in the survey",
+        "unsubscribe inside multi, and publish to self": "failed on TomoKV 2s in the survey"
+      }
+    }
+  },
+  "redis_version": "7.4.10",
+  "schema": 2,
+  "selection": "every upstream assertion passing in BOTH TomoKV modes; each file runs with --skipfile naming every test that failed or hung on TomoKV in the survey or the builder; the passing multiset was identical in 2 consecutive clean rounds in both modes; no assertion body modified",
+  "source_commit": "f103d127b9747965e28f20615ef790332661fc68",
+  "support": {
+    "runtest": "0eabe18a80d49daf8242571cea768b0cb9e21ea46681cf9e444a98d43423d76d",
+    "src/version.h": "d37be1fd3ccca0252941a0d7bd4f8ee24d6f30a80c595b6ccfd41dbfd20a7131",
+    "tests/support/aofmanifest.tcl": "6cec2a27a80133260260d0bc559a3749cd2d93fc2d59dc457fb66530da8faf19",
+    "tests/support/benchmark.tcl": "e4832f65905257652d242d01a0f1c1427b910e46f3b4b12f22009d98702163a6",
+    "tests/support/cli.tcl": "48d41dcb46e2f27787ecf872db6362e8dfce5345a45ff92498f8966c46c203e8",
+    "tests/support/cluster.tcl": "207045db825f492f3bb2bf293d3d1d2bf7d4d56ea3989474306ab20cacc67c9c",
+    "tests/support/cluster_util.tcl": "d6ae863cd62238e00c5773c47f617416b659fb47b14c200385f22bc7c04616d0",
+    "tests/support/redis.tcl": "4aba1a0afdc9b39854c5557502c20bddfece20eeeda8db95550ae94cea00daa7",
+    "tests/support/response_transformers.tcl": "373f01a88759abe07b5d1e04e4b469d937af47d458daf89d317d0f3bebaea7ee",
+    "tests/support/server.tcl": "e412686245be3a0f74592d8d5fe4f52c14c0790fb647c736a8a5e2cac13b72bb",
+    "tests/support/test.tcl": "770cbcd7cc446fca8bb232fd406982a68cc675b31b8fa0f8ebec7a9bc7298e89",
+    "tests/support/tmpfile.tcl": "5416b68b9af39f68d3bddce15de975a85d0550b08c2661464802c1ab6493da33",
+    "tests/support/util.tcl": "6bca53d58fcdce0cfb767aab4797d122b95fdf5133943f5878bc8e3987c92920",
+    "tests/test_helper.tcl": "844807d95218020cd79aecbaf10c2134190759d67c311185db76c204e6c08894"
+  },
+  "wave8_promotions": [
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM all commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM command",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM sub commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with a subset of commands",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with empty histogram",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/latency-monitor",
+      "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+      "root": "LATENCY-HISTOGRAM-ABSENT",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON numeric decoding",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON smoke test",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - JSON string decoding",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - Verify minimal bitop functionality",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack and unpack circular references?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack double?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "EVAL - cmsgpack can pack negative int64?",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Functions in the Redis namespace are able to report errors",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on bit table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on cmsgpack table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "Try trick readonly table on json table",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "lua bit.tohex bug",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/scripting",
+      "name": "redis.sha1hex() implementation",
+      "root": "LUA-HELPER-LIBS",
+      "prior_reason": "failed on TomoKV 2s in the survey"
+    }
+  ]
+}

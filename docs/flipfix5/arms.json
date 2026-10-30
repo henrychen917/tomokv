@@ -1,0 +1,92 @@
+{
+ "pre": {
+  "path": "build/flipfix5/arms/pre/tomokv",
+  "sha256": "5432534fb83d957ef7972d0df26f7e3e461069c8a4e8ad04bf6deeef1778b716",
+  "bytes": 223180288,
+  "note": "PRE: e2b237926 (origin/cpp), make all, clean tree"
+ },
+ "post": {
+  "path": "build/flipfix5/arms/post/tomokv",
+  "sha256": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b",
+  "bytes": 223302120,
+  "note": "POST: production source bec4a1e20, built at 0586ee74a (clean; INFO git sha 0586ee74)"
+ },
+ "pad-a": {
+  "path": "build/flipfix5/arms/pad-a/tomokv",
+  "sha256": "29340cf7f37c0b1149d222223b3b8acb8aa37aeda3c520dec0891232e6c10260",
+  "bytes": 223302120,
+  "note": "PAD-A: POST with the 4 branch patches of docs/flipfix5/pad-a-plan.json"
+ },
+ "post-v1": {
+  "path": "build/flipfix5/arms/post-v1/tomokv",
+  "sha256": "85998c9a62ac5fb3dbb99584fcb3e0ecd771dd8e2d7aa6fc1a2729bdb137850e",
+  "bytes": 223174240,
+  "note": "superseded: first candidate (token read after validation); aborted live (residual race)"
+ },
+ "post-v2": {
+  "path": "build/flipfix5/arms/post-v2/tomokv",
+  "sha256": "d18fcd140ff11371881575b4ddb7dbcd980d7b3adce341af93372150712096c5",
+  "bytes": 223173248,
+  "note": "superseded: token-first candidate before the DEBUG hook"
+ },
+ "post-v3": {
+  "path": "build/flipfix5/arms/post-v3/tomokv",
+  "sha256": "481a2a2c677d4666d0f61c0339e8d9ca4a79ce68523aa0e8de8fa25da71b4dfe",
+  "bytes": 223302120,
+  "note": "superseded: final source, built from a dirty tree before commit bec4a1e20"
+ },
+ "pad-a-v2": {
+  "path": "build/flipfix5/arms/pad-a-v2/tomokv",
+  "sha256": "790ad5f5cd8600d043c2e631404167f013e2ed932ebf4618a1bfb787f02e9ce4",
+  "bytes": 223173248,
+  "note": "superseded PAD-A of post-v2"
+ },
+ "pad-a-v3": {
+  "path": "build/flipfix5/arms/pad-a-v3/tomokv",
+  "sha256": "2e1f9924457b7e49d5a7d22ad37ef54ca7c94f7aa392a7a49f3c1272f0a03cb5",
+  "bytes": 223302120,
+  "note": "superseded PAD-A of post-v3"
+ },
+ "diag": {
+  "path": "build/flipfix5/arms/diag/tomokv",
+  "sha256": "95bb5cac44ce525bfba61314831b151a7bad5ba608a4ee3d80be3ff8d331f195",
+  "bytes": 223152944,
+  "note": "diagnostic: PRE + dump/push provenance (docs/flipfix5/diag/apply_diag.py)"
+ },
+ "diag2": {
+  "path": "build/flipfix5/arms/diag2/tomokv",
+  "sha256": "49380fd29fb6f4bf56ba1cead12fbc6fa3414f043c4dd020d36a81cd6d87153e",
+  "bytes": 223204272,
+  "note": "diagnostic: diag + sample/ack timeline (apply_diag2.py)"
+ },
+ "diag3": {
+  "path": "build/flipfix5/arms/diag3/tomokv",
+  "sha256": "c229d067d14f624d7ecb1bb95b22bc42afd1e09b2026e2d0d4aa70a7031e0c88",
+  "bytes": 223214088,
+  "note": "diagnostic: diag2 + window timestamps without a syscall in the window (apply_diag3.py)"
+ },
+ "diag-post": {
+  "path": "build/flipfix5/arms/diag-post/tomokv",
+  "sha256": "dad7f7fef79995625f7be313b339789c272e32554330fd372337e785a9bbfb7f",
+  "bytes": 223209728,
+  "note": "diagnostic: first candidate + diag v1-v3 (did not reproduce the residual race)"
+ },
+ "diag-light": {
+  "path": "build/flipfix5/arms/diag-light/tomokv",
+  "sha256": "d3f07530fe51c75f44e4c42090900fde4e0bc26df59cbb34d8f0e33379448001",
+  "bytes": 223265792,
+  "note": "diagnostic: first candidate + light provenance (apply_diag_light.py); caught the residual race"
+ },
+ "wrap-post": {
+  "path": "build/flipfix5/arms/wrap-post/tomokv",
+  "sha256": "a9023c0c51406f8d5b7740933030280c9c65c8b552c12586774dcbe919115c15",
+  "bytes": 223178136,
+  "note": "diagnostic: first candidate + __wrap_abort only"
+ },
+ "wrap-post2": {
+  "path": "build/flipfix5/arms/wrap-post2/tomokv",
+  "sha256": "51d0452837d1c319917508c954b717ee7b240463d6661c41b3602bb6dfe7e42e",
+  "bytes": 223177144,
+  "note": "diagnostic: token-first candidate + __wrap_abort only (48 uring attempts, 0 aborts)"
+ }
+}

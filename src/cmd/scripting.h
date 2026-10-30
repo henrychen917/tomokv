@@ -43,10 +43,10 @@ struct ScriptInvocation {
     Slice          tag;
 };
 
-// The calling thread's persistent interpreter; SCRIPT FLUSH invalidates only its compiled EVAL
-// chunks. FUNCTION closures retain their state. nullptr on allocation failure. Call before
+// The calling thread's lazy interpreter for this API. SCRIPT FLUSH invalidates only EVAL
+// chunks; the separate FUNCTION interpreter retains its closures and helper state. nullptr on allocation failure. Call before
 // pushing the activation's callable so cache invalidation happens first.
-lua_State* script_thread_state();
+lua_State* script_thread_state(ScriptArgStyle style = ScriptArgStyle::Globals);
 
 // A fresh sandboxed state with no context bound — redis.call is present but inert. Used by
 // FUNCTION LOAD to validate and to harvest registration metadata off the executor threads. The
@@ -120,6 +120,7 @@ bool function_is_fcall(const Op& op);
 // Cold persistence admission: registered no-writes flags override FCALL/FCALL_RO's
 // command flags. Unknown functions retain the command's default classification.
 bool function_metadata_write(const Op& op);
+bool script_metadata_write(const Op& op);
 // Execute one admitted callback after EXEC prepares its owner-private versions.
 // False means preparation parked; command errors complete normally with a reply.
 bool function_execute_exec(Shard& shard, Op& op, void* context,

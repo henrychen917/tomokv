@@ -68,6 +68,9 @@ class IoLoop {
     // Fixture observes successful ordinary-owner dispatch, after publication and before retirement.
     // No observer storage, branch or call exists in release builds.
     inline static void (*test_owner_publication_)(const Task&) = nullptr;
+    // flipfix5: runs between the FLIP control pass's stage load and its first stage test.
+    inline static void (*test_after_stage_sample_)(uint32_t, FlipStage) = nullptr;
+    inline static bool test_live_epoch_ack_test_ = false;
 #endif
     friend struct wb_rule::Phase2;
 public:
@@ -2101,26 +2104,30 @@ private:
             }
         }
         if (stage == FlipStage::DatabaseIoDrain) {
-            // This tail follows publication of every local parse/post batch.
-            // Done proves execution; socket output need not drain. Parked blocking
-            // commands retain their deadlines and are remapped after publication.
-            bool drained = multidb_io_drained(*self_);
-            // Closing clients can already have left ThreadCtx::clients(), but
-            // remain in the IO active set until their executor references drain.
-            for (size_t i = 0; drained && i < active_.size(); ++i) {
-                const auto& rob = active_.at(i)->rob();
-                for (uint64_t id = rob.flush_id(); id != rob.dispatch_id(); ++id)
-                    if (rob.at(id).state.load(std::memory_order_acquire) != OpState::Done &&
-                        !blocking_namespace_quiesced(rob.at(id))) { drained = false; break; }
+            // Judge the drain only for a live boundary epoch this IO still owes (flip_stage_owed:
+            // the sample may belong to a boundary that has already ended).
+            if (flip_owed(stage)) {
+                // This tail follows publication of every local parse/post batch.
+                // Done proves execution; socket output need not drain. Parked blocking
+                // commands retain their deadlines and are remapped after publication.
+                bool drained = multidb_io_drained(*self_);
+                // Closing clients can already have left ThreadCtx::clients(), but
+                // remain in the IO active set until their executor references drain.
+                for (size_t i = 0; drained && i < active_.size(); ++i) {
+                    const auto& rob = active_.at(i)->rob();
+                    for (uint64_t id = rob.flush_id(); id != rob.dispatch_id(); ++id)
+                        if (rob.at(id).state.load(std::memory_order_acquire) != OpState::Done &&
+                            !blocking_namespace_quiesced(rob.at(id))) { drained = false; break; }
+                }
+                if (drained) srv_->flip_ack(self_->id(), stage);
             }
-            if (!srv_->flip_acked(self_->id(), stage) && drained)
-                srv_->flip_ack(self_->id(), stage);
             if (coordinator && srv_->flip_all_role_acked(Role::Ifid, stage)) {
                 srv_->flip_set_stage(FlipStage::DatabaseExDrain);
                 map.wake_workers();
             }
         } else if (stage == FlipStage::DatabaseExDrain) {
-            if (fused_executor_ && fused_executor_->flip_quiesced())
+            if (fused_executor_ && flip_owed(stage) &&
+                fused_executor_->flip_quiesced())
                 srv_->flip_ack(self_->id(), stage);
             if (coordinator) {
                 bool drained = true;
@@ -2137,6 +2144,15 @@ private:
         return 1;
     }
 
+    // flipfix5: the per-thread stage test of every FLIP and database-boundary control action.
+    bool flip_owed(FlipStage stage) const {
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        // Planted regression for the serverless negative control: the pre-flipfix5 test.
+        if (test_live_epoch_ack_test_) return !srv_->flip_acked(self_->id(), stage);
+#endif
+        return srv_->flip_stage_owed(self_->id(), stage);
+    }
+
     template <bool kEp>
     uint32_t flip_control_pass() {
         // An Idle pass may finish publishing work before acknowledging a newly opened drain.
@@ -2146,6 +2162,9 @@ private:
         // Keep the live acquire on the armed control path. A previous stage may have finished
         // and a new epoch started during this pass; its stage/ACK must not use the old sample.
         const FlipStage stage = srv_->flip_stage();
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_after_stage_sample_) test_after_stage_sample_(self_->id(), stage);
+#endif
         if (flip_stage_snapshot_ != kNoFlipSnapshot) flip_stage_snapshot_ = stage;
         if (stage == FlipStage::Idle) {
             flip_close_pin_ = false; // the FLIP retired: held closes resume (pubsub_disconnect_ready)
@@ -2156,7 +2175,9 @@ private:
         flip_reflag_inbound();
         fliplisten_resume();
 
-        if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage)) {
+        // Each stage action tests Server::flip_stage_owed(), never flip_acked() alone: `stage` was
+        // sampled above and may belong to a FLIP that has since finished (flipfix5).
+        if (stage == FlipStage::IoDrain && flip_owed(stage)) {
             // A pin left by an earlier FLIP must not hide a detached close from this drain.
             flip_close_pin_ = false;
             fliplisten_quiesce();
@@ -2168,14 +2189,14 @@ private:
                 srv_->flip_ack(self_->id(), stage);
             }
         } else if (stage == FlipStage::IoPrepare &&
-                   !srv_->flip_acked(self_->id(), stage)) {
+                   flip_owed(stage)) {
             if (!fliplisten_prepare())
                 srv_->flip_note_failure("ERR FLIP could not register destination listeners");
             if (!prepare_client_transfer_capacity(srv_->flip_incoming_clients(self_->id())))
                 srv_->flip_note_failure("ERR FLIP could not reserve destination connection state");
             srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::ClientPrepare &&
-                   !srv_->flip_acked(self_->id(), stage)) {
+                   flip_owed(stage)) {
             const bool converting_to_ex =
                 srv_->flip_candidate_target(self_->id()) == Role::Ex;
             if (converting_to_ex) quiesce_accepts_for_conversion();
@@ -2246,13 +2267,13 @@ private:
                 srv_->flip_note_failure(
                     "ERR FLIP source connection set changed during reversible preflight");
         } else if (stage == FlipStage::ClientCommit &&
-                   !srv_->flip_acked(self_->id(), stage)) {
+                   flip_owed(stage)) {
             fliplisten_install();
             if (srv_->flip_source_clients(self_->id()))
                 commit_prepared_client_transfers_impl<kEp>();
             srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::ClientInstall &&
-                   !srv_->flip_acked(self_->id(), stage)) {
+                   flip_owed(stage)) {
             const bool converting_to_ex =
                 srv_->flip_candidate_target(self_->id()) == Role::Ex;
             // EX is frozen now, so this second full IO drain is the transit barrier for notify,
@@ -2264,7 +2285,7 @@ private:
                 (!converting_to_ex || accepts_quiesced()))
                 srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::RoleReady &&
-                   !srv_->flip_acked(self_->id(), stage)) {
+                   flip_owed(stage)) {
             refresh_save_cron_writer();
             if (flip_pubsub_rehome_epoch_ != srv_->flip_epoch()) {
                 flip_pubsub_rehome_epoch_ = srv_->flip_epoch();
@@ -2275,7 +2296,7 @@ private:
                 srv_->pubsub_inflight() == 0)
                 srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::Rollback &&
-                   !srv_->flip_acked(self_->id(), stage)) {
+                   flip_owed(stage)) {
             const bool converting_to_ex =
                 srv_->flip_candidate_target(self_->id()) == Role::Ex;
             fliplisten_quiesce();
@@ -3433,8 +3454,8 @@ private:
                               "ERR wrong number of arguments for '%s' command", command);
                 finish_locally(c, *op, message); continue;
             }
-            if ((spec->flags & CmdFlags::SubcmdRoute) &&
-                command_reply_container_subcommand_arity(*op, *spec)) {
+            if ((spec->flags & (CmdFlags::SubcmdRoute | CmdFlags::ClientCommandName)) &&
+                command_reply_container_subcommand_arity(*op, *spec, c)) {
                 // A known child has its own generated arity and Redis checks that before ACL and
                 // MULTI. Unknown children continue to the cold AUTH/ACL hook or container
                 // handler, where lookup errors precede authentication checks.
@@ -4992,6 +5013,7 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
+        climon_unpark_paused(c);
         if (!c->closing()) {
 #ifdef TOMO_CONNRESET_TRACE
             connreset::note(*c, self_->id(), "close_begin", site);

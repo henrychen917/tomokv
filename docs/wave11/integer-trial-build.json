@@ -1,0 +1,15 @@
+{
+  "PRE": {
+    "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-PRE",
+    "sha256": "68c714d4059033b967dbd6d1fa8ce056e60b5988bdbf3c3f510c7f584b746edb",
+    "bytes": 223180312
+  },
+  "POST": {
+    "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-POST",
+    "sha256": "a204da4ae3cb13fc934d7859375d4684c4864b4e38f2a0d91fecfee61885465f",
+    "bytes": 224556984
+  },
+  "source_commit": "1c2c62b119266c5bab3bc1436288f796323b9197",
+  "make_q_all": 0,
+  "makefile_sha256": "9a1f152dd33c2e2db3cac4d39a3b27111cdf222bf12d793ec27e175f63adc4e5"
+}

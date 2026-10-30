@@ -1,0 +1,19 @@
+GATE(full): 32 physical cores; 1 correctness slots = min(8/8 server, 24/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 24 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave11/build/gate-run.MlMBbm
+PARTIAL jobs (including prerequisites): release perfio_stream atomic_batteries
+PARTIAL jobs (including prerequisites): release perfio_stream atomic_batteries
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio XREADGROUP bounded delivery + Redis metadata (1s)
+  perfio XREADGROUP bounded delivery + Redis metadata (1s) ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio XREADGROUP bounded delivery + Redis metadata (2s)
+  perfio XREADGROUP bounded delivery + Redis metadata (2s) ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic torn/window battery
+  atomic torn/window battery                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic RYOW/mixed-write battery
+  atomic RYOW/mixed-write battery                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic owner-local hazard battery
+  atomic owner-local hazard battery                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 7 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave11/docs/wave11/jobs/landing-quiet-2s-uring.tsv.partial

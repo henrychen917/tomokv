@@ -1,0 +1,403 @@
+{
+  "server_sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9",
+  "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+  "rows": [
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "ex-idle",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 29,
+      "functions": {
+        "tomo::ExLoopT<false>::flip_control_pass()": 29
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "ex-exdrain-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 505,
+      "functions": {
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::Server::atomic_apply_inflight() const": 166,
+        "tomo::ExLoopT<false>::flip_quiesced() const": 272,
+        "tomo::ExLoopT<false>::flip_control_pass()": 49
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "ex-exdrain-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 53,
+      "functions": {
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::ExLoopT<false>::flip_control_pass()": 35
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "ex-exinstall-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 578,
+      "functions": {
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)": 457,
+        "tomo::ExLoopT<false>::flip_control_pass()": 103
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "ex-exinstall-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 55,
+      "functions": {
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::ExLoopT<false>::flip_control_pass()": 37
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "io-idle",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 25,
+      "functions": {
+        "unsigned int tomo::IoLoop::flip_control_pass<false>()": 25
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "io-iodrain-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 618,
+      "functions": {
+        "tomo::ThreadCtx::io_inbound_quiesced() const": 226,
+        "tomo::Server::flip_ack(unsigned int, tomo::FlipStage)": 9,
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::IoLoop::flip_io_drain_ordered() const": 16,
+        "tomo::IoLoop::flip_reflag_inbound()": 137,
+        "tomo::IoLoop::flip_io_drained() const": 77,
+        "unsigned int tomo::IoLoop::flip_control_pass<false>()": 76,
+        "tomo::IoLoop::fliplisten_quiesce()": 20,
+        "tomo::IoLoop::fliplisten_quiet() const": 19,
+        "tomo::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "io-iodrain-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 230,
+      "functions": {
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::IoLoop::flip_reflag_inbound()": 137,
+        "unsigned int tomo::IoLoop::flip_control_pass<false>()": 55,
+        "tomo::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "io-roleready-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 491,
+      "functions": {
+        "tomo::Server::flip_ack(unsigned int, tomo::FlipStage)": 9,
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::IoLoop::flip_reflag_inbound()": 137,
+        "std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo::IoLoop::PubSubRef, std::allocator<tomo::IoLoop::PubSubRef> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo::IoLoop::PubSubRef, std::allocator<tomo::IoLoop::PubSubRef> > > >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::clear()": 38,
+        "tomo::IoLoop::pubsub_clear_home_indexes()": 30,
+        "tomo::IoLoop::pubsub_rehome_local(unsigned long)": 44,
+        "unsigned int tomo::IoLoop::flip_control_pass<false>()": 195,
+        "tomo::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 2
+    },
+    {
+      "arm": "final-control",
+      "namespace": "normal",
+      "domain": "complete",
+      "command": "io-roleready-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "b341a0e54deae123f648807af96426f9ea7be2d7c6f105319f92ccecae986a82",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 241,
+      "functions": {
+        "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const": 18,
+        "tomo::IoLoop::flip_reflag_inbound()": 137,
+        "unsigned int tomo::IoLoop::flip_control_pass<false>()": 66,
+        "tomo::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "ex-idle",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 32,
+      "functions": {
+        "tomo_db0::ExLoopT<false>::flip_control_pass()": 32
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "ex-exdrain-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 498,
+      "functions": {
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::ExLoopT<false>::flip_quiesced() const": 428,
+        "tomo_db0::ExLoopT<false>::flip_control_pass()": 52
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "ex-exdrain-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 56,
+      "functions": {
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::ExLoopT<false>::flip_control_pass()": 38
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "ex-exinstall-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 581,
+      "functions": {
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::MaskedSpscArray<tomo_db0::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)": 457,
+        "tomo_db0::ExLoopT<false>::flip_control_pass()": 106
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "ex-exinstall-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 58,
+      "functions": {
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::ExLoopT<false>::flip_control_pass()": 40
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "io-idle",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 26,
+      "functions": {
+        "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 26
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "io-iodrain-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 617,
+      "functions": {
+        "tomo_db0::ThreadCtx::io_inbound_quiesced() const": 226,
+        "tomo_db0::Server::flip_ack(unsigned int, tomo_db0::FlipStage)": 9,
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::IoLoop::flip_io_drain_ordered() const": 16,
+        "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+        "tomo_db0::IoLoop::flip_io_drained() const": 77,
+        "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 75,
+        "tomo_db0::IoLoop::fliplisten_quiesce()": 20,
+        "tomo_db0::IoLoop::fliplisten_quiet() const": 19,
+        "tomo_db0::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "io-iodrain-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 229,
+      "functions": {
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+        "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 54,
+        "tomo_db0::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "io-roleready-owed",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 487,
+      "functions": {
+        "tomo_db0::Server::flip_ack(unsigned int, tomo_db0::FlipStage)": 9,
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+        "std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo_db0::IoLoop::PubSubRef, std::allocator<tomo_db0::IoLoop::PubSubRef> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo_db0::IoLoop::PubSubRef, std::allocator<tomo_db0::IoLoop::PubSubRef> > > >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::clear()": 38,
+        "tomo_db0::IoLoop::pubsub_clear_home_indexes()": 30,
+        "tomo_db0::IoLoop::pubsub_rehome_local(unsigned long)": 44,
+        "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 191,
+        "tomo_db0::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 2
+    },
+    {
+      "arm": "final-control",
+      "namespace": "db0",
+      "domain": "complete",
+      "command": "io-roleready-acked",
+      "mode": "2s",
+      "batch": 1,
+      "atomic": 1,
+      "probe_sha256": "20a8f95f34db16f897a5de04390e80926f31a7247cca454a21da5a32b759fa24",
+      "tracer_sha256": "0c5628d6d19c79483d95cb32331cad662fcf3b397dbd237f686bfbcd0d0479d1",
+      "total": 240,
+      "functions": {
+        "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+        "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+        "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 65,
+        "tomo_db0::IoLoop::fliplisten_resume()": 20
+      },
+      "clock_calls": 0,
+      "excluded_calls": 0
+    }
+  ]
+}

@@ -761,6 +761,9 @@ private:
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
+    // flipfix5: runs between the control pass's stage load and its first stage test.
+    inline static void (*test_after_stage_sample_)(uint32_t, FlipStage) = nullptr;
+    inline static bool test_live_epoch_ack_test_ = false;
     inline static void (*test_local_read_copied_)() = nullptr;
     inline static uint32_t test_local_get_reply_attempts_ = 0;
 #endif
@@ -1540,17 +1543,46 @@ private:
         return work;
     }
 
+    // Every stage action below tests Server::flip_stage_owed(), never flip_acked() alone: the stage
+    // was sampled at the top of this pass and may belong to a FLIP that has since finished.
+    bool flip_owed(FlipStage stage) const {
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        // Planted regression for the serverless negative control: the pre-flipfix5 test.
+        if (test_live_epoch_ack_test_) return !srv_->flip_acked(self_->id(), stage);
+#endif
+        if (__builtin_expect(srv_->debug_flip_stage_hold_us() != 0, false))
+            debug_flip_stage_hold(stage);
+        return srv_->flip_stage_owed(self_->id(), stage);
+    }
+
+    // DEBUG FLIP-STAGE-HOLD: bounded spin; only ExInstall that this executor already acknowledged.
+    __attribute__((noinline, cold)) void debug_flip_stage_hold(FlipStage stage) const {
+        if (stage != FlipStage::ExInstall || !srv_->flip_acked(self_->id(), stage)) return;
+        const uint64_t epoch = srv_->flip_epoch();
+        const uint64_t deadline =
+            now_ns() + static_cast<uint64_t>(srv_->debug_flip_stage_hold_us()) * 1000ull;
+        while (srv_->flip_epoch() == epoch && now_ns() < deadline) __builtin_ia32_pause();
+    }
+
     uint32_t flip_control_pass() {
         const FlipStage stage = srv_->flip_stage();
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_after_stage_sample_) test_after_stage_sample_(self_->id(), stage);
+#endif
         if constexpr (!kSingleDatabase) {
-            if (stage == FlipStage::DatabaseExDrain && flip_quiesced()) {
-                srv_->flip_ack(self_->id(), stage);
-                return 1;
+            if (stage == FlipStage::DatabaseExDrain) {
+                // Judge quiescence only once the boundary epoch is confirmed live. An acknowledged
+                // or stale sample keeps the busy return of the former re-acknowledgement.
+                if (!flip_owed(stage)) return 1;
+                if (flip_quiesced()) {
+                    srv_->flip_ack(self_->id(), stage);
+                    return 1;
+                }
             }
         }
         if (stage == FlipStage::IoPrepare &&
             srv_->flip_candidate_target(self_->id()) == Role::Ifid &&
-            !srv_->flip_acked(self_->id(), stage)) {
+            flip_owed(stage)) {
             if (!self_->prepare_io_role())
                 srv_->flip_note_failure("ERR FLIP could not prepare a new IO listener");
             else if (!self_->prepare_client_capacity(srv_->flip_incoming_clients(self_->id())))
@@ -1558,15 +1590,14 @@ private:
             srv_->flip_ack(self_->id(), stage);
             return 1;
         }
-        if (stage == FlipStage::ExDrain && !srv_->flip_acked(self_->id(), stage) &&
-            flip_quiesced()) {
+        if (stage == FlipStage::ExDrain && flip_owed(stage) && flip_quiesced()) {
             srv_->flip_ack(self_->id(), stage);
 #ifdef TOMO_CORE_CONCURRENCY_TEST
             if (test_after_drain_ack_) test_after_drain_ack_();
 #endif
             return 1;
         }
-        if (stage == FlipStage::ExInstall && !srv_->flip_acked(self_->id(), stage)) {
+        if (stage == FlipStage::ExInstall && flip_owed(stage)) {
             // ExDrain retired every old lane and IO dispatch remains parked until all ExInstall
             // acknowledgements. Reassign blocks in the existing consumer-local allocation now;
             // no topology object is rebuilt and no producer can observe a half-installed mask.
@@ -1578,7 +1609,7 @@ private:
             srv_->flip_ack(self_->id(), stage);
             return 1;
         }
-        if (stage == FlipStage::Rollback && !srv_->flip_acked(self_->id(), stage)) {
+        if (stage == FlipStage::Rollback && flip_owed(stage)) {
             if (srv_->flip_candidate_target(self_->id()) == Role::Ifid)
                 self_->cancel_prepared_io_role();
             srv_->flip_ack(self_->id(), stage);

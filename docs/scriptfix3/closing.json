@@ -1,0 +1,30 @@
+{
+  "utc": "2026-10-29T21:47:52.487973+00:00",
+  "affinity": [
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "build_allocated_bytes": 18277019648,
+  "build_allocated_gib": 17.022,
+  "owned_port_range": [
+    20300,
+    20399
+  ],
+  "listeners": [],
+  "proof": "docs/scriptfix3/proof.json",
+  "performance": "NOT RUN: maintainer-owned"
+}

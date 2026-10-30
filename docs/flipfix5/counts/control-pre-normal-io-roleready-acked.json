@@ -1,0 +1,18 @@
+{
+  "probe": "control",
+  "arm": "pre",
+  "namespace": "normal",
+  "argv": [
+    "io-roleready-acked"
+  ],
+  "steps": 234,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 226,
+  "functions": {
+    "tomo::IoLoop::flip_reflag_inbound()": 137,
+    "unsigned int tomo::IoLoop::flip_control_pass<false>()": 69,
+    "tomo::IoLoop::fliplisten_resume()": 20
+  },
+  "probe_sha256": "26c4472bfd67081e27a0cfdc12f35984753ffb9b67f02b7de319d2c5fd941025"
+}

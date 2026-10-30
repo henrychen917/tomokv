@@ -1,0 +1,114 @@
+{
+  "reason": "Early visible close accounting conflicts with the existing FLIP ownership count. Withdraw CONNECTED-CLIENTS-LAG per owner stop rule; superseded campaigns cannot validate final POST.",
+  "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+  "processes": [
+    {
+      "pid": 2386289,
+      "parent": 3213744,
+      "start": "486371264",
+      "command": "bash -c for engine in uring epoll; do REDIS74_ROOT=/home/user/Projects/redis GATE_DIFFER_ORACLE_BIN=/home/user/Projects/redis74/src/redis-server GATE_DIFFER_NET_IO=\"$engine\" GATE_NET_IO=\"$engine\" GATE_ONLY_JOBS=\"differ-split differ-armed\" bash tests/gate.sh full --server-cores 24-31 --load-cores 16-23 --server-smt \"\" --load-smt \"\" --ports 20230-20239 --candidate-binary \"$PWD/build/climonfix4/tomokv-POST\" > \"build/climonfix4/differ-final12-$engine.log\" 2>&1; printf \"%s %s\\n\" \"$engine\" \"$?\" >> build/climonfix4/differ-final12-exits.txt; done "
+    },
+    {
+      "pid": 2386281,
+      "parent": 3213744,
+      "start": "486371262",
+      "command": "/bin/bash -c taskset -c 16-31 env REDIS74_ROOT=/home/user/Projects/redis GATE_ONLY_JOBS='climonfix4-1s-uring climonfix4-1s-epoll climonfix4-2s-uring climonfix4-2s-epoll redis_tcl climonfix clientfix scriptfix script_bounds lualibs multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll notify notifycompat notify_order notify_aof tracking_redirect trackfix_order trackfix_accounting netcmd_units racefix_climon dispatch_arity dispatch_errors dispatch_children cmd_metadata release_batteries fused-0 fused-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 flip' bash tests/gate.sh quick --server-cores 16-23 --load-cores 24-31 --server-smt '' --load-smt '' --ports 20200-20209 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST > build/climonfix4/post-final12-gate.log 2>&1 "
+    },
+    {
+      "pid": 3019674,
+      "parent": 2386289,
+      "start": "486606484",
+      "command": "bash tests/gate.sh full --server-cores 24-31 --load-cores 16-23 --server-smt  --load-smt  --ports 20230-20239 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST "
+    },
+    {
+      "pid": 2386282,
+      "parent": 2386281,
+      "start": "486371262",
+      "command": "bash tests/gate.sh quick --server-cores 16-23 --load-cores 24-31 --server-smt  --load-smt  --ports 20200-20209 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST "
+    },
+    {
+      "pid": 3019820,
+      "parent": 3019674,
+      "start": "486606532",
+      "command": "bash tests/gate.sh full --server-cores 24-31 --load-cores 16-23 --server-smt  --load-smt  --ports 20230-20239 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST "
+    },
+    {
+      "pid": 3167450,
+      "parent": 3019820,
+      "start": "486660884",
+      "command": "bash tests/gate.sh full --server-cores 24-31 --load-cores 16-23 --server-smt  --load-smt  --ports 20230-20239 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST "
+    },
+    {
+      "pid": 2386778,
+      "parent": 2386282,
+      "start": "486371303",
+      "command": "bash tests/gate.sh quick --server-cores 16-23 --load-cores 24-31 --server-smt  --load-smt  --ports 20200-20209 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST "
+    },
+    {
+      "pid": 3205405,
+      "parent": 2386778,
+      "start": "486675808",
+      "command": "bash tests/gate.sh quick --server-cores 16-23 --load-cores 24-31 --server-smt  --load-smt  --ports 20200-20209 --candidate-binary /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST "
+    },
+    {
+      "pid": 3346130,
+      "parent": 3205405,
+      "start": "486687791",
+      "command": "python3 tests/trackfix.py 127.0.0.1 20200 --oracle 127.0.0.1 20201 --mode 1s --engine epoll --atomic 1 --read-local 0 --case ordered --schedule-dir /home/user/Projects/cx-climonfix4/build/gate-run.IjpftY/jobs/trackfix_order/schedule-1s-epoll-a1-rl0 "
+    },
+    {
+      "pid": 3345246,
+      "parent": 3205405,
+      "start": "486687770",
+      "command": "/home/user/Projects/cx-climonfix4/build/trackfix/gate-scheduled-POST/tomokv --port 20200 --bind 127.0.0.1 --shards 16 --dir /home/user/Projects/cx-climonfix4/build/gate-run.IjpftY/jobs/trackfix_order/gate-data-fused.p9RMGi --save  --databases 1 --thread-mode fused --atomic 1 --net-io epoll --read-local 0 --enable-debug-command yes --save  --client-lb 0 --key-lb 0 --flip-auto 0 "
+    },
+    {
+      "pid": 3211267,
+      "parent": 3205405,
+      "start": "486677734",
+      "command": "/home/user/Projects/redis/src/redis-server 127.0.0.1:20201                                                                                                                                                                           "
+    },
+    {
+      "pid": 3167463,
+      "parent": 3167450,
+      "start": "486660891",
+      "command": "python3 tests/gate_history.py watch --pid 3167450 --parent-start 486660884 --seconds 899.99 --marker /home/user/Projects/cx-climonfix4/build/gate-run.vZDMen/jobs/differ-split-1/row-timeout-3167450.json --generation 3167450.486660884.1 --cancel-request /home/user/Projects/cx-climonfix4/build/gate-run.vZDMen/jobs/differ-split-1/row-timeout-3167450.3167450.486660884.1.cancel --cancel-receipt /home/user/Projects/cx-climonfix4/build/gate-run.vZDMen/jobs/differ-split-1/row-timeout-3167450.3167450.486660884.1.cancelled "
+    },
+    {
+      "pid": 3167464,
+      "parent": 3167450,
+      "start": "486660891",
+      "command": "/bin/bash tests/differ_gate.sh /home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST 20230 20231 24-31 6:2 "
+    },
+    {
+      "pid": 3205419,
+      "parent": 3205405,
+      "start": "486675814",
+      "command": "python3 tests/gate_history.py watch --pid 3205405 --parent-start 486675808 --seconds 900 --marker /home/user/Projects/cx-climonfix4/build/gate-run.IjpftY/jobs/trackfix_order/row-timeout-3205405.json --generation 3205405.486675808.1 --cancel-request /home/user/Projects/cx-climonfix4/build/gate-run.IjpftY/jobs/trackfix_order/row-timeout-3205405.3205405.486675808.1.cancel --cancel-receipt /home/user/Projects/cx-climonfix4/build/gate-run.IjpftY/jobs/trackfix_order/row-timeout-3205405.3205405.486675808.1.cancelled "
+    },
+    {
+      "pid": 3291920,
+      "parent": 3167464,
+      "start": "486685344",
+      "command": "timeout 900 python3 tests/differ.py 127.0.0.1 20230 127.0.0.1 20231 climon 20 "
+    },
+    {
+      "pid": 3167480,
+      "parent": 3167464,
+      "start": "486660920",
+      "command": "/home/user/Projects/redis74/src/redis-server 127.0.0.1:20231                                                                                                                                                                                                                                                                                               "
+    },
+    {
+      "pid": 3291930,
+      "parent": 3291920,
+      "start": "486685344",
+      "command": "python3 tests/differ.py 127.0.0.1 20230 127.0.0.1 20231 climon 20 "
+    },
+    {
+      "pid": 3167526,
+      "parent": 3167464,
+      "start": "486660928",
+      "command": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST --port 20230 --bind 127.0.0.1 --shards 16 --ratio 6:2 --net-io epoll --databases 16 --atomic 1 --save  --dir /home/user/Projects/cx-climonfix4/build/gate-run.vZDMen/jobs/differ-split-1/differ/target-atomic-1 --enable-debug-command yes --aclfile /home/user/Projects/cx-climonfix4/build/gate-run.vZDMen/jobs/differ-split-1/differ/ccfix.acl "
+    }
+  ]
+}

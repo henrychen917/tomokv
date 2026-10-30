@@ -1,0 +1,3748 @@
+{
+  "file": "unit/type/list",
+  "mode": "1s",
+  "passed": 232,
+  "failed": 2,
+  "skipped": 56,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "seconds": 9.633734798058867,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "16-23",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+    "--port",
+    "20250",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-climonfix4/build/gate-run.aCwcRX/jobs/redis_tcl/redis-tcl-1s/unit/type/list/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "16-23",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20250",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20252",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/type/list",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-climonfix4/build/gate-run.aCwcRX/jobs/redis_tcl/redis-tcl-1s/unit/type/list/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "2143610",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LPUSH and LPOP on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LINDEX and LINSERT on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LTRIM on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LREM on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LPOS on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LMOVE on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET with packed / plain combinations",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET with packed is split in the middle",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET with packed consist only one item",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Crash due to delete entry from a compress quicklist node",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Crash due to split quicklist node wrongly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LPUSH and LPOP on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LINDEX and LINSERT on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LTRIM on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LREM on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LPOS on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LMOVE on plain nodes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET with packed / plain combinations",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET with packed is split in the middle",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET with packed consist only one item",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Crash due to delete entry from a compress quicklist node",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Crash due to split quicklist node wrongly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LPUSH and LPOP on plain nodes over 4GB: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LINDEX and LINSERT on plain nodes over 4GB: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LTRIM on plain nodes over 4GB: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LREM on plain nodes over 4GB: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET on plain nodes over 4GB: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET on plain nodes with large elements under packed_threshold over 4GB: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET splits a quicklist node, and then merge: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LSET splits a LZF compressed quicklist node, and then merge: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Test LMOVE on plain nodes over 4GB: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS basic usage - quicklist in tests/unit/type/list.tcl",
+      "data": "LPOS basic usage - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS basic usage - quicklist in tests/unit/type/list.tcl",
+      "data": "LPOS basic usage - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS RANK (positive, negative and zero rank) option in tests/unit/type/list.tcl",
+      "data": "LPOS RANK (positive, negative and zero rank) option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS RANK (positive, negative and zero rank) option in tests/unit/type/list.tcl",
+      "data": "LPOS RANK (positive, negative and zero rank) option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT + RANK option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT + RANK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT + RANK option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT + RANK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS non existing key in tests/unit/type/list.tcl",
+      "data": "LPOS non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS non existing key in tests/unit/type/list.tcl",
+      "data": "LPOS non existing key",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS no match in tests/unit/type/list.tcl",
+      "data": "LPOS no match",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS no match in tests/unit/type/list.tcl",
+      "data": "LPOS no match",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS MAXLEN in tests/unit/type/list.tcl",
+      "data": "LPOS MAXLEN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS MAXLEN in tests/unit/type/list.tcl",
+      "data": "LPOS MAXLEN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS when RANK is greater than matches in tests/unit/type/list.tcl",
+      "data": "LPOS when RANK is greater than matches",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS when RANK is greater than matches in tests/unit/type/list.tcl",
+      "data": "LPOS when RANK is greater than matches",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - quicklist in tests/unit/type/list.tcl",
+      "data": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - quicklist in tests/unit/type/list.tcl",
+      "data": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - quicklist",
+      "milliseconds": "82"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with wrong number of arguments in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with wrong number of arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with wrong number of arguments in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with wrong number of arguments",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOP/LPOP with the optional count argument - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOP/LPOP with the optional count argument - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOP/LPOP with the optional count argument - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOP/LPOP with the optional count argument - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS basic usage - listpack in tests/unit/type/list.tcl",
+      "data": "LPOS basic usage - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS basic usage - listpack in tests/unit/type/list.tcl",
+      "data": "LPOS basic usage - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS RANK (positive, negative and zero rank) option in tests/unit/type/list.tcl",
+      "data": "LPOS RANK (positive, negative and zero rank) option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS RANK (positive, negative and zero rank) option in tests/unit/type/list.tcl",
+      "data": "LPOS RANK (positive, negative and zero rank) option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT + RANK option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT + RANK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS COUNT + RANK option in tests/unit/type/list.tcl",
+      "data": "LPOS COUNT + RANK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS non existing key in tests/unit/type/list.tcl",
+      "data": "LPOS non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS non existing key in tests/unit/type/list.tcl",
+      "data": "LPOS non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS no match in tests/unit/type/list.tcl",
+      "data": "LPOS no match",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS no match in tests/unit/type/list.tcl",
+      "data": "LPOS no match",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS MAXLEN in tests/unit/type/list.tcl",
+      "data": "LPOS MAXLEN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS MAXLEN in tests/unit/type/list.tcl",
+      "data": "LPOS MAXLEN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS when RANK is greater than matches in tests/unit/type/list.tcl",
+      "data": "LPOS when RANK is greater than matches",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOS when RANK is greater than matches in tests/unit/type/list.tcl",
+      "data": "LPOS when RANK is greater than matches",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - listpack in tests/unit/type/list.tcl",
+      "data": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - listpack in tests/unit/type/list.tcl",
+      "data": "LPUSH, RPUSH, LLENGTH, LINDEX, LPOP - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with wrong number of arguments in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with wrong number of arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with wrong number of arguments in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with wrong number of arguments",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOP/LPOP with the optional count argument - listpack in tests/unit/type/list.tcl",
+      "data": "RPOP/LPOP with the optional count argument - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOP/LPOP with the optional count argument - listpack in tests/unit/type/list.tcl",
+      "data": "RPOP/LPOP with the optional count argument - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with the count 0 returns an empty array in RESP3 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with the count 0 returns an empty array in RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with the count 0 returns an empty array in RESP3 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with the count 0 returns an empty array in RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP against non existing key in RESP3 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP against non existing key in RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP against non existing key in RESP3 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP against non existing key in RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with <count> against non existing key in RESP3 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with <count> against non existing key in RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with <count> against non existing key in RESP3 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with <count> against non existing key in RESP3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with the count 0 returns an empty array in RESP2 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with the count 0 returns an empty array in RESP2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with the count 0 returns an empty array in RESP2 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with the count 0 returns an empty array in RESP2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP against non existing key in RESP2 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP against non existing key in RESP2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP against non existing key in RESP2 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP against non existing key in RESP2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with <count> against non existing key in RESP2 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with <count> against non existing key in RESP2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP with <count> against non existing key in RESP2 in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP with <count> against non existing key in RESP2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Variadic RPUSH/LPUSH in tests/unit/type/list.tcl",
+      "data": "Variadic RPUSH/LPUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Variadic RPUSH/LPUSH in tests/unit/type/list.tcl",
+      "data": "Variadic RPUSH/LPUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "DEL a list in tests/unit/type/list.tcl",
+      "data": "DEL a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "DEL a list in tests/unit/type/list.tcl",
+      "data": "DEL a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: single existing list - quicklist in tests/unit/type/list.tcl",
+      "data": "BLPOP: single existing list - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: single existing list - quicklist in tests/unit/type/list.tcl",
+      "data": "BLPOP: single existing list - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: multiple existing lists - quicklist in tests/unit/type/list.tcl",
+      "data": "BLPOP: multiple existing lists - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: multiple existing lists - quicklist in tests/unit/type/list.tcl",
+      "data": "BLPOP: multiple existing lists - quicklist",
+      "milliseconds": "83"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: second list has an entry - quicklist in tests/unit/type/list.tcl",
+      "data": "BLPOP: second list has an entry - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: second list has an entry - quicklist in tests/unit/type/list.tcl",
+      "data": "BLPOP: second list has an entry - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: single existing list - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: single existing list - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: single existing list - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: single existing list - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: multiple existing lists - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: multiple existing lists - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: multiple existing lists - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: multiple existing lists - quicklist",
+      "milliseconds": "83"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: second list has an entry - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: second list has an entry - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: second list has an entry - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: second list has an entry - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH - quicklist in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH - quicklist in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left left - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE left left - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left left - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE left left - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left right - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE left right - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left right - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE left right - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right left - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE right left - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right left - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE right left - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right right - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE right right - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right right - quicklist in tests/unit/type/list.tcl",
+      "data": "BLMOVE right right - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: single existing list - listpack in tests/unit/type/list.tcl",
+      "data": "BLPOP: single existing list - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: single existing list - listpack in tests/unit/type/list.tcl",
+      "data": "BLPOP: single existing list - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: multiple existing lists - listpack in tests/unit/type/list.tcl",
+      "data": "BLPOP: multiple existing lists - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: multiple existing lists - listpack in tests/unit/type/list.tcl",
+      "data": "BLPOP: multiple existing lists - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: second list has an entry - listpack in tests/unit/type/list.tcl",
+      "data": "BLPOP: second list has an entry - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: second list has an entry - listpack in tests/unit/type/list.tcl",
+      "data": "BLPOP: second list has an entry - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: single existing list - listpack in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: single existing list - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: single existing list - listpack in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: single existing list - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: multiple existing lists - listpack in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: multiple existing lists - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: multiple existing lists - listpack in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: multiple existing lists - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: second list has an entry - listpack in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: second list has an entry - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: second list has an entry - listpack in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: second list has an entry - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH - listpack in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH - listpack in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left left - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE left left - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left left - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE left left - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left right - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE left right - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left right - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE left right - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right left - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE right left - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right left - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE right left - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right right - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE right right - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right right - listpack in tests/unit/type/list.tcl",
+      "data": "BLMOVE right right - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP, LPUSH + DEL should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLPOP, LPUSH + DEL should not awake blocked client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP, LPUSH + DEL should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLPOP, LPUSH + DEL should not awake blocked client",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP, LPUSH + DEL + SET should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLPOP, LPUSH + DEL + SET should not awake blocked client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP, LPUSH + DEL + SET should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLPOP, LPUSH + DEL + SET should not awake blocked client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT, LPUSH + DEL should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT, LPUSH + DEL should not awake blocked client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT, LPUSH + DEL should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT, LPUSH + DEL should not awake blocked client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT, LPUSH + DEL + SET should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT, LPUSH + DEL + SET should not awake blocked client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT, LPUSH + DEL + SET should not awake blocked client in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT, LPUSH + DEL + SET should not awake blocked client",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP with same key multiple times should work (issue #801) in tests/unit/type/list.tcl",
+      "data": "BLPOP with same key multiple times should work (issue #801)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP with same key multiple times should work (issue #801) in tests/unit/type/list.tcl",
+      "data": "BLPOP with same key multiple times should work (issue #801)",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "MULTI/EXEC is isolated from the point of view of BLPOP in tests/unit/type/list.tcl",
+      "data": "MULTI/EXEC is isolated from the point of view of BLPOP",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "MULTI/EXEC is isolated from the point of view of BLPOP in tests/unit/type/list.tcl",
+      "data": "MULTI/EXEC is isolated from the point of view of BLPOP",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP with variadic LPUSH in tests/unit/type/list.tcl",
+      "data": "BLPOP with variadic LPUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP with variadic LPUSH in tests/unit/type/list.tcl",
+      "data": "BLPOP with variadic LPUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "MULTI/EXEC is isolated from the point of view of BLMPOP_LEFT in tests/unit/type/list.tcl",
+      "data": "MULTI/EXEC is isolated from the point of view of BLMPOP_LEFT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "MULTI/EXEC is isolated from the point of view of BLMPOP_LEFT in tests/unit/type/list.tcl",
+      "data": "MULTI/EXEC is isolated from the point of view of BLMPOP_LEFT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT with variadic LPUSH in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT with variadic LPUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT with variadic LPUSH in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT with variadic LPUSH",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with zero timeout should block indefinitely",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left left with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE left left with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left left with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE left left with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left right with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE left right with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE left right with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE left right with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right left with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE right left with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right left with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE right left with zero timeout should block indefinitely",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right right with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE right right with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE right right with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMOVE right right with zero timeout should block indefinitely",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (left, left) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (left, left) with a client BLPOPing the target list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (left, left) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (left, left) with a client BLPOPing the target list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (left, right) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (left, right) with a client BLPOPing the target list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (left, right) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (left, right) with a client BLPOPing the target list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (right, left) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (right, left) with a client BLPOPing the target list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (right, left) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (right, left) with a client BLPOPing the target list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (right, right) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (right, right) with a client BLPOPing the target list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMOVE (right, right) with a client BLPOPing the target list in tests/unit/type/list.tcl",
+      "data": "BLMOVE (right, right) with a client BLPOPing the target list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with wrong source type in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with wrong source type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with wrong source type in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with wrong source type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with wrong destination type in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with wrong destination type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with wrong destination type in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with wrong destination type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH maintains order of elements after failure in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH maintains order of elements after failure",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH maintains order of elements after failure in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH maintains order of elements after failure",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with multiple blocked clients in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with multiple blocked clients",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH with multiple blocked clients in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH with multiple blocked clients",
+      "milliseconds": "15"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BLMPOP with multiple blocked clients",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Linked LMOVEs",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Circular BRPOPLPUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Self-referential BRPOPLPUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH inside a transaction in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH inside a transaction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH inside a transaction in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH inside a transaction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl",
+      "data": "PUSH resulting from BRPOPLPUSH affect WATCH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl",
+      "data": "PUSH resulting from BRPOPLPUSH affect WATCH",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH does not affect WATCH while still blocked",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl",
+      "data": "BRPOPLPUSH does not affect WATCH while still blocked",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BRPOPLPUSH timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "SWAPDB awakes blocked client: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "SWAPDB wants to wake blocked client, but the key already expired: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "MULTI + LPUSH + EXPIRE + DEBUG SLEEP on blocked client, key already expired: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BLPOP unblock but the key is expired and then block again - reprocessing command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP when new key is moved into place in tests/unit/type/list.tcl",
+      "data": "BLPOP when new key is moved into place",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP when new key is moved into place in tests/unit/type/list.tcl",
+      "data": "BLPOP when new key is moved into place",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP when result key is created by SORT..STORE in tests/unit/type/list.tcl",
+      "data": "BLPOP when result key is created by SORT..STORE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP when result key is created by SORT..STORE in tests/unit/type/list.tcl",
+      "data": "BLPOP when result key is created by SORT..STORE",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT when new key is moved into place in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT when new key is moved into place",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT when new key is moved into place in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT when new key is moved into place",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT when result key is created by SORT..STORE in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT when result key is created by SORT..STORE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT when result key is created by SORT..STORE in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT when result key is created by SORT..STORE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: timeout value out of range in tests/unit/type/list.tcl",
+      "data": "BLPOP: timeout value out of range",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: timeout value out of range in tests/unit/type/list.tcl",
+      "data": "BLPOP: timeout value out of range",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BLPOP: with single empty list argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BLPOP: with single empty list argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BLPOP: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BLPOP: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BLPOP: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BLPOP: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLPOP: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLPOP: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BLPOP: with 0.001 timeout should not block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BLPOP: second argument is not a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BLPOP: second argument is not a list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: timeout in tests/unit/type/list.tcl",
+      "data": "BLPOP: timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: timeout in tests/unit/type/list.tcl",
+      "data": "BLPOP: timeout",
+      "milliseconds": "1027"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BLPOP: arguments are empty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BLPOP: arguments are empty",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BRPOP: with single empty list argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BRPOP: with single empty list argument",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BRPOP: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BRPOP: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BRPOP: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BRPOP: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BRPOP: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BRPOP: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BRPOP: with 0.001 timeout should not block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BRPOP: second argument is not a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BRPOP: second argument is not a list",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: timeout in tests/unit/type/list.tcl",
+      "data": "BRPOP: timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: timeout in tests/unit/type/list.tcl",
+      "data": "BRPOP: timeout",
+      "milliseconds": "1045"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BRPOP: arguments are empty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BRPOP: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BRPOP: arguments are empty",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with single empty list argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with single empty list argument",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: second argument is not a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: second argument is not a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: timeout",
+      "milliseconds": "1046"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: arguments are empty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: arguments are empty",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with single empty list argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with single empty list argument in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with single empty list argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with negative timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with negative timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with non-integer timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with non-integer timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: with zero timeout should block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: second argument is not a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: second argument is not a list in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: second argument is not a list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: timeout in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: timeout",
+      "milliseconds": "1046"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: arguments are empty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_RIGHT: arguments are empty in tests/unit/type/list.tcl",
+      "data": "BLMPOP_RIGHT: arguments are empty",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP inside a transaction in tests/unit/type/list.tcl",
+      "data": "BLPOP inside a transaction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP inside a transaction in tests/unit/type/list.tcl",
+      "data": "BLPOP inside a transaction",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT inside a transaction in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT inside a transaction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT inside a transaction in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT inside a transaction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BLMPOP propagate as pop with count command to replica",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSHX, RPUSHX - generic in tests/unit/type/list.tcl",
+      "data": "LPUSHX, RPUSHX - generic",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSHX, RPUSHX - generic in tests/unit/type/list.tcl",
+      "data": "LPUSHX, RPUSHX - generic",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSHX, RPUSHX - quicklist in tests/unit/type/list.tcl",
+      "data": "LPUSHX, RPUSHX - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSHX, RPUSHX - quicklist in tests/unit/type/list.tcl",
+      "data": "LPUSHX, RPUSHX - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT - quicklist in tests/unit/type/list.tcl",
+      "data": "LINSERT - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT - quicklist in tests/unit/type/list.tcl",
+      "data": "LINSERT - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSHX, RPUSHX - listpack in tests/unit/type/list.tcl",
+      "data": "LPUSHX, RPUSHX - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSHX, RPUSHX - listpack in tests/unit/type/list.tcl",
+      "data": "LPUSHX, RPUSHX - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT - listpack in tests/unit/type/list.tcl",
+      "data": "LINSERT - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT - listpack in tests/unit/type/list.tcl",
+      "data": "LINSERT - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT raise error on bad syntax in tests/unit/type/list.tcl",
+      "data": "LINSERT raise error on bad syntax",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT raise error on bad syntax in tests/unit/type/list.tcl",
+      "data": "LINSERT raise error on bad syntax",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT against non-list value error in tests/unit/type/list.tcl",
+      "data": "LINSERT against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT against non-list value error in tests/unit/type/list.tcl",
+      "data": "LINSERT against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT against non existing key in tests/unit/type/list.tcl",
+      "data": "LINSERT against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINSERT against non existing key in tests/unit/type/list.tcl",
+      "data": "LINSERT against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - listpack",
+      "milliseconds": "22"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - listpack",
+      "milliseconds": "16"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - listpack in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - listpack in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - listpack",
+      "milliseconds": "32"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - listpack",
+      "milliseconds": "43"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - listpack in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - listpack",
+      "milliseconds": "30"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - listpack in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - listpack in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - listpack",
+      "milliseconds": "61"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - quicklist",
+      "milliseconds": "21"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - quicklist",
+      "milliseconds": "15"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - quicklist in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - quicklist in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - quicklist",
+      "milliseconds": "30"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX consistency test - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX consistency test - quicklist",
+      "milliseconds": "43"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX random access - quicklist in tests/unit/type/list.tcl",
+      "data": "LINDEX random access - quicklist",
+      "milliseconds": "31"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - quicklist in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Check if list is still ok after a DEBUG RELOAD - quicklist in tests/unit/type/list.tcl",
+      "data": "Check if list is still ok after a DEBUG RELOAD - quicklist",
+      "milliseconds": "61"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LLEN against non-list value error in tests/unit/type/list.tcl",
+      "data": "LLEN against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LLEN against non-list value error in tests/unit/type/list.tcl",
+      "data": "LLEN against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LLEN against non existing key in tests/unit/type/list.tcl",
+      "data": "LLEN against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LLEN against non existing key in tests/unit/type/list.tcl",
+      "data": "LLEN against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX against non-list value error in tests/unit/type/list.tcl",
+      "data": "LINDEX against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX against non-list value error in tests/unit/type/list.tcl",
+      "data": "LINDEX against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX against non existing key in tests/unit/type/list.tcl",
+      "data": "LINDEX against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LINDEX against non existing key in tests/unit/type/list.tcl",
+      "data": "LINDEX against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSH against non-list value error in tests/unit/type/list.tcl",
+      "data": "LPUSH against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPUSH against non-list value error in tests/unit/type/list.tcl",
+      "data": "LPUSH against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPUSH against non-list value error in tests/unit/type/list.tcl",
+      "data": "RPUSH against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPUSH against non-list value error in tests/unit/type/list.tcl",
+      "data": "RPUSH against non-list value error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH base case - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH base case - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH base case - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH base case - quicklist",
+      "milliseconds": "45"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left base case - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left base case - quicklist",
+      "milliseconds": "44"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right base case - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right base case - quicklist",
+      "milliseconds": "44"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left base case - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left base case - quicklist",
+      "milliseconds": "43"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right base case - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right base case - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right base case - quicklist",
+      "milliseconds": "44"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with the same list as src and dst - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with the same list as src and dst - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with the same list as src and dst - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with the same list as src and dst - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with the same list as src and dst - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with the same list as src and dst - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with the same list as src and dst - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with the same list as src and dst - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with the same list as src and dst - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with the same list as src and dst - quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with the same list as src and dst - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with quicklist source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with quicklist source and existing target quicklist",
+      "milliseconds": "82"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with quicklist source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with quicklist source and existing target quicklist",
+      "milliseconds": "82"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with quicklist source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with quicklist source and existing target quicklist",
+      "milliseconds": "83"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with quicklist source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with quicklist source and existing target quicklist",
+      "milliseconds": "82"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with quicklist source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with quicklist source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with quicklist source and existing target quicklist",
+      "milliseconds": "82"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with quicklist source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with quicklist source and existing target listpack",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with quicklist source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with quicklist source and existing target listpack",
+      "milliseconds": "43"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with quicklist source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with quicklist source and existing target listpack",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with quicklist source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with quicklist source and existing target listpack",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with quicklist source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with quicklist source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with quicklist source and existing target listpack",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH base case - listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH base case - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH base case - listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH base case - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left base case - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left base case - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right base case - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right base case - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left base case - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left base case - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right base case - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right base case - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right base case - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with the same list as src and dst - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with the same list as src and dst - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with the same list as src and dst - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with the same list as src and dst - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with the same list as src and dst - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with the same list as src and dst - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with the same list as src and dst - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with the same list as src and dst - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with the same list as src and dst - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with the same list as src and dst - listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with the same list as src and dst - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with listpack source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with listpack source and existing target quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with listpack source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with listpack source and existing target quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with listpack source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with listpack source and existing target quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with listpack source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with listpack source and existing target quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with listpack source and existing target quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with listpack source and existing target quicklist in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with listpack source and existing target quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH with listpack source and existing target listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left left with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left left with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE left right with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE left right with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right left with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right left with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMOVE right right with listpack source and existing target listpack in tests/unit/type/list.tcl",
+      "data": "LMOVE right right with listpack source and existing target listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non existing key in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non existing key in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non list src key in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non list src key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non list src key in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non list src key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non list dst key - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non list dst key - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non list dst key - quicklist in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non list dst key - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non list dst key - listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non list dst key - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non list dst key - listpack in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non list dst key - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non existing src key in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non existing src key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "RPOPLPUSH against non existing src key in tests/unit/type/list.tcl",
+      "data": "RPOPLPUSH against non existing src key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Basic LPOP/RPOP/LMPOP - quicklist in tests/unit/type/list.tcl",
+      "data": "Basic LPOP/RPOP/LMPOP - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Basic LPOP/RPOP/LMPOP - quicklist in tests/unit/type/list.tcl",
+      "data": "Basic LPOP/RPOP/LMPOP - quicklist",
+      "milliseconds": "82"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Basic LPOP/RPOP/LMPOP - listpack in tests/unit/type/list.tcl",
+      "data": "Basic LPOP/RPOP/LMPOP - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Basic LPOP/RPOP/LMPOP - listpack in tests/unit/type/list.tcl",
+      "data": "Basic LPOP/RPOP/LMPOP - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP/LMPOP against empty list in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP/LMPOP against empty list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP/LMPOP against empty list in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP/LMPOP against empty list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP/LMPOP NON-BLOCK or BLOCK against non list value in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP/LMPOP NON-BLOCK or BLOCK against non list value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LPOP/RPOP/LMPOP NON-BLOCK or BLOCK against non list value in tests/unit/type/list.tcl",
+      "data": "LPOP/RPOP/LMPOP NON-BLOCK or BLOCK against non list value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Mass RPOP/LPOP - listpack in tests/unit/type/list.tcl",
+      "data": "Mass RPOP/LPOP - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Mass RPOP/LPOP - listpack in tests/unit/type/list.tcl",
+      "data": "Mass RPOP/LPOP - listpack",
+      "milliseconds": "15"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Mass RPOP/LPOP - listpack in tests/unit/type/list.tcl",
+      "data": "Mass RPOP/LPOP - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Mass RPOP/LPOP - listpack in tests/unit/type/list.tcl",
+      "data": "Mass RPOP/LPOP - listpack",
+      "milliseconds": "29"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP with illegal argument in tests/unit/type/list.tcl",
+      "data": "LMPOP with illegal argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP with illegal argument in tests/unit/type/list.tcl",
+      "data": "LMPOP with illegal argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP single existing list - quicklist in tests/unit/type/list.tcl",
+      "data": "LMPOP single existing list - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP single existing list - quicklist in tests/unit/type/list.tcl",
+      "data": "LMPOP single existing list - quicklist",
+      "milliseconds": "123"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP multiple existing lists - quicklist in tests/unit/type/list.tcl",
+      "data": "LMPOP multiple existing lists - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP multiple existing lists - quicklist in tests/unit/type/list.tcl",
+      "data": "LMPOP multiple existing lists - quicklist",
+      "milliseconds": "167"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP single existing list - listpack in tests/unit/type/list.tcl",
+      "data": "LMPOP single existing list - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP single existing list - listpack in tests/unit/type/list.tcl",
+      "data": "LMPOP single existing list - listpack",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP multiple existing lists - listpack in tests/unit/type/list.tcl",
+      "data": "LMPOP multiple existing lists - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LMPOP multiple existing lists - listpack in tests/unit/type/list.tcl",
+      "data": "LMPOP multiple existing lists - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "LMPOP propagate as pop with count command to replica",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE basics - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE basics - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE basics - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE basics - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE inverted indexes - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE inverted indexes - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE inverted indexes - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE inverted indexes - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range indexes including the full list - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range indexes including the full list - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range indexes including the full list - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range indexes including the full list - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range negative end index - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range negative end index - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range negative end index - quicklist in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range negative end index - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE basics - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE basics - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE basics - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE basics - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE inverted indexes - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE inverted indexes - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE inverted indexes - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE inverted indexes - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range indexes including the full list - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range indexes including the full list - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range indexes including the full list - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range indexes including the full list - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range negative end index - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range negative end index - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE out of range negative end index - listpack in tests/unit/type/list.tcl",
+      "data": "LRANGE out of range negative end index - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE against non existing key in tests/unit/type/list.tcl",
+      "data": "LRANGE against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE against non existing key in tests/unit/type/list.tcl",
+      "data": "LRANGE against non existing key",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE with start > end yields an empty array for backward compatibility in tests/unit/type/list.tcl",
+      "data": "LRANGE with start > end yields an empty array for backward compatibility",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LRANGE with start > end yields an empty array for backward compatibility in tests/unit/type/list.tcl",
+      "data": "LRANGE with start > end yields an empty array for backward compatibility",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM basics - quicklist in tests/unit/type/list.tcl",
+      "data": "LTRIM basics - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM basics - quicklist in tests/unit/type/list.tcl",
+      "data": "LTRIM basics - quicklist",
+      "milliseconds": "501"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM out of range negative end index - quicklist in tests/unit/type/list.tcl",
+      "data": "LTRIM out of range negative end index - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM out of range negative end index - quicklist in tests/unit/type/list.tcl",
+      "data": "LTRIM out of range negative end index - quicklist",
+      "milliseconds": "82"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET - quicklist in tests/unit/type/list.tcl",
+      "data": "LSET - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET - quicklist in tests/unit/type/list.tcl",
+      "data": "LSET - quicklist",
+      "milliseconds": "42"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET out of range index - quicklist in tests/unit/type/list.tcl",
+      "data": "LSET out of range index - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET out of range index - quicklist in tests/unit/type/list.tcl",
+      "data": "LSET out of range index - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM basics - listpack in tests/unit/type/list.tcl",
+      "data": "LTRIM basics - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM basics - listpack in tests/unit/type/list.tcl",
+      "data": "LTRIM basics - listpack",
+      "milliseconds": "3"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM out of range negative end index - listpack in tests/unit/type/list.tcl",
+      "data": "LTRIM out of range negative end index - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LTRIM out of range negative end index - listpack in tests/unit/type/list.tcl",
+      "data": "LTRIM out of range negative end index - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET - listpack in tests/unit/type/list.tcl",
+      "data": "LSET - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET - listpack in tests/unit/type/list.tcl",
+      "data": "LSET - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET out of range index - listpack in tests/unit/type/list.tcl",
+      "data": "LSET out of range index - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET out of range index - listpack in tests/unit/type/list.tcl",
+      "data": "LSET out of range index - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET against non existing key in tests/unit/type/list.tcl",
+      "data": "LSET against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET against non existing key in tests/unit/type/list.tcl",
+      "data": "LSET against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET against non list value in tests/unit/type/list.tcl",
+      "data": "LSET against non list value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LSET against non list value in tests/unit/type/list.tcl",
+      "data": "LSET against non list value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove all the occurrences - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM remove all the occurrences - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove all the occurrences - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM remove all the occurrences - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove the first occurrence - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM remove the first occurrence - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove the first occurrence - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM remove the first occurrence - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove non existing element - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM remove non existing element - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove non existing element - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM remove non existing element - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count (2) - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count (2) - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count (2) - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count (2) - quicklist",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM deleting objects that may be int encoded - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM deleting objects that may be int encoded - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM deleting objects that may be int encoded - quicklist in tests/unit/type/list.tcl",
+      "data": "LREM deleting objects that may be int encoded - quicklist",
+      "milliseconds": "41"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove all the occurrences - listpack in tests/unit/type/list.tcl",
+      "data": "LREM remove all the occurrences - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove all the occurrences - listpack in tests/unit/type/list.tcl",
+      "data": "LREM remove all the occurrences - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove the first occurrence - listpack in tests/unit/type/list.tcl",
+      "data": "LREM remove the first occurrence - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove the first occurrence - listpack in tests/unit/type/list.tcl",
+      "data": "LREM remove the first occurrence - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove non existing element - listpack in tests/unit/type/list.tcl",
+      "data": "LREM remove non existing element - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM remove non existing element - listpack in tests/unit/type/list.tcl",
+      "data": "LREM remove non existing element - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count - listpack in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count - listpack in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count (2) - listpack in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count (2) - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM starting from tail with negative count (2) - listpack in tests/unit/type/list.tcl",
+      "data": "LREM starting from tail with negative count (2) - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM deleting objects that may be int encoded - listpack in tests/unit/type/list.tcl",
+      "data": "LREM deleting objects that may be int encoded - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "LREM deleting objects that may be int encoded - listpack in tests/unit/type/list.tcl",
+      "data": "LREM deleting objects that may be int encoded - listpack",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "BLPOP/BLMOVE should increase dirty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "client unblock tests in tests/unit/type/list.tcl",
+      "data": "client unblock tests",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "client unblock tests in tests/unit/type/list.tcl",
+      "data": "client unblock tests",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "client unblock tests in tests/unit/type/list.tcl",
+      "data": "client unblock tests",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "client unblock tests in tests/unit/type/list.tcl",
+      "data": "client unblock tests",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "List listpack -> quicklist encoding conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "List listpack -> quicklist encoding conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List quicklist -> listpack encoding conversion in tests/unit/type/list.tcl",
+      "data": "List quicklist -> listpack encoding conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List quicklist -> listpack encoding conversion in tests/unit/type/list.tcl",
+      "data": "List quicklist -> listpack encoding conversion",
+      "milliseconds": "206"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List encoding conversion when RDB loading in tests/unit/type/list.tcl",
+      "data": "List encoding conversion when RDB loading",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List encoding conversion when RDB loading in tests/unit/type/list.tcl",
+      "data": "List encoding conversion when RDB loading",
+      "milliseconds": "3"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "List invalid list-max-listpack-size config",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List of various encodings in tests/unit/type/list.tcl",
+      "data": "List of various encodings",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List of various encodings in tests/unit/type/list.tcl",
+      "data": "List of various encodings",
+      "milliseconds": "126"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List of various encodings - sanitize dump in tests/unit/type/list.tcl",
+      "data": "List of various encodings - sanitize dump",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List of various encodings - sanitize dump in tests/unit/type/list.tcl",
+      "data": "List of various encodings - sanitize dump",
+      "milliseconds": "2"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Unblock fairness is kept while pipelining",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Unblock fairness is kept during nested unblock",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Blocking command accounted only once in commandstats",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Blocking command accounted only once in commandstats after timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Command being unblocked cause another command to get unblocked execution order test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Blocking timeout following PAUSE should honor the timeout in tests/unit/type/list.tcl",
+      "data": "Blocking timeout following PAUSE should honor the timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Blocking timeout following PAUSE should honor the timeout in tests/unit/type/list.tcl",
+      "data": "Blocking timeout following PAUSE should honor the timeout in tests/unit/type/list.tcl\nTimeout waiting for blocked clients",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "unit/type/list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/type/list.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ]
+}

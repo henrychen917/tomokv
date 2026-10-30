@@ -1,0 +1,45 @@
+{
+  "source_commit": "c369ccc41",
+  "arms": {
+    "PRE": {
+      "path": "build/climonfix4/tomokv-PRE",
+      "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+      "bytes": 220087840
+    },
+    "POST": {
+      "path": "build/climonfix4/tomokv-POST",
+      "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+      "bytes": 220592096
+    },
+    "PAD-A": {
+      "path": "build/climonfix4/pad-a/tomokv",
+      "sha256": "93545fb26e832eaa3ef64024910671a485ba456fc2d1ba55b593d7960ee72165",
+      "bytes": 220332128
+    }
+  },
+  "instruction_pairs": 92,
+  "production_and_test_sources_unchanged_since_build": true,
+  "self_test_logs_verified": true,
+  "full_tcl_promotions_verified": true,
+  "isolated_roots": 7,
+  "EXPECT_QUICK": "EXPECT_QUICK=881",
+  "EXPECT_FULL": "EXPECT_FULL=898                 # ABBA reports only; self-test remains counted.",
+  "build_bytes": 21460013056,
+  "final_campaigns": {
+    "final14-affected-jobs": {
+      "passed": 310,
+      "failed": 0,
+      "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01"
+    },
+    "final14-differ-uring": {
+      "passed": 6,
+      "failed": 0,
+      "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01"
+    },
+    "final14-differ-epoll": {
+      "passed": 6,
+      "failed": 0,
+      "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01"
+    }
+  }
+}

@@ -105,3 +105,25 @@ CR/LF distinction and retained two spaces on the trailing/edges cases. The raw
 length-bearing string restores Redis's trim-before-map order; the existing
 `function-load-option` oracle cases rejected the merged predecessor in every
 mode, engine, atomic setting and database runtime.
+
+## Wave11 integration additions
+
+[Added or moved error sites](wave11-added-sites.json) enumerate the merged
+phase-14 changes relative to e2b237926. Existing lane inventories remain frozen.
+
+| Lane / site | Disposition |
+| --- | --- |
+| flipfix5, `cmd_debug_impl` FLIP-STAGE-HOLD | Integer/range and missing-server errors are fixed literals through `reply_err`; success uses fixed `reply_ok`. INFO's refusal counter is length-delimited numeric output. |
+| scriptfix3, `cmd_eval` private-cache fallback | Validation errors and allocation failure reach `reply_text_error`, which calls the central length-aware `reply_err`. Metadata owns the original source/SHA; warm lookups add no error writer. |
+| wave11, `compile_eval` metadata owner retention | An allocation failure clears the Lua stack and emits the fixed `out of memory caching script` text through `reply_text_error` / central `reply_err`. A failed insertion publishes no compiled entry. |
+| climonfix5, script admission extracted into `script_nested_execute` | AOF failure and memory rejection call the existing central helpers. Every deferred Lua error buffer is completely initialized on its error branch. Successful admission produces no error. |
+| shared shebang metadata and compiled no-writes closure | Retains wave10/scriptfix2's full quoted flag grammar and diagnostic text. Parse errors pass to `reply_text_error`; readonly runtime errors retain `reply_raw_error`'s map-without-trim policy. PAUSE classification reads flags and never emits a reply. |
+| climonfix4/5 nested MONITOR | New `climon_monitor_script_format` uses the existing `climon_quote_arg` for every command argument, escaping CR/LF and all control bytes. Only generated timestamp/DB/Lua markers are concatenated outside quoted arguments. Pending/forwarded lines retain those already-escaped bytes. RESET exclusion changes recipients, not framing. |
+| CLIENT metadata and PAUSE accounting | Added names are registry-owned metadata. CLIENT INFO/LIST remain length-delimited bulk output. Container arity uses the existing centralized helper. No new raw error writer. |
+| persistent EVAL/FUNCTION interpreters and FUNCTION library environment | Existing compile/run/result builders survive unchanged, including wave10's FUNCTION LOAD option trim-before-map repair. Lua error/status tables still use distinct central error/status builders. |
+| flushmerit | Harness only; no production reply site. |
+
+Source review found no added unescaped request-derived status/error writer.
+The existing `crlffix` and `scriptfix2` gate jobs exercise malformed headers,
+Lua/FUNCTION errors and frame synchronization on the merged executable;
+wave11's job receipts record their actual results separately.

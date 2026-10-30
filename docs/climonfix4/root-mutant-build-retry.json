@@ -1,0 +1,11 @@
+{
+  "root": "MONITOR-SCRIPT-CMDS",
+  "stage": "throwaway mutant compilation",
+  "exit": 1,
+  "reason": "The private source copy omitted third_party; scripting.cc uses a relative Lua include.",
+  "fix": "Copy the existing third_party tree into each private mutant source tree.",
+  "log": "docs/climonfix4/root-mutant-build-error.log",
+  "log_sha256": "3891d838e15e13f766950bfbc2f520cfae8476faa0e6e99899756c6edf8225f0",
+  "final_result": "MONITOR mutant compiled and its named Tcl assertion failed in both modes as required.",
+  "final_receipt": "docs/climonfix4/root-mutant-results.json"
+}

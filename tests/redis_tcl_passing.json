@@ -510,9 +510,12 @@
     "After CLIENT SETNAME, connection can still be closed in tests/unit/introspection.tcl",
     "CLIENT GETNAME check if name set correctly in tests/unit/introspection.tcl",
     "CLIENT GETNAME should return NIL if name is not assigned in tests/unit/introspection.tcl",
+    "CLIENT INFO in tests/unit/introspection.tcl",
     "CLIENT KILL maxAGE will kill old clients in tests/unit/introspection.tcl",
     "CLIENT KILL with illegal arguments in tests/unit/introspection.tcl",
+    "CLIENT LIST in tests/unit/introspection.tcl",
     "CLIENT LIST shows empty fields for unassigned names in tests/unit/introspection.tcl",
+    "CLIENT LIST with IDs in tests/unit/introspection.tcl",
     "CLIENT REPLY OFF/ON: disable all commands reply in tests/unit/introspection.tcl",
     "CLIENT REPLY ON: unset SKIP flag in tests/unit/introspection.tcl",
     "CLIENT REPLY SKIP: skip the next command reply in tests/unit/introspection.tcl",
@@ -524,10 +527,12 @@
     "CLIENT SETNAME does not accept spaces in tests/unit/introspection.tcl",
     "CLIENT command unhappy path coverage in tests/unit/introspection.tcl",
     "CONFIG SET duplicate configs in tests/unit/introspection.tcl",
+    "MONITOR can log commands issued by the scripting engine in tests/unit/introspection.tcl",
     "MONITOR can log executed commands in tests/unit/introspection.tcl",
     "MONITOR correctly handles multi-exec cases in tests/unit/introspection.tcl",
     "MONITOR log blocked command only once in tests/unit/introspection.tcl",
-    "PING in tests/unit/introspection.tcl"
+    "PING in tests/unit/introspection.tcl",
+    "RESET does NOT clean library name in tests/unit/introspection.tcl"
    ],
    "seconds": {
     "1s": 2.27,
@@ -535,11 +540,8 @@
    },
    "sha256": "92fa93cdb4bcb77698c6f516bbed9c7e34cf02d757baa8e40ccf5f1f45dd2e7c",
    "skip_tests": {
-    "CLIENT INFO": "failed on TomoKV 2s in the survey",
     "CLIENT KILL SKIPME YES/NO will kill all clients": "failed on TomoKV 2s in the survey",
     "CLIENT KILL close the client connection during bgsave": "failed on TomoKV 2s in the survey",
-    "CLIENT LIST": "failed on TomoKV 2s in the survey",
-    "CLIENT LIST with IDs": "failed on TomoKV 2s in the survey",
     "CONFIG GET hidden configs": "failed on TomoKV 2s in the survey",
     "CONFIG GET multiple args": "failed on TomoKV 2s in the survey",
     "CONFIG SET rollback on apply error": "failed on TomoKV 2s in the survey",
@@ -548,9 +550,7 @@
     "CONFIG SET with multiple args": "failed on TomoKV 2s in the survey",
     "CONFIG sanity": "failed on TomoKV 2s in the survey",
     "MONITOR can log commands issued by functions": "failed on TomoKV 2s in the survey",
-    "MONITOR can log commands issued by the scripting engine": "hung on TomoKV 2s in the survey",
-    "MONITOR supports redacting command arguments": "failed on TomoKV 2s in the survey",
-    "RESET does NOT clean library name": "failed on TomoKV 2s in the survey"
+    "MONITOR supports redacting command arguments": "failed on TomoKV 2s in the survey"
    }
   },
   "unit/introspection-2": {
@@ -786,6 +786,7 @@
     "FUZZ stresser with data model compr in tests/unit/other.tcl",
     "PIPELINING stresser (also a regression for the old epoll bug) in tests/unit/other.tcl",
     "Perform a final SAVE to leave a clean DB on disk in tests/unit/other.tcl",
+    "RESET clears MONITOR state in tests/unit/other.tcl",
     "RESET clears Pub/Sub state in tests/unit/other.tcl",
     "RESET clears and discards MULTI state in tests/unit/other.tcl",
     "RESET clears authenticated state in tests/unit/other.tcl",
@@ -803,7 +804,6 @@
     "Check consistency of different data types after a reload": "failed on TomoKV 2s in the survey",
     "Coverage: HELP commands": "failed on TomoKV 2s in the survey",
     "EXPIRES after AOF reload (without rewrite)": "failed on TomoKV 2s in the survey",
-    "RESET clears MONITOR state": "failed on TomoKV 2s in the survey",
     "Same dataset digest if saving/reloading as AOF?": "failed on TomoKV 2s in the survey"
    }
   },
@@ -811,11 +811,19 @@
    "extra_args": [],
    "known_setup_errors": [],
    "passed_tests": [
+    "Test RO scripts are not blocked by pause RO in tests/unit/pause.tcl",
     "Test both active and passive expires are skipped during client pause in tests/unit/pause.tcl",
     "Test clients with syntax errors will get responses immediately in tests/unit/pause.tcl",
+    "Test multiple clients can be queued up and unblocked in tests/unit/pause.tcl",
+    "Test new pause time is smaller than old one, then old time preserved in tests/unit/pause.tcl",
     "Test read commands are not blocked by client pause in tests/unit/pause.tcl",
+    "Test read-only scripts in multi-exec are not blocked by pause RO in tests/unit/pause.tcl",
+    "Test read/admin multi-execs are not blocked by pause RO in tests/unit/pause.tcl",
+    "Test scripts are blocked by pause RO in tests/unit/pause.tcl",
+    "Test special commands are paused by RO in tests/unit/pause.tcl",
     "Test that client pause starts at the end of a transaction in tests/unit/pause.tcl",
     "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write in tests/unit/pause.tcl",
+    "Test write commands are paused by RO in tests/unit/pause.tcl",
     "Test write multi-execs are blocked by pause RO in tests/unit/pause.tcl",
     "Test write scripts in multi-exec are blocked by pause RO in tests/unit/pause.tcl"
    ],
@@ -826,16 +834,8 @@
    "sha256": "ab08200bf658762cbe77f8a910ff7f25d224d5581200a328a2cca72fc798bc95",
    "skip_tests": {
     "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE": "failed on TomoKV 2s in the survey",
-    "Test RO scripts are not blocked by pause RO": "hung on TomoKV 2s in the survey",
     "Test may-replicate commands are rejected in RO scripts": "failed on TomoKV 2s in the survey",
-    "Test multiple clients can be queued up and unblocked": "failed on TomoKV 2s in the survey",
-    "Test new pause time is smaller than old one, then old time preserved": "failed on TomoKV 2s in the survey",
-    "Test old pause-all takes precedence over new pause-write (less restrictive)": "failed on TomoKV 2s in the survey",
-    "Test read-only scripts in multi-exec are not blocked by pause RO": "hung on TomoKV 2s in the survey",
-    "Test read/admin multi-execs are not blocked by pause RO": "hung on TomoKV 2s in the survey",
-    "Test scripts are blocked by pause RO": "failed on TomoKV 2s in the survey",
-    "Test special commands are paused by RO": "failed on TomoKV 2s in the survey",
-    "Test write commands are paused by RO": "failed on TomoKV 2s in the survey"
+    "Test old pause-all takes precedence over new pause-write (less restrictive)": "failed on TomoKV 2s in the survey"
    }
   },
   "unit/protocol": {

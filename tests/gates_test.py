@@ -2158,6 +2158,25 @@ class NetfixOracleWiringTests(unittest.TestCase):
                 _netfix.certificates(args)
 
 
+class FlushMeritSelfTests(unittest.TestCase):
+    """Maintainer-only instruments share the existing serverless harness row."""
+    def run_instrument(self, name):
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run([sys.executable, str(root / 'calib' / name), '--selftest'],
+                                cwd=root, text=True, capture_output=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('selftest: PASS', result.stdout)
+
+    def test_flush_latency(self):
+        self.run_instrument('flush-latency-merit.py')
+
+    def test_flush_writer_wait(self):
+        self.run_instrument('flush-writer-wait.py')
+
+    def test_mget_under_exec(self):
+        self.run_instrument('mget-under-exec-merit.py')
+
+
 if __name__ == '__main__':
     (Path(__file__).resolve().parents[1] / 'build').mkdir(exist_ok=True)
     unittest.main()

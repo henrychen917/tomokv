@@ -1,0 +1,358 @@
+PARTIAL	0	GATE_ONLY_JOBS=flipfix5 flipfix5_units flip fliplisten flipctl flip_unit flipfix_units core_units lb-stationary-1s lb-stationary-2s lbplanner_units moverfix txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 debug-0 debug-1 atomic_units atomic_batteries atomfix5_watch atomfix5_accounting rlfix3_zc rlfix3_info rlcache splitlocal_units feature-armed-0 feature-armed-1 feature-split-0 feature-split-1 snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors persistfix_units multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	54.050000	read-local ownership-invariant build
+ok	16.980000	flip controller model unit
+ok	132.890000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	2.420000	s6 battery (atomic 0)
+ok	2.100000	multi_exec battery (atomic 0)
+ok	1.580000	blocking battery (atomic 0)
+ok	0.470000	blockmulti battery (atomic 0)
+ok	0.790000	stream battery (atomic 0)
+ok	0.070000	streamgroups battery (atomic 0)
+ok	0.910000	pubsub battery (atomic 0)
+ok	0.060000	lua_scripting battery (atomic 0)
+ok	0.070000	scriptsurf battery (atomic 0)
+ok	14.660000	limits battery (atomic 0)
+ok	0.060000	resp3 battery (atomic 0)
+ok	0.060000	bitfield battery (atomic 0)
+ok	0.080000	dumprestore battery (atomic 0)
+ok	0.070000	zsetops battery (atomic 0)
+ok	0.050000	geo battery (atomic 0)
+ok	1.140000	climon battery (atomic 0)
+ok	3.330000	climon2 battery (atomic 0)
+ok	13.240000	tracking battery (atomic 0)
+ok	3.070000	hexpire battery (atomic 0)
+ok	0.580000	servertail battery (atomic 0)
+ok	0.180000	lcs battery (atomic 0)
+ok	2.800000	concur battery (atomic 0)
+ok	0.610000	edgeproto battery (atomic 0)
+ok	0.360000	edgeenc battery (atomic 0)
+ok	4.020000	edgetime battery (atomic 0)
+ok	0.050000	arity battery (atomic 0)
+ok	0.050000	contarity battery (atomic 0)
+ok	0.050000	cmdgap battery (atomic 0)
+ok	0.060000	aclsel battery (atomic 0)
+ok	54.690000	expwide battery (atomic 0)
+ok	4.180000	infofix battery (atomic 0)
+ok	2.960000	pushtear battery (atomic 0)
+ok	0.060000	netcmd battery (atomic 0)
+ok	0.020000	feature shutdown invariants (atomic 0)
+ok	0.250000	fused+armed boot line (atomic 0)
+ok	1.160000	fused+armed s6 battery (atomic 0)
+ok	2.100000	fused+armed multi_exec battery (atomic 0)
+ok	1.680000	fused+armed blocking battery (atomic 0)
+ok	0.470000	fused+armed blockmulti battery (atomic 0)
+ok	0.850000	fused+armed stream battery (atomic 0)
+ok	0.080000	fused+armed streamgroups battery (atomic 0)
+ok	0.930000	fused+armed pubsub battery (atomic 0)
+ok	0.060000	fused+armed lua_scripting battery (atomic 0)
+ok	0.070000	fused+armed scriptsurf battery (atomic 0)
+ok	14.730000	fused+armed limits battery (atomic 0)
+ok	0.060000	fused+armed resp3 battery (atomic 0)
+ok	0.060000	fused+armed bitfield battery (atomic 0)
+ok	0.090000	fused+armed dumprestore battery (atomic 0)
+ok	0.070000	fused+armed zsetops battery (atomic 0)
+ok	0.050000	fused+armed geo battery (atomic 0)
+ok	1.150000	fused+armed climon battery (atomic 0)
+ok	3.330000	fused+armed climon2 battery (atomic 0)
+ok	13.240000	fused+armed tracking battery (atomic 0)
+ok	3.070000	fused+armed hexpire battery (atomic 0)
+ok	0.580000	fused+armed servertail battery (atomic 0)
+ok	0.180000	fused+armed lcs battery (atomic 0)
+ok	2.830000	fused+armed concur battery (atomic 0)
+ok	0.750000	fused+armed edgeproto battery (atomic 0)
+ok	0.390000	fused+armed edgeenc battery (atomic 0)
+ok	3.820000	fused+armed edgetime battery (atomic 0)
+ok	0.050000	fused+armed arity battery (atomic 0)
+ok	0.050000	fused+armed contarity battery (atomic 0)
+ok	0.050000	fused+armed cmdgap battery (atomic 0)
+ok	0.060000	fused+armed aclsel battery (atomic 0)
+ok	54.700000	fused+armed expwide battery (atomic 0)
+ok	4.200000	fused+armed infofix battery (atomic 0)
+ok	2.970000	fused+armed pushtear battery (atomic 0)
+ok	0.050000	fused+armed netcmd battery (atomic 0)
+ok	1.160000	fused+armed shutdown report + lane fired (hits=N, atomic 0)
+ok	2.410000	s6 battery (atomic 1)
+ok	2.100000	multi_exec battery (atomic 1)
+ok	1.520000	blocking battery (atomic 1)
+ok	0.470000	blockmulti battery (atomic 1)
+ok	0.800000	stream battery (atomic 1)
+ok	0.060000	streamgroups battery (atomic 1)
+ok	0.940000	pubsub battery (atomic 1)
+ok	0.050000	lua_scripting battery (atomic 1)
+ok	0.070000	scriptsurf battery (atomic 1)
+ok	15.510000	limits battery (atomic 1)
+ok	0.060000	resp3 battery (atomic 1)
+ok	0.060000	bitfield battery (atomic 1)
+ok	0.090000	dumprestore battery (atomic 1)
+ok	0.070000	zsetops battery (atomic 1)
+ok	0.050000	geo battery (atomic 1)
+ok	1.150000	climon battery (atomic 1)
+ok	3.370000	climon2 battery (atomic 1)
+ok	13.340000	tracking battery (atomic 1)
+ok	3.070000	hexpire battery (atomic 1)
+ok	0.580000	servertail battery (atomic 1)
+ok	0.180000	lcs battery (atomic 1)
+ok	2.810000	concur battery (atomic 1)
+ok	0.610000	edgeproto battery (atomic 1)
+ok	0.360000	edgeenc battery (atomic 1)
+ok	3.820000	edgetime battery (atomic 1)
+ok	0.050000	arity battery (atomic 1)
+ok	0.060000	contarity battery (atomic 1)
+ok	0.050000	cmdgap battery (atomic 1)
+ok	0.050000	aclsel battery (atomic 1)
+ok	73.480000	expwide battery (atomic 1)
+ok	4.180000	infofix battery (atomic 1)
+ok	5.470000	pushtear battery (atomic 1)
+ok	0.050000	netcmd battery (atomic 1)
+ok	0.020000	feature shutdown invariants (atomic 1)
+ok	0.260000	fused+armed boot line (atomic 1)
+ok	1.170000	fused+armed s6 battery (atomic 1)
+ok	2.100000	fused+armed multi_exec battery (atomic 1)
+ok	1.670000	fused+armed blocking battery (atomic 1)
+ok	0.490000	fused+armed blockmulti battery (atomic 1)
+ok	0.830000	fused+armed stream battery (atomic 1)
+ok	0.080000	fused+armed streamgroups battery (atomic 1)
+ok	0.920000	fused+armed pubsub battery (atomic 1)
+ok	0.050000	fused+armed lua_scripting battery (atomic 1)
+ok	0.070000	fused+armed scriptsurf battery (atomic 1)
+ok	15.430000	fused+armed limits battery (atomic 1)
+ok	0.060000	fused+armed resp3 battery (atomic 1)
+ok	0.060000	fused+armed bitfield battery (atomic 1)
+ok	0.090000	fused+armed dumprestore battery (atomic 1)
+ok	0.070000	fused+armed zsetops battery (atomic 1)
+ok	0.050000	fused+armed geo battery (atomic 1)
+ok	1.160000	fused+armed climon battery (atomic 1)
+ok	3.340000	fused+armed climon2 battery (atomic 1)
+ok	13.270000	fused+armed tracking battery (atomic 1)
+ok	3.070000	fused+armed hexpire battery (atomic 1)
+ok	0.590000	fused+armed servertail battery (atomic 1)
+ok	0.180000	fused+armed lcs battery (atomic 1)
+ok	2.810000	fused+armed concur battery (atomic 1)
+ok	0.730000	fused+armed edgeproto battery (atomic 1)
+ok	0.390000	fused+armed edgeenc battery (atomic 1)
+ok	3.820000	fused+armed edgetime battery (atomic 1)
+ok	0.050000	fused+armed arity battery (atomic 1)
+ok	0.050000	fused+armed contarity battery (atomic 1)
+ok	0.050000	fused+armed cmdgap battery (atomic 1)
+ok	0.060000	fused+armed aclsel battery (atomic 1)
+ok	57.220000	fused+armed expwide battery (atomic 1)
+ok	4.220000	fused+armed infofix battery (atomic 1)
+ok	5.460000	fused+armed pushtear battery (atomic 1)
+ok	0.050000	fused+armed netcmd battery (atomic 1)
+ok	1.170000	fused+armed shutdown report + lane fired (hits=N, atomic 1)
+ok	4.440000	multidb (1s, read-local 0, atomic 0)
+ok	0.100000	multidb (1s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.430000	multidb (1s, read-local 0, atomic 1)
+ok	0.100000	multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.440000	multidb (1s, read-local 1, atomic 0)
+ok	0.090000	multidb (1s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.440000	multidb (1s, read-local 1, atomic 1)
+ok	0.100000	multidb (1s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	4.330000	multidb (2s, read-local 0, atomic 0)
+ok	0.090000	multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.340000	multidb (2s, read-local 0, atomic 1)
+ok	0.100000	multidb (2s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.330000	multidb (2s, read-local 1, atomic 0)
+ok	0.100000	multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.340000	multidb (2s, read-local 1, atomic 1)
+ok	0.100000	multidb (2s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	7.640000	persistfix2 LASTSAVE and rewrite INFO
+ok	56.350000	persistfix2 shutdown modifiers and signal policy
+ok	54.360000	persistfix2 persistence command replies and scheduling
+ok	3.780000	persistfix2 AOF write-error refusal and read availability
+ok	0.640000	snapshot concurrent cut (epoll)
+ok	0.200000	snapshot cut reload (epoll)
+ok	2.780000	snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+ok	5.260000	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+ok	0.050000	typed snapshot save (epoll)
+ok	0.050000	typed snapshot reload (epoll)
+ok	0.160000	typed snapshot preimage race (epoll)
+ok	0.060000	typed snapshot race reload (epoll)
+ok	0.800000	shutdown keeps acknowledged writes (1s, sigterm, epoll)
+ok	0.790000	shutdown keeps acknowledged writes (1s, command, epoll)
+ok	0.950000	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)
+ok	0.940000	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)
+ok	0.810000	shutdown keeps acknowledged writes (2s, sigterm, epoll)
+ok	0.810000	shutdown keeps acknowledged writes (2s, command, epoll)
+ok	1.020000	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)
+ok	1.060000	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)
+ok	0.630000	snapshot concurrent cut (uring)
+ok	0.170000	snapshot cut reload (uring)
+ok	2.770000	snapshot never tears a cross-shard MSET group (uring, atomic 1)
+ok	5.210000	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+ok	0.050000	typed snapshot save (uring)
+ok	0.040000	typed snapshot reload (uring)
+ok	0.170000	typed snapshot preimage race (uring)
+ok	0.050000	typed snapshot race reload (uring)
+ok	0.790000	shutdown keeps acknowledged writes (1s, sigterm, uring)
+ok	0.800000	shutdown keeps acknowledged writes (1s, command, uring)
+ok	0.960000	shutdown cancels BGSAVE capture (1s, atomic 0, uring)
+ok	0.960000	shutdown cancels BGSAVE capture (1s, atomic 1, uring)
+ok	0.810000	shutdown keeps acknowledged writes (2s, sigterm, uring)
+ok	0.810000	shutdown keeps acknowledged writes (2s, command, uring)
+ok	1.070000	shutdown cancels BGSAVE capture (2s, atomic 0, uring)
+ok	1.070000	shutdown cancels BGSAVE capture (2s, atomic 1, uring)
+ok	0.630000	snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)
+ok	58.550000	snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)
+ok	55.420000	snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)
+ok	1.990000	snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)
+ok	9.170000	plain-write lost updates (atomic 0)
+ok	0.160000	lbsignals battery (atomic 0)
+ok	1.480000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.130000	scriptatomic battery (atomic 0)
+ok	14.460000	execatomic battery (atomic 0)
+ok	11.880000	execiso battery (atomic 0)
+ok	0.430000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.780000	multirace battery (atomic 0)
+ok	30.580000	session_monotonic battery (atomic 0)
+ok	0.370000	xacct battery (atomic 0)
+ok	0.030000	xmove battery (atomic 0)
+ok	3.270000	xscript battery (atomic 0)
+ok	1.930000	txn_nx battery (atomic 0)
+ok	8.890000	txniso battery (atomic 0)
+ok	6.170000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+ok	0.040000	atomfix battery (atomic 1)
+ok	0.130000	scriptatomic battery (atomic 1)
+ok	14.470000	execatomic battery (atomic 1)
+ok	11.870000	execiso battery (atomic 1)
+ok	0.440000	execfix battery (atomic 1)
+ok	0.110000	multires battery (atomic 1)
+ok	0.780000	multirace battery (atomic 1)
+ok	30.580000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.030000	xmove battery (atomic 1)
+ok	3.260000	xscript battery (atomic 1)
+ok	1.970000	txn_nx battery (atomic 1)
+ok	9.520000	txniso battery (atomic 1)
+ok	42.370000	stationary balanced LB holds still (1s)
+ok	42.370000	stationary balanced LB holds still (2s)
+ok	2.080000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	13.980000	atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+ok	0.110000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.120000	core concurrency drain
+ok	7.170000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.560000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	0.130000	FLIP planned-connection close lifetime (ASAN+TSAN)
+ok	0.130000	FLIP fingerprint publication (ASAN+TSAN)
+ok	0.190000	FLIP stale stage sample refused (ASAN+TSAN)
+ok	0.180000	FLIP stale stage planted pre-fix controls fail
+ok	0.040000	AOF publication/shutdown witnesses + negative controls
+ok	0.210000	LB sampler exceptional cleanup + negative control
+ok	0.200000	LB monitor plan handoff + negative controls
+ok	1.010000	splitlocal template forwarding + old-argument controls
+ok	0.000000	atomic commit publication catches up at quiescence
+ok	2.150000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	3.520000	multidb serverless owners
+ok	0.040000	multidb global namespace boundary
+ok	11.600000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.000000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.000000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	32.800000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	2.480000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.470000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.460000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.470000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.500000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.500000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.480000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.480000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	0.270000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.280000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.280000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.280000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.280000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.280000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.280000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 1)
+ok	0.750000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.750000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.740000	INFO selective collection (1s, uring, read-local 0)
+ok	0.750000	INFO selective collection (1s, uring, read-local 1)
+ok	0.750000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.740000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.740000	INFO selective collection (2s, uring, read-local 0)
+ok	0.740000	INFO selective collection (2s, uring, read-local 1)
+ok	0.160000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.160000	FLIP close during FLIP (uring)
+ok	2.080000	FLIP close during FLIP (epoll)
+ok	1.060000	FLIP signal stop during FLIP + second SIGINT
+ok	0.530000	perfio stale epoll registration (epoll-flip)
+ok	1.110000	perfio stale epoll registration (epoll-lb)
+ok	29.100000	FLIP listener conservation (io-ex, complete)
+ok	29.140000	FLIP listener conservation (io-ex, rollback)
+ok	28.150000	FLIP listener conservation (ex-io, complete)
+ok	28.090000	FLIP listener conservation (ex-io, rollback)
+ok	80.920000	FLIP stale stage storm (all legs)
+ok	102.320000	txnorder index oracle
+ok	2.540000	txnorder index complexity
+ok	0.030000	txnorder wound group
+ok	0.020000	txnorder wound exec
+ok	0.020000	txnorder wound oom
+ok	0.090000	txnorder wound d2
+ok	0.020000	txnorder2 writer episode R1
+ok	0.030000	txnorder2 writer episode R2
+ok	0.030000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.030000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.070000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.550000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.550000	txnorder2 WATCH serve
+ok	30.230000	txnorder2 WATCH flush
+ok	26.960000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake
+ok	48.150000	txnorder battery (fused, atomic 0)
+ok	48.020000	txnorder battery (fused, atomic 1)
+ok	47.860000	txnorder battery (split, atomic 0)
+ok	47.830000	txnorder battery (split, atomic 1)
+ok	25.130000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants

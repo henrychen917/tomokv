@@ -1,0 +1,44 @@
+{
+  "merges": [
+    {
+      "branch": "cx-flipfix5",
+      "tip": "38481d70a46e789cf4793dcee63ca2c5bd7e68c4",
+      "merge": "0ff46e70a0a7724997a65ee63bbfb233b343ae6f",
+      "parents": [
+        "e2b2379262ecc28e6fc3508526ba3403a98d68be",
+        "38481d70a46e789cf4793dcee63ca2c5bd7e68c4"
+      ]
+    },
+    {
+      "branch": "cx-scriptfix3",
+      "tip": "e271dfb6f82f1d16d8bd7418b991311c8fbfa8e7",
+      "merge": "43cc804b9a3ddccea172e0939ceff06fa48d0681",
+      "parents": [
+        "0ff46e70a0a7724997a65ee63bbfb233b343ae6f",
+        "e271dfb6f82f1d16d8bd7418b991311c8fbfa8e7"
+      ]
+    },
+    {
+      "branch": "cx-climonfix5",
+      "tip": "effac9f521ad53daf2baa21d428c4d817e180f56",
+      "merge": "1d2499d25dde0325a719292aad5773c0f8014f2b",
+      "parents": [
+        "43cc804b9a3ddccea172e0939ceff06fa48d0681",
+        "effac9f521ad53daf2baa21d428c4d817e180f56"
+      ]
+    },
+    {
+      "branch": "cx-flushmerit",
+      "tip": "ee7c0b583ed8d85b7074b1e1b95539382145a8d2",
+      "merge": "c1a9b7338fe109168c7da0aa429f0e76fcfec28f",
+      "parents": [
+        "1d2499d25dde0325a719292aad5773c0f8014f2b",
+        "ee7c0b583ed8d85b7074b1e1b95539382145a8d2"
+      ]
+    }
+  ],
+  "production_source_commit": "510e826117fc4d1d5a67ebef1dd011f686f74244",
+  "expect_unchanged": true,
+  "tracked_fixture_unchanged": true,
+  "no_push": true
+}

@@ -1053,6 +1053,7 @@ struct CoreConcurrencyTest {
 #include "lanefull_checks.inc"
 #include "flipreport_checks.inc"
 #include "flipfix_checks.inc"
+#include "flipfix5_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1212,6 +1213,14 @@ int main(int argc, char** argv) {
     else if (row == "flipfix-plan-race") T::flipfix_plan_race();
     else if (row == "flipfix-plan-lifetime") T::flipfix_plan_lifetime();
     else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
+    else if (row == "flipfix5") T::flipfix5_all();
+    // Negative controls: the pre-flipfix5 live-epoch test must replay (FAIL) or abort.
+    else if (row == "flipfix5-planted") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, false);
+    else if (row == "flipfix5-planted-abort") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, true);
+    else if (row == "flipfix5-planted-boundary") T::flipfix5_ex(tomo::FlipStage::DatabaseExDrain, true, false);
+    else if (row == "flipfix5-planted-io") T::flipfix5_io(true);
+    else if (row == "flipfix5-planted-late-token")
+        T::flipfix5_ex(tomo::FlipStage::ExInstall, false, false, true, true);
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }

@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "32-39",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "20300-20309",
+    "--candidate-binary",
+    "/home/user/Projects/cx-scriptfix3/build/scriptfix3/pre/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-scriptfix3",
+  "env": {
+    "LANG": "C",
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "scriptfix",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20398",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/pre-behavior.tsv"
+  },
+  "binary_sha256": "c9bbca0a9b578889f9d20514be543db45f2758e0cffa0ef726d6970d28b8d946",
+  "source_commit": "5b543021699dd5098ad17d34fb225cb7bca4dc3b",
+  "source_diff_sha256": "e18770ef9b21c68518e0cff8d2f0447eabae40fa1a8df74dfe94d56a4b4d7cf3",
+  "gate_sha256": "6e99a1fe6d465653a8bc1026df4c892c96fefec0383af49e087c015ba2cac98b",
+  "started": 1793309943.0451546,
+  "exit": 0,
+  "seconds": 8.185736417770386,
+  "artifacts": "/home/user/Projects/cx-scriptfix3/build/gate-run.Ukyr5G",
+  "summary": [
+    "GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-scriptfix3/docs/scriptfix3/jobs/pre-behavior.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

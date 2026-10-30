@@ -1,0 +1,53 @@
+{
+  "cwd": "/home/user/Projects/cx-climonfix4",
+  "gate_sha256": "2c5fa24f27a7ecf16a252457c210cbae842fefd8d150b19d742cd05f259b097c",
+  "cpu_boundary": "16-31",
+  "exit": 0,
+  "binary_sha256": "3e5ab385e48e0189f8dada5af44e0d1792b403cbd50c85cb41e5e73332a488e8",
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+  ],
+  "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.ZEQc9L",
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_TCL_MANIFEST": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-MAY-REPLICATE.json"
+  },
+  "root": "PAUSE-MAY-REPLICATE",
+  "arm": "POST",
+  "witnesses": {
+    "2s": {
+      "result": "/home/user/Projects/cx-climonfix4/build/gate-run.ZEQc9L/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+      "statuses": [
+        "testing",
+        "ok"
+      ],
+      "error": null
+    },
+    "1s": {
+      "result": "/home/user/Projects/cx-climonfix4/build/gate-run.ZEQc9L/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+      "statuses": [
+        "testing",
+        "ok"
+      ],
+      "error": null
+    }
+  },
+  "manifest_sha256": "100d39606fb78115ee3112eb02c515af52a9cf4b596af4a08a37b96e61125999",
+  "harness_source_commit": "f86022ba4",
+  "binary_source_commit": "f86022ba4"
+}

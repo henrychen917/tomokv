@@ -1,0 +1,250 @@
+[
+  {
+    "mode": "1s",
+    "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-1s",
+    "promotions": [
+      {
+        "file": "unit/introspection",
+        "name": "CLIENT INFO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "CLIENT LIST",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "CLIENT LIST with IDs",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "MONITOR can log commands issued by the scripting engine",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "RESET does NOT clean library name",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/other",
+        "name": "RESET clears MONITOR state",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test RO scripts are not blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test multiple clients can be queued up and unblocked",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test new pause time is smaller than old one, then old time preserved",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test read-only scripts in multi-exec are not blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test read/admin multi-execs are not blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test scripts are blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test special commands are paused by RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test write commands are paused by RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      }
+    ],
+    "other_named_failures": [],
+    "summary_sha256": "d3b31da1ad4ee4f578f10580dd363de18734695e241949e169a56b5dc64cbc2d",
+    "assertions_passed": 1704,
+    "manifest_errors": [],
+    "all_promotions_pass": true
+  },
+  {
+    "mode": "2s",
+    "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-2s",
+    "promotions": [
+      {
+        "file": "unit/introspection",
+        "name": "CLIENT INFO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "CLIENT LIST",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "CLIENT LIST with IDs",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "MONITOR can log commands issued by the scripting engine",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/introspection",
+        "name": "RESET does NOT clean library name",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/other",
+        "name": "RESET clears MONITOR state",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test RO scripts are not blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test multiple clients can be queued up and unblocked",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test new pause time is smaller than old one, then old time preserved",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test read-only scripts in multi-exec are not blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test read/admin multi-execs are not blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test scripts are blocked by pause RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test special commands are paused by RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      },
+      {
+        "file": "unit/pause",
+        "name": "Test write commands are paused by RO",
+        "statuses": [
+          "testing",
+          "ok"
+        ]
+      }
+    ],
+    "other_named_failures": [],
+    "summary_sha256": "63139a601524da9cd5bef6966bbf79e88c4ac3d067d04d0112532fa8bd75877d",
+    "assertions_passed": 1704,
+    "manifest_errors": [],
+    "all_promotions_pass": true
+  }
+]

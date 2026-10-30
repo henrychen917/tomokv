@@ -1,0 +1,752 @@
+{
+  "POST": {
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "layouts": {
+      "tomo::IoLoop::ClimonConn": {
+        "size": 280,
+        "fields": [
+          {
+            "name": "client",
+            "bitpos": 0,
+            "type": "tomo::Client *"
+          },
+          {
+            "name": "reply_mode",
+            "bitpos": 64,
+            "type": "uint8_t"
+          },
+          {
+            "name": "monitor",
+            "bitpos": 72,
+            "type": "bool"
+          },
+          {
+            "name": "pause_blocked",
+            "bitpos": 80,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_on",
+            "bitpos": 88,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_draining",
+            "bitpos": 96,
+            "type": "bool"
+          },
+          {
+            "name": "bcast",
+            "bitpos": 104,
+            "type": "bool"
+          },
+          {
+            "name": "optin",
+            "bitpos": 112,
+            "type": "bool"
+          },
+          {
+            "name": "optout",
+            "bitpos": 120,
+            "type": "bool"
+          },
+          {
+            "name": "noloop",
+            "bitpos": 128,
+            "type": "bool"
+          },
+          {
+            "name": "caching_armed",
+            "bitpos": 136,
+            "type": "bool"
+          },
+          {
+            "name": "broken_redirect",
+            "bitpos": 144,
+            "type": "bool"
+          },
+          {
+            "name": "redirect",
+            "bitpos": 192,
+            "type": "uint64_t"
+          },
+          {
+            "name": "prefixes",
+            "bitpos": 256,
+            "type": "std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >"
+          },
+          {
+            "name": "gate_op_id",
+            "bitpos": 448,
+            "type": "uint64_t"
+          },
+          {
+            "name": "gate_reply_skip",
+            "bitpos": 512,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_reads",
+            "bitpos": 576,
+            "type": "std::unordered_map<tomo::Op*, std::unique_ptr<tomo::IoLoop::TrackingRead, std::default_delete<tomo::IoLoop::TrackingRead> >, std::hash<tomo::Op*>, std::equal_to<tomo::Op*>, std::allocator<std::pair<tomo::Op* const, std::unique_ptr<tomo::IoLoop::TrackingRead, std::default_delete<tomo::IoLoop::TrackingRead> > > > >"
+          },
+          {
+            "name": "tracking_pending",
+            "bitpos": 1024,
+            "type": "std::unordered_map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, tomo::IoLoop::TrackingPending, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::IoLoop::TrackingPending> > >"
+          },
+          {
+            "name": "tracking_enrolled",
+            "bitpos": 1472,
+            "type": "std::unordered_map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, unsigned long, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, unsigned long> > >"
+          },
+          {
+            "name": "tracking_generation",
+            "bitpos": 1920,
+            "type": "uint64_t"
+          },
+          {
+            "name": "monitor_script_id",
+            "bitpos": 1984,
+            "type": "uint64_t"
+          },
+          {
+            "name": "monitor_pending",
+            "bitpos": 2048,
+            "type": "std::vector<tomo::IoLoop::ClimonConn::MonitorPending, std::allocator<tomo::IoLoop::ClimonConn::MonitorPending> >"
+          }
+        ]
+      },
+      "tomo::NotifyBatch": {
+        "size": 464,
+        "fields": [
+          {
+            "name": "tracking_stamp",
+            "bitpos": 0,
+            "type": "uint64_t"
+          },
+          {
+            "name": "mutex",
+            "bitpos": 64,
+            "type": "std::mutex"
+          },
+          {
+            "name": "inline_records",
+            "bitpos": 384,
+            "type": "tomo::NotifyRecordImpl [8]"
+          },
+          {
+            "name": "inline_size",
+            "bitpos": 2432,
+            "type": "uint32_t"
+          },
+          {
+            "name": "total",
+            "bitpos": 2464,
+            "type": "uint32_t"
+          },
+          {
+            "name": "next_sequence",
+            "bitpos": 2496,
+            "type": "uint32_t"
+          },
+          {
+            "name": "physical",
+            "bitpos": 2528,
+            "type": "uint32_t"
+          },
+          {
+            "name": "spill",
+            "bitpos": 2560,
+            "type": "std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> >"
+          },
+          {
+            "name": "owned_keys",
+            "bitpos": 2752,
+            "type": "std::deque<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >"
+          },
+          {
+            "name": "expiry_completion",
+            "bitpos": 3392,
+            "type": "std::shared_ptr<tomo::(anonymous namespace)::NotifyExpiryCompletion>"
+          },
+          {
+            "name": "monitor_lines",
+            "bitpos": 3520,
+            "type": "std::vector<tomo::MonitorScriptLine, std::allocator<tomo::MonitorScriptLine> >"
+          }
+        ]
+      },
+      "tomo::(anonymous namespace)::ClientMeta": {
+        "size": 216,
+        "fields": [
+          {
+            "name": "addr",
+            "bitpos": 0,
+            "type": "std::string"
+          },
+          {
+            "name": "laddr",
+            "bitpos": 256,
+            "type": "std::string"
+          },
+          {
+            "name": "name",
+            "bitpos": 512,
+            "type": "std::string"
+          },
+          {
+            "name": "lib_name",
+            "bitpos": 768,
+            "type": "std::string"
+          },
+          {
+            "name": "lib_ver",
+            "bitpos": 1024,
+            "type": "std::string"
+          },
+          {
+            "name": "created_ms",
+            "bitpos": 1280,
+            "type": "uint64_t"
+          },
+          {
+            "name": "subscriptions",
+            "bitpos": 1344,
+            "type": "uint32_t"
+          },
+          {
+            "name": "pattern_subscriptions",
+            "bitpos": 1376,
+            "type": "uint32_t"
+          },
+          {
+            "name": "shard_subscriptions",
+            "bitpos": 1408,
+            "type": "uint32_t"
+          },
+          {
+            "name": "unix_socket",
+            "bitpos": 1440,
+            "type": "bool"
+          },
+          {
+            "name": "no_evict",
+            "bitpos": 1448,
+            "type": "bool"
+          },
+          {
+            "name": "no_touch",
+            "bitpos": 1456,
+            "type": "bool"
+          },
+          {
+            "name": "pause_blocked",
+            "bitpos": 1464,
+            "type": "bool"
+          },
+          {
+            "name": "last_command",
+            "bitpos": 1472,
+            "type": "const tomo::CommandMetadata *"
+          },
+          {
+            "name": "last_command_id",
+            "bitpos": 1536,
+            "type": "uint64_t"
+          },
+          {
+            "name": "tracking",
+            "bitpos": 1600,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_redirect",
+            "bitpos": 1664,
+            "type": "int64_t"
+          }
+        ]
+      },
+      "tomo::(anonymous namespace)::ScriptContext": {
+        "size": 72,
+        "fields": [
+          {
+            "name": "shard",
+            "bitpos": 0,
+            "type": "tomo::Shard *"
+          },
+          {
+            "name": "parent",
+            "bitpos": 64,
+            "type": "tomo::Op *"
+          },
+          {
+            "name": "key_first",
+            "bitpos": 128,
+            "type": "uint32_t"
+          },
+          {
+            "name": "key_count",
+            "bitpos": 160,
+            "type": "uint32_t"
+          },
+          {
+            "name": "instructions",
+            "bitpos": 192,
+            "type": "uint64_t"
+          },
+          {
+            "name": "call_index",
+            "bitpos": 256,
+            "type": "uint32_t"
+          },
+          {
+            "name": "monitor_multi_order",
+            "bitpos": 288,
+            "type": "uint32_t"
+          },
+          {
+            "name": "timed_out",
+            "bitpos": 320,
+            "type": "bool"
+          },
+          {
+            "name": "script_resp",
+            "bitpos": 328,
+            "type": "uint8_t"
+          },
+          {
+            "name": "notify",
+            "bitpos": 336,
+            "type": "bool"
+          },
+          {
+            "name": "readonly",
+            "bitpos": 344,
+            "type": "bool"
+          },
+          {
+            "name": "function_admitted",
+            "bitpos": 352,
+            "type": "bool"
+          },
+          {
+            "name": "persistence_write_started",
+            "bitpos": 360,
+            "type": "bool"
+          },
+          {
+            "name": "effect_writes",
+            "bitpos": 384,
+            "type": "uint32_t"
+          },
+          {
+            "name": "error_line",
+            "bitpos": 416,
+            "type": "int"
+          },
+          {
+            "name": "cross_access",
+            "bitpos": 448,
+            "type": "uint8_t *"
+          },
+          {
+            "name": "cross_access_count",
+            "bitpos": 512,
+            "type": "uint32_t"
+          }
+        ]
+      },
+      "tomo::MonitorScriptLine": {
+        "size": 40,
+        "fields": [
+          {
+            "name": "multi_order",
+            "bitpos": 0,
+            "type": "uint32_t"
+          },
+          {
+            "name": "line",
+            "bitpos": 64,
+            "type": "std::string"
+          }
+        ]
+      }
+    }
+  },
+  "PAD-A": {
+    "sha256": "93545fb26e832eaa3ef64024910671a485ba456fc2d1ba55b593d7960ee72165",
+    "layouts": {
+      "tomo::IoLoop::ClimonConn": {
+        "size": 280,
+        "fields": [
+          {
+            "name": "client",
+            "bitpos": 0,
+            "type": "tomo::Client *"
+          },
+          {
+            "name": "reply_mode",
+            "bitpos": 64,
+            "type": "uint8_t"
+          },
+          {
+            "name": "monitor",
+            "bitpos": 72,
+            "type": "bool"
+          },
+          {
+            "name": "pause_blocked",
+            "bitpos": 80,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_on",
+            "bitpos": 88,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_draining",
+            "bitpos": 96,
+            "type": "bool"
+          },
+          {
+            "name": "bcast",
+            "bitpos": 104,
+            "type": "bool"
+          },
+          {
+            "name": "optin",
+            "bitpos": 112,
+            "type": "bool"
+          },
+          {
+            "name": "optout",
+            "bitpos": 120,
+            "type": "bool"
+          },
+          {
+            "name": "noloop",
+            "bitpos": 128,
+            "type": "bool"
+          },
+          {
+            "name": "caching_armed",
+            "bitpos": 136,
+            "type": "bool"
+          },
+          {
+            "name": "broken_redirect",
+            "bitpos": 144,
+            "type": "bool"
+          },
+          {
+            "name": "redirect",
+            "bitpos": 192,
+            "type": "uint64_t"
+          },
+          {
+            "name": "prefixes",
+            "bitpos": 256,
+            "type": "std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >"
+          },
+          {
+            "name": "gate_op_id",
+            "bitpos": 448,
+            "type": "uint64_t"
+          },
+          {
+            "name": "gate_reply_skip",
+            "bitpos": 512,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_reads",
+            "bitpos": 576,
+            "type": "std::unordered_map<tomo::Op*, std::unique_ptr<tomo::IoLoop::TrackingRead, std::default_delete<tomo::IoLoop::TrackingRead> >, std::hash<tomo::Op*>, std::equal_to<tomo::Op*>, std::allocator<std::pair<tomo::Op* const, std::unique_ptr<tomo::IoLoop::TrackingRead, std::default_delete<tomo::IoLoop::TrackingRead> > > > >"
+          },
+          {
+            "name": "tracking_pending",
+            "bitpos": 1024,
+            "type": "std::unordered_map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, tomo::IoLoop::TrackingPending, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::IoLoop::TrackingPending> > >"
+          },
+          {
+            "name": "tracking_enrolled",
+            "bitpos": 1472,
+            "type": "std::unordered_map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, unsigned long, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, unsigned long> > >"
+          },
+          {
+            "name": "tracking_generation",
+            "bitpos": 1920,
+            "type": "uint64_t"
+          },
+          {
+            "name": "monitor_script_id",
+            "bitpos": 1984,
+            "type": "uint64_t"
+          },
+          {
+            "name": "monitor_pending",
+            "bitpos": 2048,
+            "type": "std::vector<tomo::IoLoop::ClimonConn::MonitorPending, std::allocator<tomo::IoLoop::ClimonConn::MonitorPending> >"
+          }
+        ]
+      },
+      "tomo::NotifyBatch": {
+        "size": 464,
+        "fields": [
+          {
+            "name": "tracking_stamp",
+            "bitpos": 0,
+            "type": "uint64_t"
+          },
+          {
+            "name": "mutex",
+            "bitpos": 64,
+            "type": "std::mutex"
+          },
+          {
+            "name": "inline_records",
+            "bitpos": 384,
+            "type": "tomo::NotifyRecordImpl [8]"
+          },
+          {
+            "name": "inline_size",
+            "bitpos": 2432,
+            "type": "uint32_t"
+          },
+          {
+            "name": "total",
+            "bitpos": 2464,
+            "type": "uint32_t"
+          },
+          {
+            "name": "next_sequence",
+            "bitpos": 2496,
+            "type": "uint32_t"
+          },
+          {
+            "name": "physical",
+            "bitpos": 2528,
+            "type": "uint32_t"
+          },
+          {
+            "name": "spill",
+            "bitpos": 2560,
+            "type": "std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> >"
+          },
+          {
+            "name": "owned_keys",
+            "bitpos": 2752,
+            "type": "std::deque<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >"
+          },
+          {
+            "name": "expiry_completion",
+            "bitpos": 3392,
+            "type": "std::shared_ptr<tomo::(anonymous namespace)::NotifyExpiryCompletion>"
+          },
+          {
+            "name": "monitor_lines",
+            "bitpos": 3520,
+            "type": "std::vector<tomo::MonitorScriptLine, std::allocator<tomo::MonitorScriptLine> >"
+          }
+        ]
+      },
+      "tomo::(anonymous namespace)::ClientMeta": {
+        "size": 216,
+        "fields": [
+          {
+            "name": "addr",
+            "bitpos": 0,
+            "type": "std::string"
+          },
+          {
+            "name": "laddr",
+            "bitpos": 256,
+            "type": "std::string"
+          },
+          {
+            "name": "name",
+            "bitpos": 512,
+            "type": "std::string"
+          },
+          {
+            "name": "lib_name",
+            "bitpos": 768,
+            "type": "std::string"
+          },
+          {
+            "name": "lib_ver",
+            "bitpos": 1024,
+            "type": "std::string"
+          },
+          {
+            "name": "created_ms",
+            "bitpos": 1280,
+            "type": "uint64_t"
+          },
+          {
+            "name": "subscriptions",
+            "bitpos": 1344,
+            "type": "uint32_t"
+          },
+          {
+            "name": "pattern_subscriptions",
+            "bitpos": 1376,
+            "type": "uint32_t"
+          },
+          {
+            "name": "shard_subscriptions",
+            "bitpos": 1408,
+            "type": "uint32_t"
+          },
+          {
+            "name": "unix_socket",
+            "bitpos": 1440,
+            "type": "bool"
+          },
+          {
+            "name": "no_evict",
+            "bitpos": 1448,
+            "type": "bool"
+          },
+          {
+            "name": "no_touch",
+            "bitpos": 1456,
+            "type": "bool"
+          },
+          {
+            "name": "pause_blocked",
+            "bitpos": 1464,
+            "type": "bool"
+          },
+          {
+            "name": "last_command",
+            "bitpos": 1472,
+            "type": "const tomo::CommandMetadata *"
+          },
+          {
+            "name": "last_command_id",
+            "bitpos": 1536,
+            "type": "uint64_t"
+          },
+          {
+            "name": "tracking",
+            "bitpos": 1600,
+            "type": "bool"
+          },
+          {
+            "name": "tracking_redirect",
+            "bitpos": 1664,
+            "type": "int64_t"
+          }
+        ]
+      },
+      "tomo::(anonymous namespace)::ScriptContext": {
+        "size": 72,
+        "fields": [
+          {
+            "name": "shard",
+            "bitpos": 0,
+            "type": "tomo::Shard *"
+          },
+          {
+            "name": "parent",
+            "bitpos": 64,
+            "type": "tomo::Op *"
+          },
+          {
+            "name": "key_first",
+            "bitpos": 128,
+            "type": "uint32_t"
+          },
+          {
+            "name": "key_count",
+            "bitpos": 160,
+            "type": "uint32_t"
+          },
+          {
+            "name": "instructions",
+            "bitpos": 192,
+            "type": "uint64_t"
+          },
+          {
+            "name": "call_index",
+            "bitpos": 256,
+            "type": "uint32_t"
+          },
+          {
+            "name": "monitor_multi_order",
+            "bitpos": 288,
+            "type": "uint32_t"
+          },
+          {
+            "name": "timed_out",
+            "bitpos": 320,
+            "type": "bool"
+          },
+          {
+            "name": "script_resp",
+            "bitpos": 328,
+            "type": "uint8_t"
+          },
+          {
+            "name": "notify",
+            "bitpos": 336,
+            "type": "bool"
+          },
+          {
+            "name": "readonly",
+            "bitpos": 344,
+            "type": "bool"
+          },
+          {
+            "name": "function_admitted",
+            "bitpos": 352,
+            "type": "bool"
+          },
+          {
+            "name": "persistence_write_started",
+            "bitpos": 360,
+            "type": "bool"
+          },
+          {
+            "name": "effect_writes",
+            "bitpos": 384,
+            "type": "uint32_t"
+          },
+          {
+            "name": "error_line",
+            "bitpos": 416,
+            "type": "int"
+          },
+          {
+            "name": "cross_access",
+            "bitpos": 448,
+            "type": "uint8_t *"
+          },
+          {
+            "name": "cross_access_count",
+            "bitpos": 512,
+            "type": "uint32_t"
+          }
+        ]
+      },
+      "tomo::MonitorScriptLine": {
+        "size": 40,
+        "fields": [
+          {
+            "name": "multi_order",
+            "bitpos": 0,
+            "type": "uint32_t"
+          },
+          {
+            "name": "line",
+            "bitpos": 64,
+            "type": "std::string"
+          }
+        ]
+      }
+    }
+  }
+}

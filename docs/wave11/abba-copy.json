@@ -1,0 +1,29 @@
+{
+  "copy": "/home/user/Projects/cx-wave11/build/wave11/selftest-source",
+  "only_tracked_file_differences": [
+    "tests/fixtures/nullrefresh-ledger-labels.json",
+    "tests/gate.sh"
+  ],
+  "root_expect": [
+    "EXPECT_QUICK=946",
+    "EXPECT_FULL=963"
+  ],
+  "copy_expect": [
+    "EXPECT_QUICK=977",
+    "EXPECT_FULL=994"
+  ],
+  "root_gate_sha256": "1856c6025a7ffeb8019d88dffa29c78607dc58e420ae00286ef23e65f0af78bf",
+  "copy_gate_sha256": "3bf5264fe297d8ab7849fd3bdfe376a0f0eb313d25031fb18f6dcf3353a50e46",
+  "landing_fixture_sha256": "49b7929a92bd8f164bfcd645403bdae7ca06b2506e22dbd38127a231740e39de",
+  "tracked_fixture_sha256": "46697ff9e5b64af54b12699808d2bcacbb8ab80e36651617cf7cd1871681c2f6",
+  "passed": true,
+  "compared_prefixes": [
+    "src",
+    "tests",
+    "tools",
+    "calib",
+    "third_party",
+    "Makefile"
+  ],
+  "limitation": "This initial audit did not cover root reports or .githooks. Their omission caused the first ABBA self-test to fail. The replay exports the complete tracked tree."
+}

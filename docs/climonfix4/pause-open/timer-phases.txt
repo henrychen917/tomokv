@@ -1,0 +1,19 @@
+enter 1 1793207013336
+exit 1 0 1793207013337
+# Clients
+connected_clients:2
+blocked_clients:1
+tracking_clients:0
+monitor_clients:0
+total_blocking_keys:0
+total_blocking_keys_on_nokey:0
+
+enter 0 1793207013337
+exit 0 1 1793207014366 assertion:Timeout waiting for blocked clients
+# Clients
+connected_clients:2
+blocked_clients:1
+tracking_clients:0
+monitor_clients:0
+total_blocking_keys:1
+total_blocking_keys_on_nokey:0

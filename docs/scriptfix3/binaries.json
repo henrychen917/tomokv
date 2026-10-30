@@ -1,0 +1,17 @@
+{
+  "PRE": {
+    "path": "build/scriptfix3/pre/tomokv",
+    "sha256": "c9bbca0a9b578889f9d20514be543db45f2758e0cffa0ef726d6970d28b8d946",
+    "bytes": 223180288
+  },
+  "POST": {
+    "path": "build/scriptfix3/tomokv-post",
+    "sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "bytes": 223520632
+  },
+  "PAD-A": {
+    "path": "build/scriptfix3/tomokv-pad-a",
+    "sha256": "b6f8cef931a3d68867b8dc5cd8458ae947f38e33d4c0da3eeaceec4659797e6f",
+    "bytes": 223200824
+  }
+}

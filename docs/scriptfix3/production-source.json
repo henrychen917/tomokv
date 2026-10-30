@@ -1,0 +1,29 @@
+{
+  "base": "e2b237926",
+  "last_production_commit": "6277e7313",
+  "files": [
+    {
+      "path": "src/cmd/scripting.cc",
+      "sha256": "b212f3da5340736f390cdbb69e4ab30cfa6045f832169d78c9d3b0f039398564"
+    },
+    {
+      "path": "src/cmd/scripting.h",
+      "sha256": "9e003aa78bab5bbd284f8b8c5efb18deb60e1e8adfced489fc21ed46ceef4d73"
+    },
+    {
+      "path": "src/cmd/functions.cc",
+      "sha256": "70b1330c3772a4395bb8e37c3d2daaf1d9cb4f2f726b62aa8b233da3469b5b3f"
+    }
+  ],
+  "preserved_gate_and_compatibility_files": [
+    "tests/gate.sh",
+    "tests/scriptfix2.py",
+    "tests/redis_tcl_passing.json",
+    "tests/redis_tcl.py"
+  ],
+  "oracle": {
+    "path": "/home/user/Projects/redis/src/redis-server",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "tcl_version": "7.4.10"
+  }
+}

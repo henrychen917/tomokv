@@ -1,0 +1,20 @@
+PARTIAL	0	GATE_ONLY_JOBS=core_units asan_batteries source_identity flipfix5_units; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	12.530000	ASAN build
+ok	136.290000	production source identity + stable assertion ids
+ok	0.110000	core concurrency watch
+ok	0.310000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	6.600000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.500000	read-local topology demotion (1s)
+ok	0.500000	read-local topology demotion (2s)
+ok	0.200000	FLIP stale stage sample refused (ASAN+TSAN)
+ok	0.180000	FLIP stale stage planted pre-fix controls fail
+ok	6.910000	torture under ASAN
+ok	1.080000	RYOW under ASAN
+ok	27.880000	atomic torn/window under ASAN
+ok	4.080000	atomic RYOW under ASAN
+ok	0.020000	ASAN clean

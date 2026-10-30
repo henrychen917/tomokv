@@ -1,0 +1,1543 @@
+{
+  "legs": 192,
+  "comparisons": 3584,
+  "differences": 0,
+  "rows": [
+    {
+      "path": "EVAL-SHEBANG-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 42
+    },
+    {
+      "path": "EVAL-SHEBANG-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 42
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "EVALSHA-SHA-CASE-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 13
+    },
+    {
+      "path": "FCALL-NAME-CASE-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 13
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-LOAD-ENV-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 12
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-REGISTER-ARGS-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 19
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SHEBANG-META-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 15
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 37
+    },
+    {
+      "path": "FUNCTION-SUBCMD-ARGS-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 37
+    },
+    {
+      "path": "LUA-REDIS-API-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-REDIS-API-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 20
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 21
+    },
+    {
+      "path": "LUA-SANDBOX-GLOBALS-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 21
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-ERROR-WORDING-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 11
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-NUMBER-ARG-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 16
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-epoll-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-epoll-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-epoll-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-epoll-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-uring-db1-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-uring-db1-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-uring-db16-a0/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-1s-uring-db16-a1/result.json",
+      "mode": "1s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-epoll-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-epoll-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-epoll-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-epoll-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "epoll",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-uring-db1-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-uring-db1-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 1,
+      "atomic": 1,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-uring-db16-a0/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 0,
+      "comparisons": 7
+    },
+    {
+      "path": "SCRIPT-REPLY-DEPTH-2s-uring-db16-a1/result.json",
+      "mode": "2s",
+      "net_io": "uring",
+      "databases": 16,
+      "atomic": 1,
+      "comparisons": 7
+    }
+  ]
+}

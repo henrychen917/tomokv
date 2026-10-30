@@ -1,0 +1,17 @@
+{
+  "total": 19957,
+  "equal": 19731,
+  "ordinary_hot": 1591,
+  "ordinary_hot_equal": 1591,
+  "changed_objects": [
+    "db0/src/cmd/functions.o",
+    "db0/src/cmd/info_stats.o",
+    "db0/src/cmd/scripting.o",
+    "src/cmd/functions.o",
+    "src/cmd/info_stats.o",
+    "src/cmd/scripting.o"
+  ],
+  "changed_handlers": "Only EVAL/EVALSHA, FCALL, SCRIPT and FUNCTION variants",
+  "audit_exit": "Generic ccfix audit rejects expected scripting handler changes; its raw output is retained. No ordinary hot-body rejection.",
+  "layout_locks": "identical in both namespaces"
+}

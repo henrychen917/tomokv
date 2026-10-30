@@ -21,6 +21,7 @@ namespace tomo {
 
 class Shard;
 class Op;
+class Client;
 
 // Static executor scheduling cost. This is deliberately coarse: the policy needs a cheap verb
 // class, not a runtime estimate from argv or clocks. Point includes GET and unarmed SET; the armed
@@ -111,6 +112,9 @@ struct CmdFlags {
     // IoLoop's cold timer list. This bit does not make DEBUG generally deferred: all other DEBUG
     // subcommands retain their synchronous control-plane path.
     static constexpr uint32_t DebugSleep = 1u << 27;
+    // Boot-stamped from generated metadata. Only containers need persistent
+    // child identity for CLIENT LIST; ordinary verbs use the retained ROB spec.
+    static constexpr uint32_t ClientCommandName = 1u << 28;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -196,10 +200,12 @@ bool command_validate_subcommand(Op& op, const char* container,
 // the complete unknown-subcommand or child-arity reply.
 bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
                                            int16_t& first_key);
-// This early gate rejects known children with bad generated arity. Unknown children continue
+// This cold gate records connection-local/container command identity and rejects
+// SubcmdRoute children with bad generated arity. Unknown children continue
 // to the cold AUTH/ACL hook (or the normal container handler), which emits the lookup error
 // before checking authentication, matching Redis's processCommand order.
-bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec);
+bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec,
+                                             Client* client = nullptr);
 // Cold Redis subcommand lookup/syntax errors, including bounded binary names.
 void command_reply_subcommand_error(Op& op, const char* container, bool unknown = true);
 void command_reply_subcommand_wrong_args(Op& op, const char* container,
@@ -365,6 +371,8 @@ bool command_client_set_info(Client* client, Slice option, Slice value);
 // client output-buffer eviction, a mechanism TomoKV does not implement.
 void command_client_set_no_evict(Client* client, bool enabled);
 void command_client_set_no_touch(Client* client, bool enabled);
+void command_client_set_pause_blocked(Client* client, bool enabled);
+void command_client_note_command(Client* client, Op& op, const CommandSpec* spec = nullptr);
 // MONITOR feed lines and CLIENT INFO share the owner-catalog peer address.
 std::string command_client_addr(const Client* client);
 // CLIENT INFO's redir= field is owned by the tracking lane, which lives in the io loop.

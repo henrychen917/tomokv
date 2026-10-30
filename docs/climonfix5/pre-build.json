@@ -1,0 +1,30 @@
+{
+  "commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+  "archive_sha256": "3431a19aefa4adfcbb98d32beed5c6499953fa25d60449f326f8c3fcb930c3c6",
+  "command": [
+    "make",
+    "-j16",
+    "all"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "binary": "/home/user/Projects/cx-climonfix5/build/climonfix5/tomokv-PRE",
+  "sha256": "dd16c698ec4316c548be0eaa1d4db3fd2928c07f18b1a599e51966ea336a874b",
+  "fresh": true
+}

@@ -189,6 +189,9 @@ struct ClientMeta {
     bool unix_socket = false;
     bool no_evict = false;
     bool no_touch = false;
+    bool pause_blocked = false;
+    const CommandMetadata* last_command = nullptr;
+    uint64_t last_command_id = UINT64_MAX;
     // Mirrored from the io loop's tracking state purely so CLIENT INFO/LIST can report the
     // redis field names. Nothing reads these except the info-line formatter.
     bool tracking = false;
@@ -253,7 +256,7 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
     char* flag = flags;
     if (client.subscriber_mode()) *flag++ = 'P';
     if (multi_session_active(client)) *flag++ = 'x';
-    if (client.blocked()) *flag++ = 'b';
+    if (client.blocked() || meta.pause_blocked) *flag++ = 'b';
     if (client.closing()) *flag++ = 'c';
     if (meta.unix_socket) *flag++ = 'U';
     if (meta.no_evict) *flag++ = 'e';
@@ -271,7 +274,7 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
     const uint64_t now_s = now_ms / 1000;
     const uint64_t idle = now_s >= client.last_interaction_s()
         ? now_s - client.last_interaction_s() : 0;
-    const uint64_t qbuf = client.rlen() - client.rpos();
+    uint64_t qbuf = client.rlen() - client.rpos();
     const uint64_t qbuf_free = client.rcap() >= client.rlen()
         ? client.rcap() - client.rlen() : 0;
     const uint64_t omem = client.buffered_output_bytes();
@@ -282,7 +285,16 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
     const char* username = acl_username(client.acl_user_idx());
     std::string last_cmd = "NULL";
     const uint64_t dispatched = client.rob().dispatch_id();
-    if (dispatched) {
+    if (meta.last_command && (meta.last_command_id == dispatched ||
+                             meta.last_command_id + 1 == dispatched)) {
+        const Slice name = command_metadata_name(*meta.last_command);
+        last_cmd.assign(name.p, name.n);
+        const Op& current = client.rob().at(meta.last_command_id);
+        // CLIENT LIST publishes its async ROB slot before it becomes Done;
+        // that slot can still carry Free. The retirement cursor owns lifetime.
+        if (meta.last_command_id >= client.rob().flush_id())
+            qbuf = client.rlen() - current.rbuf_off;
+    } else if (dispatched) {
         const Op& last = client.rob().at(dispatched - 1);
         if (last.spec) {
             last_cmd.assign(last.spec->name);
@@ -1408,6 +1420,19 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         }
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
         g_server->set_debug_atomic_conditional_defer(static_cast<uint32_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
+    // flipfix5 window widener: hold an executor that already acknowledged ExInstall, before its
+    // owed test, until the next FLIP is admitted (bounded). Production 0.
+    if (eq_icase(subcommand, "flip-stage-hold") && op.argc() == 3) {
+        uint64_t microseconds = 0;
+        if (!parse_u64(op.arg(2), microseconds) || microseconds > UINT16_MAX) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_flip_stage_hold(static_cast<uint16_t>(microseconds));
         reply_ok(op.sink());
         return;
     }
@@ -2932,7 +2957,8 @@ void cmd_info(Shard&, Op& op) {
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
                 "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
-                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n",
+                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n"
+                "flip_stale_stage_refusals:%llu\r\n",
                 static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
                 static_cast<unsigned long long>(
@@ -2942,7 +2968,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_checks() : 0),
                 static_cast<unsigned long long>(
-                    g_server ? g_server->flip_conservation_violations() : 0));
+                    g_server ? g_server->flip_conservation_violations() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_stale_stage_refusals() : 0));
         appendf(body,
                 "foreign_read_unsafe_refs:%llu\r\n"
                 "foreign_read_occupied_cells:%llu\r\n"
@@ -3704,6 +3732,20 @@ void command_client_set_no_touch(Client* client, bool enabled) {
     if (ClientMeta* meta = client_meta(client)) meta->no_touch = enabled;
 }
 
+void command_client_set_pause_blocked(Client* client, bool enabled) {
+    if (ClientMeta* meta = client_meta(client)) meta->pause_blocked = enabled;
+}
+
+void command_client_note_command(Client* client, Op& op, const CommandSpec* spec) {
+    ClientMeta* meta = client_meta(client);
+    if (!meta) return;
+    if (!spec) spec = op.spec;
+    if (!spec) return;
+    const auto* child = op.argc() > 1 ? command_metadata_subcommand(*spec, op.arg(1)) : nullptr;
+    meta->last_command = child ? child : command_metadata_for(*spec);
+    meta->last_command_id = client->rob().dispatch_id();
+}
+
 std::string command_client_addr(const Client* client) {
     const ClientMeta* meta = client_meta(client);
     return meta ? meta->addr : std::string("unknown:0");
@@ -3721,8 +3763,7 @@ void command_client_reset_meta(Client* client) {
     if (!meta) return;
     std::lock_guard<std::mutex> lock(g_client_meta_mu);
     meta->name.clear();
-    meta->lib_name.clear();
-    meta->lib_ver.clear();
+    // Library identity describes the connection across RESET (Redis 7.4).
     meta->no_evict = false;
     meta->no_touch = false;
     meta->tracking = false;

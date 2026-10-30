@@ -1,0 +1,10 @@
+[
+  {
+    "path": "build/climonfix4/pre-local-debug.json",
+    "sha256": "e7c93e6a92716c0908d6ae9ada57459cb1d92525c1215b2fa0bd309b547754a3"
+  },
+  {
+    "path": "build/climonfix4/post-local-debug.json",
+    "sha256": "f2451f0903f4fa2fdd5f0a07fc9c0b696e9f060ec3cbc170bb91d591302b90f1"
+  }
+]

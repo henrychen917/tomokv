@@ -1,0 +1,45 @@
+[
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 720,
+    "text": "server->aof().reply_write_error(nested);",
+    "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 724,
+    "text": "reply_maxmemory_oom(nested);",
+    "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1785,
+    "text": "reply_text_error(op, \"ERR\", error); return;",
+    "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1791,
+    "text": "reply_text_error(op, \"ERR\", \"out of memory\"); return;",
+    "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
+  },
+  {
+    "file": "src/cmd/t_server.cc",
+    "line": 1431,
+    "text": "reply_err(op.sink(), \"ERR value is not an integer or out of range\");",
+    "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
+  },
+  {
+    "file": "src/cmd/t_server.cc",
+    "line": 1434,
+    "text": "if (!g_server) { reply_err(op.sink(), \"ERR no server context\"); return; }",
+    "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1716,
+    "text": "reply_text_error(op, \"ERR\", \"out of memory caching script\");",
+    "scope": "compile_eval metadata retention failure",
+    "builder": "central reply_err through reply_text_error"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "function": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "reference": "climonfix5",
+    "old": "CSWTCH.8202",
+    "new": "CSWTCH.8231",
+    "size": 4,
+    "bytes": "00040605",
+    "sha256": "750cbcc15264d200f00fba5eb9502f48f9199dc4fbb1a2ba7c0fdb454ac48990"
+  },
+  {
+    "function": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "reference": "climonfix5",
+    "old": "CSWTCH.8202",
+    "new": "CSWTCH.8231",
+    "size": 4,
+    "bytes": "00040605",
+    "sha256": "750cbcc15264d200f00fba5eb9502f48f9199dc4fbb1a2ba7c0fdb454ac48990"
+  },
+  {
+    "function": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "climonfix5",
+    "old": "CSWTCH.8193",
+    "new": "CSWTCH.8222",
+    "size": 4,
+    "bytes": "00040605",
+    "sha256": "750cbcc15264d200f00fba5eb9502f48f9199dc4fbb1a2ba7c0fdb454ac48990"
+  },
+  {
+    "function": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "climonfix5",
+    "old": "CSWTCH.8193",
+    "new": "CSWTCH.8222",
+    "size": 4,
+    "bytes": "00040605",
+    "sha256": "750cbcc15264d200f00fba5eb9502f48f9199dc4fbb1a2ba7c0fdb454ac48990"
+  }
+]

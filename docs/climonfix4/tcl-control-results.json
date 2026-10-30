@@ -1,0 +1,614 @@
+[
+  {
+    "root": "PAUSE-MAY-REPLICATE",
+    "arm": "negative",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+    "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-MAY-REPLICATE.json",
+    "rc": 1,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.whccov",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.whccov/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.whccov/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "PAUSE-SCRIPT-FLAGS",
+    "arm": "negative",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+    "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-SCRIPT-FLAGS.json",
+    "rc": 1,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.dIyAdy",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.dIyAdy/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.dIyAdy/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "MONITOR-SCRIPT-CMDS",
+    "arm": "negative",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+    "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/MONITOR-SCRIPT-CMDS.json",
+    "rc": 1,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.4G3jIA",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.4G3jIA/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.4G3jIA/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "RESET-CLEARS-LIBNAME",
+    "arm": "negative",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+    "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/RESET-CLEARS-LIBNAME.json",
+    "rc": 1,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.qbQG15",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.qbQG15/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.qbQG15/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "RESET-MONITOR-ECHO",
+    "arm": "negative",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+    "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/RESET-MONITOR-ECHO.json",
+    "rc": 1,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.DVgjtB",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.DVgjtB/jobs/redis_tcl/redis-tcl-2s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.DVgjtB/jobs/redis_tcl/redis-tcl-1s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "CLIENT-LIST-CMD-NAME",
+    "arm": "negative",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+    "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/CLIENT-LIST-CMD-NAME.json",
+    "rc": 1,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.lsJW7q",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.lsJW7q/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.lsJW7q/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "PAUSE-BLOCKED-COUNT",
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-BLOCKED-COUNT.json",
+    "rc": 0,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "PAUSE-BLOCKED-COUNT",
+    "arm": "negative",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/count-mutant/tomokv",
+    "sha256": "89dd91dded102d9fe40ff61e2cf3cce0fc628a0833948241cee1dfdc9f80f421",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/count-mutant/tomokv"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-BLOCKED-COUNT.json",
+    "rc": 1,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "PAUSE-MAY-REPLICATE",
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-MAY-REPLICATE.json",
+    "rc": 0,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "PAUSE-SCRIPT-FLAGS",
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-SCRIPT-FLAGS.json",
+    "rc": 0,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "MONITOR-SCRIPT-CMDS",
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/MONITOR-SCRIPT-CMDS.json",
+    "rc": 0,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "RESET-CLEARS-LIBNAME",
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/RESET-CLEARS-LIBNAME.json",
+    "rc": 0,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "RESET-MONITOR-ECHO",
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/RESET-MONITOR-ECHO.json",
+    "rc": 0,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q/jobs/redis_tcl/redis-tcl-2s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q/jobs/redis_tcl/redis-tcl-1s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    }
+  },
+  {
+    "root": "CLIENT-LIST-CMD-NAME",
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+    "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "24-31",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20220-20229",
+      "--candidate-binary",
+      "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST"
+    ],
+    "manifest": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/CLIENT-LIST-CMD-NAME.json",
+    "rc": 0,
+    "run": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP",
+    "modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    }
+  }
+]

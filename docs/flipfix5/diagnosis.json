@@ -1,0 +1,3560 @@
+{
+ "diag-v1 (PRE + dump/provenance)": {
+  "binary": "build/flipfix5/arms/diag/tomokv",
+  "binary_sha256": "95bb5cac44ce525bfba61314831b151a7bad5ba608a4ee3d80be3ff8d331f195",
+  "dumps": [
+   {
+    "log": "build/flipfix5/runs/diag1/2s-uring-1-db1/attempt-0/server.log",
+    "abort": {
+     "thread": "7",
+     "role": "2",
+     "epoch": "38672",
+     "stage": "2",
+     "now_ns": "4957210476151611",
+     "reason": "all_quiesced()==false"
+    },
+    "placement": "io=0,1,2,5, ex=3,4,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=2 ready_role=2 exdrain_ack_epoch=38671 exdrain_ack_ns=4957210475943691 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=38671 exdrain_ack_ns=4957210475943591 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=38670 exdrain_ack_ns=4957210475827791 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=38670 exdrain_ack_ns=4957210475827781 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x756012272000",
+      "op_id": "76971",
+      "shard": "11",
+      "scatter": "0x756011e7f940",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "76971",
+      "dispatch": "76972",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x8702ea,0xf44f5,0x103d81,0x9469e,0x1a2edc596db4,0x1a2edc146b84,0x1a2edc1d3ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag1/2s-uring-1-db1/attempt-1/server.log",
+    "abort": {
+     "thread": "3",
+     "role": "2",
+     "epoch": "392",
+     "stage": "2",
+     "now_ns": "4957210602160161",
+     "reason": "all_quiesced()==false"
+    },
+    "placement": "io=0,1,2,5, ex=3,4,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=2 ready_role=2 exdrain_ack_epoch=391 exdrain_ack_ns=4957210601928521 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=391 exdrain_ack_ns=4957210601928601 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=390 exdrain_ack_ns=4957210601801731 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=390 exdrain_ack_ns=4957210601801671 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "0",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "0",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "0",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "0",
+      "idx": "0",
+      "client": "0x773109472000",
+      "op_id": "777",
+      "shard": "4",
+      "scatter": "0x77310a2845c0",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "777",
+      "dispatch": "778",
+      "ifid": "0"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x8702ea,0xf44f5,0x103d81,0x9385f,0x15b17f0bcdb4,0x15b17ec6cb84,0x15b17ecf9ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag1/2s-uring-1-db1/attempt-2/server.log",
+    "abort": {
+     "thread": "5",
+     "role": "2",
+     "epoch": "8983",
+     "stage": "2",
+     "now_ns": "4957211788111169",
+     "reason": "all_quiesced()==false"
+    },
+    "placement": "io=0,1,2,3,6,7, ex=4,5, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=8982 exdrain_ack_ns=4957211787940629 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=8982 exdrain_ack_ns=4957211787940509 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=1 ready_role=1 exdrain_ack_epoch=8982 exdrain_ack_ns=4957211787940429 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=1 ready_role=1 exdrain_ack_epoch=8982 exdrain_ack_ns=4957211787940609 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "3",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "3072",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "3072",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "3",
+      "idx": "0",
+      "client": "0x738b5e872000",
+      "op_id": "17885",
+      "shard": "7",
+      "scatter": "0x738b5e8a2e80",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "17885",
+      "dispatch": "17886",
+      "ifid": "3"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "3",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x8702ea,0xf44f5,0x103d81,0x9385f,0x1d72fb1e0db4,0x1d72fad90b84,0x1d72fae1decc"
+   }
+  ]
+ },
+ "diag-v2 (PRE + sample/ack timeline)": {
+  "binary": "build/flipfix5/arms/diag2/tomokv",
+  "binary_sha256": "49380fd29fb6f4bf56ba1cead12fbc6fa3414f043c4dd020d36a81cd6d87153e",
+  "dumps": [
+   {
+    "log": "build/flipfix5/runs/diag2/2s-uring-1-db1/attempt-0/server.log",
+    "abort": {
+     "thread": "6",
+     "role": "2",
+     "epoch": "1010",
+     "stage": "2",
+     "now_ns": "4957544266208769",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "1009",
+     "epoch_after_stage_load": "1009",
+     "sample_ns": "4957544265999898",
+     "now_ns": "4957544266233778",
+     "held_ns": "233831",
+     "nivcsw_sample": "4",
+     "nivcsw_now": "5",
+     "nvcsw_sample": "4185",
+     "nvcsw_now": "4185"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "1010",
+     "own_exinstall_ack_epoch": "1009",
+     "own_exinstall_ack_ns": "4957544265988729",
+     "last_finish_epoch": "1009",
+     "last_finish_ns": "4957544266012609",
+     "last_begin_epoch": "1010",
+     "last_begin_ns": "4957544266042418"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=1009 exdrain_ack_ns=4957544265941509 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=1009 exdrain_ack_ns=4957544265941589 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=1008 exdrain_ack_ns=4957544265821068 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=1008 exdrain_ack_ns=4957544265820858 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "0",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "0",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "0",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "0",
+      "idx": "0",
+      "client": "0x75b266473000",
+      "op_id": "2022",
+      "shard": "2",
+      "scatter": "0x75b266a7fe80",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "1",
+      "client": "0x75b266473000",
+      "op_id": "2022",
+      "shard": "6",
+      "scatter": "0x75b266a7fe80",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "2",
+      "client": "0x75b266473000",
+      "op_id": "2022",
+      "shard": "10",
+      "scatter": "0x75b266a7fe80",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "3",
+      "client": "0x75b266473000",
+      "op_id": "2022",
+      "shard": "14",
+      "scatter": "0x75b266a7fe80",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "2022",
+      "dispatch": "2023",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "2022",
+      "dispatch": "2023",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "2022",
+      "dispatch": "2023",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "2022",
+      "dispatch": "2023",
+      "ifid": "0"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87087a,0xf4bbc,0x104561,0x94bee,0x1990df0eedb4,0x1990dec9eb84,0x1990ded2becc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag2/2s-uring-1-db1/attempt-1/server.log",
+    "abort": {
+     "thread": "4",
+     "role": "2",
+     "epoch": "411",
+     "stage": "2",
+     "now_ns": "4957544382067219",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "410",
+     "epoch_after_stage_load": "410",
+     "sample_ns": "4957544381999919",
+     "now_ns": "4957544382088049",
+     "held_ns": "88100",
+     "nivcsw_sample": "1",
+     "nivcsw_now": "1",
+     "nvcsw_sample": "2795",
+     "nvcsw_now": "2795"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "411",
+     "own_exinstall_ack_epoch": "410",
+     "own_exinstall_ack_ns": "4957544381995799",
+     "last_finish_epoch": "410",
+     "last_finish_ns": "4957544382020299",
+     "last_begin_epoch": "411",
+     "last_begin_ns": "4957544382050069"
+    },
+    "placement": "io=0,1,2,3,6,7, ex=4,5, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=410 exdrain_ack_ns=4957544381943289 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=410 exdrain_ack_ns=4957544381943329 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=1 ready_role=1 exdrain_ack_epoch=410 exdrain_ack_ns=4957544381943549 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=1 ready_role=1 exdrain_ack_epoch=410 exdrain_ack_ns=4957544381943549 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "2",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "2048",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "2048",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "2",
+      "idx": "0",
+      "client": "0x73d647c72000",
+      "op_id": "821",
+      "shard": "12",
+      "scatter": "0x73d648084100",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "821",
+      "dispatch": "822",
+      "ifid": "2"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87087a,0xf4bbc,0x104561,0x93daf,0x1851edb9adb4,0x1851ed74ab84,0x1851ed7d7ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag2/2s-uring-1-db1/attempt-2/server.log",
+    "abort": {
+     "thread": "7",
+     "role": "2",
+     "epoch": "186",
+     "stage": "2",
+     "now_ns": "4957544478110152",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "185",
+     "epoch_after_stage_load": "185",
+     "sample_ns": "4957544477999822",
+     "now_ns": "4957544478130472",
+     "held_ns": "130600",
+     "nivcsw_sample": "1",
+     "nivcsw_now": "1",
+     "nvcsw_sample": "780",
+     "nvcsw_now": "780"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "186",
+     "own_exinstall_ack_epoch": "185",
+     "own_exinstall_ack_ns": "4957544477996862",
+     "last_finish_epoch": "185",
+     "last_finish_ns": "4957544478046682",
+     "last_begin_epoch": "186",
+     "last_begin_ns": "4957544478086022"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=185 exdrain_ack_ns=4957544477940602 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=185 exdrain_ack_ns=4957544477940232 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=184 exdrain_ack_ns=4957544477817512 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=184 exdrain_ack_ns=4957544477817482 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x7f9e1cc72000",
+      "op_id": "370",
+      "shard": "3",
+      "scatter": "0x7f9e1d499f00",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "1",
+      "client": "0x7f9e1cc72000",
+      "op_id": "370",
+      "shard": "7",
+      "scatter": "0x7f9e1d499f00",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "2",
+      "client": "0x7f9e1cc72000",
+      "op_id": "370",
+      "shard": "11",
+      "scatter": "0x7f9e1d499f00",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "3",
+      "client": "0x7f9e1cc72000",
+      "op_id": "370",
+      "shard": "15",
+      "scatter": "0x7f9e1d499f00",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "370",
+      "dispatch": "371",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "370",
+      "dispatch": "371",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "370",
+      "dispatch": "371",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "370",
+      "dispatch": "371",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87087a,0xf4bbc,0x104561,0x94bee,0x2a06c326bdb4,0x2a06c2e1bb84,0x2a06c2ea8ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag2/2s-uring-1-db16/attempt-0/server.log",
+    "abort": {
+     "thread": "6",
+     "role": "2",
+     "epoch": "264",
+     "stage": "5",
+     "now_ns": "4957544562121541",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "263",
+     "epoch_after_stage_load": "263",
+     "sample_ns": "4957544562000001",
+     "now_ns": "4957544562142271",
+     "held_ns": "142240",
+     "nivcsw_sample": "1",
+     "nivcsw_now": "1",
+     "nvcsw_sample": "1065",
+     "nvcsw_now": "1065"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "264",
+     "own_exinstall_ack_epoch": "263",
+     "own_exinstall_ack_ns": "4957544561992621",
+     "last_finish_epoch": "263",
+     "last_finish_ns": "4957544562019111",
+     "last_begin_epoch": "264",
+     "last_begin_ns": "4957544562061381"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=263 exdrain_ack_ns=4957544561941581 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=263 exdrain_ack_ns=4957544561941471 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=262 exdrain_ack_ns=4957544561824581 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=262 exdrain_ack_ns=4957544561824561 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "0",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "0",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "0",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "0",
+      "idx": "0",
+      "client": "0x7d926de72000",
+      "op_id": "524",
+      "shard": "2",
+      "scatter": "0x7d926f099c80",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "1",
+      "client": "0x7d926de72000",
+      "op_id": "524",
+      "shard": "6",
+      "scatter": "0x7d926f099c80",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "2",
+      "client": "0x7d926de72000",
+      "op_id": "524",
+      "shard": "10",
+      "scatter": "0x7d926f099c80",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "3",
+      "client": "0x7d926de72000",
+      "op_id": "524",
+      "shard": "14",
+      "scatter": "0x7d926f099c80",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "524",
+      "dispatch": "525",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "524",
+      "dispatch": "525",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "524",
+      "dispatch": "525",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "524",
+      "dispatch": "525",
+      "ifid": "0"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87087a,0x4dbb5c,0x4ea7a1,0x48161e,0x237fecfcfdb4,0x237fecb7fb84,0x237fecc0cecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag2/2s-uring-1-db16/attempt-1/server.log",
+    "abort": {
+     "thread": "6",
+     "role": "2",
+     "epoch": "398",
+     "stage": "5",
+     "now_ns": "4957544672230339",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "397",
+     "epoch_after_stage_load": "397",
+     "sample_ns": "4957544671999850",
+     "now_ns": "4957544672254030",
+     "held_ns": "254149",
+     "nivcsw_sample": "2",
+     "nivcsw_now": "3",
+     "nvcsw_sample": "1656",
+     "nvcsw_now": "1656"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "398",
+     "own_exinstall_ack_epoch": "397",
+     "own_exinstall_ack_ns": "4957544671975890",
+     "last_finish_epoch": "397",
+     "last_finish_ns": "4957544672028950",
+     "last_begin_epoch": "398",
+     "last_begin_ns": "4957544672059839"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=397 exdrain_ack_ns=4957544671921930 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=397 exdrain_ack_ns=4957544671921890 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=396 exdrain_ack_ns=4957544671802069 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=396 exdrain_ack_ns=4957544671801839 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x797dfe072000",
+      "op_id": "795",
+      "shard": "14",
+      "scatter": "0x797dfbc88480",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "795",
+      "dispatch": "796",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87087a,0x4dbb5c,0x4ea7a1,0x48161e,0x1b21bd431db4,0x1b21bcfe1b84,0x1b21bd06eecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag2/2s-uring-1-db16/attempt-2/server.log",
+    "abort": {
+     "thread": "5",
+     "role": "2",
+     "epoch": "333",
+     "stage": "5",
+     "now_ns": "4957544790110411",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "332",
+     "epoch_after_stage_load": "332",
+     "sample_ns": "4957544789999971",
+     "now_ns": "4957544790133751",
+     "held_ns": "133749",
+     "nivcsw_sample": "0",
+     "nivcsw_now": "0",
+     "nvcsw_sample": "2313",
+     "nvcsw_now": "2313"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "333",
+     "own_exinstall_ack_epoch": "332",
+     "own_exinstall_ack_ns": "4957544789997700",
+     "last_finish_epoch": "332",
+     "last_finish_ns": "4957544790022131",
+     "last_begin_epoch": "333",
+     "last_begin_ns": "4957544790051231"
+    },
+    "placement": "io=0,1,2,3,6,7, ex=4,5, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=332 exdrain_ack_ns=4957544789944120 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=332 exdrain_ack_ns=4957544789944020 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=1 ready_role=1 exdrain_ack_epoch=332 exdrain_ack_ns=4957544789944251 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=1 ready_role=1 exdrain_ack_epoch=332 exdrain_ack_ns=4957544789944140 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x7494fde72000",
+      "op_id": "661",
+      "shard": "5",
+      "scatter": "0x7494fd284d80",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "661",
+      "dispatch": "662",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87087a,0x4dbb5c,0x4ea7a1,0x48077f,0x143d5c602db4,0x143d5c1b2b84,0x143d5c23fecc"
+   }
+  ]
+ },
+ "diag-v3 (PRE + window timestamps, no syscall in the window)": {
+  "binary": "build/flipfix5/arms/diag3/tomokv",
+  "binary_sha256": "c229d067d14f624d7ecb1bb95b22bc42afd1e09b2026e2d0d4aa70a7031e0c88",
+  "dumps": [
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-0-db1/attempt-0/server.log",
+    "abort": {
+     "thread": "5",
+     "role": "2",
+     "epoch": "1127",
+     "stage": "2",
+     "now_ns": "4957695900128135",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "1126",
+     "epoch_after_stage_load": "1126",
+     "sample_ns": "4957695900000085",
+     "now_ns": "4957695900155015",
+     "held_ns": "154910",
+     "nivcsw_sample": "0",
+     "nivcsw_now": "0",
+     "nvcsw_sample": "7910",
+     "nvcsw_now": "7910"
+    },
+    "window": {
+     "sample_ns": "4957695900000085",
+     "check_ns": "4957695900127905",
+     "window_ns": "127820",
+     "check_epoch": "1127"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "1127",
+     "own_exinstall_ack_epoch": "1126",
+     "own_exinstall_ack_ns": "4957695899980105",
+     "last_finish_epoch": "1126",
+     "last_finish_ns": "4957695900044565",
+     "last_begin_epoch": "1127",
+     "last_begin_ns": "4957695900072405"
+    },
+    "placement": "io=0,1,2,3,6,7, ex=4,5, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=1126 exdrain_ack_ns=4957695899926795 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=1126 exdrain_ack_ns=4957695899926735 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=1 ready_role=1 exdrain_ack_epoch=1126 exdrain_ack_ns=4957695899926705 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=1 ready_role=1 exdrain_ack_epoch=1126 exdrain_ack_ns=4957695899926865 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "2",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "2048",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "2048",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "2",
+      "idx": "0",
+      "client": "0x7d2018272000",
+      "op_id": "2241",
+      "shard": "3",
+      "scatter": "0x7d2017e7f580",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "2241",
+      "dispatch": "2242",
+      "ifid": "2"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0xf4cab,0x104651,0x93e7f,0x1ab10d2c7db4,0x1ab10ce77b84,0x1ab10cf04ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-0-db1/attempt-1/server.log",
+    "abort": {
+     "thread": "5",
+     "role": "2",
+     "epoch": "863",
+     "stage": "2",
+     "now_ns": "4957696068198775",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "862",
+     "epoch_after_stage_load": "862",
+     "sample_ns": "4957696068000055",
+     "now_ns": "4957696068219815",
+     "held_ns": "219730",
+     "nivcsw_sample": "0",
+     "nivcsw_now": "0",
+     "nvcsw_sample": "5599",
+     "nvcsw_now": "5599"
+    },
+    "window": {
+     "sample_ns": "4957696068000055",
+     "check_ns": "4957696068198615",
+     "window_ns": "198560",
+     "check_epoch": "863"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "863",
+     "own_exinstall_ack_epoch": "862",
+     "own_exinstall_ack_ns": "4957696067992905",
+     "last_finish_epoch": "862",
+     "last_finish_ns": "4957696068022635",
+     "last_begin_epoch": "863",
+     "last_begin_ns": "4957696068050165"
+    },
+    "placement": "io=0,1,2,3,6,7, ex=4,5, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=862 exdrain_ack_ns=4957696067938905 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=862 exdrain_ack_ns=4957696067938875 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=1 ready_role=1 exdrain_ack_epoch=862 exdrain_ack_ns=4957696067938815 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=1 ready_role=1 exdrain_ack_epoch=862 exdrain_ack_ns=4957696067938785 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x79981b072000",
+      "op_id": "1709",
+      "shard": "13",
+      "scatter": "0x79981a47f640",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "1709",
+      "dispatch": "1710",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0xf4cab,0x104651,0x93e7f,0x1ed234854db4,0x1ed234404b84,0x1ed234491ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-0-db16/attempt-0/server.log",
+    "abort": {
+     "thread": "6",
+     "role": "2",
+     "epoch": "3750",
+     "stage": "5",
+     "now_ns": "4957697256157109",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "3749",
+     "epoch_after_stage_load": "3750",
+     "sample_ns": "4957697256156859",
+     "now_ns": "4957697256179199",
+     "held_ns": "22310",
+     "nivcsw_sample": "17",
+     "nivcsw_now": "17",
+     "nvcsw_sample": "15067",
+     "nvcsw_now": "15067"
+    },
+    "window": {
+     "sample_ns": "4957697256156859",
+     "check_ns": "4957697256156969",
+     "window_ns": "110",
+     "check_epoch": "3750"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "3750",
+     "own_exinstall_ack_epoch": "3749",
+     "own_exinstall_ack_ns": "4957697255984969",
+     "last_finish_epoch": "3749",
+     "last_finish_ns": "4957697256074809",
+     "last_begin_epoch": "3750",
+     "last_begin_ns": "4957697256103339"
+    },
+    "placement": "io=0,1,2,4, ex=3,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=2 ready_role=2 exdrain_ack_epoch=3749 exdrain_ack_ns=4957697255938219 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=3749 exdrain_ack_ns=4957697255938148 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=3748 exdrain_ack_ns=4957697255820659 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=3748 exdrain_ack_ns=4957697255820428 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x7133eb672000",
+      "op_id": "7460",
+      "shard": "2",
+      "scatter": "0x7133ec67f480",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "1",
+      "client": "0x7133eb672000",
+      "op_id": "7460",
+      "shard": "6",
+      "scatter": "0x7133ec67f480",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "2",
+      "client": "0x7133eb672000",
+      "op_id": "7460",
+      "shard": "10",
+      "scatter": "0x7133ec67f480",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "3",
+      "client": "0x7133eb672000",
+      "op_id": "7460",
+      "shard": "14",
+      "scatter": "0x7133ec67f480",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "7460",
+      "dispatch": "7461",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "7460",
+      "dispatch": "7461",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "7460",
+      "dispatch": "7461",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "7460",
+      "dispatch": "7461",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0x4dbaeb,0x4ea781,0x48162e,0x12f5cc779db4,0x12f5cc329b84,0x12f5cc3b6ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-0-db16/attempt-1/server.log",
+    "abort": {
+     "thread": "4",
+     "role": "2",
+     "epoch": "352",
+     "stage": "5",
+     "now_ns": "4957697376086102",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "351",
+     "epoch_after_stage_load": "351",
+     "sample_ns": "4957697376000062",
+     "now_ns": "4957697376108892",
+     "held_ns": "108800",
+     "nivcsw_sample": "0",
+     "nivcsw_now": "0",
+     "nvcsw_sample": "2397",
+     "nvcsw_now": "2397"
+    },
+    "window": {
+     "sample_ns": "4957697376000062",
+     "check_ns": "4957697376085912",
+     "window_ns": "85850",
+     "check_epoch": "352"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "352",
+     "own_exinstall_ack_epoch": "351",
+     "own_exinstall_ack_ns": "4957697375979712",
+     "last_finish_epoch": "351",
+     "last_finish_ns": "4957697376005272",
+     "last_begin_epoch": "352",
+     "last_begin_ns": "4957697376032752"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=351 exdrain_ack_ns=4957697375927702 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=351 exdrain_ack_ns=4957697375927832 acked_exdrain=0 acked_exinstall=1",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=350 exdrain_ack_ns=4957697375806902 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=350 exdrain_ack_ns=4957697375806652 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "2",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "2048",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "2048",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "2",
+      "idx": "0",
+      "client": "0x7aa08ac72000",
+      "op_id": "701",
+      "shard": "0",
+      "scatter": "0x7aa08ac9da00",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "701",
+      "dispatch": "702",
+      "ifid": "2"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0x4dbaeb,0x4ea781,0x48078f,0x164d0fceddb4,0x164d0f89db84,0x164d0f92aecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-1-db1/attempt-0/server.log",
+    "abort": {
+     "thread": "3",
+     "role": "2",
+     "epoch": "1205",
+     "stage": "2",
+     "now_ns": "4957696284150043",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "1204",
+     "epoch_after_stage_load": "1204",
+     "sample_ns": "4957696284000173",
+     "now_ns": "4957696284175193",
+     "held_ns": "174990",
+     "nivcsw_sample": "1",
+     "nivcsw_now": "1",
+     "nvcsw_sample": "8056",
+     "nvcsw_now": "8056"
+    },
+    "window": {
+     "sample_ns": "4957696284000173",
+     "check_ns": "4957696284149863",
+     "window_ns": "149690",
+     "check_epoch": "1205"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "1205",
+     "own_exinstall_ack_epoch": "1204",
+     "own_exinstall_ack_ns": "4957696283984623",
+     "last_finish_epoch": "1204",
+     "last_finish_ns": "4957696284010643",
+     "last_begin_epoch": "1205",
+     "last_begin_ns": "4957696284039073"
+    },
+    "placement": "io=0,1,2,5,6,7, ex=3,4, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=2 ready_role=2 exdrain_ack_epoch=1204 exdrain_ack_ns=4957696283937763 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=1204 exdrain_ack_ns=4957696283937943 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=1 ready_role=1 exdrain_ack_epoch=1204 exdrain_ack_ns=4957696283937713 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=1 ready_role=1 exdrain_ack_epoch=1204 exdrain_ack_ns=4957696283937923 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x7dee5a872000",
+      "op_id": "2401",
+      "shard": "12",
+      "scatter": "0x7dee5a89de80",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "2401",
+      "dispatch": "2402",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0xf4cab,0x104651,0x93e7f,0x20d146ed7db4,0x20d146a87b84,0x20d146b14ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-1-db1/attempt-1/server.log",
+    "abort": {
+     "thread": "7",
+     "role": "2",
+     "epoch": "2886",
+     "stage": "2",
+     "now_ns": "4957696721171593",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "2885",
+     "epoch_after_stage_load": "2886",
+     "sample_ns": "4957696721171393",
+     "now_ns": "4957696721197843",
+     "held_ns": "26420",
+     "nivcsw_sample": "7",
+     "nivcsw_now": "8",
+     "nvcsw_sample": "11616",
+     "nvcsw_now": "11616"
+    },
+    "window": {
+     "sample_ns": "4957696721171393",
+     "check_ns": "4957696721171463",
+     "window_ns": "70",
+     "check_epoch": "2886"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "2886",
+     "own_exinstall_ack_epoch": "2885",
+     "own_exinstall_ack_ns": "4957696720989743",
+     "last_finish_epoch": "2885",
+     "last_finish_ns": "4957696721014083",
+     "last_begin_epoch": "2886",
+     "last_begin_ns": "4957696721049833"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=2885 exdrain_ack_ns=4957696720942292 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=2885 exdrain_ack_ns=4957696720942572 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=2884 exdrain_ack_ns=4957696720824252 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=2884 exdrain_ack_ns=4957696720824032 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "2",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "2048",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "2048",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "2",
+      "idx": "0",
+      "client": "0x760e72c72000",
+      "op_id": "5750",
+      "shard": "3",
+      "scatter": "0x760e72ca2000",
+      "stamp": "0"
+     },
+     {
+      "lane": "2",
+      "idx": "1",
+      "client": "0x760e72c72000",
+      "op_id": "5750",
+      "shard": "7",
+      "scatter": "0x760e72ca2000",
+      "stamp": "0"
+     },
+     {
+      "lane": "2",
+      "idx": "2",
+      "client": "0x760e72c72000",
+      "op_id": "5750",
+      "shard": "11",
+      "scatter": "0x760e72ca2000",
+      "stamp": "0"
+     },
+     {
+      "lane": "2",
+      "idx": "3",
+      "client": "0x760e72c72000",
+      "op_id": "5750",
+      "shard": "15",
+      "scatter": "0x760e72ca2000",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "5750",
+      "dispatch": "5751",
+      "ifid": "2"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "5750",
+      "dispatch": "5751",
+      "ifid": "2"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "5750",
+      "dispatch": "5751",
+      "ifid": "2"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "5750",
+      "dispatch": "5751",
+      "ifid": "2"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0xf4cab,0x104651,0x94cbe,0x138076c51db4,0x138076801b84,0x13807688eecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-1-db16/attempt-0/server.log",
+    "abort": {
+     "thread": "6",
+     "role": "2",
+     "epoch": "4234",
+     "stage": "5",
+     "now_ns": "4957697969138395",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "4233",
+     "epoch_after_stage_load": "4234",
+     "sample_ns": "4957697969138195",
+     "now_ns": "4957697969165545",
+     "held_ns": "27300",
+     "nivcsw_sample": "8",
+     "nivcsw_now": "8",
+     "nvcsw_sample": "17219",
+     "nvcsw_now": "17219"
+    },
+    "window": {
+     "sample_ns": "4957697969138195",
+     "check_ns": "4957697969138265",
+     "window_ns": "70",
+     "check_epoch": "4234"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "4234",
+     "own_exinstall_ack_epoch": "4233",
+     "own_exinstall_ack_ns": "4957697968984484",
+     "last_finish_epoch": "4233",
+     "last_finish_ns": "4957697969012015",
+     "last_begin_epoch": "4234",
+     "last_begin_ns": "4957697969039515"
+    },
+    "placement": "io=0,1,2,5, ex=3,4,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=2 ready_role=2 exdrain_ack_epoch=4233 exdrain_ack_ns=4957697968932475 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=4233 exdrain_ack_ns=4957697968932344 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=4232 exdrain_ack_ns=4957697968810264 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=4232 exdrain_ack_ns=4957697968810164 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "0",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "0",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "0",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "0",
+      "idx": "0",
+      "client": "0x7ba157c72000",
+      "op_id": "8443",
+      "shard": "6",
+      "scatter": "0x7ba157c9d340",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "8443",
+      "dispatch": "8444",
+      "ifid": "0"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0x4dbaeb,0x4ea781,0x48162e,0x260573244db4,0x260572df4b84,0x260572e81ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag3/2s-uring-1-db16/attempt-1/server.log",
+    "abort": {
+     "thread": "4",
+     "role": "2",
+     "epoch": "1765",
+     "stage": "5",
+     "now_ns": "4957698243103258",
+     "reason": "all_quiesced()==false"
+    },
+    "sample": {
+     "stage": "ExInstall",
+     "epoch_before_stage_load": "1764",
+     "epoch_after_stage_load": "1764",
+     "sample_ns": "4957698243000029",
+     "now_ns": "4957698243125078",
+     "held_ns": "125020",
+     "nivcsw_sample": "2",
+     "nivcsw_now": "2",
+     "nvcsw_sample": "11998",
+     "nvcsw_now": "11998"
+    },
+    "window": {
+     "sample_ns": "4957698243000029",
+     "check_ns": "4957698243103058",
+     "window_ns": "103029",
+     "check_epoch": "1765"
+    },
+    "ack": {
+     "token": "0x0",
+     "token_epoch": "0",
+     "token_stage": "0",
+     "live_epoch": "1765",
+     "own_exinstall_ack_epoch": "1764",
+     "own_exinstall_ack_ns": "4957698242996178",
+     "last_finish_epoch": "1764",
+     "last_finish_ns": "4957698243049678",
+     "last_begin_epoch": "1765",
+     "last_begin_ns": "4957698243079438"
+    },
+    "placement": "io=0,1,2,3,6,7, ex=4,5, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=1764 exdrain_ack_ns=4957698242942049 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=1764 exdrain_ack_ns=4957698242942109 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=1 ready_role=1 exdrain_ack_epoch=1764 exdrain_ack_ns=4957698242942218 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=1 ready_role=1 exdrain_ack_epoch=1764 exdrain_ack_ns=4957698242942249 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "3",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "3072",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "3072",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "0"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "3",
+      "idx": "0",
+      "client": "0x720bfce72000",
+      "op_id": "3507",
+      "shard": "14",
+      "scatter": "0x720bfcea2e80",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "3507",
+      "dispatch": "3508",
+      "ifid": "3"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "3",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x87091a,0x4dbaeb,0x4ea781,0x48078f,0x1265c6be0db4,0x1265c6790b84,0x1265c681decc"
+   }
+  ]
+ },
+ "diag-light (first POST candidate, token read after validation)": {
+  "binary": "build/flipfix5/arms/diag-light/tomokv",
+  "binary_sha256": "d3f07530fe51c75f44e4c42090900fde4e0bc26df59cbb34d8f0e33379448001",
+  "dumps": [
+   {
+    "log": "build/flipfix5/runs/diag-light-1/2s-uring-0-db1/attempt-5/server.log",
+    "abort": {
+     "thread": "3",
+     "role": "2",
+     "epoch": "30618",
+     "stage": "2",
+     "now_ns": "4961822074096064",
+     "reason": "all_quiesced()==false"
+    },
+    "placement": "io=0,1,2,4, ex=3,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=2 ready_role=2 exdrain_ack_epoch=30617 exdrain_ack_ns=4961822073949033 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=30617 exdrain_ack_ns=4961822073948963 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=30616 exdrain_ack_ns=4961822073834442 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=30616 exdrain_ack_ns=4961822073834532 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "0",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "0",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "0",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "44"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "0",
+      "idx": "0",
+      "client": "0x7b72ea472000",
+      "op_id": "61026",
+      "shard": "0",
+      "scatter": "0x7b72eca88840",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "1",
+      "client": "0x7b72ea472000",
+      "op_id": "61026",
+      "shard": "4",
+      "scatter": "0x7b72eca88840",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "2",
+      "client": "0x7b72ea472000",
+      "op_id": "61026",
+      "shard": "8",
+      "scatter": "0x7b72eca88840",
+      "stamp": "0"
+     },
+     {
+      "lane": "0",
+      "idx": "3",
+      "client": "0x7b72ea472000",
+      "op_id": "61026",
+      "shard": "12",
+      "scatter": "0x7b72eca88840",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "61026",
+      "dispatch": "61027",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "61026",
+      "dispatch": "61027",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "61026",
+      "dispatch": "61027",
+      "ifid": "0"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "61026",
+      "dispatch": "61027",
+      "ifid": "0"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "0",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x86fe8a,0xf41a4,0x103a71,0x9386f,0x1887a77dfdb4,0x1887a738fb84,0x1887a741cecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag-light-1/2s-uring-0-db16/attempt-0/server.log",
+    "abort": {
+     "thread": "4",
+     "role": "2",
+     "epoch": "2446",
+     "stage": "5",
+     "now_ns": "4961824776077478",
+     "reason": "all_quiesced()==false"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=2445 exdrain_ack_ns=4961824775942708 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=2445 exdrain_ack_ns=4961824775942668 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=2444 exdrain_ack_ns=4961824775826776 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=2444 exdrain_ack_ns=4961824775827087 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "2",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "2048",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "2048",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "3"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "2",
+      "idx": "0",
+      "client": "0x775c4c472000",
+      "op_id": "4852",
+      "shard": "0",
+      "scatter": "0x775c4c87f940",
+      "stamp": "0"
+     },
+     {
+      "lane": "2",
+      "idx": "1",
+      "client": "0x775c4c472000",
+      "op_id": "4852",
+      "shard": "4",
+      "scatter": "0x775c4c87f940",
+      "stamp": "0"
+     },
+     {
+      "lane": "2",
+      "idx": "2",
+      "client": "0x775c4c472000",
+      "op_id": "4852",
+      "shard": "8",
+      "scatter": "0x775c4c87f940",
+      "stamp": "0"
+     },
+     {
+      "lane": "2",
+      "idx": "3",
+      "client": "0x775c4c472000",
+      "op_id": "4852",
+      "shard": "12",
+      "scatter": "0x775c4c87f940",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "4852",
+      "dispatch": "4853",
+      "ifid": "2"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "4852",
+      "dispatch": "4853",
+      "ifid": "2"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "4852",
+      "dispatch": "4853",
+      "ifid": "2"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "4852",
+      "dispatch": "4853",
+      "ifid": "2"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x86fe8a,0x4db350,0x4e9d21,0x47fc7f,0x1b75368a0db4,0x1b7536450b84,0x1b75364ddecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag-light-1/2s-uring-1-db1/attempt-0/server.log",
+    "abort": {
+     "thread": "6",
+     "role": "2",
+     "epoch": "36952",
+     "stage": "2",
+     "now_ns": "4961777600087453",
+     "reason": "all_quiesced()==false"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=36951 exdrain_ack_ns=4961777599933852 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=36951 exdrain_ack_ns=4961777599933802 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=36950 exdrain_ack_ns=4961777599820181 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=36950 exdrain_ack_ns=4961777599820101 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "1",
+     "apply_inflight": "1",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "2",
+      "head": "0",
+      "retired": "0",
+      "tail": "1",
+      "cbase": "2048",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "2048",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "16"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "2",
+      "idx": "0",
+      "client": "0x710a62472000",
+      "op_id": "73511",
+      "shard": "6",
+      "scatter": "0x710a6367f180",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "MSET",
+      "argc": "5",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "73511",
+      "dispatch": "73512",
+      "ifid": "2"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "9",
+      "phase": "1",
+      "pending": "1",
+      "nsub": "2",
+      "key_count": "2",
+      "owner_io": "2",
+      "multi_child": "0",
+      "atomic_group": "1",
+      "atomic_write": "1",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "0",
+      "admitted": "1",
+      "apply_open": "1",
+      "record_refs": "2",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x86fe8a,0xf41a4,0x103a71,0x946ae,0xd7d09483db4,0xd7d09033b84,0xd7d090c0ecc"
+   },
+   {
+    "log": "build/flipfix5/runs/diag-light-1/2s-uring-1-db16/attempt-0/server.log",
+    "abort": {
+     "thread": "6",
+     "role": "2",
+     "epoch": "17692",
+     "stage": "5",
+     "now_ns": "4961824386116836",
+     "reason": "all_quiesced()==false"
+    },
+    "placement": "io=0,1,2,3, ex=4,5,6,7, nthreads=8",
+    "threads": [
+     "thread 0 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 1 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 2 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 3 role=1 ready_role=1 exdrain_ack_epoch=0 exdrain_ack_ns=0 acked_exdrain=0 acked_exinstall=0",
+     "thread 4 role=2 ready_role=2 exdrain_ack_epoch=17691 exdrain_ack_ns=4961824385946384 acked_exdrain=0 acked_exinstall=0",
+     "thread 5 role=2 ready_role=2 exdrain_ack_epoch=17691 exdrain_ack_ns=4961824385946234 acked_exdrain=0 acked_exinstall=0",
+     "thread 6 role=2 ready_role=2 exdrain_ack_epoch=17690 exdrain_ack_ns=4961824385821233 acked_exdrain=0 acked_exinstall=0",
+     "thread 7 role=2 ready_role=2 exdrain_ack_epoch=17690 exdrain_ack_ns=4961824385821243 acked_exdrain=0 acked_exinstall=0"
+    ],
+    "self_quiesce": {
+     "inbound": "0",
+     "release": "1",
+     "stale_tasks": "0",
+     "stale_releases": "0",
+     "atomic_deferred": "0",
+     "multi_retries": "0",
+     "xshard_retries": "0",
+     "ordered_deferred": "0",
+     "xshard_commit_pending": "0",
+     "notify_keyless": "0",
+     "atomic_inflight": "0",
+     "apply_inflight": "0",
+     "snapshot_state": "0"
+    },
+    "open_lanes": [
+     {
+      "p": "1",
+      "head": "0",
+      "retired": "0",
+      "tail": "4",
+      "cbase": "1024",
+      "cmask": "1023",
+      "ccap": "1024",
+      "pbase": "1024",
+      "pmask": "1023",
+      "pcap": "1024",
+      "avail": "1024",
+      "recorded": "5"
+     }
+    ],
+    "stranded_tasks": [
+     {
+      "lane": "1",
+      "idx": "0",
+      "client": "0x735df4a72000",
+      "op_id": "35166",
+      "shard": "2",
+      "scatter": "0x735df4299700",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "1",
+      "client": "0x735df4a72000",
+      "op_id": "35166",
+      "shard": "6",
+      "scatter": "0x735df4299700",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "2",
+      "client": "0x735df4a72000",
+      "op_id": "35166",
+      "shard": "10",
+      "scatter": "0x735df4299700",
+      "stamp": "0"
+     },
+     {
+      "lane": "1",
+      "idx": "3",
+      "client": "0x735df4a72000",
+      "op_id": "35166",
+      "shard": "14",
+      "scatter": "0x735df4299700",
+      "stamp": "0"
+     }
+    ],
+    "stranded_ops": [
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "35166",
+      "dispatch": "35167",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "35166",
+      "dispatch": "35167",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "35166",
+      "dispatch": "35167",
+      "ifid": "1"
+     },
+     {
+      "cmd": "FLUSHALL",
+      "argc": "2",
+      "state": "0",
+      "shard": "-1",
+      "blocking": "0",
+      "closing": "0",
+      "flush": "35166",
+      "dispatch": "35167",
+      "ifid": "1"
+     }
+    ],
+    "stranded_scatter": [
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     },
+     {
+      "kind": "0",
+      "phase": "1",
+      "pending": "4",
+      "nsub": "16",
+      "key_count": "0",
+      "owner_io": "1",
+      "multi_child": "0",
+      "atomic_group": "0",
+      "atomic_write": "0",
+      "atomic_apply": "0",
+      "atomic_direct": "0",
+      "script_phase": "0",
+      "final_reply": "0",
+      "retired": "0",
+      "two_hop": "0",
+      "barrier": "1",
+      "admitted": "0",
+      "apply_open": "0",
+      "record_refs": "0",
+      "runtime_loading": "0"
+     }
+    ],
+    "abort_stack_offsets": "0x86fe8a,0x4db350,0x4e9d21,0x480b1e,0x1acb2aaf8db4,0x1acb2a6a8b84,0x1acb2a735ecc"
+   }
+  ]
+ }
+}

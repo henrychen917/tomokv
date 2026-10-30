@@ -1,0 +1,56 @@
+{
+  "branch": "cx-wave11",
+  "production_source_commit": "510e826117fc4d1d5a67ebef1dd011f686f74244",
+  "arms": {
+    "PRE": {
+      "path": "build/wave11/tomokv-PRE",
+      "sha256": "68c714d4059033b967dbd6d1fa8ce056e60b5988bdbf3c3f510c7f584b746edb",
+      "bytes": 223180312
+    },
+    "POST": {
+      "path": "build/wave11/tomokv-POST",
+      "sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9",
+      "bytes": 224567688
+    },
+    "PAD-A": {
+      "path": "build/wave11/tomokv-PAD-A",
+      "sha256": "d101ece1fb44e1e9d232e50eafd2b879d2a795f34e3bf49fbd803d20e641b79b",
+      "bytes": 223491632
+    }
+  },
+  "source_tree_sha256": "28693719cafb2edc51e6b9b391205ba470e1bea584c531374716ef7a264901b6",
+  "stable_post_job_invocations": 22,
+  "locked_layout_checks": 48,
+  "binding_receipts": 13,
+  "whole_job_requirements": 339,
+  "production_unit_targets": 55,
+  "freshness_checks": 60,
+  "gates_test_tests": 76,
+  "tcl_manifest_files_per_mode": 37,
+  "tcl_assertions_per_mode": 1817,
+  "tcl_planted_regression_both_modes": true,
+  "abba_complete_copy_passed": true,
+  "expect_unchanged": [
+    "EXPECT_QUICK=946",
+    "EXPECT_FULL=963"
+  ],
+  "declared_counts": {
+    "quick": 977,
+    "full": 994
+  },
+  "tracked_fixture_unchanged": true,
+  "build_bytes": 33213890560,
+  "build_gib": 30.93,
+  "remaining_lane_listeners": [],
+  "remaining_worktree_servers": [],
+  "not_run": [
+    "flip_saturated (memtier)",
+    "atomic_floor (throughput floor)",
+    "efficiency (perf)",
+    "full tests/gate.sh iteration",
+    "all ABBA/NIC/storm/EXEC/flushmerit load generators",
+    "tailgen client-lb outstanding bound (inline row, no whole-job selector; open-loop load generator)",
+    "atomic RYOW rate assertions (GATE_PROOF_NO_RATES=1 in selected partial jobs only)"
+  ],
+  "passed": true
+}

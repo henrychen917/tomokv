@@ -1,0 +1,4794 @@
+{
+ "binary": "build/flipfix5/arms/pre/tomokv",
+ "binary_sha256": "5432534fb83d957ef7972d0df26f7e3e461069c8a4e8ad04bf6deeef1778b716",
+ "cores": "server 24-31, harness 16-23",
+ "legs": "2s only (FLIP is unavailable in 1s: \"ERR FLIP is unavailable with --thread-mode 1s\")",
+ "rows": [
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-uring-0-db1",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 4,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 302904,
+   "aborts_per_100k_flips": 0.66,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 5.53,
+     "flips": 35155,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63132,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63734,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 2.625,
+     "flips": 11694,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 64380,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.145,
+     "flips": 64809,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-uring-1-db1",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 6,
+   "fail": 0,
+   "flips_total": 173218,
+   "aborts_per_100k_flips": 3.46,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 2.475,
+     "flips": 10656,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.629,
+     "flips": 35764,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.483,
+     "flips": 34541,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.694,
+     "flips": 20379,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.68,
+     "flips": 44659,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 4.527,
+     "flips": 27219,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 6,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 371545,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 62035,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 61747,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 62471,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 62140,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 61271,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 61881,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 6,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 375669,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 62031,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63244,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 60011,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63725,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63500,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63158,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-uring-0-db16",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 4,
+   "fail": 0,
+   "flips_total": 299748,
+   "aborts_per_100k_flips": 1.33,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 9.101,
+     "flips": 62525,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 7.155,
+     "flips": 47111,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.745,
+     "flips": 19993,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 64054,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.43,
+     "flips": 42147,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63918,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-uring-1-db16",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 247736,
+   "aborts_per_100k_flips": 1.21,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 5.278,
+     "flips": 33094,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.58,
+     "flips": 3539,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.114,
+     "flips": 63857,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 64322,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.526,
+     "flips": 19294,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.111,
+     "flips": 63630,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 6,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 382826,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63486,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63713,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 64708,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63703,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63853,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63363,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "MSET+FLUSHALL SYNC (live-flip witness)",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 6,
+   "seconds_per_attempt": 8.0,
+   "pass_": 6,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 381434,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63777,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 64141,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 64662,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63357,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 62140,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.095,
+     "flips": 63357,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 143073,
+   "aborts_per_100k_flips": 1.4,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 59401,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.434,
+     "flips": 39789,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.984,
+     "flips": 43883,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 55854,
+   "aborts_per_100k_flips": 5.37,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 2.729,
+     "flips": 11669,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.383,
+     "flips": 40093,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.704,
+     "flips": 4092,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 188018,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.104,
+     "flips": 62000,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62890,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63128,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 186897,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62292,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 61304,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63301,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 20782,
+   "aborts_per_100k_flips": 14.44,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 1.231,
+     "flips": 658,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.206,
+     "flips": 15757,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.731,
+     "flips": 4367,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 133302,
+   "aborts_per_100k_flips": 2.25,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 4.661,
+     "flips": 26745,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 7.715,
+     "flips": 50277,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 8.582,
+     "flips": 56280,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 190819,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.147,
+     "flips": 63073,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 64244,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 63502,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHALL-ASYNC",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 191528,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 63992,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 64193,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 63343,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 150640,
+   "aborts_per_100k_flips": 1.33,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 61694,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.282,
+     "flips": 31917,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 8.609,
+     "flips": 57029,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 77231,
+   "aborts_per_100k_flips": 2.59,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 2.616,
+     "flips": 11035,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.853,
+     "flips": 5123,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 61073,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 188924,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 62643,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 63474,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 62807,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 189098,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63266,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62862,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 62970,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 1,
+   "fail": 0,
+   "flips_total": 129495,
+   "aborts_per_100k_flips": 0.77,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 7.088,
+     "flips": 34858,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 47607,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 47030,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 1,
+   "fail": 0,
+   "flips_total": 103407,
+   "aborts_per_100k_flips": 0.97,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 3.183,
+     "flips": 11277,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.112,
+     "flips": 45430,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 46700,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 150434,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.105,
+     "flips": 50455,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 49491,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 50488,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "FLUSHDB",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 149331,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 49319,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 49971,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 50041,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 185099,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 61949,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.108,
+     "flips": 61760,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 61390,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 188321,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 63014,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62577,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62730,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 184744,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62367,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 61361,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 61016,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 186108,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62289,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62396,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 61423,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 194743,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64867,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 4825
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64734,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 4792
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65142,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 4974
+     }
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 194707,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65132,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 4487
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.105,
+     "flips": 64717,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 4502
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.153,
+     "flips": 64858,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 4735
+     }
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 168926,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 56234,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 50911
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 57459,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 47299
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 55233,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 60522
+     }
+    }
+   ]
+  },
+  {
+   "op": "SWAPDB",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 163226,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 55730,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 53538
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 54409,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 60882
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 53087,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR a FLIP is already in progress": 49770
+     }
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 189693,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 63062,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 63295,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63336,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 188819,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 62884,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 62888,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 63047,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 185363,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 61806,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 62478,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 61079,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 182923,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 60518,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 62092,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 60313,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 189945,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 63484,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 63500,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 62961,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 188496,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 62594,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 63017,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.108,
+     "flips": 62885,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 187523,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 62619,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 62444,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 62460,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 189046,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 62898,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 63470,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 62678,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 74083,
+   "aborts_per_100k_flips": 4.05,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 7.987,
+     "flips": 54917,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.848,
+     "flips": 5465,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 2.88,
+     "flips": 13701,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 76459,
+   "aborts_per_100k_flips": 3.92,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 5.082,
+     "flips": 31311,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.587,
+     "flips": 3609,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.358,
+     "flips": 41539,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 191064,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 63228,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63995,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63841,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 192157,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63503,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 63961,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 64693,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 42337,
+   "aborts_per_100k_flips": 7.09,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 3.183,
+     "flips": 16353,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.245,
+     "flips": 16753,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 2.36,
+     "flips": 9231,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 149968,
+   "aborts_per_100k_flips": 1.33,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 7.088,
+     "flips": 47089,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 63960,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.987,
+     "flips": 38919,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 193811,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.107,
+     "flips": 63650,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64802,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65359,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "DBSIZE-NOW",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 193048,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64228,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64070,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64750,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10707,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.082,
+     "flips": 3561,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.088,
+     "flips": 3572,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.104,
+     "flips": 3574,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10663,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.09,
+     "flips": 3569,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.088,
+     "flips": 3547,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.112,
+     "flips": 3547,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10675,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.067,
+     "flips": 3557,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.071,
+     "flips": 3559,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.054,
+     "flips": 3559,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10652,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.035,
+     "flips": 3538,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.054,
+     "flips": 3559,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.045,
+     "flips": 3555,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10378,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.045,
+     "flips": 3428,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.113,
+     "flips": 3487,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.073,
+     "flips": 3463,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10427,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.08,
+     "flips": 3458,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.083,
+     "flips": 3487,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.083,
+     "flips": 3482,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10321,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.079,
+     "flips": 3434,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.053,
+     "flips": 3455,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.067,
+     "flips": 3432,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "KEYS",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 10364,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.062,
+     "flips": 3455,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.06,
+     "flips": 3433,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.073,
+     "flips": 3476,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 3,
+   "fail": 0,
+   "flips_total": 58767,
+   "aborts_per_100k_flips": 5.1,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 4.983,
+     "flips": 30873,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 4.598,
+     "flips": 27593,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 1.191,
+     "flips": 301,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 1,
+   "fail": 0,
+   "flips_total": 148166,
+   "aborts_per_100k_flips": 0.67,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.122,
+     "flips": 63963,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 63624,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.68,
+     "flips": 20579,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 183602,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.115,
+     "flips": 62790,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 62066,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 58746,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 186461,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 62608,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 62088,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 61765,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 1,
+   "fail": 0,
+   "flips_total": 182939,
+   "aborts_per_100k_flips": 0.55,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 64503,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 7.84,
+     "flips": 53751,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.153,
+     "flips": 64685,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 1,
+   "fail": 0,
+   "flips_total": 139036,
+   "aborts_per_100k_flips": 0.72,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.153,
+     "flips": 64777,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 2.332,
+     "flips": 9521,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.117,
+     "flips": 64738,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 191809,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 64543,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 64428,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 62838,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "SCAN",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 192359,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 64425,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 64573,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 63361,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 73350,
+   "aborts_per_100k_flips": 2.73,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 7.936,
+     "flips": 24303,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.066,
+     "flips": 28872,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 6.747,
+     "flips": 20175,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 1,
+   "fail": 0,
+   "flips_total": 65427,
+   "aborts_per_100k_flips": 1.53,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 3.13,
+     "flips": 7197,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.082,
+     "flips": 29187,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.089,
+     "flips": 29043,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 98341,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.112,
+     "flips": 32933,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 32644,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 32764,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 99561,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 33117,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 33386,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 33058,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 47997,
+   "aborts_per_100k_flips": 4.17,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.07,
+     "flips": 23691,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.246,
+     "flips": 12137,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.399,
+     "flips": 12169,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 47111,
+   "aborts_per_100k_flips": 4.25,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 6.737,
+     "flips": 16401,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.54,
+     "flips": 7109,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.09,
+     "flips": 23601,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 84671,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.079,
+     "flips": 28509,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.07,
+     "flips": 27715,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.07,
+     "flips": 28447,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "RANDOMKEY",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 84316,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.07,
+     "flips": 28196,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.07,
+     "flips": 28367,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.07,
+     "flips": 27753,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 147477,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 48983,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 94596
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.104,
+     "flips": 49353,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 96870
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 49141,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 94734
+     }
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 147814,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 49522,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 94764
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 49500,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 93780
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 48792,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 96089
+     }
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 151467,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 50830,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 80286
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.101,
+     "flips": 50055,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 85529
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 50582,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 82279
+     }
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 154179,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 51058,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 73228
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 50978,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 75593
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 52143,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 76758
+     }
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 128598,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 42264,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 138267
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.104,
+     "flips": 43290,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 135648
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.105,
+     "flips": 43044,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 137262
+     }
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 129696,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.106,
+     "flips": 43372,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 134825
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.107,
+     "flips": 42785,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 138997
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.105,
+     "flips": 43539,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 133609
+     }
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 138698,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.106,
+     "flips": 47256,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 109286
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.103,
+     "flips": 44807,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 122126
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.106,
+     "flips": 46635,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 113207
+     }
+    }
+   ]
+  },
+  {
+   "op": "BGSAVE",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 133341,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.104,
+     "flips": 44651,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 119200
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.106,
+     "flips": 43343,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 126407
+     }
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.104,
+     "flips": 45347,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP is not allowed during a snapshot": 118599
+     }
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 0,
+   "fail": 3,
+   "flips_total": 0,
+   "aborts_per_100k_flips": null,
+   "attempts_detail": [
+    {
+     "outcome": "fail",
+     "seconds": 10.033,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.055,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.061,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 0,
+   "fail": 2,
+   "flips_total": 18359,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.09,
+     "flips": 18359,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.047,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.056,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 0,
+   "fail": 2,
+   "flips_total": 1,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 11.564,
+     "flips": 1,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {
+      "ERR FLIP timed out before the ownership commit": 2
+     }
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.029,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.029,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 0,
+   "fail": 3,
+   "flips_total": 0,
+   "aborts_per_100k_flips": null,
+   "attempts_detail": [
+    {
+     "outcome": "fail",
+     "seconds": 10.029,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.029,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.029,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 0,
+   "fail": 3,
+   "flips_total": 0,
+   "aborts_per_100k_flips": null,
+   "attempts_detail": [
+    {
+     "outcome": "fail",
+     "seconds": 10.033,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.056,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.069,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 0,
+   "fail": 3,
+   "flips_total": 0,
+   "aborts_per_100k_flips": null,
+   "attempts_detail": [
+    {
+     "outcome": "fail",
+     "seconds": 10.071,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.057,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.062,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 0,
+   "fail": 3,
+   "flips_total": 0,
+   "aborts_per_100k_flips": null,
+   "attempts_detail": [
+    {
+     "outcome": "fail",
+     "seconds": 10.07,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.033,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.033,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EXEC",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 0,
+   "abort": 0,
+   "fail": 3,
+   "flips_total": 0,
+   "aborts_per_100k_flips": null,
+   "attempts_detail": [
+    {
+     "outcome": "fail",
+     "seconds": 10.033,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.033,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "fail",
+     "seconds": 10.033,
+     "flips": 0,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 141876,
+   "aborts_per_100k_flips": 1.41,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 6.985,
+     "flips": 46216,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.149,
+     "flips": 64360,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.032,
+     "flips": 31300,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 96453,
+   "aborts_per_100k_flips": 2.07,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.167,
+     "flips": 65176,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 2.178,
+     "flips": 8205,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 3.98,
+     "flips": 23072,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 191351,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.169,
+     "flips": 63821,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.149,
+     "flips": 63226,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.148,
+     "flips": 64304,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 192871,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.149,
+     "flips": 64193,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.149,
+     "flips": 63726,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.149,
+     "flips": 64952,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 1,
+   "abort": 2,
+   "fail": 0,
+   "flips_total": 132430,
+   "aborts_per_100k_flips": 1.51,
+   "attempts_detail": [
+    {
+     "outcome": "abort",
+     "seconds": 5.486,
+     "flips": 35008,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "abort",
+     "seconds": 5.088,
+     "flips": 31949,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 65473,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 2,
+   "abort": 1,
+   "fail": 0,
+   "flips_total": 183206,
+   "aborts_per_100k_flips": 0.55,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 64557,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "abort",
+     "seconds": 7.889,
+     "flips": 54241,
+     "exit": {
+      "rc": -6,
+      "forced": false
+     },
+     "refusal_kinds": null
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.162,
+     "flips": 64408,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 194248,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 64880,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 64337,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 65031,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "EVAL",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 191310,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 64191,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 61460,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 65659,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-uring-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 196916,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.1,
+     "flips": 65472,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 65824,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 65620,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-uring-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 197832,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.149,
+     "flips": 66520,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 65773,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.149,
+     "flips": 65539,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-epoll-0-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 189258,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 61597,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 64445,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 63216,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-epoll-1-db1",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 191120,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.099,
+     "flips": 64895,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 64322,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.098,
+     "flips": 61903,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-uring-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 197405,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 66157,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.152,
+     "flips": 65786,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65462,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-uring-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 197197,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65201,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 66449,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65547,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-epoll-0-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 194668,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64863,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64908,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64897,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  },
+  {
+   "op": "NONE",
+   "leg": "2s-epoll-1-db16",
+   "attempts": 3,
+   "seconds_per_attempt": 8.0,
+   "pass_": 3,
+   "abort": 0,
+   "fail": 0,
+   "flips_total": 194359,
+   "aborts_per_100k_flips": 0.0,
+   "attempts_detail": [
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 65164,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64339,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    },
+    {
+     "outcome": "pass",
+     "seconds": 8.102,
+     "flips": 64856,
+     "exit": {
+      "rc": 0,
+      "forced": false
+     },
+     "refusal_kinds": {}
+    }
+   ]
+  }
+ ]
+}

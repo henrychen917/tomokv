@@ -1,0 +1,21 @@
+{
+  "PRE": {
+    "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-PRE",
+    "sha256": "68c714d4059033b967dbd6d1fa8ce056e60b5988bdbf3c3f510c7f584b746edb",
+    "bytes": 223180312
+  },
+  "POST": {
+    "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-POST",
+    "sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9",
+    "bytes": 224567688
+  },
+  "source_commit": "510e826117fc4d1d5a67ebef1dd011f686f74244",
+  "make_q_all": 0,
+  "makefile_sha256": "9a1f152dd33c2e2db3cac4d39a3b27111cdf222bf12d793ec27e175f63adc4e5",
+  "PAD-A": {
+    "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-PAD-A",
+    "sha256": "d101ece1fb44e1e9d232e50eafd2b879d2a795f34e3bf49fbd803d20e641b79b",
+    "bytes": 223491632,
+    "kind": "A: behaviour twin"
+  }
+}

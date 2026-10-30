@@ -1,0 +1,30 @@
+{
+  "arms": {
+    "PRE": {
+      "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-PRE",
+      "sha256": "935c31459c919abf3ed74b78895ea36349b39129f22105620aa5189019f558ac"
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-climonfix4/build/tomokv",
+      "sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01"
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/tomokv",
+      "sha256": "93545fb26e832eaa3ef64024910671a485ba456fc2d1ba55b593d7960ee72165"
+    }
+  },
+  "pruned": [
+    {
+      "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/source",
+      "files": 250,
+      "bytes": 5785670,
+      "manifest_sha256": "4e03cd7a2dc70929c26e3f14344615506218e0316c0ba4b6435e4df6c79cf792"
+    },
+    {
+      "path": "/home/user/Projects/cx-climonfix4/build/climonfix4/pad-a/objects",
+      "files": 120,
+      "bytes": 857162249,
+      "manifest_sha256": "7ad73f75ee6a5de664a5c6f86d88ea48ca0fdae7d7030d55dccc59cbaf2941f3"
+    }
+  ]
+}

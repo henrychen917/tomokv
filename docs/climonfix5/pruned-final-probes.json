@@ -1,0 +1,26 @@
+[
+  {
+    "path": "build/climonfix5/scopes/post-db0-hot",
+    "probe_sha256": "d0732deb7fb0866fd2c16abdbb19a7254a1f492af868d6f563ccbfe456e43e63"
+  },
+  {
+    "path": "build/climonfix5/scopes/post-db0-parse",
+    "probe_sha256": "08b34aece11cf3f106e4ba9f5a0f4144319ba134c54fa83f29d41ff0779b1a79"
+  },
+  {
+    "path": "build/climonfix5/scopes/post-db0-session",
+    "probe_sha256": "10022f9e9c02bf11e4511efb516b1cb0610d69e4829fe78f707ac41c387c1aa6"
+  },
+  {
+    "path": "build/climonfix5/scopes/post-normal-hot",
+    "probe_sha256": "c5280aee87865b321ed3adf357edb01b53d5c5b616be3e8c046e2aece8ffdd0b"
+  },
+  {
+    "path": "build/climonfix5/scopes/post-normal-parse",
+    "probe_sha256": "038c12b700844ac563c5733546b2e6fcaf8791e05b5e5e6e33a9f9f1384a1256"
+  },
+  {
+    "path": "build/climonfix5/scopes/post-normal-session",
+    "probe_sha256": "f831cad9c63dfc478a126060496df223e22808aee7de6772f17dc68ec25e9c25"
+  }
+]

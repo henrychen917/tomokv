@@ -1,0 +1,193 @@
+{
+ "binary_sha256": "ef368a64f969aa5b44dead90743d70949dc6681f949c0171726d0f46d826dc52",
+ "files": {
+  "unit/introspection": {
+   "extra_args": [],
+   "known_setup_errors": [],
+   "passed_tests": [
+    "CLIENT SETINFO can set a library name to this connection in tests/unit/introspection.tcl",
+    "RESET does NOT clean library name in tests/unit/introspection.tcl"
+   ],
+   "seconds": {
+    "1s": 2.27,
+    "2s": 2.27
+   },
+   "sha256": "92fa93cdb4bcb77698c6f516bbed9c7e34cf02d757baa8e40ccf5f1f45dd2e7c",
+   "skip_tests": {
+    "After CLIENT SETNAME, connection can still be closed": "Excluded only in this named negative-control manifest",
+    "CLIENT GETNAME check if name set correctly": "Excluded only in this named negative-control manifest",
+    "CLIENT GETNAME should return NIL if name is not assigned": "Excluded only in this named negative-control manifest",
+    "CLIENT INFO": "Excluded only in this named negative-control manifest",
+    "CLIENT KILL SKIPME YES/NO will kill all clients": "Excluded only in this named negative-control manifest",
+    "CLIENT KILL close the client connection during bgsave": "Excluded only in this named negative-control manifest",
+    "CLIENT KILL maxAGE will kill old clients": "Excluded only in this named negative-control manifest",
+    "CLIENT KILL with illegal arguments": "Excluded only in this named negative-control manifest",
+    "CLIENT LIST": "Excluded only in this named negative-control manifest",
+    "CLIENT LIST shows empty fields for unassigned names": "Excluded only in this named negative-control manifest",
+    "CLIENT LIST with IDs": "Excluded only in this named negative-control manifest",
+    "CLIENT REPLY OFF/ON: disable all commands reply": "Excluded only in this named negative-control manifest",
+    "CLIENT REPLY ON: unset SKIP flag": "Excluded only in this named negative-control manifest",
+    "CLIENT REPLY SKIP: skip the next command reply": "Excluded only in this named negative-control manifest",
+    "CLIENT SETINFO can clear library name": "Excluded only in this named negative-control manifest",
+    "CLIENT SETINFO invalid args": "Excluded only in this named negative-control manifest",
+    "CLIENT SETNAME can assign a name to this connection": "Excluded only in this named negative-control manifest",
+    "CLIENT SETNAME can change the name of an existing connection": "Excluded only in this named negative-control manifest",
+    "CLIENT SETNAME does not accept spaces": "Excluded only in this named negative-control manifest",
+    "CLIENT command unhappy path coverage": "Excluded only in this named negative-control manifest",
+    "CONFIG GET hidden configs": "Excluded only in this named negative-control manifest",
+    "CONFIG GET multiple args": "Excluded only in this named negative-control manifest",
+    "CONFIG SET duplicate configs": "Excluded only in this named negative-control manifest",
+    "CONFIG SET rollback on apply error": "Excluded only in this named negative-control manifest",
+    "CONFIG SET rollback on set error": "Excluded only in this named negative-control manifest",
+    "CONFIG SET set immutable": "Excluded only in this named negative-control manifest",
+    "CONFIG SET with multiple args": "Excluded only in this named negative-control manifest",
+    "CONFIG sanity": "Excluded only in this named negative-control manifest",
+    "MONITOR can log commands issued by functions": "Excluded only in this named negative-control manifest",
+    "MONITOR can log commands issued by the scripting engine": "Excluded only in this named negative-control manifest",
+    "MONITOR can log executed commands": "Excluded only in this named negative-control manifest",
+    "MONITOR correctly handles multi-exec cases": "Excluded only in this named negative-control manifest",
+    "MONITOR log blocked command only once": "Excluded only in this named negative-control manifest",
+    "MONITOR supports redacting command arguments": "Excluded only in this named negative-control manifest",
+    "PING": "Excluded only in this named negative-control manifest"
+   }
+  }
+ },
+ "redis_version": "7.4.10",
+ "schema": 2,
+ "selection": "every upstream assertion passing in BOTH TomoKV modes; each file runs with --skipfile naming every test that failed or hung on TomoKV in the survey or the builder; the passing multiset was identical in 2 consecutive clean rounds in both modes; no assertion body modified",
+ "source_commit": "f103d127b9747965e28f20615ef790332661fc68",
+ "support": {
+  "runtest": "0eabe18a80d49daf8242571cea768b0cb9e21ea46681cf9e444a98d43423d76d",
+  "src/version.h": "d37be1fd3ccca0252941a0d7bd4f8ee24d6f30a80c595b6ccfd41dbfd20a7131",
+  "tests/support/aofmanifest.tcl": "6cec2a27a80133260260d0bc559a3749cd2d93fc2d59dc457fb66530da8faf19",
+  "tests/support/benchmark.tcl": "e4832f65905257652d242d01a0f1c1427b910e46f3b4b12f22009d98702163a6",
+  "tests/support/cli.tcl": "48d41dcb46e2f27787ecf872db6362e8dfce5345a45ff92498f8966c46c203e8",
+  "tests/support/cluster.tcl": "207045db825f492f3bb2bf293d3d1d2bf7d4d56ea3989474306ab20cacc67c9c",
+  "tests/support/cluster_util.tcl": "d6ae863cd62238e00c5773c47f617416b659fb47b14c200385f22bc7c04616d0",
+  "tests/support/redis.tcl": "4aba1a0afdc9b39854c5557502c20bddfece20eeeda8db95550ae94cea00daa7",
+  "tests/support/response_transformers.tcl": "373f01a88759abe07b5d1e04e4b469d937af47d458daf89d317d0f3bebaea7ee",
+  "tests/support/server.tcl": "e412686245be3a0f74592d8d5fe4f52c14c0790fb647c736a8a5e2cac13b72bb",
+  "tests/support/test.tcl": "770cbcd7cc446fca8bb232fd406982a68cc675b31b8fa0f8ebec7a9bc7298e89",
+  "tests/support/tmpfile.tcl": "5416b68b9af39f68d3bddce15de975a85d0550b08c2661464802c1ab6493da33",
+  "tests/support/util.tcl": "6bca53d58fcdce0cfb767aab4797d122b95fdf5133943f5878bc8e3987c92920",
+  "tests/test_helper.tcl": "844807d95218020cd79aecbaf10c2134190759d67c311185db76c204e6c08894"
+ },
+ "wave8_promotions": [
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM all commands",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM command",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM sub commands",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM with a subset of commands",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM with empty histogram",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - JSON numeric decoding",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - JSON smoke test",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - JSON string decoding",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - Verify minimal bitop functionality",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - cmsgpack can pack and unpack circular references?",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - cmsgpack can pack double?",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - cmsgpack can pack negative int64?",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Functions in the Redis namespace are able to report errors",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Try trick readonly table on bit table",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Try trick readonly table on cmsgpack table",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Try trick readonly table on json table",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "lua bit.tohex bug",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "redis.sha1hex() implementation",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  }
+ ],
+ "climonfix4_control": "RESET-CLEARS-LIBNAME",
+ "climonfix4_control_setup": "The upstream RESET assertion inherits the library identity from this preceding SETINFO test; keep that prerequisite enabled."
+}

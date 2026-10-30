@@ -1,0 +1,40 @@
+[
+  {
+    "name": "gates-test",
+    "tests": 73,
+    "exit": 0,
+    "log": "docs/climonfix4/gates-test.log",
+    "sha256": "dede4452471c6bbd5680d21b3ec6a0e3d149ea2c8bad6efec72c3794f1549ccd",
+    "cpu_boundary": "16-19",
+    "source_commit": "c369ccc41",
+    "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "replay_argv": [
+      "taskset",
+      "-c",
+      "16-19",
+      "env",
+      "GATE_TEST_PORT=20295",
+      "python3",
+      "tests/gates_test.py"
+    ]
+  },
+  {
+    "name": "redis-tcl-test",
+    "tests": 9,
+    "exit": 0,
+    "log": "docs/climonfix4/redis-tcl-test.log",
+    "sha256": "6bb2b5e735b8f4b1fd5474403c541a973a2fa05c03112321a5a22071d2b723a6",
+    "cpu_boundary": "16-31",
+    "source_commit": "c369ccc41",
+    "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "replay_argv": [
+      "taskset",
+      "-c",
+      "16-31",
+      "env",
+      "GATE_TEST_PORT=20295",
+      "python3",
+      "tests/redis_tcl_test.py"
+    ]
+  }
+]

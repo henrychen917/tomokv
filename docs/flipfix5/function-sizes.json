@@ -1,0 +1,652 @@
+{
+ "functions_pre": 10696,
+ "functions_post": 10704,
+ "only_pre": [],
+ "only_post": [
+  "tomo::Client::append_static_segment(char const*, unsigned int)",
+  "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const",
+  "tomo::ExLoopT<false>::debug_flip_stage_hold(tomo::FlipStage) const",
+  "tomo::ExLoopT<true>::debug_flip_stage_hold(tomo::FlipStage) const",
+  "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const",
+  "tomo_db0::ExLoopT<false>::debug_flip_stage_hold(tomo_db0::FlipStage) const",
+  "tomo_db0::ExLoopT<true>::debug_flip_stage_hold(tomo_db0::FlipStage) const",
+  "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}::operator()(tomo_db0::KvObj*) const"
+ ],
+ "size_changed": [
+  {
+   "name": "tomokv_multidb_main(int, char**)",
+   "pre": [
+    12902
+   ],
+   "post": [
+    12934
+   ]
+  },
+  {
+   "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+   "pre": [
+    7895
+   ],
+   "post": [
+    8073
+   ]
+  },
+  {
+   "name": "tomo::(anonymous namespace)::cmd_bgrewriteaof(tomo::Shard&, tomo::Op&)",
+   "pre": [
+    475
+   ],
+   "post": [
+    411
+   ]
+  },
+  {
+   "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+   "pre": [
+    19226
+   ],
+   "post": [
+    19289
+   ]
+  },
+  {
+   "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+   "pre": [
+    395
+   ],
+   "post": [
+    402
+   ]
+  },
+  {
+   "name": "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]",
+   "pre": [
+    306,
+    306,
+    306,
+    306,
+    306,
+    410,
+    410,
+    410,
+    618,
+    746,
+    810,
+    810,
+    810,
+    826,
+    1111,
+    1447,
+    1606,
+    1606,
+    1606,
+    1606,
+    1606
+   ],
+   "post": [
+    306,
+    306,
+    306,
+    306,
+    306,
+    410,
+    410,
+    410,
+    618,
+    730,
+    810,
+    810,
+    810,
+    826,
+    1111,
+    1447,
+    1606,
+    1606,
+    1606,
+    1606,
+    1606
+   ]
+  },
+  {
+   "name": "tomo::cfg_client_output_buffer_limit_string[abi:cxx11](tomo::ClientOutputBufferLimits const&)",
+   "pre": [
+    3911
+   ],
+   "post": [
+    3904
+   ]
+  },
+  {
+   "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false, false>()",
+   "pre": [
+    2206
+   ],
+   "post": [
+    2110
+   ]
+  },
+  {
+   "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false, false>()",
+   "pre": [
+    2206
+   ],
+   "post": [
+    2110
+   ]
+  },
+  {
+   "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, false>()",
+   "pre": [
+    3303
+   ],
+   "post": [
+    3223
+   ]
+  },
+  {
+   "name": "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+   "pre": [
+    5716
+   ],
+   "post": [
+    5684
+   ]
+  },
+  {
+   "name": "void tomo::IoLoop::adopt_client<true, true>(tomo::Client*, bool, bool)",
+   "pre": [
+    1110
+   ],
+   "post": [
+    1094
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::lb_control_pass()",
+   "pre": [
+    4334
+   ],
+   "post": [
+    4366
+   ]
+  },
+  {
+   "name": "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+   "pre": [
+    5124
+   ],
+   "post": [
+    5058
+   ]
+  },
+  {
+   "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+   "pre": [
+    5124
+   ],
+   "post": [
+    5058
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra.0]",
+   "pre": [
+    395,
+    395,
+    438,
+    438,
+    597
+   ],
+   "post": [
+    395,
+    395,
+    438,
+    503,
+    597
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+   "pre": [
+    12897
+   ],
+   "post": [
+    12903
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+   "pre": [
+    19808
+   ],
+   "post": [
+    19619
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+   "pre": [
+    277
+   ],
+   "post": [
+    280
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+   "pre": [
+    19987
+   ],
+   "post": [
+    19890
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+   "pre": [
+    12923
+   ],
+   "post": [
+    12945
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+   "pre": [
+    20016,
+    20491
+   ],
+   "post": [
+    19869,
+    20491
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+   "pre": [
+    279,
+    291
+   ],
+   "post": [
+    279,
+    295
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+   "pre": [
+    19925
+   ],
+   "post": [
+    19791
+   ]
+  },
+  {
+   "name": "tomo::IoLoop::database_control_pass()",
+   "pre": [
+    983
+   ],
+   "post": [
+    1066
+   ]
+  },
+  {
+   "name": "void tomo::IoLoop::run_loop<false, false, true, true, false>()",
+   "pre": [
+    5624
+   ],
+   "post": [
+    5595
+   ]
+  },
+  {
+   "name": "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+   "pre": [
+    5624
+   ],
+   "post": [
+    5595
+   ]
+  },
+  {
+   "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+   "pre": [
+    5420
+   ],
+   "post": [
+    5404
+   ]
+  },
+  {
+   "name": "void tomo::IoLoop::run_loop<true, true, true, true, false>()",
+   "pre": [
+    5637
+   ],
+   "post": [
+    5608
+   ]
+  },
+  {
+   "name": "tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned long)",
+   "pre": [
+    6664
+   ],
+   "post": [
+    6455
+   ]
+  },
+  {
+   "name": "tomo::ExLoopT<false>::flip_control_pass()",
+   "pre": [
+    994
+   ],
+   "post": [
+    1171
+   ]
+  },
+  {
+   "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+   "pre": [
+    4267
+   ],
+   "post": [
+    4236
+   ]
+  },
+  {
+   "name": "tomo::ExLoopT<true>::flip_control_pass()",
+   "pre": [
+    867
+   ],
+   "post": [
+    1060
+   ]
+  },
+  {
+   "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+   "pre": [
+    3718
+   ],
+   "post": [
+    3558
+   ]
+  },
+  {
+   "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+   "pre": [
+    8369
+   ],
+   "post": [
+    8411
+   ]
+  },
+  {
+   "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+   "pre": [
+    123
+   ],
+   "post": [
+    122
+   ]
+  },
+  {
+   "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+   "pre": [
+    653
+   ],
+   "post": [
+    663
+   ]
+  },
+  {
+   "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+   "pre": [
+    7745
+   ],
+   "post": [
+    7923
+   ]
+  },
+  {
+   "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+   "pre": [
+    18873
+   ],
+   "post": [
+    18889
+   ]
+  },
+  {
+   "name": "tomo_db0::debug_sleep_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long&)",
+   "pre": [
+    736
+   ],
+   "post": [
+    720
+   ]
+  },
+  {
+   "name": "tomo_db0::debug_sleep_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long&) [clone .cold]",
+   "pre": [
+    91
+   ],
+   "post": [
+    86
+   ]
+  },
+  {
+   "name": "tomo_db0::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+   "pre": [
+    94,
+    94
+   ],
+   "post": [
+    94,
+    94,
+    94
+   ]
+  },
+  {
+   "name": "tomo_db0::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0] [clone .cold]",
+   "pre": [
+    6,
+    6
+   ],
+   "post": [
+    6,
+    6,
+    6
+   ]
+  },
+  {
+   "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, false>()",
+   "pre": [
+    2854
+   ],
+   "post": [
+    2806
+   ]
+  },
+  {
+   "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, false>()",
+   "pre": [
+    2854
+   ],
+   "post": [
+    2806
+   ]
+  },
+  {
+   "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+   "pre": [
+    6969
+   ],
+   "post": [
+    6798
+   ]
+  },
+  {
+   "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+   "pre": [
+    6681
+   ],
+   "post": [
+    6513
+   ]
+  },
+  {
+   "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+   "pre": [
+    21092
+   ],
+   "post": [
+    21009
+   ]
+  },
+  {
+   "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+   "pre": [
+    277
+   ],
+   "post": [
+    281
+   ]
+  },
+  {
+   "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+   "pre": [
+    21562
+   ],
+   "post": [
+    21556
+   ]
+  },
+  {
+   "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+   "pre": [
+    10516,
+    10546,
+    12320,
+    12453
+   ],
+   "post": [
+    10423,
+    10516,
+    12320,
+    12493
+   ]
+  },
+  {
+   "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+   "pre": [
+    20488,
+    21289
+   ],
+   "post": [
+    20488,
+    21198
+   ]
+  },
+  {
+   "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+   "pre": [
+    279,
+    284
+   ],
+   "post": [
+    279,
+    291
+   ]
+  },
+  {
+   "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+   "pre": [
+    5559
+   ],
+   "post": [
+    5543
+   ]
+  },
+  {
+   "name": "tomo_db0::ExLoopT<false>::flip_control_pass()",
+   "pre": [
+    1065
+   ],
+   "post": [
+    1172
+   ]
+  },
+  {
+   "name": "tomo_db0::ExLoopT<true>::flip_control_pass()",
+   "pre": [
+    848
+   ],
+   "post": [
+    955
+   ]
+  },
+  {
+   "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+   "pre": [
+    4072
+   ],
+   "post": [
+    4088
+   ]
+  },
+  {
+   "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+   "pre": [
+    2126
+   ],
+   "post": [
+    1602
+   ]
+  },
+  {
+   "name": "tomo::Server::flipctl_debug_dump[abi:cxx11]() const",
+   "pre": [
+    1888
+   ],
+   "post": [
+    1883
+   ]
+  },
+  {
+   "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+   "pre": [
+    6332
+   ],
+   "post": [
+    6288
+   ]
+  },
+  {
+   "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+   "pre": [
+    305
+   ],
+   "post": [
+    302
+   ]
+  },
+  {
+   "name": "tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+   "pre": [
+    1249
+   ],
+   "post": [
+    948
+   ]
+  },
+  {
+   "name": "main",
+   "pre": [
+    8672
+   ],
+   "post": [
+    8691
+   ]
+  }
+ ]
+}

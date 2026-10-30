@@ -1,0 +1,25 @@
+{
+  "probe": "control",
+  "arm": "post",
+  "namespace": "db0",
+  "argv": [
+    "io-iodrain-owed"
+  ],
+  "steps": 624,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 617,
+  "functions": {
+    "tomo_db0::ThreadCtx::io_inbound_quiesced() const": 226,
+    "tomo_db0::Server::flip_ack(unsigned int, tomo_db0::FlipStage)": 9,
+    "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+    "tomo_db0::IoLoop::flip_io_drain_ordered() const": 16,
+    "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+    "tomo_db0::IoLoop::flip_io_drained() const": 77,
+    "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 75,
+    "tomo_db0::IoLoop::fliplisten_quiesce()": 20,
+    "tomo_db0::IoLoop::fliplisten_quiet() const": 19,
+    "tomo_db0::IoLoop::fliplisten_resume()": 20
+  },
+  "probe_sha256": "ffb023a0109f733d2ee23687d49512600a54d5c9cc1b2d235e4630d670699a13"
+}

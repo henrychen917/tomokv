@@ -1,0 +1,117 @@
+{
+  "engine": "epoll",
+  "plan": {
+    "schema": 1,
+    "manifest": {
+      "run": "full:gate-run.ngCc4s",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 22,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "history": "/home/user/Projects/cx-climonfix5/.gate-history/differ"
+    },
+    "suites": [
+      "string",
+      "list",
+      "set",
+      "zset",
+      "hash",
+      "hexpire",
+      "edgetime",
+      "xshard",
+      "xmove",
+      "bitmap",
+      "hll",
+      "bitfield",
+      "cgaps",
+      "stream",
+      "script",
+      "streamgrp",
+      "zsetops",
+      "geo",
+      "doubles",
+      "scan",
+      "multi",
+      "encodingfix",
+      "edgeenc",
+      "edgeproto",
+      "cmdgap",
+      "cmdgap2",
+      "sort",
+      "servertail",
+      "arity",
+      "storeorder",
+      "infofix",
+      "multidb",
+      "blocking",
+      "pubsub",
+      "fanout",
+      "spubsub",
+      "notify",
+      "wiredump",
+      "climon",
+      "compatintro",
+      "aclsel",
+      "aclkeys",
+      "cmdmeta",
+      "s6fix",
+      "ccfix",
+      "psfix",
+      "monitor"
+    ],
+    "repeats": 4,
+    "equivalence_seeds": [
+      22
+    ]
+  },
+  "parts": [
+    {
+      "job": "differ-armed-0",
+      "checks_passed": 231,
+      "checks_failed": 0,
+      "runtime": "8m41s",
+      "suite_streams": 230
+    },
+    {
+      "job": "differ-armed-1",
+      "checks_passed": 235,
+      "checks_failed": 0,
+      "runtime": "8m46s",
+      "suite_streams": 234
+    },
+    {
+      "job": "differ-equivalence",
+      "checks_passed": 1,
+      "checks_failed": 0,
+      "runtime": "0m22s",
+      "suite_streams": 0
+    },
+    {
+      "job": "differ-split-0",
+      "checks_passed": 235,
+      "checks_failed": 0,
+      "runtime": "8m48s",
+      "suite_streams": 235
+    },
+    {
+      "job": "differ-split-1",
+      "checks_passed": 239,
+      "checks_failed": 0,
+      "runtime": "8m50s",
+      "suite_streams": 239
+    }
+  ],
+  "no_suite_or_seed_overrides": true,
+  "receipt": "docs/climonfix5/jobs/differ-epoll.json"
+}

@@ -1,0 +1,18 @@
+{
+  "probe": "control",
+  "arm": "post",
+  "namespace": "db0",
+  "argv": [
+    "ex-exinstall-owed"
+  ],
+  "steps": 592,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 581,
+  "functions": {
+    "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+    "tomo_db0::MaskedSpscArray<tomo_db0::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)": 457,
+    "tomo_db0::ExLoopT<false>::flip_control_pass()": 106
+  },
+  "probe_sha256": "ffb023a0109f733d2ee23687d49512600a54d5c9cc1b2d235e4630d670699a13"
+}
