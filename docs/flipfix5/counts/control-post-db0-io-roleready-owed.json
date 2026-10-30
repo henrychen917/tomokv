@@ -1,0 +1,23 @@
+{
+  "probe": "control",
+  "arm": "post",
+  "namespace": "db0",
+  "argv": [
+    "io-roleready-owed"
+  ],
+  "steps": 494,
+  "clock_calls": 0,
+  "excluded_calls": 2,
+  "total": 487,
+  "functions": {
+    "tomo_db0::Server::flip_ack(unsigned int, tomo_db0::FlipStage)": 9,
+    "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+    "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+    "std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo_db0::IoLoop::PubSubRef, std::allocator<tomo_db0::IoLoop::PubSubRef> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo_db0::IoLoop::PubSubRef, std::allocator<tomo_db0::IoLoop::PubSubRef> > > >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::clear()": 38,
+    "tomo_db0::IoLoop::pubsub_clear_home_indexes()": 30,
+    "tomo_db0::IoLoop::pubsub_rehome_local(unsigned long)": 44,
+    "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 191,
+    "tomo_db0::IoLoop::fliplisten_resume()": 20
+  },
+  "probe_sha256": "ffb023a0109f733d2ee23687d49512600a54d5c9cc1b2d235e4630d670699a13"
+}

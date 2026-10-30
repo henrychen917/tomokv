@@ -1,0 +1,16 @@
+{
+  "probe": "control",
+  "arm": "pre",
+  "namespace": "db0",
+  "argv": [
+    "ex-idle"
+  ],
+  "steps": 45,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 32,
+  "functions": {
+    "tomo_db0::ExLoopT<false>::flip_control_pass()": 32
+  },
+  "probe_sha256": "1e90de2795465705adb1d5b9b12343ebdc4c1aa9971a95fe0cef89253bb66909"
+}

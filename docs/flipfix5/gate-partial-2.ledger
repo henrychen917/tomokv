@@ -1,0 +1,5 @@
+PARTIAL	0	GATE_ONLY_JOBS=flipfix5 flipfix5_units; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	0.190000	FLIP stale stage sample refused (ASAN+TSAN)
+ok	0.180000	FLIP stale stage planted pre-fix controls fail
+ok	80.910000	FLIP stale stage storm (all legs)

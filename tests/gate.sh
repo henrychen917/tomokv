@@ -357,6 +357,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wave4 (compat2 +3, moverfix +8, clockcut +3, notifyorder +2, all collected before the
 # quick exit): DQ=+16, DF=+16 over 8656f9fa9's 669/686, so required counts are 685/702.
 # The constants below read 672/689 from the maintainer's compat2 commit a7e318a14.
+# flipfix5: job_flipfix5_units (two serverless rows) and job_flipfix5 (one live row), all three
+# collected before the quick exit: DQ=+3, DF=+3. Maintainer updates 946/963 -> 949/966 and adds
+# the three labels to the label fixture.
 EXPECT_QUICK=946
 EXPECT_FULL=963                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
@@ -1171,9 +1174,9 @@ plan_jobs(){
   JOB_NAMES+=(blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
+              atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
-              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
+              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair exec1s txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1481,6 +1484,66 @@ row_begin "FLIP fingerprint publication (ASAN+TSAN)"
 flipfix_unit flipfix-fingerprint \
     && ok "FLIP fingerprint publication (ASAN+TSAN)" \
     || bad "FLIP fingerprint publication (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-fingerprint.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-fingerprint.log"
+}
+
+job_flipfix5_units(){
+# flipfix5: a FLIP control pass held between its stage load and its acknowledgement test while
+# its FLIP finished and the next began replayed the stale stage (ExInstall re-masked an inbox
+# that resumed dispatch was refilling: all_quiesced() false, abort). Two serverless rows before
+# the quick exit (+2 quick / +2 full; EXPECT stays maintainer-owned): the deterministic hold for
+# ExInstall (with and without a resumed task, and inside the owed test after its validation),
+# DatabaseExDrain and IO RoleReady under ASAN/UBSAN and TSAN; then the same holds with the pre-fix
+# live-epoch test (or a token read after the validation) planted, which must replay (four FAIL
+# witnesses) or abort in the re-mask (SIGABRT witness, exit 134).
+local planted rc planted_ok=1
+row_begin "FLIP stale stage sample refused (ASAN+TSAN)"
+quiet_wait
+if unit_ready core-concurrency-unit && \
+    ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+    taskset -c "$CORES" ./build/core-concurrency-unit flipfix5 >"$TMPDIR/gate-flipfix5.txt" 2>&1 && \
+    grep -Fxq 'PASS core concurrency flipfix5 (state assertions fired)' "$TMPDIR/gate-flipfix5.txt" && \
+    [ "$(grep -c '^ARMED flipfix5 post: .*; refused$' "$TMPDIR/gate-flipfix5.txt")" = 5 ] && \
+    tsan_unit "$CORE_TSAN" core-concurrency-tsan \
+        "PASS core concurrency flipfix5 (state assertions fired)" flipfix5; then
+  ok "FLIP stale stage sample refused (ASAN+TSAN)"
+else
+  bad "FLIP stale stage sample refused (ASAN+TSAN)" "see $TMPDIR/gate-flipfix5.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix5.log"
+fi
+row_begin "FLIP stale stage planted pre-fix controls fail"
+quiet_wait
+if unit_ready core-concurrency-unit; then
+  for planted in flipfix5-planted flipfix5-planted-boundary flipfix5-planted-io flipfix5-planted-late-token; do
+    ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
+        taskset -c "$CORES" ./build/core-concurrency-unit "$planted" >"$TMPDIR/gate-$planted.txt" 2>&1
+    rc=$?
+    { [ "$rc" = 1 ] && grep -Eq '^FAIL core concurrency: stale [A-Za-z]+ sample replayed' "$TMPDIR/gate-$planted.txt"; } \
+        || planted_ok=0
+  done
+  ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
+      taskset -c "$CORES" ./build/core-concurrency-unit flipfix5-planted-abort \
+      >"$TMPDIR/gate-flipfix5-planted-abort.txt" 2>&1
+  rc=$?
+  { [ "$rc" = 134 ] && grep -Fxq 'ABORT flipfix5 planted: stale ExInstall re-mask met a live lane' \
+        "$TMPDIR/gate-flipfix5-planted-abort.txt"; } || planted_ok=0
+else planted_ok=0; fi
+[ "$planted_ok" = 1 ] && ok "FLIP stale stage planted pre-fix controls fail" \
+    || bad "FLIP stale stage planted pre-fix controls fail" "see $TMPDIR/gate-flipfix5-planted*.txt"
+}
+
+job_flipfix5(){
+# flipfix5 directed live row, every leg FLIP has (2s; FLIP is unavailable in 1s): both engines x
+# atomic 0/1 x databases 1/16, one fresh boot per leg. A FLIP storm runs against every operation
+# class whose step-1 storm aborted e2b237926 (pipelined MSET+FLUSHALL SYNC, FLUSHALL ASYNC,
+# FLUSHDB, DBSIZE NOW, SCAN, RANDOMKEY, EVAL): 6 s as is, then 4 s with DEBUG FLIP-STAGE-HOLD
+# holding an executor that already acknowledged ExInstall until the next FLIP is admitted. Each
+# phase must complete FLIPs with every worker progressing, and the held phase must raise
+# flip_stale_stage_refusals; every leg must exit cleanly. e2b237926 aborts on io_uring and PAD-A
+# aborts on every leg. One row before the quick exit: DQ=+1, DF=+1. EXPECT stays maintainer-owned.
+row_begin "FLIP stale stage storm (all legs)"
+py tests/flipfix5.py --case row --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+    --seconds 10 --output "$TMPDIR/flipfix5-row" >"$TMPDIR/gate-flipfix5-row.txt" 2>&1 \
+    && ok "FLIP stale stage storm (all legs)" \
+    || bad "FLIP stale stage storm (all legs)" "see $TMPDIR/gate-flipfix5-row.txt"
 }
 
 job_filter_unit(){
@@ -5882,7 +5945,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync|witness_contracts) ;;
     flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
-    core_units|flipfix_units) echo 'production_units core_tsan_build';;
+    core_units|flipfix_units|flipfix5_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
@@ -5991,6 +6054,8 @@ collect_job atomfix5_accounting
 collect_job core_units
 # flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
 collect_job flipfix_units
+# flipfix5: two serverless rows before the quick exit (+2 quick / +2 full); EXPECT is owner-owned.
+collect_job flipfix5_units
 
 collect_job wb_rule_units
 
@@ -6201,6 +6266,8 @@ collect_job fliplisten
 
 collect_job flipctl
 collect_job flip_saturated
+# flipfix5: one live directed row before the quick exit (DQ=+1, DF=+1); EXPECT is owner-owned.
+collect_job flipfix5
 
 collect_job atomic_floor
 

@@ -1,0 +1,244 @@
+{
+ "head": "0586ee74a240d02d1a355efcd069df84f845fa02",
+ "checks": [
+  {
+   "target": "all",
+   "make_q": 0
+  },
+  {
+   "target": "build/respresume-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/respresume-migration",
+   "make_q": 0
+  },
+  {
+   "target": "build/gaterows5-units",
+   "make_q": 0
+  },
+  {
+   "target": "build/expire-notify-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/ktls-lifetime-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/moverfix-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/moverfix-db0-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/publishfix-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/at15-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/at15-db0-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/execabort-watch-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/execabort-watch-db0-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/core-concurrency-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/atomic-survivors-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/exec1s-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/exec1s-word-tsan",
+   "make_q": 0
+  },
+  {
+   "target": "build/at412-owner",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-index-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-index-db0-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-retry-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-wound-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-wound-db0-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-wake-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-episodes",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-episodes-debug",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-watch-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/txnorder-watch-db0-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/netcmd-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/encodingfix-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/netcap-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/waits-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/rehash-waits-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/multidb-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/multidb-boundary-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/storesize-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/wb-rule-units",
+   "make_q": 0
+  },
+  {
+   "target": "build/wbland-units",
+   "make_q": 0
+  },
+  {
+   "target": "build/rltopo-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/lbplanner-units",
+   "make_q": 0
+  },
+  {
+   "target": "build/shutdown-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/persistfix-units",
+   "make_q": 0
+  },
+  {
+   "target": "build/exbatch-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/exbatch-db0-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/ktls-keyupdate",
+   "make_q": 0
+  },
+  {
+   "target": "build/ktls-keyupdate-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/flushfix-units",
+   "make_q": 0
+  },
+  {
+   "target": "build/splitlocal-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/reorder-engagement-unit",
+   "make_q": 0
+  },
+  {
+   "target": "build/reorder-engagement-unit-db0",
+   "make_q": 0
+  },
+  {
+   "target": "build/racefix-climon",
+   "make_q": 0
+  },
+  {
+   "target": "build/aoforder-scheduled",
+   "make_q": 0
+  },
+  {
+   "target": "build/blockfix-cost build/tomokv.blockfix-cost.sha256",
+   "make_q": 0,
+   "makefiles": [
+    "-f",
+    "Makefile",
+    "-f",
+    "tools/blockfix_cost.mk"
+   ]
+  },
+  {
+   "target": "build/blockfix2-unit",
+   "make_q": 0,
+   "makefiles": [
+    "-f",
+    "Makefile",
+    "-f",
+    "tools/blockfix2.mk"
+   ]
+  },
+  {
+   "target": "build/blockfix2-db0-unit",
+   "make_q": 0,
+   "makefiles": [
+    "-f",
+    "Makefile",
+    "-f",
+    "tools/blockfix2.mk"
+   ]
+  }
+ ],
+ "tomokv_sha256": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b"
+}

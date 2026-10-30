@@ -1411,6 +1411,19 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // flipfix5 window widener: hold an executor that already acknowledged ExInstall, before its
+    // owed test, until the next FLIP is admitted (bounded). Production 0.
+    if (eq_icase(subcommand, "flip-stage-hold") && op.argc() == 3) {
+        uint64_t microseconds = 0;
+        if (!parse_u64(op.arg(2), microseconds) || microseconds > UINT16_MAX) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_flip_stage_hold(static_cast<uint16_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
     // Window widener for the cross-owner script reservation regression. Parks every declared key's
     // GATHER task except the coordinator's own for N microseconds AFTER the reservation sub-wave
     // has armed every key and the cut has been chosen. A plain write landing in that park must be
@@ -2932,7 +2945,8 @@ void cmd_info(Shard&, Op& op) {
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
                 "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
-                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n",
+                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n"
+                "flip_stale_stage_refusals:%llu\r\n",
                 static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
                 static_cast<unsigned long long>(
@@ -2942,7 +2956,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_checks() : 0),
                 static_cast<unsigned long long>(
-                    g_server ? g_server->flip_conservation_violations() : 0));
+                    g_server ? g_server->flip_conservation_violations() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_stale_stage_refusals() : 0));
         appendf(body,
                 "foreign_read_unsafe_refs:%llu\r\n"
                 "foreign_read_occupied_cells:%llu\r\n"

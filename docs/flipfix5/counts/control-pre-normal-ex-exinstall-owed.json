@@ -1,0 +1,17 @@
+{
+  "probe": "control",
+  "arm": "pre",
+  "namespace": "normal",
+  "argv": [
+    "ex-exinstall-owed"
+  ],
+  "steps": 571,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 560,
+  "functions": {
+    "tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)": 457,
+    "tomo::ExLoopT<false>::flip_control_pass()": 103
+  },
+  "probe_sha256": "26c4472bfd67081e27a0cfdc12f35984753ffb9b67f02b7de319d2c5fd941025"
+}

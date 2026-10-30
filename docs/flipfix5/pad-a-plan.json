@@ -1,0 +1,38 @@
+{
+  "kind": "A: behaviour twin",
+  "source_sha256": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b",
+  "patches": [
+    {
+      "symbol": "_ZNK4tomo6Server15flip_stage_owedEjNS_9FlipStageE",
+      "address": 4784791,
+      "offset": 4784791,
+      "before": "7427",
+      "after": "eb27",
+      "purpose": "PRE: take the live branch unconditionally"
+    },
+    {
+      "symbol": "_ZNK4tomo6Server15flip_stage_owedEjNS_9FlipStageE",
+      "address": 4784842,
+      "offset": 4784842,
+      "before": "75cd",
+      "after": "6690",
+      "purpose": "PRE: ignore an epoch change across the stage reload"
+    },
+    {
+      "symbol": "_ZNK8tomo_db06Server15flip_stage_owedEjNS_9FlipStageE",
+      "address": 656519,
+      "offset": 656519,
+      "before": "7427",
+      "after": "eb27",
+      "purpose": "PRE: take the live branch unconditionally"
+    },
+    {
+      "symbol": "_ZNK8tomo_db06Server15flip_stage_owedEjNS_9FlipStageE",
+      "address": 656570,
+      "offset": 656570,
+      "before": "75cd",
+      "after": "6690",
+      "purpose": "PRE: ignore an epoch change across the stage reload"
+    }
+  ]
+}

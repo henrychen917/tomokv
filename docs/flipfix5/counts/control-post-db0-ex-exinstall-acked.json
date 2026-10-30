@@ -1,0 +1,17 @@
+{
+  "probe": "control",
+  "arm": "post",
+  "namespace": "db0",
+  "argv": [
+    "ex-exinstall-acked"
+  ],
+  "steps": 70,
+  "clock_calls": 0,
+  "excluded_calls": 0,
+  "total": 58,
+  "functions": {
+    "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+    "tomo_db0::ExLoopT<false>::flip_control_pass()": 40
+  },
+  "probe_sha256": "ffb023a0109f733d2ee23687d49512600a54d5c9cc1b2d235e4630d670699a13"
+}

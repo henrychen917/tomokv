@@ -1542,7 +1542,9 @@ public:
             flip_bucket_quota_[tid] = 0;
             flip_incoming_clients_[tid].store(0, std::memory_order_relaxed);
             flip_source_clients_[tid].store(0, std::memory_order_relaxed);
-            flip_ack_[tid].store(0, std::memory_order_relaxed);
+            // Release: a control pass that reads this cleared token must then see the Planning
+            // CAS above (flip_stage_owed). A plain store on x86; the order is the C++ contract.
+            flip_ack_[tid].store(0, std::memory_order_release);
         }
         for (uint32_t sid = 0; sid < 256; sid++) flip_shard_destination_[sid] = UINT32_MAX;
         flip_planned_client_transfers_ = 0;
@@ -1690,6 +1692,55 @@ public:
     bool flip_acked(uint32_t tid, FlipStage stage) const {
         const uint64_t token = (flip_epoch() << 8) | static_cast<uint8_t>(stage);
         return flip_ack_[tid].load(std::memory_order_acquire) == token;
+    }
+    // A control pass dispatches on the stage it loaded at the top of the pass, and its thread can
+    // be held between that load and the acknowledgement test (flipfix5 measured 70-250 us on
+    // io_uring executors, without a context switch). Meanwhile the sampled FLIP can finish and
+    // the next one begin. flip_acked() then tests the OLD stage against the NEW epoch, finds no
+    // token and replays the stage body outside its quiesce: ExInstall re-masked lanes that IO
+    // dispatch was refilling and aborted. A sampled stage is owed only while it is still the live
+    // stage of one consistent epoch and this thread has not acknowledged it there.
+    //   * The token is read FIRST. flip_begin() clears every token (release) after its Planning
+    //     CAS, so a token cleared by the next FLIP makes the stage reload below see Planning or
+    //     later, never the sampled stage; a token read after the validation could be that clear.
+    //   * flip_begin() stores Planning before its epoch increment and every later stage after
+    //     it; a database boundary increments from Idle. An epoch unchanged across the stage
+    //     reload pins the reloaded stage to that epoch.
+    // An owed stage cannot advance without this thread's acknowledgement (failure turns only into
+    // Rollback of the same epoch), so the caller's flip_ack() still stamps this epoch.
+    __attribute__((noinline)) bool flip_stage_owed(uint32_t tid, FlipStage stage) const {
+        uint64_t token = flip_ack_[tid].load(std::memory_order_acquire);
+        const uint64_t epoch = flip_epoch();
+        const bool live = flip_stage() == stage && flip_epoch() == epoch;
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_flip_owed_validated_) test_flip_owed_validated_(tid, stage);
+        // Planted regression for the serverless negative control: a token read after validation.
+        if (test_flip_owed_late_token_) token = flip_ack_[tid].load(std::memory_order_acquire);
+#endif
+        if (__builtin_expect(live, true))
+            return token != ((epoch << 8) | static_cast<uint8_t>(stage));
+        // The pre-flipfix5 test passed here whenever the live epoch carried no such token.
+        if (token != ((flip_epoch() << 8) | static_cast<uint8_t>(stage)))
+            flip_stale_stage_refusals_.fetch_add(1, std::memory_order_relaxed);
+        return false;
+    }
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+    // flipfix5: runs inside flip_stage_owed() after the epoch/stage validation.
+    inline static void (*test_flip_owed_validated_)(uint32_t, FlipStage) = nullptr;
+    inline static bool test_flip_owed_late_token_ = false;
+#endif
+    uint64_t flip_stale_stage_refusals() const {
+        return flip_stale_stage_refusals_.load(std::memory_order_relaxed);
+    }
+    // TEST HOOK (DEBUG FLIP-STAGE-HOLD <us>). An executor that has already acknowledged ExInstall
+    // and samples it again is held before its owed test until the next FLIP is admitted or the
+    // bound expires: the hold flipfix5 measured from io_uring kernel work, made deterministic for
+    // the live directed row on both engines. Read only inside a matching non-Idle control branch.
+    void set_debug_flip_stage_hold(uint16_t microseconds) {
+        debug_flip_stage_hold_us_.store(microseconds, std::memory_order_relaxed);
+    }
+    uint16_t debug_flip_stage_hold_us() const {
+        return debug_flip_stage_hold_us_.load(std::memory_order_relaxed);
     }
     bool flip_all_role_acked(Role role, FlipStage stage) const {
         for (uint32_t tid = 0; tid < nthreads(); tid++)
@@ -3551,6 +3602,12 @@ private:
     uint32_t flip_coordinator_ = UINT32_MAX;
     uint32_t unix_owner_tid_ = UINT32_MAX;
     std::atomic<bool> flip_failed_{false};
+    // TEST HOOK (DEBUG FLIP-STAGE-HOLD); production 0. Existing padding after flip_failed_.
+    std::atomic<uint16_t> debug_flip_stage_hold_us_{0};
+    // Control-pass stage samples that the pre-flipfix5 acknowledgement test would have acted on
+    // after their stage stopped being live (flip_stage_owed). Diagnostic; wraps at 2^32. Both
+    // fields occupy the existing padding after flip_failed_, so no Server member moves.
+    mutable std::atomic<uint32_t> flip_stale_stage_refusals_{0};
     mutable std::mutex flip_error_mu_;
     std::string flip_error_;
     std::atomic<uint64_t> flip_completed_{0};

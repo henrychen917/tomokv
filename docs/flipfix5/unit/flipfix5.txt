@@ -1,0 +1,6 @@
+ARMED flipfix5 post: ExInstall sample held across FLIP 1 -> 2; refused
+ARMED flipfix5 post: ExInstall sample held across FLIP 1 -> 2 with a resumed SET queued; refused
+ARMED flipfix5 post: ExInstall sample held after its validation across FLIP 1 -> 2 with a resumed SET queued; refused
+ARMED flipfix5 post: DatabaseExDrain sample held across FLIP 1 -> 2; refused
+ARMED flipfix5 post: RoleReady sample held across FLIP 1 -> 2; refused
+PASS core concurrency flipfix5 (state assertions fired)

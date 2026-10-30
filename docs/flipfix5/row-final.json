@@ -1,0 +1,519 @@
+{
+ "pre": {
+  "binary": "build/flipfix5/arms/pre/tomokv",
+  "sha256": "5432534fb83d957ef7972d0df26f7e3e461069c8a4e8ad04bf6deeef1778b716",
+  "command": "taskset -c 16-23 python3 tests/flipfix5.py --case row --binary <arm> --cores 24-31 --port 20200 --seconds 10",
+  "legs": [
+   {
+    "leg": "2s-uring-0-db1",
+    "outcome": "abort",
+    "seconds": 1.781,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'natural', 'seconds': 6.0, 'flips': 2547, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 2421, 'FLUSHALL-ASYNC': 2250, 'FLUSHDB': 1392, 'DBSIZE-NOW': 2674, 'SCAN': 34, 'RANDOMKEY': 2545, 'EVAL': 2544, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_scan: Trace"
+   },
+   {
+    "leg": "2s-uring-1-db1",
+    "outcome": "abort",
+    "seconds": 6.159,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'natural', 'seconds': 6.0, 'flips': 21405, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 12320, 'FLUSHALL-ASYNC': 10743, 'FLUSHDB': 13408, 'DBSIZE-NOW': 21462, 'SCAN': 223, 'RANDOMKEY': 21393, 'EVAL': 21395, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_flu"
+   },
+   {
+    "leg": "2s-epoll-0-db1",
+    "outcome": "fail",
+    "seconds": 6.122,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ('DEBUG FLIP-STAGE-HOLD unavailable: cannot open the window', RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\"))"
+   },
+   {
+    "leg": "2s-epoll-1-db1",
+    "outcome": "fail",
+    "seconds": 6.098,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ('DEBUG FLIP-STAGE-HOLD unavailable: cannot open the window', RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\"))"
+   },
+   {
+    "leg": "2s-uring-0-db16",
+    "outcome": "abort",
+    "seconds": 3.785,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'natural', 'seconds': 6.0, 'flips': 9827, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 4935, 'FLUSHALL-ASYNC': 4970, 'FLUSHDB': 4915, 'DBSIZE-NOW': 9835, 'SCAN': 105, 'RANDOMKEY': 9824, 'EVAL': 9821, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_flushdb: T"
+   },
+   {
+    "leg": "2s-uring-1-db16",
+    "outcome": "abort",
+    "seconds": 2.083,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'natural', 'seconds': 6.0, 'flips': 3435, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 2392, 'FLUSHALL-ASYNC': 2495, 'FLUSHDB': 1722, 'DBSIZE-NOW': 3487, 'SCAN': 43, 'RANDOMKEY': 3433, 'EVAL': 3434, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_flushdb: Tr"
+   },
+   {
+    "leg": "2s-epoll-0-db16",
+    "outcome": "fail",
+    "seconds": 6.101,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ('DEBUG FLIP-STAGE-HOLD unavailable: cannot open the window', RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\"))"
+   },
+   {
+    "leg": "2s-epoll-1-db16",
+    "outcome": "fail",
+    "seconds": 6.07,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ('DEBUG FLIP-STAGE-HOLD unavailable: cannot open the window', RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\"))"
+   }
+  ]
+ },
+ "post": {
+  "binary": "build/flipfix5/arms/post/tomokv",
+  "sha256": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b",
+  "command": "taskset -c 16-23 python3 tests/flipfix5.py --case row --binary <arm> --cores 24-31 --port 20200 --seconds 10",
+  "legs": [
+   {
+    "leg": "2s-uring-0-db1",
+    "outcome": "pass",
+    "seconds": 10.108,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 25478,
+      "stale_refusals": 4,
+      "ops": {
+       "FLUSHALL": 22483,
+       "FLUSHALL-ASYNC": 24466,
+       "FLUSHDB": 13734,
+       "DBSIZE-NOW": 26823,
+       "SCAN": 354,
+       "RANDOMKEY": 25477,
+       "EVAL": 25471
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 15087,
+      "stale_refusals": 45257,
+      "ops": {
+       "FLUSHALL": 7540,
+       "FLUSHALL-ASYNC": 7541,
+       "FLUSHDB": 7541,
+       "DBSIZE-NOW": 15081,
+       "SCAN": 158,
+       "RANDOMKEY": 15086,
+       "EVAL": 15079
+      }
+     }
+    ],
+    "error_tail": null
+   },
+   {
+    "leg": "2s-uring-1-db1",
+    "outcome": "pass",
+    "seconds": 10.106,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 25218,
+      "stale_refusals": 6,
+      "ops": {
+       "FLUSHALL": 20628,
+       "FLUSHALL-ASYNC": 13962,
+       "FLUSHDB": 23669,
+       "DBSIZE-NOW": 26145,
+       "SCAN": 342,
+       "RANDOMKEY": 25217,
+       "EVAL": 25205
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 15218,
+      "stale_refusals": 45648,
+      "ops": {
+       "FLUSHALL": 7605,
+       "FLUSHALL-ASYNC": 7604,
+       "FLUSHDB": 7606,
+       "DBSIZE-NOW": 15211,
+       "SCAN": 159,
+       "RANDOMKEY": 15216,
+       "EVAL": 15208
+      }
+     }
+    ],
+    "error_tail": null
+   },
+   {
+    "leg": "2s-epoll-0-db1",
+    "outcome": "pass",
+    "seconds": 10.107,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 29126,
+      "stale_refusals": 0,
+      "ops": {
+       "FLUSHALL": 14963,
+       "FLUSHALL-ASYNC": 19649,
+       "FLUSHDB": 15698,
+       "DBSIZE-NOW": 29733,
+       "SCAN": 367,
+       "RANDOMKEY": 29124,
+       "EVAL": 29123
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 17485,
+      "stale_refusals": 52452,
+      "ops": {
+       "FLUSHALL": 8744,
+       "FLUSHALL-ASYNC": 8744,
+       "FLUSHDB": 8743,
+       "DBSIZE-NOW": 17484,
+       "SCAN": 183,
+       "RANDOMKEY": 17483,
+       "EVAL": 17483
+      }
+     }
+    ],
+    "error_tail": null
+   },
+   {
+    "leg": "2s-epoll-1-db1",
+    "outcome": "pass",
+    "seconds": 10.106,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 28876,
+      "stale_refusals": 0,
+      "ops": {
+       "FLUSHALL": 15272,
+       "FLUSHALL-ASYNC": 25931,
+       "FLUSHDB": 24906,
+       "DBSIZE-NOW": 29864,
+       "SCAN": 361,
+       "RANDOMKEY": 28876,
+       "EVAL": 28875
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 17513,
+      "stale_refusals": 52536,
+      "ops": {
+       "FLUSHALL": 8758,
+       "FLUSHALL-ASYNC": 8756,
+       "FLUSHDB": 8757,
+       "DBSIZE-NOW": 17512,
+       "SCAN": 183,
+       "RANDOMKEY": 17512,
+       "EVAL": 17511
+      }
+     }
+    ],
+    "error_tail": null
+   },
+   {
+    "leg": "2s-uring-0-db16",
+    "outcome": "pass",
+    "seconds": 10.11,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 22419,
+      "stale_refusals": 1,
+      "ops": {
+       "FLUSHALL": 15538,
+       "FLUSHALL-ASYNC": 16043,
+       "FLUSHDB": 11319,
+       "DBSIZE-NOW": 22627,
+       "SCAN": 279,
+       "RANDOMKEY": 22418,
+       "EVAL": 22403
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 13374,
+      "stale_refusals": 40116,
+      "ops": {
+       "FLUSHALL": 6686,
+       "FLUSHALL-ASYNC": 6686,
+       "FLUSHDB": 6683,
+       "DBSIZE-NOW": 13367,
+       "SCAN": 140,
+       "RANDOMKEY": 13372,
+       "EVAL": 13367
+      }
+     }
+    ],
+    "error_tail": null
+   },
+   {
+    "leg": "2s-uring-1-db16",
+    "outcome": "pass",
+    "seconds": 10.11,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 22713,
+      "stale_refusals": 1,
+      "ops": {
+       "FLUSHALL": 12229,
+       "FLUSHALL-ASYNC": 13484,
+       "FLUSHDB": 11362,
+       "DBSIZE-NOW": 22705,
+       "SCAN": 359,
+       "RANDOMKEY": 22704,
+       "EVAL": 22712
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 13042,
+      "stale_refusals": 39120,
+      "ops": {
+       "FLUSHALL": 6522,
+       "FLUSHALL-ASYNC": 6521,
+       "FLUSHDB": 6520,
+       "DBSIZE-NOW": 13041,
+       "SCAN": 136,
+       "RANDOMKEY": 13038,
+       "EVAL": 13039
+      }
+     }
+    ],
+    "error_tail": null
+   },
+   {
+    "leg": "2s-epoll-0-db16",
+    "outcome": "pass",
+    "seconds": 10.11,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 25237,
+      "stale_refusals": 0,
+      "ops": {
+       "FLUSHALL": 19795,
+       "FLUSHALL-ASYNC": 17741,
+       "FLUSHDB": 13458,
+       "DBSIZE-NOW": 26524,
+       "SCAN": 307,
+       "RANDOMKEY": 25237,
+       "EVAL": 25236
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 15887,
+      "stale_refusals": 47654,
+      "ops": {
+       "FLUSHALL": 7944,
+       "FLUSHALL-ASYNC": 7943,
+       "FLUSHDB": 7943,
+       "DBSIZE-NOW": 15884,
+       "SCAN": 166,
+       "RANDOMKEY": 15884,
+       "EVAL": 15883
+      }
+     }
+    ],
+    "error_tail": null
+   },
+   {
+    "leg": "2s-epoll-1-db16",
+    "outcome": "pass",
+    "seconds": 10.111,
+    "exit": {
+     "rc": 0,
+     "forced": false
+    },
+    "phases": [
+     {
+      "phase": "natural",
+      "flips": 24803,
+      "stale_refusals": 0,
+      "ops": {
+       "FLUSHALL": 12783,
+       "FLUSHALL-ASYNC": 12866,
+       "FLUSHDB": 12402,
+       "DBSIZE-NOW": 24808,
+       "SCAN": 294,
+       "RANDOMKEY": 24801,
+       "EVAL": 24801
+      }
+     },
+     {
+      "phase": "held",
+      "flips": 15247,
+      "stale_refusals": 45734,
+      "ops": {
+       "FLUSHALL": 7624,
+       "FLUSHALL-ASYNC": 7625,
+       "FLUSHDB": 7623,
+       "DBSIZE-NOW": 15246,
+       "SCAN": 159,
+       "RANDOMKEY": 15245,
+       "EVAL": 15245
+      }
+     }
+    ],
+    "error_tail": null
+   }
+  ]
+ },
+ "pad-a": {
+  "binary": "build/flipfix5/arms/pad-a/tomokv",
+  "sha256": "29340cf7f37c0b1149d222223b3b8acb8aa37aeda3c520dec0891232e6c10260",
+  "command": "taskset -c 16-23 python3 tests/flipfix5.py --case row --binary <arm> --cores 24-31 --port 20200 --seconds 10",
+  "legs": [
+   {
+    "leg": "2s-uring-0-db1",
+    "outcome": "abort",
+    "seconds": 1.68,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'natural', 'seconds': 6.0, 'flips': 2163, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 1921, 'FLUSHALL-ASYNC': 1296, 'FLUSHDB': 2066, 'DBSIZE-NOW': 2291, 'SCAN': 29, 'RANDOMKEY': 2160, 'EVAL': 2160, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['run: Traceback"
+   },
+   {
+    "leg": "2s-uring-1-db1",
+    "outcome": "abort",
+    "seconds": 4.232,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'natural', 'seconds': 6.0, 'flips': 12861, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 10553, 'FLUSHALL-ASYNC': 7189, 'FLUSHDB': 12032, 'DBSIZE-NOW': 13402, 'SCAN': 174, 'RANDOMKEY': 12860, 'EVAL': 12845, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['run: Tr"
+   },
+   {
+    "leg": "2s-epoll-0-db1",
+    "outcome": "abort",
+    "seconds": 7.138,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'held', 'seconds': 4, 'flips': 1, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 0, 'FLUSHALL-ASYNC': 0, 'FLUSHDB': 0, 'DBSIZE-NOW': 0, 'SCAN': 0, 'RANDOMKEY': 0, 'EVAL': 0, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_flushall-async: Traceback (most recent"
+   },
+   {
+    "leg": "2s-epoll-1-db1",
+    "outcome": "abort",
+    "seconds": 7.137,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'held', 'seconds': 4, 'flips': 1, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 0, 'FLUSHALL-ASYNC': 0, 'FLUSHDB': 0, 'DBSIZE-NOW': 0, 'SCAN': 0, 'RANDOMKEY': 0, 'EVAL': 0, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['run: Traceback (most recent call last):\\n"
+   },
+   {
+    "leg": "2s-uring-0-db16",
+    "outcome": "abort",
+    "seconds": 2.885,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'natural', 'seconds': 6.0, 'flips': 5840, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 3305, 'FLUSHALL-ASYNC': 2922, 'FLUSHDB': 3329, 'DBSIZE-NOW': 5840, 'SCAN': 61, 'RANDOMKEY': 5835, 'EVAL': 5838, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_dbsize-now:"
+   },
+   {
+    "leg": "2s-uring-1-db16",
+    "outcome": "abort",
+    "seconds": 7.164,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'held', 'seconds': 4, 'flips': 1, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 0, 'FLUSHALL-ASYNC': 0, 'FLUSHDB': 0, 'DBSIZE-NOW': 0, 'SCAN': 0, 'RANDOMKEY': 0, 'EVAL': 0, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_dbsize-now: Traceback (most recent cal"
+   },
+   {
+    "leg": "2s-epoll-0-db16",
+    "outcome": "abort",
+    "seconds": 7.16,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'held', 'seconds': 4, 'flips': 2, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 3, 'FLUSHALL-ASYNC': 3, 'FLUSHDB': 2, 'DBSIZE-NOW': 0, 'SCAN': 0, 'RANDOMKEY': 0, 'EVAL': 0, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['op_scan: Traceback (most recent call last"
+   },
+   {
+    "leg": "2s-epoll-1-db16",
+    "outcome": "abort",
+    "seconds": 7.142,
+    "exit": {
+     "rc": -6,
+     "forced": false
+    },
+    "phases": [],
+    "error_tail": "AssertionError: ({'phase': 'held', 'seconds': 4, 'flips': 1, 'flip_refusals': 0, 'refused': 0, 'FLUSHALL': 1, 'FLUSHALL-ASYNC': 0, 'FLUSHDB': 0, 'DBSIZE-NOW': 0, 'SCAN': 0, 'RANDOMKEY': 0, 'EVAL': 0, 'refusal_kinds': {}, 'flip_stale_stage_refusals': None}, ['run: Traceback (most recent call last):\\n"
+   }
+  ]
+ }
+}
