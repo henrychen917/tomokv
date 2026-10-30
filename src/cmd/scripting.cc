@@ -65,6 +65,9 @@ constexpr uint64_t kInstructionLimit = 100000; // fixed existing default; no run
 constexpr int kHookInterval = 1000;
 constexpr uint32_t kReplyMaxDepth = 32;
 constexpr uint32_t kReplyMaxElements = 100000;
+// Lua's reference allocator uses nonnegative registry keys. This private
+// negative slot avoids interning/hash-probing a string on every warm EVAL.
+constexpr int kEvalChunksRegistrySlot = -100;
 
 Server* g_script_server = nullptr;
 char g_hook_context_key;
@@ -436,6 +439,10 @@ struct LuaEngine {
     lua_State* state = nullptr;
     ScriptContext* current = nullptr;   // per-call slot; closures and the hook read through this
     uint64_t flush_generation = 0;      // mirrors g_script_flushes when the state was (re)built
+    // Compiled EVAL chunks use immutable metadata addresses as their Lua keys.
+    // Retain private/concurrently flushed entries until this chunk table clears,
+    // so allocator address reuse can never select a different script's closure.
+    std::vector<ScriptSourceRef> compiled_sources;
     ~LuaEngine() {
         if (state) lua_close(state);
     }
@@ -1466,7 +1473,8 @@ lua_State* script_thread_state(ScriptArgStyle style) {
         // EVAL's compiled chunks belong to SCRIPT FLUSH; FUNCTION closures and their mutable
         // upvalues do not. Keep the readonly environment and the function registry roots alive.
         lua_newtable(engine.state);
-        lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
+        lua_rawseti(engine.state, LUA_REGISTRYINDEX, kEvalChunksRegistrySlot);
+        engine.compiled_sources.clear();
         reset_cjson_environment(engine.state, "tomo_eval_cjson");
         engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
     }
@@ -1476,7 +1484,7 @@ lua_State* script_thread_state(ScriptArgStyle style) {
         engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
         create_sandbox_static(engine.state, &engine.current, function);
         lua_newtable(engine.state);
-        lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
+        lua_rawseti(engine.state, LUA_REGISTRYINDEX, kEvalChunksRegistrySlot);
         g_state_rebuilds.fetch_add(1, std::memory_order_relaxed);
     }
     return engine.state;
@@ -1668,8 +1676,8 @@ int readonly_eval(lua_State* state) {
 }
 
 // Cold compiled-chunk miss: metadata already validated the original source.
-__attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, const ScriptSource& source) {
-    const Slice sha(source.sha);
+__attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, const ScriptSourceRef& owner) {
+    const ScriptSource& source = *owner;
     lua_pop(state, 1);
     g_compile_misses.fetch_add(1, std::memory_order_relaxed);
     const int compiled = luaL_loadbuffer(state, source.source.data() + source.body_offset,
@@ -1688,13 +1696,21 @@ __attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, const Scri
         lua_pushlightuserdata(state, &t_lua_engine.current);
         lua_pushcclosure(state, readonly_eval, 2);
     }
-    lua_pushlstring(state, sha.p, sha.n);
+    try {
+        t_lua_engine.compiled_sources.push_back(owner);
+    } catch (const std::bad_alloc&) {
+        lua_settop(state, 0);
+        reply_text_error(op, "ERR", "out of memory caching script");
+        return false;
+    }
+    lua_pushlightuserdata(state, const_cast<ScriptSource*>(&source));
     lua_pushvalue(state, -2);
     lua_rawset(state, -4);
     return true;
 }
 
-void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, bool readonly) {
+void run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, bool readonly) {
+    const ScriptSource& source = *owner;
     uint32_t key_first = 0, key_count = 0;
     if (!command_script_key_range(op, key_first, key_count)) {
         reply_text_error(op, "ERR", "invalid script key declaration");
@@ -1716,11 +1732,11 @@ void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, boo
 
     // The source cache computed the digest/flags once, before ordered routing.
     const Slice sha(source.sha);
-    lua_getfield(state, LUA_REGISTRYINDEX, "tomo_chunks");
-    lua_pushlstring(state, sha.p, sha.n);
+    lua_rawgeti(state, LUA_REGISTRYINDEX, kEvalChunksRegistrySlot);
+    lua_pushlightuserdata(state, const_cast<ScriptSource*>(&source));
     lua_rawget(state, -2);
     if (lua_isnil(state, -1)) {
-        if (!compile_eval(state, op, source)) return;
+        if (!compile_eval(state, op, owner)) return;
     } else {
         g_compile_hits.fetch_add(1, std::memory_order_relaxed);
     }
@@ -1764,7 +1780,7 @@ void cmd_eval(Shard& shard, Op& op) {
     }
     // WATCH observes writes independently of notification/monitor routing.
     const bool notify = kNotify && (op.spec->flags & CmdFlags::NotifySelected);
-    run_eval(shard, op, *source, notify, kReadonly);
+    run_eval(shard, op, source, notify, kReadonly);
 }
 
 void reply_script_wrong_args(Op& op, const char* sub) {

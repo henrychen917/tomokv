@@ -8,7 +8,7 @@ import subprocess
 ROOT=Path(__file__).resolve().parents[2]
 os.sched_setaffinity(0,set(range(64,96)))
 expected={'Op':336,'Client':1984,'ThreadCtx':1408,'Shard':1440,'FlatStore':944,'Rob<64>':192,'AtomicEntry':144,'Config':624}
-cold=['IoLoop::ClimonConn','NotifyBatch','(anonymous namespace)::ClientMeta','(anonymous namespace)::ScriptContext']
+cold=['IoLoop::ClimonConn','NotifyBatch','(anonymous namespace)::ClientMeta','(anonymous namespace)::ScriptContext','(anonymous namespace)::LuaEngine']
 code='''import gdb,json
 names=NAMES
 rows={}

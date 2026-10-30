@@ -6,10 +6,10 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools'))
 import wave11
 from wave11_counts import symbols
-from wave10_normalize import install
+from wave11_normalize import install
 identity = wave11.references()
 install(identity.audit)
-identity.OUT = ROOT / 'build/wave11/identity-resolved'
+identity.OUT = ROOT / 'build/wave11/identity-wave11'
 DOC = ROOT / 'docs/wave11'
 
 

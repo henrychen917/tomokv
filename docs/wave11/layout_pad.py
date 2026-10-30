@@ -34,6 +34,10 @@ def main():
          '    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;\n    std::vector<MonitorScriptLine> monitor_lines;')
  replace('src/cmd/scripting.cc', '    uint32_t cross_access_count = 0;',
          '    uint32_t cross_access_count = 0;\n    union { uint32_t monitor_multi_order; };')
+ replace('src/cmd/scripting.cc', 'struct LuaEngine {',
+         'struct ScriptSource;\nusing ScriptSourceRef = std::shared_ptr<const ScriptSource>;\nstruct LuaEngine {')
+ replace('src/cmd/scripting.cc', '    ~LuaEngine() {',
+         '    std::vector<ScriptSourceRef> compiled_sources;\n    ~LuaEngine() {')
  replace('src/cmd/climon.inc', '    struct ClimonConn {',
          '    struct ClimonConn {\n'
          '        struct MonitorPending { uint64_t id, excluded; bool script; uint32_t multi_order; std::string line; };')
@@ -67,7 +71,7 @@ def relink(changes,cmd):
   assert actual['address']==desired['address'];padding+=desired['size']-actual['size']
  else:raise AssertionError((actual,desired))
  result=dict(kind='A: behaviour twin',behavior='e2b237926 with inert candidate layout fields',
-   matched='ClientMeta, NotifyBatch, ClimonConn and ScriptContext candidate member layout; POST .text origin and total size',
+   matched='ClientMeta, NotifyBatch, ClimonConn, ScriptContext and LuaEngine candidate member layout; POST .text origin and total size',
    limitation='Individual function offsets and data sections retain PRE placement; text extent is matched, not every function address.',
    changes=changes,command=cmd,link=link,padding_bytes=padding,pre_layout_text=before,post_text=desired,pad_text=actual,
    inputs=[dict(path=x,sha256=sha(x)) for x in link if x.endswith('.o')],

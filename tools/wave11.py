@@ -143,12 +143,11 @@ def main():
         # tables also used to bind counted probes to their production bodies.
         # Keep a separate cache: compile-trial receipts used the older strict
         # normalizer and must remain reproducible.
-        from wave10_normalize import install
+        from wave11_normalize import install
         install(identity.audit)
-        identity.OUT = BUILD / 'identity-resolved'
-        for label in ('headline-final', 'post-final'):
-            counted = DOC / 'instructions' / label / 'counts.json'
-            if counted.exists():
+        identity.OUT = BUILD / 'identity-wave11'
+        for label in ('pre', 'selected-post', 'post'):
+            for counted in (DOC / 'instructions' / label).glob('*-complete-counts.json'):
                 for row in json.loads(counted.read_text())['rows']:
                     identity.COUNTED_HOT.update(identity.audit.canonical(name)
                                                for name in row['functions'])

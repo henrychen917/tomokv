@@ -3441,7 +3441,7 @@ job_scriptfix2(){
         passed=1
         for databases in 1 16; do
           for atomic in 0 1; do
-            py tests/scriptfix2.py --root "$root" --binary "$CANDIDATE_BINARY" \
+            py tests/scriptfix3.py --root "$root" --binary "$CANDIDATE_BINARY" \
               --oracle "$REDIS74_ROOT/src/redis-server" --mode "$mode" --net-io "$engine" \
               --cores "$CORES" --oracle-cores "$LOAD_CORES" --ratio "$GATE_RATIO" \
               --databases "$databases" --atomic "$atomic" --port "$PORT" \

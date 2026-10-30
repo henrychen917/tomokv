@@ -21,6 +21,18 @@ def extras(root):
         assert malformed
         commands.append(['script','exists',*malformed])
         commands += [['evalsha',malformed[0],0],['script','flush'],['evalsha',sha.upper(),0]]
+        # Different metadata identities must never reuse a previous compiled
+        # body. Duplicate LOAD preserves a warm entry; FLUSH retires its table.
+        # Exact oracle values/readonly errors make stale closure selection fail.
+        for generation in range(6):
+            commands.append(['script','flush'])
+            for slot in range(8):
+                value=generation*8+slot
+                text=('' if slot%2 else '#!lua flags=no-writes\n')+f'return {value}'
+                digest=hashlib.sha1(text.encode()).hexdigest()
+                commands += [['script','load',text],['eval',text,0],
+                             ['script','load',text],['evalsha',digest,0],
+                             ['evalsha_ro',digest.upper(),0]]
     if root=='LUA-SANDBOX-GLOBALS':
         body="redis.register_function('EnvCase',function(keys,args) if args[1] then cjson.encode_number_precision(tonumber(args[1])) end return {cjson.encode_number_precision(),type(redis.replicate_commands),loadstring('return type(redis.replicate_commands)')()} end)"
         library='#!lua name=scriptfix3\n'+body

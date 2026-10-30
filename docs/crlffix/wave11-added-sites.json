@@ -1,25 +1,25 @@
 [
   {
     "file": "src/cmd/scripting.cc",
-    "line": 707,
+    "line": 714,
     "text": "server->aof().reply_write_error(nested);",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 711,
+    "line": 718,
     "text": "reply_maxmemory_oom(nested);",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 1755,
+    "line": 1771,
     "text": "reply_text_error(op, \"ERR\", error); return;",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 1761,
+    "line": 1777,
     "text": "reply_text_error(op, \"ERR\", \"out of memory\"); return;",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
@@ -34,5 +34,12 @@
     "line": 1434,
     "text": "if (!g_server) { reply_err(op.sink(), \"ERR no server context\"); return; }",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
+  },
+  {
+    "file": "src/cmd/scripting.cc",
+    "line": 1703,
+    "text": "reply_text_error(op, \"ERR\", \"out of memory caching script\");",
+    "scope": "compile_eval metadata retention failure",
+    "builder": "central reply_err through reply_text_error"
   }
 ]
