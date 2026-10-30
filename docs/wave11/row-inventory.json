@@ -5286,7 +5286,7 @@
     "FLIP stale stage storm (all legs)": 1
   },
   "removed": {},
-  "fixture_matches": true,
+  "landing_fixture_matches": true,
   "expected_assignments": [
     "EXPECT_QUICK=946",
     "EXPECT_FULL=963"

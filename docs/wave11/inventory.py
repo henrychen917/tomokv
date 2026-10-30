@@ -51,12 +51,12 @@ if __name__ == '__main__':
     post, pre = inventory(source), inventory(before)
     added = Counter(r['label'] for r in post['rows']) - Counter(r['label'] for r in pre['rows'])
     removed = Counter(r['label'] for r in pre['rows']) - Counter(r['label'] for r in post['rows'])
-    fixture = json.loads((ROOT/'tests/fixtures/nullrefresh-ledger-labels.json').read_text())['labels']
+    fixture = json.loads((ROOT/'docs/wave11/landing-label-fixture.json').read_text())['labels']
     result = dict(headline={k:pre[k] for k in ('quick','full','quick_exit_line')},
                   post=post, added=dict(added), removed=dict(removed),
-                  fixture_matches=Counter(fixture)==Counter(r['label'] for r in post['rows']),
+                  landing_fixture_matches=Counter(fixture)==Counter(r['label'] for r in post['rows']),
                   expected_assignments=re.findall(r'^EXPECT_(?:QUICK|FULL)=\d+',source,re.M))
     (ROOT/'docs/wave11/row-inventory.json').write_text(json.dumps(result,indent=2)+'\n')
-    assert result['fixture_matches'] and not removed
+    assert result['landing_fixture_matches'] and not removed
     print('headline',pre['quick'],pre['full'],'post',post['quick'],post['full'],
           'quick exit line',post['quick_exit_line'],'added',sum(added.values()))
