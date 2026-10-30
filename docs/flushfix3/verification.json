@@ -5,7 +5,7 @@
   },
   "gate_source": {
     "path": "tests/gate.sh",
-    "sha256": "b380b65f70b29758943bf611bb5fb2a044f06335b1e00a9b8b4d763b6585911c"
+    "sha256": "379c253bbe7cd5907a44d654ae059c2095e4f86dfa6976c6476fdf074adea581"
   },
   "runs": [
     {
@@ -36,6 +36,70 @@
         "GATE_PROOF_NO_RATES": "1",
         "GATE_ONLY_JOBS": "flushfix2 flushfix2_units flushfix3 flushfix3_units",
         "GATE_LEDGER": "/home/user/Projects/cx-flushfix3/build/flushfix3/verification/final/directed",
+        "GATE_LOAD_CORES": "8-15",
+        "GATE_DIFFER_ORACLE_CORES": "0-7"
+      }
+    },
+    {
+      "label": "final/broad",
+      "phase": "broad",
+      "status": 130,
+      "command": [
+        "taskset",
+        "-c",
+        "0-15",
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "0-7",
+        "--load-cores",
+        "8-15",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20102",
+        "--candidate-binary",
+        "/home/user/Projects/cx-flushfix3/build/tomokv"
+      ],
+      "binary_sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a",
+      "environment": {
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_ONLY_JOBS": "snapshot-epoll snapshot-uring persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors persistfix_units dump_restore debug-0 debug-1 aof-epoll aof-uring aof_frame aoforder notify_aof serverfix_waitaof iofix-signal climonfix txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder2 txnorder_wake txnorder_index txnorder_wound execfair txn_group_fused txn_group_split script_bounds scriptfix lualibs flip flipctl flip_saturated fliplisten flip_unit flipfix_units core_units atomic_units atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting moverfix fused-0 fused-1 storage_units release_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables scriptfix2 exec1s netcmd_units notifycompat racefix_counters racefix_climon",
+        "GATE_LEDGER": "/home/user/Projects/cx-flushfix3/build/flushfix3/verification/final/broad",
+        "GATE_LOAD_CORES": "8-15",
+        "GATE_DIFFER_ORACLE_CORES": "0-7"
+      }
+    },
+    {
+      "label": "idle-recheck/idle",
+      "phase": "idle",
+      "status": 0,
+      "command": [
+        "taskset",
+        "-c",
+        "0-15",
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "0-7",
+        "--load-cores",
+        "8-15",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20102",
+        "--candidate-binary",
+        "/home/user/Projects/cx-flushfix3/build/tomokv"
+      ],
+      "binary_sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a",
+      "environment": {
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_ONLY_JOBS": "flushfix3",
+        "GATE_LEDGER": "/home/user/Projects/cx-flushfix3/build/flushfix3/verification/idle-recheck/idle",
         "GATE_LOAD_CORES": "8-15",
         "GATE_DIFFER_ORACLE_CORES": "0-7"
       }
@@ -251,7 +315,3185 @@
       "verdicts": {
         "ok": 20,
         "FAIL": 1
-      }
+      },
+      "complete_selection": true
+    },
+    "final/broad": {
+      "log": {
+        "path": "build/flushfix3/verification/final/broad.log",
+        "sha256": "c8a62f2d30bae46d00cf27d42c3588b39da1999f0857bf9738f2080f47b8ff7f"
+      },
+      "root": "build/gate-run.C2Fan8",
+      "jobs": [
+        {
+          "name": "release",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/release/ledger",
+            "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+          },
+          "rows": [
+            {
+              "job": "release",
+              "label": "release build (+footprint locks)",
+              "verdict": "ok",
+              "seconds": 0.0
+            }
+          ]
+        },
+        {
+          "name": "core_tsan_build",
+          "done": [
+            "0",
+            "0",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/core_tsan_build/ledger",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "rows": []
+        },
+        {
+          "name": "racefix_tsan_build",
+          "done": [
+            "0",
+            "0",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/racefix_tsan_build/ledger",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "rows": []
+        },
+        {
+          "name": "multifix-1s-uring",
+          "done": [
+            "0",
+            "6",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-1s-uring/ledger",
+            "sha256": "45c1e869598d074b989e3f403c9821e9ef4beb9fed4118b4de6f4af3c42a41ed"
+          },
+          "rows": [
+            {
+              "job": "multifix-1s-uring",
+              "label": "multifix RESET-IN-MULTI (1s uring)",
+              "verdict": "ok",
+              "seconds": 11.06
+            },
+            {
+              "job": "multifix-1s-uring",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)",
+              "verdict": "ok",
+              "seconds": 11.07
+            },
+            {
+              "job": "multifix-1s-uring",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)",
+              "verdict": "ok",
+              "seconds": 11.49
+            },
+            {
+              "job": "multifix-1s-uring",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)",
+              "verdict": "ok",
+              "seconds": 15.24
+            },
+            {
+              "job": "multifix-1s-uring",
+              "label": "multifix PAUSE-IN-MULTI (1s uring)",
+              "verdict": "ok",
+              "seconds": 28.6
+            },
+            {
+              "job": "multifix-1s-uring",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)",
+              "verdict": "ok",
+              "seconds": 11.89
+            }
+          ]
+        },
+        {
+          "name": "multifix-1s-epoll",
+          "done": [
+            "0",
+            "6",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-1s-epoll/ledger",
+            "sha256": "155dc19ec1d5f59fe5dea21aac45efa8e3115388ecf3a54c73e7b66bbaedc65f"
+          },
+          "rows": [
+            {
+              "job": "multifix-1s-epoll",
+              "label": "multifix RESET-IN-MULTI (1s epoll)",
+              "verdict": "ok",
+              "seconds": 11.12
+            },
+            {
+              "job": "multifix-1s-epoll",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)",
+              "verdict": "ok",
+              "seconds": 11.14
+            },
+            {
+              "job": "multifix-1s-epoll",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)",
+              "verdict": "ok",
+              "seconds": 11.53
+            },
+            {
+              "job": "multifix-1s-epoll",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)",
+              "verdict": "ok",
+              "seconds": 15.3
+            },
+            {
+              "job": "multifix-1s-epoll",
+              "label": "multifix PAUSE-IN-MULTI (1s epoll)",
+              "verdict": "ok",
+              "seconds": 28.72
+            },
+            {
+              "job": "multifix-1s-epoll",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)",
+              "verdict": "ok",
+              "seconds": 12.1
+            }
+          ]
+        },
+        {
+          "name": "multifix-2s-uring",
+          "done": [
+            "0",
+            "6",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-2s-uring/ledger",
+            "sha256": "3448dc4f687842c88033e5de9672de872591189e21813e225d9a44f8e1c84891"
+          },
+          "rows": [
+            {
+              "job": "multifix-2s-uring",
+              "label": "multifix RESET-IN-MULTI (2s uring)",
+              "verdict": "ok",
+              "seconds": 11.07
+            },
+            {
+              "job": "multifix-2s-uring",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)",
+              "verdict": "ok",
+              "seconds": 11.07
+            },
+            {
+              "job": "multifix-2s-uring",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)",
+              "verdict": "ok",
+              "seconds": 11.48
+            },
+            {
+              "job": "multifix-2s-uring",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)",
+              "verdict": "ok",
+              "seconds": 15.24
+            },
+            {
+              "job": "multifix-2s-uring",
+              "label": "multifix PAUSE-IN-MULTI (2s uring)",
+              "verdict": "ok",
+              "seconds": 28.64
+            },
+            {
+              "job": "multifix-2s-uring",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)",
+              "verdict": "ok",
+              "seconds": 11.84
+            }
+          ]
+        },
+        {
+          "name": "multifix-2s-epoll",
+          "done": [
+            "0",
+            "6",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-2s-epoll/ledger",
+            "sha256": "f8906704f7aa0f197a86ac457e1fda48a7cb5fd1652454a0dc1adbf6342aa884"
+          },
+          "rows": [
+            {
+              "job": "multifix-2s-epoll",
+              "label": "multifix RESET-IN-MULTI (2s epoll)",
+              "verdict": "ok",
+              "seconds": 11.06
+            },
+            {
+              "job": "multifix-2s-epoll",
+              "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)",
+              "verdict": "ok",
+              "seconds": 11.07
+            },
+            {
+              "job": "multifix-2s-epoll",
+              "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)",
+              "verdict": "ok",
+              "seconds": 11.49
+            },
+            {
+              "job": "multifix-2s-epoll",
+              "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)",
+              "verdict": "ok",
+              "seconds": 15.24
+            },
+            {
+              "job": "multifix-2s-epoll",
+              "label": "multifix PAUSE-IN-MULTI (2s epoll)",
+              "verdict": "ok",
+              "seconds": 28.64
+            },
+            {
+              "job": "multifix-2s-epoll",
+              "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)",
+              "verdict": "ok",
+              "seconds": 11.97
+            }
+          ]
+        },
+        {
+          "name": "flip_unit",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/flip_unit/ledger",
+            "sha256": "eec1dac02c7051bf946eb55fb928500e2326abef718f3a89eb6508445bdcca3b"
+          },
+          "rows": [
+            {
+              "job": "flip_unit",
+              "label": "flip controller model unit",
+              "verdict": "ok",
+              "seconds": 18.32
+            }
+          ]
+        },
+        {
+          "name": "storage_units",
+          "done": [
+            "0",
+            "13",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/storage_units/ledger",
+            "sha256": "9c24dd3f2244957fcfe97cdd74f3cd0bc500660d0049f1b18561b56e71e1d195"
+          },
+          "rows": [
+            {
+              "job": "storage_units",
+              "label": "storage unlinked regression",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "storage_units",
+              "label": "storage randomkey regression",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "storage_units",
+              "label": "storage rehash regression",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "storage_units",
+              "label": "storage rollback regression",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "storage_units",
+              "label": "storage snapshot-eviction regression",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "storage_units",
+              "label": "storage flags regression",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "storage_units",
+              "label": "storage aof-eviction regression",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "storage_units",
+              "label": "storage intents regression",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "storage_units",
+              "label": "storage imported-hash regression",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "storage_units",
+              "label": "storage field-index-failure regression",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "storage_units",
+              "label": "storage hash-bytes regression",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "storage_units",
+              "label": "storage deadline-allocation-failure regression",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "storage_units",
+              "label": "storage flush-prepared-capacity regression",
+              "verdict": "ok",
+              "seconds": 0.0
+            }
+          ]
+        },
+        {
+          "name": "production_units",
+          "done": [
+            "0",
+            "0",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/production_units/ledger",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "rows": []
+        },
+        {
+          "name": "flipctl",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/flipctl/ledger",
+            "sha256": "9fe6667ed2aac6985368e9b5df632779085340f0f2ff63de395e3f08135bcbd7"
+          },
+          "rows": [
+            {
+              "job": "flipctl",
+              "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers",
+              "verdict": "ok",
+              "seconds": 132.93
+            }
+          ]
+        },
+        {
+          "name": "at412-T1",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T1/ledger",
+            "sha256": "57dbe1d0095a5a1f6fc20d405c25ac024743becc43e06a2ce11cb0c911f67ea8"
+          },
+          "rows": [
+            {
+              "job": "at412-T1",
+              "label": "at412 T1",
+              "verdict": "ok",
+              "seconds": 14.79
+            }
+          ]
+        },
+        {
+          "name": "at412-T2",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T2/ledger",
+            "sha256": "aad35f09f1e1ca5c4cb6bf399f5d71980a1ea15fec66556a3474bdf672a3850a"
+          },
+          "rows": [
+            {
+              "job": "at412-T2",
+              "label": "at412 T2",
+              "verdict": "ok",
+              "seconds": 26.89
+            }
+          ]
+        },
+        {
+          "name": "at412-T3",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T3/ledger",
+            "sha256": "8a7fb9ae8d4d4b3349e33c6c63a7dd9045d686c5c76b9d312e38b38aeb4bca43"
+          },
+          "rows": [
+            {
+              "job": "at412-T3",
+              "label": "at412 T3",
+              "verdict": "ok",
+              "seconds": 6.77
+            }
+          ]
+        },
+        {
+          "name": "at412-T4",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T4/ledger",
+            "sha256": "cbb3aa2a3fe63c777c67efe0491d17d14fee69effa7eec01eecc2cb056c49cc1"
+          },
+          "rows": [
+            {
+              "job": "at412-T4",
+              "label": "at412 T4",
+              "verdict": "ok",
+              "seconds": 13.1
+            }
+          ]
+        },
+        {
+          "name": "at412-T5",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T5/ledger",
+            "sha256": "49c2c146bab1e58d51db4d18069ab9c71dd918c7ce3126c1ef96948c5f0ed323"
+          },
+          "rows": [
+            {
+              "job": "at412-T5",
+              "label": "at412 T5",
+              "verdict": "ok",
+              "seconds": 134.51
+            }
+          ]
+        },
+        {
+          "name": "at412-T6",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T6/ledger",
+            "sha256": "20ae75e18662bef80c5c93c4e1106057b7cbde98d7c74f0de17d2789c6d89848"
+          },
+          "rows": [
+            {
+              "job": "at412-T6",
+              "label": "at412 T6",
+              "verdict": "ok",
+              "seconds": 812.44
+            }
+          ]
+        },
+        {
+          "name": "at412-T7",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T7/ledger",
+            "sha256": "11d3e096a34322ede406043154aa3274b66ab6c4fcd46f9b28b6da1df72430db"
+          },
+          "rows": [
+            {
+              "job": "at412-T7",
+              "label": "at412 T7",
+              "verdict": "ok",
+              "seconds": 37.11
+            }
+          ]
+        },
+        {
+          "name": "at412-T8",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T8/ledger",
+            "sha256": "ccd315173bac20b1ef8b0e8065dced79e062e35f732a5f928a12f62443a4478d"
+          },
+          "rows": [
+            {
+              "job": "at412-T8",
+              "label": "at412 T8",
+              "verdict": "ok",
+              "seconds": 4.05
+            }
+          ]
+        },
+        {
+          "name": "at412-T9",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T9/ledger",
+            "sha256": "be7317df1e24ac10457f7cb6a8ef45818ca6d3691358275f78a94b5c5371f966"
+          },
+          "rows": [
+            {
+              "job": "at412-T9",
+              "label": "at412 T9",
+              "verdict": "ok",
+              "seconds": 3.72
+            }
+          ]
+        },
+        {
+          "name": "at412-T10",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T10/ledger",
+            "sha256": "f035498c6d9e6aade2c757350830b1cbeec22b9bab045648471313405aaab604"
+          },
+          "rows": [
+            {
+              "job": "at412-T10",
+              "label": "at412 T10",
+              "verdict": "ok",
+              "seconds": 451.78
+            }
+          ]
+        },
+        {
+          "name": "at412-T11a",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T11a/ledger",
+            "sha256": "7a635d8eaad77d5021558ee79f224f5d5c21ca4c421f590f96e3169b19f81801"
+          },
+          "rows": [
+            {
+              "job": "at412-T11a",
+              "label": "at412 T11a",
+              "verdict": "ok",
+              "seconds": 7.06
+            }
+          ]
+        },
+        {
+          "name": "at412-T11b",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T11b/ledger",
+            "sha256": "2d9e7f4af576a1ae10671f3783688ddbd1f655fc34eca80a435d4c0bf66070d8"
+          },
+          "rows": [
+            {
+              "job": "at412-T11b",
+              "label": "at412 T11b",
+              "verdict": "ok",
+              "seconds": 43.27
+            }
+          ]
+        },
+        {
+          "name": "at412-T12",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T12/ledger",
+            "sha256": "d07d52cd8ceb811d75d5fe488f3c6a6418bc56f79f13cf574d8bd4a0e445cac5"
+          },
+          "rows": [
+            {
+              "job": "at412-T12",
+              "label": "at412 T12",
+              "verdict": "ok",
+              "seconds": 14.79
+            }
+          ]
+        },
+        {
+          "name": "at412-T13",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T13/ledger",
+            "sha256": "4be6c79d7a5e98fe91f43df5e7d0015ee778ffef4b376a1d596709ab46df8f19"
+          },
+          "rows": [
+            {
+              "job": "at412-T13",
+              "label": "at412 T13",
+              "verdict": "ok",
+              "seconds": 122.0
+            }
+          ]
+        },
+        {
+          "name": "at412-T14",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T14/ledger",
+            "sha256": "5590dac10aa85a7b1d09506ce0993af6429ec13b67095a244b42d934bbb6f024"
+          },
+          "rows": [
+            {
+              "job": "at412-T14",
+              "label": "at412 T14",
+              "verdict": "ok",
+              "seconds": 5.93
+            }
+          ]
+        },
+        {
+          "name": "at412-T15",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T15/ledger",
+            "sha256": "37993a7b23ad57afcf974fd4d749160597ea22da1a1b3b054e91cd20e60aa15b"
+          },
+          "rows": [
+            {
+              "job": "at412-T15",
+              "label": "at412 T15",
+              "verdict": "ok",
+              "seconds": 109.16
+            }
+          ]
+        },
+        {
+          "name": "at412-T16",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T16/ledger",
+            "sha256": "a1883386e0e553428dcced58e6ab7c1e3671718984030aeb7666b2a0ddd89114"
+          },
+          "rows": [
+            {
+              "job": "at412-T16",
+              "label": "at412 T16",
+              "verdict": "ok",
+              "seconds": 17.47
+            }
+          ]
+        },
+        {
+          "name": "at412-owner",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-owner/ledger",
+            "sha256": "37982e6058fa2cfa04543fcf69e97397787278e9b829904e6448ef3e5f536421"
+          },
+          "rows": [
+            {
+              "job": "at412-owner",
+              "label": "at412 owner",
+              "verdict": "ok",
+              "seconds": 0.06
+            }
+          ]
+        },
+        {
+          "name": "feature-split-0",
+          "done": [
+            "0",
+            "34",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-split-0/ledger",
+            "sha256": "92405697c5c25306465288c3640ef471c2f3d68c6ea07830db458f64534ed391"
+          },
+          "rows": [
+            {
+              "job": "feature-split-0",
+              "label": "s6 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.49
+            },
+            {
+              "job": "feature-split-0",
+              "label": "multi_exec battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.1
+            },
+            {
+              "job": "feature-split-0",
+              "label": "blocking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.56
+            },
+            {
+              "job": "feature-split-0",
+              "label": "blockmulti battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.48
+            },
+            {
+              "job": "feature-split-0",
+              "label": "stream battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.79
+            },
+            {
+              "job": "feature-split-0",
+              "label": "streamgroups battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-split-0",
+              "label": "pubsub battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.94
+            },
+            {
+              "job": "feature-split-0",
+              "label": "lua_scripting battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "scriptsurf battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-0",
+              "label": "limits battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 15.17
+            },
+            {
+              "job": "feature-split-0",
+              "label": "resp3 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "bitfield battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-0",
+              "label": "dumprestore battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "feature-split-0",
+              "label": "zsetops battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-0",
+              "label": "geo battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "climon battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.15
+            },
+            {
+              "job": "feature-split-0",
+              "label": "climon2 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.31
+            },
+            {
+              "job": "feature-split-0",
+              "label": "tracking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 13.24
+            },
+            {
+              "job": "feature-split-0",
+              "label": "hexpire battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.33
+            },
+            {
+              "job": "feature-split-0",
+              "label": "servertail battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.58
+            },
+            {
+              "job": "feature-split-0",
+              "label": "lcs battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "feature-split-0",
+              "label": "concur battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.8
+            },
+            {
+              "job": "feature-split-0",
+              "label": "edgeproto battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.66
+            },
+            {
+              "job": "feature-split-0",
+              "label": "edgeenc battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.36
+            },
+            {
+              "job": "feature-split-0",
+              "label": "edgetime battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.66
+            },
+            {
+              "job": "feature-split-0",
+              "label": "arity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "contarity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "cmdgap battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "aclsel battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "expwide battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 52.65
+            },
+            {
+              "job": "feature-split-0",
+              "label": "infofix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.28
+            },
+            {
+              "job": "feature-split-0",
+              "label": "pushtear battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.96
+            },
+            {
+              "job": "feature-split-0",
+              "label": "netcmd battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-0",
+              "label": "feature shutdown invariants (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.02
+            }
+          ]
+        },
+        {
+          "name": "feature-armed-0",
+          "done": [
+            "0",
+            "35",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-armed-0/ledger",
+            "sha256": "8e33b0ce7c952d3e2b0938ac90c1df90432f7c8212c6d2a7d69d8c4cf826ad5c"
+          },
+          "rows": [
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed boot line (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.26
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed s6 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.18
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed multi_exec battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.11
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed blocking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.66
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed blockmulti battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.47
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed stream battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.81
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed streamgroups battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed pubsub battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.92
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed lua_scripting battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed scriptsurf battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed limits battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 14.69
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed resp3 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed bitfield battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed dumprestore battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed zsetops battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed geo battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed climon battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.16
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed climon2 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.34
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed tracking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 13.28
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed hexpire battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.32
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed servertail battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.59
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed lcs battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.19
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed concur battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.81
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed edgeproto battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.74
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed edgeenc battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.4
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed edgetime battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.82
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed arity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed contarity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed cmdgap battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed aclsel battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed expwide battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 52.13
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed infofix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.22
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed pushtear battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.98
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed netcmd battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.17
+            }
+          ]
+        },
+        {
+          "name": "feature-split-1",
+          "done": [
+            "0",
+            "34",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-split-1/ledger",
+            "sha256": "4f4b518648b850335c48357540a768109ba4cf361b138a2e909a86e3b04b0ec8"
+          },
+          "rows": [
+            {
+              "job": "feature-split-1",
+              "label": "s6 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.45
+            },
+            {
+              "job": "feature-split-1",
+              "label": "multi_exec battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.1
+            },
+            {
+              "job": "feature-split-1",
+              "label": "blocking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.58
+            },
+            {
+              "job": "feature-split-1",
+              "label": "blockmulti battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.48
+            },
+            {
+              "job": "feature-split-1",
+              "label": "stream battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.77
+            },
+            {
+              "job": "feature-split-1",
+              "label": "streamgroups battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-1",
+              "label": "pubsub battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.92
+            },
+            {
+              "job": "feature-split-1",
+              "label": "lua_scripting battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "scriptsurf battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-1",
+              "label": "limits battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 14.83
+            },
+            {
+              "job": "feature-split-1",
+              "label": "resp3 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-1",
+              "label": "bitfield battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-1",
+              "label": "dumprestore battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "feature-split-1",
+              "label": "zsetops battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-1",
+              "label": "geo battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-1",
+              "label": "climon battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.15
+            },
+            {
+              "job": "feature-split-1",
+              "label": "climon2 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.38
+            },
+            {
+              "job": "feature-split-1",
+              "label": "tracking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 13.26
+            },
+            {
+              "job": "feature-split-1",
+              "label": "hexpire battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.32
+            },
+            {
+              "job": "feature-split-1",
+              "label": "servertail battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.86
+            },
+            {
+              "job": "feature-split-1",
+              "label": "lcs battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "feature-split-1",
+              "label": "concur battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.79
+            },
+            {
+              "job": "feature-split-1",
+              "label": "edgeproto battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.65
+            },
+            {
+              "job": "feature-split-1",
+              "label": "edgeenc battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.37
+            },
+            {
+              "job": "feature-split-1",
+              "label": "edgetime battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.85
+            },
+            {
+              "job": "feature-split-1",
+              "label": "arity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "contarity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-1",
+              "label": "cmdgap battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-1",
+              "label": "aclsel battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "expwide battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 62.15
+            },
+            {
+              "job": "feature-split-1",
+              "label": "infofix battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.19
+            },
+            {
+              "job": "feature-split-1",
+              "label": "pushtear battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.96
+            },
+            {
+              "job": "feature-split-1",
+              "label": "netcmd battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "feature shutdown invariants (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.02
+            }
+          ]
+        },
+        {
+          "name": "feature-armed-1",
+          "done": [
+            "0",
+            "35",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-armed-1/ledger",
+            "sha256": "43228fad16ffa3504d757562422d5801944f8928935517e6a6693cb282844bd0"
+          },
+          "rows": [
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed boot line (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.33
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed s6 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.18
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed multi_exec battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.11
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed blocking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.62
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed blockmulti battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.48
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed stream battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.84
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed streamgroups battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed pubsub battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.93
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed lua_scripting battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed scriptsurf battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed limits battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 14.59
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed resp3 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed bitfield battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed dumprestore battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed zsetops battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed geo battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed climon battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.14
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed climon2 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.38
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed tracking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 13.24
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed hexpire battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.07
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed servertail battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.81
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed lcs battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.19
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed concur battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.84
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed edgeproto battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.77
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed edgeenc battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.39
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed edgetime battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.82
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed arity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed contarity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed cmdgap battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed aclsel battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed expwide battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 52.49
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed infofix battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.23
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed pushtear battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.98
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed netcmd battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.16
+            }
+          ]
+        },
+        {
+          "name": "multidb-1s-0-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-0-0/ledger",
+            "sha256": "abb57861172c534df9cff99b3650460a2b31d96c4989653e961471a9f9a63c1d"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-0-0",
+              "label": "multidb (1s, read-local 0, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.51
+            },
+            {
+              "job": "multidb-1s-0-0",
+              "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-1s-0-0",
+              "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.3
+            }
+          ]
+        },
+        {
+          "name": "multidb-1s-0-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-0-1/ledger",
+            "sha256": "f5cc000320485f7e06a1cdab1b659fc301b7906fdfe3ccaa193b1a88ce139a10"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-0-1",
+              "label": "multidb (1s, read-local 0, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.53
+            },
+            {
+              "job": "multidb-1s-0-1",
+              "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "multidb-1s-0-1",
+              "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.35
+            }
+          ]
+        },
+        {
+          "name": "multidb-1s-1-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-1-0/ledger",
+            "sha256": "3188730f72057ddc953a042fe07fa83201ccfd15659565ede352ebda33e1829d"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-1-0",
+              "label": "multidb (1s, read-local 1, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.56
+            },
+            {
+              "job": "multidb-1s-1-0",
+              "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-1s-1-0",
+              "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.35
+            }
+          ]
+        },
+        {
+          "name": "multidb-1s-1-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-1-1/ledger",
+            "sha256": "94b03583db8ae2d2118912c0f328f03cb578c1600bd6a23d84d3849a76eb096c"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-1-1",
+              "label": "multidb (1s, read-local 1, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.52
+            },
+            {
+              "job": "multidb-1s-1-1",
+              "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-1s-1-1",
+              "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.35
+            }
+          ]
+        },
+        {
+          "name": "multidb-2s-0-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-0-0/ledger",
+            "sha256": "65fc767cf65548de56e10dec869eac47eefa1c638f5c8ba5b66b5d76b0d5a79b"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-0-0",
+              "label": "multidb (2s, read-local 0, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.41
+            },
+            {
+              "job": "multidb-2s-0-0",
+              "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "multidb-2s-0-0",
+              "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.35
+            }
+          ]
+        },
+        {
+          "name": "multidb-2s-0-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-0-1/ledger",
+            "sha256": "6153641daa639e7f39620d44901b0adf97593477130e1e5c130fa8f88a93c615"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-0-1",
+              "label": "multidb (2s, read-local 0, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.41
+            },
+            {
+              "job": "multidb-2s-0-1",
+              "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "multidb-2s-0-1",
+              "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.35
+            }
+          ]
+        },
+        {
+          "name": "multidb-2s-1-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-1-0/ledger",
+            "sha256": "638c01b5671da7d658346baab9682ac88d535d31593ac45b540ab7207f4c1a60"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-1-0",
+              "label": "multidb (2s, read-local 1, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.41
+            },
+            {
+              "job": "multidb-2s-1-0",
+              "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-2s-1-0",
+              "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.35
+            }
+          ]
+        },
+        {
+          "name": "multidb-2s-1-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-1-1/ledger",
+            "sha256": "a3a305a01844129844afaa610d79a774ff95755340c896d0d71f703c453429e0"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-1-1",
+              "label": "multidb (2s, read-local 1, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.42
+            },
+            {
+              "job": "multidb-2s-1-1",
+              "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-2s-1-1",
+              "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.35
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_lastsave",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_lastsave/ledger",
+            "sha256": "66fa969237c093a5dc8d11506491296b06c153fb624c68ac9536168918b34210"
+          },
+          "rows": [
+            {
+              "job": "persistfix2_lastsave",
+              "label": "persistfix2 LASTSAVE and rewrite INFO",
+              "verdict": "ok",
+              "seconds": 10.34
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_shutdown",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_shutdown/ledger",
+            "sha256": "4d51b5a96f3c6f047ddca1cf8a479ef56b315732bb9187238660841a310e4777"
+          },
+          "rows": [
+            {
+              "job": "persistfix2_shutdown",
+              "label": "persistfix2 shutdown modifiers and signal policy",
+              "verdict": "ok",
+              "seconds": 85.97
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_commands",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_commands/ledger",
+            "sha256": "48adf0c95d722a74baf67a72ff37fdc00b262c1de5756975b3be3ea4e124f705"
+          },
+          "rows": [
+            {
+              "job": "persistfix2_commands",
+              "label": "persistfix2 persistence command replies and scheduling",
+              "verdict": "ok",
+              "seconds": 55.14
+            }
+          ]
+        },
+        {
+          "name": "persistfix2_errors",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_errors/ledger",
+            "sha256": "f537e03d0418831ba07eb3ce7e22c7502a888f2af72ec3972f5375afc280dff3"
+          },
+          "rows": [
+            {
+              "job": "persistfix2_errors",
+              "label": "persistfix2 AOF write-error refusal and read availability",
+              "verdict": "ok",
+              "seconds": 4.26
+            }
+          ]
+        },
+        {
+          "name": "aof-epoll",
+          "done": [
+            "0",
+            "54",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/aof-epoll/ledger",
+            "sha256": "f890db511d066e4b584df96f96c6903ac362c9b77d2cbd7097e88da9c7831c12"
+          },
+          "rows": [
+            {
+              "job": "aof-epoll",
+              "label": "configuration reduction + actual geometry (epoll, atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.42
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF writer fired (records=N)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF process-restart script replay (epoll, atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF native snapshot streams byte-exact",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF replay fired (records=N skipped=N)",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "aof-epoll",
+              "label": "configuration reduction + actual geometry (epoll, atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.43
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF writer fired (records=N)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF process-restart script replay (epoll, atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF native snapshot streams byte-exact",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF replay fired (records=N skipped=N)",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF directed group interruption fired",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF atomic-group recovery + writer order",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF group shutdown invariants",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF always sync + reply gate fired",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF always recovery after quiescent SIGKILL",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF in-window kill recovery (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.93
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF in-window term recovery (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 2.53
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF in-window kill recovery (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 1.0
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF in-window term recovery (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 2.82
+            },
+            {
+              "job": "aof-epoll",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)",
+              "verdict": "ok",
+              "seconds": 1.93
+            },
+            {
+              "job": "aof-epoll",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)",
+              "verdict": "ok",
+              "seconds": 1.86
+            },
+            {
+              "job": "aof-epoll",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
+              "verdict": "ok",
+              "seconds": 1.99
+            },
+            {
+              "job": "aof-epoll",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+              "verdict": "ok",
+              "seconds": 2.12
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF everysec write gate + idle sync fired",
+              "verdict": "ok",
+              "seconds": 1.3
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF everysec durability window + tail warning",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF no-sync bypassed sync + reply gate",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF rewrite atomic/stage/corruption matrix",
+              "verdict": "ok",
+              "seconds": 5.25
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF rewrite triggers + observability matrix",
+              "verdict": "ok",
+              "seconds": 5.47
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF-off negative-control seed landed",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "aof-epoll",
+              "label": "AOF-off negative control lost data",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 snapshot (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.42
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 filename (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 1.55
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 error (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.17
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 tickets (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.55
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 exec_tickets (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.56
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 resurrection (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.55
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 rewrite_fail2 (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.43
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 manifest_missing (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.31
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.27
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 off-writer acknowledgement always (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.28
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 snapshot (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.43
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 filename (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 1.5
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 error (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 tickets (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.56
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 exec_tickets (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.56
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 resurrection (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.55
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 rewrite_fail2 (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.34
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 manifest_missing (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.31
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.28
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 off-writer acknowledgement always (2s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.28
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 large (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.35
+            },
+            {
+              "job": "aof-epoll",
+              "label": "aoffix2 large_placed (1s, epoll)",
+              "verdict": "ok",
+              "seconds": 0.21
+            }
+          ]
+        },
+        {
+          "name": "aof-uring",
+          "done": [
+            "0",
+            "54",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/aof-uring/ledger",
+            "sha256": "a873bda0e1a7861aaefa32b9c4346890223d40785901380b4ab435786d06da61"
+          },
+          "rows": [
+            {
+              "job": "aof-uring",
+              "label": "configuration reduction + actual geometry (uring, atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.43
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF writer fired (records=N)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF process-restart script replay (uring, atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF native snapshot streams byte-exact",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF replay fired (records=N skipped=N)",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "aof-uring",
+              "label": "configuration reduction + actual geometry (uring, atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.42
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF writer fired (records=N)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF process-restart script replay (uring, atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF native snapshot streams byte-exact",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF replay fired (records=N skipped=N)",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF directed group interruption fired",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF atomic-group recovery + writer order",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF group shutdown invariants",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF always sync + reply gate fired",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF always recovery after quiescent SIGKILL",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF in-window kill recovery (2s, uring)",
+              "verdict": "ok",
+              "seconds": 1.23
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF in-window term recovery (2s, uring)",
+              "verdict": "ok",
+              "seconds": 2.97
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF in-window kill recovery (1s, uring)",
+              "verdict": "ok",
+              "seconds": 1.26
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF in-window term recovery (1s, uring)",
+              "verdict": "ok",
+              "seconds": 3.9
+            },
+            {
+              "job": "aof-uring",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)",
+              "verdict": "ok",
+              "seconds": 1.97
+            },
+            {
+              "job": "aof-uring",
+              "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)",
+              "verdict": "ok",
+              "seconds": 2.02
+            },
+            {
+              "job": "aof-uring",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)",
+              "verdict": "ok",
+              "seconds": 2.09
+            },
+            {
+              "job": "aof-uring",
+              "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)",
+              "verdict": "ok",
+              "seconds": 2.19
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF everysec write gate + idle sync fired",
+              "verdict": "ok",
+              "seconds": 1.29
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF everysec durability window + tail warning",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF no-sync bypassed sync + reply gate",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF rewrite atomic/stage/corruption matrix",
+              "verdict": "ok",
+              "seconds": 5.26
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF rewrite triggers + observability matrix",
+              "verdict": "ok",
+              "seconds": 5.59
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF-off negative-control seed landed",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "aof-uring",
+              "label": "AOF-off negative control lost data",
+              "verdict": "ok",
+              "seconds": 0.01
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 snapshot (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.43
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 filename (1s, uring)",
+              "verdict": "ok",
+              "seconds": 1.56
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 error (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 tickets (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.55
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 exec_tickets (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.57
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 resurrection (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.56
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 rewrite_fail2 (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.43
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 manifest_missing (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.31
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.28
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 off-writer acknowledgement always (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.28
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 snapshot (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.43
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 filename (2s, uring)",
+              "verdict": "ok",
+              "seconds": 1.56
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 error (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 tickets (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.56
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 exec_tickets (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.55
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 resurrection (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.56
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 rewrite_fail2 (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.42
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 manifest_missing (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.31
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.29
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 off-writer acknowledgement always (2s, uring)",
+              "verdict": "ok",
+              "seconds": 0.29
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 large (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.35
+            },
+            {
+              "job": "aof-uring",
+              "label": "aoffix2 large_placed (1s, uring)",
+              "verdict": "ok",
+              "seconds": 0.2
+            }
+          ]
+        },
+        {
+          "name": "snapshot-epoll",
+          "done": [
+            "0",
+            "16",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/snapshot-epoll/ledger",
+            "sha256": "2187c0b25f0ea2032ef9f65fa952f19faf95eb0c99882a4b37b83287c8ed975f"
+          },
+          "rows": [
+            {
+              "job": "snapshot-epoll",
+              "label": "snapshot concurrent cut (epoll)",
+              "verdict": "ok",
+              "seconds": 0.64
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "snapshot cut reload (epoll)",
+              "verdict": "ok",
+              "seconds": 0.19
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.77
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+              "verdict": "ok",
+              "seconds": 5.17
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "typed snapshot save (epoll)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "typed snapshot reload (epoll)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "typed snapshot preimage race (epoll)",
+              "verdict": "ok",
+              "seconds": 0.17
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "typed snapshot race reload (epoll)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)",
+              "verdict": "ok",
+              "seconds": 0.92
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown keeps acknowledged writes (1s, command, epoll)",
+              "verdict": "ok",
+              "seconds": 0.92
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)",
+              "verdict": "ok",
+              "seconds": 0.99
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)",
+              "verdict": "ok",
+              "seconds": 0.99
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)",
+              "verdict": "ok",
+              "seconds": 0.93
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown keeps acknowledged writes (2s, command, epoll)",
+              "verdict": "ok",
+              "seconds": 0.92
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)",
+              "verdict": "ok",
+              "seconds": 1.09
+            },
+            {
+              "job": "snapshot-epoll",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)",
+              "verdict": "ok",
+              "seconds": 1.08
+            }
+          ]
+        },
+        {
+          "name": "snapshot-uring",
+          "done": [
+            "0",
+            "16",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/snapshot-uring/ledger",
+            "sha256": "7cb8c5e25b7aacdbf3923ad6deb21334a16f455308f1792222d5a2c4af5f97f0"
+          },
+          "rows": [
+            {
+              "job": "snapshot-uring",
+              "label": "snapshot concurrent cut (uring)",
+              "verdict": "ok",
+              "seconds": 0.62
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "snapshot cut reload (uring)",
+              "verdict": "ok",
+              "seconds": 0.17
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.73
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+              "verdict": "ok",
+              "seconds": 6.45
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "typed snapshot save (uring)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "typed snapshot reload (uring)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "typed snapshot preimage race (uring)",
+              "verdict": "ok",
+              "seconds": 0.17
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "typed snapshot race reload (uring)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)",
+              "verdict": "ok",
+              "seconds": 0.83
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown keeps acknowledged writes (1s, command, uring)",
+              "verdict": "ok",
+              "seconds": 0.83
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)",
+              "verdict": "ok",
+              "seconds": 1.01
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)",
+              "verdict": "ok",
+              "seconds": 1.01
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)",
+              "verdict": "ok",
+              "seconds": 0.85
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown keeps acknowledged writes (2s, command, uring)",
+              "verdict": "ok",
+              "seconds": 0.82
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)",
+              "verdict": "ok",
+              "seconds": 1.08
+            },
+            {
+              "job": "snapshot-uring",
+              "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)",
+              "verdict": "ok",
+              "seconds": 1.08
+            }
+          ]
+        },
+        {
+          "name": "snapfix_shutdown",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix_shutdown/ledger",
+            "sha256": "cb58a0d4885b1eef2b3ff2334e7b4d6cce527eeedf47f9575559ce5558c14622"
+          },
+          "rows": [
+            {
+              "job": "snapfix_shutdown",
+              "label": "snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)",
+              "verdict": "ok",
+              "seconds": 0.62
+            }
+          ]
+        },
+        {
+          "name": "snapfix_bgsave_script",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix_bgsave_script/ledger",
+            "sha256": "e3dd35ac71d64539750f1de4022943d7af71b6225f73c62406b2280acfc88e73"
+          },
+          "rows": [
+            {
+              "job": "snapfix_bgsave_script",
+              "label": "snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)",
+              "verdict": "ok",
+              "seconds": 58.55
+            }
+          ]
+        },
+        {
+          "name": "snapfix_bgsave_exec",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix_bgsave_exec/ledger",
+            "sha256": "bdc86e3a191f8aa7095e673240fb2f8a669087a65d5a9f264b608301b3182773"
+          },
+          "rows": [
+            {
+              "job": "snapfix_bgsave_exec",
+              "label": "snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)",
+              "verdict": "ok",
+              "seconds": 55.37
+            }
+          ]
+        },
+        {
+          "name": "snapfix2_tables",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix2_tables/ledger",
+            "sha256": "d423e32ad5e6a0bc10481d3a98c2e14a4065e5b06a1c90d19041831ea7eb7945"
+          },
+          "rows": [
+            {
+              "job": "snapfix2_tables",
+              "label": "snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)",
+              "verdict": "ok",
+              "seconds": 1.98
+            }
+          ]
+        },
+        {
+          "name": "debug-0",
+          "done": [
+            "0",
+            "16",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.C2Fan8/jobs/debug-0/ledger",
+            "sha256": "4500cd0d3e7330c76aacc74068e192824dda55cb5290d32804bf7e6066ca7205"
+          },
+          "rows": [
+            {
+              "job": "debug-0",
+              "label": "plain-write lost updates (atomic 0)",
+              "verdict": "ok",
+              "seconds": 9.17
+            },
+            {
+              "job": "debug-0",
+              "label": "lbsignals battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.17
+            },
+            {
+              "job": "debug-0",
+              "label": "slowlog battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.48
+            },
+            {
+              "job": "debug-0",
+              "label": "atomfix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "debug-0",
+              "label": "scriptatomic battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.13
+            },
+            {
+              "job": "debug-0",
+              "label": "execatomic battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 14.47
+            },
+            {
+              "job": "debug-0",
+              "label": "execiso battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 11.88
+            },
+            {
+              "job": "debug-0",
+              "label": "execfix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.44
+            },
+            {
+              "job": "debug-0",
+              "label": "multires battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.12
+            },
+            {
+              "job": "debug-0",
+              "label": "multirace battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.78
+            },
+            {
+              "job": "debug-0",
+              "label": "session_monotonic battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 30.59
+            },
+            {
+              "job": "debug-0",
+              "label": "xacct battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.35
+            },
+            {
+              "job": "debug-0",
+              "label": "xmove battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "debug-0",
+              "label": "xscript battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.27
+            },
+            {
+              "job": "debug-0",
+              "label": "txn_nx battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.97
+            },
+            {
+              "job": "debug-0",
+              "label": "txniso battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 8.51
+            }
+          ]
+        }
+      ],
+      "omitted_unfinished_jobs": [
+        "debug-1",
+        "iofix-signal",
+        "atomfix5_watch",
+        "atomfix5_accounting",
+        "core_units",
+        "flipfix_units",
+        "climonfix",
+        "racefix_counters",
+        "racefix_climon",
+        "persistfix_units",
+        "atomic_units",
+        "netcmd_units",
+        "release_batteries",
+        "atomic_batteries",
+        "moverfix",
+        "script_bounds",
+        "scriptfix",
+        "scriptfix2",
+        "lualibs",
+        "dump_restore",
+        "serverfix_waitaof",
+        "notifycompat",
+        "notify_aof",
+        "flip",
+        "fliplisten",
+        "flip_saturated",
+        "atomic_floor",
+        "aof_frame",
+        "aoforder",
+        "fused-0",
+        "fused-1",
+        "txn_group_fused",
+        "txn_group_split",
+        "execfair",
+        "exec1s",
+        "txnorder_index",
+        "txnorder_wound",
+        "txnorder2",
+        "txnorder_wake",
+        "txnorder-fused-0",
+        "txnorder-fused-1",
+        "txnorder-split-0",
+        "txnorder-split-1"
+      ],
+      "scored_rows": 384,
+      "verdicts": {
+        "ok": 384
+      },
+      "complete_selection": false
+    },
+    "idle-recheck/idle": {
+      "log": {
+        "path": "build/flushfix3/verification/idle-recheck/idle.log",
+        "sha256": "85931d930309213e51c324e40973f51e5bf06d9931d0ae9eaffff8d27355ce9c"
+      },
+      "root": "build/gate-run.aVVHmT",
+      "jobs": [
+        {
+          "name": "release",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.aVVHmT/jobs/release/ledger",
+            "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+          },
+          "rows": [
+            {
+              "job": "release",
+              "label": "release build (+footprint locks)",
+              "verdict": "ok",
+              "seconds": 0.0
+            }
+          ]
+        },
+        {
+          "name": "flushfix3",
+          "done": [
+            "0",
+            "2",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.aVVHmT/jobs/flushfix3/ledger",
+            "sha256": "e13a5037f8ef4e225b8e8216519c5a5918c1f52fc1aa1e37b85347df480e720e"
+          },
+          "rows": [
+            {
+              "job": "flushfix3",
+              "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 16)",
+              "verdict": "ok",
+              "seconds": 46.69
+            },
+            {
+              "job": "flushfix3",
+              "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 1)",
+              "verdict": "ok",
+              "seconds": 45.87
+            }
+          ]
+        }
+      ],
+      "omitted_unfinished_jobs": [],
+      "scored_rows": 3,
+      "verdicts": {
+        "ok": 3
+      },
+      "complete_selection": true
     }
   },
   "differential_inventory": []

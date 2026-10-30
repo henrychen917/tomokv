@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sys
 
 from flushfix2_verification_receipts import gate, ref
@@ -21,7 +22,12 @@ def main():
         for row in json.loads(record.read_text()):
             label = record.parent.name + '/' + row['phase']
             runs.append(dict(label=label, **row))
-            evidence = gate((record.parent/(row['phase']+'.log')).resolve())
+            log = (record.parent/(row['phase']+'.log')).resolve()
+            folder = Path(re.search(r'artifacts: (.+)', log.read_text())[1])
+            completed = [p.parent.name for p in (folder/'jobs').glob('*/done')]
+            evidence = gate(log, completed=completed)
+            evidence['complete_selection'] = not evidence['omitted_unfinished_jobs']
+            assert row['status'] or evidence['complete_selection'], 'successful incomplete selection'
             gates[label] = evidence
             folder = ROOT/evidence['root']
             if row['phase'].startswith('differ-'):

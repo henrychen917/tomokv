@@ -55,6 +55,8 @@ def main():
     parser.add_argument('--binary', type=Path, default=ROOT/'build/tomokv')
     parser.add_argument('--label', default='final')
     parser.add_argument('--phases', default=','.join(phases()))
+    parser.add_argument('--omit-jobs', default='',
+                        help='comma-separated jobs already covered or reserved for the owner')
     args = parser.parse_args()
     assert os.sched_getaffinity(0) <= set(range(16))
     binary = args.binary.resolve()
@@ -68,6 +70,9 @@ def main():
     for phase in args.phases.split(','):
         assert hashlib.sha256(binary.read_bytes()).hexdigest() == digest
         tier, jobs, overrides = phases()[phase]
+        omitted = [job for job in jobs if job in args.omit_jobs.split(',')]
+        jobs = [job for job in jobs if job not in omitted]
+        assert jobs, f'empty selection for {phase}'
         env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
                    GATE_PROOF_NO_RATES='1', GATE_ONLY_JOBS=' '.join(jobs),
                    GATE_LEDGER=str(out/phase), GATE_LOAD_CORES='8-15',
@@ -82,6 +87,7 @@ def main():
             status = subprocess.run(cmd, cwd=ROOT, env=env, stdout=stream,
                                     stderr=subprocess.STDOUT).returncode
         rows.append(dict(phase=phase, status=status, command=cmd, binary_sha256=digest,
+            omitted_selection=omitted,
             environment={k:v for k,v in env.items() if k.startswith(('GATE_', 'REDIS74_', 'LC_ALL'))}))
         record.write_text(json.dumps(rows, indent=2)+'\n')
         print('done', phase, status, flush=True)

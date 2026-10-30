@@ -197,13 +197,23 @@ lane; their incoming values came from the requested merge.
 Final verification is in progress through `tools/flushfix3_verify.py` and the
 gate's selected-job interface. The final idle run has one failed sample:
 DB1 / 2s / uring / atomic1 / FLUSHALL ASYNC took 9,079,092 ns, over 5 ms.
-All original fused-stall legs pass. This failure is retained; a complete fresh
-idle row will be rerun with artifact processing stopped, at the same bound.
+All original fused-stall legs pass. This failure is retained. One complete fresh
+idle recheck, with builds and artifact processing stopped, passes all 64,000
+calls at the same bound; `docs/flushfix3/idle-final-recheck.json` records every
+form's count and maximum. No tolerance or retry-until-green rule was added.
 The final work rows pass both namespaces and their F2 falsifiers. The 73 gate
 self-tests pass again after exposing scriptfix's engine/atomic selections and
 the AOF engine controls. `make -q` reports all 61 requested production and FLUSH
 targets fresh, including `all`; exact commands and hashes are recorded in
 `docs/flushfix3/production-freshness.json`.
+
+The broad selection was interrupted **between** jobs after 54 completed jobs
+and 384 passing rows, zero failures, to respect the task's load-generator
+restriction. No test was interrupted and `flip_saturated` never started.
+`broad-interruption.json` preserves the exact completion inventory. The remaining
+jobs continue in a separate selection. FLIP's `flip_saturated` row invokes
+`memtier_benchmark`; it is NOT RUN pending the owner's clarification, while the
+other FLIP jobs remain selected. It is not silently counted as passing.
 
 Inherited sibling findings in `MEASURE-REQUEST-flushfix2.md` remain relevant:
 the historical FLUSH+FLIP abort and DEBUG RELOAD/LOADAOF visibility defects were
