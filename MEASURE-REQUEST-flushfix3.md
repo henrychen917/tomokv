@@ -26,9 +26,8 @@ An initial negative run was stopped after one complete fused leg demonstrated
 438–466 deadline misses per 1,000 calls; its observations are retained. The
 completed negative rerun uses the same fail-on-first-miss rule as the fix.
 
-The two new rows are collected before the quick-tier exit: incremental
-DQ=+2, DF=+2. Final collection line numbers and combined row counts will be
-recorded after the wave 10 merge. EXPECT constants have not been edited.
+The initial fix is proven before the merge. Final-binary idle observations are
+reported separately below; the initial pass does not erase a later failure.
 
 ### Wave 10 merge
 
@@ -51,8 +50,9 @@ wake repair, and retains flushfix2's quadratic slow collapse. Its hash is in
 separately identified as `f2-original`.
 
 The initial headline/F2 scope comparison has 12 positive MGET/MSET deltas
-out of 80 comparisons; scalar GET/SET/INCR add none. This is an explicitly
-failing intermediate zero-tax check, to be superseded by the final counts.
+out of 80 comparisons; scalar GET/SET/INCR add none. This failing intermediate
+check is retained in `counts/comparison-f2.json` and
+`counts-before-cold-isolation.json.gz`.
 
 ### Bounded slow collapse
 
@@ -101,11 +101,100 @@ only to count visits and stop at 96(C+P)+1, falsifying all four sizes in both
 namespaces. The throwaway images are never production arms.
 
 The gate's two new serverless rows also check full-hash collisions, duplicate
-keys, prefixes/NUL bytes, namespace identity, scratch OOM/retry and 600 live
-ranges. Together with the two unchanged flushfix2 units, the first work gate
+keys, prefixes/NUL bytes, namespace identity, scratch OOM/retry, repeated-key
+snapshot histories and 600 live ranges. Together with the two unchanged flushfix2 units, the first work gate
 passes five rows including release, zero failures. Exact receipts and negative
 control construction are in `docs/flushfix3/work/`. `tests/gates_test.py` passes
 all 73 tests on the merged harness.
+
+### Ordinary instruction scope
+
+All 80 final comparisons add **zero executed instructions** relative to the
+headline: GET/SET/INCR/MGET/MSET, batch 1/32, modes 1s/2s, database images 1/16,
+atomic 0/1. The exact PRE/POST table is `docs/flushfix3/instructions.md`; JSON
+counts include per-function breakdowns, fixture build commands and probe hashes.
+Counts include executed NOPs in named production bodies and exclude library
+callees and fixture glue. They are not whole-process instructions or cycles.
+The established executor fixture sets read-local=0; connection-side read-local
+instruction scopes are NOT RUN. Live armed correctness is tested separately.
+
+The merge required reselecting scatter inline budgets (auto=14 normal, 18 DB0),
+keeping FLUSH prepare/execute cold, and suppressing executed alignment padding
+in normal scatter preparation, as already done for execution. The existing
+script/FLUSH escape is marked unlikely; no new ordinary-path discriminator is
+added. Rejected compiler trials remain in `docs/flushfix3/budget-counts/`.
+These code-layout effects require the ordinary null merit; instruction counts
+alone are not a performance conclusion.
+
+### Frozen delivery arms and owner's merit request
+
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| PRE, exact `e2b237926` | `build/flushfix3/pre/tomokv` | `0c9e431af327cddb0113d7a504591cf38ea895893ecacf7419f6c5328ae70d5e` |
+| F2, merged pre-collapse `a42e527b0` | `build/flushfix3/f2/tomokv` | `de33a1e3d60f876f29a20b0ebacf3a8e9a45fb41146d71c8cebba8ad8fa4cb03` |
+| POST, production source `a9e45b822` | `build/flushfix3/post/tomokv` | `a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a` |
+| PAD-A | `build/flushfix3/pad-a/tomokv` | `c6f9664b2a96a5fcf55e2b635dd14bf9492d7c885a0c42ce43af69b16dba0f02` |
+
+PAD-A is **(A) behaviour twin**: PRE's legacy FLUSH routing with POST's exact
+ELF section sizes, function addresses and symbol layout. Four three-byte patches
+disable only the cold FLUSH predicate and snapshot continuation pump in both
+images. POST budgets and dormant range/index code remain. The byte restoration
+check and exact offsets are in `docs/flushfix3/pad-a.json`; arm sizes and hashes
+are in `arms.json` and `arms.sha256`. F2 includes the step-0 wake fix and is
+therefore the reference for the collapse change, not the original idle-stall
+negative control.
+
+Use the `cx-flushmerit` instruments (inspected at `ee7c0b583`) and the gate's
+own measurement instrument on the owner's quiet box. This lane runs none of
+these campaigns. Keep identical geometry and offered load across compared arms.
+
+- `calib/flush-writer-wait.py --population 1000000`: POST versus F2 and PRE,
+  all mode/image/atomic/SYNC/ASYNC cells and same-key/disjoint-key/no-flush
+  schedules, 16 SET writers at pipeline 1 and 10 Hz FLUSHALL. Freeze a load
+  sustainable by every arm. Decide the collapse improvement by worst SET RTT
+  and p99.9 per cell, retaining all individual observations and scheduled-send
+  lag. Require actual slow collapses/post versions; an unopened window cannot
+  support the bound's merit. The first flush is populated; record each later
+  population and do not describe it as replenished. Client RTT is an upper
+  bound, not a pure placement-wait duration. Compare POST/F2 and POST/PRE in
+  paired ABBA campaigns if using the inspected instrument: its third-arm
+  metadata accepts only PAD control kinds, so PRE must not be mislabeled PAD.
+- `calib/flush-latency-merit.py --populations 1000000`: POST/F2/PRE over the
+  same product, at least 100 nonempty observations per arm/cell, with fresh
+  seeding outside each timed interval. Retain p50/p95/p99/max and reclamation.
+  Use paired campaigns as above, and a POST/PRE/PAD-A campaign with
+  `--third-kind behaviour-twin` when attributing layout effects. An optional
+  empty-population repeat uses at least 1,000 calls; the directed idle row is
+  a correctness deadline witness, not a quiet-box latency distribution.
+- The 14 generic cells plus split GET/SET at p1/p32 (`h53/h54/h21/h22`) are
+  frozen in `docs/flushfix3/merit.cells.txt`, with source hashes in
+  `merit-cells.json`. Run POST/PRE/PAD-A with the gate's normal ABBA/matched-load
+  rules; retain cycles/op, IPC and instructions/op. The gate's existing
+  regression verdict decides this 18-cell null. No throughput gain is claimed.
+
+### Row accounting and verification status
+
+The added collections are `tests/gate.sh:6025` (two idle rows) and `:6026`
+(two work rows), before the quick exit at `:6334`: flushfix3 DQ=+4, DF=+4.
+The inherited flushfix2 collections at `:6027` and `:6028` contribute 14+2 rows
+at the same tier. Cumulative delta over `e2b237926` is DQ=+20, DF=+20; the owner
+would change 946/963 to **966/983**. EXPECT constants were not edited by this
+lane; their incoming values came from the requested merge.
+
+Final verification is in progress through `tools/flushfix3_verify.py` and the
+gate's selected-job interface. The final idle run has one failed sample:
+DB1 / 2s / uring / atomic1 / FLUSHALL ASYNC took 9,079,092 ns, over 5 ms.
+All original fused-stall legs pass. This failure is retained; a complete fresh
+idle row will be rerun with artifact processing stopped, at the same bound.
+The final work rows pass both namespaces and their F2 falsifiers. The 73 gate
+self-tests pass again after exposing scriptfix's engine/atomic selections.
+
+Inherited sibling findings in `MEASURE-REQUEST-flushfix2.md` remain relevant:
+the historical FLUSH+FLIP abort and DEBUG RELOAD/LOADAOF visibility defects were
+demonstrated on that lane's PRE and POST. This change does not claim to repair
+those mechanisms. Current-branch job results and any new failures will be
+recorded with their exact coverage; a partial selection is not a full gate
+receipt.
 
 All builds and correctness children use CPUs 0–15, server CPUs 0–7,
 client CPUs 8–15, ports 20100–20199 and LC_ALL=C. Performance measurements
