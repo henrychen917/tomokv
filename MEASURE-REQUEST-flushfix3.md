@@ -72,6 +72,15 @@ key lengths the work is O(C + P + R), where R is the later zero-key range/header
 population; counting key bytes makes the length factor explicit. The ordinary
 case is O(C + P), with O(P) temporary memory allocated only on slow collapse.
 Scratch allocation failure defers before mutation and preserves the decision.
+An already-decided FLUSH then needs memory to become available before it can
+complete; this is a temporary-memory tradeoff, not an OOM completion guarantee.
+
+Index keys borrow the retained later records: copied keys for plain records,
+installed candidate objects or tombstone anchors for grouped records. Physical
+objects named by a later record are preserved during the slot scan. The final
+retirement pass reads only predecessor pointers, and retires only the first
+pre-flush predecessor for each key; it performs no further key comparisons.
+Later predecessors and their snapshot histories remain intact.
 
 Collapse remains one owner turn. Slicing would require keeping the index valid
 across new installs, rehashing and snapshot progress, adding a separate lifetime
@@ -144,6 +153,10 @@ are in `arms.json` and `arms.sha256`. F2 includes the step-0 wake fix and is
 therefore the reference for the collapse change, not the original idle-stall
 negative control.
 
+`.text` sizes are PRE 8,659,975, F2 8,768,503, and POST/PAD-A 8,773,639 bytes:
+POST is +5,136 bytes over F2 and +113,664 over the headline. PAD-A preserves
+every section and symbol address exactly.
+
 Use the `cx-flushmerit` instruments (inspected at `ee7c0b583`) and the gate's
 own measurement instrument on the owner's quiet box. This lane runs none of
 these campaigns. Keep identical geometry and offered load across compared arms.
@@ -187,7 +200,10 @@ DB1 / 2s / uring / atomic1 / FLUSHALL ASYNC took 9,079,092 ns, over 5 ms.
 All original fused-stall legs pass. This failure is retained; a complete fresh
 idle row will be rerun with artifact processing stopped, at the same bound.
 The final work rows pass both namespaces and their F2 falsifiers. The 73 gate
-self-tests pass again after exposing scriptfix's engine/atomic selections.
+self-tests pass again after exposing scriptfix's engine/atomic selections and
+the AOF engine controls. `make -q` reports all 61 requested production and FLUSH
+targets fresh, including `all`; exact commands and hashes are recorded in
+`docs/flushfix3/production-freshness.json`.
 
 Inherited sibling findings in `MEASURE-REQUEST-flushfix2.md` remain relevant:
 the historical FLUSH+FLIP abort and DEBUG RELOAD/LOADAOF visibility defects were
