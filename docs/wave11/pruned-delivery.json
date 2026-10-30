@@ -1,0 +1,43 @@
+[
+  {
+    "reason": "Superseded PAD construction outputs; delivered PAD-A remains at build/wave11/tomokv-PAD-A. Padding source is reproducible from layout_pad.py.",
+    "files": [
+      {
+        "path": "build/wave11/pad-a/build.log",
+        "bytes": 50270,
+        "sha256": "3ff74c30b1dc5b241314afca663375bf603ad55fde50325dedec17adc1a59fd2"
+      },
+      {
+        "path": "build/wave11/pad-a/final-relink.log",
+        "bytes": 507,
+        "sha256": "5d9e76a23b0f631aefb93f8dd770641c4c23730cf8a888e5f16319ba1659ae01"
+      },
+      {
+        "path": "build/wave11/pad-a/link.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/wave11/pad-a/padding.S",
+        "bytes": 299,
+        "sha256": "5530130b93a22b3f63f6026c0679428bb3b19662367ce43fe5afc0337bdc7198"
+      },
+      {
+        "path": "build/wave11/pad-a/padding.o",
+        "bytes": 70264,
+        "sha256": "6240cba733f5c3428d54d88674cfefd0f062428b5c12ac732c5b7001fb2d0326"
+      },
+      {
+        "path": "build/wave11/pad-a/tls-build.log",
+        "bytes": 11146,
+        "sha256": "202474b8a5c6cc06045302397abb9f27824a61691a0d5d95aea0a20709fa3dd1"
+      },
+      {
+        "path": "build/wave11/pad-a/tomokv",
+        "bytes": 223491632,
+        "sha256": "d101ece1fb44e1e9d232e50eafd2b879d2a795f34e3bf49fbd803d20e641b79b"
+      }
+    ],
+    "padding_assembly": ".text\n.balign 1\n.globl climonfix5_pad_a\n.type climonfix5_pad_a,@function\nclimonfix5_pad_a:\nendbr64\nret\n.fill 69435,1,0x90\n.size climonfix5_pad_a,.-climonfix5_pad_a\n.section .note.GNU-stack,\"\",@progbits\n.section .note.gnu.property,\"a\",@note\n.balign 8\n.long 4,16,5\n.asciz \"GNU\"\n.long 0xc0000002,4,3,0\n"
+  }
+]

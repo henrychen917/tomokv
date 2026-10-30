@@ -15,7 +15,12 @@
     },
     {
       "run": "landing-main-2s-uring",
-      "jobs": ["asan", "blockfix_registry", "blockfix2", "txnorder2"],
+      "jobs": [
+        "asan",
+        "blockfix_registry",
+        "blockfix2",
+        "txnorder2"
+      ],
       "kind": "frozen-arm packaging",
       "reason": "The initial ASAN argument pointed at a run directory instead of the gate cache. The copied POST initially lacked adjacent blockfix-cost plus its binding sidecar, blockfix2 unit executables, and txnorder-episodes-debug.",
       "resolution": "Frozen helpers and binding hashes are now adjacent to POST. landing-asan-path-check and landing-adjacent-units passed; txnorder2's complete replay is tracked separately in the final coverage index.",
@@ -27,6 +32,13 @@
       "kind": "unwitnessed window",
       "reason": "The everysec population saw aof_send_gate_waits=0. Its exact assertion failed, then recovery failed because the population had not written state.json. These are the two failed public rows from one missing witness.",
       "resolution": "One isolated whole-job replay on fresh server state, landing-aof-isolated, passed all 54 AOF rows. The everysec proof recorded 512 keys, two syncs, 17 gate waits and 528 replayed records. No source, assertion, timeout or tolerance changed.",
+      "production_change": false
+    },
+    {
+      "run": "landing-abba-selftest",
+      "kind": "incomplete throwaway copy",
+      "reason": "The directory-based copy omitted .githooks/pre-push and MEASURE-REQUEST-nullpublish3.md. gate_receipt reported 21 setup errors and nullpublish_refreeze_test one setup error.",
+      "resolution": "Preserved the failed whole-job receipt; the replay uses a complete git archive with only EXPECT and fixture edits. Its receipt is landing-abba-complete-copy.",
       "production_change": false
     }
   ]

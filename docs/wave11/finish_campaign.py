@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Temporary sequential launcher; all actual tests use the gate job interface."""
-import json, os, shutil, subprocess, time
+import json, os, subprocess, time
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -28,14 +28,10 @@ run('sidecars', ['python3','docs/wave11/run_jobs.py','landing-adjacent-units','b
 for phase in ('secondary','differ','bounds0','quiet'):
     run(phase,['python3','docs/wave11/campaign.py',phase,'--asan-binary','build/wave11/tomokv-ASAN'])
 run('negative-tcl',['python3','docs/wave11/regressions.py'])
-copy=ROOT/'build/wave11/selftest-source'
-for directory in ('src','tests','tools','third_party','calib'):
-    shutil.copytree(ROOT/directory,copy/directory,dirs_exist_ok=True)
-shutil.copy2(ROOT/'Makefile',copy/'Makefile')
-gate=copy/'tests/gate.sh';s=gate.read_text()
-assert s.count('EXPECT_QUICK=946\n')==1 and s.count('EXPECT_FULL=963 ')==1
-gate.write_text(s.replace('EXPECT_QUICK=946\n','EXPECT_QUICK=977\n').replace('EXPECT_FULL=963 ','EXPECT_FULL=994 '))
-shutil.copy2(DOC/'landing-label-fixture.json',copy/'tests/fixtures/nullrefresh-ledger-labels.json')
+copy=ROOT/'build/wave11/selftest-source-full'
+# The initial attempt's partial directory copy omitted root hook/report inputs.
+# Retain that failed receipt; every new preparation exports the complete tree.
+subprocess.run(['python3',str(DOC/'prepare_selftest.py'),str(copy)],check=True)
 run('abba-selftest',['python3','docs/wave11/run_jobs.py','landing-abba-selftest','abba_selftest',
     '--root',str(copy),'--binary','build/wave11/tomokv-POST','--single-slot','--port','20080'])
 run('gates-test',['taskset','-c','88-95','python3','tests/gates_test.py'],
