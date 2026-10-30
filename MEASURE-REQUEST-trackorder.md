@@ -141,7 +141,12 @@ that the full upstream tracking suite passes. Exact events, errors, server
 logs and baseline controls are in `docs/trackorder/tcl/*-proof.tar.gz` and
 `docs/trackorder/tcl-summary.json`.
 
-Broader job and differential verdicts are still being collected.
+The primary selected-job run passes **275 rows, 0 failures**. It includes the
+tracking, keyspace, FLUSH, pub/sub, RESP3 and txnorder jobs; each matrix job
+runs its own complete engine/mode legs. Whole-job receipts are in
+`docs/trackorder/jobs/batteries-uring-proof.tar.gz`, with a per-job summary.
+The ordinary-job epoll repeat, differential and supplemental verdicts are
+still being collected.
 
 Earlier evidence remains separate: the first harness launch failed because
 the TomoKV readiness-banner check was applied to Redis. The initial PRE
