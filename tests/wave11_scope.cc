@@ -3,6 +3,12 @@
 // no listening socket, worker thread, rate, or repeated measurement workload.
 #include "src/core/io_loop.h"
 #include "src/cmd/acl.h"
+#ifdef TOMO_SCOPE_COLLECT_LUA
+#include "src/cmd/scripting.h"
+extern "C" {
+#include "third_party/lua/lua.h"
+}
+#endif
 #include <cstdio>
 #include <memory>
 #include <string>
@@ -139,8 +145,8 @@ struct CoreConcurrencyTest {
     need(load.reply.size()==47 && std::string(load.reply.data(),5)=="$40\r\n");
     verb="EVALSHA";target.assign(load.reply.data()+5,40);
    } else if(command.starts_with("FCALL")) {
-    // FUNCTION always requires a shebang. The header leg changes only EVAL's
-    // header; FCALL uses the corresponding allow-oom registration flag.
+    // FUNCTION always requires a library shebang; its header leg uses the
+    // corresponding no-writes registration flag and the same GET body.
     const std::string library="#!lua name=scope\nredis.register_function{function_name='scope_fn',callback=function(KEYS,ARGV) "+body+
         " end"+(header?",flags={'no-writes'}":"")+"}";
     Op load;load.reset();load.push_arg(Slice("FUNCTION"));load.push_arg(Slice("LOAD"));load.push_arg(Slice(library));
@@ -156,7 +162,15 @@ struct CoreConcurrencyTest {
     // Match the ordinary command scopes: pre-parsed key/hash are fixture setup.
     // Keep the fixture's private hash clone outside the production census.
     if(command.find("-single")!=std::string::npos) { op->hash=FlatStore::hash_key(op->arg(3));op->shard=0; }
-    if(activation)scope_begin();
+    if(activation){
+#ifdef TOMO_SCOPE_COLLECT_LUA
+     // Match collection phase across arms without disabling GC inside the call.
+     // This optional census separates bootstrap debt from a warm activation;
+     // the ordinary namespace census retains its original warmup.
+     lua_gc(script_thread_state(command.starts_with("FCALL")?ScriptArgStyle::Params:ScriptArgStyle::Globals),LUA_GCCOLLECT,0);
+#endif
+     scope_begin();
+    }
     ScatterDispatch dispatch;
     const auto prepared=xshard_prepare(server,*op,pool,io,client.id(),dispatch,false,&client);
     if(command.find("-single")!=std::string::npos) {
