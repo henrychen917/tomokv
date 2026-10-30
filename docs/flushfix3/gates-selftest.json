@@ -12,7 +12,11 @@
   },
   "status": 0,
   "tests": 73,
-  "log": "build/flushfix3/gates-final-v2.log",
-  "log_sha256": "de9a4bf52a2070d344adf02d8d7f3556b7817866bf8113a33528be68d777ac3f",
-  "gate_sha256": "379c253bbe7cd5907a44d654ae059c2095e4f86dfa6976c6476fdf074adea581"
+  "elapsed_seconds": 211.1603681407869,
+  "log": "build/flushfix3/gates-final-v3.log",
+  "log_sha256": "01e28091f10285b30e8fc0cc085db131de0f7c6edb69f39b1c84ac4ab43b50e8",
+  "gate_sha256": "6ffc335d0ec4ea9c5cf21bddad45f6b5a4c6b9c876b8ce87fb5ad7dd24d793c3",
+  "nested_test_counts": [
+    14
+  ]
 }

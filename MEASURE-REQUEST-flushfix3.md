@@ -107,6 +107,8 @@ occurrences. Scratch power-of-two occupancy explains the small non-monotonic
 first two observations; every observation satisfies 96(C+P). The counter charges
 record visits, index initialization/probes/tree visits, physical slots and final
 index traversal; it is not an instruction or latency measurement.
+Its interval is `atomic_flush_erase`; the unchanged `atomic_flush_has_post`
+precheck contributes one additional linear pass outside that interval.
 F2's full count is the exact closed form C + residents*P + P + P(P+1)/2 for this
 fixture. Full quadratic walks are NOT RUN: the actual F2 function is instrumented
 only to count visits and stop at 96(C+P)+1, falsifying all four sizes in both
@@ -206,8 +208,8 @@ calls at the same bound (maximum 1,033,161 ns);
 `docs/flushfix3/idle-final-recheck.json` records every
 form's count and maximum. No tolerance or retry-until-green rule was added.
 The final work rows pass both namespaces and their F2 falsifiers. The 73 gate
-self-tests pass again after exposing scriptfix's engine/atomic selections and
-the AOF engine controls. `make -q` reports all 61 requested production and FLUSH
+self-tests pass again after the final AOF engine-forwarding correction, as well
+as scriptfix's engine/atomic controls. `make -q` reports all 61 requested production and FLUSH
 targets fresh, including `all`; exact commands and hashes are recorded in
 `docs/flushfix3/production-freshness.json`.
 
