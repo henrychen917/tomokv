@@ -91,6 +91,8 @@ def exercise(port, case):
         for name, listener in zip(('tracker', 'other'), listeners):
             listener.raw(encode('PING'))
             streams[name + '_fence'] = receive(listener, 1)
+        for c in (tracker, other):
+            equal(c.cmd('CLIENT', 'TRACKING', 'OFF'), b'OK')
         return dict(request_hex=wire.hex(), streams=streams)
     finally:
         for c in peers:
