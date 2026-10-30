@@ -1,0 +1,1264 @@
+[
+  {
+    "arm": "f2-original",
+    "sha256": "49e6a2ae691db14b20d7b989cdbfa2b915186e828e7fec682c8c25377e277be4",
+    "run": "/home/user/Projects/cx-flushfix3/build/gate-run.2UzrNT",
+    "observations": [
+      {
+        "leg": "1s-uring-0",
+        "databases": 16,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50155077,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 29147341,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50177037,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 48238239,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          }
+        ]
+      },
+      {
+        "leg": "1s-uring-1",
+        "databases": 16,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50165367,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 22129646,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 8
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50187257,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 46164869,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-0",
+        "databases": 16,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50191347,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 5
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 24176854,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 3
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50235757,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 48218288,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-1",
+        "databases": 16,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50191567,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 5
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 22184716,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 5
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50235268,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 47241680,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-0",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 141911,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 815928,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 746857,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 187782,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-1",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 143311,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 71801,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 146821,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 146471,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-0",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 139701,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 72671,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 154932,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 148801,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-1",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 142212,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 74050,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 159301,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 164681,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-uring-0",
+        "databases": 1,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50173695,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 6
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 25197509,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50183655,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 3
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 46111838,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          }
+        ]
+      },
+      {
+        "leg": "1s-uring-1",
+        "databases": 1,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50219525,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 21178972,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 8
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50245056,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 45259780,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-0",
+        "databases": 1,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50273196,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 3
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 24185049,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 5
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50277967,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 1
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 45221000,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 3
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-1",
+        "databases": 1,
+        "passed": false,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 50225016,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 6
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 21683936,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 4
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 50251406,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 2
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 37225518,
+            "required_calls": 1000,
+            "misses": 1,
+            "calls": 6
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-0",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 872377,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 691836,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 90611,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 82250,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-1",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 136211,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 86141,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 86591,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 73871,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-0",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 129132,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 88001,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 70751,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 69621,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-1",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 132861,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 75711,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 820627,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 894838,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "arm": "idle-fix",
+    "sha256": "689a5781a9386363b288d59326d5d31fb0a1df13fef81db8953375107e0fdfcf",
+    "run": "/home/user/Projects/cx-flushfix3/build/gate-run.TUmyHx",
+    "observations": [
+      {
+        "leg": "1s-uring-0",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 224422,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 113021,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 361633,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 172742,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-uring-1",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 221442,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 153682,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 2998886,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 437924,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-0",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 169942,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 142241,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 323793,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 405703,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-1",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 898488,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 909508,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 133721,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 168771,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-0",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 135942,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 69940,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 150132,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 152932,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-1",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 135702,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 72570,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 219611,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 224582,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-0",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 157542,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 83340,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 158311,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 231162,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-1",
+        "databases": 16,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 144061,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 75620,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 152271,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 155782,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-uring-0",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 242092,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 141521,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 306873,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 119621,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-uring-1",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 205452,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 129101,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 136461,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 356694,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-0",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 184712,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 894768,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 358143,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 106881,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "1s-epoll-1",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 180762,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 111711,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 104721,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 491514,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-0",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 716406,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 82981,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 72921,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 93111,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-uring-1",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 143661,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 70201,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 75391,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 73041,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-0",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 992478,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 83011,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 87710,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 84481,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      },
+      {
+        "leg": "2s-epoll-1",
+        "databases": 1,
+        "passed": true,
+        "samples": [
+          {
+            "command": "FLUSHALL",
+            "option": "SYNC",
+            "maximum_ns": 139321,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHALL",
+            "option": "ASYNC",
+            "maximum_ns": 79831,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "SYNC",
+            "maximum_ns": 76640,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          },
+          {
+            "command": "FLUSHDB",
+            "option": "ASYNC",
+            "maximum_ns": 97071,
+            "required_calls": 1000,
+            "misses": 0,
+            "calls": 1000
+          }
+        ]
+      }
+    ]
+  }
+]

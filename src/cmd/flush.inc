@@ -148,7 +148,15 @@ void flush_after_decision(Server& server, ThreadCtx& self, Ring& ring, ScatterSt
         atomic_flush_counters.units.fetch_add(1, std::memory_order_relaxed);
     state.phase = 2;
     multi_enqueue_node(server, state.owner_io, state.group_attempt()->retry);
-    server.thread(state.owner_io).wake_if_parked(ring, self.sig());
+    // This cold retry inbox is not one of any_io_inbound's park predicates.
+    // A conditional wake can race the IO's last retry drain and its park flag:
+    // both sides then miss the continuation until the 50 ms idle timeout.
+    // Queue a real event even while IO is active, including a fused self-wake.
+    // Its next pass refreshes completed read cuts before redispatching collapse.
+    if (auto* target = server.thread(state.owner_io).ring()) {
+        ring.msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+        ++self.sig().wakes_sent;
+    }
 }
 
 template <bool IofusedPrivateQueue>
