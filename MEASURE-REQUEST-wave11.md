@@ -62,6 +62,10 @@ Directed extensions to existing rows cover writable/read-only alternation
 under PAUSE, nested MONITOR records from EVAL and FUNCTION environments,
 independent SCRIPT/FUNCTION FLUSH lifetimes, repeated compiled-cache retirement,
 and command identity/close cleanup during a positively witnessed held FLIP stage.
+The connection migration path extracts and installs the complete ClientMeta map
+node, so the new command identity and PAUSE fields travel with it. The climon
+merge retains wave10's tracking refresh together with monitor refresh during
+the existing transfer. No shard-owner structure was moved independently.
 The added/moved error sites use the central builders; see the wave11 supplement
 in [the CRLF audit](docs/crlffix/audit.md) and its
 [site inventory](docs/crlffix/wave11-added-sites.json).
@@ -164,7 +168,9 @@ finishes. No tracked EXPECT constant or label fixture has been repaired.
 **NOT RUN (maintainer-owned performance work):** `flip_saturated` (memtier),
 `atomic_floor` (throughput floor), `efficiency` (perf comparison), the inline
 `tailgen client-lb outstanding bound` row (open-loop load generator and no
-whole-job selector), ABBA/NIC/EXEC/storm/flushmerit performance loads, and full
+whole-job selector), atomic RYOW rate assertions (`GATE_PROOF_NO_RATES=1`,
+permitted only for selected partial jobs), ABBA/NIC/EXEC/storm/flushmerit
+performance loads, and full
 `tests/gate.sh iteration`. The ABBA decision self-test and the flushmerit
 instrument self-tests are correctness work and are recorded separately.
 

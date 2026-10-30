@@ -291,7 +291,8 @@
     "efficiency (perf)",
     "full tests/gate.sh iteration",
     "all ABBA/NIC/storm/EXEC/flushmerit load generators",
-    "tailgen client-lb outstanding bound (inline row, no whole-job selector; open-loop load generator)"
+    "tailgen client-lb outstanding bound (inline row, no whole-job selector; open-loop load generator)",
+    "atomic RYOW rate assertions (GATE_PROOF_NO_RATES=1 in selected partial jobs only)"
   ],
   "script_bounds_atomic0_each_mode_engine": [
     "script_bounds"
