@@ -3,7 +3,8 @@
 ## flushfix3
 
 Branch `cx-flushfix3`, starting at `a396a42e5`. No push; landing awaits
-the owner's D12 design approval. Work in progress; no throughput claim.
+the owner's D12 design approval. Implementation and authorized verification
+are complete, with the explicit NOT RUN items below. No throughput claim.
 
 ### Idle completion
 
@@ -199,19 +200,20 @@ at the same tier. Cumulative delta over `e2b237926` is DQ=+20, DF=+20; the owner
 would change 946/963 to **966/983**. EXPECT constants were not edited by this
 lane; their incoming values came from the requested merge.
 
-Final verification is in progress through `tools/flushfix3_verify.py` and the
-gate's selected-job interface. The final idle run has one failed sample:
+Verification ran through `tools/flushfix3_verify.py` and the gate's selected-job
+interface. The first final-binary idle run has one failed sample:
 DB1 / 2s / uring / atomic1 / FLUSHALL ASYNC took 9,079,092 ns, over 5 ms.
 All original fused-stall legs pass. This failure is retained. One complete fresh
 idle recheck, with builds and artifact processing stopped, passes all 64,000
 calls at the same bound (maximum 1,033,161 ns);
 `docs/flushfix3/idle-final-recheck.json` records every
-form's count and maximum. No tolerance or retry-until-green rule was added.
+form's count and maximum. The initial 9.08 ms sample remains unattributed;
+the rerun does not erase it. No tolerance or retry-until-green rule was added.
 The final work rows pass both namespaces and their F2 falsifiers. The 73 gate
-self-tests pass again after the final AOF engine-forwarding correction, as well
-as scriptfix's engine/atomic controls. `make -q` reports all 61 requested production and FLUSH
-targets fresh, including `all`; exact commands and hashes are recorded in
-`docs/flushfix3/production-freshness.json`.
+self-tests pass after the final AOF engine-forwarding correction, as well as
+scriptfix's engine/atomic controls. Final `make -j16 all` succeeds and `make -q`
+reports all 61 requested production and FLUSH targets fresh, including `all`;
+exact commands and hashes are in `docs/flushfix3/production-freshness.json`.
 
 The broad selection was interrupted **between** jobs after 54 completed jobs
 and 384 passing rows, zero failures, to respect the task's load-generator
@@ -221,7 +223,7 @@ selection passes another 247 rows. After removing repeated prerequisites, the
 broad union covers 96 distinct jobs and 630 passing rows, zero failures
 (`docs/flushfix3/broad-coverage.json`). FLIP's `flip_saturated` row invokes
 `memtier_benchmark`; it is NOT RUN pending the owner's clarification, while the
-other FLIP jobs remain selected. It is not silently counted as passing.
+other requested FLIP jobs pass. It is not counted as passing.
 The additional epoll selection completes with 268 passing rows, zero failures;
 the explicit script and xscript-bound mode/engine controls also pass.
 The first fused io_uring selection records 182 passes and two AOF framing
@@ -229,28 +231,69 @@ failures before its live schedule: the gate selected io_uring for the server
 but did not forward the battery's existing `--engine` argument, so its epoll
 precondition correctly rejected the boot. Commit `260866ea9` forwards that
 argument without changing the required witnesses. The corrected split io_uring
-framing job and fused epoll selection pass; the affected fused io_uring framing
-rows will be rerun. Original errors and source hashes are retained in
-`docs/flushfix3/aof-frame-harness-failure.json`. The io_uring standard differential
-selection passes: seeds 7/19/20/23/21, 490 split/equivalence comparison legs and
-464 armed-fused legs, with both inventories independently validated by the
-gate's fold helper. Epoll is still running its standard inventory. The existing
-fused SORT skips are explicit: that suite requires split 6:2 geometry and is
-executed by the split lifetimes. `verification.json` also records per-command
-comparison witnesses and commands absent from those witnesses.
+framing job, fused epoll selection, and targeted fused io_uring framing rerun
+all pass. Both corrected fused arms observe three control-frame deferrals,
+one large record and zero interleaves. Original errors and source hashes remain
+in `docs/flushfix3/aof-frame-harness-failure.json`; the successful live witnesses
+are in `aof-frame-recheck.json`.
+
+Both standard differential selections pass. io_uring uses seeds 7/19/20/23/21;
+epoll uses 7/19/20/23/22. Each engine completes 490 split/equivalence comparison
+legs and 464 armed-fused legs. The gate's fold helper independently validates
+all four inventories, including the repeated MULTI checks and reached execution
+witnesses. The recorded command-comparison witnesses total 4,236,666 for
+io_uring and 4,236,919 for epoll, covering 232 of 245 registered commands in
+these differential suites; `verification.json` lists the 13 unobserved commands.
+These are comparison witnesses, not throughput observations.
+
+The existing fused SORT skips remain explicit: that suite requires split 6:2
+geometry and is executed by the split lifetimes. The differential selections
+use `tests/differ_gate.sh` through the gate's own jobs, with the standard seed
+inventory and four additional atomic-1/seed-19 MULTI repetitions per engine/mode.
+
+Raw selected-job results, with the earlier failures retained:
+
+| Selection | Passing rows | Failed rows |
+|---|---:|---:|
+| Final-binary directed rows, first run | 20 | 1 |
+| Complete idle recheck | 3 | 0 |
+| Broad union, repeated prerequisites removed | 630 | 0 |
+| Additional epoll selection | 268 | 0 |
+| Fused io_uring, before framing argument fix | 182 | 2 |
+| Corrected fused io_uring framing rerun | 3 | 0 |
+| Fused epoll | 44 | 0 |
+| Additional framing/script/bounds controls | 33 | 0 |
+| Standard differential, io_uring | 6 | 0 |
+| Standard differential, epoll | 6 | 0 |
+
+Selections include their release prerequisite; differential rows are private
+job rows whose full inventories are validated separately. These are diagnostic
+selections, not a full gate or merge receipt. `docs/flushfix3/verification.json`
+preserves the job ledgers, commands, environments, log hashes and job-level
+explicit skips.
 
 Superseded compiler probes, source trees and logs were removed after retaining
 their hashes and counts. Large persistence images from completed passing jobs
 were also hashed and removed; their ledgers and comparison results remain.
 The pruning manifests are in `docs/flushfix3/pruned-*.json`.
+Final delivery checks confirm all four hashes above, unchanged production
+source since `a9e45b822`, unchanged headline EXPECT constants, and 22,948,912,910
+bytes (21.4 GiB) under `build/`. See `docs/flushfix3/final-delivery.json`.
 
 Inherited sibling findings in `MEASURE-REQUEST-flushfix2.md` remain relevant:
 the historical FLUSH+FLIP abort and DEBUG RELOAD/LOADAOF visibility defects were
 demonstrated on that lane's PRE and POST. This change does not claim to repair
-those mechanisms. Current-branch job results and any new failures will be
-recorded with their exact coverage; a partial selection is not a full gate
-receipt.
+those mechanisms. Those separate historical sibling reproducers were not
+rerun on this branch; passing the selected current jobs does not establish
+that those older findings were repaired.
 
 All builds and correctness children use CPUs 0–15, server CPUs 0–7,
-client CPUs 8–15, ports 20100–20199 and LC_ALL=C. Performance measurements
-and the full iteration are NOT RUN: reserved for the maintainer.
+client CPUs 8–15, ports 20100–20199 and LC_ALL=C. The lane's ports are free.
+
+NOT RUN: the FLIP saturation job pending clarification of the load-generator
+reservation; the owner's populated writer/flush-latency and 18-cell null
+campaigns; the full iteration/ABBA/NIC tiers; and embedded performance-only
+assertions suppressed by `GATE_PROOF_NO_RATES=1`. Full quadratic-reference
+completion and connection-side read-local instruction scopes are also not run,
+for the reasons and bounded substitute proofs stated above. D12 approval and
+the owner's merit results remain prerequisites to landing.

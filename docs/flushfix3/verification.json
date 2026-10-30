@@ -9,6 +9,51 @@
   },
   "runs": [
     {
+      "label": "aof-frame-recheck/fused-uring",
+      "phase": "fused-uring",
+      "status": 0,
+      "command": [
+        "taskset",
+        "-c",
+        "0-15",
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "0-7",
+        "--load-cores",
+        "8-15",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20102",
+        "--candidate-binary",
+        "/home/user/Projects/cx-flushfix3/build/tomokv"
+      ],
+      "binary_sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a",
+      "omitted_selection": [
+        "snapshot-uring",
+        "snapshot-epoll",
+        "aof-uring",
+        "aof-epoll",
+        "dump_restore",
+        "debug-0",
+        "debug-1",
+        "script_bounds",
+        "atomic_batteries"
+      ],
+      "environment": {
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_ONLY_JOBS": "aof_frame",
+        "GATE_LEDGER": "/home/user/Projects/cx-flushfix3/build/flushfix3/verification/aof-frame-recheck/fused-uring",
+        "GATE_LOAD_CORES": "8-15",
+        "GATE_DIFFER_ORACLE_CORES": "0-7",
+        "GATE_TXN_FUSED": "1",
+        "GATE_PROOF_NET_IO": "uring"
+      }
+    },
+    {
       "label": "broad-resume/broad",
       "phase": "broad",
       "status": 0,
@@ -584,9 +629,130 @@
         "GATE_DIFFER_ORACLE_CORES": "0-7",
         "GATE_DIFFER_NET_IO": "uring"
       }
+    },
+    {
+      "label": "matrix/differ-epoll",
+      "phase": "differ-epoll",
+      "status": 0,
+      "command": [
+        "taskset",
+        "-c",
+        "0-15",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "0-7",
+        "--load-cores",
+        "8-15",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20102",
+        "--candidate-binary",
+        "/home/user/Projects/cx-flushfix3/build/tomokv"
+      ],
+      "binary_sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a",
+      "omitted_selection": [],
+      "environment": {
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_ONLY_JOBS": "differ-split differ-armed",
+        "GATE_LEDGER": "/home/user/Projects/cx-flushfix3/build/flushfix3/verification/matrix/differ-epoll",
+        "GATE_LOAD_CORES": "8-15",
+        "GATE_DIFFER_ORACLE_CORES": "0-7",
+        "GATE_DIFFER_NET_IO": "epoll"
+      }
     }
   ],
   "gates": {
+    "aof-frame-recheck/fused-uring": {
+      "log": {
+        "path": "build/flushfix3/verification/aof-frame-recheck/fused-uring.log",
+        "sha256": "6fb88cb4c05c749d5c884fe1d48962db75e1d517f4b1e9e9702dee061e0fe55e"
+      },
+      "root": "build/gate-run.4diNsd",
+      "jobs": [
+        {
+          "name": "release",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.4diNsd/jobs/release/ledger",
+            "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+          },
+          "rows": [
+            {
+              "job": "release",
+              "label": "release build (+footprint locks)",
+              "verdict": "ok",
+              "seconds": 0.0
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.4diNsd/jobs/release/output.log",
+            "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+          }
+        },
+        {
+          "name": "production_units",
+          "done": [
+            "0",
+            "0",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.4diNsd/jobs/production_units/ledger",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "rows": [],
+          "output_log": {
+            "path": "build/gate-run.4diNsd/jobs/production_units/output.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "name": "aof_frame",
+          "done": [
+            "0",
+            "2",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.4diNsd/jobs/aof_frame/ledger",
+            "sha256": "5524c30176f12d4ef3473e8692045b2cfd6d33da993e800b8e7787998bedafa6"
+          },
+          "rows": [
+            {
+              "job": "aof_frame",
+              "label": "AOF control frame never inside a large record (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.65
+            },
+            {
+              "job": "aof_frame",
+              "label": "AOF control frame never inside a large record (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.65
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.4diNsd/jobs/aof_frame/output.log",
+            "sha256": "4ba2d6a3749ccd3296e120e2b10c9917c7db8503e022db2e217b63d338f9aaf0"
+          }
+        }
+      ],
+      "omitted_unfinished_jobs": [],
+      "scored_rows": 3,
+      "verdicts": {
+        "ok": 3
+      },
+      "complete_selection": true,
+      "explicit_not_run": []
+    },
     "broad-resume/broad": {
       "log": {
         "path": "build/flushfix3/verification/broad-resume/broad.log",
@@ -11365,6 +11531,207 @@
           "line": "  differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
         }
       ]
+    },
+    "matrix/differ-epoll": {
+      "log": {
+        "path": "build/flushfix3/verification/matrix/differ-epoll.log",
+        "sha256": "9d88f06fbbcb2177b5c677f037e2cbc515a4415902bc38e093895db01781e60b"
+      },
+      "root": "build/gate-run.gAuSOQ",
+      "jobs": [
+        {
+          "name": "release",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.gAuSOQ/jobs/release/ledger",
+            "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+          },
+          "rows": [
+            {
+              "job": "release",
+              "label": "release build (+footprint locks)",
+              "verdict": "ok",
+              "seconds": 0.0
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.gAuSOQ/jobs/release/output.log",
+            "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+          }
+        },
+        {
+          "name": "differ-split-0",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-split-0/ledger",
+            "sha256": "be2e91f74fb0c5d82c4f2a928595d11bfa005e9f120785eb9fe196713c79c46a"
+          },
+          "rows": [
+            {
+              "job": "differ-split-0",
+              "label": "Redis 7.4 differential part (split, atomic 0)",
+              "verdict": "ok",
+              "seconds": 529.78
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-split-0/output.log",
+            "sha256": "fbad1fbb01083381d0bfc2752e452b7894280538925150b69c2122ddb6a8d1a7"
+          }
+        },
+        {
+          "name": "differ-split-1",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-split-1/ledger",
+            "sha256": "5dd011975efbd76364b7dd97baff759d629461f98bc6d44166c172dfbe7025c3"
+          },
+          "rows": [
+            {
+              "job": "differ-split-1",
+              "label": "Redis 7.4 differential part (split, atomic 1)",
+              "verdict": "ok",
+              "seconds": 530.38
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-split-1/output.log",
+            "sha256": "af01138f3dc2f2a8e8b7901b5b4cc47d2b4cd4a349c21f6e008eb835a4f9b3bc"
+          }
+        },
+        {
+          "name": "differ-armed-0",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-armed-0/ledger",
+            "sha256": "192aa7a2a6c79e1cbed748b79071c378476dc4682ab572f929452991233b7d3c"
+          },
+          "rows": [
+            {
+              "job": "differ-armed-0",
+              "label": "Redis 7.4 differential part (armed fused, atomic 0)",
+              "verdict": "ok",
+              "seconds": 524.47
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-armed-0/output.log",
+            "sha256": "db2d9f15c32c62b825974c4348a80d393fdc1217bd3cfd01d6f589231b25e5ab"
+          }
+        },
+        {
+          "name": "differ-armed-1",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-armed-1/ledger",
+            "sha256": "359a177fd05c8286404f5ce228bd9ae01259d3d08d9ffd2be6844fa2d5e31aa3"
+          },
+          "rows": [
+            {
+              "job": "differ-armed-1",
+              "label": "Redis 7.4 differential part (armed fused, atomic 1)",
+              "verdict": "ok",
+              "seconds": 524.46
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-armed-1/output.log",
+            "sha256": "669ac2858084029ca3d6e205cfb69f9128af5ef0f0f345741b0e4a7e1aef501f"
+          }
+        },
+        {
+          "name": "differ-equivalence",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-equivalence/ledger",
+            "sha256": "3041aca70c8e41358e772d1209c7d3e1d4b80093b9aa734a05f8ce5d6803b8bb"
+          },
+          "rows": [
+            {
+              "job": "differ-equivalence",
+              "label": "mode equivalence part (all execution modes and knobs)",
+              "verdict": "ok",
+              "seconds": 21.28
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-equivalence/output.log",
+            "sha256": "d3ab1146b061b08c444808a46ccf6077317e0cd416c29078d27614e01a30ca51"
+          }
+        }
+      ],
+      "omitted_unfinished_jobs": [],
+      "scored_rows": 6,
+      "verdicts": {
+        "ok": 6
+      },
+      "complete_selection": true,
+      "explicit_not_run": [
+        {
+          "job": "differ-armed-0",
+          "line": "  differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-0",
+          "line": "  differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-0",
+          "line": "  differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-0",
+          "line": "  differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-0",
+          "line": "  differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-1",
+          "line": "  differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-1",
+          "line": "  differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-1",
+          "line": "  differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-1",
+          "line": "  differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)"
+        },
+        {
+          "job": "differ-armed-1",
+          "line": "  differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+        }
+      ]
     }
   },
   "differential_inventory": [
@@ -11409,6 +11776,51 @@
       "start": 1793353841.6026168,
       "end": 1793354896.89545,
       "seconds": 1055.292833328247,
+      "comparisons": 464,
+      "complete": true,
+      "inventory_valid": true
+    },
+    {
+      "label": "matrix/differ-epoll",
+      "group": "split",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "schema": 1,
+      "parts": [
+        "split-0",
+        "split-1",
+        "equivalence"
+      ],
+      "start": 1793354920.2401195,
+      "end": 1793357052.3732512,
+      "seconds": 2132.1331317424774,
+      "comparisons": 490,
+      "complete": true,
+      "inventory_valid": true
+    },
+    {
+      "label": "matrix/differ-epoll",
+      "group": "armed",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "schema": 1,
+      "parts": [
+        "armed-0",
+        "armed-1"
+      ],
+      "start": 1793355981.1032355,
+      "end": 1793357030.7436872,
+      "seconds": 1049.640451669693,
       "comparisons": 464,
       "complete": true,
       "inventory_valid": true
@@ -11750,6 +12162,358 @@
         "ZSCORE": 15792,
         "ZUNION": 7584,
         "ZUNIONSTORE": 9536
+      },
+      "missing": [
+        "BGREWRITEAOF",
+        "FLIP",
+        "HELLO",
+        "LOLWUT",
+        "MONITOR",
+        "QUIT",
+        "REPLICAOF",
+        "SHUTDOWN",
+        "SLAVEOF",
+        "TIME",
+        "UNWATCH",
+        "WATCH",
+        "ZREVRANGE"
+      ]
+    },
+    {
+      "label": "matrix/differ-epoll",
+      "parts": [
+        {
+          "part": "split-0",
+          "artifact": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-split-0/differ/command-coverage.json",
+            "sha256": "9c9b92a82db098aa8b2e2b355abf3d0c8f6827cfc38ce1bd14581e433c5a7446"
+          },
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ]
+        },
+        {
+          "part": "split-1",
+          "artifact": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-split-1/differ/command-coverage.json",
+            "sha256": "287ed1894326c8c71f41090a4feda154d382221dfe0b2b6b0827bfbf868207aa"
+          },
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ]
+        },
+        {
+          "part": "armed-0",
+          "artifact": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-armed-0/differ/command-coverage.json",
+            "sha256": "a6c1b6659a8b002a7386711d9a078bf606a5262d28c50fd064607787007f6398"
+          },
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ]
+        },
+        {
+          "part": "armed-1",
+          "artifact": {
+            "path": "build/gate-run.gAuSOQ/jobs/differ-armed-1/differ/command-coverage.json",
+            "sha256": "3194e0707438f1cb92860e5056012c9f2830b68345df86fa38b8d8b58665ae8a"
+          },
+          "registered": 245,
+          "compared": 232,
+          "missing": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ]
+        }
+      ],
+      "compared": 232,
+      "recorded_comparison_witnesses": 4236919,
+      "commands": {
+        "ACL": 130452,
+        "APPEND": 23532,
+        "ASKING": 9416,
+        "AUTH": 180,
+        "BGSAVE": 40,
+        "BITCOUNT": 17776,
+        "BITFIELD": 49552,
+        "BITFIELD_RO": 3756,
+        "BITOP": 12120,
+        "BITPOS": 22356,
+        "BLMOVE": 4176,
+        "BLMPOP": 4280,
+        "BLPOP": 5508,
+        "BRPOP": 5456,
+        "BRPOPLPUSH": 80,
+        "BZMPOP": 3952,
+        "BZPOPMAX": 4676,
+        "BZPOPMIN": 5264,
+        "CLIENT": 97212,
+        "COMMAND": 124310,
+        "CONFIG": 23308,
+        "COPY": 16680,
+        "DBSIZE": 6092,
+        "DEBUG": 1442,
+        "DECR": 4048,
+        "DECRBY": 5800,
+        "DEL": 161434,
+        "DISCARD": 1940,
+        "DUMP": 17268,
+        "ECHO": 240,
+        "EVAL": 31760,
+        "EVALSHA": 8736,
+        "EVALSHA_RO": 3500,
+        "EVAL_RO": 9928,
+        "EXEC": 23946,
+        "EXISTS": 85386,
+        "EXPIRE": 6012,
+        "EXPIREAT": 4092,
+        "EXPIRETIME": 568,
+        "FAILOVER": 20,
+        "FCALL": 12456,
+        "FCALL_RO": 5140,
+        "FLUSHALL": 120,
+        "FLUSHDB": 5976,
+        "FUNCTION": 5376,
+        "GEOADD": 25344,
+        "GEODIST": 4508,
+        "GEOHASH": 4476,
+        "GEOPOS": 9892,
+        "GEORADIUS": 9272,
+        "GEORADIUSBYMEMBER": 9160,
+        "GEORADIUSBYMEMBER_RO": 4900,
+        "GEORADIUS_RO": 4896,
+        "GEOSEARCH": 14520,
+        "GEOSEARCHSTORE": 11676,
+        "GET": 124368,
+        "GETBIT": 15460,
+        "GETDEL": 9412,
+        "GETEX": 8980,
+        "GETRANGE": 11896,
+        "GETSET": 9444,
+        "HDEL": 35064,
+        "HEXISTS": 8224,
+        "HEXPIRE": 40,
+        "HEXPIREAT": 9996,
+        "HEXPIRETIME": 2820,
+        "HGET": 12188,
+        "HGETALL": 27708,
+        "HINCRBY": 9720,
+        "HINCRBYFLOAT": 6352,
+        "HKEYS": 1364,
+        "HLEN": 11256,
+        "HMGET": 8328,
+        "HMSET": 92,
+        "HPERSIST": 6092,
+        "HPEXPIRE": 20,
+        "HPEXPIREAT": 14580,
+        "HPEXPIRETIME": 21896,
+        "HPTTL": 3012,
+        "HRANDFIELD": 1900,
+        "HSCAN": 1904,
+        "HSET": 88044,
+        "HSETNX": 8200,
+        "HSTRLEN": 9840,
+        "HTTL": 2864,
+        "HVALS": 1356,
+        "INCR": 4352,
+        "INCRBY": 8532,
+        "INCRBYFLOAT": 5808,
+        "INFO": 296,
+        "KEYS": 11340,
+        "LASTSAVE": 20,
+        "LATENCY": 14012,
+        "LCS": 55676,
+        "LINDEX": 5868,
+        "LINSERT": 7800,
+        "LLEN": 12444,
+        "LMOVE": 28828,
+        "LMPOP": 3856,
+        "LPOP": 13288,
+        "LPOS": 16228,
+        "LPUSH": 20152,
+        "LPUSHX": 4412,
+        "LRANGE": 44072,
+        "LREM": 7532,
+        "LSET": 7736,
+        "LTRIM": 8828,
+        "MEMORY": 16520,
+        "MGET": 27936,
+        "MOVE": 6020,
+        "MSET": 11604,
+        "MSETNX": 7756,
+        "MULTI": 25866,
+        "OBJECT": 71476,
+        "PERSIST": 11396,
+        "PEXPIRE": 1476,
+        "PEXPIREAT": 11516,
+        "PEXPIRETIME": 1020,
+        "PFADD": 61764,
+        "PFCOUNT": 17612,
+        "PFDEBUG": 53520,
+        "PFMERGE": 1132,
+        "PFSELFTEST": 20,
+        "PING": 50540,
+        "PSETEX": 1644,
+        "PSUBSCRIBE": 3444,
+        "PTTL": 16956,
+        "PUBLISH": 103386,
+        "PUBSUB": 11708,
+        "PUNSUBSCRIBE": 3308,
+        "RANDOMKEY": 20,
+        "READONLY": 9352,
+        "READWRITE": 9252,
+        "RENAME": 6612,
+        "RENAMENX": 3588,
+        "RESET": 240,
+        "RESTORE": 35776,
+        "RESTORE-ASKING": 35228,
+        "ROLE": 20,
+        "RPOP": 7660,
+        "RPOPLPUSH": 14692,
+        "RPUSH": 56490,
+        "RPUSHX": 4396,
+        "SADD": 98406,
+        "SAVE": 80,
+        "SCAN": 21832,
+        "SCARD": 12356,
+        "SCRIPT": 12536,
+        "SDIFF": 3024,
+        "SDIFFSTORE": 4036,
+        "SELECT": 24328,
+        "SET": 156422,
+        "SETBIT": 21268,
+        "SETEX": 1800,
+        "SETNX": 7660,
+        "SETRANGE": 8016,
+        "SINTER": 3096,
+        "SINTERCARD": 5992,
+        "SINTERSTORE": 6856,
+        "SISMEMBER": 6960,
+        "SLOWLOG": 9608,
+        "SMEMBERS": 26816,
+        "SMISMEMBER": 7576,
+        "SMOVE": 25108,
+        "SORT": 31390,
+        "SORT_RO": 4182,
+        "SPOP": 1648,
+        "SPUBLISH": 26096,
+        "SRANDMEMBER": 1548,
+        "SREM": 40984,
+        "SSCAN": 4313,
+        "SSUBSCRIBE": 4408,
+        "STRLEN": 28384,
+        "SUBSCRIBE": 3788,
+        "SUBSTR": 7092,
+        "SUNION": 2800,
+        "SUNIONSTORE": 4488,
+        "SUNSUBSCRIBE": 4344,
+        "SWAPDB": 6248,
+        "TOUCH": 9004,
+        "TTL": 4668,
+        "TYPE": 47912,
+        "UNLINK": 3712,
+        "UNSUBSCRIBE": 3084,
+        "WAIT": 7076,
+        "WAITAOF": 9680,
+        "XACK": 5108,
+        "XADD": 44592,
+        "XAUTOCLAIM": 6464,
+        "XCLAIM": 10284,
+        "XDEL": 12048,
+        "XGROUP": 15332,
+        "XINFO": 240,
+        "XLEN": 6668,
+        "XPENDING": 10144,
+        "XRANGE": 8304,
+        "XREAD": 13648,
+        "XREADGROUP": 10220,
+        "XREVRANGE": 8100,
+        "XSETID": 224,
+        "XTRIM": 19576,
+        "ZADD": 121554,
+        "ZCARD": 505576,
+        "ZCOUNT": 5324,
+        "ZDIFF": 6560,
+        "ZDIFFSTORE": 7264,
+        "ZINCRBY": 6140,
+        "ZINTER": 7356,
+        "ZINTERCARD": 7892,
+        "ZINTERSTORE": 8260,
+        "ZLEXCOUNT": 40,
+        "ZMPOP": 3952,
+        "ZMSCORE": 9340,
+        "ZPOPMAX": 3132,
+        "ZPOPMIN": 3432,
+        "ZRANDMEMBER": 1508,
+        "ZRANGE": 40756,
+        "ZRANGEBYLEX": 184,
+        "ZRANGEBYSCORE": 5448,
+        "ZRANGESTORE": 12612,
+        "ZRANK": 3612,
+        "ZREM": 15284,
+        "ZREMRANGEBYLEX": 20,
+        "ZREMRANGEBYRANK": 6584,
+        "ZREMRANGEBYSCORE": 5224,
+        "ZREVRANGEBYLEX": 20,
+        "ZREVRANGEBYSCORE": 1912,
+        "ZREVRANK": 3700,
+        "ZSCAN": 1652,
+        "ZSCORE": 15612,
+        "ZUNION": 7468,
+        "ZUNIONSTORE": 9472
       },
       "missing": [
         "BGREWRITEAOF",
