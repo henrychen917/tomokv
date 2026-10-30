@@ -36,6 +36,25 @@ namespace tomo {
 
 namespace {
 
+// Only a flush raised by this connection's own retirement has a certified
+// boundary before its reply. Remote/redirected deliveries use normal deferral.
+// No state or allocation is added, and non-flush invalidations never call here.
+[[gnu::noinline, gnu::cold]]
+bool tracking_flush_before_reply(const WbEngine& wb, Client& client) {
+    if (!wb.retiring(client)) return false;
+    auto& rob = client.rob();
+    // ROB publishes flush_id once per drain: earlier slots are already Free,
+    // and the first remaining slot is the Op whose callback is running now.
+    for (uint64_t id = rob.flush_id(), end = rob.dispatch_id(); id != end; ++id) {
+        const Op& op = rob.at(id);
+        if (op.state.load(std::memory_order_relaxed) == OpState::Free) continue;
+        // Suppression discards this Op's segments; its push must stay OOB.
+        // Redis 7.4 puts SYNC's push before +OK and ASYNC's afterward.
+        return !op.reply_skip() && (op.argc() < 2 || !op.arg(1).eq_icase("async"));
+    }
+    std::abort(); // a live retirement must still name its current ROB slot
+}
+
 // Monotonic membership filter over every key any owner has registered. Set-only; cleared when a
 // tracking table is flushed. A false positive costs one broadcast that every owner then filters
 // out, so it can only ever cost work, never correctness.
@@ -386,7 +405,17 @@ void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice k
         reply_array_header(frame, 1);
         reply_bulk(frame, key);
     }
-    climon_push_wire(target, std::string(frame.data(), frame.size()));
+    if (flush && tracking_flush_before_reply(wb_, *target)) {
+        // climon_flush_completed runs after every shard has completed and
+        // before scatter retirement assembles this flush's reply. Seal older
+        // bytes and append a whole frame, without the generic OOB frontier
+        // which would put the self-invalidation behind +OK.
+        if (target->append_oob(frame.data(), frame.size())) srv_->note_oob_frame_segmented();
+        enqueue_serve(target);
+        mark_active(target);
+    } else {
+        climon_push_wire(target, std::string(frame.data(), frame.size()));
+    }
     srv_->climon_note_invalidation();
 }
 

@@ -121,6 +121,9 @@ public:
     using RetireFn = void (*)(void*, Client&, Op&);
     using LimitFn = bool (*)(void*, Client&);
 
+    // Cold tracking FLUSH delivery can use the boundary before reply assembly.
+    bool retiring(const Client& c) const { return draining_ == &c; }
+
     void bind(Ring* ring, void* release_ctx, ReleaseFn release_fn,
               void* retire_ctx, RetireFn retire_fn,
               const std::atomic<bool>* limit_armed,

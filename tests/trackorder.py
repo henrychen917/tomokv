@@ -7,11 +7,13 @@ extra or reordered frame fails. Receipts contain the complete tested byte stream
 import argparse
 import contextlib
 import itertools
+import hashlib
 import json
 import os
 from pathlib import Path
 import select
 import subprocess
+import time
 
 from _lib import Conn, encode, info, wait_ready
 from _gate_process import server, stop_process
@@ -43,18 +45,28 @@ def exercise(port, case):
 
     try:
         writer, tracker, other = connect(), connect(), connect()
+        # Require the previous case's trackers to have actually retired. Merely
+        # closing their sockets lets a seed event race the next BCAST registration.
+        deadline = time.monotonic() + 5
+        while int(info(writer, 'clients')['tracking_clients']):
+            assert time.monotonic() < deadline, 'previous tracking state still live'
+            time.sleep(.001)
         # Seed before tracking: BCAST must have no pending key invalidations.
         equal(writer.cmd('SET', 'trackorder:key', 'value'), b'OK')
         listeners = []
         for c in (tracker, other):
-            if protocol == 3:
+            if protocol in (3, '3r'):
                 c.cmd('HELLO', 3)
+            if protocol == 3:
                 listener, redirect = c, []
             else:
                 listener = connect()
+                if protocol == '3r':
+                    listener.cmd('HELLO', 3)
                 redirect = ['REDIRECT', listener.cmd('CLIENT', 'ID')]
-                equal(listener.cmd('SUBSCRIBE', '__redis__:invalidate'),
-                      [b'subscribe', b'__redis__:invalidate', 1])
+                if protocol == 2:
+                    equal(listener.cmd('SUBSCRIBE', '__redis__:invalidate'),
+                          [b'subscribe', b'__redis__:invalidate', 1])
             flags = [] if option == 'default' else [option.split('-')[0]]
             if noloop:
                 flags += ['NOLOOP']
@@ -66,7 +78,8 @@ def exercise(port, case):
             equal(c.cmd('GET', 'trackorder:key'), b'value')
             listeners.append(listener)
         flusher = tracker if own else writer
-        commands = [('ECHO', 'before'), (command, sync), ('ECHO', 'after')] if pipeline else [(command, sync)]
+        flush = (command,) if sync == 'DEFAULT' else (command, sync)
+        commands = [('ECHO', 'before'), flush, ('ECHO', 'after')] if pipeline else [flush]
         wire = b''.join(encode(*args) for args in commands)
         flusher.raw(wire)
         same_stream = protocol == 3 and own
@@ -116,9 +129,12 @@ def main():
     args = p.parse_args()
     os.environ['LC_ALL'] = 'C'
     args.output.mkdir(parents=True, exist_ok=True)
-    cases = list(itertools.product((3, 2),
+    binary_sha = hashlib.sha256(args.binary.read_bytes()).hexdigest()
+    (args.output / 'binaries.json').write_text(json.dumps(dict(
+        target=binary_sha, oracle=hashlib.sha256(args.oracle.read_bytes()).hexdigest())))
+    cases = list(itertools.product((3, 2, '3r'),
         ('default', 'BCAST', 'OPTIN', 'OPTIN-off', 'OPTOUT', 'OPTOUT-off'),
-        ('FLUSHALL', 'FLUSHDB'), ('SYNC', 'ASYNC'), (False, True), (True, False), (False, True)))
+        ('FLUSHALL', 'FLUSHDB'), ('DEFAULT', 'SYNC', 'ASYNC'), (False, True), (True, False), (False, True)))
     expected = []
     with oracle(args.oracle, args.cores, args.port + 1, args.output / 'oracle'):
         for case in cases:
@@ -156,6 +172,7 @@ def main():
             summary.append(dict(leg=label, passed=sum(r['pass'] for r in rows), failed=sum(not r['pass'] for r in rows)))
             print(json.dumps(summary[-1]), flush=True)
     (args.output / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+    equal(hashlib.sha256(args.binary.read_bytes()).hexdigest(), binary_sha)
     return bool(failures)
 
 
