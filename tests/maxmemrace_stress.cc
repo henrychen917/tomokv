@@ -184,6 +184,7 @@ struct Options {
     std::string bg_mode = "light";   // light: STRLEN/EXISTS point reads; heavy: EXISTS of
                                      // bg_keys keys that all route to one shard
     uint32_t bg_keys = 256;
+    int bg_shard = -1;               // heavy groups from this shard only (-1: every shard)
     std::string tight = "alt";       // one | near | alt
     uint32_t fill = 4096;
     uint32_t value_size = 64;
@@ -350,9 +351,14 @@ int run(const Options& o) {
             by_shard.assign(16, {});
             for (size_t i = 0; i < keys.size(); i++) by_shard[i % 16].push_back(keys[i]);
         } else geometry_shards = static_cast<uint32_t>(by_shard.size());
-        for (auto& shard : by_shard)
+        // --bg-shard 0 loads only the publishing owner (the owner of shard 0), whose own pass
+        // always straddles the commit; with every shard loaded, a fused owner's share drains fast.
+        for (size_t sid = 0; sid < by_shard.size(); sid++) {
+            if (o.bg_shard >= 0 && sid != static_cast<size_t>(o.bg_shard)) continue;
+            const auto& shard = by_shard[sid];
             for (size_t base = 0; base + o.bg_keys <= shard.size(); base += o.bg_keys)
                 groups.emplace_back(shard.begin() + base, shard.begin() + base + o.bg_keys);
+        }
         if (groups.empty()) die("heavy background: no full key group");
     }
     std::atomic<bool> stop{false};
@@ -454,7 +460,7 @@ int run(const Options& o) {
     std::printf("{\"label\": \"%s\", \"port\": %u, \"toggles_requested\": %llu, \"cycles\": %llu, "
                 "\"policy\": \"%s\", \"submit\": \"%s\", \"conns\": %u, \"per_conn\": %u, "
                 "\"bg_threads\": %u, \"bg_conns\": %u, \"bg_pipe\": %u, \"bg_mode\": \"%s\", "
-                "\"bg_keys\": %u, \"bg_groups\": %zu, \"geometry_shards\": %u, \"tight\": \"%s\", "
+                "\"bg_keys\": %u, \"bg_shard\": %d, \"bg_groups\": %zu, \"geometry_shards\": %u, \"tight\": \"%s\", "
                 "\"fill\": %u, \"used_memory_after_fill\": %llu, \"dataset_after_fill\": %llu, "
                 "\"near_value\": %llu, "
                 "\"lift_sets\": %llu, \"lift_ok\": %llu, \"lift_oom\": %llu, \"lift_other\": %llu, "
@@ -467,7 +473,7 @@ int run(const Options& o) {
                 json_escape(o.label).c_str(), o.port,
                 static_cast<unsigned long long>(o.toggles), static_cast<unsigned long long>(k.cycles),
                 o.policy.c_str(), o.submit.c_str(), o.conns, o.per_conn, o.bg_threads, o.bg_conns,
-                o.bg_pipe, o.bg_mode.c_str(), o.bg_keys, groups.size(), geometry_shards, o.tight.c_str(), o.fill, used, dataset, near,
+                o.bg_pipe, o.bg_mode.c_str(), o.bg_keys, o.bg_shard, groups.size(), geometry_shards, o.tight.c_str(), o.fill, used, dataset, near,
                 static_cast<unsigned long long>(k.lift_sets), static_cast<unsigned long long>(k.lift_ok),
                 static_cast<unsigned long long>(k.lift_oom), static_cast<unsigned long long>(k.lift_other),
                 static_cast<unsigned long long>(k.tight_sets),
@@ -507,6 +513,7 @@ int main(int argc, char** argv) {
         else if (a == "--bg-pipe") o.bg_pipe = static_cast<uint32_t>(std::stoul(next()));
         else if (a == "--bg-mode") o.bg_mode = next();
         else if (a == "--bg-keys") o.bg_keys = static_cast<uint32_t>(std::stoul(next()));
+        else if (a == "--bg-shard") o.bg_shard = std::stoi(next());
         else if (a == "--tight") o.tight = next();
         else if (a == "--fill") o.fill = static_cast<uint32_t>(std::stoul(next()));
         else if (a == "--value-size") o.value_size = static_cast<uint32_t>(std::stoul(next()));
