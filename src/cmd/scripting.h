@@ -43,10 +43,10 @@ struct ScriptInvocation {
     Slice          tag;
 };
 
-// The calling thread's persistent interpreter; SCRIPT FLUSH invalidates only its compiled EVAL
-// chunks. FUNCTION closures retain their state. nullptr on allocation failure. Call before
+// The calling thread's lazy interpreter for this API. SCRIPT FLUSH invalidates only EVAL
+// chunks; the separate FUNCTION interpreter retains its closures and helper state. nullptr on allocation failure. Call before
 // pushing the activation's callable so cache invalidation happens first.
-lua_State* script_thread_state();
+lua_State* script_thread_state(ScriptArgStyle style = ScriptArgStyle::Globals);
 
 // A fresh sandboxed state with no context bound — redis.call is present but inert. Used by
 // FUNCTION LOAD to validate and to harvest registration metadata off the executor threads. The

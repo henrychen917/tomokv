@@ -1,0 +1,530 @@
+{
+  "mode": "2s",
+  "net_io": "epoll",
+  "databases": 1,
+  "atomic": 0,
+  "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "rows": [
+    {
+      "root": "LUA-SANDBOX-GLOBALS",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(os.clock)",
+            "0"
+          ],
+          "equal": true,
+          "target": "$8\r\nfunction\r\n",
+          "redis": "$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(loadstring)",
+            "0"
+          ],
+          "equal": true,
+          "target": "$8\r\nfunction\r\n",
+          "redis": "$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(coroutine)",
+            "0"
+          ],
+          "equal": true,
+          "target": "$5\r\ntable\r\n",
+          "redis": "$5\r\ntable\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(collectgarbage)",
+            "0"
+          ],
+          "equal": true,
+          "target": "$8\r\nfunction\r\n",
+          "redis": "$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return {type(math.random), type(math.randomseed)}",
+            "0"
+          ],
+          "equal": true,
+          "target": "*2\r\n$8\r\nfunction\r\n$8\r\nfunction\r\n",
+          "redis": "*2\r\n$8\r\nfunction\r\n$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return loadstring('return 7')()",
+            0
+          ],
+          "equal": true,
+          "target": ":7\r\n",
+          "redis": ":7\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return loadstring('\\27Lua')()",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:1: attempt to call a nil value script: b3bd45acbd0ec6ac27efdc30ebcbc092a4dff545, on @user_script:1.\r\n",
+          "redis": "-ERR user_script:1: attempt to call a nil value script: b3bd45acbd0ec6ac27efdc30ebcbc092a4dff545, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(load)",
+            0
+          ],
+          "equal": true,
+          "target": "$8\r\nfunction\r\n",
+          "redis": "$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "local co=coroutine.create(function() return 3 end) local ok,n=coroutine.resume(co) return {ok,n}",
+            0
+          ],
+          "equal": true,
+          "target": "*2\r\n:1\r\n:3\r\n",
+          "redis": "*2\r\n:1\r\n:3\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "collectgarbage('collect') return 1",
+            0
+          ],
+          "equal": true,
+          "target": ":1\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return os.execute('anything')",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:1: attempt to call field 'execute' (a nil value) script: 573fce18a4ec43d4c8d2dca662e85ecb0ba85237, on @user_script:1.\r\n",
+          "redis": "-ERR user_script:1: attempt to call field 'execute' (a nil value) script: 573fce18a4ec43d4c8d2dca662e85ecb0ba85237, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return os.clock() >= 0",
+            0
+          ],
+          "equal": true,
+          "target": ":1\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "math.randomseed(10) return {tostring(math.random()),math.random(10),math.random(-10,10)}",
+            0
+          ],
+          "equal": true,
+          "target": "*3\r\n$16\r\n0.87885112309775\r\n:8\r\n:0\r\n",
+          "redis": "*3\r\n$16\r\n0.87885112309775\r\n:8\r\n:0\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "math.randomseed(10) return tostring(math.random())",
+            0
+          ],
+          "equal": true,
+          "target": "$16\r\n0.87885112309775\r\n",
+          "redis": "$16\r\n0.87885112309775\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "math.randomseed(10) return math.random(-2147483648,2147483647)",
+            0
+          ],
+          "equal": true,
+          "target": ":-2147483648\r\n",
+          "redis": ":-2147483648\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "math.randomseed(10) return math.random(-2147483648,0)",
+            0
+          ],
+          "equal": true,
+          "target": ":-4034802063\r\n",
+          "redis": ":-4034802063\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return math.random(0)",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:1: bad argument #1 to 'random' (interval is empty) script: 008bcb60f86ee36d26c67b641b46674578d9cba0, on @user_script:1.\r\n",
+          "redis": "-ERR user_script:1: bad argument #1 to 'random' (interval is empty) script: 008bcb60f86ee36d26c67b641b46674578d9cba0, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return math.random(2,1)",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:1: bad argument #2 to 'random' (interval is empty) script: 154b051a78bd7bb133691517692e1a7a38d25895, on @user_script:1.\r\n",
+          "redis": "-ERR user_script:1: bad argument #2 to 'random' (interval is empty) script: 154b051a78bd7bb133691517692e1a7a38d25895, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return math.random(1,2,3)",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:1: wrong number of arguments script: 5cd983b5db563301a1c7ab05351573640323e7a9, on @user_script:1.\r\n",
+          "redis": "-ERR user_script:1: wrong number of arguments script: 5cd983b5db563301a1c7ab05351573640323e7a9, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function('globals',function() return {type(os.clock),type(loadstring),type(coroutine),type(collectgarbage)} end)"
+          ],
+          "equal": true,
+          "target": "$5\r\nextra\r\n",
+          "redis": "$5\r\nextra\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "globals",
+            0
+          ],
+          "equal": true,
+          "target": "*4\r\n$8\r\nfunction\r\n$8\r\nfunction\r\n$5\r\ntable\r\n$8\r\nfunction\r\n",
+          "redis": "*4\r\n$8\r\nfunction\r\n$8\r\nfunction\r\n$5\r\ntable\r\n$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=scriptfix3\nredis.register_function('EnvCase',function(keys,args) if args[1] then cjson.encode_number_precision(tonumber(args[1])) end return {cjson.encode_number_precision(),type(redis.replicate_commands),loadstring('return type(redis.replicate_commands)')()} end)"
+          ],
+          "equal": true,
+          "target": "$10\r\nscriptfix3\r\n",
+          "redis": "$10\r\nscriptfix3\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "cjson.encode_number_precision(4) return {cjson.encode_number_precision(),type(redis.replicate_commands)}",
+            0
+          ],
+          "equal": true,
+          "target": "*2\r\n:4\r\n$8\r\nfunction\r\n",
+          "redis": "*2\r\n:4\r\n$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "ENVCASE",
+            0,
+            3
+          ],
+          "equal": true,
+          "target": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "envcase",
+            0
+          ],
+          "equal": true,
+          "target": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return cjson.encode_number_precision()",
+            0
+          ],
+          "equal": true,
+          "target": ":4\r\n",
+          "redis": ":4\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "cjson.encode_number_precision(4) return {cjson.encode_number_precision(),type(redis.replicate_commands)}",
+            0
+          ],
+          "equal": true,
+          "target": "*2\r\n:4\r\n$8\r\nfunction\r\n",
+          "redis": "*2\r\n:4\r\n$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "ENVCASE",
+            0,
+            3
+          ],
+          "equal": true,
+          "target": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "envcase",
+            0
+          ],
+          "equal": true,
+          "target": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return cjson.encode_number_precision()",
+            0
+          ],
+          "equal": true,
+          "target": ":4\r\n",
+          "redis": ":4\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "cjson.encode_number_precision(4) return {cjson.encode_number_precision(),type(redis.replicate_commands)}",
+            0
+          ],
+          "equal": true,
+          "target": "*2\r\n:4\r\n$8\r\nfunction\r\n",
+          "redis": "*2\r\n:4\r\n$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "ENVCASE",
+            0,
+            3
+          ],
+          "equal": true,
+          "target": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "envcase",
+            0
+          ],
+          "equal": true,
+          "target": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return cjson.encode_number_precision()",
+            0
+          ],
+          "equal": true,
+          "target": ":4\r\n",
+          "redis": ":4\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "flush"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "EnvCase",
+            0
+          ],
+          "equal": true,
+          "target": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:3\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return cjson.encode_number_precision()",
+            0
+          ],
+          "equal": true,
+          "target": ":14\r\n",
+          "redis": ":14\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "cjson.encode_number_precision(7) return 1",
+            0
+          ],
+          "equal": true,
+          "target": ":1\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "flush"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=scriptfix3\nredis.register_function('EnvCase',function(keys,args) if args[1] then cjson.encode_number_precision(tonumber(args[1])) end return {cjson.encode_number_precision(),type(redis.replicate_commands),loadstring('return type(redis.replicate_commands)')()} end)"
+          ],
+          "equal": true,
+          "target": "$10\r\nscriptfix3\r\n",
+          "redis": "$10\r\nscriptfix3\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "envcase",
+            0
+          ],
+          "equal": true,
+          "target": "*3\r\n:14\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*3\r\n:14\r\n$3\r\nnil\r\n$3\r\nnil\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return cjson.encode_number_precision()",
+            0
+          ],
+          "equal": true,
+          "target": ":7\r\n",
+          "redis": ":7\r\n"
+        }
+      ],
+      "differences": 0
+    }
+  ],
+  "target_argv": [
+    "taskset",
+    "-c",
+    "32-39",
+    "/home/user/Projects/cx-scriptfix3/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20320",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-scriptfix3/docs/scriptfix3/cache-proof/2s-epoll-db1-a0-LUA-SANDBOX-GLOBALS/target",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "1",
+    "--net-io",
+    "epoll",
+    "--atomic",
+    "0",
+    "--flip-auto",
+    "0",
+    "--ratio",
+    "6:2"
+  ],
+  "oracle_argv": [
+    "taskset",
+    "-c",
+    "40-47",
+    "/home/user/Projects/redis/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20321",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-scriptfix3/docs/scriptfix3/cache-proof/2s-epoll-db1-a0-LUA-SANDBOX-GLOBALS/redis",
+    "--enable-debug-command",
+    "yes"
+  ]
+}

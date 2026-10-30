@@ -131,60 +131,106 @@ std::string sha1_hex(const char* input, size_t length) {
 
 std::string sha1_hex(Slice input) { return sha1_hex(input.p, input.n); }
 
-std::string sha_key(Slice sha) {
-    std::string key(sha.p, sha.n);
-    for (char& ch : key) if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
-    return key;
-}
+// Metadata is immutable after insertion. The original bytes own both the source
+// index and the diagnostic digest; shebang stripping never changes its hash.
+struct ScriptSource {
+    std::string source;
+    std::string sha;
+    uint32_t flags;
+    uint32_t body_offset;
+};
+using ScriptSourceRef = std::shared_ptr<const ScriptSource>;
+
+struct SourceHash {
+    using is_transparent = void;
+    size_t operator()(std::string_view source) const noexcept {
+        return std::hash<std::string_view>{}(source);
+    }
+};
 
 class ScriptCache {
 public:
-    bool store(Slice body, std::string& sha) {
+    bool store(Slice body, uint32_t flags, uint32_t offset, std::string& sha) {
         try {
-            sha = sha1_hex(body);
-            std::string source(body.p, body.n);
+            auto entry = std::make_shared<ScriptSource>(ScriptSource{
+                std::string(body.p, body.n), sha1_hex(body), flags, offset});
+            sha = entry->sha;
             std::lock_guard<std::mutex> lock(mu_);
-            scripts_.insert_or_assign(sha, std::move(source));
+            // An already cached digest keeps the same compiled identity.
+            if (scripts_.find(std::string_view(sha)) != scripts_.end()) return true;
+            const auto inserted = sources_.emplace(std::string_view(entry->source), entry);
+            try {
+                scripts_.emplace(entry->sha, entry);
+            } catch (...) {
+                if (inserted.second) sources_.erase(inserted.first);
+                throw;
+            }
             return true;
         } catch (const std::bad_alloc&) {
             return false;
         }
     }
 
-    bool find(Slice sha, std::string& source) const {
-        try {
-            std::lock_guard<std::mutex> lock(mu_);
-            const auto it = scripts_.find(sha_key(sha));
-            if (it == scripts_.end()) return false;
-            source = it->second;
-            return true;
-        } catch (const std::bad_alloc&) {
-            return false;
-        }
+    ScriptSourceRef find(Slice sha) const {
+        std::lock_guard<std::mutex> lock(mu_);
+        const auto it = lookup(sha);
+        return it == scripts_.end() ? ScriptSourceRef{} : it->second;
+    }
+
+    ScriptSourceRef source(Slice body) const {
+        std::lock_guard<std::mutex> lock(mu_);
+        const auto it = sources_.find(std::string_view(body.p, body.n));
+        return it == sources_.end() ? ScriptSourceRef{} : it->second;
     }
 
     bool exists(Slice sha) const {
-        try {
-            std::lock_guard<std::mutex> lock(mu_);
-            return scripts_.find(sha_key(sha)) != scripts_.end();
-        } catch (const std::bad_alloc&) {
-            return false;
-        }
+        std::lock_guard<std::mutex> lock(mu_);
+        return lookup(sha) != scripts_.end();
     }
 
     void flush() {
         std::lock_guard<std::mutex> lock(mu_);
+        sources_.clear();
         scripts_.clear();
     }
 
     uint64_t size() const {
         std::lock_guard<std::mutex> lock(mu_);
-        return scripts_.size();
+        return sources_.size();
     }
 
 private:
     mutable std::mutex mu_;
-    std::unordered_map<std::string, std::string> scripts_;
+    // Views point into the immutable value, which stays owned until both indexes
+    // and all active invocations release it. No source copy on a warm activation.
+    using Digests = std::unordered_map<std::string, ScriptSourceRef, SourceHash, std::equal_to<>>;
+    mutable Digests scripts_;
+    std::unordered_map<std::string_view, ScriptSourceRef, SourceHash, std::equal_to<>> sources_;
+
+    Digests::const_iterator lookup(Slice sha) const {
+        const std::string_view spelling(sha.p, sha.n);
+        const auto found = scripts_.find(spelling);
+        if (found != scripts_.end() || sha.n != 40) return found;
+        return remember_alias(spelling);
+    }
+
+    __attribute__((cold, noinline)) Digests::const_iterator remember_alias(std::string_view spelling) const {
+        // Only a new spelling takes this cold path. Canonical digests and warm
+        // uppercase/mixed-case aliases use the same allocation-free lookup.
+        char normalized[40];
+        for (unsigned i = 0; i < 40; ++i) {
+            const char ch = spelling[i];
+            normalized[i] = ch >= 'A' && ch <= 'Z' ? ch + ('a' - 'A') : ch;
+        }
+        const auto canonical = scripts_.find(std::string_view(normalized, sizeof(normalized)));
+        if (canonical == scripts_.end()) return canonical;
+        try {
+            return scripts_.emplace(std::string(spelling), canonical->second).first;
+        } catch (const std::bad_alloc&) {
+            // Caching an alias is optional; the already-present script remains usable.
+            return canonical;
+        }
+    }
 };
 
 ScriptCache g_scripts;
@@ -290,7 +336,7 @@ bool eval_header(Slice source, Slice& body, uint32_t& flags, std::string& error)
     return true;
 }
 
-bool validate_source(Slice source, std::string& error) {
+bool validate_source(Slice source, std::string& error, uint32_t& flags, uint32_t& offset) {
     if (source.n > kScriptMaxBytes) {
         error = "script exceeds the 1 MiB limit";
         return false;
@@ -300,8 +346,8 @@ bool validate_source(Slice source, std::string& error) {
         return false;
     }
     Slice body;
-    uint32_t flags;
     if (!eval_header(source, body, flags, error)) return false;
+    offset = static_cast<uint32_t>(body.p - source.p);
     lua_State* state = luaL_newstate();
     if (!state) { error = "out of memory"; return false; }
     const int status = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
@@ -391,7 +437,10 @@ struct LuaEngine {
         if (state) lua_close(state);
     }
 };
+// EVAL and FUNCTION have different immutable APIs and mutable helper state.
+// Allocate either VM lazily; selecting a call never rebuilds or rebinds globals.
 thread_local LuaEngine t_lua_engine;
+thread_local LuaEngine t_function_engine;
 struct ScriptCrossBinding {
     Op* op = nullptr;
     uint8_t* access = nullptr;
@@ -1042,7 +1091,7 @@ void reset_cjson_environment(lua_State* state, const char* registry_name) {
 
 // Built ONCE per thread state: libraries, strips, the redis table (closures over the stable
 // per-state context slot), the hook registry entry, and — last — the globals protection.
-void create_sandbox_static(lua_State* state, ScriptContext** slot) {
+void create_sandbox_static(lua_State* state, ScriptContext** slot, bool function = false) {
     open_library(state, luaopen_base, "");
     open_library(state, luaopen_table, LUA_TABLIBNAME);
     open_library(state, luaopen_string, LUA_STRLIBNAME);
@@ -1120,6 +1169,13 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
         lua_pop(state, 1);
     }
     lua_pop(state, 1);
+    // Both API tables are frozen before this cold selection. Closures (including
+    // load/loadstring) inherit this interpreter's globals for their whole life.
+    if (function) {
+        select_cjson_environment(state, true);
+        lua_getfield(state, LUA_REGISTRYINDEX, "tomo_function_redis");
+        set_global_raw(state, "redis");
+    }
 }
 
 // Rebuilt per call: only the tables whose contents depend on the op. Leaves the two tables on the
@@ -1377,9 +1433,10 @@ std::string script_runtime_error(lua_State* state, const ScriptContext& context,
 
 }  // namespace
 
-lua_State* script_thread_state() {
-    LuaEngine& engine = t_lua_engine;
-    if (engine.state &&
+lua_State* script_thread_state(ScriptArgStyle style) {
+    const bool function = style == ScriptArgStyle::Params;
+    LuaEngine& engine = function ? t_function_engine : t_lua_engine;
+    if (!function && engine.state &&
         engine.flush_generation != g_script_flushes.load(std::memory_order_acquire)) {
         // EVAL's compiled chunks belong to SCRIPT FLUSH; FUNCTION closures and their mutable
         // upvalues do not. Keep the readonly environment and the function registry roots alive.
@@ -1392,7 +1449,7 @@ lua_State* script_thread_state() {
         engine.state = luaL_newstate();
         if (!engine.state) return nullptr;
         engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
-        create_sandbox_static(engine.state, &engine.current);
+        create_sandbox_static(engine.state, &engine.current, function);
         lua_newtable(engine.state);
         lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
         g_state_rebuilds.fetch_add(1, std::memory_order_relaxed);
@@ -1494,7 +1551,7 @@ FunctionMemoryScope::~FunctionMemoryScope() {
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     if (__builtin_expect(shard.server() && shard.server()->latency_tracking(), false))
         latency_tracking_script_begin(op);
-    LuaEngine& engine = t_lua_engine;
+    LuaEngine& engine = call.style == ScriptArgStyle::Params ? t_function_engine : t_lua_engine;
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, call.key_first, call.key_count};
     if (t_script_cross.op == &op) {
@@ -1505,10 +1562,6 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     context.readonly = call.readonly;
     context.function_admitted = call.style == ScriptArgStyle::Params || call.memory_admitted;
     engine.current = &context;
-    select_cjson_environment(state, call.style == ScriptArgStyle::Params);
-    lua_getfield(state, LUA_REGISTRYINDEX, call.style == ScriptArgStyle::Params
-        ? "tomo_function_redis" : "tomo_eval_redis");
-    set_global_raw(state, "redis");
 
     ScriptEvictionGuard eviction_guard(shard);
     FunctionMemoryScope memory_scope(shard.store(), context.function_admitted);
@@ -1572,29 +1625,13 @@ void script_cross_access_end() {
 
 namespace {
 
-void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_hint,
-              bool notify, bool readonly) {
-    if (source.n > kScriptMaxBytes) {
-        reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
-        return;
-    }
-    if (source.n && static_cast<uint8_t>(source.p[0]) == 0x1b) {
-        reply_text_error(op, "ERR",
-                         "Error compiling script (new function): binary chunks are not allowed");
-        return;
-    }
+void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, bool readonly) {
     uint32_t key_first = 0, key_count = 0;
     if (!command_script_key_range(op, key_first, key_count)) {
         reply_text_error(op, "ERR", "invalid script key declaration");
         return;
     }
-
-    Slice body;
-    uint32_t flags;
-    std::string header_error;
-    if (!eval_header(source, body, flags, header_error)) {
-        reply_text_error(op, "ERR", header_error); return;
-    }
+    const uint32_t flags = source.flags;
     if (!(flags & (EvalLegacy | EvalNoWrites)) && readonly) {
         reply_text_error(op, "ERR", "Can not execute a script with write flag using *_ro command.");
         return;
@@ -1608,21 +1645,16 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
     lua_State* state = script_thread_state();
     if (!state) { reply_text_error(op, "ERR", "out of memory"); return; }
 
-    // Fetch the compiled chunk by sha, compiling at most once per thread per script.
-    std::string sha_storage;
-    if (sha_hint.n) sha_storage = sha_key(sha_hint);
-    Slice sha(sha_storage.data(), sha_storage.size());
-    if (!sha.n) {
-        sha_storage = sha1_hex(source);
-        sha = Slice(sha_storage.data(), static_cast<uint32_t>(sha_storage.size()));
-    }
+    // The source cache computed the digest/flags once, before ordered routing.
+    const Slice sha(source.sha);
     lua_getfield(state, LUA_REGISTRYINDEX, "tomo_chunks");
     lua_pushlstring(state, sha.p, sha.n);
     lua_rawget(state, -2);
     if (lua_isnil(state, -1)) {
         lua_pop(state, 1);
         g_compile_misses.fetch_add(1, std::memory_order_relaxed);
-        const int compiled = luaL_loadbuffer(state, body.p, body.n, kEvalChunkName);
+        const int compiled = luaL_loadbuffer(state, source.source.data() + source.body_offset,
+            source.source.size() - source.body_offset, kEvalChunkName);
         if (compiled != 0) {
             size_t length = 0;
             const char* text = lua_tolstring(state, -1, &length);
@@ -1640,14 +1672,6 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
         g_compile_hits.fetch_add(1, std::memory_order_relaxed);
     }
     lua_remove(state, -2);   // drop the chunk table, leaving the function on top
-    if (cache_source) {
-        std::string ignored;
-        if (!g_scripts.store(source, ignored)) {
-            lua_settop(state, 0);
-            reply_text_error(op, "ERR", "out of memory caching script");
-            return;
-        }
-    }
 
     ScriptInvocation call;
     call.key_first = key_first;
@@ -1663,18 +1687,29 @@ void run_eval(Shard& shard, Op& op, Slice source, bool cache_source, Slice sha_h
 
 template <bool kNotify, bool kSha, bool kReadonly>
 void cmd_eval(Shard& shard, Op& op) {
-    if constexpr (!kSha) {
-        // cache_source = false: routing already stored this source, in program order.
-        run_eval(shard, op, op.arg(1), false, Slice(), kNotify, kReadonly);
-    } else {
-        std::string source;
-        if (!g_scripts.find(op.arg(1), source)) {
+    auto source = kSha ? g_scripts.find(op.arg(1)) : g_scripts.source(op.arg(1));
+    if (!source) {
+        if constexpr (kSha) {
             reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
             return;
+        } else {
+            // Direct handler callers and a concurrent SCRIPT FLUSH may have no
+            // store entry. Compile privately: only ordered IO routing may publish
+            // EVAL's source, or a later owner could arm an earlier EVALSHA.
+            std::string error;
+            uint32_t flags = 0, offset = 0;
+            if (!validate_source(op.arg(1), error, flags, offset)) {
+                reply_text_error(op, "ERR", error); return;
+            }
+            try {
+                source = std::make_shared<ScriptSource>(ScriptSource{
+                    std::string(op.arg(1).p, op.arg(1).n), sha1_hex(op.arg(1)), flags, offset});
+            } catch (const std::bad_alloc&) {
+                reply_text_error(op, "ERR", "out of memory"); return;
+            }
         }
-        run_eval(shard, op, Slice(source.data(), static_cast<uint32_t>(source.size())), false,
-                 op.arg(1), kNotify, kReadonly);
     }
+    run_eval(shard, op, *source, kNotify, kReadonly);
 }
 
 void reply_script_wrong_args(Op& op, const char* sub) {
@@ -1712,13 +1747,14 @@ void cmd_script(Shard&, Op& op) {
     if (subcommand.eq_icase("load")) {
         if (op.argc() != 3) { reply_script_wrong_args(op, "load"); return; }
         std::string compile_error;
-        if (!validate_source(op.arg(2), compile_error)) {
+        uint32_t flags = 0, offset = 0;
+        if (!validate_source(op.arg(2), compile_error, flags, offset)) {
             reply_text_error(op, "ERR",
                              compile_error);
             return;
         }
         std::string sha;
-        if (!g_scripts.store(op.arg(2), sha)) {
+        if (!g_scripts.store(op.arg(2), flags, offset, sha)) {
             reply_text_error(op, "ERR", "out of memory caching script");
             return;
         }
@@ -1838,27 +1874,27 @@ bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count) {
 // SCRIPT LOAD has always done.
 static bool script_route_store(Op& op) {
     const char* name = op.spec ? op.spec->name : "";
+    if (std::strncmp(name, "EVAL", 4)) return true;      // FCALL / FCALL_RO own no source
     if (!std::strncmp(name, "EVALSHA", 7)) {
         if (g_scripts.exists(op.arg(1))) return true;
         reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
         return false;
     }
-    if (std::strncmp(name, "EVAL", 4)) return true;      // FCALL / FCALL_RO own no source
     const Slice source = op.arg(1);
     if (source.n > kScriptMaxBytes) {
         reply_text_error(op, "ERR", "script exceeds the 1 MiB limit");
         return false;
     }
-    const std::string sha = sha1_hex(source);
-    if (g_scripts.exists(Slice(sha.data(), static_cast<uint32_t>(sha.size())))) return true;
+    if (g_scripts.source(source)) return true;
     std::string compile_error;
-    if (!validate_source(source, compile_error)) {
+    uint32_t flags = 0, offset = 0;
+    if (!validate_source(source, compile_error, flags, offset)) {
         reply_text_error(op, "ERR",
                          compile_error);
         return false;
     }
     std::string ignored;
-    if (!g_scripts.store(source, ignored)) {
+    if (!g_scripts.store(source, flags, offset, ignored)) {
         reply_text_error(op, "ERR", "out of memory caching script");
         return false;
     }

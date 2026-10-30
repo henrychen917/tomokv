@@ -1,0 +1,564 @@
+{
+  "mode": "2s",
+  "net_io": "epoll",
+  "databases": 1,
+  "atomic": 1,
+  "binary_sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "rows": [
+    {
+      "root": "EVALSHA-SHA-CASE",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "load",
+            "return 'hello'"
+          ],
+          "equal": true,
+          "target": "$40\r\n1b936e3fe509bcbc9cd0664897bbe8fd0cac101b\r\n",
+          "redis": "$40\r\n1b936e3fe509bcbc9cd0664897bbe8fd0cac101b\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+            "0"
+          ],
+          "equal": true,
+          "target": "$5\r\nhello\r\n",
+          "redis": "$5\r\nhello\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "load",
+            "return 'hello'"
+          ],
+          "equal": true,
+          "target": "$40\r\n1b936e3fe509bcbc9cd0664897bbe8fd0cac101b\r\n",
+          "redis": "$40\r\n1b936e3fe509bcbc9cd0664897bbe8fd0cac101b\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+            0
+          ],
+          "equal": true,
+          "target": "$5\r\nhello\r\n",
+          "redis": "$5\r\nhello\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+            0
+          ],
+          "equal": true,
+          "target": "$5\r\nhello\r\n",
+          "redis": "$5\r\nhello\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+            "1b936e3fe509bcbc9cd0664897bbe8fd0cac101b",
+            "1b936e3fe509bcbc9cd0664897bbe8fd0cac101"
+          ],
+          "equal": true,
+          "target": "*3\r\n:1\r\n:1\r\n:0\r\n",
+          "redis": "*3\r\n:1\r\n:1\r\n:0\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "load",
+            "error('case')"
+          ],
+          "equal": true,
+          "target": "$40\r\n93740cfcfc3f8511067ba4e45adf920f98ac9554\r\n",
+          "redis": "$40\r\n93740cfcfc3f8511067ba4e45adf920f98ac9554\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "93740CFCFC3F8511067BA4E45ADF920F98AC9554",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:1: case script: 93740cfcfc3f8511067ba4e45adf920f98ac9554, on @user_script:1.\r\n",
+          "redis": "-ERR user_script:1: case script: 93740cfcfc3f8511067ba4e45adf920f98ac9554, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "93740CFCFC3F8511067BA4E45ADF920F98AC9554",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:1: case script: 93740cfcfc3f8511067ba4e45adf920f98ac9554, on @user_script:1.\r\n",
+          "redis": "-ERR user_script:1: case script: 93740cfcfc3f8511067ba4e45adf920f98ac9554, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "93740CFCFC3F8511067BA4E45ADF920F98AC9554",
+            "93740cfcfc3f8511067ba4e45adf920f98ac9554",
+            "93740cfcfc3f8511067ba4e45adf920f98ac955"
+          ],
+          "equal": true,
+          "target": "*3\r\n:1\r\n:1\r\n:0\r\n",
+          "redis": "*3\r\n:1\r\n:1\r\n:0\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "load",
+            "#!lua flags=no-writes\nerror('warm case line')"
+          ],
+          "equal": true,
+          "target": "$40\r\n52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564\r\n",
+          "redis": "$40\r\n52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha_ro",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n",
+          "redis": "-ERR user_script:2: warm case line script: 52bf51e7447b0df636ad1c2d2e2f0b4cdc23b564, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "52bF51e7447B0Df636aD1C2D2E2F0B4CdC23b564"
+          ],
+          "equal": true,
+          "target": "*1\r\n:1\r\n",
+          "redis": "*1\r\n:1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "\u00152bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            "5\u0012bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            "52bf\u00151e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            "52bf5\u0011e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            "52bf51e\u0017447b0df636ad1c2d2e2f0b4cdc23b564",
+            "52bf51e7\u001447b0df636ad1c2d2e2f0b4cdc23b564",
+            "52bf51e74\u00147b0df636ad1c2d2e2f0b4cdc23b564",
+            "52bf51e744\u0017b0df636ad1c2d2e2f0b4cdc23b564",
+            "52bf51e7447b\u0010df636ad1c2d2e2f0b4cdc23b564",
+            "52bf51e7447b0df\u001636ad1c2d2e2f0b4cdc23b564",
+            "52bf51e7447b0df6\u00136ad1c2d2e2f0b4cdc23b564",
+            "52bf51e7447b0df63\u0016ad1c2d2e2f0b4cdc23b564",
+            "52bf51e7447b0df636ad\u0011c2d2e2f0b4cdc23b564",
+            "52bf51e7447b0df636ad1c\u0012d2e2f0b4cdc23b564",
+            "52bf51e7447b0df636ad1c2d\u0012e2f0b4cdc23b564",
+            "52bf51e7447b0df636ad1c2d2e\u0012f0b4cdc23b564",
+            "52bf51e7447b0df636ad1c2d2e2f\u0010b4cdc23b564",
+            "52bf51e7447b0df636ad1c2d2e2f0b\u0014cdc23b564",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc\u00123b564",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc2\u0013b564",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b\u001564",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b5\u00164",
+            "52bf51e7447b0df636ad1c2d2e2f0b4cdc23b56\u0014"
+          ],
+          "equal": true,
+          "target": "*23\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n",
+          "redis": "*23\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n:0\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "\u00152bf51e7447b0df636ad1c2d2e2f0b4cdc23b564",
+            0
+          ],
+          "equal": true,
+          "target": "-NOSCRIPT No matching script. Please use EVAL.\r\n",
+          "redis": "-NOSCRIPT No matching script. Please use EVAL.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "flush"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "52BF51E7447B0DF636AD1C2D2E2F0B4CDC23B564",
+            0
+          ],
+          "equal": true,
+          "target": "-NOSCRIPT No matching script. Please use EVAL.\r\n",
+          "redis": "-NOSCRIPT No matching script. Please use EVAL.\r\n"
+        }
+      ],
+      "differences": 0
+    }
+  ],
+  "target_argv": [
+    "taskset",
+    "-c",
+    "32-39",
+    "/home/user/Projects/cx-scriptfix3/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20320",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-scriptfix3/docs/scriptfix3/cache-proof/2s-epoll-db1-a1-EVALSHA-SHA-CASE/target",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "1",
+    "--net-io",
+    "epoll",
+    "--atomic",
+    "1",
+    "--flip-auto",
+    "0",
+    "--ratio",
+    "6:2"
+  ],
+  "oracle_argv": [
+    "taskset",
+    "-c",
+    "40-47",
+    "/home/user/Projects/redis/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20321",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-scriptfix3/docs/scriptfix3/cache-proof/2s-epoll-db1-a1-EVALSHA-SHA-CASE/redis",
+    "--enable-debug-command",
+    "yes"
+  ]
+}

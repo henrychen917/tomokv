@@ -1,0 +1,137 @@
+{
+  "scripting_comparisons": 192,
+  "scripting_positive_residue": 0,
+  "ordinary_comparisons": 96,
+  "ordinary_pre_deltas": 0,
+  "domains": {
+    "namespace": {
+      "min_post_minus_headline": -15484,
+      "max_post_minus_headline": -1,
+      "closest": [
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross",
+            "1s",
+            1,
+            0
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        },
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross",
+            "1s",
+            1,
+            1
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        },
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross",
+            "2s",
+            1,
+            0
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        },
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross",
+            "2s",
+            1,
+            1
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        },
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross-header",
+            "1s",
+            1,
+            0
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        },
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross-header",
+            "1s",
+            1,
+            1
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        },
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross-header",
+            "2s",
+            1,
+            0
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        },
+        {
+          "key": [
+            "namespace",
+            "normal",
+            "EVALSHA-cross-header",
+            "2s",
+            1,
+            1
+          ],
+          "scripting": true,
+          "post_minus_headline": -1,
+          "post_minus_pre": -285
+        }
+      ]
+    },
+    "lua": {
+      "min_post_minus_headline": -15874,
+      "max_post_minus_headline": -72,
+      "closest": [
+        {
+          "key": [
+            "lua",
+            "normal",
+            "FCALL-single-header",
+            "2s",
+            1,
+            0
+          ],
+          "scripting": true,
+          "post_minus_headline": -72,
+          "post_minus_pre": -1214
+        }
+      ]
+    }
+  }
+}

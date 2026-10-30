@@ -1,0 +1,258 @@
+[
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db16-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db1-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db16-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db16-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db1-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db16-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db16-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db1-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db1-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db16-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db1-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db16-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db1-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db16-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db16-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db16-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db1-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db16-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db1-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db16-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 0,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db1-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db16-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db1-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db1-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db16-a1-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db16-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db1-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db1-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 42
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-epoll-db16-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "epoll",
+    "databases": 16,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-epoll-db1-a1-EVALSHA-SHA-CASE/result.json",
+    "mode": "2s",
+    "net_io": "epoll",
+    "databases": 1,
+    "atomic": 1,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/1s-uring-db1-a0-EVALSHA-SHA-CASE/result.json",
+    "mode": "1s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 43
+  },
+  {
+    "path": "docs/scriptfix3/cache-proof/2s-uring-db1-a0-LUA-SANDBOX-GLOBALS/result.json",
+    "mode": "2s",
+    "net_io": "uring",
+    "databases": 1,
+    "atomic": 0,
+    "comparisons": 42
+  }
+]

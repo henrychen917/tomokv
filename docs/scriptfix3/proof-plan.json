@@ -1,0 +1,118 @@
+[
+  {
+    "name": "final-epoll",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "final-epoll",
+      "debug-0",
+      "debug-1",
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1",
+      "script_bounds",
+      "notify",
+      "differ-split",
+      "differ-armed",
+      "--engine",
+      "epoll"
+    ],
+    "extra_env": {},
+    "exit": 0
+  },
+  {
+    "name": "final-fused-uring",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "final-fused-uring",
+      "debug-0",
+      "debug-1",
+      "script_bounds",
+      "notify",
+      "--fused"
+    ],
+    "extra_env": {},
+    "exit": 0
+  },
+  {
+    "name": "final-fused-epoll",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "final-fused-epoll",
+      "debug-0",
+      "debug-1",
+      "script_bounds",
+      "notify",
+      "--fused",
+      "--engine",
+      "epoll"
+    ],
+    "extra_env": {},
+    "exit": 0
+  },
+  {
+    "name": "bounds-1s-uring-a0",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "bounds-1s-uring-a0",
+      "script_bounds",
+      "--engine",
+      "uring",
+      "--fused"
+    ],
+    "extra_env": {
+      "GATE_TXN_ATOMIC": "0"
+    },
+    "exit": 0
+  },
+  {
+    "name": "bounds-1s-epoll-a0",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "bounds-1s-epoll-a0",
+      "script_bounds",
+      "--engine",
+      "epoll",
+      "--fused"
+    ],
+    "extra_env": {
+      "GATE_TXN_ATOMIC": "0"
+    },
+    "exit": 0
+  },
+  {
+    "name": "bounds-2s-uring-a0",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "bounds-2s-uring-a0",
+      "script_bounds",
+      "--engine",
+      "uring"
+    ],
+    "extra_env": {
+      "GATE_TXN_ATOMIC": "0"
+    },
+    "exit": 0
+  },
+  {
+    "name": "bounds-2s-epoll-a0",
+    "argv": [
+      "python3",
+      "tools/scriptfix3_jobs.py",
+      "bounds-2s-epoll-a0",
+      "script_bounds",
+      "--engine",
+      "epoll"
+    ],
+    "extra_env": {
+      "GATE_TXN_ATOMIC": "0"
+    },
+    "exit": 0
+  }
+]

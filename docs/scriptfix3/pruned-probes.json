@@ -1,0 +1,22 @@
+[
+  {
+    "path": "build/scriptfix3/scopes/final-db0",
+    "probe_sha256": "66f8606e3e9d194450179eafc6a740529da2dec2323556624890146829c61651",
+    "reason": "Counts, link recipes and exact visited instructions retained. Rebuild via scriptfix3_counts.py."
+  },
+  {
+    "path": "build/scriptfix3/scopes/final-normal",
+    "probe_sha256": "1d00e8c6bfa6c11e95782c6ed345071ff744eab19d7081b2cf5fbae3c2733239",
+    "reason": "Counts, link recipes and exact visited instructions retained. Rebuild via scriptfix3_counts.py."
+  },
+  {
+    "path": "build/scriptfix3/scopes/pre-db0",
+    "probe_sha256": "c0d756045cf69622aa377e0d6163935762d6a98efde26266de67553a76f8d820",
+    "reason": "Counts, link recipes and exact visited instructions retained. Rebuild via scriptfix3_counts.py."
+  },
+  {
+    "path": "build/scriptfix3/scopes/pre-normal",
+    "probe_sha256": "6549b5a984d3353bb534c9c5168c7a7d3530fa7e36d4b03fa5f9a43a88cede3a",
+    "reason": "Counts, link recipes and exact visited instructions retained. Rebuild via scriptfix3_counts.py."
+  }
+]

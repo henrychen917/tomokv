@@ -1,0 +1,143 @@
+{
+  "reason": "All counts, source identities, build recipes and visited instructions retained under docs/scriptfix3.",
+  "trees": [
+    {
+      "path": "build/scriptfix3/headline-source",
+      "binaries": {
+        "build/scriptfix3/headline-source/build/tomokv": "90b4331c8272c94db913474b0afe293fed034db0bbbc735a2a051f2e113d3298"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scriptfix2-stage0-source",
+      "binaries": {
+        "build/scriptfix3/scriptfix2-stage0-source/build/tomokv": "6cea5d587df290074ee593acc650e4ae67fd237070d33aec3f7b62ef2b388800"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scriptfix2-stage1-source",
+      "binaries": {
+        "build/scriptfix3/scriptfix2-stage1-source/build/tomokv": "547c4a4a55956de23e3857d0e9bcb498d511cb2c473f1fcb5d6fe58ab0147666"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scriptfix2-stage2-source",
+      "binaries": {
+        "build/scriptfix3/scriptfix2-stage2-source/build/tomokv": "bb3b00d9702788a584a27d8d402eda3f976f139f9d36839d75e9647c59bf2c37"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scriptfix2-stage3-source",
+      "binaries": {
+        "build/scriptfix3/scriptfix2-stage3-source/build/tomokv": "19f4bb61b002100dce6a3739fa026c3030282a31659b97c67908f60e1a02a236"
+      }
+    },
+    {
+      "path": "build/scriptfix3/post2",
+      "binaries": {
+        "build/scriptfix3/post2/tomokv": "a2be017c086e6ded0fdfba637489f9e97d2167b12134abbe7aa6334e7a37ff58"
+      }
+    },
+    {
+      "path": "build/scriptfix3/post3",
+      "binaries": {
+        "build/scriptfix3/post3/tomokv": "2c12ba44bbb061482999240ae8f5857812a78b3ad1b96dd469227b686506dbed"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/post-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/post-normal/probe": "bcb993cfadca3d2d19d7acaac0c9df3aa4194fa9dcb39ac452dddf1f3ff71238"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/post-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/post-db0/probe": "47133fb8e8a1e50dc9f7b3d5ff9a5479b05e0ccb85cbe05d2dc373e54b2d58c8"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage2-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage2-db0/probe": "45d3ab3bf957c0b3553659f0ea2ea3ea6ea675835aded1ccf2cf6c0e89eb6a35"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/post2-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/post2-normal/probe": "946d46101aa45066e87e202b151008c1326a3a8afa60ec148ba30919d422d465"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/post3-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/post3-normal/probe": "29dc4ddb6e36026e6dd71203fd6a16e515f54b9ce0ff72275dd61c0f24bf07f5"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage0-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage0-db0/probe": "f16a837fcf4f4d71bf145374ea2571fe24b1055d6b7beadc8992988cd70ae6b5"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/headline-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/headline-normal/probe": "eb6b4faa36810f2ca14e5bb8e21ff84df087b58a640ca4c2c3a4f1e34923a142"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage3-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage3-normal/probe": "22fae3a1fb4134cc4c5ac130ae485f478f6427c24a9be13043a28a0b5ecd8488"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage1-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage1-db0/probe": "4f91fd81d50f78c4f19e3d7ac68dd1ed396b7708f2e8eb62f1ae7f0142122848"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/headline-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/headline-db0/probe": "b72f71f87385576258770023dac34999f30897d2312d9044cf2901b9cedd2609"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage0-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage0-normal/probe": "978aef299fc25e27156ec81fdbd3fddfd5ab60edcc97848daee0feb30881daca"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage1-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage1-normal/probe": "573267859c88bb6e988d8d60b9b500538a28cf324eea522572d4804f1bf0ce18"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage2-normal",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage2-normal/probe": "8efd274a59e12be4b7f43e5640ce0c6f43f73a324065ed9f53422610cfdfc4ae"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/post2-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/post2-db0/probe": "44992a0eaca6e1287b53d71bbf63906fc65c8d89dbc080428755909fa6595225"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/scriptfix2-stage3-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/scriptfix2-stage3-db0/probe": "3ed5a714e7af36be944e344d0b7fd7465ab578370d56458581e7d82338cd5c27"
+      }
+    },
+    {
+      "path": "build/scriptfix3/scopes/post3-db0",
+      "binaries": {
+        "build/scriptfix3/scopes/post3-db0/probe": "f4685bf00a6578730f249d8e5b436f57ffc55ee7c2b81ffb7b48566d5771889c"
+      }
+    }
+  ]
+}
