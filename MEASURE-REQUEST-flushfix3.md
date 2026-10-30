@@ -214,10 +214,17 @@ targets fresh, including `all`; exact commands and hashes are recorded in
 The broad selection was interrupted **between** jobs after 54 completed jobs
 and 384 passing rows, zero failures, to respect the task's load-generator
 restriction. No test was interrupted and `flip_saturated` never started.
-`broad-interruption.json` preserves the exact completion inventory. The remaining
-jobs continue in a separate selection. FLIP's `flip_saturated` row invokes
+`broad-interruption.json` preserves the exact completion inventory. The resumed
+selection passes another 247 rows. After removing repeated prerequisites, the
+broad union covers 96 distinct jobs and 630 passing rows, zero failures
+(`docs/flushfix3/broad-coverage.json`). FLIP's `flip_saturated` row invokes
 `memtier_benchmark`; it is NOT RUN pending the owner's clarification, while the
 other FLIP jobs remain selected. It is not silently counted as passing.
+
+Superseded compiler probes, source trees and logs were removed after retaining
+their hashes and counts. Large persistence images from completed passing jobs
+were also hashed and removed; their ledgers and comparison results remain.
+The pruning manifests are in `docs/flushfix3/pruned-*.json`.
 
 Inherited sibling findings in `MEASURE-REQUEST-flushfix2.md` remain relevant:
 the historical FLUSH+FLIP abort and DEBUG RELOAD/LOADAOF visibility defects were
