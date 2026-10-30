@@ -1,0 +1,51 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave11/build/wave11/tomokv-POST"
+  ],
+  "cwd": "/home/user/Projects/cx-wave11",
+  "env": {
+    "LANG": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "blockfix_registry blockfix2",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave11/docs/wave11/jobs/landing-adjacent-units.tsv"
+  },
+  "binary_sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9",
+  "source_commit": "9d9ed2b40af01c0dc24cb4c0e46cda68b3866eb6",
+  "source_diff_sha256": "2d4a5d86625d65ad7b62e8ce70d4f7f2dc4a9fe514b1163d32e92a13e0c8b708",
+  "gate_sha256": "1856c6025a7ffeb8019d88dffa29c78607dc58e420ae00286ef23e65f0af78bf",
+  "tests_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "started": 1793350335.8111074,
+  "source_tree_sha256": "28693719cafb2edc51e6b9b391205ba470e1bea584c531374716ef7a264901b6",
+  "tests_tools_sha256": "ed34d74aec9ef357bd0b5f4d44509c978f8d0314f7cb3347e20a365d56d39368",
+  "exit": 0,
+  "seconds": 238.67315340042114,
+  "source_tree_unchanged": true,
+  "tests_tools_unchanged": true,
+  "artifacts": "/home/user/Projects/cx-wave11/build/gate-run.aMWTUj",
+  "summary": [
+    "GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave11/docs/wave11/jobs/landing-adjacent-units.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

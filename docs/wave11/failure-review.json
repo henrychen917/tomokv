@@ -1,0 +1,33 @@
+{
+  "policy": "Original failures remain in the job index. A replay is a new whole-job invocation with all declared legs, never a rewritten receipt.",
+  "attempts": [
+    {
+      "run": "initial-directed",
+      "kind": "test fixture",
+      "reason": "The added FUNCTION environment fixture invoked string.upper during library registration, where that runtime environment is unavailable. The fixture now captures a literal and invokes string/math inside the function callback.",
+      "resolution": "Corrected test only; cache-fixed-directed passed, and all four final climonfix4 mode/engine jobs passed."
+    },
+    {
+      "run": "final-builds",
+      "kind": "job selection",
+      "reason": "production_units is a build-only prerequisite and cannot be selected directly through GATE_ONLY_JOBS.",
+      "resolution": "Selected consuming jobs. landing-builds passed on the frozen POST; every production target and its make -q freshness were audited."
+    },
+    {
+      "run": "landing-main-2s-uring",
+      "jobs": ["asan", "blockfix_registry", "blockfix2", "txnorder2"],
+      "kind": "frozen-arm packaging",
+      "reason": "The initial ASAN argument pointed at a run directory instead of the gate cache. The copied POST initially lacked adjacent blockfix-cost plus its binding sidecar, blockfix2 unit executables, and txnorder-episodes-debug.",
+      "resolution": "Frozen helpers and binding hashes are now adjacent to POST. landing-asan-path-check and landing-adjacent-units passed; txnorder2's complete replay is tracked separately in the final coverage index.",
+      "production_change": false
+    },
+    {
+      "run": "landing-main-2s-uring",
+      "job": "aof-epoll",
+      "kind": "unwitnessed window",
+      "reason": "The everysec population saw aof_send_gate_waits=0. Its exact assertion failed, then recovery failed because the population had not written state.json. These are the two failed public rows from one missing witness.",
+      "resolution": "One isolated whole-job replay on fresh server state, landing-aof-isolated, passed all 54 AOF rows. The everysec proof recorded 512 keys, two syncs, 17 gate waits and 528 replayed records. No source, assertion, timeout or tolerance changed.",
+      "production_change": false
+    }
+  ]
+}

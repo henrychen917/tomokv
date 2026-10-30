@@ -290,7 +290,8 @@
     "atomic_floor (throughput floor)",
     "efficiency (perf)",
     "full tests/gate.sh iteration",
-    "all ABBA/NIC/storm/EXEC/flushmerit load generators"
+    "all ABBA/NIC/storm/EXEC/flushmerit load generators",
+    "tailgen client-lb outstanding bound (inline row, no whole-job selector; open-loop load generator)"
   ],
   "script_bounds_atomic0_each_mode_engine": [
     "script_bounds"

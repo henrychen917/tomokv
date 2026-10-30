@@ -22,5 +22,9 @@
   {
     "path": "build/wave11/txnorder-watch-db0-unit",
     "sha256": "18cf48371dab76f68abd41cc5fb2d8f6dd72ae71de1bb8048e06452c74e95d39"
+  },
+  {
+    "path": "build/wave11/txnorder-episodes-debug",
+    "sha256": "1add8d318f997484e756858e10d29a2fd520c94d462b5ea88f87eb459f892ed0"
   }
 ]

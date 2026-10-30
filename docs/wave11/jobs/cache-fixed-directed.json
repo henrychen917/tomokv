@@ -1,0 +1,46 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20000-20009",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave11/build/wave11/tomokv-cache-fixed"
+  ],
+  "cwd": "/home/user/Projects/cx-wave11",
+  "env": {
+    "LANG": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "climonfix4-1s-uring climonfix4-1s-epoll climonfix4-2s-uring climonfix4-2s-epoll",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave11/docs/wave11/jobs/cache-fixed-directed.tsv"
+  },
+  "binary_sha256": "15cd792beff975984c7fb8bd26607459bc849780a10d1fa2328367541bd8cc47",
+  "source_commit": "f9142b27f76325e144abb02737f25aeb36d43ffa",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "gate_sha256": "ebd1ac8f527b664355f6e3633ef4b474e491505d3991df99bda2885e22e78318",
+  "started": 1793340384.9999986,
+  "exit": 0,
+  "seconds": 169.50785303115845,
+  "artifacts": "/home/user/Projects/cx-wave11/build/gate-run.ZyETBy",
+  "summary": [
+    "GATE(PARTIAL): 29 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave11/docs/wave11/jobs/cache-fixed-directed.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

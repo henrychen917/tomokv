@@ -11,5 +11,11 @@
   },
   "source_commit": "510e826117fc4d1d5a67ebef1dd011f686f74244",
   "make_q_all": 0,
-  "makefile_sha256": "9a1f152dd33c2e2db3cac4d39a3b27111cdf222bf12d793ec27e175f63adc4e5"
+  "makefile_sha256": "9a1f152dd33c2e2db3cac4d39a3b27111cdf222bf12d793ec27e175f63adc4e5",
+  "PAD-A": {
+    "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-PAD-A",
+    "sha256": "d101ece1fb44e1e9d232e50eafd2b879d2a795f34e3bf49fbd803d20e641b79b",
+    "bytes": 223491632,
+    "kind": "A: behaviour twin"
+  }
 }

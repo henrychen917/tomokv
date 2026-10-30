@@ -90,6 +90,13 @@ One-child EXEC necessarily touches one shard; the two/four-child cross cases
 span owners. In the Lua-inclusive census, both arms collect immediately before
 the measured warm call and keep GC enabled during it. This controls bootstrap
 GC debt without suppressing collection inside the call.
+An earlier integer-registry trial (`a204da4a`, not the delivered POST) crossed
+a GC boundary in the uncollected warmup fixture and counted +3308 Lua
+instructions on FCALL. Its counts are retained in
+`docs/wave11/archived-count-details.json.gz`. The final Lua-inclusive statement
+is limited to the explicitly matched collection boundary above; arbitrary GC
+phases are not claimed equal. The primary native census retains its original
+warmup.
 
 Unarmed PAUSE/MONITOR helper entries and warm SHA/header/compile-helper entries
 are all zero. The only positive complete-scope deltas are the intended active
@@ -133,6 +140,19 @@ member offsets and local branches. Every remaining changed body is listed in
 operand explanations and residual disassembly. Identity differences remain
 visible for merit review; they are not converted into throughput conclusions.
 
+Of 10208 function groups, 9467 are strictly unchanged, 286 match an isolated
+lane POST, and 455 remain strict differences. The supplementary audit identifies
+155 of those as direct TLS-address changes only. For the 86 GET/SET/MGET/MSET
+hot-body groups, 74 match headline and one matches climonfix5; the remaining
+eleven are two direct TLS relocations, five TLS relocations with the matching
+base-address LEAs, and four generated CSWTCH symbol renames. The four lookup
+tables have identical full bytes and instruction encodings; their ordinal
+names remain visible in the strict inventory. See
+[table-byte receipts](docs/wave11/identity/switch-tables.json). The TLS growth is
+covered by PAD-A. Other remaining bodies retain their source origin and exact
+nearest-reference diff rather than attributing a specific GCC decision without
+evidence.
+
 ### Correctness receipts
 
 The correctness campaign uses `GATE_ONLY_JOBS` whole jobs on the frozen POST,
@@ -141,12 +161,24 @@ receipts are indexed under `docs/wave11/jobs/`; none is a landing-gate pass.
 Final coverage and any unresolved failures are recorded below when the campaign
 finishes. No tracked EXPECT constant or label fixture has been repaired.
 
+**NOT RUN (maintainer-owned performance work):** `flip_saturated` (memtier),
+`atomic_floor` (throughput floor), `efficiency` (perf comparison), the inline
+`tailgen client-lb outstanding bound` row (open-loop load generator and no
+whole-job selector), ABBA/NIC/EXEC/storm/flushmerit performance loads, and full
+`tests/gate.sh iteration`. The ABBA decision self-test and the flushmerit
+instrument self-tests are correctness work and are recorded separately.
+
 ### Maintainer queue — NOT RUN here
 
 Use the frozen arm hashes below, the gate's existing offered-load instrument,
 acceptance rules and reviewed CPU geometry. Include contemporaneous identical-arm
 nulls. Record rate at matched offered load, cycles/op, instructions/op, IPC and
 latency; these serverless instruction counts do not decide throughput merit.
+The deciding numbers remain each cell's declared rate/latency score against
+the same-session reference, within the established null envelope, with zero
+main-command regression. PAD-A must stay flat for a change to be attributed to
+candidate behavior. Identical-arm scatter above 2% invalidates the run for
+contention/defect investigation; it is not a wider acceptance band.
 
 1. Wave null: merged POST against headline `e2b237926`, the unchanged
    [28 cells](docs/wave11/cells/null28.txt). Use **three blocks for p8g, h05 and

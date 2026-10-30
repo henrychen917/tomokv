@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+ok	215.480000	Redis 7.4.10 Tcl passing subset (2s)
+ok	221.610000	Redis 7.4.10 Tcl passing subset (1s)
+ok	1.880000	compat2 autharity
+ok	6.810000	compat2 expire_notify
+ok	1.920000	compat2 ktls_lifetime

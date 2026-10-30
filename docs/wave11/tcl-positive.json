@@ -1,0 +1,19 @@
+{
+  "receipt": "docs/wave11/jobs/landing-tcl.json",
+  "summary": {
+    "1s": {
+      "units": 38,
+      "passed_assertions": 1818,
+      "known_setup_failures": 5,
+      "complete": true
+    },
+    "2s": {
+      "units": 38,
+      "passed_assertions": 1818,
+      "known_setup_failures": 5,
+      "complete": true
+    }
+  },
+  "note": "Raw upstream setup diagnostics remain recorded and must match the manifest exactly; gate verdict checks the selected assertion multiset and named setup exceptions.",
+  "passed": true
+}

@@ -1,0 +1,19 @@
+ok	0.000000	release build (+footprint locks)
+ok	84.670000	ASAN build
+ok	136.390000	production source identity + stable assertion ids
+ok	0.120000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.140000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.550000	read-local topology demotion (1s)
+ok	0.560000	read-local topology demotion (2s)
+ok	0.200000	FLIP stale stage sample refused (ASAN+TSAN)
+ok	0.180000	FLIP stale stage planted pre-fix controls fail
+ok	6.940000	torture under ASAN
+ok	1.080000	RYOW under ASAN
+ok	25.420000	atomic torn/window under ASAN
+ok	4.080000	atomic RYOW under ASAN
+ok	0.020000	ASAN clean
