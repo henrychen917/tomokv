@@ -28,6 +28,8 @@ two-element `invalidate` push with RESP3 null. Other tracked clients receive
 one null invalidation, even with no remembered key or NOLOOP. Separate TCP
 streams have no total byte order; receipts do not invent one by ordering reads
 in the harness. PING fences check each recipient's subsequent stream.
+`docs/trackorder/wire-examples.json` exposes representative oracle/PRE/POST
+streams as escaped ASCII; the final archives retain every hexadecimal frame.
 
 Production implementation lives in `src/cmd/tracking.cc`; `src/net/wb.h` adds
 only a const accessor for its existing retirement pointer. A flush raised
@@ -53,6 +55,9 @@ whichever combined design the owner selects. If FLUSH later moves to another ret
 that same cold hook with it. Do not emit at dispatch or before owner completion.
 
 ### Frozen arms
+
+POST's production source is committed at `e1d632f94`; subsequent commits add
+tests, receipt tooling and evidence without changing that production diff.
 
 | Arm | File | SHA-256 |
 |---|---|---|
