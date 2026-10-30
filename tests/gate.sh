@@ -5125,7 +5125,7 @@ job_aof_frame(){
 for AOF_FRAME_ATOMIC in 0 1; do
 AOF_FRAME_DIR=$(mktemp -d "$TMPDIR/gate-aof-frameorder-atomic${AOF_FRAME_ATOMIC}.XXXXXX")
 txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_FRAME_ATOMIC" --appendonly yes \
-    --appendfsync no --net-io epoll --auto-aof-rewrite-percentage 0 \
+    --appendfsync no --net-io "${GATE_PROOF_NET_IO:-epoll}" --auto-aof-rewrite-percentage 0 \
     --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
     --enable-debug-command yes --dir "$AOF_FRAME_DIR" \
     || bad "AOF frame-order purpose boot (atomic $AOF_FRAME_ATOMIC)"
@@ -5159,7 +5159,7 @@ for AOFORDER_CASE in single crossing rewrite; do
       for AOFORDER_POLICY in everysec always; do
         py tests/aoforder.py --case "$AOFORDER_CASE" --binary "$AOFORDER_BIN" \
           --mode "$AOFORDER_MODE" --databases "$AOFORDER_DB" --policy "$AOFORDER_POLICY" \
-          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --engine "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" \
           --artifacts "$TMPDIR/aoforder-$AOFORDER_CASE-$AOFORDER_MODE-$AOFORDER_DB-$AOFORDER_POLICY" \
           >"$TMPDIR/aoforder-$AOFORDER_CASE-$AOFORDER_MODE-$AOFORDER_DB-$AOFORDER_POLICY.log" 2>&1 \
           || AOFORDER_OK=0
@@ -5171,7 +5171,7 @@ for AOFORDER_CASE in single crossing rewrite; do
       for AOFORDER_OPERATION in MSETNX DEL UNLINK RENAME LMPOP; do
         py tests/aoforder.py --case single --operation "$AOFORDER_OPERATION" \
           --binary "$CANDIDATE_BINARY" --mode "$AOFORDER_MODE" --policy always \
-          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --engine "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" \
           --artifacts "$TMPDIR/aoforder-operation-$AOFORDER_MODE-$AOFORDER_OPERATION" \
           >"$TMPDIR/aoforder-operation-$AOFORDER_MODE-$AOFORDER_OPERATION.log" 2>&1 \
           || AOFORDER_OK=0

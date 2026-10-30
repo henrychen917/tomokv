@@ -1,0 +1,258 @@
+{
+  "binary": {
+    "path": "build/flushfix3/post/tomokv",
+    "sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a"
+  },
+  "gate_source": {
+    "path": "tests/gate.sh",
+    "sha256": "b380b65f70b29758943bf611bb5fb2a044f06335b1e00a9b8b4d763b6585911c"
+  },
+  "runs": [
+    {
+      "label": "final/directed",
+      "phase": "directed",
+      "status": 1,
+      "command": [
+        "taskset",
+        "-c",
+        "0-15",
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "0-7",
+        "--load-cores",
+        "8-15",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20102",
+        "--candidate-binary",
+        "/home/user/Projects/cx-flushfix3/build/tomokv"
+      ],
+      "binary_sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a",
+      "environment": {
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_ONLY_JOBS": "flushfix2 flushfix2_units flushfix3 flushfix3_units",
+        "GATE_LEDGER": "/home/user/Projects/cx-flushfix3/build/flushfix3/verification/final/directed",
+        "GATE_LOAD_CORES": "8-15",
+        "GATE_DIFFER_ORACLE_CORES": "0-7"
+      }
+    }
+  ],
+  "gates": {
+    "final/directed": {
+      "log": {
+        "path": "build/flushfix3/verification/final/directed.log",
+        "sha256": "daef1b6674284a27d592c35bb181b00c1624428719b6f6eeb2d357909554a628"
+      },
+      "root": "build/gate-run.DgKCat",
+      "jobs": [
+        {
+          "name": "release",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.DgKCat/jobs/release/ledger",
+            "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+          },
+          "rows": [
+            {
+              "job": "release",
+              "label": "release build (+footprint locks)",
+              "verdict": "ok",
+              "seconds": 0.01
+            }
+          ]
+        },
+        {
+          "name": "flushfix3",
+          "done": [
+            "0",
+            "1",
+            "1"
+          ],
+          "ledger": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix3/ledger",
+            "sha256": "0d2d0d9ffe5a755407b87db74a29f0500a575f63f7a9593644e91a34a852caba"
+          },
+          "rows": [
+            {
+              "job": "flushfix3",
+              "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 16)",
+              "verdict": "ok",
+              "seconds": 46.8
+            },
+            {
+              "job": "flushfix3",
+              "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 1)",
+              "verdict": "FAIL",
+              "seconds": 45.69
+            }
+          ]
+        },
+        {
+          "name": "flushfix3_units",
+          "done": [
+            "0",
+            "2",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix3_units/ledger",
+            "sha256": "e52c45644310da59b75fc540143b974a6334a119cd68a0ab99e85012b1510840"
+          },
+          "rows": [
+            {
+              "job": "flushfix3_units",
+              "label": "flushfix3-unit linear collapse, collisions, OOM and saturated ranges",
+              "verdict": "ok",
+              "seconds": 11.22
+            },
+            {
+              "job": "flushfix3_units",
+              "label": "flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges",
+              "verdict": "ok",
+              "seconds": 11.22
+            }
+          ]
+        },
+        {
+          "name": "flushfix2",
+          "done": [
+            "0",
+            "14",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix2/ledger",
+            "sha256": "555af1d0f7379bb4fa390362c135cbfa626485c597ee71e5ab49bd75ac012e9e"
+          },
+          "rows": [
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 flush-pair FLUSHALL SYNC (databases 16)",
+              "verdict": "ok",
+              "seconds": 62.46
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 flush-pair FLUSHALL SYNC (databases 1)",
+              "verdict": "ok",
+              "seconds": 62.46
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 flush-script FLUSHALL SYNC (databases 16)",
+              "verdict": "ok",
+              "seconds": 62.46
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 flush-script FLUSHALL SYNC (databases 1)",
+              "verdict": "ok",
+              "seconds": 62.46
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 flush-only FLUSHALL SYNC (databases 16)",
+              "verdict": "ok",
+              "seconds": 62.46
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 flush-only FLUSHALL SYNC (databases 1)",
+              "verdict": "ok",
+              "seconds": 62.46
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHALL SYNC (databases 16)",
+              "verdict": "ok",
+              "seconds": 62.47
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHALL ASYNC (databases 16)",
+              "verdict": "ok",
+              "seconds": 62.48
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHDB SYNC (databases 16)",
+              "verdict": "ok",
+              "seconds": 62.48
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHDB ASYNC (databases 16)",
+              "verdict": "ok",
+              "seconds": 62.48
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHALL SYNC (databases 1)",
+              "verdict": "ok",
+              "seconds": 62.48
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHALL ASYNC (databases 1)",
+              "verdict": "ok",
+              "seconds": 62.47
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHDB SYNC (databases 1)",
+              "verdict": "ok",
+              "seconds": 62.48
+            },
+            {
+              "job": "flushfix2",
+              "label": "flushfix2 namespace FLUSHDB ASYNC (databases 1)",
+              "verdict": "ok",
+              "seconds": 62.47
+            }
+          ]
+        },
+        {
+          "name": "flushfix2_units",
+          "done": [
+            "0",
+            "2",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix2_units/ledger",
+            "sha256": "6acff2df0ed4e70ade5df2dbedaebb128c7d9953a5a33806b0a6d187a1ee3457"
+          },
+          "rows": [
+            {
+              "job": "flushfix2_units",
+              "label": "flushfix2-unit ranges and rollback",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "flushfix2_units",
+              "label": "flushfix2-db0-unit ranges and rollback",
+              "verdict": "ok",
+              "seconds": 0.05
+            }
+          ]
+        }
+      ],
+      "omitted_unfinished_jobs": [],
+      "scored_rows": 21,
+      "verdicts": {
+        "ok": 20,
+        "FAIL": 1
+      }
+    }
+  },
+  "differential_inventory": []
+}

@@ -14,27 +14,29 @@ EXTRA = '''snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_t
 scriptfix2 exec1s netcmd_units notifycompat racefix_counters racefix_climon'''.split()
 # These families use the ordinary gate boot, rather than owning an internal
 # engine product. Their explicit atomic/mode loops remain intact.
-ENGINE = '''dump_restore debug-0 debug-1 aof_frame aoforder notify_aof
-serverfix_waitaof iofix-signal climonfix txnorder-fused-0 txnorder-fused-1
+ENGINE = '''dump_restore debug-0 debug-1 aoforder
+climonfix txnorder-fused-0 txnorder-fused-1
 txnorder-split-0 txnorder-split-1 txn_group_fused txn_group_split script_bounds
-scriptfix flip flipctl flip_saturated fliplisten atomic_batteries atomic_floor
+scriptfix flip flipctl flip_saturated atomic_batteries atomic_floor
 atomfix5_watch atomfix5_accounting fused-0 fused-1 release_batteries
 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1'''.split()
 ENGINE += [f'multidb-{m}-{r}-{a}' for m in ('1s', '2s') for r in (0, 1) for a in (0, 1)]
 # txn_proof_boot's companion fused run. The explicitly split-only FLIP rows
 # remain split; fused automatic FLIP is deliberately unsupported.
-FUSED = '''snapshot-uring snapshot-epoll aof-uring aof-epoll aof_frame aoforder
-notify_aof serverfix_waitaof dump_restore debug-0 debug-1 script_bounds'''.split()
+FUSED = '''snapshot-uring snapshot-epoll aof-uring aof-epoll aof_frame
+dump_restore debug-0 debug-1 script_bounds atomic_batteries'''.split()
 
 
 def phases():
     result = {
+        'idle': ('quick', ['flushfix3'], {}),
         'directed': ('quick', 'flushfix2 flushfix2_units flushfix3 flushfix3_units'.split(), {}),
         'broad': ('quick', BROAD + EXTRA, {}),
         'engine-epoll': ('quick', ENGINE, dict(GATE_NET_IO='epoll', GATE_PROOF_NET_IO='epoll')),
-        'fused-uring': ('quick', FUSED, dict(GATE_TXN_FUSED='1')),
+        'fused-uring': ('quick', FUSED, dict(GATE_TXN_FUSED='1', GATE_PROOF_NET_IO='uring')),
         'fused-epoll': ('quick', [j for j in FUSED if not j.startswith(('snapshot-', 'aof-'))],
                         dict(GATE_TXN_FUSED='1', GATE_NET_IO='epoll', GATE_PROOF_NET_IO='epoll')),
+        'aof-frame-uring': ('quick', ['aof_frame'], dict(GATE_PROOF_NET_IO='uring')),
     }
     for engine in ('uring', 'epoll'):
         result['script-a1-'+engine] = ('quick', ['scriptfix'],

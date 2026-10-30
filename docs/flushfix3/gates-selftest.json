@@ -1,0 +1,17 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "GATE_TEST_PORT": "20198"
+  },
+  "status": 0,
+  "tests": 73,
+  "log": "build/flushfix3/gates-final.log",
+  "log_sha256": "ebb80d380054a3e0623e7c3cd38e89047c9568116b6117e9c59d83b42bafe4ca"
+}
