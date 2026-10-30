@@ -221,8 +221,16 @@ broad union covers 96 distinct jobs and 630 passing rows, zero failures
 `memtier_benchmark`; it is NOT RUN pending the owner's clarification, while the
 other FLIP jobs remain selected. It is not silently counted as passing.
 The additional epoll selection completes with 268 passing rows, zero failures;
-fused persistence and the remaining explicit mode/engine controls are still
-running before the standard-seed differential selections.
+the explicit script and xscript-bound mode/engine controls also pass.
+The first fused io_uring selection records 182 passes and two AOF framing
+failures before its live schedule: the gate selected io_uring for the server
+but did not forward the battery's existing `--engine` argument, so its epoll
+precondition correctly rejected the boot. Commit `260866ea9` forwards that
+argument without changing the required witnesses. The corrected split io_uring
+framing job and fused epoll selection pass; the affected fused io_uring framing
+rows will be rerun. Original errors and source hashes are retained in
+`docs/flushfix3/aof-frame-harness-failure.json`. Differential selections are
+running on both engines' standard seed inventories.
 
 Superseded compiler probes, source trees and logs were removed after retaining
 their hashes and counts. Large persistence images from completed passing jobs
