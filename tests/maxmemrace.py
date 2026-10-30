@@ -19,13 +19,16 @@ polls its completions instead of parking until X's end-of-pass submit wakes it.
 Cases: lift 1 -> 0 under noeviction and allkeys-lru (the SET must be admitted) and tighten
 0 -> 1 under noeviction (the SET must be refused with OOM). CONCURRENT-CONVERGENCE races
 two clients' conflicting CONFIG SET maxmemory pipelines from different IO threads, then
-requires a SET on every shard to admit or refuse exactly as CONFIG GET's final value says. Shard 0 also carries 2000 padding
-keys, so the brief allkeys-lru settle cannot plausibly evict the list before step 1; every
-candidate scan must still return the list's last index. Non-vacuity, required on every
-candidate trial: X still owed scan replies after the SET was written, so the SET entered its
-channel while X was inside the busy drain. The Redis oracle runs the same wire sequence
+requires a SET on every shard to admit or refuse exactly as CONFIG GET's final value says.
+
+Non-vacuity, required on every candidate trial: X still owed scan replies after the SET was
+written (the SET entered its channel while X was inside the busy drain), and every scan found
+the list. Shard 0 carries 6000 padding keys and the settle directly precedes step 1, so the
+old allkeys-lru limit rarely evicts the list first. A trial whose window did not open is
+re-armed on fresh state, at most three attempts; the assertion is never relaxed and a trial
+that never opens its window fails the leg. The Redis oracle runs the same wire sequence
 without geometry (its allkeys-lru limit may evict the list; that is not asserted there).
-No rates, latencies or retries.
+No rates or latencies are asserted.
 """
 import argparse
 import contextlib
@@ -44,7 +47,8 @@ from pathlib import Path
 
 OOM = b"-OOM command not allowed when used memory > 'maxmemory'."
 LIST_LENGTH = 20000
-PAD_KEYS = 2000
+PAD_KEYS = 6000
+ARMING_ATTEMPTS = 3
 OCCUPY_FIRST = 20
 OCCUPY_TASKS = 60
 CASES = ('LIFT-NOEVICTION', 'LIFT-ALLKEYS-LRU', 'TIGHTEN-NOEVICTION', 'CONCURRENT-CONVERGENCE')
@@ -160,7 +164,7 @@ class Geometry:
             self.shard_keys = [f'mmr:probe:{i}' for i in range(16)]
             self.racers = (self.connect(), self.connect())
             return
-        keys = [f'mmr:{i}' for i in range(65536)]
+        keys = [f'mmr:{i}' for i in range(131072)]
         placement = {}
         for base in range(0, len(keys), 4096):
             rows = self.ctl.cmd('DEBUG', 'SHARDS', *keys[base:base + 4096])
@@ -271,7 +275,6 @@ def trial(g, case, transcript):
     policy = 'allkeys-lru' if case == 'LIFT-ALLKEYS-LRU' else 'noeviction'
     old, new = ('0', '1') if case.startswith('TIGHTEN') else ('1', '0')
     prepare(g, policy)
-    settle(g, old)
     scan = encode('LPOS', g.big, LIST_LENGTH - 1)
     # A parked IO thread is woken by X's message only when X submits at its pass end, which
     # would hold the +OK until X left the drain. Keep a's IO thread polling with IO-local PINGs.
@@ -289,6 +292,9 @@ def trial(g, case, transcript):
     keeper = threading.Thread(target=keep_awake, daemon=True)
     keeper.start()
     time.sleep(0.002)
+    # Settle last: under allkeys-lru the old limit starts evicting shard 0 at once, so the
+    # occupation follows the settle's proof directly.
+    settle(g, old)
     t0 = time.monotonic()
     g.b1.send(*([scan] * OCCUPY_FIRST))                    # occupy the shard-0 owner
     time.sleep(0.001)
@@ -358,7 +364,16 @@ def run_target(args, label, argv, oracle):
             try:
                 for case in CASES:
                     for _ in range(args.trials):
-                        result['trials'].append(trial(g, case, transcript))
+                        # Re-arm on fresh state, bounded, when the window did not open (e.g. the
+                        # old allkeys-lru limit evicted the scanned list first). The assertion is
+                        # never relaxed; a trial that never opens its window fails the leg.
+                        for attempt in range(1, ARMING_ATTEMPTS + 1):
+                            record = trial(g, case, transcript)
+                            record['attempt'] = attempt
+                            if record['window_open']:
+                                break
+                            result.setdefault('rearmed', []).append(dict(case=case, attempt=attempt))
+                        result['trials'].append(record)
             finally:
                 g.close()
     except Exception:
@@ -426,7 +441,8 @@ def main():
         bad = sum(1 for t in r['trials'] if not t['passed'])
         closed = sum(1 for t in r['trials'] if not t['window_open'])
         print(f"{r['label']}: passed={r['passed']} assertion_failures={bad}/{len(r['trials'])} "
-              f"window_closed={closed}" + (' EXCEPTION' if 'exception' in r else ''), flush=True)
+              f"window_closed={closed} rearmed={len(r.get('rearmed', []))}"
+              + (' EXCEPTION' if 'exception' in r else ''), flush=True)
     oracle_ok = all(r['passed'] for r in results if r['oracle'])
     candidates = [r for r in results if not r['oracle']]
     if args.expect_fail:
