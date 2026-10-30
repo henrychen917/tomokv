@@ -3420,6 +3420,7 @@ job_scriptfix(){
       row_begin "$label"
       if py tests/scriptfix.py "$case" --binary "$CANDIDATE_BINARY" \
           --port "$PORT" --cores "$CORES" --mode "$mode" \
+          --atomic "${GATE_TXN_ATOMIC:-0}" --net-io "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" \
           --output "$TMPDIR/scriptfix" >"$TMPDIR/scriptfix-$case-$mode.log" 2>&1; then
         ok "$label"
       else
