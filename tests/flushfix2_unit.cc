@@ -104,7 +104,7 @@ int main() {
         need(st.atomic_resolve(ah, a, 9)->int_value() == 5, "post write retains old cut");
         need(st.atomic_flush_ready(range, 11, 10), "range eligible after floor");
         need(st.atomic_flush_has_post(*range), "slow collapse armed");
-        st.atomic_flush_erase(*range);
+        need(st.atomic_flush_erase(*range), "slow collapse scratch allocated");
         st.atomic_flush_release(range);
         need(refs.load() == 0, "range lifetime retired");
         if (abort_post) post_aborted.store(true, std::memory_order_release);

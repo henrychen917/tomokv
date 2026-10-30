@@ -1,5 +1,6 @@
 #include "flatstore.h"
 #include "../core/signal.h"
+#include <optional>
 
 namespace tomo {
 int64_t atomic_flush_now_ms() { return now_realtime_ms(); }
@@ -85,45 +86,207 @@ bool FlatStore::atomic_flush_has_post(const AtomicEntry& range) const {
     return versions != 0;
 }
 
+namespace {
+// Built only by the cold owner collapse, before changing any resident/parked
+// pointer. Keys borrow stable record storage, never the values we retire.
+// Capped probing avoids a quadratic hash-cluster case. Overflow uses a Patricia
+// tree over hash, namespace and length-delimited key bits; each descent visits
+// strictly increasing bit positions, bounded by 72 + 9 * maximum key length.
+class FlushPostIndex {
+    struct Slot {
+        uint64_t hash = 0;
+        Slice key;
+        KvObj** parked = nullptr;
+        bool matches(uint64_t h, Slice k) const { return hash == h && key.key_eq(k); }
+    };
+    struct Node {
+        Slot value;
+        uint64_t bit = UINT64_MAX; // leaf
+        size_t child[2] = {};
+    };
+    static constexpr size_t absent = SIZE_MAX;
+    static constexpr unsigned probes = 16;
+    std::vector<Slot> slots_;
+    std::vector<Node> overflow_;
+    size_t root_ = absent;
+    uint64_t& work_;
+
+    static unsigned bit_at(uint64_t hash, Slice key, uint64_t bit) {
+        if (bit < 64) return (hash >> (63 - bit)) & 1;
+        if (bit < 72) return (key.ns >> (71 - bit)) & 1;
+        bit -= 72;
+        const uint64_t byte = bit / 9;
+        if (byte >= key.n) return 0;
+        const unsigned within = bit % 9;
+        if (!within) return 1; // byte present; zero terminates the key
+        return (static_cast<unsigned char>(key.p[byte]) >> (8 - within)) & 1;
+    }
+    uint64_t difference(const Slot& a, const Slot& b) {
+        if (a.hash != b.hash) return std::countl_zero(a.hash ^ b.hash);
+        if (a.key.ns != b.key.ns)
+            return 64 + std::countl_zero(unsigned(a.key.ns ^ b.key.ns)) - 24;
+        uint64_t i = 0;
+        while (i < std::min(a.key.n, b.key.n)) {
+            ++work_;
+            const unsigned diff = static_cast<unsigned char>(a.key.p[i]) ^
+                                  static_cast<unsigned char>(b.key.p[i]);
+            if (diff) return 72 + 9 * i + 1 + std::countl_zero(diff) - 24;
+            ++i;
+        }
+        return 72 + 9 * i; // unequal lengths: present marker versus terminator
+    }
+    KvObj** find_overflow(uint64_t hash, Slice key) {
+        if (root_ == absent) return nullptr;
+        size_t at = root_;
+        while (overflow_[at].bit != UINT64_MAX) {
+            ++work_;
+            at = overflow_[at].child[bit_at(hash, key, overflow_[at].bit)];
+        }
+        ++work_;
+        const auto& value = overflow_[at].value;
+        return value.matches(hash, key) ? value.parked : nullptr;
+    }
+    void insert_overflow(Slot value) {
+        if (root_ == absent) {
+            overflow_.push_back(Node{value});
+            root_ = 0;
+            return;
+        }
+        size_t leaf = root_;
+        while (overflow_[leaf].bit != UINT64_MAX) {
+            ++work_;
+            leaf = overflow_[leaf].child[bit_at(value.hash, value.key, overflow_[leaf].bit)];
+        }
+        ++work_;
+        if (overflow_[leaf].value.matches(value.hash, value.key)) return;
+        const uint64_t bit = difference(value, overflow_[leaf].value);
+        size_t at = root_, parent = absent;
+        unsigned direction = 0;
+        while (overflow_[at].bit < bit) {
+            ++work_;
+            parent = at;
+            direction = bit_at(value.hash, value.key, overflow_[at].bit);
+            at = overflow_[at].child[direction];
+        }
+        const size_t fresh = overflow_.size();
+        overflow_.push_back(Node{value});
+        Node branch;
+        branch.bit = bit;
+        const unsigned side = bit_at(value.hash, value.key, bit);
+        branch.child[side] = fresh;
+        branch.child[side ^ 1] = at;
+        const size_t fork = overflow_.size();
+        overflow_.push_back(branch);
+        if (parent == absent) root_ = fork;
+        else overflow_[parent].child[direction] = fork;
+    }
+public:
+    FlushPostIndex(size_t occurrences, uint64_t& work) : work_(work) {
+        size_t capacity = 32;
+        while (capacity / 2 < occurrences) capacity *= 2;
+        slots_.resize(capacity);
+        work_ += capacity; // include scratch initialization in the work witness
+    }
+    void insert(uint64_t hash, Slice key, KvObj** parked) {
+        const size_t mask = slots_.size() - 1;
+        for (unsigned i = 0; i < probes; ++i) {
+            ++work_;
+            auto& slot = slots_[(hash + i) & mask];
+            if (!slot.parked) { slot = Slot{hash, key, parked}; return; }
+            if (slot.matches(hash, key)) return; // retain the FIRST occurrence
+        }
+        insert_overflow(Slot{hash, key, parked});
+    }
+    KvObj** find(uint64_t hash, Slice key) {
+        const size_t mask = slots_.size() - 1;
+        for (unsigned i = 0; i < probes; ++i) {
+            ++work_;
+            const auto& slot = slots_[(hash + i) & mask];
+            if (!slot.parked) return nullptr;
+            if (slot.matches(hash, key)) return slot.parked;
+        }
+        return find_overflow(hash, key);
+    }
+    template<class Fn> void for_each(Fn&& fn) {
+        for (const auto& slot : slots_) { ++work_; if (slot.parked) fn(slot.parked); }
+        for (const auto& node : overflow_) {
+            ++work_;
+            if (node.bit == UINT64_MAX) fn(node.value.parked);
+        }
+    }
+};
+} // namespace
+
 // The first later occurrence owns the pre-flush resident. Removing that
 // slot also makes a later abort roll back to absence, never resurrect it.
-void FlatStore::atomic_flush_erase(AtomicEntry& range) {
-    auto first_post = [&](uint64_t hash, Slice key) -> KvObj** {
-        for (auto* e = range.next; e; e = e->next) {
-            if (!(e->membership & atomic_membership_bit(hash))) continue;
-            for (uint32_t i = 0; i < e->count; ++i)
-                if (atomic_entry_hash(*e, i) == hash && atomic_entry_key(*e, i).key_eq(key))
-                    return &e->parked()[i];
+bool FlatStore::atomic_flush_erase(AtomicEntry& range) {
+    uint64_t work = 0;
+    size_t occurrences = 0;
+    for (auto* e = range.next; e; e = e->next) {
+        ++work;
+        for (uint32_t i = 0; i < e->count; ++i) {
+            ++work;
+            occurrences += atomic_range_covers(range, atomic_entry_key(*e, i));
         }
-        return nullptr;
-    };
+    }
+    // Prevent capacity arithmetic overflow before allocating scratch. No
+    // mutation has happened, so allocation failure can defer the owner task.
+    if (occurrences > SIZE_MAX / 256) return false;
+    std::optional<FlushPostIndex> first_post;
+    try {
+        first_post.emplace(occurrences, work);
+        for (auto* e = range.next; e; e = e->next) {
+            ++work;
+            for (uint32_t i = 0; i < e->count; ++i) {
+                ++work;
+                const Slice key = atomic_entry_key(*e, i);
+                if (atomic_range_covers(range, key))
+                    first_post->insert(atomic_entry_hash(*e, i), key, &e->parked()[i]);
+            }
+        }
+    } catch (const std::bad_alloc&) {
+        // Residents and predecessor slots are untouched on this retry.
+        // A decided FLUSH must not reply OOM.
+        atomic_flush_counters.slow_work.fetch_add(work, std::memory_order_relaxed);
+        return false;
+    }
     // Raw slot traversal cannot reap TTLs, emit per-key events, shrink, or
     // move the snapshot cursor. The range poison protects foreign probes.
     for (int table = 0; table < 2; ++table) {
         if (!tab_[table]) continue;
         for (uint32_t slot = 0; slot < cap_[table]; ++slot) {
+            ++work;
             KvObj* object = ptr_of(tab_[table][slot]);
             if (!object || !atomic_range_covers(range, object->key())) continue;
             const Slice key = object->key();
             const uint64_t hash = hash_key(key);
-            if (first_post(hash, key)) continue;
-            erase_in(table, hash, key);
+            if (first_post->find(hash, key)) continue;
+            // The slot is already known. Keep erase_in's accounting and QSBR
+            // order, without probing the physical table again for each slot.
+            if constexpr (!kSingleDatabase) storesize_replace(object, nullptr);
+            untrack_expire(hash);
+            if (read_local_enabled_) {
+                read_local_slot_store(&tab_[table][slot], kTombBit);
+                retire_obj_read_local(object);
+            } else {
+                retire_obj(object);
+                tab_[table][slot] = kTombBit;
+            }
+            --live_[table]; ++tombs_[table];
         }
     }
     // Includes keys whose post-flush version deleted their physical slot.
-    for (auto* e = range.next; e; e = e->next)
-        for (uint32_t i = 0; i < e->count; ++i) {
-            const Slice key = atomic_entry_key(*e, i);
-            if (!atomic_range_covers(range, key)) continue;
-            KvObj** parked = first_post(atomic_entry_hash(*e, i), key);
-            if (parked != &e->parked()[i] || !*parked) continue;
+    first_post->for_each([&](KvObj** parked) {
+            if (!*parked) return;
             KvObj* old = *parked;
             *parked = nullptr;
             atomic_gauge_sub(kvobj_size(old));
             if (read_local_enabled_) retire_detached_obj_read_local(old);
             else retire_detached_obj(old);
-        }
+    });
+    atomic_flush_counters.slow_work.fetch_add(work, std::memory_order_relaxed);
     atomic_flush_counters.slow_collapses.fetch_add(1, std::memory_order_relaxed);
+    return true;
 }
 
 uint64_t FlatStore::atomic_flush_resolved_size(uint64_t snapshot) {

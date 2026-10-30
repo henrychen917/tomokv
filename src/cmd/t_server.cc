@@ -2919,6 +2919,7 @@ void cmd_info(Shard&, Op& op) {
         body += "atomic_flush_script_conflicts:" + std::to_string(f.script_conflicts.load()) + "\r\n";
         body += "atomic_flush_collapses:" + std::to_string(f.collapses.load()) + "\r\n";
         body += "atomic_flush_slow_collapses:" + std::to_string(f.slow_collapses.load()) + "\r\n";
+        body += "atomic_flush_slow_work:" + std::to_string(f.slow_work.load()) + "\r\n";
         appendf(body, "script_waiters_peak:%llu\r\n", static_cast<unsigned long long>(
             g_server ? g_server->script_waiters_peak() : 0));
         appendf(body, "script_stage_watch_tasks:%llu\r\n", static_cast<unsigned long long>(

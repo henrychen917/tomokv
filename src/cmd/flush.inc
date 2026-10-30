@@ -120,7 +120,7 @@ ScatterTaskResult execute_flush(const Task& task, Shard& shard, Op& op) {
     if (!state.aborted.load(std::memory_order_acquire)) {
         if (!store.atomic_flush_has_post(*range)) op.spec->handler(shard, op);
         else {
-            store.atomic_flush_erase(*range);
+            if (!store.atomic_flush_erase(*range)) return ScatterTaskResult::Defer;
             if (group.aux->flush_changed && (shard.notify_mask() & NOTIFY_SAVE)) shard.note_save_change();
             shard.publish_size();
         }

@@ -182,6 +182,7 @@ static_assert(offsetof(AtomicPendingState, ranges) == 1319);
 struct AtomicFlushCounters {
     std::atomic<uint64_t> units{0}, range_reads{0}, post_versions{0};
     std::atomic<uint64_t> script_conflicts{0}, collapses{0}, slow_collapses{0};
+    std::atomic<uint64_t> slow_work{0};
 };
 inline AtomicFlushCounters atomic_flush_counters;
 // Keep the new cold clock caller outside the scatter translation unit: it

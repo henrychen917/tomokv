@@ -1158,7 +1158,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flushfix3 flushfix2 flushfix2_units flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
+  JOB_NAMES+=(flushfix3 flushfix3_units flushfix2 flushfix2_units flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1417,6 +1417,24 @@ job_flushfix3(){
         --cores "$CORES" --port "$PORT" --output "$TMPDIR/db$databases" \
         >"$TMPDIR/db$databases.log" 2>&1 \
         && ok "$label" || bad "$label" "see $TMPDIR/db$databases.log"
+  done
+}
+
+job_flushfix3_units(){
+  local target namespace
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/flushfix3.mk -j"$BUILD_JOBS" \
+      build/flushfix3-unit build/flushfix3-db0-unit >"$TMPDIR/build.log" 2>&1
+  for target in flushfix3-unit flushfix3-db0-unit; do
+    namespace=normal; [ "$target" != flushfix3-db0-unit ] || namespace=db0
+    row_begin "$target linear collapse, collisions, OOM and saturated ranges"
+    make -f Makefile -f tools/flushfix3.mk -q "build/$target" && \
+        taskset -c "$CORES" "build/$target" >"$TMPDIR/$target.log" 2>&1 \
+        && pausable taskset -c "$BUILD_CORES" python3 tools/flushfix3_work_reference.py \
+            --namespace "$namespace" --output "$TMPDIR/reference-$namespace" \
+            >"$TMPDIR/reference-$namespace.log" 2>&1 \
+        && ok "$target linear collapse, collisions, OOM and saturated ranges" \
+        || bad "$target linear collapse, collisions, OOM and saturated ranges" \
+            "see $TMPDIR/build.log and $TMPDIR/$target.log"
   done
 }
 
@@ -6004,6 +6022,7 @@ collect_job asan
 collect_job config_unit
 collect_job source_identity
 collect_job flushfix3
+collect_job flushfix3_units
 collect_job flushfix2
 collect_job flushfix2_units
 # iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
