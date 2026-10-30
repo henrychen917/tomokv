@@ -59,6 +59,8 @@ that same cold hook with it. Do not emit at dispatch or before owner completion.
 
 POST's production source is committed at `e1d632f94`; subsequent commits add
 tests, receipt tooling and evidence without changing that production diff.
+It was compiled before that commit, so its baked-in INFO git SHA is
+`b124d5ca`. The SHA-256s below identify the actual frozen artifacts.
 
 | Arm | File | SHA-256 |
 |---|---|---|
@@ -154,8 +156,14 @@ runs its own complete engine/mode legs. Whole-job receipts are in
 The ordinary-job epoll repeat passes **190 rows, 0 failures**, including both
 atomic settings of split, armed fused and ordinary fused batteries, client
 tracking/reply suppression, notifications and txnorder. Its whole-job archive
-and summary are alongside the primary run. Differential and supplemental
-verdicts are still being collected.
+and summary are alongside the primary run.
+
+The complete epoll differential matrix passes through the gate's own jobs:
+split and armed fused, atomic 0/1, permanent seeds **7/19/20/23** plus rotating
+seed 21, and the mode-equivalence job. All six aggregate rows (including the
+release prerequisite) pass. Raw suite outputs and plans are retained in
+`docs/trackorder/jobs/differ-epoll-proof.tar.gz`. The uring differential and
+supplemental verdicts are still being collected.
 
 Earlier evidence remains separate: the first harness launch failed because
 the TomoKV readiness-banner check was applied to Redis. The initial PRE
