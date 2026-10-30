@@ -17,7 +17,9 @@ A third connection on a's IO thread pipelines PINGs (IO-local) throughout, so th
 polls its completions instead of parking until X's end-of-pass submit wakes it.
 
 Cases: lift 1 -> 0 under noeviction and allkeys-lru (the SET must be admitted) and tighten
-0 -> 1 under noeviction (the SET must be refused with OOM). Shard 0 also carries 2000 padding
+0 -> 1 under noeviction (the SET must be refused with OOM). CONCURRENT-CONVERGENCE races
+two clients' conflicting CONFIG SET maxmemory pipelines from different IO threads, then
+requires a SET on every shard to admit or refuse exactly as CONFIG GET's final value says. Shard 0 also carries 2000 padding
 keys, so the brief allkeys-lru settle cannot plausibly evict the list before step 1; every
 candidate scan must still return the list's last index. Non-vacuity, required on every
 candidate trial: X still owed scan replies after the SET was written, so the SET entered its
@@ -45,7 +47,8 @@ LIST_LENGTH = 20000
 PAD_KEYS = 2000
 OCCUPY_FIRST = 20
 OCCUPY_TASKS = 60
-CASES = ('LIFT-NOEVICTION', 'LIFT-ALLKEYS-LRU', 'TIGHTEN-NOEVICTION')
+CASES = ('LIFT-NOEVICTION', 'LIFT-ALLKEYS-LRU', 'TIGHTEN-NOEVICTION', 'CONCURRENT-CONVERGENCE')
+RACE_SETS = 100
 
 
 def encode(*args):
@@ -154,6 +157,8 @@ class Geometry:
             self.pads = [f'mmr:pad:{i}' for i in range(PAD_KEYS)]
             self.a, self.b2, self.b1 = self.connect(), self.connect(), self.ctl
             self.keeper = self.connect()
+            self.shard_keys = [f'mmr:probe:{i}' for i in range(16)]
+            self.racers = (self.connect(), self.connect())
             return
         keys = [f'mmr:{i}' for i in range(65536)]
         placement = {}
@@ -185,6 +190,13 @@ class Geometry:
         self.io = choice[0]
         self.a, self.b2, self.keeper = by_io[self.io][:3]
         self.b1 = self.ctl
+        # One key on every shard, and two racing connections on two different IO threads.
+        firsts = {}
+        for key, (sid, _) in placement.items():
+            firsts.setdefault(sid, key)
+        self.shard_keys = [firsts[sid] for sid in sorted(firsts)]
+        ios = sorted(io for io in by_io if io != self.io)
+        self.racers = (by_io[ios[0]][0], by_io[ios[-1]][-1])
         transcript.append(dict(geometry=dict(
             shard0_owner=self.owner, owner_shards=x_shards, big=self.big, witness=self.witness,
             witness_shard=placement[self.witness][0], ab2_io_thread=self.io,
@@ -225,7 +237,37 @@ def settle(g, maxmemory):
     assert reply == want, ('settled limit not in effect', maxmemory, reply)
 
 
+def convergence(g, transcript):
+    """Two clients race conflicting CONFIG SETs; afterwards CONFIG GET and every shard agree."""
+    assert g.ctl.cmd('CONFIG', 'SET', 'maxmemory', '0') == b'+OK'
+    assert g.ctl.cmd('CONFIG', 'SET', 'maxmemory-policy', 'noeviction') == b'+OK'
+    g.ctl.send(*[encode('SET', key, 'v') for key in g.shard_keys])
+    for _ in g.shard_keys:
+        assert g.ctl.read() == b'+OK'
+    first, second = g.racers
+    first.send(*[encode('CONFIG', 'SET', 'maxmemory', ('0', '1')[i & 1]) for i in range(RACE_SETS)])
+    second.send(*[encode('CONFIG', 'SET', 'maxmemory', ('1', '0')[i & 1]) for i in range(RACE_SETS)])
+    replies = [first.read() for _ in range(RACE_SETS)] + [second.read() for _ in range(RACE_SETS)]
+    final = g.ctl.cmd('CONFIG', 'GET', 'maxmemory')
+    assert isinstance(final, list) and len(final) == 2, final
+    value = final[1].decode()
+    want = b'+OK' if value == '0' else OOM
+    # Every shard's owner must refuse or admit according to the value CONFIG GET reports.
+    g.ctl.send(*[encode('SET', key, 'w') for key in g.shard_keys])
+    got = [g.ctl.read() for _ in g.shard_keys]
+    record = dict(case='CONCURRENT-CONVERGENCE', policy='noeviction', race_sets=2 * RACE_SETS,
+                  config_replies_ok=sum(1 for r in replies if r == b'+OK'), final_maxmemory=value,
+                  shard_replies={k: r.decode(errors='replace') for k, r in zip(g.shard_keys, got)},
+                  mismatched=[k for k, r in zip(g.shard_keys, got) if r != want])
+    record['window_open'] = True     # no window: a convergence property, asserted on every leg
+    record['passed'] = record['config_replies_ok'] == 2 * RACE_SETS and not record['mismatched']
+    transcript.append(record)
+    return record
+
+
 def trial(g, case, transcript):
+    if case == 'CONCURRENT-CONVERGENCE':
+        return convergence(g, transcript)
     policy = 'allkeys-lru' if case == 'LIFT-ALLKEYS-LRU' else 'noeviction'
     old, new = ('0', '1') if case.startswith('TIGHTEN') else ('1', '0')
     prepare(g, policy)
