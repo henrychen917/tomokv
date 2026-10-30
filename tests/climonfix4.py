@@ -93,7 +93,19 @@ def directed(host, port, root):
             assert isinstance(rejected, RespError) and "read-only" in str(rejected), rejected
             assert a.cmd("GET", "guard") is None
             assert a.cmd("CLIENT", "UNPAUSE") == b"OK"
+            for _ in range(2):
+                assert b.cmd("EVAL", "return redis.call('set',KEYS[1],ARGV[1])", 1, "guard", "allowed") == b"OK"
+                assert b.cmd("EVAL", "#!lua flags=no-writes\nreturn redis.call('get',KEYS[1])", 1, "guard") == b"allowed"
         elif root == "MONITOR-SCRIPT-CMDS":
+            # wave11: runtime library globals and the protected EVAL VM persist
+            # independently. Register before MONITOR so the records below are exact.
+            library = "#!lua name=wave11_monitor\n" + (
+                "local suffix = string.upper('ok'); "
+                "redis.register_function{function_name='wave11_monitor', "
+                "callback=function(keys,args) "
+                "return {redis.call('get',keys[1]), suffix, math.floor(2.9)} "
+                "end, flags={'no-writes'}}")
+            assert a.cmd("FUNCTION", "LOAD", library) == b"wave11_monitor"
             m = new()
             assert m.cmd("MONITOR") == b"OK"
             script = "redis.call('set',KEYS[1],ARGV[1]); return redis.call('get',KEYS[1])"
@@ -155,6 +167,23 @@ def directed(host, port, root):
                 line = read(m, 1)
                 assert isinstance(line, str) and '] "EXEC"' in line, (protocol, line)
                 assert read(m, .05) == {"timeout": True}, "MONITOR logged a WATCH-aborted child"
+            # Warm both persistent interpreters, including their no-writes
+            # closures, and retain nested/function/pipeline ordering after flush.
+            for epoch in range(2):
+                a.raw(encode("FCALL", "wave11_monitor", 1, "mon") +
+                      encode("EVAL", "#!lua flags=no-writes\nreturn redis.call('get',KEYS[1])", 1, "mon") +
+                      encode("PING"))
+                assert a.read() == [b"conflict", b"OK", 2]
+                assert a.read() == b"conflict" and a.read() == b"PONG"
+                lines = [read(m, 1) for _ in range(5)]
+                parts = ['] "FCALL"', '[0 lua] "get"', '] "EVAL"', '[0 lua] "get"', '] "PING"']
+                assert all(isinstance(line, str) and part in line for line, part in zip(lines, parts)), lines
+                assert a.cmd("SCRIPT", "FLUSH") == b"OK"
+                assert '] "SCRIPT"' in read(m, 1)
+            assert a.cmd("FUNCTION", "FLUSH") == b"OK"
+            assert '] "FUNCTION"' in read(m, 1)
+            assert a.cmd("EVAL", "#!lua flags=no-writes\nreturn redis.call('get',KEYS[1])", 1, "mon") == b"conflict"
+            assert '] "EVAL"' in read(m, 1) and '[0 lua] "get"' in read(m, 1)
         elif root == "RESET-CLEARS-LIBNAME":
             assert a.cmd("CLIENT", "SETINFO", "lib-name", "redis.py") == b"OK"
             assert a.cmd("CLIENT", "SETINFO", "lib-ver", "1.0") == b"OK"

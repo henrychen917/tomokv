@@ -160,20 +160,26 @@ def directed_row(args, directory, mode, engine, atomic, oracle):
     """
     assert not oracle and mode == '2s'
     phases = []
+    closed = []
     with s.Boot(args, directory, mode, engine, atomic, oracle) as b:
         seed(b.c, args)
         pair, owners = s.keys_for(b.c, 'flipfix5:pair', False, 2)
         b.c.must('MSET', pair[0], 0, pair[1], 0)
         for phase, seconds in (('natural', args.seconds - args.held_seconds),
                                ('held', args.held_seconds)):
-            counts = dict(flips=0, flip_refusals=0, refused=0, **{op: 0 for op in ROW_OPS})
+            counts = dict(flips=0, flip_refusals=0, refused=0, identity_checks=0, **{op: 0 for op in ROW_OPS})
             refusals = {}
             if phase == 'held':
+                identity = b.c.must('CLIENT', 'ID')
                 reply = b.c.cmd('DEBUG', 'FLIP-STAGE-HOLD', args.hold_us)
                 assert reply == b'OK', ('DEBUG FLIP-STAGE-HOLD unavailable: cannot open the window', reply)
+                with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as observer:
+                    fields = dict(item.split(b'=', 1) for item in observer.must('CLIENT', 'LIST', 'ID', identity).split())
+                    assert fields[b'cmd'] == b'debug', fields
             before = s.stats(b.c).get('flip_stale_stage_refusals')
             workers = [flipper(b, args, counts, refusals)] + [
-                operation(b, args, pair, counts, op=op, key=op, strict=False) for op in ROW_OPS]
+                operation(b, args, pair, counts, op=op, key=op, strict=False) for op in ROW_OPS] + [
+                    identity_churn(b, args, counts, closed)]
             errors = s.run_storm(seconds, workers, args.stall)
             after = None
             if not errors:
@@ -188,10 +194,38 @@ def directed_row(args, directory, mode, engine, atomic, oracle):
             assert not errors, (result, errors)
             assert counts['flips'] >= args.min_flips, ('too few completed FLIPs', result)
             assert all(counts[op] for op in ROW_OPS), ('an operation worker made no progress', result)
+            assert counts['identity_checks'], ('connection identity witness never ran', result)
+            for attempt in range(200):
+                live = {int(dict(item.split(b'=', 1) for item in line.split())[b'id'])
+                        for line in b.c.must('CLIENT', 'LIST').splitlines()}
+                if not live.intersection(closed):
+                    break
+                time.sleep(.01)
+            else:
+                raise AssertionError(('closed clients survived FLIP', live.intersection(closed)))
             if phase == 'held':
                 assert stale, ('held phase refused no stale stage sample', result)
         return dict(owners=owners, phases=phases,
                     flip_stale_stage_refusals=sum(x['flip_stale_stage_refusals'] or 0 for x in phases))
+
+
+def identity_churn(b, args, counts, closed):
+    """wave11: connection-local metadata and close cleanup across live FLIPs."""
+    def run(stop):
+        with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as observer:
+            while not stop.is_set():
+                with contextlib.closing(Conn('127.0.0.1', b.port, timeout=args.stall)) as client:
+                    identity = client.must('CLIENT', 'ID')
+                    for command, expected in ((('CLIENT', 'SETNAME', 'wave11-flip'), b'client|setname'),
+                                              (('CONFIG', 'GET', 'maxclients'), b'config|get'),
+                                              (('PING',), b'ping')):
+                        client.must(*command)
+                        fields = dict(item.split(b'=', 1) for item in
+                                      observer.must('CLIENT', 'LIST', 'ID', identity).split())
+                        assert fields[b'cmd'] == expected, (command, fields)
+                    counts['identity_checks'] += 3
+                    closed.append(identity)
+    return run
 
 
 CASES = dict(f.CASES, **{'op-flip': op_flip, 'row': directed_row})

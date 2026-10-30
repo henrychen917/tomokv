@@ -1658,7 +1658,9 @@ namespace {
 // Only no-writes chunks need this activation wrapper. Metadata, compilation and
 // PAUSE classification share the immutable ScriptSource flags.
 int readonly_eval(lua_State* state) {
-    lua_context(state)->readonly = true;
+    // This closure is compiled only in the persistent EVAL interpreter. Its
+    // activation is already bound before pcall; no registry lookup is needed.
+    t_lua_engine.current->readonly = true;
     lua_pushvalue(state, lua_upvalueindex(1));
     lua_call(state, 0, 1);
     return 1;
