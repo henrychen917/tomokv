@@ -82,11 +82,29 @@ finds **1,587/1,587 hot bodies byte-identical**, including relocation targets
 
 ### Correctness receipts
 
-Final whole-job runs are in progress. This section will be replaced with their
-actual verdicts, failures and NOT RUN items before delivery. The final directed
-matrix has 864 cases per boot across 24 boots: both database variants, modes,
-engines and atomic settings, plus fused read-local 0/1. It records all cases
-after failures and rejects a changed candidate binary.
+The final directed job runs 864 cases per boot across 24 boots: both database
+variants, modes, engines and atomic settings, plus fused read-local 0/1. Every
+leg uses the gate's whole-job interface, records all cases after failures and
+rejects a changed candidate binary.
+
+| Frozen arm | Exact matches | Ordering failures | Legs |
+|---|---:|---:|---:|
+| PRE | 18,432 | 2,304 | 24 |
+| POST | **20,736** | **0** | 24 |
+| PAD-A | 18,432 | 2,304 | 24 |
+
+Every PRE/PAD-A failure is independently checked as the directly tracked
+flushing client's null push following its SYNC/default `+OK`; removing that
+one push leaves every stream identical to the oracle. There are no unrelated
+failures in the final matrix. This is a non-vacuous negative control in every
+mode/engine/database/atomic/read-local leg. Full wire streams and shutdown
+receipts are committed in `docs/trackorder/final/*-proof.tar.gz`, with readable
+per-leg summaries alongside.
+
+`python3 tests/gates_test.py` passes **76 tests**, including its nested 14-test
+persistence self-test. All four build invocations covering `make all` and the
+gate's entire production-unit target list returned zero. Broader job, Tcl,
+differential and final freshness verdicts are still being collected.
 
 Earlier evidence remains separate: the first harness launch failed because
 the TomoKV readiness-banner check was applied to Redis. The initial PRE
@@ -101,7 +119,10 @@ final acceptance uses immutable arm paths and verifies their hashes.
 One new row, `tracking FLUSH reply order vs Redis 7.4`, is collected at
 `tests/gate.sh:6310`, before the quick-tier branch at line 6380 and its exit.
 **DQ=+1, DF=+1**. Maintainer-owned expectations should become **978/995** from
-977/994. `EXPECT_QUICK` and `EXPECT_FULL` are unchanged.
+977/994. `EXPECT_QUICK` and `EXPECT_FULL` are unchanged. The explicit label
+fixture contains all 995 source-declared labels with no missing/extra entries;
+its count guard intentionally remains red against the owner's unchanged 994
+(`docs/trackorder/label-fixture.log`).
 
 ### Maintainer merit request
 

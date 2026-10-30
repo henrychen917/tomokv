@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'docs/trackorder/runs'
@@ -46,6 +47,8 @@ def main():
         for arm in ('PRE', 'POST', 'PAD-A'):
             gate('matrix-' + arm, 'trackorder', arm)
     elif args.phase == 'batteries':
+        while (ROOT / 'build/trackorder/units-running').exists():
+            time.sleep(1)
         ordinary = ('feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 '
                     'fused-0 fused-1 notify clientfix climonfix '
                     'txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 '

@@ -1,0 +1,66 @@
+[
+  {
+    "path": "build/core-concurrency-mdbqsbr-asan",
+    "before_bytes": 333395400,
+    "after_bytes": 222825536,
+    "allocated_sections_identical": true,
+    "before_sha256": "44b83e9b14e88aefc960458df78e85d7a08f0ffd2e34242ecfa8389e57e34812",
+    "after_sha256": "8baa81497f7ada8006d646c0f48a657a9559a8e7e32b591790935b5541cde93f"
+  },
+  {
+    "path": "build/core-concurrency-unit",
+    "before_bytes": 333395400,
+    "after_bytes": 222825536,
+    "allocated_sections_identical": true,
+    "before_sha256": "44b83e9b14e88aefc960458df78e85d7a08f0ffd2e34242ecfa8389e57e34812",
+    "after_sha256": "8baa81497f7ada8006d646c0f48a657a9559a8e7e32b591790935b5541cde93f"
+  },
+  {
+    "path": "build/rltopo-unit",
+    "before_bytes": 313822416,
+    "after_bytes": 209887016,
+    "allocated_sections_identical": true,
+    "before_sha256": "c75cc11a7f7f4a6d310f8156bc429a2d18e0e1efe97aee1cb29824cab5743017",
+    "after_sha256": "253dabb6a40db23e4fb5f10325951e02bce34ee6e56d4d4f78465e2b65c8d242"
+  },
+  {
+    "path": "build/mdbqsbr-unit",
+    "before_bytes": 329131312,
+    "after_bytes": 220323784,
+    "allocated_sections_identical": true,
+    "before_sha256": "177edcd351725da1dd3b9dab5c49a5712c4f9faa30254f3a9f5e6b16b68fb574",
+    "after_sha256": "b7ed44524ced9b38cf1106ae4390d92c35df227e120a1a664c348fbb9fbc0c18"
+  },
+  {
+    "path": "build/txnorder-index-db0-unit",
+    "before_bytes": 209296952,
+    "after_bytes": 84312928,
+    "allocated_sections_identical": true,
+    "before_sha256": "4a4c3f685bb87356bf6a2352fb4d542b25e80537da8fd54084d0cfc9cd6a836b",
+    "after_sha256": "583e1cf19c182a5b2f7cc86cf95a04ef64198e49721238ad3c3b419492026010"
+  },
+  {
+    "path": "build/reorder-engagement-unit-db0",
+    "before_bytes": 212384664,
+    "after_bytes": 85454936,
+    "allocated_sections_identical": true,
+    "before_sha256": "644cf57e5a8e61e23ce67e91543e17311c47bb68a6f419937ed318d89b236c89",
+    "after_sha256": "2b06cef4f121f5cb1ffdec28d56bc23edaf0a0da43bc9ebd3210b4db3c60858c"
+  },
+  {
+    "path": "build/reorderscan-db0-paths",
+    "before_bytes": 212823016,
+    "after_bytes": 85644312,
+    "allocated_sections_identical": true,
+    "before_sha256": "f3b34906313f5405ef9a084de121f1359db51ccad0ca5dcb233104b6e43fca0b",
+    "after_sha256": "65bff7956e153d35ecacf993bfca4c332728db24b8793eb90af91f63aeaae08c"
+  },
+  {
+    "path": "build/wb-rule-db0-phase-unit",
+    "before_bytes": 212650488,
+    "after_bytes": 85527184,
+    "allocated_sections_identical": true,
+    "before_sha256": "b025d83c21b96d2c42efe12d18f057f0d021f92f920f24ffa855a20962528dbe",
+    "after_sha256": "ac47f252af76de60f034c80de1d93187d0938d384f312672d4f3faa3f8eca74e"
+  }
+]
