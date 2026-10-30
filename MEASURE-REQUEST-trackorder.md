@@ -3,7 +3,8 @@
 ## trackorder
 
 Lane `cx-trackorder`, based on `e32b04a445b056976abb308aa598e356fcbaae74`.
-No push. No performance benchmark, load generator or full gate iteration.
+No push. **NOT RUN: performance benchmarks, load generators and the full gate
+iteration**, reserved for the maintainer by this lane's authorization.
 Builds, instruction scopes and correctness processes use CPUs 0–15; default server geometry is
 16 shards, split 6:2 or eight fused threads. The primary slot uses CPUs 0–7;
 Tcl and differential jobs use CPUs 8–15 with ports 20120–20129 and 20140–20149,
@@ -94,6 +95,11 @@ finds **1,587/1,587 hot bodies byte-identical**, including relocation targets
 
 ### Correctness receipts
 
+`tools/trackorder_run.py` uses the gate's `GATE_ONLY_JOBS` interface with
+`GATE_PROOF_NO_RATES=1`. Every invocation is partial; the `iteration` tier
+invocations select only differential jobs and cannot enter ABBA or the full
+gate tally. Existing optional battery rate assertions remain maintainer work.
+
 The final directed job runs 864 cases per boot across 24 boots: both database
 variants, modes, engines and atomic settings, plus fused read-local 0/1. Every
 leg uses the gate's whole-job interface, records all cases after failures and
@@ -145,8 +151,11 @@ The primary selected-job run passes **275 rows, 0 failures**. It includes the
 tracking, keyspace, FLUSH, pub/sub, RESP3 and txnorder jobs; each matrix job
 runs its own complete engine/mode legs. Whole-job receipts are in
 `docs/trackorder/jobs/batteries-uring-proof.tar.gz`, with a per-job summary.
-The ordinary-job epoll repeat, differential and supplemental verdicts are
-still being collected.
+The ordinary-job epoll repeat passes **190 rows, 0 failures**, including both
+atomic settings of split, armed fused and ordinary fused batteries, client
+tracking/reply suppression, notifications and txnorder. Its whole-job archive
+and summary are alongside the primary run. Differential and supplemental
+verdicts are still being collected.
 
 Earlier evidence remains separate: the first harness launch failed because
 the TomoKV readiness-banner check was applied to Redis. The initial PRE
