@@ -80,7 +80,13 @@ def main():
     os.environ['LC_ALL']='C'
     p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--source',type=Path,default=ROOT);p.add_argument('--objects',type=Path,default=ROOT/'build');p.add_argument('--domain',choices=('namespace','lua','complete'),default='complete');p.add_argument('--only',default='');p.add_argument('--fixture',default='tests/wave11_scope.cc');p.add_argument('--kind',choices=('all','scripts','ordinary','control','session'),default='all');p.add_argument('--no-build',action='store_true');a=p.parse_args()
     a.source=a.source.resolve();a.objects=a.objects.resolve()
-    BUILD.mkdir(exist_ok=True);subprocess.run(['g++','-std=c++20','-O2','-g','tools/scriptfix3_trace.cc','-o',str(BUILD/'trace')],check=True)
+    BUILD.mkdir(parents=True,exist_ok=True)
+    # Publish a tracer atomically: concurrent arm censuses must never execute
+    # a linker output while it is still being written.
+    if not (BUILD/'trace').exists():
+        temporary=BUILD/('trace-'+str(os.getpid()))
+        subprocess.run(['g++','-std=c++20','-O2','-g','tools/scriptfix3_trace.cc','-o',str(temporary)],check=True)
+        temporary.replace(BUILD/'trace')
     commands=[v+'-'+place+header for v in ('EVAL','EVALSHA','FCALL') for place in ('single','cross') for header in ('','-header')]
     if a.kind=='session':commands=['PING','WATCH','EXEC-single','EXEC-cross','EXEC-abort-single','EXEC-abort-cross']
     elif a.kind in ('all','ordinary'):

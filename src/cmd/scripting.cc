@@ -1658,12 +1658,40 @@ namespace {
 // Only no-writes chunks need this activation wrapper. Metadata, compilation and
 // PAUSE classification share the immutable ScriptSource flags.
 int readonly_eval(lua_State* state) {
-    // This closure is compiled only in the persistent EVAL interpreter. Its
-    // activation is already bound before pcall; no registry lookup is needed.
-    t_lua_engine.current->readonly = true;
+    // Both upvalues are immutable: the compiled body and this interpreter's
+    // stable activation slot. No registry lookup or per-call header work.
+    auto* slot = static_cast<ScriptContext**>(lua_touserdata(state, lua_upvalueindex(2)));
+    (*slot)->readonly = true;
     lua_pushvalue(state, lua_upvalueindex(1));
     lua_call(state, 0, 1);
     return 1;
+}
+
+// Cold compiled-chunk miss: metadata already validated the original source.
+__attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, const ScriptSource& source) {
+    const Slice sha(source.sha);
+    lua_pop(state, 1);
+    g_compile_misses.fetch_add(1, std::memory_order_relaxed);
+    const int compiled = luaL_loadbuffer(state, source.source.data() + source.body_offset,
+        source.source.size() - source.body_offset, kEvalChunkName);
+    if (compiled != 0) {
+        size_t length = 0;
+        const char* text = lua_tolstring(state, -1, &length);
+        const std::string error =
+            clean_error(text ? text : "compile error", text ? length : 13);
+        lua_settop(state, 0);
+        reply_text_error(op, "ERR",
+                         std::string("Error compiling script (new function): ") + error);
+        return false;
+    }
+    if (source.flags & EvalNoWrites) {
+        lua_pushlightuserdata(state, &t_lua_engine.current);
+        lua_pushcclosure(state, readonly_eval, 2);
+    }
+    lua_pushlstring(state, sha.p, sha.n);
+    lua_pushvalue(state, -2);
+    lua_rawset(state, -4);
+    return true;
 }
 
 void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, bool readonly) {
@@ -1692,24 +1720,7 @@ void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, boo
     lua_pushlstring(state, sha.p, sha.n);
     lua_rawget(state, -2);
     if (lua_isnil(state, -1)) {
-        lua_pop(state, 1);
-        g_compile_misses.fetch_add(1, std::memory_order_relaxed);
-        const int compiled = luaL_loadbuffer(state, source.source.data() + source.body_offset,
-            source.source.size() - source.body_offset, kEvalChunkName);
-        if (compiled != 0) {
-            size_t length = 0;
-            const char* text = lua_tolstring(state, -1, &length);
-            const std::string error =
-                clean_error(text ? text : "compile error", text ? length : 13);
-            lua_settop(state, 0);
-            reply_text_error(op, "ERR",
-                             std::string("Error compiling script (new function): ") + error);
-            return;
-        }
-        if (flags & EvalNoWrites) lua_pushcclosure(state, readonly_eval, 1);
-        lua_pushlstring(state, sha.p, sha.n);
-        lua_pushvalue(state, -2);
-        lua_rawset(state, -4);
+        if (!compile_eval(state, op, source)) return;
     } else {
         g_compile_hits.fetch_add(1, std::memory_order_relaxed);
     }

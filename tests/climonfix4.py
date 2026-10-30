@@ -100,12 +100,13 @@ def directed(host, port, root):
             # wave11: runtime library globals and the protected EVAL VM persist
             # independently. Register before MONITOR so the records below are exact.
             library = "#!lua name=wave11_monitor\n" + (
-                "local suffix = string.upper('ok'); "
+                "local suffix = 'ok'; "
                 "redis.register_function{function_name='wave11_monitor', "
                 "callback=function(keys,args) "
-                "return {redis.call('get',keys[1]), suffix, math.floor(2.9)} "
+                "return {redis.call('get',keys[1]), string.upper(suffix), math.floor(2.9)} "
                 "end, flags={'no-writes'}}")
-            assert a.cmd("FUNCTION", "LOAD", library) == b"wave11_monitor"
+            loaded = a.cmd("FUNCTION", "LOAD", library)
+            assert loaded == b"wave11_monitor", loaded
             m = new()
             assert m.cmd("MONITOR") == b"OK"
             script = "redis.call('set',KEYS[1],ARGV[1]); return redis.call('get',KEYS[1])"
