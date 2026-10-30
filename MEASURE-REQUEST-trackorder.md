@@ -9,8 +9,7 @@ Builds, instruction scopes and correctness processes use CPUs 0–15; default se
 16 shards, split 6:2 or eight fused threads. The primary slot uses CPUs 0–7;
 Tcl and differential jobs use CPUs 8–15 with ports 20120–20129 and 20140–20149,
 respectively. Existing txnorder jobs retain their explicit four-owner 4:4 shape.
-All listeners use
-20100–20199 and every boot inherits `LC_ALL=C`.
+All listeners use 20100–20199 and every boot inherits `LC_ALL=C`.
 
 ### Oracle and change
 
@@ -126,7 +125,8 @@ persistence self-test. All four build invocations covering `make all` and the
 gate's entire production-unit target list returned zero. After the gate's own
 production prerequisite job, all **59 `make -q` checks pass**, including each
 production target, both live MDB arms' `all` targets and the cost fingerprint.
-See `docs/trackorder/units/freshness-final.json`.
+At delivery, these 59 plus all three supplemental unit targets pass again:
+**62/62 fresh** (`docs/trackorder/units/freshness-delivery.json`).
 
 To stay within the disk budget, completed temporary count binaries/objects were
 removed after their receipts and PRE text identity check. Debug sections of
@@ -164,7 +164,15 @@ seed 21 on epoll and 22 on uring, and the mode-equivalence job. Each engine
 reports **941 native differential passes, 0 failures**, represented by six
 aggregate gate rows including the release prerequisite. Raw suite outputs and
 plans are retained in `docs/trackorder/jobs/differ-*-proof.tar.gz`.
-Supplemental verdicts are still being collected.
+The supplemental group passes **22 rows, 0 failures**: `compat3` (including
+pub/sub), `storage_units` (including flush-prepared capacity), `wave8b_off`
+(tracking-off EXEC transitions), and `infofix_latency` (serverless accounting).
+Its whole-job archive and summary are in the same directory.
+
+The delivery audit confirms all frozen hashes, unchanged production source,
+unchanged EXPECT constants, positive instruction scopes in all 80 cells,
+and no remaining owned server or listener on ports 20100–20199.
+Final `build/` usage is **13.142 GiB**. See `docs/trackorder/delivery-audit.json`.
 
 Earlier evidence remains separate: the first harness launch failed because
 the TomoKV readiness-banner check was applied to Redis. The initial PRE
