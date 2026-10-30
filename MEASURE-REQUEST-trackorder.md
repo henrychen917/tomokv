@@ -4,8 +4,9 @@
 
 Lane `cx-trackorder`, based on `e32b04a445b056976abb308aa598e356fcbaae74`.
 No push. No performance benchmark, load generator or full gate iteration.
-All lane commands and children use CPUs 0–15; correctness server geometry is
-CPUs 0–7, 16 shards, split 6:2 or eight fused threads. Listeners use
+Builds, instruction scopes and correctness processes use CPUs 0–15; primary server geometry is
+CPUs 0–7, 16 shards, split 6:2 or eight fused threads. Tcl uses a separate
+CPUs 8–15 / ports 20120–20129 slot. All listeners use
 20100–20199 and every boot inherits `LC_ALL=C`.
 
 ### Oracle and change
@@ -18,7 +19,8 @@ the frames are respectively `before, invalidate(null), OK, after` and
 remembering and nonremembering reads), and NOLOOP preserve that distinction.
 
 The complete oracle/candidate streams are recorded as hexadecimal RESP frames,
-per connection. A RESP2 REDIRECT receiver gets a `message` on
+per connection. The tested REDIRECT pairs are RESP2→RESP2 and RESP3→RESP3.
+A RESP2 REDIRECT receiver gets a `message` on
 `__redis__:invalidate` with a null bulk; RESP3 direct/REDIRECT receivers get a
 two-element `invalidate` push with RESP3 null. Other tracked clients receive
 one null invalidation, even with no remembered key or NOLOOP. Separate TCP
@@ -42,7 +44,10 @@ Porting to flushfix2/flushfix3: retain the existing completion-side call to
 `climon_flush_completed` after **all** shard effects finish and before final
 reply assembly, while the originating Op remains Done in its ROB. The fix
 depends on that boundary, not the scatter kind or the implementation of
-clearing stores. If an atomic FLUSH moves to another retirement branch, move
+clearing stores. Both inspected branch tips retain this exact hook and ordering:
+`cx-flushfix2` at `a396a42e5` and `cx-flushfix3` at `aa677139a`. The two-file
+production diff therefore needs no scatter/atomic redesign. Re-run the row on
+whichever combined design the owner selects. If FLUSH later moves to another retirement branch, move
 that same cold hook with it. Do not emit at dispatch or before owner completion.
 
 ### Frozen arms
@@ -103,8 +108,33 @@ per-leg summaries alongside.
 
 `python3 tests/gates_test.py` passes **76 tests**, including its nested 14-test
 persistence self-test. All four build invocations covering `make all` and the
-gate's entire production-unit target list returned zero. Broader job, Tcl,
-differential and final freshness verdicts are still being collected.
+gate's entire production-unit target list returned zero. After the gate's own
+production prerequisite job, all **59 `make -q` checks pass**, including each
+production target, both live MDB arms' `all` targets and the cost fingerprint.
+See `docs/trackorder/units/freshness-final.json`.
+
+To stay within the disk budget, completed temporary count binaries/objects were
+removed after their receipts and PRE text identity check. Debug sections of
+auxiliary unit executables were compressed with `objcopy`; every allocated
+section's bytes, address and size were independently verified unchanged. The
+four main/merit binaries were excluded. Compression receipts retain before and
+after hashes; initial aggregate freshness misses caused by the newer auxiliary
+files were resolved by the gate's ordinary production-unit build. No source
+flags, checks, assertions or EXPECT counts were altered for this.
+
+The gate's registered `unit/tracking` Tcl subset passes in both modes:
+**40 passed, 0 failed, 18 skipped per mode**, using the existing checked-in
+skip policy unchanged. A supplemental unrestricted census (no skips) produces
+**30 passed, 4 failed and an idle timeout per mode**, identically on POST and
+PRE. The four failures concern undeclared script keys, multiple-key response
+interleaving, transaction response interleaving, and eviction/lazyfree. Both
+arms then time out at the tracking-table-key-eviction test. The remaining
+unrestricted tests are **NOT RUN due to that timeout**; this is not a claim
+that the full upstream tracking suite passes. Exact events, errors, server
+logs and baseline controls are in `docs/trackorder/tcl/*-proof.tar.gz` and
+`docs/trackorder/tcl-summary.json`.
+
+Broader job and differential verdicts are still being collected.
 
 Earlier evidence remains separate: the first harness launch failed because
 the TomoKV readiness-banner check was applied to Redis. The initial PRE
@@ -117,7 +147,7 @@ final acceptance uses immutable arm paths and verifies their hashes.
 ### Row accounting
 
 One new row, `tracking FLUSH reply order vs Redis 7.4`, is collected at
-`tests/gate.sh:6310`, before the quick-tier branch at line 6380 and its exit.
+`tests/gate.sh:6310`, before the quick-tier branch at line 6380 and its exit at line 6384.
 **DQ=+1, DF=+1**. Maintainer-owned expectations should become **978/995** from
 977/994. `EXPECT_QUICK` and `EXPECT_FULL` are unchanged. The explicit label
 fixture contains all 995 source-declared labels with no missing/extra entries;

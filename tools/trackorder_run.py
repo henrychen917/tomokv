@@ -10,9 +10,13 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'docs/trackorder/runs'
+SERVER_CORES = os.environ.get('TRACKORDER_SERVER_CORES', '0-7')
+LOAD_CORES = os.environ.get('TRACKORDER_LOAD_CORES', '8-15')
+PORT_BASE = int(os.environ.get('TRACKORDER_PORT_BASE', '20100'))
+assert 20100 <= PORT_BASE <= 20190
 ENV = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
            GATE_PROOF_NO_RATES='1', GATE_TEST_PORT='20198',
-           GATE_LOAD_CORES='8-15', GATE_DIFFER_ORACLE_CORES='0-7')
+           GATE_LOAD_CORES=LOAD_CORES, GATE_DIFFER_ORACLE_CORES=SERVER_CORES)
 
 
 def run(label, command, **env):
@@ -33,8 +37,8 @@ def run(label, command, **env):
 
 
 def gate(label, jobs, arm='POST', tier='quick', **env):
-    run(label, ['bash', 'tests/gate.sh', tier, '--server-cores', '0-7', '--load-cores', '8-15',
-                '--ports', '20100-20109', '--candidate-binary', 'build/tomokv-' + arm],
+    run(label, ['bash', 'tests/gate.sh', tier, '--server-cores', SERVER_CORES, '--load-cores', LOAD_CORES,
+                '--ports', f'{PORT_BASE}-{PORT_BASE + 9}', '--candidate-binary', 'build/tomokv-' + arm],
         GATE_ONLY_JOBS=jobs, GATE_LEDGER=str(OUT / (label + '.tsv')), **env)
 
 
@@ -62,9 +66,19 @@ def main():
         for engine in ('epoll', 'uring'):
             gate('differ-' + engine, 'differ-split differ-armed', tier='iteration',
                  GATE_DIFFER_NET_IO=engine, GATE_NET_IO=engine)
+        # Remaining whole jobs with tracking/pubsub/flush-specific witnesses.
+        gate('supplementary', 'compat3 wave8b_off infofix_latency storage_units')
     else:
-        gate('tcl-tracking', 'redis_tcl', GATE_TCL_MANIFEST='docs/trackorder/tcl-tracking.json')
-        gate('tcl-tracking-full', 'redis_tcl', GATE_TCL_MANIFEST='docs/trackorder/tcl-tracking-full.json')
+        # A separate allocated port slot can run Tcl beside the ordinary jobs.
+        # An automatic second invocation waits for those same immutable receipts.
+        import fcntl
+        with (ROOT / 'build/trackorder/tcl.lock').open('w') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if all((OUT / (label + '.json')).exists() for label in ('tcl-tracking', 'tcl-tracking-full')):
+                print('Tcl receipts already complete; preserved', flush=True)
+                return
+            gate('tcl-tracking', 'redis_tcl', GATE_TCL_MANIFEST='docs/trackorder/tcl-tracking.json')
+            gate('tcl-tracking-full', 'redis_tcl', GATE_TCL_MANIFEST='docs/trackorder/tcl-tracking-full.json')
 
 
 if __name__ == '__main__':
