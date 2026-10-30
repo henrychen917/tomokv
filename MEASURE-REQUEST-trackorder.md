@@ -158,12 +158,13 @@ atomic settings of split, armed fused and ordinary fused batteries, client
 tracking/reply suppression, notifications and txnorder. Its whole-job archive
 and summary are alongside the primary run.
 
-The complete epoll differential matrix passes through the gate's own jobs:
+The complete differential matrix passes on **both epoll and uring** through the gate's own jobs:
 split and armed fused, atomic 0/1, permanent seeds **7/19/20/23** plus rotating
-seed 21, and the mode-equivalence job. All six aggregate rows (including the
-release prerequisite) pass. Raw suite outputs and plans are retained in
-`docs/trackorder/jobs/differ-epoll-proof.tar.gz`. The uring differential and
-supplemental verdicts are still being collected.
+seed 21 on epoll and 22 on uring, and the mode-equivalence job. Each engine
+reports **941 native differential passes, 0 failures**, represented by six
+aggregate gate rows including the release prerequisite. Raw suite outputs and
+plans are retained in `docs/trackorder/jobs/differ-*-proof.tar.gz`.
+Supplemental verdicts are still being collected.
 
 Earlier evidence remains separate: the first harness launch failed because
 the TomoKV readiness-banner check was applied to Redis. The initial PRE
