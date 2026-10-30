@@ -13,13 +13,13 @@
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 1742,
+    "line": 1755,
     "text": "reply_text_error(op, \"ERR\", error); return;",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 1748,
+    "line": 1761,
     "text": "reply_text_error(op, \"ERR\", \"out of memory\"); return;",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
