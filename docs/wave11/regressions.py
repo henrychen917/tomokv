@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seven single-root substitutions, compiled with production flags and scored by gate.sh."""
+"""Plant one root with production flags and run the complete merged Tcl manifest."""
 import concurrent.futures
 import hashlib
 import importlib.util
@@ -73,12 +73,15 @@ def main():
         shutil.rmtree(source)
         name='negative-'+root.lower()
         command=['python3',str(DOC/'run_jobs.py'),name,'redis_tcl','--binary',str(mutant),
-                 '--manifest',str(CONTROL/(root+'.json')),'--single-slot','--port','20080']
+                 '--single-slot','--port','20080']
         with (dest/'gate.log').open('w') as stream:
             rc=subprocess.run(command,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT).returncode
         receipt=json.loads((DOC/'jobs'/(name+'.json')).read_text())
         run=Path(receipt['artifacts']);unit_name,witness=witnesses[root]
-        row.update(exit=rc,modes={},verified=rc==1)
+        row.update(exit=rc,modes={},verified=rc==1,
+                   manifest='tests/redis_tcl_passing.json',
+                   manifest_sha256=sha(ROOT/'tests/redis_tcl_passing.json'),
+                   manifest_scope='complete merged manifest, both modes')
         for mode in ('1s','2s'):
             result_path=run/'jobs/redis_tcl'/('redis-tcl-'+mode)/unit_name/'result.json'
             result=json.loads(result_path.read_text())

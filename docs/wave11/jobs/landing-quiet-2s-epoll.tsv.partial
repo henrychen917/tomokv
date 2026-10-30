@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=atomic_batteries; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	32.810000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
