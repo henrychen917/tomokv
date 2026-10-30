@@ -188,6 +188,43 @@
         "GATE_LOAD_CORES": "8-15",
         "GATE_DIFFER_ORACLE_CORES": "0-7"
       }
+    },
+    {
+      "label": "matrix/engine-epoll",
+      "phase": "engine-epoll",
+      "status": 0,
+      "command": [
+        "taskset",
+        "-c",
+        "0-15",
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "0-7",
+        "--load-cores",
+        "8-15",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20102",
+        "--candidate-binary",
+        "/home/user/Projects/cx-flushfix3/build/tomokv"
+      ],
+      "binary_sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a",
+      "omitted_selection": [
+        "flip_saturated"
+      ],
+      "environment": {
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_ONLY_JOBS": "dump_restore debug-0 debug-1 aoforder climonfix txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txn_group_fused txn_group_split script_bounds scriptfix flip flipctl atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting fused-0 fused-1 release_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1",
+        "GATE_LEDGER": "/home/user/Projects/cx-flushfix3/build/flushfix3/verification/matrix/engine-epoll",
+        "GATE_LOAD_CORES": "8-15",
+        "GATE_DIFFER_ORACLE_CORES": "0-7",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll"
+      }
     }
   ],
   "gates": {
@@ -6154,6 +6191,2282 @@
       },
       "complete_selection": true,
       "explicit_not_run": []
+    },
+    "matrix/engine-epoll": {
+      "log": {
+        "path": "build/flushfix3/verification/matrix/engine-epoll.log",
+        "sha256": "2a152f11b87508d8a5f7de5fc440acbb2b974d302049924eb1ca06ca5f00d37a"
+      },
+      "root": "build/gate-run.cUVcE3",
+      "jobs": [
+        {
+          "name": "release",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/release/ledger",
+            "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+          },
+          "rows": [
+            {
+              "job": "release",
+              "label": "release build (+footprint locks)",
+              "verdict": "ok",
+              "seconds": 0.0
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/release/output.log",
+            "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+          }
+        },
+        {
+          "name": "production_units",
+          "done": [
+            "0",
+            "0",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/production_units/ledger",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "rows": [],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/production_units/output.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "name": "flipctl",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/flipctl/ledger",
+            "sha256": "3d269ec7189e328e02716fdd7dd232f4147cdc4b7d8572cc18d0837157f6eb30"
+          },
+          "rows": [
+            {
+              "job": "flipctl",
+              "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers",
+              "verdict": "ok",
+              "seconds": 129.9
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/flipctl/output.log",
+            "sha256": "82abdff5afeaf6e12e6afba258b0648ec48299bb425d4dbc9a472ce0e77647fc"
+          }
+        },
+        {
+          "name": "feature-split-0",
+          "done": [
+            "0",
+            "34",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-split-0/ledger",
+            "sha256": "4161a9133857deb47ebedd5fd1b88babaf5704c7fa65ff0e385ef06470567449"
+          },
+          "rows": [
+            {
+              "job": "feature-split-0",
+              "label": "s6 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.45
+            },
+            {
+              "job": "feature-split-0",
+              "label": "multi_exec battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.1
+            },
+            {
+              "job": "feature-split-0",
+              "label": "blocking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.6
+            },
+            {
+              "job": "feature-split-0",
+              "label": "blockmulti battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.49
+            },
+            {
+              "job": "feature-split-0",
+              "label": "stream battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.81
+            },
+            {
+              "job": "feature-split-0",
+              "label": "streamgroups battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-split-0",
+              "label": "pubsub battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.91
+            },
+            {
+              "job": "feature-split-0",
+              "label": "lua_scripting battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "scriptsurf battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-split-0",
+              "label": "limits battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 15.26
+            },
+            {
+              "job": "feature-split-0",
+              "label": "resp3 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-0",
+              "label": "bitfield battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-0",
+              "label": "dumprestore battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "feature-split-0",
+              "label": "zsetops battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-0",
+              "label": "geo battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "climon battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.15
+            },
+            {
+              "job": "feature-split-0",
+              "label": "climon2 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.35
+            },
+            {
+              "job": "feature-split-0",
+              "label": "tracking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 13.34
+            },
+            {
+              "job": "feature-split-0",
+              "label": "hexpire battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.57
+            },
+            {
+              "job": "feature-split-0",
+              "label": "servertail battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.59
+            },
+            {
+              "job": "feature-split-0",
+              "label": "lcs battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "feature-split-0",
+              "label": "concur battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.81
+            },
+            {
+              "job": "feature-split-0",
+              "label": "edgeproto battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.65
+            },
+            {
+              "job": "feature-split-0",
+              "label": "edgeenc battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.38
+            },
+            {
+              "job": "feature-split-0",
+              "label": "edgetime battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.62
+            },
+            {
+              "job": "feature-split-0",
+              "label": "arity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "contarity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "cmdgap battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "aclsel battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "expwide battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 50.29
+            },
+            {
+              "job": "feature-split-0",
+              "label": "infofix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.27
+            },
+            {
+              "job": "feature-split-0",
+              "label": "pushtear battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.96
+            },
+            {
+              "job": "feature-split-0",
+              "label": "netcmd battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-0",
+              "label": "feature shutdown invariants (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.02
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-split-0/output.log",
+            "sha256": "4d6ff17b8fbd5725cd2f2d055371c62ce373c62302a10fadb0dc92bbf36c13d1"
+          }
+        },
+        {
+          "name": "feature-armed-0",
+          "done": [
+            "0",
+            "35",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-armed-0/ledger",
+            "sha256": "a512763fbc04cb590ae618fb4eacb1555301bb83ef7599b21e9fb70e8761a9c3"
+          },
+          "rows": [
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed boot line (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.26
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed s6 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.18
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed multi_exec battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.11
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed blocking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.61
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed blockmulti battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.49
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed stream battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.82
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed streamgroups battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed pubsub battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.91
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed lua_scripting battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed scriptsurf battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed limits battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 14.61
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed resp3 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed bitfield battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed dumprestore battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed zsetops battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed geo battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed climon battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.15
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed climon2 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.36
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed tracking battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 13.26
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed hexpire battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.08
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed servertail battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.59
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed lcs battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed concur battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.82
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed edgeproto battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.73
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed edgeenc battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.4
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed edgetime battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.82
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed arity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed contarity battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed cmdgap battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed aclsel battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed expwide battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 51.47
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed infofix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.23
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed pushtear battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.97
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed netcmd battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-0",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.17
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-armed-0/output.log",
+            "sha256": "fbef37985fe91ec74e92bba3b921380576cb1f4dfd434654c7f48588ebce1afb"
+          }
+        },
+        {
+          "name": "feature-split-1",
+          "done": [
+            "0",
+            "34",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-split-1/ledger",
+            "sha256": "833868634da876193156b83a795e20c26fbc2f44bbeada039392c37ffb583977"
+          },
+          "rows": [
+            {
+              "job": "feature-split-1",
+              "label": "s6 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.46
+            },
+            {
+              "job": "feature-split-1",
+              "label": "multi_exec battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.1
+            },
+            {
+              "job": "feature-split-1",
+              "label": "blocking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.58
+            },
+            {
+              "job": "feature-split-1",
+              "label": "blockmulti battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.49
+            },
+            {
+              "job": "feature-split-1",
+              "label": "stream battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.79
+            },
+            {
+              "job": "feature-split-1",
+              "label": "streamgroups battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-1",
+              "label": "pubsub battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.92
+            },
+            {
+              "job": "feature-split-1",
+              "label": "lua_scripting battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "scriptsurf battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-split-1",
+              "label": "limits battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 14.59
+            },
+            {
+              "job": "feature-split-1",
+              "label": "resp3 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "bitfield battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-1",
+              "label": "dumprestore battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "feature-split-1",
+              "label": "zsetops battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-split-1",
+              "label": "geo battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "climon battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.14
+            },
+            {
+              "job": "feature-split-1",
+              "label": "climon2 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.31
+            },
+            {
+              "job": "feature-split-1",
+              "label": "tracking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 13.34
+            },
+            {
+              "job": "feature-split-1",
+              "label": "hexpire battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.58
+            },
+            {
+              "job": "feature-split-1",
+              "label": "servertail battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.59
+            },
+            {
+              "job": "feature-split-1",
+              "label": "lcs battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.18
+            },
+            {
+              "job": "feature-split-1",
+              "label": "concur battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.81
+            },
+            {
+              "job": "feature-split-1",
+              "label": "edgeproto battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.6
+            },
+            {
+              "job": "feature-split-1",
+              "label": "edgeenc battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.39
+            },
+            {
+              "job": "feature-split-1",
+              "label": "edgetime battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.82
+            },
+            {
+              "job": "feature-split-1",
+              "label": "arity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "contarity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "feature-split-1",
+              "label": "cmdgap battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "aclsel battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-split-1",
+              "label": "expwide battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 53.76
+            },
+            {
+              "job": "feature-split-1",
+              "label": "infofix battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.19
+            },
+            {
+              "job": "feature-split-1",
+              "label": "pushtear battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 7.96
+            },
+            {
+              "job": "feature-split-1",
+              "label": "netcmd battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-split-1",
+              "label": "feature shutdown invariants (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.02
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-split-1/output.log",
+            "sha256": "b186b2fab7f3bb3ed58be95dd2abf70b8fb5bac00ce3aad0954542ae4c897295"
+          }
+        },
+        {
+          "name": "feature-armed-1",
+          "done": [
+            "0",
+            "35",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-armed-1/ledger",
+            "sha256": "479c1b3dbe1e501120537a847d2a257ee5d4a5c2b10862f8d230de8ef0ec228d"
+          },
+          "rows": [
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed boot line (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.26
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed s6 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.18
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed multi_exec battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.1
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed blocking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.61
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed blockmulti battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.47
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed stream battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.83
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed streamgroups battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed pubsub battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.92
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed lua_scripting battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed scriptsurf battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed limits battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 15.19
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed resp3 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed bitfield battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed dumprestore battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed zsetops battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.08
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed geo battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed climon battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.15
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed climon2 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.34
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed tracking battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 13.28
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed hexpire battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.07
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed servertail battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.6
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed lcs battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.19
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed concur battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.8
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed edgeproto battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.75
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed edgeenc battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.41
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed edgetime battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.82
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed arity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed contarity battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed cmdgap battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed aclsel battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed expwide battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 57.44
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed infofix battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.23
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed pushtear battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.0
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed netcmd battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "feature-armed-1",
+              "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.17
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/feature-armed-1/output.log",
+            "sha256": "ea9c13a9369a6feedcd4a60dee0c63c95500dbf8f85cb020057216e2b92cc155"
+          }
+        },
+        {
+          "name": "multidb-1s-0-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-0-0/ledger",
+            "sha256": "686f8e4d652d2ebdb8ba35b5ae37edf29b75677b56ca8e243b2c681f2909c312"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-0-0",
+              "label": "multidb (1s, read-local 0, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.47
+            },
+            {
+              "job": "multidb-1s-0-0",
+              "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-1s-0-0",
+              "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.27
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-0-0/output.log",
+            "sha256": "10513fb82cd180289cf0c5363653c5400207abde2638db6322efb4ca5e0a8969"
+          }
+        },
+        {
+          "name": "multidb-1s-0-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-0-1/ledger",
+            "sha256": "4c9c07126b127b472f701ac231e758dfe88dfe1edf004c198e4db8b8c1ebb1f0"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-0-1",
+              "label": "multidb (1s, read-local 0, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.47
+            },
+            {
+              "job": "multidb-1s-0-1",
+              "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-1s-0-1",
+              "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.27
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-0-1/output.log",
+            "sha256": "35fb48b9bec9cd11d2fa50a5b7a7cf0e549df379552528a190c3cc0b17630402"
+          }
+        },
+        {
+          "name": "multidb-1s-1-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-1-0/ledger",
+            "sha256": "e7cf50a18592ddf05691d47f8c3912dcb2890a682d895f7aab4ac64f458c8746"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-1-0",
+              "label": "multidb (1s, read-local 1, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.47
+            },
+            {
+              "job": "multidb-1s-1-0",
+              "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-1s-1-0",
+              "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.28
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-1-0/output.log",
+            "sha256": "835c89b2ae019b741e23d9b3d1685562b964b0305bce9f2ee9f7b64ac7fcc447"
+          }
+        },
+        {
+          "name": "multidb-1s-1-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-1-1/ledger",
+            "sha256": "40e261b1ccbe0fe2cea82e842615f9a58905ff7973e8d4dadf03d66a561e753f"
+          },
+          "rows": [
+            {
+              "job": "multidb-1s-1-1",
+              "label": "multidb (1s, read-local 1, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.49
+            },
+            {
+              "job": "multidb-1s-1-1",
+              "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "multidb-1s-1-1",
+              "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.27
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-1s-1-1/output.log",
+            "sha256": "a6aaccddbb70bf98101e2bacf2f22ec4e835e41bdb8716479ab5d74184ca12b9"
+          }
+        },
+        {
+          "name": "multidb-2s-0-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-0-0/ledger",
+            "sha256": "03b8e71adb36ac6baee9e23f922768c371456df6879147d82cb137902acaa914"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-0-0",
+              "label": "multidb (2s, read-local 0, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.41
+            },
+            {
+              "job": "multidb-2s-0-0",
+              "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "multidb-2s-0-0",
+              "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.27
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-0-0/output.log",
+            "sha256": "009558f74bf402221a40dcb73f6df0551c6b72727bf000aaf1972c75f768a990"
+          }
+        },
+        {
+          "name": "multidb-2s-0-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-0-1/ledger",
+            "sha256": "799b5c6344ec954e97b654d5de8ae00103ac8404c9c4be4857c9a849fbec5d07"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-0-1",
+              "label": "multidb (2s, read-local 0, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.41
+            },
+            {
+              "job": "multidb-2s-0-1",
+              "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.1
+            },
+            {
+              "job": "multidb-2s-0-1",
+              "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.28
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-0-1/output.log",
+            "sha256": "afa3c3a970dfda9d6db2dbac748682679113ec78fb72dad9a1c2442e89c4cab0"
+          }
+        },
+        {
+          "name": "multidb-2s-1-0",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-1-0/ledger",
+            "sha256": "7e01e0b6a69d53b6c743c0c7259a177013e956455876afb5bd4d957f66c0c59c"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-1-0",
+              "label": "multidb (2s, read-local 1, atomic 0)",
+              "verdict": "ok",
+              "seconds": 4.42
+            },
+            {
+              "job": "multidb-2s-1-0",
+              "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "multidb-2s-1-0",
+              "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.27
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-1-0/output.log",
+            "sha256": "fa6fbc3a3dea46008120d305bed3a8f5aea6f36b9a9b5a527db1ecc6c2ba1b7a"
+          }
+        },
+        {
+          "name": "multidb-2s-1-1",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-1-1/ledger",
+            "sha256": "d75a51a3a107e514efae00e59a9fa3e6380f90f8e2f9849eeb7be9090baf43dc"
+          },
+          "rows": [
+            {
+              "job": "multidb-2s-1-1",
+              "label": "multidb (2s, read-local 1, atomic 1)",
+              "verdict": "ok",
+              "seconds": 4.36
+            },
+            {
+              "job": "multidb-2s-1-1",
+              "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order",
+              "verdict": "ok",
+              "seconds": 0.09
+            },
+            {
+              "job": "multidb-2s-1-1",
+              "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+              "verdict": "ok",
+              "seconds": 0.28
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/multidb-2s-1-1/output.log",
+            "sha256": "3f0c2de6e6ccbfc90811eca73ba41d7de34ca0637599e5fe36d55f1bbc541086"
+          }
+        },
+        {
+          "name": "debug-0",
+          "done": [
+            "0",
+            "16",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/debug-0/ledger",
+            "sha256": "87204e36917326f905a0275068eedb35df3d389c7fbbfd8852c5017914af0238"
+          },
+          "rows": [
+            {
+              "job": "debug-0",
+              "label": "plain-write lost updates (atomic 0)",
+              "verdict": "ok",
+              "seconds": 9.17
+            },
+            {
+              "job": "debug-0",
+              "label": "lbsignals battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.17
+            },
+            {
+              "job": "debug-0",
+              "label": "slowlog battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.49
+            },
+            {
+              "job": "debug-0",
+              "label": "atomfix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.04
+            },
+            {
+              "job": "debug-0",
+              "label": "scriptatomic battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.13
+            },
+            {
+              "job": "debug-0",
+              "label": "execatomic battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 14.47
+            },
+            {
+              "job": "debug-0",
+              "label": "execiso battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 11.87
+            },
+            {
+              "job": "debug-0",
+              "label": "execfix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.46
+            },
+            {
+              "job": "debug-0",
+              "label": "multires battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.13
+            },
+            {
+              "job": "debug-0",
+              "label": "multirace battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.78
+            },
+            {
+              "job": "debug-0",
+              "label": "session_monotonic battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 30.61
+            },
+            {
+              "job": "debug-0",
+              "label": "xacct battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.36
+            },
+            {
+              "job": "debug-0",
+              "label": "xmove battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "debug-0",
+              "label": "xscript battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 3.27
+            },
+            {
+              "job": "debug-0",
+              "label": "txn_nx battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.18
+            },
+            {
+              "job": "debug-0",
+              "label": "txniso battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 8.92
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/debug-0/output.log",
+            "sha256": "d832e396dcbc21737c2c4540b017d1d2bbbad9b1a548f5a6e199b83126a2f960"
+          }
+        },
+        {
+          "name": "debug-1",
+          "done": [
+            "0",
+            "16",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/debug-1/ledger",
+            "sha256": "b4eac37dec2004cab71baf2b52fe9fcd4a7dad5b1fd349e630b9e64e47893b07"
+          },
+          "rows": [
+            {
+              "job": "debug-1",
+              "label": "plain-write lost updates (atomic 1)",
+              "verdict": "ok",
+              "seconds": 6.16
+            },
+            {
+              "job": "debug-1",
+              "label": "lbsignals battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.17
+            },
+            {
+              "job": "debug-1",
+              "label": "slowlog battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.49
+            },
+            {
+              "job": "debug-1",
+              "label": "atomfix battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "debug-1",
+              "label": "scriptatomic battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.13
+            },
+            {
+              "job": "debug-1",
+              "label": "execatomic battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 14.47
+            },
+            {
+              "job": "debug-1",
+              "label": "execiso battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 11.87
+            },
+            {
+              "job": "debug-1",
+              "label": "execfix battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.46
+            },
+            {
+              "job": "debug-1",
+              "label": "multires battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.12
+            },
+            {
+              "job": "debug-1",
+              "label": "multirace battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.78
+            },
+            {
+              "job": "debug-1",
+              "label": "session_monotonic battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 30.62
+            },
+            {
+              "job": "debug-1",
+              "label": "xacct battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.37
+            },
+            {
+              "job": "debug-1",
+              "label": "xmove battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "debug-1",
+              "label": "xscript battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 3.27
+            },
+            {
+              "job": "debug-1",
+              "label": "txn_nx battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.21
+            },
+            {
+              "job": "debug-1",
+              "label": "txniso battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 9.08
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/debug-1/output.log",
+            "sha256": "bca63e4c5c8537bccb7da03f4804a6d95e3134080009b972024de8c9fef1ae98"
+          }
+        },
+        {
+          "name": "atomfix5_watch",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/atomfix5_watch/ledger",
+            "sha256": "aa029a0e82c09205bc22668082129a4c861f6923146a6776747e4d06a2d8287b"
+          },
+          "rows": [
+            {
+              "job": "atomfix5_watch",
+              "label": "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)",
+              "verdict": "ok",
+              "seconds": 1.99
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/atomfix5_watch/output.log",
+            "sha256": "f2f570b24fd6628de778e4ada7fca606cfae2b2ee4fbc8feb5c6eb7a326dac90"
+          }
+        },
+        {
+          "name": "atomfix5_accounting",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/atomfix5_accounting/ledger",
+            "sha256": "b98721b6ef28bcec58dc2d7a3a303ca845098ab39c45b2da5900e84222ffa303"
+          },
+          "rows": [
+            {
+              "job": "atomfix5_accounting",
+              "label": "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)",
+              "verdict": "ok",
+              "seconds": 13.98
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/atomfix5_accounting/output.log",
+            "sha256": "a1ddd4b105f41c7611d18e37ef1bf2f22cb2472ade512a6ae9d4752d4a323725"
+          }
+        },
+        {
+          "name": "climonfix",
+          "done": [
+            "0",
+            "7",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/climonfix/ledger",
+            "sha256": "46220511a90539ba248cf32e07d88d8953da98b7ce3736c50eecfd174b45e76d"
+          },
+          "rows": [
+            {
+              "job": "climonfix",
+              "label": "shutdown policy + signal handoff serverless",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "climonfix",
+              "label": "shutdown persistence (1s, command)",
+              "verdict": "ok",
+              "seconds": 0.34
+            },
+            {
+              "job": "climonfix",
+              "label": "shutdown persistence (1s, sigterm)",
+              "verdict": "ok",
+              "seconds": 0.13
+            },
+            {
+              "job": "climonfix",
+              "label": "shutdown persistence (1s, sigint)",
+              "verdict": "ok",
+              "seconds": 0.14
+            },
+            {
+              "job": "climonfix",
+              "label": "shutdown persistence (2s, command)",
+              "verdict": "ok",
+              "seconds": 0.33
+            },
+            {
+              "job": "climonfix",
+              "label": "shutdown persistence (2s, sigterm)",
+              "verdict": "ok",
+              "seconds": 0.14
+            },
+            {
+              "job": "climonfix",
+              "label": "shutdown persistence (2s, sigint)",
+              "verdict": "ok",
+              "seconds": 0.13
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/climonfix/output.log",
+            "sha256": "e2644200199a694e329d308d3625d59876b747c934a6257d017027a7da391372"
+          }
+        },
+        {
+          "name": "release_batteries",
+          "done": [
+            "0",
+            "8",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/release_batteries/ledger",
+            "sha256": "c170ed38c37db0d2598db17d865959dc7029a4f3f376c28d9bc1fd8498ae411b"
+          },
+          "rows": [
+            {
+              "job": "release_batteries",
+              "label": "torture battery",
+              "verdict": "ok",
+              "seconds": 6.68
+            },
+            {
+              "job": "release_batteries",
+              "label": "RYOW battery",
+              "verdict": "ok",
+              "seconds": 0.96
+            },
+            {
+              "job": "release_batteries",
+              "label": "ACL category runtime table",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "release_batteries",
+              "label": "ACL LOAD/SAVE no-file errors",
+              "verdict": "ok",
+              "seconds": 0.03
+            },
+            {
+              "job": "release_batteries",
+              "label": "idle loop ceiling (LBSIGNALS, 1s)",
+              "verdict": "ok",
+              "seconds": 1.03
+            },
+            {
+              "job": "release_batteries",
+              "label": "shutdown invariants (nothing stuck)",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "release_batteries",
+              "label": "direct-reply fired (direct=N)",
+              "verdict": "ok",
+              "seconds": 0.02
+            },
+            {
+              "job": "release_batteries",
+              "label": "dispatched==executed (N)",
+              "verdict": "ok",
+              "seconds": 0.04
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/release_batteries/output.log",
+            "sha256": "713a6c966ebd434fdc82f308b1fb117897ee35581544b4a846b7b045bff5bab2"
+          }
+        },
+        {
+          "name": "atomic_batteries",
+          "done": [
+            "0",
+            "4",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/atomic_batteries/ledger",
+            "sha256": "3876f2ea0c58b632c1f356799f90f317f65cea6cd6d23b3204ec01cc4ae20629"
+          },
+          "rows": [
+            {
+              "job": "atomic_batteries",
+              "label": "atomic torn/window battery",
+              "verdict": "ok",
+              "seconds": 32.84
+            },
+            {
+              "job": "atomic_batteries",
+              "label": "atomic RYOW/mixed-write battery",
+              "verdict": "ok",
+              "seconds": 4.07
+            },
+            {
+              "job": "atomic_batteries",
+              "label": "atomic owner-local hazard battery",
+              "verdict": "ok",
+              "seconds": 4.24
+            },
+            {
+              "job": "atomic_batteries",
+              "label": "atomic shutdown invariants",
+              "verdict": "ok",
+              "seconds": 0.02
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/atomic_batteries/output.log",
+            "sha256": "8141dc62394169a8916e81bd81a188d364d0d3c1eb0f071d870b216286066752"
+          }
+        },
+        {
+          "name": "script_bounds",
+          "done": [
+            "0",
+            "2",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/script_bounds/ledger",
+            "sha256": "246782adcc26b54be92c42360e9dd62dc1133cd8fd97bae1c9fce5762445763d"
+          },
+          "rows": [
+            {
+              "job": "script_bounds",
+              "label": "xscript limit control",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "script_bounds",
+              "label": "xscript window control",
+              "verdict": "ok",
+              "seconds": 1.04
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/script_bounds/output.log",
+            "sha256": "7095172db651e8c2878ad861ad42ae3862121c9934041f1981d56b5eb35d0e83"
+          }
+        },
+        {
+          "name": "scriptfix",
+          "done": [
+            "0",
+            "8",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/scriptfix/ledger",
+            "sha256": "7b03e53bc945995d864b73876fca997df9f1a2ad8b2d61b365c23d1c2827a6b4"
+          },
+          "rows": [
+            {
+              "job": "scriptfix",
+              "label": "scriptfix sandbox (1s)",
+              "verdict": "ok",
+              "seconds": 0.11
+            },
+            {
+              "job": "scriptfix",
+              "label": "scriptfix functions (1s)",
+              "verdict": "ok",
+              "seconds": 0.12
+            },
+            {
+              "job": "scriptfix",
+              "label": "scriptfix replies (1s)",
+              "verdict": "ok",
+              "seconds": 0.71
+            },
+            {
+              "job": "scriptfix",
+              "label": "scriptfix dump (1s)",
+              "verdict": "ok",
+              "seconds": 1.48
+            },
+            {
+              "job": "scriptfix",
+              "label": "scriptfix sandbox (2s)",
+              "verdict": "ok",
+              "seconds": 0.11
+            },
+            {
+              "job": "scriptfix",
+              "label": "scriptfix functions (2s)",
+              "verdict": "ok",
+              "seconds": 0.11
+            },
+            {
+              "job": "scriptfix",
+              "label": "scriptfix replies (2s)",
+              "verdict": "ok",
+              "seconds": 0.69
+            },
+            {
+              "job": "scriptfix",
+              "label": "scriptfix dump (2s)",
+              "verdict": "ok",
+              "seconds": 1.5
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/scriptfix/output.log",
+            "sha256": "ede38ae7642f88102934785037fc996518ab79929f65ec16b643c505a30935a7"
+          }
+        },
+        {
+          "name": "dump_restore",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/dump_restore/ledger",
+            "sha256": "9f16e55bcb6109ab8026448728eddf4c7cb98e36fc4f7b175af938d7a00ee3ca"
+          },
+          "rows": [
+            {
+              "job": "dump_restore",
+              "label": "DUMP/RESTORE prepare + native SAVE",
+              "verdict": "ok",
+              "seconds": 0.06
+            },
+            {
+              "job": "dump_restore",
+              "label": "DUMP/RESTORE cross-restart round-trip",
+              "verdict": "ok",
+              "seconds": 0.05
+            },
+            {
+              "job": "dump_restore",
+              "label": "DUMP/RESTORE restart shutdown invariants",
+              "verdict": "ok",
+              "seconds": 0.02
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/dump_restore/output.log",
+            "sha256": "9bb9038d6127f2441f27fc060b21ea405cd5f842fc4e0f2080fd057db41fce45"
+          }
+        },
+        {
+          "name": "flip",
+          "done": [
+            "0",
+            "9",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/flip/ledger",
+            "sha256": "6cb5e3f4f7bc692b611bfa9216fa353bf6643e4ef62030a9160ef778b8afd3b0"
+          },
+          "rows": [
+            {
+              "job": "flip",
+              "label": "FLIP state battery",
+              "verdict": "ok",
+              "seconds": 0.16
+            },
+            {
+              "job": "flip",
+              "label": "FLIP under verified load",
+              "verdict": "ok",
+              "seconds": 1.04
+            },
+            {
+              "job": "flip",
+              "label": "FLIP TTL + expiry events",
+              "verdict": "ok",
+              "seconds": 1.44
+            },
+            {
+              "job": "flip",
+              "label": "partial-frame conn parks (no io spin)",
+              "verdict": "ok",
+              "seconds": 2.23
+            },
+            {
+              "job": "flip",
+              "label": "FLIP close during FLIP (uring)",
+              "verdict": "ok",
+              "seconds": 2.16
+            },
+            {
+              "job": "flip",
+              "label": "FLIP close during FLIP (epoll)",
+              "verdict": "ok",
+              "seconds": 2.11
+            },
+            {
+              "job": "flip",
+              "label": "FLIP signal stop during FLIP + second SIGINT",
+              "verdict": "ok",
+              "seconds": 1.07
+            },
+            {
+              "job": "flip",
+              "label": "perfio stale epoll registration (epoll-flip)",
+              "verdict": "ok",
+              "seconds": 0.53
+            },
+            {
+              "job": "flip",
+              "label": "perfio stale epoll registration (epoll-lb)",
+              "verdict": "ok",
+              "seconds": 1.1
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/flip/output.log",
+            "sha256": "0e2be781be5d4f332a1f880f649a276a1abf2caccdf382caf36a6e8839958030"
+          }
+        },
+        {
+          "name": "atomic_floor",
+          "done": [
+            "0",
+            "2",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/atomic_floor/ledger",
+            "sha256": "7a56ab0f211e0ba0c1462c5dce4e24bbe1c06f0d0b075b6f4837d371ff89f27b"
+          },
+          "rows": [
+            {
+              "job": "atomic_floor",
+              "label": "tripwire arm/disarm round-trip",
+              "verdict": "ok",
+              "seconds": 0.0
+            },
+            {
+              "job": "atomic_floor",
+              "label": "pipelined same-conn program order (400 rolls)",
+              "verdict": "ok",
+              "seconds": 0.08
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/atomic_floor/output.log",
+            "sha256": "5de946ffed9902cf2d5e1ed636e0ffe90b4fdab374b0f825918895a29e6c599d"
+          }
+        },
+        {
+          "name": "aoforder",
+          "done": [
+            "0",
+            "3",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/aoforder/ledger",
+            "sha256": "650278ce55b6d4c1ced98dbf1e329f8eba4d545155ae9a220b103d3bff28fc23"
+          },
+          "rows": [
+            {
+              "job": "aoforder",
+              "label": "AOF commit order single",
+              "verdict": "ok",
+              "seconds": 9.87
+            },
+            {
+              "job": "aoforder",
+              "label": "AOF commit order crossing",
+              "verdict": "ok",
+              "seconds": 4.42
+            },
+            {
+              "job": "aoforder",
+              "label": "AOF commit order rewrite",
+              "verdict": "ok",
+              "seconds": 4.91
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/aoforder/output.log",
+            "sha256": "b7f1af911731ab38eedea3dd8088334061efe593fd8882f76618ae745bbaa556"
+          }
+        },
+        {
+          "name": "fused-0",
+          "done": [
+            "0",
+            "9",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/fused-0/ledger",
+            "sha256": "77449c8b4f404925c4bd39132193b10a7f35b564cf6337cdf951507aed3fcdda"
+          },
+          "rows": [
+            {
+              "job": "fused-0",
+              "label": "fused boot line (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.25
+            },
+            {
+              "job": "fused-0",
+              "label": "fused s6 battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.17
+            },
+            {
+              "job": "fused-0",
+              "label": "fused multi_exec battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.11
+            },
+            {
+              "job": "fused-0",
+              "label": "fused edgeproto battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.74
+            },
+            {
+              "job": "fused-0",
+              "label": "fused atomfix battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "fused-0",
+              "label": "fused spinprobe battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 2.23
+            },
+            {
+              "job": "fused-0",
+              "label": "fused shutdown report (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.17
+            },
+            {
+              "job": "fused-0",
+              "label": "fused txn_nx battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 1.5
+            },
+            {
+              "job": "fused-0",
+              "label": "fused txniso battery (atomic 0)",
+              "verdict": "ok",
+              "seconds": 9.22
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/fused-0/output.log",
+            "sha256": "98d93068766e7e0be8aefe9dfa493da9350e8e631d6f1d98b3ef176d5cd0f404"
+          }
+        },
+        {
+          "name": "fused-1",
+          "done": [
+            "0",
+            "9",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/fused-1/ledger",
+            "sha256": "2104cd00b7a73134e4a9b0e5e7c5dcb540732657580844bbb59cb9310110ab6e"
+          },
+          "rows": [
+            {
+              "job": "fused-1",
+              "label": "fused boot line (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.26
+            },
+            {
+              "job": "fused-1",
+              "label": "fused s6 battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.17
+            },
+            {
+              "job": "fused-1",
+              "label": "fused multi_exec battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.1
+            },
+            {
+              "job": "fused-1",
+              "label": "fused edgeproto battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.74
+            },
+            {
+              "job": "fused-1",
+              "label": "fused atomfix battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 0.07
+            },
+            {
+              "job": "fused-1",
+              "label": "fused spinprobe battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.23
+            },
+            {
+              "job": "fused-1",
+              "label": "fused shutdown report (atomic 1)",
+              "verdict": "ok",
+              "seconds": 1.16
+            },
+            {
+              "job": "fused-1",
+              "label": "fused txn_nx battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 2.68
+            },
+            {
+              "job": "fused-1",
+              "label": "fused txniso battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 8.77
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/fused-1/output.log",
+            "sha256": "dad8ec177c3793abd64e08fa2a51004c6970d116ba6be64113cde54347dab43c"
+          }
+        },
+        {
+          "name": "txn_group_fused",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/txn_group_fused/ledger",
+            "sha256": "7955f446c191bac6c16d2aa95000c690d876bc1fc119327e962cef34b3212cda"
+          },
+          "rows": [
+            {
+              "job": "txn_group_fused",
+              "label": "fused txngroup battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 12.91
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/txn_group_fused/output.log",
+            "sha256": "bf28dec08707e0fba6c0c263c6acf967886f958c369e80f8ba2642f266b53abb"
+          }
+        },
+        {
+          "name": "txn_group_split",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/txn_group_split/ledger",
+            "sha256": "54c496bed19875b2ec781140c54e1f2eab525b9fa1fe60e63dc4699d3ba057e9"
+          },
+          "rows": [
+            {
+              "job": "txn_group_split",
+              "label": "txngroup battery (atomic 1)",
+              "verdict": "ok",
+              "seconds": 12.66
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/txn_group_split/output.log",
+            "sha256": "66c1afe501a88cba1aa7ec34d2ae633599d3194721aaeaa98a4f6d149cf25f97"
+          }
+        },
+        {
+          "name": "txnorder-fused-0",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-fused-0/ledger",
+            "sha256": "24d7da7da8bb106525316bfc037de916742681d5cbbe7f0bc000c6e34c50e06e"
+          },
+          "rows": [
+            {
+              "job": "txnorder-fused-0",
+              "label": "txnorder battery (fused, atomic 0)",
+              "verdict": "ok",
+              "seconds": 48.26
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-fused-0/output.log",
+            "sha256": "74181b3674f88ef3a64b67a0cfc9a4dd17510e49e9bb82195918c4807ea9d2a0"
+          }
+        },
+        {
+          "name": "txnorder-fused-1",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-fused-1/ledger",
+            "sha256": "2cf40aad438a46f01347af7ae601c96ba236d62bebd4fca9626b6e537dfe685b"
+          },
+          "rows": [
+            {
+              "job": "txnorder-fused-1",
+              "label": "txnorder battery (fused, atomic 1)",
+              "verdict": "ok",
+              "seconds": 48.08
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-fused-1/output.log",
+            "sha256": "e21d0a0a2ae8f0b86a8e11e31ed1fa6353e5f16ae511e1405c7f5c009f3d18ec"
+          }
+        },
+        {
+          "name": "txnorder-split-0",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-split-0/ledger",
+            "sha256": "bb5de1710d7e5fb8bec14a120efc05274d77203c2209ebca7cd8b843c775837b"
+          },
+          "rows": [
+            {
+              "job": "txnorder-split-0",
+              "label": "txnorder battery (split, atomic 0)",
+              "verdict": "ok",
+              "seconds": 47.91
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-split-0/output.log",
+            "sha256": "cbc0680403f18e5bddcc16f1922ce926ed69e4a5deb84e152176cc170221a5ce"
+          }
+        },
+        {
+          "name": "txnorder-split-1",
+          "done": [
+            "0",
+            "1",
+            "0"
+          ],
+          "ledger": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-split-1/ledger",
+            "sha256": "7cca0e0d6cf4b8a51bc5f8a2ee4a7ba59f6b995b23aa04a8739aad223a25e342"
+          },
+          "rows": [
+            {
+              "job": "txnorder-split-1",
+              "label": "txnorder battery (split, atomic 1)",
+              "verdict": "ok",
+              "seconds": 47.82
+            }
+          ],
+          "output_log": {
+            "path": "build/gate-run.cUVcE3/jobs/txnorder-split-1/output.log",
+            "sha256": "cd5e9e5105ca6b464d752322857dadab7a7dfad8cbcc7b53b269e05af6d02523"
+          }
+        }
+      ],
+      "omitted_unfinished_jobs": [],
+      "scored_rows": 268,
+      "verdicts": {
+        "ok": 268
+      },
+      "complete_selection": true,
+      "explicit_not_run": [
+        {
+          "job": "atomic_floor",
+          "line": "NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)"
+        }
+      ]
     }
   },
   "differential_inventory": []

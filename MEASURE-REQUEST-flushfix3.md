@@ -220,6 +220,9 @@ broad union covers 96 distinct jobs and 630 passing rows, zero failures
 (`docs/flushfix3/broad-coverage.json`). FLIP's `flip_saturated` row invokes
 `memtier_benchmark`; it is NOT RUN pending the owner's clarification, while the
 other FLIP jobs remain selected. It is not silently counted as passing.
+The additional epoll selection completes with 268 passing rows, zero failures;
+fused persistence and the remaining explicit mode/engine controls are still
+running before the standard-seed differential selections.
 
 Superseded compiler probes, source trees and logs were removed after retaining
 their hashes and counts. Large persistence images from completed passing jobs
