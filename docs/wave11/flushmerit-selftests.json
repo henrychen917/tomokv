@@ -1,0 +1,20 @@
+[
+  {
+    "tool": "calib/flush-latency-merit.py",
+    "exit": 0,
+    "log": "build/wave11/flush-latency-merit.py.selftest.log",
+    "log_sha256": "0bd0c9c37f6d886333c008bf9f080ff5b37e7c4b4ec89a285781189728fe1c78"
+  },
+  {
+    "tool": "calib/flush-writer-wait.py",
+    "exit": 0,
+    "log": "build/wave11/flush-writer-wait.py.selftest.log",
+    "log_sha256": "1a638191b9cd35bf9ef2b378282fed699030493301efffe4027418f56490c66f"
+  },
+  {
+    "tool": "calib/mget-under-exec-merit.py",
+    "exit": 0,
+    "log": "build/wave11/mget-under-exec-merit.py.selftest.log",
+    "log_sha256": "5611def89396e1e7fd9666a7922170c33b4b0b934e1986e0709faacfe8b8c3f9"
+  }
+]
