@@ -360,8 +360,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix5: job_flipfix5_units (two serverless rows) and job_flipfix5 (one live row), all three
 # collected before the quick exit: DQ=+3, DF=+3. Maintainer updates 946/963 -> 949/966 and adds
 # the three labels to the label fixture.
-EXPECT_QUICK=946
-EXPECT_FULL=963                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=977
+EXPECT_FULL=994                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
 # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
 # txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
