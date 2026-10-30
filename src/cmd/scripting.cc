@@ -50,6 +50,11 @@ int luaopen_cjson(lua_State*);
 int luaopen_cmsgpack(lua_State*);
 int luaopen_bit(lua_State*);
 int luaopen_struct(lua_State*);
+#if !TOMO_SINGLE_DATABASE
+// Keep the small stack rotation at its caller, as in the isolated scripting
+// POST. The larger cache must not turn it into an extra VM API round trip.
+__attribute__((always_inline)) void lua_insert(lua_State*, int);
+#endif
 }
 #pragma GCC diagnostic pop
 
@@ -449,6 +454,9 @@ struct LuaEngine {
 // Allocate either VM lazily; selecting a call never rebuilds or rebinds globals.
 thread_local LuaEngine t_lua_engine;
 thread_local LuaEngine t_function_engine;
+// POD TLS needs no initialization guard on a readonly activation. The EVAL
+// interpreter binds this stable slot once, before any cached closure can run.
+thread_local ScriptContext** t_eval_context_slot = nullptr;
 struct ScriptCrossBinding {
     Op* op = nullptr;
     uint8_t* access = nullptr;
@@ -1488,6 +1496,7 @@ lua_State* script_thread_state(ScriptArgStyle style) {
         if (!engine.state) return nullptr;
         engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
         create_sandbox_static(engine.state, &engine.current, function);
+        if (!function) t_eval_context_slot = &engine.current;
         lua_pushlightuserdata(engine.state, &g_eval_chunks_key);
         lua_newtable(engine.state);
         lua_rawset(engine.state, LUA_REGISTRYINDEX);
@@ -1672,10 +1681,9 @@ namespace {
 // Only no-writes chunks need this activation wrapper. Metadata, compilation and
 // PAUSE classification share the immutable ScriptSource flags.
 int readonly_eval(lua_State* state) {
-    // Both upvalues are immutable: the compiled body and this interpreter's
-    // stable activation slot. No registry lookup or per-call header work.
-    auto* slot = static_cast<ScriptContext**>(lua_touserdata(state, lua_upvalueindex(2)));
-    (*slot)->readonly = true;
+    // The body upvalue and interpreter activation slot are stable. No registry
+    // lookup, userdata conversion, TLS initialization or per-call header work.
+    (*t_eval_context_slot)->readonly = true;
     lua_pushvalue(state, lua_upvalueindex(1));
     lua_call(state, 0, 1);
     return 1;
@@ -1699,8 +1707,7 @@ __attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, const Scri
         return false;
     }
     if (source.flags & EvalNoWrites) {
-        lua_pushlightuserdata(state, &t_lua_engine.current);
-        lua_pushcclosure(state, readonly_eval, 2);
+        lua_pushcclosure(state, readonly_eval, 1);
     }
     try {
         t_lua_engine.compiled_sources.push_back(owner);

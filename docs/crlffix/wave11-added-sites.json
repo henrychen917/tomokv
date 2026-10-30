@@ -1,25 +1,25 @@
 [
   {
     "file": "src/cmd/scripting.cc",
-    "line": 714,
+    "line": 720,
     "text": "server->aof().reply_write_error(nested);",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 718,
+    "line": 724,
     "text": "reply_maxmemory_oom(nested);",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 1771,
+    "line": 1785,
     "text": "reply_text_error(op, \"ERR\", error); return;",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 1777,
+    "line": 1791,
     "text": "reply_text_error(op, \"ERR\", \"out of memory\"); return;",
     "builder": "central reply_err (directly or through existing script/AOF/memory helpers)"
   },
@@ -37,7 +37,7 @@
   },
   {
     "file": "src/cmd/scripting.cc",
-    "line": 1703,
+    "line": 1716,
     "text": "reply_text_error(op, \"ERR\", \"out of memory caching script\");",
     "scope": "compile_eval metadata retention failure",
     "builder": "central reply_err through reply_text_error"

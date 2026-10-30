@@ -14,6 +14,14 @@ p.add_argument('--asan-binary', type=Path)
 p.add_argument('--load-cores')
 p.add_argument('--manifest', type=Path)
 a=p.parse_args()
+def tree_digest(paths):
+    names=subprocess.check_output(['git','ls-files','-z','--',*paths],cwd=ROOT).split(b'\0')
+    digest=hashlib.sha256()
+    for name in sorted(n for n in names if n):
+        path=a.root/os.fsdecode(name)
+        digest.update(name+b'\0')
+        digest.update(hashlib.sha256(path.read_bytes()).digest() if path.is_file() else b'MISSING')
+    return digest.hexdigest()
 assert 20000 <= a.port <= 20080
 if a.server_start is not None:
     assert a.single_slot
@@ -50,11 +58,15 @@ receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.star
     source_diff_sha256=hashlib.sha256(subprocess.check_output(['git','diff','HEAD'],cwd=ROOT)).hexdigest(),
     gate_sha256=hashlib.sha256((a.root/'tests/gate.sh').read_bytes()).hexdigest(),
     tests_sha256=hashlib.sha256(subprocess.check_output(['git','diff','HEAD','--','tests'],cwd=ROOT)).hexdigest(),started=time.time())
+receipt['source_tree_sha256']=tree_digest(['src','third_party','Makefile'])
+receipt['tests_tools_sha256']=tree_digest(['tests','tools','calib'])
 if 'TOMO_SCRIPTFIX2_BREAK' in env:
     receipt['env']['TOMO_SCRIPTFIX2_BREAK'] = env['TOMO_SCRIPTFIX2_BREAK']
 with log.open('w') as f:
     result=subprocess.run(argv,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT)
 receipt.update(exit=result.returncode,seconds=time.time()-receipt['started'])
+receipt['source_tree_unchanged']=receipt['source_tree_sha256']==tree_digest(['src','third_party','Makefile'])
+receipt['tests_tools_unchanged']=receipt['tests_tools_sha256']==tree_digest(['tests','tools','calib'])
 text=log.read_text();match=re.search(r'  artifacts: (.+)',text)
 if match:receipt['artifacts']=match[1]
 receipt['summary']=[line for line in text.splitlines() if line.startswith('GATE(PARTIAL)')]
