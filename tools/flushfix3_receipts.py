@@ -4,6 +4,7 @@ import gzip
 import hashlib
 import json
 import os
+from collections import Counter
 from pathlib import Path
 import re
 import sys
@@ -17,7 +18,7 @@ from differ_fanout import fold, load_plan
 
 def main():
     assert os.sched_getaffinity(0) <= set(range(16))
-    runs, gates, observations, differential = [], {}, {}, []
+    runs, gates, observations, differential, coverage = [], {}, {}, [], []
     for record in sorted((ROOT/'build/flushfix3/verification').glob('*/runs.json')):
         for row in json.loads(record.read_text()):
             label = record.parent.name + '/' + row['phase']
@@ -48,6 +49,21 @@ def main():
                     except (ValueError, OSError, KeyError, TypeError) as error:
                         result.update(inventory_valid=False, error=str(error))
                     differential.append(result)
+                commands, parts, missing = Counter(), [], None
+                for part in ('split-0', 'split-1', 'armed-0', 'armed-1'):
+                    path = folder/'jobs'/('differ-'+part)/'differ/command-coverage.json'
+                    if not path.exists():
+                        parts.append(dict(part=part, missing_artifact=True))
+                        continue
+                    data = json.loads(path.read_text())
+                    commands.update(data['commands'])
+                    names = set(data['missing'])
+                    missing = names if missing is None else missing & names
+                    parts.append(dict(part=part, artifact=ref(path), registered=data['registered'],
+                                      compared=data['compared'], missing=data['missing']))
+                coverage.append(dict(label=label, parts=parts, compared=len(commands),
+                    recorded_comparison_witnesses=sum(commands.values()),
+                    commands=dict(sorted(commands.items())), missing=sorted(missing or [])))
             for job in evidence['jobs']:
                 name = job['name']
                 if name not in ('flushfix2', 'flushfix2_units', 'flushfix3', 'flushfix3_units'):
@@ -59,7 +75,8 @@ def main():
                         observations[str(path.relative_to(ROOT))] = path.read_text()
     result = dict(binary=ref(ROOT/'build/flushfix3/post/tomokv'),
                   gate_source=ref(ROOT/'tests/gate.sh'),
-                  runs=runs, gates=gates, differential_inventory=differential)
+                  runs=runs, gates=gates, differential_inventory=differential,
+                  differential_command_coverage=coverage)
     out = ROOT/'docs/flushfix3'
     (out/'verification.json').write_text(json.dumps(result, indent=2)+'\n')
     (out/'directed-observations.json.gz').write_bytes(

@@ -229,8 +229,13 @@ precondition correctly rejected the boot. Commit `260866ea9` forwards that
 argument without changing the required witnesses. The corrected split io_uring
 framing job and fused epoll selection pass; the affected fused io_uring framing
 rows will be rerun. Original errors and source hashes are retained in
-`docs/flushfix3/aof-frame-harness-failure.json`. Differential selections are
-running on both engines' standard seed inventories.
+`docs/flushfix3/aof-frame-harness-failure.json`. The io_uring standard differential
+selection passes: seeds 7/19/20/23/21, 490 split/equivalence comparison legs and
+464 armed-fused legs, with both inventories independently validated by the
+gate's fold helper. Epoll is still running its standard inventory. The existing
+fused SORT skips are explicit: that suite requires split 6:2 geometry and is
+executed by the split lifetimes. `verification.json` also records per-command
+comparison witnesses and commands absent from those witnesses.
 
 Superseded compiler probes, source trees and logs were removed after retaining
 their hashes and counts. Large persistence images from completed passing jobs
