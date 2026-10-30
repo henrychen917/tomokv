@@ -421,6 +421,9 @@ struct ScriptContext {
     int error_line = 0;
     uint8_t* cross_access = nullptr;
     uint32_t cross_access_count = 0;
+    // Only the armed script context initializes/reads this member. The anonymous
+    // union leaves it untouched in an unarmed aggregate initialization.
+    union { uint32_t monitor_multi_order; };
 };
 
 // Persistent per-thread engine. Building luaL_newstate + the sandbox + recompiling the source on
@@ -687,10 +690,50 @@ bool push_resp_value(lua_State* state, const char* data, size_t size, size_t& po
     return false;
 }
 
+__attribute__((noinline)) void script_monitor_context(ScriptContext& context) {
+    const auto* carrier = context.shard->notify_carrier();
+    context.monitor_multi_order = carrier && carrier->cmd_name().eq_icase("exec")
+        ? context.shard->notify_order_base() / 0x10000u : UINT32_MAX;
+}
+
+// Return whether the command reached its handler; admission errors must not
+// produce a MONITOR line. The clean caller discards the result at compile time.
+__attribute__((always_inline)) inline bool script_nested_execute(
+        ScriptContext& context, Op& nested, const CommandSpec& spec, Slice key) {
+    const bool logical_write = (spec.flags & CmdFlags::Write) && command_metadata_write(nested);
+    Server* server = context.shard->server();
+    if (logical_write && !context.persistence_write_started && server &&
+        __builtin_expect(server->aof().failed(), false)) {
+        server->aof().reply_write_error(nested);
+        return false;
+    }
+    if ((spec.flags & CmdFlags::DenyOom) && !context.shard->store().budget_admit(key)) {
+        reply_maxmemory_oom(nested);
+        return false;
+    }
+    if (logical_write) context.persistence_write_started = true;
+    if (__builtin_expect(server && server->latency_tracking(), false)) {
+        const uint32_t executor = server->worker_of_shard(context.shard->id());
+        LatencyTrackingScriptCall latency(executor, *context.parent, nested);
+        spec.handler(*context.shard, nested);
+    } else spec.handler(*context.shard, nested);
+    return true;
+}
+
+__attribute__((noinline)) void script_nested_notified(
+        ScriptContext& context, Op& nested, const CommandSpec& spec, Slice key) {
+    notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
+    if (script_nested_execute(context, nested, spec, key))
+        notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
+    notify_execute_source(*context.shard, *context.parent, 0);
+}
+
 int redis_dispatch(lua_State* state, bool protected_call) {
     auto* slot = static_cast<ScriptContext**>(lua_touserdata(state, lua_upvalueindex(1)));
     ScriptContext* context = slot ? *slot : nullptr;
-    char deferred_error[2100] = {};
+    // Every failure below writes a complete snprintf result before this buffer
+    // is consumed. Successful calls need neither its bytes nor a 2 KiB clear.
+    char deferred_error[2100];
     bool failed = false;
     {
         const int argc = lua_gettop(state);
@@ -774,30 +817,12 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
                 if (context->script_resp == 3) nested.mark_resp3();
-                if (context->notify)
-                    notify_execute_source(*context->shard, nested,
-                                          context->call_index++ * 0x10000u);
                 bool modified = false;
                 WatchEffectScope effects(*context->shard, modified);
-                const bool logical_write = (spec->flags & CmdFlags::Write) &&
-                                           command_metadata_write(nested);
-                Server* server = context->shard->server();
-                if (logical_write && !context->persistence_write_started && server &&
-                    __builtin_expect(server->aof().failed(), false)) {
-                    server->aof().reply_write_error(nested);
-                } else if ((spec->flags & CmdFlags::DenyOom) &&
-                    !context->shard->store().budget_admit(key)) {
-                    reply_maxmemory_oom(nested);
-                } else {
-                    if (logical_write) context->persistence_write_started = true;
-                    if (__builtin_expect(server && server->latency_tracking(), false)) {
-                        const uint32_t executor = server->worker_of_shard(context->shard->id());
-                        LatencyTrackingScriptCall latency(executor, *context->parent, nested);
-                        spec->handler(*context->shard, nested);
-                    } else spec->handler(*context->shard, nested);
-                }
-                if (context->notify)
-                    notify_execute_source(*context->shard, *context->parent, 0);
+                // PRE already branches on this source-routing flag. Put the
+                // complete armed execution behind it, including MONITOR work.
+                if (context->notify) script_nested_notified(*context, nested, *spec, key);
+                else script_nested_execute(*context, nested, *spec, key);
                 // A Write row that answered without an error has already changed the keyspace.
                 // Nothing later in this activation may reverse it, so record it here: this is the
                 // quantity a regression asserts on, not "no exception was thrown".
@@ -1553,12 +1578,17 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
         latency_tracking_script_begin(op);
     LuaEngine& engine = call.style == ScriptArgStyle::Params ? t_function_engine : t_lua_engine;
     lua_State* state = engine.state;
-    ScriptContext context{&shard, &op, call.key_first, call.key_count};
+    ScriptContext context;
+    context.shard = &shard;
+    context.parent = &op;
+    context.key_first = call.key_first;
+    context.key_count = call.key_count;
     if (t_script_cross.op == &op) {
         context.cross_access = t_script_cross.access;
         context.cross_access_count = t_script_cross.count;
     }
     context.notify = call.notify;
+    if (context.notify) script_monitor_context(context);
     context.readonly = call.readonly;
     context.function_admitted = call.style == ScriptArgStyle::Params || call.memory_admitted;
     engine.current = &context;
@@ -1625,6 +1655,15 @@ void script_cross_access_end() {
 
 namespace {
 
+// Only no-writes chunks need this activation wrapper. Metadata, compilation and
+// PAUSE classification share the immutable ScriptSource flags.
+int readonly_eval(lua_State* state) {
+    lua_context(state)->readonly = true;
+    lua_pushvalue(state, lua_upvalueindex(1));
+    lua_call(state, 0, 1);
+    return 1;
+}
+
 void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, bool readonly) {
     uint32_t key_first = 0, key_count = 0;
     if (!command_script_key_range(op, key_first, key_count)) {
@@ -1665,6 +1704,7 @@ void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, boo
                              std::string("Error compiling script (new function): ") + error);
             return;
         }
+        if (flags & EvalNoWrites) lua_pushcclosure(state, readonly_eval, 1);
         lua_pushlstring(state, sha.p, sha.n);
         lua_pushvalue(state, -2);
         lua_rawset(state, -4);
@@ -1677,7 +1717,7 @@ void run_eval(Shard& shard, Op& op, const ScriptSource& source, bool notify, boo
     call.key_first = key_first;
     call.key_count = key_count;
     call.style = ScriptArgStyle::Globals;
-    call.readonly = readonly || (flags & EvalNoWrites);
+    call.readonly = readonly;
     call.memory_admitted = !(flags & EvalLegacy);
     call.notify = notify;
     call.chunk = "user_script";
@@ -1709,7 +1749,9 @@ void cmd_eval(Shard& shard, Op& op) {
             }
         }
     }
-    run_eval(shard, op, *source, kNotify, kReadonly);
+    // WATCH observes writes independently of notification/monitor routing.
+    const bool notify = kNotify && (op.spec->flags & CmdFlags::NotifySelected);
+    run_eval(shard, op, *source, notify, kReadonly);
 }
 
 void reply_script_wrong_args(Op& op, const char* sub) {
@@ -1856,6 +1898,22 @@ bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count) {
     bool negative = false;
     if (!parse_nonnegative(op.arg(2), count, negative) || negative) return false;
     return count <= op.argc() - first;
+}
+
+bool script_metadata_write(const Op& op) {
+    if (!op.spec || !(op.spec->flags & CmdFlags::Write)) return false;
+    if (op.argc() < 2) return true;
+    const Slice input = op.arg(1);
+    const bool sha = op.cmd_name().eq_icase("evalsha");
+    const auto cached = sha ? g_scripts.find(input) : g_scripts.source(input);
+    if (cached) return !(cached->flags & EvalNoWrites);
+    if (sha) return true;
+    // PAUSE runs before ordered source admission. A new EVAL needs only its
+    // header classified here; warm calls borrow flags without copying source.
+    Slice body;
+    uint32_t flags;
+    std::string error;
+    return !eval_header(input, body, flags, error) || !(flags & EvalNoWrites);
 }
 
 // THE SCRIPT STORE IS MAINTAINED ON THE IO THREAD, in connection parse order.

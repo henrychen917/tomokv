@@ -1,0 +1,203 @@
+{
+  "binary_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+  "allowed_cpus": "16-31",
+  "allowed_ports": "20200-20299",
+  "processes": [
+    {
+      "pid": 317800,
+      "exe": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "argv": [
+        "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+        "--port",
+        "20230",
+        "--bind",
+        "127.0.0.1",
+        "--shards",
+        "16",
+        "--thread-mode",
+        "fused",
+        "--read-local",
+        "1",
+        "--net-io",
+        "uring",
+        "--databases",
+        "16",
+        "--atomic",
+        "0",
+        "--save",
+        "--dir",
+        "/home/user/Projects/cx-climonfix4/build/gate-run.PkC1v3/jobs/differ-armed-0/differ/target-atomic-0",
+        "--enable-debug-command",
+        "yes",
+        "--aclfile",
+        "/home/user/Projects/cx-climonfix4/build/gate-run.PkC1v3/jobs/differ-armed-0/differ/ccfix.acl"
+      ],
+      "port": 20230,
+      "threads": [
+        {
+          "tid": 317800,
+          "cpus": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ]
+        },
+        {
+          "tid": 317809,
+          "cpus": [
+            24
+          ]
+        },
+        {
+          "tid": 317810,
+          "cpus": [
+            25
+          ]
+        },
+        {
+          "tid": 317811,
+          "cpus": [
+            26
+          ]
+        },
+        {
+          "tid": 317812,
+          "cpus": [
+            27
+          ]
+        },
+        {
+          "tid": 317813,
+          "cpus": [
+            28
+          ]
+        },
+        {
+          "tid": 317814,
+          "cpus": [
+            29
+          ]
+        },
+        {
+          "tid": 317815,
+          "cpus": [
+            30
+          ]
+        },
+        {
+          "tid": 317816,
+          "cpus": [
+            31
+          ]
+        },
+        {
+          "tid": 342418,
+          "cpus": [
+            24
+          ]
+        },
+        {
+          "tid": 365666,
+          "cpus": [
+            30
+          ]
+        }
+      ]
+    },
+    {
+      "pid": 370295,
+      "exe": "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+      "argv": [
+        "/home/user/Projects/cx-climonfix4/build/climonfix4/tomokv-POST",
+        "--port",
+        "20200",
+        "--bind",
+        "127.0.0.1",
+        "--save",
+        "--appendonly",
+        "no",
+        "--dir",
+        "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-2s/unit/scripting/data",
+        "--enable-debug-command",
+        "yes",
+        "--thread-mode",
+        "2s",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--ratio",
+        "6:2"
+      ],
+      "port": 20200,
+      "threads": [
+        {
+          "tid": 370295,
+          "cpus": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        {
+          "tid": 370296,
+          "cpus": [
+            22
+          ]
+        },
+        {
+          "tid": 370297,
+          "cpus": [
+            23
+          ]
+        },
+        {
+          "tid": 370298,
+          "cpus": [
+            16
+          ]
+        },
+        {
+          "tid": 370299,
+          "cpus": [
+            17
+          ]
+        },
+        {
+          "tid": 370300,
+          "cpus": [
+            18
+          ]
+        },
+        {
+          "tid": 370301,
+          "cpus": [
+            19
+          ]
+        },
+        {
+          "tid": 370302,
+          "cpus": [
+            20
+          ]
+        },
+        {
+          "tid": 370303,
+          "cpus": [
+            21
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "arm": "pre",
+  "namespace": "db0",
+  "command": "PING",
+  "mode": "2s",
+  "batch": 1,
+  "atomic": 1,
+  "steps": 1604,
+  "clock_calls": 0,
+  "excluded_calls": 7,
+  "pc_trace_sha256": "f4bf876213faff7e433153b3d48ac011f419619b6848bc62310633234cb2f624",
+  "pc_trace_entries": 653,
+  "scope": "session",
+  "total": 871,
+  "functions": {
+    "tomo_db0::ParseResult tomo_db0::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long, tomo_db0::RespFrontier*) [clone .isra.0]": 141,
+    "tomo_db0::IoLoop::mark_active(tomo_db0::Client*)": 6,
+    "tomo_db0::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)": 396,
+    "tomo_db0::(anonymous namespace)::command_equal(tomo_db0::Slice, char const*) [clone .isra.0]": 113,
+    "tomo_db0::command_lookup_registry(tomo_db0::Slice)": 132,
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+    "tomo_db0::(anonymous namespace)::cmd_ping(tomo_db0::Shard&, tomo_db0::Op&)": 32,
+    "tomo_db0::command_set_local_context(tomo_db0::Client*, tomo_db0::ThreadCtx*)": 8,
+    "tomo_db0::snapshot_bind_io(tomo_db0::ThreadCtx*, tomo_db0::Ring*)": 10
+  },
+  "probe_sha256": "96c14b7d24ce5b00cae67d5dbd7120342a52107db4890555f7e68754100a4943"
+}

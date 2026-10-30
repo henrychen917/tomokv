@@ -1,0 +1,26 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "command": "GET",
+  "mode": "2s",
+  "batch": 1,
+  "atomic": 0,
+  "steps": 1139,
+  "clock_calls": 0,
+  "excluded_calls": 2,
+  "pc_trace_sha256": "39b644aa3d5878c70c63ddb23d4a2af2fa78d8e5c81970b6b02e109a04b01ac0",
+  "pc_trace_entries": 808,
+  "scope": "parse",
+  "total": 1126,
+  "functions": {
+    "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]": 209,
+    "tomo::FlatStore::hash_key(tomo::Slice)": 86,
+    "tomo::ThreadCtx::post_task_quiet(unsigned int, tomo::Task const&, tomo::LoopSignals&)": 45,
+    "tomo::IoLoop::mark_active(tomo::Client*)": 56,
+    "tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)": 642,
+    "tomo::stamp_regular_range(tomo::Op&)": 42,
+    "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 37
+  },
+  "probe_sha256": "860901b48345ed796332f8aba4b675c11ca3188aee7b1ff6ec6d4b4fea20c799"
+}

@@ -156,6 +156,9 @@ bool command_registry_init(bool tls_enabled, bool fused_mode, bool read_local_ar
         for (const CommandTable& family : families)
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
+                if (const auto* metadata = command_metadata_lookup(Slice(copy.name));
+                    metadata && command_metadata_is_container(*metadata))
+                    copy.flags |= CmdFlags::ClientCommandName;
                 copy.length_class =
                     static_cast<uint8_t>(command_length_class_for(copy, read_local_armed));
                 if (fused_mode && !std::strcmp(copy.name, "FLIP")) {
@@ -363,7 +366,11 @@ bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
     return true;
 }
 
-bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec) {
+bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec, Client* client) {
+    if (client) command_client_note_command(client, op, &spec);
+    // The existing cold dispatch branch also captures connection-local command
+    // identity. Keep its handlers' established arity/admission order unchanged.
+    if (!(spec.flags & CmdFlags::SubcmdRoute)) return false;
     const CommandMetadata* metadata = command_metadata_resolve(op, 0);
     if (!metadata || !command_metadata_is_subcommand(*metadata) ||
         command_metadata_arity_ok(*metadata, op.argc())) return false;

@@ -1,0 +1,318 @@
+[
+  {
+    "root": "PAUSE-MAY-REPLICATE",
+    "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "post_run": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT",
+    "post_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    },
+    "negative_sha256": "a95632c7876c6222fd09cfda547c153bd93fe94d5a7d650aeff87fda89423f9a",
+    "negative_run": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as",
+    "negative_modes": {
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      },
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      }
+    },
+    "mutation_receipt": "docs/climonfix4/root-mutant-results.json"
+  },
+  {
+    "root": "PAUSE-SCRIPT-FLAGS",
+    "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "post_run": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq",
+    "post_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    },
+    "negative_sha256": "6eafe0800da77c11c0aadecfb15989554530bf197b2e42988b8dbc797dcc6a1d",
+    "negative_run": "/home/user/Projects/cx-climonfix4/build/gate-run.6ODJIc",
+    "negative_modes": {
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.6ODJIc/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "timeout": true,
+        "error": null
+      },
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.6ODJIc/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "timeout": true,
+        "error": null
+      }
+    },
+    "mutation_receipt": "docs/climonfix4/root-mutant-results.json"
+  },
+  {
+    "root": "MONITOR-SCRIPT-CMDS",
+    "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "post_run": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc",
+    "post_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    },
+    "negative_sha256": "a3ef0a8af5611037a80e5c6bdc59e96c49a82d236b636c582ecb9223c94e8b39",
+    "negative_run": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa",
+    "negative_modes": {
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "timeout": true,
+        "error": null
+      },
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing"
+        ],
+        "timeout": true,
+        "error": null
+      }
+    },
+    "mutation_receipt": "docs/climonfix4/root-mutant-results.json"
+  },
+  {
+    "root": "RESET-CLEARS-LIBNAME",
+    "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "post_run": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz",
+    "post_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    },
+    "negative_sha256": "31d99f2d7032ad238fc1bd880978a3d471eb8538d5ecd84adc10b4740e9edbba",
+    "negative_run": "/home/user/Projects/cx-climonfix4/build/gate-run.B71B8v",
+    "negative_modes": {
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.B71B8v/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      },
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.B71B8v/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      }
+    },
+    "mutation_receipt": "docs/climonfix4/root-mutant-results.json"
+  },
+  {
+    "root": "RESET-MONITOR-ECHO",
+    "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "post_run": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q",
+    "post_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q/jobs/redis_tcl/redis-tcl-2s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q/jobs/redis_tcl/redis-tcl-1s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    },
+    "negative_sha256": "c4ee04cc292550bb0deb125f4a8acaab3d1a01ef6441b7567effd52de22b4ba5",
+    "negative_run": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH",
+    "negative_modes": {
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH/jobs/redis_tcl/redis-tcl-1s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      },
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH/jobs/redis_tcl/redis-tcl-2s/unit/other/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      }
+    },
+    "mutation_receipt": "docs/climonfix4/root-mutant-results.json"
+  },
+  {
+    "root": "CLIENT-LIST-CMD-NAME",
+    "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "post_run": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP",
+    "post_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    },
+    "negative_sha256": "abb927a97a7a2012e54eb16099b3c51b8a175400c7d4010ac4109a37075de1a6",
+    "negative_run": "/home/user/Projects/cx-climonfix4/build/gate-run.cFun5o",
+    "negative_modes": {
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.cFun5o/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      },
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.cFun5o/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "timeout": false,
+        "error": null
+      }
+    },
+    "mutation_receipt": "docs/climonfix4/root-mutant-results.json"
+  },
+  {
+    "root": "PAUSE-BLOCKED-COUNT",
+    "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+    "post_run": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U",
+    "post_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "ok"
+        ],
+        "error": null
+      }
+    },
+    "negative_sha256": "89dd91dded102d9fe40ff61e2cf3cce0fc628a0833948241cee1dfdc9f80f421",
+    "negative_run": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP",
+    "negative_modes": {
+      "2s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      },
+      "1s": {
+        "result": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+        "statuses": [
+          "testing",
+          "err"
+        ],
+        "error": null
+      }
+    },
+    "mutation_receipt": "docs/climonfix4/count-mutant.json"
+  }
+]

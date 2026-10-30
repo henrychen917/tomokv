@@ -1,0 +1,4 @@
+/home/user/Projects/cx-climonfix4/build/climonfix4/root-mutants/MONITOR-SCRIPT-CMDS/source/src/cmd/scripting.cc:45:10: fatal error: ../../third_party/lua/lua_amalgamation.c: No such file or directory
+   45 | #include "../../third_party/lua/lua_amalgamation.c"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.

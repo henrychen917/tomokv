@@ -1,0 +1,626 @@
+[
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.lsJW7q/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-client-list-cmd-name-negative.tar.gz",
+    "archive_sha256": "6cc66a15afcb72902b39f706521d4817ab67bfe9bf7884e3b4c3cfc1a1451e9a"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.lsJW7q/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-client-list-cmd-name-negative.tar.gz",
+    "archive_sha256": "6cc66a15afcb72902b39f706521d4817ab67bfe9bf7884e3b4c3cfc1a1451e9a"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.8hIgIC/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-client-list-cmd-name-post.tar.gz",
+    "archive_sha256": "67e9354234e041511143c0c65109a86de50cd5b6e6ece95e5511e90c2db88983"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.8hIgIC/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-client-list-cmd-name-post.tar.gz",
+    "archive_sha256": "67e9354234e041511143c0c65109a86de50cd5b6e6ece95e5511e90c2db88983"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.5MRNJB/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-connected-clients-lag-negative.tar.gz",
+    "archive_sha256": "eb42008b28fd718558ad311f3f47375b9bacf8e8e4e138ebacaa14ec3309f9a5"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.5MRNJB/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-connected-clients-lag-negative.tar.gz",
+    "archive_sha256": "eb42008b28fd718558ad311f3f47375b9bacf8e8e4e138ebacaa14ec3309f9a5"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ZyZAYg/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-connected-clients-lag-post.tar.gz",
+    "archive_sha256": "8e094887bd74c43fb4fb96b78f2c95c4384b6b6ebb2c4fffda34c5cc05de1312"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ZyZAYg/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-connected-clients-lag-post.tar.gz",
+    "archive_sha256": "8e094887bd74c43fb4fb96b78f2c95c4384b6b6ebb2c4fffda34c5cc05de1312"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.4G3jIA/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-monitor-script-cmds-negative.tar.gz",
+    "archive_sha256": "7776cf060fbc938ab1de8d55b17565a891a28eed4280822c40ff5be308b2b124"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.4G3jIA/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-monitor-script-cmds-negative.tar.gz",
+    "archive_sha256": "7776cf060fbc938ab1de8d55b17565a891a28eed4280822c40ff5be308b2b124"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.pFVr51/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-monitor-script-cmds-post.tar.gz",
+    "archive_sha256": "ab23eb0015f7f9be3797b709251e25bcc23013c8ab6906aea74bd357fa9fa4d4"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.pFVr51/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-monitor-script-cmds-post.tar.gz",
+    "archive_sha256": "ab23eb0015f7f9be3797b709251e25bcc23013c8ab6906aea74bd357fa9fa4d4"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.rvEFUe/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-blocked-count-negative.tar.gz",
+    "archive_sha256": "069af34470fd33be653458a89084ea0ec29613bf486d44ff6d775e70c4056277"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.rvEFUe/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-blocked-count-negative.tar.gz",
+    "archive_sha256": "069af34470fd33be653458a89084ea0ec29613bf486d44ff6d775e70c4056277"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ADuwEB/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-blocked-count-post.tar.gz",
+    "archive_sha256": "81e5eba57d322a347e2519410683cd5fe6a798a4120ab51d075ed3d4c1204995"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ADuwEB/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-blocked-count-post.tar.gz",
+    "archive_sha256": "81e5eba57d322a347e2519410683cd5fe6a798a4120ab51d075ed3d4c1204995"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.whccov/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-may-replicate-negative.tar.gz",
+    "archive_sha256": "869767db382d9f1347c30c190e8d1681d6e2e48cfa7bd620ec8ec50aac8fd398"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.whccov/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-may-replicate-negative.tar.gz",
+    "archive_sha256": "869767db382d9f1347c30c190e8d1681d6e2e48cfa7bd620ec8ec50aac8fd398"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ZEQc9L/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-may-replicate-post.tar.gz",
+    "archive_sha256": "52280cb5668f40586be9d98e1fe3f742f278e825cd2ebd040491a078cbefe700"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ZEQc9L/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-may-replicate-post.tar.gz",
+    "archive_sha256": "52280cb5668f40586be9d98e1fe3f742f278e825cd2ebd040491a078cbefe700"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.dIyAdy/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-script-flags-negative.tar.gz",
+    "archive_sha256": "66fa32f865ca4422a5cb8e871d1a38c6aeebf66f94c59bd0c3f6890a2239ad19"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.dIyAdy/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-script-flags-negative.tar.gz",
+    "archive_sha256": "66fa32f865ca4422a5cb8e871d1a38c6aeebf66f94c59bd0c3f6890a2239ad19"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.IcXGOv/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-script-flags-post.tar.gz",
+    "archive_sha256": "ba6ce859daf8686aeda1e466652243e2ee453258981d6c4b20d654d3098e4912"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.IcXGOv/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-pause-script-flags-post.tar.gz",
+    "archive_sha256": "ba6ce859daf8686aeda1e466652243e2ee453258981d6c4b20d654d3098e4912"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.qbQG15/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-clears-libname-negative.tar.gz",
+    "archive_sha256": "5d539b8d8320898f74b42304b9c1459aabbd5e4926a2fdb1c0a6d49a12ac0af9"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.qbQG15/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-clears-libname-negative.tar.gz",
+    "archive_sha256": "5d539b8d8320898f74b42304b9c1459aabbd5e4926a2fdb1c0a6d49a12ac0af9"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.kNne1w/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-clears-libname-post.tar.gz",
+    "archive_sha256": "1117d8a21111e51b4d8dc5b05961ccaddd8c41055bcb65c6d76d878a214d2d06"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.kNne1w/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-clears-libname-post.tar.gz",
+    "archive_sha256": "1117d8a21111e51b4d8dc5b05961ccaddd8c41055bcb65c6d76d878a214d2d06"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.DVgjtB/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-monitor-echo-negative.tar.gz",
+    "archive_sha256": "357a324ffc8573cd645e7ee699ee66799a8ed0be0f094ff3655017140e047401"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.DVgjtB/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-monitor-echo-negative.tar.gz",
+    "archive_sha256": "357a324ffc8573cd645e7ee699ee66799a8ed0be0f094ff3655017140e047401"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.waGvtn/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-monitor-echo-post.tar.gz",
+    "archive_sha256": "8b8ea9c5fdf46ea8fb2fc298eff1be750ff2b1690a04c50cdd43241ee14824bc"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.waGvtn/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/control-reset-monitor-echo-post.tar.gz",
+    "archive_sha256": "8b8ea9c5fdf46ea8fb2fc298eff1be750ff2b1690a04c50cdd43241ee14824bc"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.QcXxZu/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/diagnostic-complete-tcl.tar.gz",
+    "archive_sha256": "9e68a711eb77306b13a024ff1019fd0daa7abab454813290e781e7e5106d0167"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.QcXxZu/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/diagnostic-complete-tcl.tar.gz",
+    "archive_sha256": "9e68a711eb77306b13a024ff1019fd0daa7abab454813290e781e7e5106d0167"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.aCwcRX/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/diagnostic-pre-neighbours.tar.gz",
+    "archive_sha256": "b768db890bd1d61fb03e885c73a66cb11fdc96078ac7fbf85e2cb29d16165b54"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.aCwcRX/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/diagnostic-pre-neighbours.tar.gz",
+    "archive_sha256": "b768db890bd1d61fb03e885c73a66cb11fdc96078ac7fbf85e2cb29d16165b54"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Qi6E1K/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-0.tar.gz",
+    "archive_sha256": "5e3355e33ed1066f934d47b666c96707bbd300e5b4db3912d04ffcab6bcb4326"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Qi6E1K/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-0.tar.gz",
+    "archive_sha256": "5e3355e33ed1066f934d47b666c96707bbd300e5b4db3912d04ffcab6bcb4326"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Kj3383/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-1.tar.gz",
+    "archive_sha256": "2e7e155d09d20aa5b72dfa859314fed358c98fbb74bc4e3e7ca21aa1343732c1"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Kj3383/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-1.tar.gz",
+    "archive_sha256": "2e7e155d09d20aa5b72dfa859314fed358c98fbb74bc4e3e7ca21aa1343732c1"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.sR6F2s/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-2.tar.gz",
+    "archive_sha256": "f874914f17f20157a0222d3113a6a0e5ae7ee465542b1f39f248be97c3f62b18"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.sR6F2s/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-2.tar.gz",
+    "archive_sha256": "f874914f17f20157a0222d3113a6a0e5ae7ee465542b1f39f248be97c3f62b18"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.BwQhut/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-3.tar.gz",
+    "archive_sha256": "aa88d40c3d7d22b508a903cbdb31edb0df3082b7a81133582a02ed689876f281"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.BwQhut/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-3.tar.gz",
+    "archive_sha256": "aa88d40c3d7d22b508a903cbdb31edb0df3082b7a81133582a02ed689876f281"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.1iUjyl/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-4.tar.gz",
+    "archive_sha256": "8d2e3524b899eef8f4b83b36ee4eb39a82dd17a06760cd0b8861e23951230918"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.1iUjyl/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-post-4.tar.gz",
+    "archive_sha256": "8d2e3524b899eef8f4b83b36ee4eb39a82dd17a06760cd0b8861e23951230918"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.5Yn1uN/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-0.tar.gz",
+    "archive_sha256": "7d1c39981d50cdd5f714d00610578c1ecbbb2ca195848cda98ec84333f6f8603"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.5Yn1uN/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-0.tar.gz",
+    "archive_sha256": "7d1c39981d50cdd5f714d00610578c1ecbbb2ca195848cda98ec84333f6f8603"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ogc1LE/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-1.tar.gz",
+    "archive_sha256": "ce4ddcf1228b011f97129f2b0a94efadc5dd74c043ebff88565138e049952915"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ogc1LE/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-1.tar.gz",
+    "archive_sha256": "ce4ddcf1228b011f97129f2b0a94efadc5dd74c043ebff88565138e049952915"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.u4RDnZ/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-10.tar.gz",
+    "archive_sha256": "d94c70310599b8deb4ebdbe4b92641b8f455f21612ddba6085fea97f0c42a9ea"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.u4RDnZ/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-10.tar.gz",
+    "archive_sha256": "d94c70310599b8deb4ebdbe4b92641b8f455f21612ddba6085fea97f0c42a9ea"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.iXS6wG/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-11.tar.gz",
+    "archive_sha256": "40e4f84aafbef9efda900824bc0d8d981c3c2b62bfe0358905d5de07f06ee828"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.iXS6wG/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-11.tar.gz",
+    "archive_sha256": "40e4f84aafbef9efda900824bc0d8d981c3c2b62bfe0358905d5de07f06ee828"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.6O8BL7/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-12.tar.gz",
+    "archive_sha256": "c5a3499da53827124fbeaa682a9a53b90fb1605f0bf142f622343d32d81873e9"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.6O8BL7/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-12.tar.gz",
+    "archive_sha256": "c5a3499da53827124fbeaa682a9a53b90fb1605f0bf142f622343d32d81873e9"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.uVVvJb/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-2.tar.gz",
+    "archive_sha256": "3863de71abced811348a3caaa41e727a0426d7841fde3183844ace0d9b40b58b"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.uVVvJb/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-2.tar.gz",
+    "archive_sha256": "3863de71abced811348a3caaa41e727a0426d7841fde3183844ace0d9b40b58b"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.9umlgh/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-3.tar.gz",
+    "archive_sha256": "8182673476ae6f152cf8be586f80714b79f86761e44fcdc07021e1ac7e43b893"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.9umlgh/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-3.tar.gz",
+    "archive_sha256": "8182673476ae6f152cf8be586f80714b79f86761e44fcdc07021e1ac7e43b893"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.4yj56w/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-4.tar.gz",
+    "archive_sha256": "c8e47df8617c27a8714f2f031713bf0a8daf15bcd1bf0396984d43eb23bbe492"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.4yj56w/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-4.tar.gz",
+    "archive_sha256": "c8e47df8617c27a8714f2f031713bf0a8daf15bcd1bf0396984d43eb23bbe492"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Gj4gJi/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-5.tar.gz",
+    "archive_sha256": "9176122186d4bbc5d909d9722c512802c8d1a140376e7e0ea32928a6d828f9a3"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Gj4gJi/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-5.tar.gz",
+    "archive_sha256": "9176122186d4bbc5d909d9722c512802c8d1a140376e7e0ea32928a6d828f9a3"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.fDjn51/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-6.tar.gz",
+    "archive_sha256": "36abd13e41b70af0e9669b6a89deeb7465f591bfa53f79b4d87cd7142ab1bb13"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.fDjn51/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-6.tar.gz",
+    "archive_sha256": "36abd13e41b70af0e9669b6a89deeb7465f591bfa53f79b4d87cd7142ab1bb13"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Wh4YV1/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-7.tar.gz",
+    "archive_sha256": "123eb2582d8dacd0fe2ee7120659cbebc608ed7661a0bc26e2f02228b36f0e2f"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.Wh4YV1/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-7.tar.gz",
+    "archive_sha256": "123eb2582d8dacd0fe2ee7120659cbebc608ed7661a0bc26e2f02228b36f0e2f"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.IY7ZvN/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-8.tar.gz",
+    "archive_sha256": "e9e73c5ea4441df038044e863abf123ceaf4176a574f3474262cbcf8b1f1493e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.IY7ZvN/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-8.tar.gz",
+    "archive_sha256": "e9e73c5ea4441df038044e863abf123ceaf4176a574f3474262cbcf8b1f1493e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.cXkzM0/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-9.tar.gz",
+    "archive_sha256": "b076e1516a94e281935df65207086115f962c8939492354b3f23f0bfa9a9076b"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.cXkzM0/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/pubsub-pre-9.tar.gz",
+    "archive_sha256": "b076e1516a94e281935df65207086115f962c8939492354b3f23f0bfa9a9076b"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-client-list-cmd-name-post.tar.gz",
+    "archive_sha256": "77e3b1ef5e6734f3bc08993487c02db476a5eed10c5a3c35a44c796f95b15b76"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.UgJqZP/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-client-list-cmd-name-post.tar.gz",
+    "archive_sha256": "77e3b1ef5e6734f3bc08993487c02db476a5eed10c5a3c35a44c796f95b15b76"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-monitor-script-cmds-post.tar.gz",
+    "archive_sha256": "24de8caa13cf13a8b1bdfa0ec5f2055df24350fa5c562a57d1819277cbb7042e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.rYOMqc/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-monitor-script-cmds-post.tar.gz",
+    "archive_sha256": "24de8caa13cf13a8b1bdfa0ec5f2055df24350fa5c562a57d1819277cbb7042e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-blocked-count-negative.tar.gz",
+    "archive_sha256": "f395bdaf0deadaf429f7713e507cc3a313ac1f3c36e7a0fe77e3acda8dd955d1"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-blocked-count-negative.tar.gz",
+    "archive_sha256": "f395bdaf0deadaf429f7713e507cc3a313ac1f3c36e7a0fe77e3acda8dd955d1"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-blocked-count-post.tar.gz",
+    "archive_sha256": "89f3b158d412ceb631c9769f980e60a6df292c5e1e9071e533e7f0f585bc7f16"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.R8fS0U/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-blocked-count-post.tar.gz",
+    "archive_sha256": "89f3b158d412ceb631c9769f980e60a6df292c5e1e9071e533e7f0f585bc7f16"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-may-replicate-post.tar.gz",
+    "archive_sha256": "3c2fe8fdd124d6fcb4a87094eed056139e453e634283a38f5bb86ecc82c7f113"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.c3whqT/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-may-replicate-post.tar.gz",
+    "archive_sha256": "3c2fe8fdd124d6fcb4a87094eed056139e453e634283a38f5bb86ecc82c7f113"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-script-flags-post.tar.gz",
+    "archive_sha256": "6a47338a5ef47ee75e6ceb3de180a32c76ad32b3d09b8273eeda0e29dafd6b97"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.DOQnCq/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-pause-script-flags-post.tar.gz",
+    "archive_sha256": "6a47338a5ef47ee75e6ceb3de180a32c76ad32b3d09b8273eeda0e29dafd6b97"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-reset-clears-libname-post.tar.gz",
+    "archive_sha256": "3aca661e9487e4dcd28d26803c19da904babf71fd61665620e558f1990002bc8"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.ssbnxz/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-reset-clears-libname-post.tar.gz",
+    "archive_sha256": "3aca661e9487e4dcd28d26803c19da904babf71fd61665620e558f1990002bc8"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-reset-monitor-echo-post.tar.gz",
+    "archive_sha256": "06ef8269d9fceb01ff71a6592580f086db179962c42ca6ac2c6d39a7e885f68a"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.X0zN8Q/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-control-reset-monitor-echo-post.tar.gz",
+    "archive_sha256": "06ef8269d9fceb01ff71a6592580f086db179962c42ca6ac2c6d39a7e885f68a"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.IjpftY/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/superseded-connected-affected.tar.gz",
+    "archive_sha256": "8a88131932017634f363677b568dcc2e42226be19a5974ac71788bff35857e8d"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.IjpftY/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/superseded-connected-affected.tar.gz",
+    "archive_sha256": "8a88131932017634f363677b568dcc2e42226be19a5974ac71788bff35857e8d"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/final14-affected-jobs.tar.gz",
+    "archive_sha256": "8e8d7ab90568a0d15fdb73cc4635eed46ef9dd5d50a5bd43da061d603fff6640"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.FBTG13/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537368,
+    "archive": "docs/climonfix4/job-evidence/final14-affected-jobs.tar.gz",
+    "archive_sha256": "8e8d7ab90568a0d15fdb73cc4635eed46ef9dd5d50a5bd43da061d603fff6640"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.cFun5o/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-client-list-cmd-name.tar.gz",
+    "archive_sha256": "584398e5802d5614992135270b4e40e64a00349fce518dbe64e3520a00bb8c07"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.cFun5o/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-client-list-cmd-name.tar.gz",
+    "archive_sha256": "584398e5802d5614992135270b4e40e64a00349fce518dbe64e3520a00bb8c07"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-monitor-script-cmds.tar.gz",
+    "archive_sha256": "fef413879629f088b384e06266dfd6b04bbac00a35fbd86c2283485730fa969e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.XHWFKa/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-monitor-script-cmds.tar.gz",
+    "archive_sha256": "fef413879629f088b384e06266dfd6b04bbac00a35fbd86c2283485730fa969e"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-may-replicate.tar.gz",
+    "archive_sha256": "475b0cd4256aa5aeb60930134c5adc4c4bbdf1b6fc676430acfd031d44f30b03"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.nzu3as/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-may-replicate.tar.gz",
+    "archive_sha256": "475b0cd4256aa5aeb60930134c5adc4c4bbdf1b6fc676430acfd031d44f30b03"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.6ODJIc/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-script-flags.tar.gz",
+    "archive_sha256": "90a4befee9a4ef25ecaa7051489c9c31503c1ff4c0ec3f25c948e453a478e410"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.6ODJIc/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-pause-script-flags.tar.gz",
+    "archive_sha256": "90a4befee9a4ef25ecaa7051489c9c31503c1ff4c0ec3f25c948e453a478e410"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.B71B8v/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-clears-libname.tar.gz",
+    "archive_sha256": "f8e497baf4fb1eb75854818078de1f27a30eb734bc13f2b403e3d9aa71ec0559"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.B71B8v/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-clears-libname.tar.gz",
+    "archive_sha256": "f8e497baf4fb1eb75854818078de1f27a30eb734bc13f2b403e3d9aa71ec0559"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH/jobs/redis_tcl/redis-tcl-2s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-monitor-echo.tar.gz",
+    "archive_sha256": "c2a3fa1e9cf8b750b64ce9ed35f66ac6adf64d8dafb573867264aa8d6cf0decf"
+  },
+  {
+    "path": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH/jobs/redis_tcl/redis-tcl-1s/checkout",
+    "bytes": 63537213,
+    "archive": "docs/climonfix4/job-evidence/final14-mutant-reset-monitor-echo.tar.gz",
+    "archive_sha256": "c2a3fa1e9cf8b750b64ce9ed35f66ac6adf64d8dafb573867264aa8d6cf0decf"
+  }
+]

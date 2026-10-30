@@ -1,0 +1,42 @@
+{
+  "name": "final14-mutant-reset-monitor-echo",
+  "exit": 1,
+  "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.jm8coH",
+  "replay_argv": [
+    "taskset",
+    "-c",
+    "16-31",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/root-mutants/RESET-MONITOR-ECHO/tomokv"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_TCL_MANIFEST": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/RESET-MONITOR-ECHO.json"
+  },
+  "source_commit": "c369ccc41 + isolated mutation",
+  "binary_sha256": "c4ee04cc292550bb0deb125f4a8acaab3d1a01ef6441b7567effd52de22b4ba5",
+  "post_sha256": "ed7acc2bf7093e94a8e9afec7a899ae96b7e2c3274e836ea22c1061ae2f32f01",
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "manifest_sha256": "c95f45a7ef962d8196baefa63121c4ddabaaeadaf92deb04ddd89d90d11285ac",
+  "log": "/home/user/Projects/cx-climonfix4/build/climonfix4/root-mutants/RESET-MONITOR-ECHO/gate.log",
+  "log_sha256": "a2285a0a33613333929ba888c59f15af1df03df93a80bf209ecbb3263b84c9ff",
+  "expected": "Named witness fails in both modes",
+  "jobs": [
+    "release",
+    "redis_tcl"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "PRE": {
+    "path": "build/climonfix5/tomokv-PRE",
+    "sha256": "dd16c698ec4316c548be0eaa1d4db3fd2928c07f18b1a599e51966ea336a874b",
+    "bytes": 220087840
+  },
+  "C4": {
+    "path": "build/climonfix5/tomokv-C4",
+    "sha256": "81a33ef8cc968b5f044ce15e2c8db15b6d6ffc29b247b93af85e8525f035020e",
+    "bytes": 220592120
+  },
+  "POST": {
+    "path": "build/climonfix5/tomokv-POST",
+    "sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "bytes": 220616312
+  },
+  "PAD-A": {
+    "path": "build/climonfix5/tomokv-PAD-A",
+    "sha256": "c5b445290dbf6919c270bd85075c59fbf5a416a80a9e54a5b1dc419616af038c",
+    "bytes": 220337096
+  },
+  "source_commit": "e4a0e13ab693eed8ccce48c07f6eca4a1ef686c0",
+  "oracle": [
+    {
+      "path": "/home/user/Projects/redis/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+    },
+    {
+      "path": "/home/user/Projects/redis74/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+    }
+  ]
+}

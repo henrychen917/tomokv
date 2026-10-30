@@ -1007,6 +1007,7 @@ job_body(){
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
     multifix-*) job_multifix "$name";;
+    climonfix4-*) job_climonfix4 "$name";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
@@ -1145,6 +1146,7 @@ plan_jobs(){
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
+    JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
@@ -5557,14 +5559,45 @@ job_infofix_compat(){
       && ok "$label" || bad "$label" "see $TMPDIR/infofix-$case.log"
 }
 
+# Seven directed roots in both modes/engines, before the quick exit: DQ=DF=+28.
+# PAUSE-CLIENT-EXEMPT and CONNECTED-CLIENTS-LAG retain owner-decision skips.
+job_climonfix4(){
+  local prefix mode engine root label databases atomic read_local passed boot_fn
+  IFS=- read -r prefix mode engine <<< "$1"
+  boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  for root in PAUSE-BLOCKED-COUNT PAUSE-MAY-REPLICATE PAUSE-SCRIPT-FLAGS \
+      MONITOR-SCRIPT-CMDS RESET-CLEARS-LIBNAME RESET-MONITOR-ECHO \
+      CLIENT-LIST-CMD-NAME; do
+    label="climonfix4 $root ($mode $engine)"
+    row_begin "$label"; passed=1
+    for databases in 1 16; do for atomic in 0 1; do for read_local in 0 1; do
+      if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --databases "$databases" \
+          --atomic "$atomic" --read-local "$read_local" --save ''; then
+        py tests/climonfix4.py --host 127.0.0.1 --port "$PORT" --case "$root" \
+            >"$TMPDIR/$root-db$databases-a$atomic-r$read_local.log" 2>&1 || passed=0
+      else passed=0; fi
+      stop
+      shutdown_clean || passed=0
+    done; done; done
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$root-*.log"
+  done
+}
+
 job_redis_tcl(){
-  local mode passed=1 label
+  local mode passed=1 label manifest=${GATE_TCL_MANIFEST:-tests/redis_tcl_passing.json}
+  # Focused regression controls use this same runner/watchdog/ledger in a
+  # PARTIAL job. Complete gates always require the checked-in full manifest.
+  if [ -n "${GATE_TCL_MANIFEST:-}" ] && [ "${GATE_PARTIAL:-0}" != 1 ]; then
+    echo 'GATE_TCL_MANIFEST is only valid for partial correctness controls' >&2
+    return 2
+  fi
   for mode in 2s 1s; do
     label="Redis 7.4.10 Tcl passing subset ($mode)"
     row_begin "$label"
     if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
         --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
-        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json --arm-smove \
+        --baseport "$((PORT+2))" --manifest "$manifest" --arm-smove \
         --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
       say "$label" ok; ledger ok "$label" 0
     else
@@ -6033,6 +6066,9 @@ collect_job ring_unit
 
 # SV2: collect all seven shutdown rows before the quick-tier exit.
 collect_job climonfix
+for CM_MODE in 1s 2s; do for CM_ENGINE in uring epoll; do
+  collect_job "climonfix4-$CM_MODE-$CM_ENGINE"
+done; done
 collect_job racefix_counters
 collect_job racefix_climon
 collect_job lbplanner_units

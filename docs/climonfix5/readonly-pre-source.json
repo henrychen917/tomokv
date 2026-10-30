@@ -1,0 +1,10 @@
+{
+  "arm": "pre",
+  "source_commit": "393d6ceb1",
+  "fixture_base_sha256": "6a89a7c50efb929b6e1336c8a2b2c5e0b6a29e9fae5ba06a7a86ee574a0d619e",
+  "replacement_before": "    const std::string function=\"#!lua name=scope\\nredis.register_function('scope',function(keys,args) \"+\n      std::string(\"return {redis.call('INCR',keys[1]),redis.call('INCR',keys[2])} end)\");\n",
+  "replacement_after": "    const std::string function=\"#!lua name=scope\\n\"\n      \"redis.register_function{function_name='scope', callback=function(keys,args) \"\n      \"return {redis.call('GET',keys[1]),redis.call('GET',keys[2])} \"\n      \"end, flags={'no-writes'}}\";\n",
+  "fixture_sha256": "52b9a7b8f0cf65c0b16623e3cb4bb21660bdea1a04f49a098e5dc043f6e4016d",
+  "archive_sha256": "3431a19aefa4adfcbb98d32beed5c6499953fa25d60449f326f8c3fcb930c3c6",
+  "rebuilt_binary_sha256": "dd16c698ec4316c548be0eaa1d4db3fd2928c07f18b1a599e51966ea336a874b"
+}

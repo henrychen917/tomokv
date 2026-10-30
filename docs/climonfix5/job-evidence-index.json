@@ -1,0 +1,3819 @@
+[
+  {
+    "name": "affected-final",
+    "receipt": "docs/climonfix5/jobs/affected-final.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/affected-final.tar.gz",
+    "archive_sha256": "2d63edb7cf356a98a9ee9f273524db3566ba8b89c1820a8c0e5f78c68cc17b87",
+    "files": 5200,
+    "uncompressed_bytes": 97090590,
+    "jobs": [
+      {
+        "name": "at412-T1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "14.790000",
+            "label": "at412 T1"
+          }
+        ]
+      },
+      {
+        "name": "at412-T10",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "451.990000",
+            "label": "at412 T10"
+          }
+        ]
+      },
+      {
+        "name": "at412-T11a",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "7.110000",
+            "label": "at412 T11a"
+          }
+        ]
+      },
+      {
+        "name": "at412-T11b",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "43.290000",
+            "label": "at412 T11b"
+          }
+        ]
+      },
+      {
+        "name": "at412-T12",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "14.790000",
+            "label": "at412 T12"
+          }
+        ]
+      },
+      {
+        "name": "at412-T13",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "121.990000",
+            "label": "at412 T13"
+          }
+        ]
+      },
+      {
+        "name": "at412-T14",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "5.920000",
+            "label": "at412 T14"
+          }
+        ]
+      },
+      {
+        "name": "at412-T15",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "109.800000",
+            "label": "at412 T15"
+          }
+        ]
+      },
+      {
+        "name": "at412-T16",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "17.470000",
+            "label": "at412 T16"
+          }
+        ]
+      },
+      {
+        "name": "at412-T2",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "26.410000",
+            "label": "at412 T2"
+          }
+        ]
+      },
+      {
+        "name": "at412-T3",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "6.770000",
+            "label": "at412 T3"
+          }
+        ]
+      },
+      {
+        "name": "at412-T4",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.100000",
+            "label": "at412 T4"
+          }
+        ]
+      },
+      {
+        "name": "at412-T5",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "147.940000",
+            "label": "at412 T5"
+          }
+        ]
+      },
+      {
+        "name": "at412-T6",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "812.630000",
+            "label": "at412 T6"
+          }
+        ]
+      },
+      {
+        "name": "at412-T7",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "37.110000",
+            "label": "at412 T7"
+          }
+        ]
+      },
+      {
+        "name": "at412-T8",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "4.120000",
+            "label": "at412 T8"
+          }
+        ]
+      },
+      {
+        "name": "at412-T9",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "3.720000",
+            "label": "at412 T9"
+          }
+        ]
+      },
+      {
+        "name": "at412-owner",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "at412 owner"
+          }
+        ]
+      },
+      {
+        "name": "atomfix5_accounting",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.950000",
+            "label": "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "atomfix5_watch",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "2.020000",
+            "label": "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+          }
+        ]
+      },
+      {
+        "name": "atomic_units",
+        "done": "0\t27\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic commit publication catches up at quiescence"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.140000",
+            "label": "flushfix flush witnesses"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "flushfix headers witnesses"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.490000",
+            "label": "multidb serverless owners"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.040000",
+            "label": "multidb global namespace boundary"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.090000",
+            "label": "storesize published monitoring"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.200000",
+            "label": "MULTI admin command replies"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "EXECABORT releases WATCH reservation"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "atomic survivors unit build"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: admission"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: closure"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: script_keys"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: rename_overlay"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "atomic survivor: write_latest"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: script_apply"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: post_apply_probe"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "atomic survivor: lua_conversion"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: watch_parent"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: watch_cycle"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "atomic survivor: mset_arity"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "atomic survivor: watch_oom"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "atomic survivor: lua_lines"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "atomic survivor: library_limit"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "atomic survivor: stage_flag"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "atomic survivor: instruction_limit"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "armed resize retirement: atomic-growth"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "armed resize retirement: flush-prepared"
+          }
+        ]
+      },
+      {
+        "name": "blockfix2",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "34.230000",
+            "label": "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "34.100000",
+            "label": "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.570000",
+            "label": "blockfix2 MULTI-XREADGROUP-BLOCK-HANG"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.820000",
+            "label": "blockfix2 INFO-TOTAL-BLOCKING-KEYS"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.740000",
+            "label": "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+          }
+        ]
+      },
+      {
+        "name": "blockfix_mkstream",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "47.420000",
+            "label": "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "blockfix_registry",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "39.020000",
+            "label": "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "blockfix_structure",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "47.000000",
+            "label": "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "bugs5",
+        "done": "0\t3\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "44.290000",
+            "label": "bugs5 scancompact (both modes, both engines, atomic 0/1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.760000",
+            "label": "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "27.150000",
+            "label": "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+          }
+        ]
+      },
+      {
+        "name": "clientfix",
+        "done": "0\t14\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.750000",
+            "label": "clientfix tracking-cap (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "6.860000",
+            "label": "clientfix tracking-pipeline (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.830000",
+            "label": "clientfix reply-skip (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.300000",
+            "label": "clientfix pattern-cleanup (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.120000",
+            "label": "clientfix pause-deadline (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.110000",
+            "label": "clientfix geo-count (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.110000",
+            "label": "clientfix geo-store (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.740000",
+            "label": "clientfix tracking-cap (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "6.840000",
+            "label": "clientfix tracking-pipeline (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.620000",
+            "label": "clientfix reply-skip (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.300000",
+            "label": "clientfix pattern-cleanup (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.120000",
+            "label": "clientfix pause-deadline (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.110000",
+            "label": "clientfix geo-count (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.110000",
+            "label": "clientfix geo-store (2s)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "shutdown policy + signal handoff serverless"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.340000",
+            "label": "shutdown persistence (1s, command)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "shutdown persistence (1s, sigterm)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.140000",
+            "label": "shutdown persistence (1s, sigint)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.330000",
+            "label": "shutdown persistence (2s, command)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "shutdown persistence (2s, sigterm)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "shutdown persistence (2s, sigint)"
+          }
+        ]
+      },
+      {
+        "name": "cmd_metadata",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.160000",
+            "label": "cmdmeta covers every registered command"
+          }
+        ]
+      },
+      {
+        "name": "compat2",
+        "done": "0\t3\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.880000",
+            "label": "compat2 autharity"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "6.820000",
+            "label": "compat2 expire_notify"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.220000",
+            "label": "compat2 ktls_lifetime"
+          }
+        ]
+      },
+      {
+        "name": "compat3",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "33.590000",
+            "label": "compat3 CC4.12 pubsub vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.550000",
+            "label": "compat3 CC4.13 pending vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.570000",
+            "label": "compat3 CC4.14 history vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.680000",
+            "label": "compat3 CC4.16 grammar vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.760000",
+            "label": "compat3 CC4.5 glob vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "37.790000",
+            "label": "compat3 CC4.17 flags vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "core_tsan_build",
+        "done": "0\t0\t0",
+        "rows": []
+      },
+      {
+        "name": "core_units",
+        "done": "0\t9\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.120000",
+            "label": "core concurrency watch"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.330000",
+            "label": "core concurrency lifetime"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.110000",
+            "label": "core concurrency drain"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "7.130000",
+            "label": "core concurrency route"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.120000",
+            "label": "core concurrency snapshot"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.170000",
+            "label": "core concurrency config"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.170000",
+            "label": "core concurrency notify"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.580000",
+            "label": "read-local topology demotion (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.560000",
+            "label": "read-local topology demotion (2s)"
+          }
+        ]
+      },
+      {
+        "name": "datafix2_watch",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "121.630000",
+            "label": "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "debug-0",
+        "done": "0\t16\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "9.170000",
+            "label": "plain-write lost updates (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.170000",
+            "label": "lbsignals battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.490000",
+            "label": "slowlog battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.040000",
+            "label": "atomfix battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "scriptatomic battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.460000",
+            "label": "execatomic battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.870000",
+            "label": "execiso battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.450000",
+            "label": "execfix battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.110000",
+            "label": "multires battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.780000",
+            "label": "multirace battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "30.590000",
+            "label": "session_monotonic battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.370000",
+            "label": "xacct battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.300000",
+            "label": "xmove battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.260000",
+            "label": "xscript battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.010000",
+            "label": "txn_nx battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "9.190000",
+            "label": "txniso battery (atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "debug-1",
+        "done": "0\t16\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "6.160000",
+            "label": "plain-write lost updates (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.160000",
+            "label": "lbsignals battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.490000",
+            "label": "slowlog battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "atomfix battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "scriptatomic battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.460000",
+            "label": "execatomic battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.870000",
+            "label": "execiso battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.450000",
+            "label": "execfix battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.110000",
+            "label": "multires battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.790000",
+            "label": "multirace battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "30.600000",
+            "label": "session_monotonic battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.380000",
+            "label": "xacct battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.300000",
+            "label": "xmove battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.260000",
+            "label": "xscript battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.010000",
+            "label": "txn_nx battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "8.690000",
+            "label": "txniso battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "dispatch_arity",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.910000",
+            "label": "dispatchfix EX4.10 container outer arity"
+          }
+        ]
+      },
+      {
+        "name": "dispatch_children",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.020000",
+            "label": "dispatchfix EX4.4 advertised children"
+          }
+        ]
+      },
+      {
+        "name": "dispatch_errors",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.950000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      {
+        "name": "execfair",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "69.640000",
+            "label": "EXEC fast-lane polls"
+          }
+        ]
+      },
+      {
+        "name": "feature-armed-0",
+        "done": "0\t35\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.260000",
+            "label": "fused+armed boot line (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.220000",
+            "label": "fused+armed s6 battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.100000",
+            "label": "fused+armed multi_exec battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.680000",
+            "label": "fused+armed blocking battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.480000",
+            "label": "fused+armed blockmulti battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.800000",
+            "label": "fused+armed stream battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed streamgroups battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.910000",
+            "label": "fused+armed pubsub battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed lua_scripting battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed scriptsurf battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.940000",
+            "label": "fused+armed limits battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed resp3 battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed bitfield battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.090000",
+            "label": "fused+armed dumprestore battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed zsetops battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed geo battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.150000",
+            "label": "fused+armed climon battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.370000",
+            "label": "fused+armed climon2 battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.240000",
+            "label": "fused+armed tracking battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.070000",
+            "label": "fused+armed hexpire battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.600000",
+            "label": "fused+armed servertail battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.180000",
+            "label": "fused+armed lcs battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.830000",
+            "label": "fused+armed concur battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.730000",
+            "label": "fused+armed edgeproto battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.400000",
+            "label": "fused+armed edgeenc battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.880000",
+            "label": "fused+armed edgetime battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed arity battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed contarity battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed cmdgap battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed aclsel battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "58.650000",
+            "label": "fused+armed expwide battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "4.230000",
+            "label": "fused+armed infofix battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.970000",
+            "label": "fused+armed pushtear battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed netcmd battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.170000",
+            "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "feature-armed-1",
+        "done": "0\t35\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.250000",
+            "label": "fused+armed boot line (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.210000",
+            "label": "fused+armed s6 battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.100000",
+            "label": "fused+armed multi_exec battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.640000",
+            "label": "fused+armed blocking battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.480000",
+            "label": "fused+armed blockmulti battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.850000",
+            "label": "fused+armed stream battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed streamgroups battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.920000",
+            "label": "fused+armed pubsub battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed lua_scripting battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed scriptsurf battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.520000",
+            "label": "fused+armed limits battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed resp3 battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed bitfield battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed dumprestore battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused+armed zsetops battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed geo battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.150000",
+            "label": "fused+armed climon battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.380000",
+            "label": "fused+armed climon2 battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.280000",
+            "label": "fused+armed tracking battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.080000",
+            "label": "fused+armed hexpire battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.630000",
+            "label": "fused+armed servertail battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.210000",
+            "label": "fused+armed lcs battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.870000",
+            "label": "fused+armed concur battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.740000",
+            "label": "fused+armed edgeproto battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.410000",
+            "label": "fused+armed edgeenc battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.810000",
+            "label": "fused+armed edgetime battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed arity battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed contarity battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "fused+armed cmdgap battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed aclsel battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "62.210000",
+            "label": "fused+armed expwide battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "4.190000",
+            "label": "fused+armed infofix battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "5.490000",
+            "label": "fused+armed pushtear battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "fused+armed netcmd battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.170000",
+            "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "feature-split-0",
+        "done": "0\t34\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "2.480000",
+            "label": "s6 battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.100000",
+            "label": "multi_exec battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.540000",
+            "label": "blocking battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.470000",
+            "label": "blockmulti battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.780000",
+            "label": "stream battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "streamgroups battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.900000",
+            "label": "pubsub battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "lua_scripting battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "scriptsurf battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.850000",
+            "label": "limits battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "resp3 battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "bitfield battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.090000",
+            "label": "dumprestore battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "zsetops battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "geo battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.150000",
+            "label": "climon battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.350000",
+            "label": "climon2 battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.250000",
+            "label": "tracking battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.320000",
+            "label": "hexpire battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.590000",
+            "label": "servertail battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.190000",
+            "label": "lcs battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.800000",
+            "label": "concur battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.760000",
+            "label": "edgeproto battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.370000",
+            "label": "edgeenc battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.820000",
+            "label": "edgetime battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "arity battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "contarity battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "cmdgap battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "aclsel battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "76.550000",
+            "label": "expwide battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "4.220000",
+            "label": "infofix battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "5.460000",
+            "label": "pushtear battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "netcmd battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "feature shutdown invariants (atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "feature-split-1",
+        "done": "0\t34\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "2.490000",
+            "label": "s6 battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.100000",
+            "label": "multi_exec battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.540000",
+            "label": "blocking battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.470000",
+            "label": "blockmulti battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.780000",
+            "label": "stream battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "streamgroups battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.910000",
+            "label": "pubsub battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "lua_scripting battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "scriptsurf battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.390000",
+            "label": "limits battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "resp3 battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "bitfield battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "dumprestore battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "zsetops battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "geo battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.140000",
+            "label": "climon battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.390000",
+            "label": "climon2 battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.290000",
+            "label": "tracking battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.330000",
+            "label": "hexpire battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.610000",
+            "label": "servertail battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.180000",
+            "label": "lcs battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.800000",
+            "label": "concur battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.610000",
+            "label": "edgeproto battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.370000",
+            "label": "edgeenc battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "3.810000",
+            "label": "edgetime battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "arity battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "contarity battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "cmdgap battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "aclsel battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "77.930000",
+            "label": "expwide battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "4.220000",
+            "label": "infofix battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "5.460000",
+            "label": "pushtear battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "netcmd battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "feature shutdown invariants (atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "flip",
+        "done": "0\t9\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.150000",
+            "label": "FLIP state battery"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.040000",
+            "label": "FLIP under verified load"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.450000",
+            "label": "FLIP TTL + expiry events"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.230000",
+            "label": "partial-frame conn parks (no io spin)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.270000",
+            "label": "FLIP close during FLIP (uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.200000",
+            "label": "FLIP close during FLIP (epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.230000",
+            "label": "FLIP signal stop during FLIP + second SIGINT"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.540000",
+            "label": "perfio stale epoll registration (epoll-flip)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.110000",
+            "label": "perfio stale epoll registration (epoll-lb)"
+          }
+        ]
+      },
+      {
+        "name": "flip_unit",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "16.820000",
+            "label": "flip controller model unit"
+          }
+        ]
+      },
+      {
+        "name": "flipctl",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "129.900000",
+            "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+          }
+        ]
+      },
+      {
+        "name": "flipfix_units",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "FLIP planned-connection close lifetime (ASAN+TSAN)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "FLIP fingerprint publication (ASAN+TSAN)"
+          }
+        ]
+      },
+      {
+        "name": "fliplisten",
+        "done": "0\t4\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "29.530000",
+            "label": "FLIP listener conservation (io-ex, complete)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "29.840000",
+            "label": "FLIP listener conservation (io-ex, rollback)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "29.380000",
+            "label": "FLIP listener conservation (ex-io, complete)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "28.880000",
+            "label": "FLIP listener conservation (ex-io, rollback)"
+          }
+        ]
+      },
+      {
+        "name": "fused-0",
+        "done": "0\t9\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.260000",
+            "label": "fused boot line (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.200000",
+            "label": "fused s6 battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.100000",
+            "label": "fused multi_exec battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.750000",
+            "label": "fused edgeproto battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "fused atomfix battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.230000",
+            "label": "fused spinprobe battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.160000",
+            "label": "fused shutdown report (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.490000",
+            "label": "fused txn_nx battery (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "8.520000",
+            "label": "fused txniso battery (atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "fused-1",
+        "done": "0\t9\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.260000",
+            "label": "fused boot line (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.210000",
+            "label": "fused s6 battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.100000",
+            "label": "fused multi_exec battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.750000",
+            "label": "fused edgeproto battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.080000",
+            "label": "fused atomfix battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.230000",
+            "label": "fused spinprobe battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.160000",
+            "label": "fused shutdown report (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.980000",
+            "label": "fused txn_nx battery (atomic 1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "8.730000",
+            "label": "fused txniso battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "lualibs",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "40.670000",
+            "label": "lualibs CC4.7 vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "moverfix",
+        "done": "0\t8\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "2.500000",
+            "label": "moverfix conservation (1s, uring, databases 1, atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.510000",
+            "label": "moverfix conservation (1s, uring, databases 16, atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.490000",
+            "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.500000",
+            "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.520000",
+            "label": "moverfix conservation (2s, uring, databases 1, atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.520000",
+            "label": "moverfix conservation (2s, uring, databases 16, atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.510000",
+            "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.500000",
+            "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "multifix-1s-epoll",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.230000",
+            "label": "multifix RESET-IN-MULTI (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.200000",
+            "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.530000",
+            "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.390000",
+            "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "28.810000",
+            "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.060000",
+            "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "multifix-1s-uring",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.220000",
+            "label": "multifix RESET-IN-MULTI (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.220000",
+            "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.600000",
+            "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.400000",
+            "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "28.810000",
+            "label": "multifix PAUSE-IN-MULTI (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.150000",
+            "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+          }
+        ]
+      },
+      {
+        "name": "multifix-2s-epoll",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.110000",
+            "label": "multifix RESET-IN-MULTI (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.120000",
+            "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.530000",
+            "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.270000",
+            "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "28.580000",
+            "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.750000",
+            "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "multifix-2s-uring",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.120000",
+            "label": "multifix RESET-IN-MULTI (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.120000",
+            "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.540000",
+            "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.280000",
+            "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "28.740000",
+            "label": "multifix PAUSE-IN-MULTI (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.010000",
+            "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "netcmd_units",
+        "done": "0\t16\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "netcmd regression build"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd streams regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd zpop regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd notify-oom regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd notify-retry regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd flush regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd output regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd pubsub regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "netcmd receive regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.040000",
+            "label": "netcmd config regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd wb-small-pipe regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd wb-complete-visits regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "netcmd hexpire-oom regression"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "encodingfix knob"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "encodingfix precedence"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "NET1 serverless bounds + scan + reclamation"
+          }
+        ]
+      },
+      {
+        "name": "notify",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "2.080000",
+            "label": "MULTI feature battery"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.530000",
+            "label": "blocking feature battery"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.890000",
+            "label": "pubsub feature battery"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "Lua feature battery"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "46.270000",
+            "label": "keyspace notification battery (atomic 0/1)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "feature battery shutdown invariants"
+          }
+        ]
+      },
+      {
+        "name": "notify_aof",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.240000",
+            "label": "local script notification AOF vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "notify_order",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "71.250000",
+            "label": "keyspace lazy-expiry order vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "notifycompat",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "23.490000",
+            "label": "notification compatibility setbit vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "43.890000",
+            "label": "notification compatibility setpast vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "51.070000",
+            "label": "notification compatibility emptystore vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "42.860000",
+            "label": "notification compatibility writemiss vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "43.800000",
+            "label": "notification compatibility objectmiss vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "144.810000",
+            "label": "notification compatibility expiredstore vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "56.840000",
+            "label": "notification compatibility flush vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "perfio_stream",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.400000",
+            "label": "perfio XREADGROUP bounded delivery + Redis metadata (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.390000",
+            "label": "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+          }
+        ]
+      },
+      {
+        "name": "production_units",
+        "done": "0\t0\t0",
+        "rows": []
+      },
+      {
+        "name": "racefix_climon",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.540000",
+            "label": "Climon armed refresh + stale-store suppression control"
+          }
+        ]
+      },
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "187.170000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "189.080000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "name": "release_batteries",
+        "done": "0\t8\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "6.670000",
+            "label": "torture battery"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.200000",
+            "label": "RYOW battery"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.040000",
+            "label": "ACL category runtime table"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "ACL LOAD/SAVE no-file errors"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.030000",
+            "label": "idle loop ceiling (LBSIGNALS, 1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "shutdown invariants (nothing stuck)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "direct-reply fired (direct=N)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.040000",
+            "label": "dispatched==executed (N)"
+          }
+        ]
+      },
+      {
+        "name": "script_bounds",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.050000",
+            "label": "xscript limit control"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.040000",
+            "label": "xscript window control"
+          }
+        ]
+      },
+      {
+        "name": "scriptfix",
+        "done": "0\t8\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "scriptfix sandbox (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "scriptfix functions (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "scriptfix replies (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.930000",
+            "label": "scriptfix dump (1s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "scriptfix sandbox (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.130000",
+            "label": "scriptfix functions (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.710000",
+            "label": "scriptfix replies (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.040000",
+            "label": "scriptfix dump (2s)"
+          }
+        ]
+      },
+      {
+        "name": "serverfix_waitaof",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "6.960000",
+            "label": "serverfix SV4.5 WAITAOF wait lifecycle"
+          }
+        ]
+      },
+      {
+        "name": "streamfix",
+        "done": "0\t6\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "71.350000",
+            "label": "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "40.240000",
+            "label": "streamfix XREAD-PLUS-LAST vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.640000",
+            "label": "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.580000",
+            "label": "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.570000",
+            "label": "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "33.800000",
+            "label": "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "trackfix_accounting",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "54.840000",
+            "label": "tracking-only delivery/drop accounting vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "trackfix_order",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "219.600000",
+            "label": "tracking delayed-write order vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "tracking_redirect",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "36.510000",
+            "label": "tracking REDIRECT close vs Redis 7.4"
+          }
+        ]
+      },
+      {
+        "name": "txn_group_fused",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "12.720000",
+            "label": "fused txngroup battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "txn_group_split",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "12.830000",
+            "label": "txngroup battery (atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "txnorder-fused-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "48.110000",
+            "label": "txnorder battery (fused, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "txnorder-fused-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "48.200000",
+            "label": "txnorder battery (fused, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "txnorder-split-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "47.960000",
+            "label": "txnorder battery (split, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "txnorder-split-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "47.850000",
+            "label": "txnorder battery (split, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "txnorder2",
+        "done": "0\t16\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R1"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R2"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R3"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R4"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R5"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R6"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R7"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.070000",
+            "label": "txnorder2 writer episode R8"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R9"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder2 writer episode R10"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder2 writer episode R11"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "4.560000",
+            "label": "txnorder2 writer episode R12"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.040000",
+            "label": "txnorder2 direct RENAME owner join"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "22.600000",
+            "label": "txnorder2 WATCH serve"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "30.260000",
+            "label": "txnorder2 WATCH flush"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "27.030000",
+            "label": "txnorder2 WATCH readonly"
+          }
+        ]
+      },
+      {
+        "name": "txnorder_index",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "104.360000",
+            "label": "txnorder index oracle"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "2.730000",
+            "label": "txnorder index complexity"
+          }
+        ]
+      },
+      {
+        "name": "txnorder_wake",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "txnorder2 busy owner inbox wake"
+          }
+        ]
+      },
+      {
+        "name": "txnorder_wound",
+        "done": "0\t4\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder wound group"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.030000",
+            "label": "txnorder wound exec"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.020000",
+            "label": "txnorder wound oom"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.090000",
+            "label": "txnorder wound d2"
+          }
+        ]
+      },
+      {
+        "name": "wait_units",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.060000",
+            "label": "waits config publication + admission unit"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.010000",
+            "label": "reads never wait for retirement quiescence"
+          }
+        ]
+      },
+      {
+        "name": "waits_tsan_build",
+        "done": "0\t0\t0",
+        "rows": []
+      }
+    ]
+  },
+  {
+    "name": "c4-blocked-watch",
+    "receipt": "docs/climonfix5/jobs/c4-blocked-watch.json",
+    "exit": 0,
+    "binary_sha256": "81a33ef8cc968b5f044ce15e2c8db15b6d6ffc29b247b93af85e8525f035020e",
+    "archive": "docs/climonfix5/job-evidence/c4-blocked-watch.tar.gz",
+    "archive_sha256": "e26533ee8a1fd2653f9a9f4108b4e182c63af012f2fbd1fe5a99c41f2487e1cf",
+    "files": 29,
+    "uncompressed_bytes": 459434,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.710000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "0.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "differ-epoll",
+    "receipt": "docs/climonfix5/jobs/differ-epoll.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/differ-epoll.tar.gz",
+    "archive_sha256": "e5890ff16de0a28fac7b7825f04e224563db3ec8ac4ce9b99d2276d85dba128f",
+    "files": 2113,
+    "uncompressed_bytes": 2997547,
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "521.640000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-armed-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "526.500000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "differ-equivalence",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "21.430000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "528.360000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "530.570000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "differ-uring",
+    "receipt": "docs/climonfix5/jobs/differ-uring.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/differ-uring.tar.gz",
+    "archive_sha256": "debf19785418984e2404124ca38fa9c2861863b90b9fd4023b71679c56829b19",
+    "files": 2113,
+    "uncompressed_bytes": 2992761,
+    "jobs": [
+      {
+        "name": "differ-armed-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "527.450000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-armed-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "527.510000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "differ-equivalence",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "21.460000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-0",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "532.210000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      {
+        "name": "differ-split-1",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "538.280000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "directed-final-v11",
+    "receipt": "docs/climonfix5/jobs/directed-final-v11.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/directed-final-v11.tar.gz",
+    "archive_sha256": "5db1808b700e880ada62e6f3dc0c24f42be98ed4344e1301adeeb2b40f529262",
+    "files": 476,
+    "uncompressed_bytes": 1618852,
+    "jobs": [
+      {
+        "name": "climonfix4-1s-epoll",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.840000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.350000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.400000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.450000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.410000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.390000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-1s-uring",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.440000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.750000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.730000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.300000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.380000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.340000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.430000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-epoll",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.830000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.320000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.420000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.410000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.410000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-uring",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.860000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.310000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.330000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.390000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.350000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.340000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.360000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "directed-final",
+    "receipt": "docs/climonfix5/jobs/directed-final.json",
+    "exit": 1,
+    "binary_sha256": "da0b750ccc881ce363347d7e69e0cc39defe3fce71914a5c3cb17f6fef516a92",
+    "archive": "docs/climonfix5/job-evidence/directed-final.tar.gz",
+    "archive_sha256": "5b8fc04a91e55e472adb6d38bf04769998a4734a5aa19d3584739b2847bddca4",
+    "files": 476,
+    "uncompressed_bytes": 1629579,
+    "jobs": [
+      {
+        "name": "climonfix4-1s-epoll",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.600000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.870000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.390000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "15.110000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.560000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.550000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.640000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-1s-uring",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "11.900000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.350000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.370000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (1s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "13.070000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "11.550000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.430000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (1s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.720000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-epoll",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.420000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.010000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.420000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s epoll)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "16.730000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.960000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.780000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s epoll)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.390000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s epoll)"
+          }
+        ]
+      },
+      {
+        "name": "climonfix4-2s-uring",
+        "done": "0\t6\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "13.530000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.310000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.080000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "15.430000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.720000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.630000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "12.710000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "monitor-coded-fix",
+    "receipt": "docs/climonfix5/jobs/monitor-coded-fix.json",
+    "exit": 0,
+    "binary_sha256": "cf60fdf58e27a569c1ab01d6a152e24aea53989f474632b966bb108a6e80ce05",
+    "archive": "docs/climonfix5/job-evidence/monitor-coded-fix.tar.gz",
+    "archive_sha256": "7ee3dcaa50835f6136330be544cf441d1326f0a7dfe9becb9b456561f2a8e052",
+    "files": 125,
+    "uncompressed_bytes": 385018,
+    "jobs": [
+      {
+        "name": "climonfix4-2s-uring",
+        "done": "0\t7\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "14.760000",
+            "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.070000",
+            "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "14.240000",
+            "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "15.670000",
+            "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.510000",
+            "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.660000",
+            "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "13.390000",
+            "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-client-list-cmd-name",
+    "receipt": "docs/climonfix5/jobs/negative-client-list-cmd-name.json",
+    "exit": 1,
+    "binary_sha256": "2875434dad6bc5fa869a7fe086234abe2a542a18883dd0631710c5c05fee2fdd",
+    "archive": "docs/climonfix5/job-evidence/negative-client-list-cmd-name.tar.gz",
+    "archive_sha256": "fa11645e065fb78bf5192373b64e1be3e785e7668499513b1a6d40e1b277203e",
+    "files": 29,
+    "uncompressed_bytes": 155337,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.810000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0.770000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-monitor-script-cmds",
+    "receipt": "docs/climonfix5/jobs/negative-monitor-script-cmds.json",
+    "exit": 1,
+    "binary_sha256": "500e8f4e551a17695f19f596f2e4fd0f342f50bb1f39db5cb99df55af3aa80d6",
+    "archive": "docs/climonfix5/job-evidence/negative-monitor-script-cmds.tar.gz",
+    "archive_sha256": "278b2902dac9b574fdd8c4932c0dd5a64b6375ad2fe39642b1399d0a990fcbb0",
+    "files": 29,
+    "uncompressed_bytes": 94191,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "61.660000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "60.940000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-pause-blocked-count",
+    "receipt": "docs/climonfix5/jobs/negative-pause-blocked-count.json",
+    "exit": 1,
+    "binary_sha256": "74e814a7c9a9c5683c0fa92f6889ef5ca2c4540399c68f9f555c92ea6f3f8d72",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-blocked-count.tar.gz",
+    "archive_sha256": "4608816b8a429ada0a7dd2a7ca1e7d2e22feff583a88e6cd7ec5114d4fadd267",
+    "files": 29,
+    "uncompressed_bytes": 105598,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "5.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "5.720000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-pause-may-replicate",
+    "receipt": "docs/climonfix5/jobs/negative-pause-may-replicate.json",
+    "exit": 1,
+    "binary_sha256": "14ff7e9430f89aa791b5a37ea32cb52a457356b3649a0b3f608be34d5f9f38af",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-may-replicate.tar.gz",
+    "archive_sha256": "5d48f43878c091868dcc541ad55b2ee57f28c214122d3328dbcec6dcfd24ccee",
+    "files": 29,
+    "uncompressed_bytes": 105638,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "5.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "5.730000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-pause-script-flags",
+    "receipt": "docs/climonfix5/jobs/negative-pause-script-flags.json",
+    "exit": 1,
+    "binary_sha256": "114006c93fca7eada9d855492e0236b0cb63ccd8113ca91e9c75579e652b9394",
+    "archive": "docs/climonfix5/job-evidence/negative-pause-script-flags.tar.gz",
+    "archive_sha256": "00bfd2428b0ca6f6016f3378ef08bce194db42902e63f73669a2474ec8f40d0c",
+    "files": 29,
+    "uncompressed_bytes": 87495,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "61.410000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "60.910000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-reset-clears-libname",
+    "receipt": "docs/climonfix5/jobs/negative-reset-clears-libname.json",
+    "exit": 1,
+    "binary_sha256": "4ead321ee97309fff7ea8543e4af8e17814cc662c503572ba1fccb5ccf7d5ea2",
+    "archive": "docs/climonfix5/job-evidence/negative-reset-clears-libname.tar.gz",
+    "archive_sha256": "7fbb7de3d1a303dd62bde43d870e153363a93ac2b1e5c4bb5646d492573be4ab",
+    "files": 29,
+    "uncompressed_bytes": 156117,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.870000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0.810000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "negative-reset-monitor-echo",
+    "receipt": "docs/climonfix5/jobs/negative-reset-monitor-echo.json",
+    "exit": 1,
+    "binary_sha256": "4272f64d7051a641eb2a0b1cd5677102129d785883ff94da8d290083a9024386",
+    "archive": "docs/climonfix5/job-evidence/negative-reset-monitor-echo.tar.gz",
+    "archive_sha256": "443e0f621ed35277177e7c699302cb9b8439478082a3a3d4730431a76cde8c78",
+    "files": 29,
+    "uncompressed_bytes": 115598,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "0.770000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0.760000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pad-boot",
+    "receipt": "docs/climonfix5/jobs/pad-boot.json",
+    "exit": 0,
+    "binary_sha256": "c5b445290dbf6919c270bd85075c59fbf5a416a80a9e54a5b1dc419616af038c",
+    "archive": "docs/climonfix5/job-evidence/pad-boot.tar.gz",
+    "archive_sha256": "3001c49337ae768739e1e910cb73053d3b28aafdf816a30de8f6367adb035bc0",
+    "files": 19,
+    "uncompressed_bytes": 47115,
+    "jobs": [
+      {
+        "name": "dbdefault",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.190000",
+            "label": "Redis default databases 16 (both modes)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "production-build",
+    "receipt": "docs/climonfix5/jobs/production-build.json",
+    "exit": 130,
+    "binary_sha256": "da0b750ccc881ce363347d7e69e0cc39defe3fce71914a5c3cb17f6fef516a92",
+    "archive": "docs/climonfix5/job-evidence/production-build.tar.gz",
+    "archive_sha256": "9ac6abec17568fffa6a234d2239e3a56794098eee589d005ceab42c57bf57548",
+    "files": 13,
+    "uncompressed_bytes": 1522340,
+    "jobs": [
+      {
+        "name": "production_units",
+        "done": "1\t0\t2",
+        "rows": [
+          {
+            "verdict": "FAIL",
+            "seconds": "435.130000",
+            "label": "build dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/at412-owner,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/gaterows5-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-index-db0-unit,build/txnorder-index-unit,build/txnorder-retry-unit,build/txnorder-wake-unit,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/txnorder-wound-db0-unit,build/txnorder-wound-unit,build/waits-unit,build/wb-rule-units,build/wbland-units"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "0",
+            "label": "correctness family production_units"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "replyoff-final",
+    "receipt": "docs/climonfix5/jobs/replyoff-final.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/replyoff-final.tar.gz",
+    "archive_sha256": "55e7bd7f5d18ad29fd15458844d1782c4b52c5bb67fad4dbb0701d0727bb5a68",
+    "files": 17,
+    "uncompressed_bytes": 136222,
+    "jobs": [
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "name": "replyoff",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "1.240000",
+            "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "1.240000",
+            "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tcl-final",
+    "receipt": "docs/climonfix5/jobs/tcl-final.json",
+    "exit": 0,
+    "binary_sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "archive": "docs/climonfix5/job-evidence/tcl-final.tar.gz",
+    "archive_sha256": "99d023e9aad2ed96cbe38726080ba6f9aa5197229ca0fe09e85be3efc0018a8e",
+    "files": 387,
+    "uncompressed_bytes": 7143139,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "184.880000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "ok",
+            "seconds": "189.870000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tcl-initial4",
+    "receipt": "docs/climonfix5/jobs/tcl-initial4.json",
+    "exit": 1,
+    "binary_sha256": "12ccc556f71f1166324e57d21da275635493b9e78536b6f0cfd2666db8f80f9d",
+    "archive": "docs/climonfix5/job-evidence/tcl-initial4.tar.gz",
+    "archive_sha256": "d8a376669f969e1760b556e0171345f3568bbf2f88908b20ab02d4100f98c163",
+    "files": 387,
+    "uncompressed_bytes": 7101408,
+    "jobs": [
+      {
+        "name": "redis_tcl",
+        "done": "0\t1\t1",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "219.660000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "verdict": "FAIL",
+            "seconds": "212.190000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "name": "release",
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "verdict": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ]
+  }
+]

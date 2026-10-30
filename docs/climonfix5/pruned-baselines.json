@@ -1,0 +1,142 @@
+[
+  {
+    "path": "build/climonfix5/pre-source",
+    "binaries": [
+      {
+        "path": "build/climonfix5/pre-source/build/tomokv",
+        "sha256": "dd16c698ec4316c548be0eaa1d4db3fd2928c07f18b1a599e51966ea336a874b"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/c4-source",
+    "binaries": [
+      {
+        "path": "build/climonfix5/c4-source/build/tomokv",
+        "sha256": "81a33ef8cc968b5f044ce15e2c8db15b6d6ffc29b247b93af85e8525f035020e"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/pre-db0-hot",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/pre-db0-hot/probe",
+        "sha256": "e205cdbd0b51b7e724e9cf54845444943bf07b7e0dd0ab4d9ad10c626bbd9e2d"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/pre-db0-parse",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/pre-db0-parse/probe",
+        "sha256": "20c0bf4552afe53fffb5456ee87ba1e7d77959a576113d49be46fedaff21e917"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/pre-db0-session",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/pre-db0-session/probe",
+        "sha256": "96c14b7d24ce5b00cae67d5dbd7120342a52107db4890555f7e68754100a4943"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/pre-normal-hot",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/pre-normal-hot/probe",
+        "sha256": "a8fdf671c7ab1361480e899a8d5c766fd1153b433011122d3a16492c89bf481a"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/pre-normal-parse",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/pre-normal-parse/probe",
+        "sha256": "860901b48345ed796332f8aba4b675c11ca3188aee7b1ff6ec6d4b4fea20c799"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/pre-normal-session",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/pre-normal-session/probe",
+        "sha256": "432734449dddee438b65a8c339d3a9f1d2cef68698969eccfe79e5325442a2d5"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/c4-db0-hot",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/c4-db0-hot/probe",
+        "sha256": "5fa06e26e10d5611d33e9f30780e602efe0ce5f65d86f9d0656c91c9ad3144e6"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/c4-db0-parse",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/c4-db0-parse/probe",
+        "sha256": "0d0ca67c93fb46f280c54991cac32895fdec69d1769852cae458a6f395bf763b"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/c4-db0-session",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/c4-db0-session/probe",
+        "sha256": "83dbb62629ea640646a963c95e30afcc6e6168f21ab2b8cd7f1a8c9453a60d11"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/c4-normal-hot",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/c4-normal-hot/probe",
+        "sha256": "8159d9fc6238ee1741b7fc0b51541e89cf5deeb9a1e6b7822b2db8126284d876"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/c4-normal-parse",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/c4-normal-parse/probe",
+        "sha256": "8a4dec2ad2461e1007de535eecbe069e01753baf75e798ed06860d156bc535b4"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  },
+  {
+    "path": "build/climonfix5/scopes/c4-normal-session",
+    "binaries": [
+      {
+        "path": "build/climonfix5/scopes/c4-normal-session/probe",
+        "sha256": "b848b4a4e2b25f467402f1ff5e3210421f6c848f16c8c523e21fdcdd76487ce5"
+      }
+    ],
+    "reason": "Completed baseline counts and immutable arm binary retained"
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "commit": "c369ccc418fbff6c593499ad4d1155ce0de6bad7",
+  "archive_sha256": "9880e296aeb3558537754f0e6c178f4a8f6a13979ef172686b215eaeda32c69a",
+  "command": [
+    "make",
+    "-j16",
+    "all"
+  ],
+  "affinity": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "binary": "/home/user/Projects/cx-climonfix5/build/climonfix5/tomokv-C4",
+  "sha256": "81a33ef8cc968b5f044ce15e2c8db15b6d6ffc29b247b93af85e8525f035020e",
+  "fresh": true
+}

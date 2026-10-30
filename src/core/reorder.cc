@@ -2190,8 +2190,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
                           "ERR wrong number of arguments for '%s' command", command);
             finish_locally(c, *op, message); continue;
         }
-        if ((spec->flags & CmdFlags::SubcmdRoute) &&
-            command_reply_container_subcommand_arity(*op, *spec)) {
+        if ((spec->flags & (CmdFlags::SubcmdRoute | CmdFlags::ClientCommandName)) &&
+            command_reply_container_subcommand_arity(*op, *spec, c)) {
             // A known child has its own generated arity and Redis checks that before ACL and
             // MULTI. Unknown children continue to the cold AUTH/ACL hook or container
             // handler, where lookup errors precede authentication checks.

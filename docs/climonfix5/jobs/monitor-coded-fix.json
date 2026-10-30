@@ -1,0 +1,87 @@
+{
+  "name": "monitor-coded-fix",
+  "exit": 0,
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix5/build/tomokv-climonfix5-POST10"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "climonfix4-2s-uring",
+    "GATE_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server"
+  },
+  "source_commit": "9368f80d43c483379c7176ef50fd81c3e4c24be5",
+  "source_diff_sha256": "637f2eca0cb8543eba7bf892e474580889517453056c143760451a42e7ab9efe",
+  "binary": "/home/user/Projects/cx-climonfix5/build/tomokv-climonfix5-POST10",
+  "binary_sha256": "cf60fdf58e27a569c1ab01d6a152e24aea53989f474632b966bb108a6e80ce05",
+  "binary_unchanged": true,
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "log": "docs/climonfix5/jobs/monitor-coded-fix.log",
+  "log_sha256": "21d87300dc2f27f8fbfbd2b710a139d87f60535d792b00122739681c7d882d95",
+  "artifacts": "/home/user/Projects/cx-climonfix5/build/gate-run.FWbCBL",
+  "rows": [
+    {
+      "verdict": "PARTIAL",
+      "seconds": "0",
+      "label": "GATE_ONLY_JOBS=climonfix4-2s-uring; NOT A RECEIPT"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "0.010000",
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "14.760000",
+      "label": "climonfix4 PAUSE-BLOCKED-COUNT (2s uring)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "15.070000",
+      "label": "climonfix4 PAUSE-MAY-REPLICATE (2s uring)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "14.240000",
+      "label": "climonfix4 PAUSE-SCRIPT-FLAGS (2s uring)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "15.670000",
+      "label": "climonfix4 MONITOR-SCRIPT-CMDS (2s uring)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "13.510000",
+      "label": "climonfix4 RESET-CLEARS-LIBNAME (2s uring)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "13.660000",
+      "label": "climonfix4 RESET-MONITOR-ECHO (2s uring)"
+    },
+    {
+      "verdict": "ok",
+      "seconds": "13.390000",
+      "label": "climonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+    }
+  ],
+  "passed": 8,
+  "failed": 0
+}

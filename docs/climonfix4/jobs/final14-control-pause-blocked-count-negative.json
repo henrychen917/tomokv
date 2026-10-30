@@ -1,0 +1,51 @@
+{
+  "cwd": "/home/user/Projects/cx-climonfix4",
+  "exit": 1,
+  "binary_sha256": "89dd91dded102d9fe40ff61e2cf3cce0fc628a0833948241cee1dfdc9f80f421",
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-climonfix4/build/climonfix4/count-mutant/tomokv"
+  ],
+  "artifacts": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP",
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "redis_tcl",
+    "GATE_TCL_MANIFEST": "/home/user/Projects/cx-climonfix4/docs/climonfix4/tcl-controls/PAUSE-BLOCKED-COUNT.json"
+  },
+  "root": "PAUSE-BLOCKED-COUNT",
+  "arm": "negative",
+  "witnesses": {
+    "2s": {
+      "result": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+      "statuses": [
+        "testing",
+        "err"
+      ],
+      "error": null
+    },
+    "1s": {
+      "result": "/home/user/Projects/cx-climonfix4/build/gate-run.QmANeP/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+      "statuses": [
+        "testing",
+        "err"
+      ],
+      "error": null
+    }
+  },
+  "manifest_sha256": "50adcd3382254492f4607f6da53e9b99db937deb544cc910732ea772afe0963e",
+  "gate_sha256": "b7d9f2189e6f89234a68dc1bc70b7e1225a7112b45727a522c25971c25049b22",
+  "binary_source_commit": "c369ccc41"
+}

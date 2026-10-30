@@ -1,0 +1,26 @@
+{
+  "first_command": [
+    "taskset",
+    "-c",
+    "16-31",
+    "env",
+    "GATE_TEST_PORT=20295",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "first_result": "73 tests, 8 scheduler-fixture timeouts (status 124)",
+  "retry_command": [
+    "taskset",
+    "-c",
+    "16-19",
+    "env",
+    "GATE_TEST_PORT=20295",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "reason": "The first run overlapped compilation and other correctness work. Narrowing the existing self-test CPU allocation reduces its internally selected fixture parallelism; no assertion or deadline was edited.",
+  "retry_result": "73 tests passed",
+  "retry_exit": 0,
+  "retry_log": "docs/climonfix4/gates-test.log",
+  "retry_log_sha256": "dede4452471c6bbd5680d21b3ec6a0e3d149ea2c8bad6efec72c3794f1549ccd"
+}

@@ -1,0 +1,962 @@
+[
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-INCR-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-2s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-GET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MGET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-SET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-INCR-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MGET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-1s-1-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-SET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-SET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-GET-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MSET-2s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-INCR-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-SET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-MGET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MSET-1s-32-0--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-GET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-normal-MSET-2s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-normal-GET-1s-32-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/post-db0-MGET-2s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "docs/climonfix4/instructions-pc/pre-db0-INCR-1s-1-1--1.log",
+    "sha256": "2f61590f6536b88ea4565f28265f76992ff71dd1f0ee78fb44d1d34862af2847",
+    "bytes": 79
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-1s-1-1--1-step.json",
+    "sha256": "38e83a7efc04292bc91d5a9e867f2de6ff62c2bff35b816f64a12e4c3f52651d",
+    "bytes": 56339
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MGET-2s-32-1--1-step.json",
+    "sha256": "e4c17d7f2a5ac89b46b1e6299b0630d1fc4631cdfc4e2aa420d26f2a232b467f",
+    "bytes": 50505
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-INCR-1s-32-1--1-step.json",
+    "sha256": "d4bb4b83bf626582d6fd6735de5ed7b911cc5263702429d38accc98e9742d9ce",
+    "bytes": 29942
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-INCR-2s-1-1--1-step.json",
+    "sha256": "421e9c22c352ba6cb820ab49c39ede1fa5ccedb227f51d4019bb8b74bcf60f20",
+    "bytes": 26252
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-1s-1-0--1-step.json",
+    "sha256": "5a93d8c25b38f9ce8e7c580d60dfeea4511eed9be8037f2678c22dc3508f38c3",
+    "bytes": 44244
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-2s-1-0--1-step.json",
+    "sha256": "2d2e0f47e196acbe90d4e06395d64a8078dfa1c2eee6caf084c662799698c3d1",
+    "bytes": 43853
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-GET-2s-32-1--1-step.json",
+    "sha256": "283c0b74225e5f6bc550629f492ad02a48dc3bc854c63892de573db0275f6900",
+    "bytes": 20528
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-2s-32-0--1-step.json",
+    "sha256": "7998db679a28d136aac8d4734e0907a79c25e8dd48085d717cfadf5d9f3a995a",
+    "bytes": 47990
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-INCR-2s-1-1--1-step.json",
+    "sha256": "be187bb282b62510b458529d8779f3351a3bc40c9a2e0a1a319f383ca241cd39",
+    "bytes": 28434
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-2s-32-0--1-step.json",
+    "sha256": "59c0b3b1f356f2b03411ee8c991ed03ebebfef54adfbd3d8dce0fd91231e0b91",
+    "bytes": 47414
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-GET-2s-1-1--1-step.json",
+    "sha256": "33d5983273bab57ab7f647b7ab6879874674bff712c68c006c841e84866f5e28",
+    "bytes": 20855
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-INCR-2s-1-1--1-step.json",
+    "sha256": "63e7b6f313b16293720343a66f20cec983ff27d0d72b93640ffbba19ab98f9a4",
+    "bytes": 28472
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-2s-1-1--1-step.json",
+    "sha256": "2d6553195df76f0045859b8837cd83acc6ee5ae36053330dbd82865d4cce6e87",
+    "bytes": 56013
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-SET-2s-1-1--1-step.json",
+    "sha256": "97c70427c0ab97a9032656d72469dec81066f46d1ea2e9d34d03727d9215c4b2",
+    "bytes": 22276
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MGET-1s-32-1--1-step.json",
+    "sha256": "7c2dc506c3b385405de4d7b2308f45e31a016326aa68006eda29cbae0fa338a8",
+    "bytes": 50768
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-GET-2s-1-1--1-step.json",
+    "sha256": "b659d6b3e5924f35be62206bb9a5bcbf749d42da6ce76dc75524263b9192e54e",
+    "bytes": 20006
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MGET-2s-1-1--1-step.json",
+    "sha256": "7d6fba6265d61645791cf26372fd3c4dee70ee3cda266c9bc0b370f20e97f287",
+    "bytes": 46995
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-INCR-1s-32-1--1-step.json",
+    "sha256": "91d3d7b32d60bc717b8a41869deedcb2b6e2aab1df2562f5343b6a1f48f08983",
+    "bytes": 28116
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-SET-2s-32-1--1-step.json",
+    "sha256": "0c3c2e9e0bbe3081c418c918c2da6eb6a83dcaa440a38fbc4ef856d74fb9bc58",
+    "bytes": 21908
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-SET-1s-1-1--1-step.json",
+    "sha256": "b8c5ebb54a29de422d77a234613fec06039bad2ed6e2716d5c3892762749ea53",
+    "bytes": 21926
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MGET-2s-32-1--1-step.json",
+    "sha256": "22a4a9a3a6b80028e5fcbcffe4da415789611bfd5455e6e7db1224ed615739dc",
+    "bytes": 50810
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-1s-32-1--1-step.json",
+    "sha256": "de72de4c3dcb62a25a1321175f2a53f174a3e85368c15cbe636c0a3999afda4e",
+    "bytes": 65354
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-GET-1s-1-1--1-step.json",
+    "sha256": "883e8dc52cad58fba5da56c089ea654a3731754087e819dbb8bfa710f122db4a",
+    "bytes": 21169
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-2s-32-0--1-step.json",
+    "sha256": "2e2afad4a4bbea04a8e410fbfb542c885352f771d9cbe754dedd15f5a21fa863",
+    "bytes": 47376
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-GET-2s-1-1--1-step.json",
+    "sha256": "bd9579c249e1275e3066d8e771e380460c06b988843e64528c39f0a8ccff1593",
+    "bytes": 20893
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-INCR-2s-32-1--1-step.json",
+    "sha256": "96992880817cbd1b74ec225c078964793a907f9daa14b7b12bb8c4182bcff358",
+    "bytes": 29634
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-1s-32-0--1-step.json",
+    "sha256": "a7fecf6a587e4bb3188dbd96d77ff72aa425f620bdb2138eb9a81fe60154247d",
+    "bytes": 48478
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-1s-32-0--1-step.json",
+    "sha256": "92fd319e2a618baa1bbbe5f6daffea49033c39da0ae4b96abc9fd5d591e9d288",
+    "bytes": 47860
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-SET-1s-1-1--1-step.json",
+    "sha256": "734219d1120df82f0d1a8749d89d98cac034e39d9457278c15fbe3ab06209ccc",
+    "bytes": 22629
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-2s-32-1--1-step.json",
+    "sha256": "562cfbfa95f7527321cc2b3ad27ace6af64bce70824295ef30917047fc4bb968",
+    "bytes": 64952
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-1s-1-0--1-step.json",
+    "sha256": "e8377095a407d5b025f909039060238da46222780e2c687fbd94de4f7dbfcdd8",
+    "bytes": 44774
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-GET-2s-32-1--1-step.json",
+    "sha256": "60c73696ad21cb452e7a123db456c09c3ba2377b6f37cbdef893194ad0176994",
+    "bytes": 21412
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MGET-1s-1-1--1-step.json",
+    "sha256": "2a108427cccd94a1a7e2b09184be483c6109463047966cdcaf65d0f1ce4af52c",
+    "bytes": 47037
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-GET-1s-1-1--1-step.json",
+    "sha256": "1a979acf52eb1215538fc30b3b531f074e19946b42f49b01f54e0e3e9207aefb",
+    "bytes": 21207
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-GET-1s-1-1--1-step.json",
+    "sha256": "472855d9675f10142958406b844b91786e5edb69446cab5562366e24bd77416d",
+    "bytes": 20640
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-INCR-2s-1-1--1-step.json",
+    "sha256": "d9221375b41a03205b5db722cdfa6ed3798025cda1071e82c1968ab3ad511810",
+    "bytes": 26294
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-GET-1s-32-1--1-step.json",
+    "sha256": "107b03b4bc61215ecf868950925a58a799988b733f7db2c978bd6c9a3f3e3dc6",
+    "bytes": 21796
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-2s-1-0--1-step.json",
+    "sha256": "aca9b662f0e38c0acd4049b78342677cd876a9d7e62bd97d45124edb516c7d9b",
+    "bytes": 44341
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-2s-32-1--1-step.json",
+    "sha256": "df37d903de1f8aad8ca09be094ff47486b54ed1fd2362c59454c2e251dd64568",
+    "bytes": 64416
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-1s-32-0--1-step.json",
+    "sha256": "34efa80f167e0090558e60954c6ca9a646bd2f70f876da520849646e49eb8942",
+    "bytes": 48436
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-INCR-1s-1-1--1-step.json",
+    "sha256": "416d5a22bf83b44c6e1d09d9715acc658e8b38fe57ebff6d5f38494e32ff6e2a",
+    "bytes": 26988
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-SET-2s-1-1--1-step.json",
+    "sha256": "ece3f527ecf3e401908ce3dd4ef3b11e047a7f5aa1893bf984c5089370e000b1",
+    "bytes": 21191
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-SET-2s-32-1--1-step.json",
+    "sha256": "a0dd20ea2b06c748030beb8f99e0857be94166ad2f81272bc460b8e7106dbc23",
+    "bytes": 21866
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MGET-2s-1-1--1-step.json",
+    "sha256": "35b61d4263e0d49306cf64b25c5023714e6701ed3bf30ed677b24dcddb8c1a02",
+    "bytes": 46733
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-SET-1s-32-1--1-step.json",
+    "sha256": "910025c9e0e2aed514150b8ed78036627802dd7ade80963759aa5ce12546993a",
+    "bytes": 23332
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MGET-1s-1-1--1-step.json",
+    "sha256": "9952263a3ecbe66cb21a6ca0129b68d5b9ea32388a05f18d0ac163f04f087228",
+    "bytes": 46995
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MGET-1s-1-1--1-step.json",
+    "sha256": "7e90fb591ede438033fe6d7b86b7055aa805ec7b640ff2e730c27cb9384d4b95",
+    "bytes": 46733
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-1s-1-0--1-step.json",
+    "sha256": "76e180c48e3844ce816fb7698e89f9a7ce7d0f5b35ccd585bdb09ad642ea20d4",
+    "bytes": 44206
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-INCR-1s-1-1--1-step.json",
+    "sha256": "8a9db7490d718168f7403775d8731d4dc18e8bbff9be6ee2acdfa74f44a6ba69",
+    "bytes": 28749
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-1s-1-1--1-step.json",
+    "sha256": "c3d6250e7f936f00238d41399aecae9dd6ad1c266d085f69cce998683a4224ab",
+    "bytes": 56297
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-2s-1-1--1-step.json",
+    "sha256": "a89e109b1dd2c7be519c35043db3a57b24e10c3274f56f6ed2769a4283ced5f8",
+    "bytes": 55971
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-2s-1-0--1-step.json",
+    "sha256": "d1cc7fc433704e7dacb2474cbad6a08cdd6d1832eb0c90e38388c37d5a26e5ea",
+    "bytes": 44383
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MGET-2s-32-1--1-step.json",
+    "sha256": "19d2dac329e635ee20043cfdeb30e2e6f6890b58375d7f3e9893c26dd0337e0a",
+    "bytes": 50467
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-GET-1s-32-1--1-step.json",
+    "sha256": "0a381744205cf8c9a7ea4116bcd1fd16f9cabfeb2dad1aba323cb2bd27755422",
+    "bytes": 21280
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MGET-1s-32-1--1-step.json",
+    "sha256": "0cd869d7d322e4ee1bd8bbb295d67b74c053da4d7569a4c7a906d8c347371fc3",
+    "bytes": 50810
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-2s-32-1--1-step.json",
+    "sha256": "b1b8e6645f25a6e9eb44c48320aac80117c5e9e71b4510bd3a731aaec9f9b6b2",
+    "bytes": 64990
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-GET-1s-1-1--1-step.json",
+    "sha256": "e19ab4d112e8f1135ded7db3b25549c1cf7a6bf3bbd1871f9ab5aa97f84d5383",
+    "bytes": 20682
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-2s-32-1--1-step.json",
+    "sha256": "edab44d5a01c9b83ca441df28cbf1231637c29b022e5a4e4d175ad47791b24b5",
+    "bytes": 64374
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-2s-1-1--1-step.json",
+    "sha256": "1f797194f48ec46841e505d2e3b2c57efb830e6ca15588fd90095214b2f0d389",
+    "bytes": 56576
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-SET-2s-32-1--1-step.json",
+    "sha256": "bf4c60cc847a0f7a8c8bb4bb55bb3f6c562ca10b1d9797d1eabb14b193050a62",
+    "bytes": 22948
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-1s-1-0--1-step.json",
+    "sha256": "f7e726a824cb58631a8dc8ba6965fc69a355e53c51f825bd670d38c1643a9dc8",
+    "bytes": 44732
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-SET-1s-32-1--1-step.json",
+    "sha256": "f4861ba8acd727541bd46d3524dcad5b5fc60ee0b582810e0adc32d079c010b0",
+    "bytes": 23294
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-SET-2s-1-1--1-step.json",
+    "sha256": "87b783fbc39a50cf33469c06c3b3cb52572b9c712124789c7c422c636ef43f42",
+    "bytes": 22314
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-SET-1s-32-1--1-step.json",
+    "sha256": "f2090200fda29a9b67587866a9d794d4c14f1454c85a9536414afb93627c8910",
+    "bytes": 22593
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-1s-32-1--1-step.json",
+    "sha256": "3cb250d6aec4e38ed47a4c07ce6a310c51443ca800b99aa6b7520046bff29d79",
+    "bytes": 65392
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MGET-2s-32-1--1-step.json",
+    "sha256": "33ad9e503e1d2a4912d849b46bd921c2d2bac542f9dd4815d3b44d6679926f49",
+    "bytes": 50768
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-SET-2s-32-1--1-step.json",
+    "sha256": "93d60a896bb646f2b03c5bcbdaf153645f57efab8279a719ffc164354b22678e",
+    "bytes": 22986
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-1s-1-1--1-step.json",
+    "sha256": "ce9d0c53a60a0b9a5b382df1878c29aa7d461c73f798a9666c83c1867066c447",
+    "bytes": 56902
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-INCR-1s-32-1--1-step.json",
+    "sha256": "c32bc8c4c5f008b3f8c2e5c5d2a81dd6af92ffa322819d51cab61f804eac46ed",
+    "bytes": 29980
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-GET-2s-32-1--1-step.json",
+    "sha256": "7ef1183d92b5129a56260dda692cf12284056d26b434806ccbdc5c1cab4f4af9",
+    "bytes": 21450
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-INCR-2s-32-1--1-step.json",
+    "sha256": "35c08244a4aa86260ed3ebc1fbebfb0d1bb2f8b96dd4c352e55a72b86381fa92",
+    "bytes": 29596
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-INCR-1s-32-1--1-step.json",
+    "sha256": "086d40b158f5c5605bdf4c8d2a70bf941e9dd4c5f54711b1007568aa70f69458",
+    "bytes": 28074
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-1s-32-1--1-step.json",
+    "sha256": "2ca7a992c0b31bd2249196602a421d9fb298d3663517b93afba7fcd72fcd6b08",
+    "bytes": 64818
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-SET-2s-1-1--1-step.json",
+    "sha256": "01e9b8ce9f44acd552eb860fd2eacb8fc94a8c934a0d9351d740e0ebac4762b2",
+    "bytes": 21233
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-SET-1s-1-1--1-step.json",
+    "sha256": "545cdfc72d3a889e70e874c86e7137be4aff44d24f83685b488b5dc9b29798d0",
+    "bytes": 22591
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-GET-2s-32-1--1-step.json",
+    "sha256": "f320e9c70e6b5226b09eb00853e869853291682e690e26a40c1183311dae7dea",
+    "bytes": 20570
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-INCR-1s-1-1--1-step.json",
+    "sha256": "7a6c1f662f46e8fe0c6a94dc5e2244759ff0534ee7fa651d1e2cdf0cc401d9bf",
+    "bytes": 28787
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-SET-1s-32-1--1-step.json",
+    "sha256": "ea973383180ef430ad0f7518cdb3143f134906b06db3c2db6648c8f103786784",
+    "bytes": 22635
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-1s-1-1--1-step.json",
+    "sha256": "960b12322a504cc7a034e0fc4965cc35adae06635b7ba66b595787435c531b80",
+    "bytes": 56940
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-INCR-1s-1-1--1-step.json",
+    "sha256": "16566258b3f8df2d5fc23d8230a8bcea5307441f5a2e3da7ec968a460717690a",
+    "bytes": 26946
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MGET-1s-32-1--1-step.json",
+    "sha256": "0283676702cb52fbc5c2ae906f3ddb5a2942a9bf5a3e3d5db3aa6bcfeac2b7bc",
+    "bytes": 50467
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-INCR-2s-32-1--1-step.json",
+    "sha256": "2bde8d5c4079d8b30794515e10cbf2982b60c52a92a8b4b01d71f58d16b4568f",
+    "bytes": 27347
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-SET-1s-1-1--1-step.json",
+    "sha256": "b29beb4c11675dcd33a2a5241bae5e1a5049a6a3e36e4ed0045d394a0595363b",
+    "bytes": 21884
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-INCR-2s-32-1--1-step.json",
+    "sha256": "72ca6fc5d3bc85475ecf9d4dce7568ec92d9988bed73821a89d35826415c7d27",
+    "bytes": 27389
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MGET-1s-32-1--1-step.json",
+    "sha256": "81a92b0f35f50dae712b36a4b2af77efa457d8868f62a6e2d916999778eaea44",
+    "bytes": 50505
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-GET-2s-1-1--1-step.json",
+    "sha256": "484e44199dd5aa54a30bff0619d370b8603b237ac96f177183b78431bdfabfe3",
+    "bytes": 19964
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-MSET-1s-32-1--1-step.json",
+    "sha256": "c43bf1204dda245d25d3bebbb059c1113a7a93ac1a782f4fd61d080711346fa5",
+    "bytes": 64776
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MGET-1s-1-1--1-step.json",
+    "sha256": "aae37916b4fa052502b06b44062fb7ba8349933977f20a6d46f63fcbd166884a",
+    "bytes": 46771
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-GET-1s-32-1--1-step.json",
+    "sha256": "8e96d30aa7ce04360bab74828bc1420516c80c451836dcd06f8d16403a8a3be9",
+    "bytes": 21758
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MSET-2s-32-0--1-step.json",
+    "sha256": "d85b14c22c68812a615fa1f7c5afe50027eed023d7ed5c2904acb6821f59a26c",
+    "bytes": 48032
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MGET-2s-1-1--1-step.json",
+    "sha256": "a745fd399a407ec7b32fa5eb5e508df5b3d3dd854cf2b2b82872bcb2fb84b771",
+    "bytes": 46771
+  },
+  {
+    "path": "build/climonfix4/commands/post-normal-MSET-2s-1-1--1-step.json",
+    "sha256": "e80c02953f8bbaeae7a0b85d420a482f04cf3cff95718c5b988cd517b43aa28e",
+    "bytes": 56614
+  },
+  {
+    "path": "build/climonfix4/commands/pre-db0-GET-1s-32-1--1-step.json",
+    "sha256": "097ce92a126baf71363b293e0bb86993e62a55d4a8fe8f997f597717baa37c41",
+    "bytes": 21238
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-2s-1-0--1-step.json",
+    "sha256": "baa1db775441ae454c95de459a6827e5588507380c6b0dae846b3176601a1166",
+    "bytes": 43815
+  },
+  {
+    "path": "build/climonfix4/commands/pre-normal-MSET-1s-32-0--1-step.json",
+    "sha256": "260b1d1f8403f757af60f63d1022d6ab9ee343b52f1b15a3229c66322f428437",
+    "bytes": 47822
+  },
+  {
+    "path": "build/climonfix4/commands/post-db0-MGET-2s-1-1--1-step.json",
+    "sha256": "2578ff4945d7f70fca201fb2374b1edcce0c7167f6794e7d4e2b1ac656168cbf",
+    "bytes": 47037
+  }
+]
