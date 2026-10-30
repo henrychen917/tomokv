@@ -1818,8 +1818,9 @@ void cmd_config(Shard& sh, Op& op) {
         }
 
         // This owner switches every store it holds, and its admission/eviction caches, to the
-        // committed maxmemory family now: the claim above happened before this fragment took the
-        // lock. The +OK waits for all fragments, so it cannot precede any owner's switch.
+        // committed maxmemory family now. This CONFIG SET's claim was published under g_config_mu
+        // by this fragment or by one that took the lock earlier, so the committed values are at
+        // least its own. The +OK waits for all fragments, so it cannot precede any owner's switch.
         if (memory_update) {
             const OwnerMemoryConfigHook hook = owner_memory_config_hook;
             if (hook.apply) hook.apply(hook.owner);
