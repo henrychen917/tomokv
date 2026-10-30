@@ -4,9 +4,11 @@
 
 Lane `cx-trackorder`, based on `e32b04a445b056976abb308aa598e356fcbaae74`.
 No push. No performance benchmark, load generator or full gate iteration.
-Builds, instruction scopes and correctness processes use CPUs 0–15; primary server geometry is
-CPUs 0–7, 16 shards, split 6:2 or eight fused threads. Tcl uses a separate
-CPUs 8–15 / ports 20120–20129 slot. All listeners use
+Builds, instruction scopes and correctness processes use CPUs 0–15; default server geometry is
+16 shards, split 6:2 or eight fused threads. The primary slot uses CPUs 0–7;
+Tcl and differential jobs use CPUs 8–15 with ports 20120–20129 and 20140–20149,
+respectively. Existing txnorder jobs retain their explicit four-owner 4:4 shape.
+All listeners use
 20100–20199 and every boot inherits `LC_ALL=C`.
 
 ### Oracle and change
@@ -36,9 +38,9 @@ default use this boundary; ASYNC, other recipients, and suppressed replies
 retain ordinary OOB deferral. Suppressed replies have no `+OK` to precede, and
 their push must remain outside reply segments that suppression discards.
 
-There is no added per-thread, connection, shard or Op state, no allocation,
-retry, seqlock, owner hand-off or layout change. Non-flush invalidations do not
-call the helper. With tracking OFF this code is unreachable.
+There is no added per-thread, connection, shard or Op state. The helper has no
+allocation, retry, seqlock or owner hand-off; all struct layouts are unchanged.
+Non-flush invalidations do not call it. With tracking OFF this code is unreachable.
 
 Porting to flushfix2/flushfix3: retain the existing completion-side call to
 `climon_flush_completed` after **all** shard effects finish and before final

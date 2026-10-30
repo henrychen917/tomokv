@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Lane-confined correctness receipts through whole gate jobs; never perf/full gate."""
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -63,15 +64,20 @@ def main():
         gate('batteries-uring', ordinary + ' ' + matrix, GATE_NET_IO='uring')
         gate('batteries-epoll', ordinary, GATE_NET_IO='epoll')
     elif args.phase == 'differ':
-        for engine in ('epoll', 'uring'):
-            gate('differ-' + engine, 'differ-split differ-armed', tier='iteration',
-                 GATE_DIFFER_NET_IO=engine, GATE_NET_IO=engine)
+        with (ROOT / 'build/trackorder/differ.lock').open('w') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            for engine in ('epoll', 'uring'):
+                label = 'differ-' + engine
+                if (OUT / (label + '.json')).exists():
+                    print(label + ' receipt already complete; preserved', flush=True)
+                    continue
+                gate(label, 'differ-split differ-armed', tier='iteration',
+                     GATE_DIFFER_NET_IO=engine, GATE_NET_IO=engine)
         # Remaining whole jobs with tracking/pubsub/flush-specific witnesses.
         gate('supplementary', 'compat3 wave8b_off infofix_latency storage_units')
     else:
         # A separate allocated port slot can run Tcl beside the ordinary jobs.
         # An automatic second invocation waits for those same immutable receipts.
-        import fcntl
         with (ROOT / 'build/trackorder/tcl.lock').open('w') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             if all((OUT / (label + '.json')).exists() for label in ('tcl-tracking', 'tcl-tracking-full')):
