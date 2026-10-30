@@ -22,6 +22,11 @@ namespace tomo {
 
 namespace {
 
+// Dynamic extent of a synchronous FLUSH retirement on this IO owner. Never
+// transported or retained: the callback clears it before the Op can retire.
+// No operation on a tracking-disarmed server reads or writes this TLS slot.
+thread_local const Op* climon_sync_flush = nullptr;
+
 // Redis quotes MONITOR arguments with the same escaping sdscatrepr uses for DEBUG output.
 void climon_quote_arg(Slice value, std::string& out) {
     out.push_back('"');
@@ -599,8 +604,13 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
 // tracked read that follows the invalidation therefore cannot repopulate a value awaiting FLUSH.
 void IoLoop::climon_flush_completed(Op& op) {
     if ((climon_armed_cached_ & Server::kClimonTracking) &&
-        (op.cmd_name().eq_icase("flushall") || op.cmd_name().eq_icase("flushdb")))
+        (op.cmd_name().eq_icase("flushall") || op.cmd_name().eq_icase("flushdb"))) {
+        // Redis 7.4 puts SYNC's self-invalidation before +OK, but ASYNC's
+        // afterward. All fragments are Done; reply assembly has not started.
+        if (op.argc() < 2 || !op.arg(1).eq_icase("async")) climon_sync_flush = &op;
         tracking_broadcast_flush();
+        climon_sync_flush = nullptr;
+    }
 }
 
 void IoLoop::climon_mark_reply(Client* client, Op& op) {
@@ -630,6 +640,21 @@ void IoLoop::climon_mark_reply(Client* client, Op& op) {
 // parks on the send engine until a drain stages that frontier. Only the connection's own io thread
 // ever runs this.
 void IoLoop::climon_push_wire(Client* client, const std::string& frame) {
+    // Only the flushing connection is at the certified pre-reply boundary.
+    // The ROB publishes its flush cursor once per drain, so inspect the live
+    // prefix rather than assuming its first slot is the currently retiring Op.
+    // A suppressed flush has no reply to precede: keep its push on the OOB path,
+    // outside the reply segments the suppressing drain will discard.
+    if (climon_sync_flush && !climon_sync_flush->reply_skip()) {
+        auto& rob = client->rob();
+        for (uint64_t id = rob.flush_id(), end = rob.dispatch_id(); id != end; ++id) {
+            if (&rob.at(id) != climon_sync_flush) continue;
+            if (client->append_oob(frame.data(), frame.size())) srv_->note_oob_frame_segmented();
+            enqueue_serve(client);
+            mark_active(client);
+            return;
+        }
+    }
     if (__builtin_expect(wb_.defer_oob(*client, frame.data(), frame.size()), false)) {
         srv_->note_oob_frame_deferred();
     } else if (__builtin_expect(client->append_oob(frame.data(), frame.size()), false)) {

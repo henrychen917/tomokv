@@ -94,7 +94,7 @@ def oracle(binary, cores, port, output):
     with (output / 'server.log').open('w') as log:
         proc = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)
         try:
-            c = wait_ready('127.0.0.1', port, process=proc, log_path=output / 'server.log')
+            c = wait_ready('127.0.0.1', port, process=proc)
             version = info(c, 'server')['redis_version']
             assert version.startswith('7.4.'), version
             c.close()
