@@ -1,0 +1,39 @@
+{
+  "files": [
+    {
+      "path": "docs/wave9/step_pc.c",
+      "sha256": "af7be6e38b12d949c9867daa0348e382e55f2dfcb0a0855b86beed848b1292ba"
+    },
+    {
+      "path": "tests/wave9_scope.cc",
+      "sha256": "946c57179263c92dd1e045077b0b9355365ad0c9273be45bf129246087ddbecf"
+    },
+    {
+      "path": "docs/maxmemrace/instructions.py",
+      "sha256": "c237b4229350f80fa8b21419bc81389efe86a19c876c66d3dc3650404b3c45cb"
+    },
+    {
+      "path": "docs/maxmemrace/count_pc.py",
+      "sha256": "6b1fe2532dc60f578359126ee2022d3c018f5fca38754fa91cd027b2cbb795bc"
+    },
+    {
+      "path": "build/maxmemrace/counts/step-pc",
+      "sha256": "c3a1bcf87b2738409f4d3f6285a17e0346230d386ea5b30da02ac11b22cea998"
+    }
+  ],
+  "probes": {
+    "pre-normal": "c19a96bc2a75b0f67b577f0930cc7973f999ed9736d1c7a270692b1d0307beb1",
+    "pre-db0": "d6cf9d87799ef2a01c04d022b2b8028c4052324734ff78ddca6ef064ed97e026",
+    "post-normal": "ea9de3a8af96aeaa8815869dbaf7d5025935a3ed68c03be18721f2bae46a0e51",
+    "post-db0": "b6d79fa2a1bef8ccc5c0b997c34d42dc1576a2c11081fcb3c2f469707270c9f7"
+  },
+  "pre_tree": {
+    "commit": "e32b04a44",
+    "binary_sha256": "5ddfb25b705eb08584a84fc8bb01d9ee743df745b0d67d9dd377608748db8004",
+    "note": "exported e32b04a44 sources built in place; differs from build/maxmemrace/pre/tomokv only by build path and INFO git identity"
+  },
+  "post_objects": "build/ (make all at 9a57b4706); frozen POST build/maxmemrace/post/tomokv sha256 982fb6931cb1a31ea52f5a3137f554d47f6cbd18afb79ceac21c5b446d089443",
+  "trace_bound": 10000000,
+  "mechanism": "ptrace single-step of an owned finite serverless child; data/exit check after scope_end; clock_gettime frozen; no perf events or rate measurement",
+  "same_counter_as": "docs/pubtrackfix/instruction-counter.json (identical step_pc.c, wave9_scope.cc and step-pc hashes)"
+}
