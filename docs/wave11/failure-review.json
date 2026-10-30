@@ -23,7 +23,7 @@
       ],
       "kind": "frozen-arm packaging",
       "reason": "The initial ASAN argument pointed at a run directory instead of the gate cache. The copied POST initially lacked adjacent blockfix-cost plus its binding sidecar, blockfix2 unit executables, and txnorder-episodes-debug.",
-      "resolution": "Frozen helpers and binding hashes are now adjacent to POST. landing-asan-path-check and landing-adjacent-units passed; txnorder2's complete replay is tracked separately in the final coverage index.",
+      "resolution": "Frozen helpers and binding hashes are adjacent to POST. Complete whole-job replays landing-asan-path-check, landing-adjacent-units and landing-txn-debug-helper passed. The txnorder2 replay includes all 16 rows and the R12 debug-helper leg.",
       "production_change": false
     },
     {

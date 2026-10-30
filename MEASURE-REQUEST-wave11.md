@@ -160,10 +160,46 @@ evidence.
 ### Correctness receipts
 
 The correctness campaign uses `GATE_ONLY_JOBS` whole jobs on the frozen POST,
-with their declared legs intact, CPUs 64–95 and ports 20000–20099. Partial
-receipts are indexed under `docs/wave11/jobs/`; none is a landing-gate pass.
-Final coverage and any unresolved failures are recorded below when the campaign
-finishes. No tracked EXPECT constant or label fixture has been repaired.
+with their declared correctness legs intact, CPUs 64–95 and ports 20000–20099.
+The [coverage audit](docs/wave11/correctness-coverage.json) has **339/339**
+successful job/geometry requirements, with no uncovered combination. It includes
+all 31 new rows, all declared scriptfix2 legs with the integration extensions,
+the requested subsystem batteries, and the jobs that copy sources or dry-run
+the Makefile. [Every attempt](docs/wave11/correctness-jobs.json) remains indexed;
+these selected-job receipts are not a landing-gate pass.
+
+The standard differential seeds passed on io_uring and epoll, each with split
+and armed-fused atomic 0/1 plus the equivalence check. Atomic-0 script bounds
+and the quiet atomic batteries passed in all four mode/engine combinations;
+both perfio modes passed. The complete txnorder2 replay passed all 16 rows,
+including its R12 debug-helper leg.
+
+The merged Tcl manifest passed **1,817 required assertions in 37 files per
+mode**, including the separately booted slowlog assertion. Its five existing
+named setup diagnostics per mode remain accounted for by the manifest.
+[Positive receipts](docs/wave11/tcl-positive.json) use the top-level summary,
+which already includes the fresh slowlog result. A planted loss of CLIENT
+subcommand identity then failed the **complete same manifest in both modes**:
+CLIENT LIST, CLIENT LIST with IDs and CLIENT INFO were the only newly failing
+assertions. [Negative proof](docs/wave11/tcl-negative.json) retains the exact
+witnesses and mutant hash; the mutant binary, objects and source were removed.
+
+`make all`, all 55 production-unit targets and their freshness checks passed;
+see [production units](docs/wave11/production-units.json). The standalone
+`python3 tests/gates_test.py` passed all **76 tests** on the final tree
+([receipt](docs/wave11/gates-test-final.json)). All three flushmerit instrument
+self-tests passed ([receipts](docs/wave11/flushmerit-selftests.json)); the
+shared `calib/flushmerit.py` helper is exercised through those instruments.
+
+Original failed attempts are preserved in the
+[failure review](docs/wave11/failure-review.json). The main sweep's missing
+adjacent helpers and incorrect initial ASAN path were packaging errors;
+complete whole-job replays passed after installing the frozen helpers. The
+AOF everysec window failed its exact witness assertion once, then its single
+isolated whole-job replay passed all 54 AOF rows with 17 gate waits and 528
+replayed records. No assertion, timeout or tolerance changed. The initial
+ABBA self-test copy omitted root hook/report inputs; its complete-tree replay
+is recorded separately. No tracked EXPECT constant or label fixture changed.
 
 **NOT RUN (maintainer-owned performance work):** `flip_saturated` (memtier),
 `atomic_floor` (throughput floor), `efficiency` (perf comparison), the inline

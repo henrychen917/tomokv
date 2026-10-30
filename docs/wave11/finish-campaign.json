@@ -1,0 +1,134 @@
+[
+  {
+    "name": "aof-isolated",
+    "command": [
+      "python3",
+      "docs/wave11/run_jobs.py",
+      "landing-aof-isolated",
+      "aof-epoll",
+      "--binary",
+      "build/wave11/tomokv-POST",
+      "--single-slot"
+    ],
+    "exit": 0,
+    "seconds": 65.6236821860075
+  },
+  {
+    "name": "tcl",
+    "command": [
+      "python3",
+      "docs/wave11/run_jobs.py",
+      "landing-tcl",
+      "redis_tcl",
+      "compat2",
+      "--binary",
+      "build/wave11/tomokv-POST",
+      "--asan-binary",
+      "build/wave11/tomokv-ASAN"
+    ],
+    "exit": 0,
+    "seconds": 451.0017748614773
+  },
+  {
+    "name": "sidecars",
+    "command": [
+      "python3",
+      "docs/wave11/run_jobs.py",
+      "landing-adjacent-units",
+      "blockfix_registry",
+      "blockfix2",
+      "--binary",
+      "build/wave11/tomokv-POST",
+      "--single-slot"
+    ],
+    "exit": 0,
+    "seconds": 239.3301958926022
+  },
+  {
+    "name": "secondary",
+    "command": [
+      "python3",
+      "docs/wave11/campaign.py",
+      "secondary",
+      "--asan-binary",
+      "build/wave11/tomokv-ASAN"
+    ],
+    "exit": 0,
+    "seconds": 1128.748180042021
+  },
+  {
+    "name": "differ",
+    "command": [
+      "python3",
+      "docs/wave11/campaign.py",
+      "differ",
+      "--asan-binary",
+      "build/wave11/tomokv-ASAN"
+    ],
+    "exit": 0,
+    "seconds": 2109.3025130815804
+  },
+  {
+    "name": "bounds0",
+    "command": [
+      "python3",
+      "docs/wave11/campaign.py",
+      "bounds0",
+      "--asan-binary",
+      "build/wave11/tomokv-ASAN"
+    ],
+    "exit": 0,
+    "seconds": 24.684756794013083
+  },
+  {
+    "name": "quiet",
+    "command": [
+      "python3",
+      "docs/wave11/campaign.py",
+      "quiet",
+      "--asan-binary",
+      "build/wave11/tomokv-ASAN"
+    ],
+    "exit": 0,
+    "seconds": 167.03000560123473
+  },
+  {
+    "name": "negative-tcl",
+    "command": [
+      "python3",
+      "docs/wave11/regressions.py"
+    ],
+    "exit": 0,
+    "seconds": 454.5818663779646
+  },
+  {
+    "name": "abba-selftest",
+    "command": [
+      "python3",
+      "docs/wave11/run_jobs.py",
+      "landing-abba-selftest",
+      "abba_selftest",
+      "--root",
+      "/home/user/Projects/cx-wave11/build/wave11/selftest-source",
+      "--binary",
+      "build/wave11/tomokv-POST",
+      "--single-slot",
+      "--port",
+      "20080"
+    ],
+    "exit": 1,
+    "seconds": 342.12558487895876
+  },
+  {
+    "name": "gates-test",
+    "command": [
+      "taskset",
+      "-c",
+      "88-95",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit": 0,
+    "seconds": 212.63227131217718
+  }
+]

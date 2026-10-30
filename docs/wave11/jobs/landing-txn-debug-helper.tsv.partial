@@ -1,0 +1,18 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder2; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.020000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.030000	txnorder2 writer episode R3
+ok	0.030000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.020000	txnorder2 writer episode R6
+ok	0.030000	txnorder2 writer episode R7
+ok	0.060000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.020000	txnorder2 writer episode R11
+ok	4.550000	txnorder2 writer episode R12
+ok	0.040000	txnorder2 direct RENAME owner join
+ok	21.660000	txnorder2 WATCH serve
+ok	28.860000	txnorder2 WATCH flush
+ok	27.900000	txnorder2 WATCH readonly

@@ -1,0 +1,23 @@
+{
+  "copy": "/home/user/Projects/cx-wave11/build/wave11/selftest-source-full",
+  "commit": "09232b2f5b2f4b9dc89892b5ff832c6bf0e41f54",
+  "tracked_files": 120179,
+  "archive_sha256": "00afcab7e143c20be306ee973b270824fc49da2b92ab365407d203f2d564fe36",
+  "only_tracked_file_differences": [
+    "tests/fixtures/nullrefresh-ledger-labels.json",
+    "tests/gate.sh"
+  ],
+  "root_expect": [
+    "EXPECT_QUICK=946",
+    "EXPECT_FULL=963"
+  ],
+  "copy_expect": [
+    "EXPECT_QUICK=977",
+    "EXPECT_FULL=994"
+  ],
+  "root_gate_sha256": "1856c6025a7ffeb8019d88dffa29c78607dc58e420ae00286ef23e65f0af78bf",
+  "copy_gate_sha256": "3bf5264fe297d8ab7849fd3bdfe376a0f0eb313d25031fb18f6dcf3353a50e46",
+  "landing_fixture_sha256": "49b7929a92bd8f164bfcd645403bdae7ca06b2506e22dbd38127a231740e39de",
+  "tracked_fixture_sha256": "46697ff9e5b64af54b12699808d2bcacbb8ab80e36651617cf7cd1871681c2f6",
+  "passed": true
+}
