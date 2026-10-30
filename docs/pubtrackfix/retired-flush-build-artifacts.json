@@ -1,0 +1,18 @@
+[
+  {
+    "path": "build/pubtrackfix/pad-a/source",
+    "input_hash_receipt": "pad-a.json"
+  },
+  {
+    "path": "build/pubtrackfix/pad-a/objects",
+    "input_hash_receipt": "pad-a.json"
+  },
+  {
+    "path": "build/pubtrackfix/counts/post-normal",
+    "input_hash_receipt": "instructions-production-binding.json"
+  },
+  {
+    "path": "build/pubtrackfix/counts/post-db0",
+    "input_hash_receipt": "instructions-production-binding.json"
+  }
+]

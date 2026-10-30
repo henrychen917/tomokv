@@ -1,0 +1,15 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.z9A8sp",
+  "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-plant-reply-off.log",
+  "jobs": {
+    "redis_tcl": {
+      "done": "0\t0\t2\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    }
+  },
+  "summary": [
+    "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.z9A8sp/ledger.partial"
+  ]
+}

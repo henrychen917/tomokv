@@ -1,0 +1,14 @@
+{
+  "model": [
+    "claude-opus-5-5"
+  ],
+  "effort": "max",
+  "provider": "firstParty",
+  "is_error": false,
+  "permission_denials": [],
+  "request_sha256": "ceb7ea3fd12ad07c407b3c3a8df9c38b84a5c884ff283d3612f383e0756e8363",
+  "result_sha256": "ffe2d4996aaa1ff9d278bafd2f718bb8ff3d1719cab40c773ac6e06f9d99ee47",
+  "reviewed_diff_sha256": "7fb31171ab9eced0829c53aaa085b9ba13a6fe409db91cfcf59f79a2c775130a",
+  "status": "Production diff approved: owner-word construction and MULTI completion helper preserve C2/C3 repairs",
+  "provenance_caveat": "The supplied diff still redeclared FlatStoreRegressionTest. Compilation found the existing definition in tests/atomiccollapse_checks.inc. The tree instead uses its existing pending() accessor from a local group_count() function. The report assertion that no other friend definition exists is incorrect. This fixture-only correction does not change the production diff. The corrected fixture compiled and all 12 directed runs passed; refreshed hash-bound controls follow."
+}

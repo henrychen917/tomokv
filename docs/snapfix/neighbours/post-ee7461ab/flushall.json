@@ -1,0 +1,149 @@
+[
+  {
+    "case": "flushall",
+    "leg": "redis-redis-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        6324,
+        6324,
+        4052,
+        4052
+      ],
+      "scripts": 152350,
+      "execs": 99777,
+      "writes": 94983
+    },
+    "pass": true,
+    "seconds": 5.249
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix_neighbours.py\", line 380, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix_neighbours.py\", line 200, in case_flushall\n    assert not torn, ('torn atomic pair observed', torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', [(['snapfix:fe:0', 'snapfix:fe:1'], b'22', None), (['snapfix:fe:0', 'snapfix:fe:1'], b'101', b'99'), (['snapfix:fe:0', 'snapfix:fe:1'], b'212', b'210'), (['snapfix:fe:0', 'snapfix:fe:1'], b'310', b'308'), (['snapfix:fe:0', 'snapfix:fe:1'], b'420', b'418')])\n",
+    "seconds": 5.151
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix_neighbours.py\", line 380, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/snapfix_neighbours.py\", line 200, in case_flushall\n    assert not torn, ('torn atomic pair observed', torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', [(['snapfix:fs:0', 'snapfix:fs:2'], b'6', b'7656'), (['snapfix:fs:0', 'snapfix:fs:2'], b'140', b'7790'), (['snapfix:fs:0', 'snapfix:fs:2'], b'283', b'7933'), (['snapfix:fs:0', 'snapfix:fs:2'], b'419', b'8069'), (['snapfix:fs:0', 'snapfix:fs:2'], b'568', b'8218')])\n",
+    "seconds": 5.148
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        5218,
+        5218,
+        4189,
+        4189
+      ],
+      "scripts": 126832,
+      "execs": 101595,
+      "writes": 97656
+    },
+    "pass": true,
+    "seconds": 5.147
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        4714,
+        4714,
+        4269,
+        4269
+      ],
+      "scripts": 113725,
+      "execs": 103030,
+      "writes": 99759
+    },
+    "pass": true,
+    "seconds": 5.146
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        6024,
+        6024,
+        3881,
+        3881
+      ],
+      "scripts": 146607,
+      "execs": 93160,
+      "writes": 100597
+    },
+    "pass": true,
+    "seconds": 5.163
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-1",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        5865,
+        5865,
+        4004,
+        4004
+      ],
+      "scripts": 139394,
+      "execs": 99339,
+      "writes": 95928
+    },
+    "pass": true,
+    "seconds": 5.164
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        5521,
+        5521,
+        4239,
+        4239
+      ],
+      "scripts": 136918,
+      "execs": 102986,
+      "writes": 99772
+    },
+    "pass": true,
+    "seconds": 5.164
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        6051,
+        6051,
+        3991,
+        3991
+      ],
+      "scripts": 138797,
+      "execs": 101409,
+      "writes": 96957
+    },
+    "pass": true,
+    "seconds": 5.148
+  }
+]

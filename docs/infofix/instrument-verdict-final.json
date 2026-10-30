@@ -1,0 +1,18 @@
+{
+  "job": "abba_selftest",
+  "result": "FAIL",
+  "rows": {
+    "pass": 0,
+    "fail": 1
+  },
+  "expected_full": 898,
+  "fixture_labels": 903,
+  "source_labels": 903,
+  "missing_fixture_labels": [],
+  "extra_fixture_labels": [],
+  "failure": "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=898, fixture=903, source declarations=903",
+  "receipt_self_tests": "NOT RUN: inventory guard rejects the protected EXPECT_FULL mismatch before starting those tests.",
+  "other_helper_self_tests": "PASS",
+  "archive": "docs/infofix/evidence/instrument-fixture-final.tar.gz",
+  "archive_sha256": "f8ec19886f0431fe2259bbc588a11a326d19a00d65ad6c4544e26c96961a18ed"
+}

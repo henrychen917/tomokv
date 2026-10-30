@@ -1,0 +1,193 @@
+{
+  "left": "build/exec1s-X5",
+  "right": "build/exec1s-POST",
+  "left_sha256": "37a52b13deb9c15e638e574c2b35d3dcf69c586590f1ced54434243cc15da657",
+  "right_sha256": "4ccee1eb58d6dfe19279c0e9289c306e0e5c33283c89d3c1b9d29570cb2bf474",
+  "excluded": [
+    "non-allocated debug/symbol sections",
+    ".note.gnu.build-id"
+  ],
+  "sections": [
+    {
+      "section": ".interp",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".note.gnu.property",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".note.ABI-tag",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".gnu.hash",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".dynsym",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".dynstr",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".gnu.version",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".gnu.version_r",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".rela.dyn",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".rela.plt",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".init",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".plt",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".plt.got",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".plt.sec",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".text",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".rlfence",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".fini",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".rodata",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".eh_frame_hdr",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".eh_frame",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".gcc_except_table",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".tdata",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".tbss",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": true
+    },
+    {
+      "section": ".init_array",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".fini_array",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".data.rel.ro",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".dynamic",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".got",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".data",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": false
+    },
+    {
+      "section": ".bss",
+      "header_equal": true,
+      "data_equal": true,
+      "nobits": true
+    }
+  ],
+  "passed": true
+}

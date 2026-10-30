@@ -1,0 +1,2 @@
+  row budget: 900s; median=58.59s; correctness-plan-fallback; snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)
+  snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1) ok

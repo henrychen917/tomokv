@@ -1,0 +1,1 @@
+CMDGAP PASS: 22 checks; 4 inventory rows, 3 cluster-disabled replies, 1 restore alias fired

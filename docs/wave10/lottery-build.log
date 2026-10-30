@@ -1,0 +1,13 @@
+python3 tools/lottery_build.py build/lottery/source
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave10/tools/lottery_build.py", line 363, in <module>
+    changes, written = prepare(args.output)
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-wave10/tools/lottery_build.py", line 294, in prepare
+    after('src/cmd/tracking.cc',
+  File "/home/user/Projects/cx-wave10/tools/lottery_build.py", line 47, in after
+    patch(path, anchor, anchor + '\n' + code, count)
+  File "/home/user/Projects/cx-wave10/tools/lottery_build.py", line 42, in patch
+    raise ValueError(f'{path}: expected {count} anchors, found {text.count(old)}: {old[:80]}')
+ValueError: src/cmd/tracking.cc: expected 1 anchors, found 0: void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice k
+make: *** [Makefile:94: build/lottery/tomokv] Error 1

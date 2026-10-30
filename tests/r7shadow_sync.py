@@ -110,6 +110,11 @@ def envelopes():
             opening = body.index('{') + 1
             body = body[:opening] + '\n    TOMO_R7_PATH();' + body[opening:]
             if method == 'run_loop':
+                # Extra owner opportunities must use the same guarded R7 pass
+                # as the ordinary owner opportunity in this envelope.
+                needle = 'fused_executor_->fused_owner_turn()'
+                assert body.count(needle) == 2
+                body = body.replace(needle, 'fused_executor_->fused_owner_turn<true>()')
                 # Accounting belongs to the ordinary envelope. Copy its current
                 # clock/sample sites too, including later accounting fixes.
                 body = body.replace('DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);',

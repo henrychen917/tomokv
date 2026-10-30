@@ -1,0 +1,42 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tools/snapfix_long_storm.py",
+    "--binary",
+    "build/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--mode",
+    "2s",
+    "--engine",
+    "uring",
+    "--atomic",
+    "1",
+    "--seconds",
+    "60",
+    "--stall",
+    "30",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/long/2s-uring-60"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 60.193,
+  "log_sha256": "d293cefd07de54795cee4eed5801f78f4ad0e5f22eddd22830609d0b8cc9e22c",
+  "removed_data": {
+    "2s-uring-1/dump.tomo": {
+      "bytes": 1970233,
+      "sha256": "db4b43b89ede32c7f3328ad05cb43362c5791bd1a09b68f7c69870ef18e8dd85"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+ok	0.000000	release build (+footprint locks)
+ok	19.890000	exec1s refinements (1s, atomic 0)
+ok	19.880000	exec1s refinements (1s, atomic 1)
+ok	2.920000	exec1s refinements (2s, atomic 0)
+ok	21.880000	exec1s refinements (2s, atomic 1)

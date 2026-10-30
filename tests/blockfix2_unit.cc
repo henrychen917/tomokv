@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     require(local(server, {"LPUSH", key, "value"}) == ":1\r\n", "ready list");
     auto& shard = server.shard(0);
     Client holder(-1); holder.set_id(9001);
-    std::unique_ptr<MultiExecState> exec(allocate_state(server, holder, 0, MultiStateKind::Execute));
+    std::unique_ptr<MultiExecState> exec(fixture_allocate_state(server, holder, 0, MultiStateKind::Execute));
     require(bool(exec), "EXEC state");
     exec->decision.age_ns = 1;
     txn_add_claim(exec->claims[0], slice(key), TxnClaimMode::Write);

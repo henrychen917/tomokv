@@ -1,0 +1,102 @@
+{
+  "cycles": 36540,
+  "observations": 129241,
+  "torn": 206,
+  "pair": [
+    "snapfix2:flush:0",
+    "snapfix2:flush:1"
+  ],
+  "owners": [
+    [
+      1,
+      1
+    ],
+    [
+      12,
+      4
+    ]
+  ],
+  "examples": [
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      1,
+      null
+    ],
+    [
+      1,
+      null
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ],
+    [
+      null,
+      1
+    ]
+  ],
+  "errors": []
+}

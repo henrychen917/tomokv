@@ -1,0 +1,86 @@
+895211:C 28 Oct 2026 23:54:04.184 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+895211:C 28 Oct 2026 23:54:04.184 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+895211:C 28 Oct 2026 23:54:04.184 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=895211, just started
+895211:C 28 Oct 2026 23:54:04.184 * Configuration loaded
+895211:M 28 Oct 2026 23:54:04.184 * monotonic clock: POSIX clock_gettime
+895211:M 28 Oct 2026 23:54:04.185 * Running mode=standalone, port=20101.
+895211:M 28 Oct 2026 23:54:04.185 * Server initialized
+895211:M 28 Oct 2026 23:54:04.185 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+895211:M 28 Oct 2026 23:54:04.185 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+895211:M 28 Oct 2026 23:54:04.185 * Ready to accept connections tcp
+895211:M 28 Oct 2026 23:54:04.584 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:04.584 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:04.584 * RDB age 0 seconds
+895211:M 28 Oct 2026 23:54:04.584 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:04.584 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:04.584 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:04.584 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:04.584 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:04.584 * Append Only File loaded by DEBUG LOADAOF
+895211:M 28 Oct 2026 23:54:06.048 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:06.048 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:06.048 * RDB age 2 seconds
+895211:M 28 Oct 2026 23:54:06.048 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:06.048 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:06.048 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:06.048 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:06.048 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:06.048 * Append Only File loaded by DEBUG LOADAOF
+895211:M 28 Oct 2026 23:54:07.514 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:07.514 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:07.514 * RDB age 3 seconds
+895211:M 28 Oct 2026 23:54:07.514 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:07.514 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:07.514 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:07.514 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:07.514 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:07.514 * Append Only File loaded by DEBUG LOADAOF
+895211:M 28 Oct 2026 23:54:08.979 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:08.979 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:08.979 * RDB age 4 seconds
+895211:M 28 Oct 2026 23:54:08.979 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:08.979 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:08.979 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:08.979 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:08.979 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:08.979 * Append Only File loaded by DEBUG LOADAOF
+895211:M 28 Oct 2026 23:54:10.443 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:10.443 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:10.443 * RDB age 6 seconds
+895211:M 28 Oct 2026 23:54:10.443 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:10.443 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:10.443 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:10.443 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:10.444 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:10.444 * Append Only File loaded by DEBUG LOADAOF
+895211:M 28 Oct 2026 23:54:11.907 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:11.907 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:11.907 * RDB age 7 seconds
+895211:M 28 Oct 2026 23:54:11.907 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:11.907 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:11.907 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:11.907 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:11.907 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:11.907 * Append Only File loaded by DEBUG LOADAOF
+895211:M 28 Oct 2026 23:54:13.372 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:13.372 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:13.372 * RDB age 9 seconds
+895211:M 28 Oct 2026 23:54:13.372 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:13.372 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:13.372 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:13.372 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:13.372 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:13.372 * Append Only File loaded by DEBUG LOADAOF
+895211:M 28 Oct 2026 23:54:14.836 * Reading RDB base file on AOF loading...
+895211:M 28 Oct 2026 23:54:14.836 * Loading RDB produced by version 7.4.10
+895211:M 28 Oct 2026 23:54:14.836 * RDB age 10 seconds
+895211:M 28 Oct 2026 23:54:14.836 * RDB memory usage when created 0.91 Mb
+895211:M 28 Oct 2026 23:54:14.836 * RDB is base AOF
+895211:M 28 Oct 2026 23:54:14.836 * Done loading RDB, keys loaded: 0, keys expired: 0.
+895211:M 28 Oct 2026 23:54:14.836 * DB loaded from base file appendonly.aof.1.base.rdb: 0.000 seconds
+895211:M 28 Oct 2026 23:54:14.836 * DB loaded from incr file appendonly.aof.1.incr.aof: 0.000 seconds
+895211:M 28 Oct 2026 23:54:14.836 * Append Only File loaded by DEBUG LOADAOF
+895211:signal-handler (1793202855) Received SIGTERM scheduling shutdown...
+895211:M 28 Oct 2026 23:54:16.021 * User requested shutdown...
+895211:M 28 Oct 2026 23:54:16.021 * Calling fsync() on the AOF file.
+895211:M 28 Oct 2026 23:54:16.021 # Redis is now ready to exit, bye bye...

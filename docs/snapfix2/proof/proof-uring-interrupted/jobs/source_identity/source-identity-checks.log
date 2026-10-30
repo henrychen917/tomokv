@@ -1,0 +1,17 @@
+test_c_helper_pins (__main__.AssertionChecks.test_c_helper_pins) ... ok
+test_c_macro_semantics_and_abort (__main__.AssertionChecks.test_c_macro_semantics_and_abort) ... ok
+test_claim_node_declarators (__main__.AssertionChecks.test_claim_node_declarators) ... ok
+test_duplicate_salt_and_pin (__main__.AssertionChecks.test_duplicate_salt_and_pin) ... ok
+test_expanded_lint (__main__.AssertionChecks.test_expanded_lint) ... ok
+test_hash_and_function (__main__.AssertionChecks.test_hash_and_function) ... ok
+test_helper_lint_negative_controls (__main__.AssertionChecks.test_helper_lint_negative_controls) ... ok
+test_lexer_and_physical_lines (__main__.AssertionChecks.test_lexer_and_physical_lines) ... ok
+test_lint_negative_controls (__main__.AssertionChecks.test_lint_negative_controls) ... ok
+test_macro_semantics (__main__.AssertionChecks.test_macro_semantics) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 16.649s
+
+OK
+tomo-assert-fail: tomokv:2184563561: site: Assertion `see tomokv.asserts' failed.
+PASS directed abort: 2184563561 -> src/core/shard.h:68 tomo::Shard::init

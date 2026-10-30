@@ -1,0 +1,25 @@
+{
+  "port": 20102,
+  "cores": "0,1,2,3",
+  "config": "/home/user/Projects/cx-snapfix2/build/gate-run.HzSPna/jobs/feature-armed-0/tomokv-servertail-uo3jisq_/rewrite.conf",
+  "binary": "/home/user/Projects/cx-snapfix2/build/tomokv",
+  "reason": "ready",
+  "argv": [
+    "taskset",
+    "-c",
+    "0,1,2,3",
+    "/home/user/Projects/cx-snapfix2/build/tomokv",
+    "/home/user/Projects/cx-snapfix2/build/gate-run.HzSPna/jobs/feature-armed-0/tomokv-servertail-uo3jisq_/rewrite.conf",
+    "--databases",
+    "1",
+    "--port",
+    "20102",
+    "--bind",
+    "127.0.0.1",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-snapfix2/build/gate-run.HzSPna/jobs/feature-armed-0/tomokv-servertail-uo3jisq_"
+  ],
+  "pid": 348689
+}

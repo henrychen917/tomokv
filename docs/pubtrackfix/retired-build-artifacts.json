@@ -1,0 +1,51 @@
+[
+  {
+    "path": "build/pubtrackfix/pre/src",
+    "bytes": 321997339
+  },
+  {
+    "path": "build/pubtrackfix/pre/db0",
+    "bytes": 319010976
+  },
+  {
+    "path": "build/pubtrackfix/pre/third_party",
+    "bytes": 825556
+  },
+  {
+    "path": "build/pubtrackfix/pre/tools",
+    "bytes": 12132
+  },
+  {
+    "path": "build/pubtrackfix/pre/tests",
+    "bytes": 13743
+  },
+  {
+    "path": "build/pubtrackfix/pad-a/source",
+    "bytes": 5785337
+  },
+  {
+    "path": "build/pubtrackfix/pad-a/objects",
+    "bytes": 862332217
+  },
+  {
+    "path": "build/pubtrackfix/counts/post-normal",
+    "bytes": 265751216
+  },
+  {
+    "path": "build/pubtrackfix/counts/post-db0",
+    "bytes": 265867336
+  },
+  {
+    "path": "build/pubtrackfix/counts/pre-db0",
+    "bytes": 263231112
+  },
+  {
+    "path": "build/pubtrackfix/counts/pre-normal",
+    "bytes": 263114672
+  },
+  {
+    "path": "build/pubtrackfix/post-before-source-move",
+    "sha256": "1f0459559d72ce851e69163a43cfb474997f1e193d493468862ff506471b37f7",
+    "bytes": 222153192
+  }
+]

@@ -1,3 +1,17 @@
+Current lane: MEASURE-REQUEST-flushfix3.md, section "flushfix3". D12 approval pending.
+
 See MEASURE-REQUEST-flushfix2.md, section "flushfix2", for the owner's requested
 PRE/POST/PAD-A cells, proof status and decision criteria. Landing awaits design
 approval. No performance measurement is requested from a Codex lane.
+
+Historical headline request retained:
+
+# wave9
+
+Current lane request: [MEASURE-REQUEST-exec1s-d.md](MEASURE-REQUEST-exec1s-d.md), section `## exec1s-d`.
+
+exec1s-c historical request: MEASURE-REQUEST-exec1s.md (full receipt context retained).
+
+See [MEASURE-REQUEST-wave9.md](MEASURE-REQUEST-wave9.md), section `## wave9 integration`.
+The at412c storm recipe is preserved in `docs/at412c/MEASURE-REQUEST`.
+No performance measurements run in this lane.

@@ -1,0 +1,5167 @@
+{
+  "headline": {
+    "quick": 881,
+    "full": 898,
+    "quick_exit_line": 6078
+  },
+  "post": {
+    "quick": 946,
+    "full": 963,
+    "quick_exit_line": 6263,
+    "rows": [
+      {
+        "label": "release build (+footprint locks)",
+        "collector": 5953,
+        "quick": true
+      },
+      {
+        "label": "ASAN build",
+        "collector": 5955,
+        "quick": true
+      },
+      {
+        "label": "configuration docs match parser",
+        "collector": 5956,
+        "quick": true
+      },
+      {
+        "label": "Redis config quoting + mid-value #",
+        "collector": 5956,
+        "quick": true
+      },
+      {
+        "label": "production source identity + stable assertion ids",
+        "collector": 5957,
+        "quick": true
+      },
+      {
+        "label": "iofix WB4.1 deferred IO parks",
+        "collector": 5960,
+        "quick": true
+      },
+      {
+        "label": "iofix IO4.9 Redis hz cron",
+        "collector": 5961,
+        "quick": true
+      },
+      {
+        "label": "iofix IO4.10 global DEBUG SLEEP",
+        "collector": 5962,
+        "quick": true
+      },
+      {
+        "label": "iofix IO4.17 immediate signal shutdown",
+        "collector": 5963,
+        "quick": true
+      },
+      {
+        "label": "flip controller model unit",
+        "collector": 5965,
+        "quick": true
+      },
+      {
+        "label": "B+ counting-fingerprint filter unit",
+        "collector": 5967,
+        "quick": true
+      },
+      {
+        "label": "read-local write ring + arming transient unit",
+        "collector": 5969,
+        "quick": true
+      },
+      {
+        "label": "climon 128-owner delivery mask",
+        "collector": 5969,
+        "quick": true
+      },
+      {
+        "label": "read-local MGET fence symmetry unit",
+        "collector": 5969,
+        "quick": true
+      },
+      {
+        "label": "shutdown policy + signal handoff serverless",
+        "collector": 5972,
+        "quick": true
+      },
+      {
+        "label": "shutdown persistence (1s, command)",
+        "collector": 5972,
+        "quick": true
+      },
+      {
+        "label": "shutdown persistence (1s, sigterm)",
+        "collector": 5972,
+        "quick": true
+      },
+      {
+        "label": "shutdown persistence (1s, sigint)",
+        "collector": 5972,
+        "quick": true
+      },
+      {
+        "label": "shutdown persistence (2s, command)",
+        "collector": 5972,
+        "quick": true
+      },
+      {
+        "label": "shutdown persistence (2s, sigterm)",
+        "collector": 5972,
+        "quick": true
+      },
+      {
+        "label": "shutdown persistence (2s, sigint)",
+        "collector": 5972,
+        "quick": true
+      },
+      {
+        "label": "INFO command/socket counters (TSan, both modes)",
+        "collector": 5973,
+        "quick": true
+      },
+      {
+        "label": "Climon armed refresh + stale-store suppression control",
+        "collector": 5974,
+        "quick": true
+      },
+      {
+        "label": "LB sampler exceptional cleanup + negative control",
+        "collector": 5975,
+        "quick": true
+      },
+      {
+        "label": "LB monitor plan handoff + negative controls",
+        "collector": 5975,
+        "quick": true
+      },
+      {
+        "label": "exbatch publication unit + negative controls",
+        "collector": 5979,
+        "quick": true
+      },
+      {
+        "label": "exbatch watch unit + negative controls",
+        "collector": 5979,
+        "quick": true
+      },
+      {
+        "label": "exbatch metadata unit + negative controls",
+        "collector": 5979,
+        "quick": true
+      },
+      {
+        "label": "exbatch publication and WATCH lifecycle (1s)",
+        "collector": 5980,
+        "quick": true
+      },
+      {
+        "label": "exbatch publication and WATCH lifecycle (2s)",
+        "collector": 5980,
+        "quick": true
+      },
+      {
+        "label": "AOF publication/shutdown witnesses + negative controls",
+        "collector": 5982,
+        "quick": true
+      },
+      {
+        "label": "perfex clock binary regression",
+        "collector": 5983,
+        "quick": true
+      },
+      {
+        "label": "perfex batch binary regression",
+        "collector": 5983,
+        "quick": true
+      },
+      {
+        "label": "perfex TTL sampler beat (1s)",
+        "collector": 5984,
+        "quick": true
+      },
+      {
+        "label": "perfex TTL sampler beat (2s)",
+        "collector": 5984,
+        "quick": true
+      },
+      {
+        "label": "NT-new-4 command clock after dequeue (2s)",
+        "collector": 5985,
+        "quick": true
+      },
+      {
+        "label": "NT-new-4 command clock after dequeue (1s)",
+        "collector": 5985,
+        "quick": true
+      },
+      {
+        "label": "NT-new-4 command clock after dequeue (2s, epoll)",
+        "collector": 5985,
+        "quick": true
+      },
+      {
+        "label": "clientfix tracking-cap (1s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix tracking-pipeline (1s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix reply-skip (1s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix pattern-cleanup (1s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix pause-deadline (1s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix geo-count (1s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix geo-store (1s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix tracking-cap (2s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix tracking-pipeline (2s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix reply-skip (2s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix pattern-cleanup (2s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix pause-deadline (2s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix geo-count (2s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "clientfix geo-store (2s)",
+        "collector": 5986,
+        "quick": true
+      },
+      {
+        "label": "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)",
+        "collector": 5988,
+        "quick": true
+      },
+      {
+        "label": "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)",
+        "collector": 5990,
+        "quick": true
+      },
+      {
+        "label": "core concurrency watch",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "core concurrency lifetime",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "core concurrency drain",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "core concurrency route",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "core concurrency snapshot",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "core concurrency config",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "core concurrency notify",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "read-local topology demotion (1s)",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "read-local topology demotion (2s)",
+        "collector": 5991,
+        "quick": true
+      },
+      {
+        "label": "FLIP planned-connection close lifetime (ASAN+TSAN)",
+        "collector": 5993,
+        "quick": true
+      },
+      {
+        "label": "FLIP fingerprint publication (ASAN+TSAN)",
+        "collector": 5993,
+        "quick": true
+      },
+      {
+        "label": "writeback c12 policy witnesses + negative controls",
+        "collector": 5995,
+        "quick": true
+      },
+      {
+        "label": "writeback c12 phase witnesses + negative controls",
+        "collector": 5995,
+        "quick": true
+      },
+      {
+        "label": "writeback c12 stages witnesses + negative controls",
+        "collector": 5995,
+        "quick": true
+      },
+      {
+        "label": "writeback c12 split-phase witnesses + negative controls",
+        "collector": 5995,
+        "quick": true
+      },
+      {
+        "label": "writeback policy clauses witnesses + negative controls",
+        "collector": 5998,
+        "quick": true
+      },
+      {
+        "label": "writeback policy paths witnesses + negative controls",
+        "collector": 5998,
+        "quick": true
+      },
+      {
+        "label": "witness falsification contracts (testmap + placement)",
+        "collector": 6003,
+        "quick": true
+      },
+      {
+        "label": "R7 linear scan and lazy construction bounds (both databases)",
+        "collector": 6004,
+        "quick": true
+      },
+      {
+        "label": "ROB portable completion without BMI",
+        "collector": 6005,
+        "quick": true
+      },
+      {
+        "label": "inline quoted argument decoding (1s, epoll)",
+        "collector": 6006,
+        "quick": true
+      },
+      {
+        "label": "inline quoted argument decoding (1s, uring)",
+        "collector": 6006,
+        "quick": true
+      },
+      {
+        "label": "inline quoted argument decoding (2s, epoll)",
+        "collector": 6006,
+        "quick": true
+      },
+      {
+        "label": "inline quoted argument decoding (2s, uring)",
+        "collector": 6006,
+        "quick": true
+      },
+      {
+        "label": "slotless remote completions (1s, epoll)",
+        "collector": 6007,
+        "quick": true
+      },
+      {
+        "label": "slotless remote completions (1s, uring)",
+        "collector": 6007,
+        "quick": true
+      },
+      {
+        "label": "slotless remote completions (2s, epoll)",
+        "collector": 6007,
+        "quick": true
+      },
+      {
+        "label": "slotless remote completions (2s, uring)",
+        "collector": 6007,
+        "quick": true
+      },
+      {
+        "label": "writeback mixed replies and live knob bounds (1s, epoll)",
+        "collector": 6008,
+        "quick": true
+      },
+      {
+        "label": "writeback mixed replies and live knob bounds (1s, uring)",
+        "collector": 6008,
+        "quick": true
+      },
+      {
+        "label": "writeback mixed replies and live knob bounds (2s, epoll)",
+        "collector": 6008,
+        "quick": true
+      },
+      {
+        "label": "writeback mixed replies and live knob bounds (2s, uring)",
+        "collector": 6008,
+        "quick": true
+      },
+      {
+        "label": "R7 generated envelope parity",
+        "collector": 6010,
+        "quick": true
+      },
+      {
+        "label": "R7 production engagement (both database runtimes)",
+        "collector": 6011,
+        "quick": true
+      },
+      {
+        "label": "R7 FIFO twin off-path identity + negative controls",
+        "collector": 6012,
+        "quick": true
+      },
+      {
+        "label": "writeback policies 0/1: 22 standard fixtures",
+        "collector": 6013,
+        "quick": true
+      },
+      {
+        "label": "stationary balanced LB holds still (1s)",
+        "collector": 6014,
+        "quick": true
+      },
+      {
+        "label": "stationary balanced LB holds still (2s)",
+        "collector": 6014,
+        "quick": true
+      },
+      {
+        "label": "epoll directed correctness (1s)",
+        "collector": 6015,
+        "quick": true
+      },
+      {
+        "label": "epoll directed correctness (2s)",
+        "collector": 6015,
+        "quick": true
+      },
+      {
+        "label": "perfio XREADGROUP bounded delivery + Redis metadata (1s)",
+        "collector": 6016,
+        "quick": true
+      },
+      {
+        "label": "perfio XREADGROUP bounded delivery + Redis metadata (2s)",
+        "collector": 6016,
+        "quick": true
+      },
+      {
+        "label": "splitlocal template forwarding + old-argument controls",
+        "collector": 6019,
+        "quick": true
+      },
+      {
+        "label": "storage unlinked regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage randomkey regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage rehash regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage rollback regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage snapshot-eviction regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage flags regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage aof-eviction regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage intents regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage imported-hash regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage field-index-failure regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage hash-bytes regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage deadline-allocation-failure regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "storage flush-prepared-capacity regression",
+        "collector": 6021,
+        "quick": true
+      },
+      {
+        "label": "atomic commit publication catches up at quiescence",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "flushfix flush witnesses",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "flushfix headers witnesses",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "multidb serverless owners",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "multidb global namespace boundary",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "storesize published monitoring",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "MULTI admin command replies",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "EXECABORT releases WATCH reservation",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivors unit build",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: admission",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: closure",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: script_keys",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: rename_overlay",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: write_latest",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: script_apply",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: post_apply_probe",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: lua_conversion",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: watch_parent",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: watch_cycle",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: mset_arity",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: watch_oom",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: lua_lines",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: library_limit",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: stage_flag",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "atomic survivor: instruction_limit",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "armed resize retirement: atomic-growth",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "armed resize retirement: flush-prepared",
+        "collector": 6023,
+        "quick": true
+      },
+      {
+        "label": "netcmd regression build",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd streams regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd zpop regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd notify-oom regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd notify-retry regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd flush regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd output regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd pubsub regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd receive regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd config regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd wb-small-pipe regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd wb-complete-visits regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "netcmd hexpire-oom regression",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "encodingfix knob",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "encodingfix precedence",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "NET1 serverless bounds + scan + reclamation",
+        "collector": 6025,
+        "quick": true
+      },
+      {
+        "label": "NET1 inline + query cap (1s, uring)",
+        "collector": 6029,
+        "quick": true
+      },
+      {
+        "label": "NET1 inline + query cap (1s, epoll)",
+        "collector": 6029,
+        "quick": true
+      },
+      {
+        "label": "NET1 inline + query cap (2s, uring)",
+        "collector": 6029,
+        "quick": true
+      },
+      {
+        "label": "NET1 inline + query cap (2s, epoll)",
+        "collector": 6029,
+        "quick": true
+      },
+      {
+        "label": "netfix NT4.6 query-limit INFO parity",
+        "collector": 6032,
+        "quick": true
+      },
+      {
+        "label": "netfix NT4.11 Unix pathname parity",
+        "collector": 6033,
+        "quick": true
+      },
+      {
+        "label": "netfix NT4.8 network CONFIG error parity",
+        "collector": 6034,
+        "quick": true
+      },
+      {
+        "label": "netfix NT4.7 TLS default cipher parity",
+        "collector": 6035,
+        "quick": true
+      },
+      {
+        "label": "netfix NT4.19 idle buffer reclamation",
+        "collector": 6036,
+        "quick": true
+      },
+      {
+        "label": "RESP protocol error compatibility",
+        "collector": 6040,
+        "quick": true
+      },
+      {
+        "label": "CRLF line replies match Redis and preserve synchronization",
+        "collector": 6041,
+        "quick": true
+      },
+      {
+        "label": "INFO received bytes exact (ntfix N1)",
+        "collector": 6042,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable fragment (1s, epoll)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable fragment (1s, uring)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable fragment (2s, epoll)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable fragment (2s, uring)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable cpu (1s, epoll)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable cpu (1s, uring)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable cpu (2s, epoll)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable cpu (2s, uring)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable neighbour (1s, epoll)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable neighbour (1s, uring)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable neighbour (2s, epoll)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "RESP resumable neighbour (2s, uring)",
+        "collector": 6046,
+        "quick": true
+      },
+      {
+        "label": "generated Redis 7.4 ACL categories",
+        "collector": 6049,
+        "quick": true
+      },
+      {
+        "label": "reject --mode (flag deleted)",
+        "collector": 6052,
+        "quick": true
+      },
+      {
+        "label": "reject --spread",
+        "collector": 6052,
+        "quick": true
+      },
+      {
+        "label": "reject --nodes",
+        "collector": 6052,
+        "quick": true
+      },
+      {
+        "label": "reject 3-part ratio",
+        "collector": 6052,
+        "quick": true
+      },
+      {
+        "label": "reject missing conf",
+        "collector": 6052,
+        "quick": true
+      },
+      {
+        "label": "reject bad conf key",
+        "collector": 6052,
+        "quick": true
+      },
+      {
+        "label": "reject aclfile + conf user lines",
+        "collector": 6052,
+        "quick": true
+      },
+      {
+        "label": "Redis default databases 16 (both modes)",
+        "collector": 6053,
+        "quick": true
+      },
+      {
+        "label": "cmdmeta covers every registered command",
+        "collector": 6055,
+        "quick": true
+      },
+      {
+        "label": "waits config publication + admission unit",
+        "collector": 6058,
+        "quick": true
+      },
+      {
+        "label": "reads never wait for retirement quiescence",
+        "collector": 6058,
+        "quick": true
+      },
+      {
+        "label": "read-only resize split read-local=0",
+        "collector": 6060,
+        "quick": true
+      },
+      {
+        "label": "read-only resize split read-local=1",
+        "collector": 6060,
+        "quick": true
+      },
+      {
+        "label": "read-only resize fused read-local=0",
+        "collector": 6060,
+        "quick": true
+      },
+      {
+        "label": "read-only resize fused read-local=1",
+        "collector": 6060,
+        "quick": true
+      },
+      {
+        "label": "torture battery",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "RYOW battery",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "ACL category runtime table",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "ACL LOAD/SAVE no-file errors",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "idle loop ceiling (LBSIGNALS, 1s)",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "shutdown invariants (nothing stuck)",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "direct-reply fired (direct=N)",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "dispatched==executed (N)",
+        "collector": 6062,
+        "quick": true
+      },
+      {
+        "label": "atomic torn/window battery",
+        "collector": 6064,
+        "quick": true
+      },
+      {
+        "label": "atomic RYOW/mixed-write battery",
+        "collector": 6064,
+        "quick": true
+      },
+      {
+        "label": "atomic owner-local hazard battery",
+        "collector": 6064,
+        "quick": true
+      },
+      {
+        "label": "atomic shutdown invariants",
+        "collector": 6064,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (1s, uring, databases 1, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (1s, uring, databases 16, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (2s, uring, databases 1, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (2s, uring, databases 16, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)",
+        "collector": 6065,
+        "quick": true
+      },
+      {
+        "label": "hexpread torn (1s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "hexpread replies (1s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "hexpread deferred (1s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "hexpread OBJECT expiry (1s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "hexpread torn (2s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "hexpread replies (2s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "hexpread deferred (2s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "hexpread OBJECT expiry (2s)",
+        "collector": 6068,
+        "quick": true
+      },
+      {
+        "label": "multifix RESET-IN-MULTI (1s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-IN-MULTI (1s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix RESET-IN-MULTI (1s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix RESET-IN-MULTI (2s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-IN-MULTI (2s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix RESET-IN-MULTI (2s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)",
+        "collector": 6071,
+        "quick": true
+      },
+      {
+        "label": "compat2 autharity",
+        "collector": 6073,
+        "quick": true
+      },
+      {
+        "label": "compat2 expire_notify",
+        "collector": 6073,
+        "quick": true
+      },
+      {
+        "label": "compat2 ktls_lifetime",
+        "collector": 6073,
+        "quick": true
+      },
+      {
+        "label": "bugs5 scancompact (both modes, both engines, atomic 0/1)",
+        "collector": 6074,
+        "quick": true
+      },
+      {
+        "label": "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)",
+        "collector": 6074,
+        "quick": true
+      },
+      {
+        "label": "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)",
+        "collector": 6074,
+        "quick": true
+      },
+      {
+        "label": "compat3 CC4.12 pubsub vs Redis 7.4",
+        "collector": 6076,
+        "quick": true
+      },
+      {
+        "label": "compat3 CC4.13 pending vs Redis 7.4",
+        "collector": 6076,
+        "quick": true
+      },
+      {
+        "label": "compat3 CC4.14 history vs Redis 7.4",
+        "collector": 6076,
+        "quick": true
+      },
+      {
+        "label": "compat3 CC4.16 grammar vs Redis 7.4",
+        "collector": 6076,
+        "quick": true
+      },
+      {
+        "label": "compat3 CC4.5 glob vs Redis 7.4",
+        "collector": 6076,
+        "quick": true
+      },
+      {
+        "label": "compat3 CC4.17 flags vs Redis 7.4",
+        "collector": 6076,
+        "quick": true
+      },
+      {
+        "label": "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4",
+        "collector": 6078,
+        "quick": true
+      },
+      {
+        "label": "streamfix XREAD-PLUS-LAST vs Redis 7.4",
+        "collector": 6078,
+        "quick": true
+      },
+      {
+        "label": "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4",
+        "collector": 6078,
+        "quick": true
+      },
+      {
+        "label": "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4",
+        "collector": 6078,
+        "quick": true
+      },
+      {
+        "label": "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4",
+        "collector": 6078,
+        "quick": true
+      },
+      {
+        "label": "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4",
+        "collector": 6078,
+        "quick": true
+      },
+      {
+        "label": "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4",
+        "collector": 6080,
+        "quick": true
+      },
+      {
+        "label": "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4",
+        "collector": 6081,
+        "quick": true
+      },
+      {
+        "label": "blockfix CC4.19 XINFO structural counts vs Redis 7.4",
+        "collector": 6082,
+        "quick": true
+      },
+      {
+        "label": "blockfix2 BLOCK-WAKE-RENAME-SORTSTORE",
+        "collector": 6083,
+        "quick": true
+      },
+      {
+        "label": "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+        "collector": 6083,
+        "quick": true
+      },
+      {
+        "label": "blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS",
+        "collector": 6083,
+        "quick": true
+      },
+      {
+        "label": "blockfix2 MULTI-XREADGROUP-BLOCK-HANG",
+        "collector": 6083,
+        "quick": true
+      },
+      {
+        "label": "blockfix2 INFO-TOTAL-BLOCKING-KEYS",
+        "collector": 6083,
+        "quick": true
+      },
+      {
+        "label": "blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED",
+        "collector": 6083,
+        "quick": true
+      },
+      {
+        "label": "blockfix2 BLOCK-SERVE-REFUSED-DROP",
+        "collector": 6083,
+        "quick": true
+      },
+      {
+        "label": "dispatchfix EX4.10 container outer arity",
+        "collector": 6084,
+        "quick": true
+      },
+      {
+        "label": "dispatchfix EX4.11 container errors",
+        "collector": 6085,
+        "quick": true
+      },
+      {
+        "label": "dispatchfix EX4.4 advertised children",
+        "collector": 6086,
+        "quick": true
+      },
+      {
+        "label": "dispatchfix CC4.15 ACL subcommand grants",
+        "collector": 6087,
+        "quick": true
+      },
+      {
+        "label": "dispatchfix EX4.17 uniform routing and legacy recovery",
+        "collector": 6088,
+        "quick": true
+      },
+      {
+        "label": "datafix2 CD4.7 no-touch lookups vs Redis 7.4",
+        "collector": 6090,
+        "quick": true
+      },
+      {
+        "label": "datafix2 CD4.15 string encoding vs Redis 7.4",
+        "collector": 6091,
+        "quick": true
+      },
+      {
+        "label": "datafix2 CD4.14 expired_subkeys vs Redis 7.4",
+        "collector": 6092,
+        "quick": true
+      },
+      {
+        "label": "datafix2 CD4.9 write WATCH table vs Redis 7.4",
+        "collector": 6093,
+        "quick": true
+      },
+      {
+        "label": "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4",
+        "collector": 6094,
+        "quick": true
+      },
+      {
+        "label": "s6 battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "multi_exec battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "blocking battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "blockmulti battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "stream battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "streamgroups battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "pubsub battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "lua_scripting battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "scriptsurf battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "limits battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "resp3 battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "bitfield battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "dumprestore battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "zsetops battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "geo battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "climon battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "climon2 battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "tracking battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "hexpire battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "servertail battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "lcs battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "concur battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "edgeproto battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "edgeenc battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "edgetime battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "arity battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "contarity battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "cmdgap battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "aclsel battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "expwide battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "infofix battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "pushtear battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "netcmd battery (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "feature shutdown invariants (atomic 0)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "s6 battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "multi_exec battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "blocking battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "blockmulti battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "stream battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "streamgroups battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "pubsub battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "lua_scripting battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "scriptsurf battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "limits battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "resp3 battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "bitfield battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "dumprestore battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "zsetops battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "geo battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "climon battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "climon2 battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "tracking battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "hexpire battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "servertail battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "lcs battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "concur battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "edgeproto battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "edgeenc battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "edgetime battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "arity battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "contarity battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "cmdgap battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "aclsel battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "expwide battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "infofix battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "pushtear battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "netcmd battery (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "feature shutdown invariants (atomic 1)",
+        "collector": 6097,
+        "quick": true
+      },
+      {
+        "label": "fused boot line (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused s6 battery (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused multi_exec battery (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused edgeproto battery (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused atomfix battery (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused spinprobe battery (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused shutdown report (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused txn_nx battery (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused txniso battery (atomic 0)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused boot line (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused s6 battery (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused multi_exec battery (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused edgeproto battery (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused atomfix battery (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused spinprobe battery (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused shutdown report (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused txn_nx battery (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused txniso battery (atomic 1)",
+        "collector": 6099,
+        "quick": true
+      },
+      {
+        "label": "fused txngroup battery (atomic 1)",
+        "collector": 6100,
+        "quick": true
+      },
+      {
+        "label": "fused+armed boot line (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed s6 battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed multi_exec battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed blocking battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed blockmulti battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed stream battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed streamgroups battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed pubsub battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed lua_scripting battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed scriptsurf battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed limits battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed resp3 battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed bitfield battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed dumprestore battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed zsetops battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed geo battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed climon battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed climon2 battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed tracking battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed hexpire battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed servertail battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed lcs battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed concur battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed edgeproto battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed edgeenc battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed edgetime battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed arity battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed contarity battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed cmdgap battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed aclsel battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed expwide battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed infofix battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed pushtear battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed netcmd battery (atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed boot line (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed s6 battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed multi_exec battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed blocking battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed blockmulti battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed stream battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed streamgroups battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed pubsub battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed lua_scripting battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed scriptsurf battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed limits battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed resp3 battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed bitfield battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed dumprestore battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed zsetops battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed geo battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed climon battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed climon2 battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed tracking battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed hexpire battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed servertail battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed lcs battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed concur battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed edgeproto battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed edgeenc battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed edgetime battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed arity battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed contarity battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed cmdgap battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed aclsel battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed expwide battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed infofix battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed pushtear battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed netcmd battery (atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)",
+        "collector": 6103,
+        "quick": true
+      },
+      {
+        "label": "eviction lfu battery (split, atomic 0)",
+        "collector": 6116,
+        "quick": true
+      },
+      {
+        "label": "eviction lfu battery (fused+armed, atomic 0)",
+        "collector": 6117,
+        "quick": true
+      },
+      {
+        "label": "eviction lruclock battery (split, atomic 0)",
+        "collector": 6116,
+        "quick": true
+      },
+      {
+        "label": "eviction lruclock battery (fused+armed, atomic 0)",
+        "collector": 6117,
+        "quick": true
+      },
+      {
+        "label": "eviction lfu battery (split, atomic 1)",
+        "collector": 6116,
+        "quick": true
+      },
+      {
+        "label": "eviction lfu battery (fused+armed, atomic 1)",
+        "collector": 6117,
+        "quick": true
+      },
+      {
+        "label": "eviction lruclock battery (split, atomic 1)",
+        "collector": 6116,
+        "quick": true
+      },
+      {
+        "label": "eviction lruclock battery (fused+armed, atomic 1)",
+        "collector": 6117,
+        "quick": true
+      },
+      {
+        "label": "B+ held-group GET/MGET filter battery",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local lane admission battery",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local MGET fence battery (1s)",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local GET miss battery (1s)",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local one-key delete battery (1s)",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local MGET fence battery (2s)",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local GET miss battery (2s)",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local one-key delete battery (2s)",
+        "collector": 6121,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (1s, epoll, read-local 0)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (1s, epoll, read-local 1)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (1s, uring, read-local 0)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (1s, uring, read-local 1)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (2s, epoll, read-local 0)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (2s, epoll, read-local 1)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (2s, uring, read-local 0)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "read-local borrow capability (2s, uring, read-local 1)",
+        "collector": 6122,
+        "quick": true
+      },
+      {
+        "label": "Redis 7.4 infofix exact latency batch witness",
+        "collector": 6124,
+        "quick": true
+      },
+      {
+        "label": "Redis 7.4 infofix missing (both modes/engines/runtimes)",
+        "collector": 6125,
+        "quick": true
+      },
+      {
+        "label": "Redis 7.4 infofix docs (both modes/engines/runtimes)",
+        "collector": 6125,
+        "quick": true
+      },
+      {
+        "label": "Redis 7.4 infofix loadaof (both modes/engines/runtimes)",
+        "collector": 6125,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (1s, epoll, read-local 0)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (1s, epoll, read-local 1)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (1s, uring, read-local 0)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (1s, uring, read-local 1)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (2s, epoll, read-local 0)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (2s, epoll, read-local 1)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (2s, uring, read-local 0)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "INFO selective collection (2s, uring, read-local 1)",
+        "collector": 6126,
+        "quick": true
+      },
+      {
+        "label": "ACL recheck one-reply battery (2s)",
+        "collector": 6128,
+        "quick": true
+      },
+      {
+        "label": "ACL recheck one-reply battery (1s)",
+        "collector": 6128,
+        "quick": true
+      },
+      {
+        "label": "aclfix sort (1s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix streams-name (1s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix save-load (1s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix capacity (1s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix wake-pop (1s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix wake-scatter (1s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix sort (2s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix streams-name (2s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix save-load (2s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix capacity (2s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix wake-pop (2s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "aclfix wake-scatter (2s)",
+        "collector": 6129,
+        "quick": true
+      },
+      {
+        "label": "cross-owner SORT battery (atomic 0)",
+        "collector": 6131,
+        "quick": true
+      },
+      {
+        "label": "cross-owner SORT battery (atomic 1)",
+        "collector": 6131,
+        "quick": true
+      },
+      {
+        "label": "datafix1 GEO grammar (both engines and modes)",
+        "collector": 6132,
+        "quick": true
+      },
+      {
+        "label": "datafix1 SPOP encodings (both engines and modes)",
+        "collector": 6133,
+        "quick": true
+      },
+      {
+        "label": "datafix1 list demotion (both engines and modes)",
+        "collector": 6134,
+        "quick": true
+      },
+      {
+        "label": "datafix1 SORT locale (both engines and modes)",
+        "collector": 6135,
+        "quick": true
+      },
+      {
+        "label": "datafix1 BITFIELD bounds (both engines and modes)",
+        "collector": 6136,
+        "quick": true
+      },
+      {
+        "label": "datafix1 RAND/SCAN errors (both engines and modes)",
+        "collector": 6137,
+        "quick": true
+      },
+      {
+        "label": "datafix1 HEXPIRE precedence (both engines and modes)",
+        "collector": 6138,
+        "quick": true
+      },
+      {
+        "label": "plain-write lost updates (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "lbsignals battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "slowlog battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "atomfix battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "scriptatomic battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "execatomic battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "execiso battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "execfix battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "multires battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "multirace battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "session_monotonic battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "xacct battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "xmove battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "xscript battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "txn_nx battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "txniso battery (atomic 0)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "plain-write lost updates (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "lbsignals battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "slowlog battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "atomfix battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "scriptatomic battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "execatomic battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "execiso battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "execfix battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "multires battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "multirace battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "session_monotonic battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "xacct battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "xmove battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "xscript battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "txn_nx battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "txniso battery (atomic 1)",
+        "collector": 6140,
+        "quick": true
+      },
+      {
+        "label": "txngroup battery (atomic 1)",
+        "collector": 6141,
+        "quick": true
+      },
+      {
+        "label": "EXEC fast-lane polls",
+        "collector": 6142,
+        "quick": true
+      },
+      {
+        "label": "exec1s refinements (1s, atomic 0)",
+        "collector": 6143,
+        "quick": true
+      },
+      {
+        "label": "exec1s refinements (1s, atomic 1)",
+        "collector": 6143,
+        "quick": true
+      },
+      {
+        "label": "exec1s refinements (2s, atomic 0)",
+        "collector": 6143,
+        "quick": true
+      },
+      {
+        "label": "exec1s refinements (2s, atomic 1)",
+        "collector": 6143,
+        "quick": true
+      },
+      {
+        "label": "txnorder index oracle",
+        "collector": 6144,
+        "quick": true
+      },
+      {
+        "label": "txnorder index complexity",
+        "collector": 6144,
+        "quick": true
+      },
+      {
+        "label": "txnorder wound group",
+        "collector": 6145,
+        "quick": true
+      },
+      {
+        "label": "txnorder wound exec",
+        "collector": 6145,
+        "quick": true
+      },
+      {
+        "label": "txnorder wound oom",
+        "collector": 6145,
+        "quick": true
+      },
+      {
+        "label": "txnorder wound d2",
+        "collector": 6145,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R1",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R2",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R3",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R4",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R5",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R6",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R7",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R8",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R9",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R10",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R11",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 writer episode R12",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 direct RENAME owner join",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 WATCH serve",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 WATCH flush",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 WATCH readonly",
+        "collector": 6146,
+        "quick": true
+      },
+      {
+        "label": "txnorder2 busy owner inbox wake",
+        "collector": 6147,
+        "quick": true
+      },
+      {
+        "label": "txnorder battery (fused, atomic 0)",
+        "collector": 6148,
+        "quick": true
+      },
+      {
+        "label": "txnorder battery (fused, atomic 1)",
+        "collector": 6148,
+        "quick": true
+      },
+      {
+        "label": "txnorder battery (split, atomic 0)",
+        "collector": 6148,
+        "quick": true
+      },
+      {
+        "label": "txnorder battery (split, atomic 1)",
+        "collector": 6148,
+        "quick": true
+      },
+      {
+        "label": "xscript limit control",
+        "collector": 6150,
+        "quick": true
+      },
+      {
+        "label": "xscript window control",
+        "collector": 6150,
+        "quick": true
+      },
+      {
+        "label": "scriptfix sandbox (1s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix functions (1s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix replies (1s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix dump (1s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix sandbox (2s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix functions (2s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix replies (2s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix dump (2s)",
+        "collector": 6151,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVAL-SHEBANG (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVALSHA-SHA-CASE (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FCALL-NAME-CASE (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-LOAD-ENV (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-REGISTER-ARGS (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SHEBANG-META (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-REDIS-API (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-SANDBOX-GLOBALS (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-ERROR-WORDING (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-NUMBER-ARG (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-REPLY-DEPTH (1s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVAL-SHEBANG (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVALSHA-SHA-CASE (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FCALL-NAME-CASE (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-LOAD-ENV (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-REGISTER-ARGS (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SHEBANG-META (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-REDIS-API (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-SANDBOX-GLOBALS (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-ERROR-WORDING (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-NUMBER-ARG (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-REPLY-DEPTH (1s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVAL-SHEBANG (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVALSHA-SHA-CASE (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FCALL-NAME-CASE (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-LOAD-ENV (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-REGISTER-ARGS (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SHEBANG-META (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-REDIS-API (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-SANDBOX-GLOBALS (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-ERROR-WORDING (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-NUMBER-ARG (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-REPLY-DEPTH (2s, uring)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVAL-SHEBANG (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 EVALSHA-SHA-CASE (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FCALL-NAME-CASE (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-LOAD-ENV (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-REGISTER-ARGS (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SHEBANG-META (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 FUNCTION-SUBCMD-ARGS (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-REDIS-API (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 LUA-SANDBOX-GLOBALS (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-ERROR-WORDING (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-NUMBER-ARG (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "scriptfix2 SCRIPT-REPLY-DEPTH (2s, epoll)",
+        "collector": 6152,
+        "quick": true
+      },
+      {
+        "label": "lualibs CC4.7 vs Redis 7.4",
+        "collector": 6153,
+        "quick": true
+      },
+      {
+        "label": "at412 T1",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T2",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T3",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T4",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T5",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T6",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T7",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T8",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T9",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T10",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T11a",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T11b",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T12",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T13",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T14",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T15",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 T16",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "at412 owner",
+        "collector": 6154,
+        "quick": true
+      },
+      {
+        "label": "expire-index growth bound",
+        "collector": 6156,
+        "quick": true
+      },
+      {
+        "label": "borrow-registry growth bound",
+        "collector": 6156,
+        "quick": true
+      },
+      {
+        "label": "cross-shard dispatch scaling",
+        "collector": 6156,
+        "quick": true
+      },
+      {
+        "label": "DUMP/RESTORE prepare + native SAVE",
+        "collector": 6158,
+        "quick": true
+      },
+      {
+        "label": "DUMP/RESTORE cross-restart round-trip",
+        "collector": 6158,
+        "quick": true
+      },
+      {
+        "label": "DUMP/RESTORE restart shutdown invariants",
+        "collector": 6158,
+        "quick": true
+      },
+      {
+        "label": "reject bad protected-mode",
+        "collector": 6160,
+        "quick": true
+      },
+      {
+        "label": "reject bad enable-debug-command",
+        "collector": 6160,
+        "quick": true
+      },
+      {
+        "label": "AUTH/HELLO/protected state machine",
+        "collector": 6160,
+        "quick": true
+      },
+      {
+        "label": "ACL battery (atomic off)",
+        "collector": 6160,
+        "quick": true
+      },
+      {
+        "label": "ACL battery (atomic on)",
+        "collector": 6160,
+        "quick": true
+      },
+      {
+        "label": "DEBUG toggle/reload battery",
+        "collector": 6160,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot round-trip incl stream",
+        "collector": 6160,
+        "quick": true
+      },
+      {
+        "label": "authfix CG4.1 binary config requirepass",
+        "collector": 6161,
+        "quick": true
+      },
+      {
+        "label": "authfix CG4.2 missing config value refuses boot",
+        "collector": 6161,
+        "quick": true
+      },
+      {
+        "label": "authfix SV4.2 binary requirepass rewrite restart",
+        "collector": 6161,
+        "quick": true
+      },
+      {
+        "label": "authfix SV4.1 slowlog credential redaction (1s)",
+        "collector": 6161,
+        "quick": true
+      },
+      {
+        "label": "authfix SV4.1 slowlog credential redaction (2s)",
+        "collector": 6161,
+        "quick": true
+      },
+      {
+        "label": "serverfix CG4.3 physical config lines",
+        "collector": 6162,
+        "quick": true
+      },
+      {
+        "label": "serverfix CG4.4 shared scalar grammar",
+        "collector": 6163,
+        "quick": true
+      },
+      {
+        "label": "latencyfix LAT-HIST-1 knob grammar",
+        "collector": 6164,
+        "quick": true
+      },
+      {
+        "label": "latencyfix LAT-HIST-1 histogram and latencystats",
+        "collector": 6165,
+        "quick": true
+      },
+      {
+        "label": "latencyfix LAT-HIST-1 zero allocations off",
+        "collector": 6166,
+        "quick": true
+      },
+      {
+        "label": "wave8b tracking-off EXEC scans and transitions",
+        "collector": 6167,
+        "quick": true
+      },
+      {
+        "label": "serverfix SV4.6 CONFIG validation matrix",
+        "collector": 6168,
+        "quick": true
+      },
+      {
+        "label": "serverfix SV4.7 HELLO canonical protocol",
+        "collector": 6169,
+        "quick": true
+      },
+      {
+        "label": "serverfix SV4.5 WAITAOF wait lifecycle",
+        "collector": 6170,
+        "quick": true
+      },
+      {
+        "label": "serverfix SV4.8 HyperLogLog self-test controls",
+        "collector": 6171,
+        "quick": true
+      },
+      {
+        "label": "serverfix SV4.14 disabled slowlog allocation",
+        "collector": 6172,
+        "quick": true
+      },
+      {
+        "label": "serverfix CC4.26 disabled ACL log allocation",
+        "collector": 6173,
+        "quick": true
+      },
+      {
+        "label": "persistfix2 LASTSAVE and rewrite INFO",
+        "collector": 6175,
+        "quick": true
+      },
+      {
+        "label": "persistfix2 shutdown modifiers and signal policy",
+        "collector": 6176,
+        "quick": true
+      },
+      {
+        "label": "persistfix2 persistence command replies and scheduling",
+        "collector": 6177,
+        "quick": true
+      },
+      {
+        "label": "persistfix2 AOF write-error refusal and read availability",
+        "collector": 6178,
+        "quick": true
+      },
+      {
+        "label": "snapshot concurrent cut (epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapshot cut reload (epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot save (epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot reload (epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot preimage race (epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot race reload (epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (1s, command, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (2s, command, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapshot concurrent cut (uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapshot cut reload (uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot save (uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot reload (uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot preimage race (uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "typed snapshot race reload (uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (1s, command, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown keeps acknowledged writes (2s, command, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)",
+        "collector": 6179,
+        "quick": true
+      },
+      {
+        "label": "snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)",
+        "collector": 6181,
+        "quick": true
+      },
+      {
+        "label": "snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)",
+        "collector": 6182,
+        "quick": true
+      },
+      {
+        "label": "snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)",
+        "collector": 6183,
+        "quick": true
+      },
+      {
+        "label": "snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)",
+        "collector": 6185,
+        "quick": true
+      },
+      {
+        "label": "MULTI feature battery",
+        "collector": 6187,
+        "quick": true
+      },
+      {
+        "label": "blocking feature battery",
+        "collector": 6187,
+        "quick": true
+      },
+      {
+        "label": "pubsub feature battery",
+        "collector": 6187,
+        "quick": true
+      },
+      {
+        "label": "Lua feature battery",
+        "collector": 6187,
+        "quick": true
+      },
+      {
+        "label": "keyspace notification battery (atomic 0/1)",
+        "collector": 6187,
+        "quick": true
+      },
+      {
+        "label": "feature battery shutdown invariants",
+        "collector": 6187,
+        "quick": true
+      },
+      {
+        "label": "pubtrackfix TRACK-BCAST-BATCH",
+        "collector": 6189,
+        "quick": true
+      },
+      {
+        "label": "pubtrackfix PUBSUB-REPLY-OFF-PUSH",
+        "collector": 6189,
+        "quick": true
+      },
+      {
+        "label": "pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT",
+        "collector": 6189,
+        "quick": true
+      },
+      {
+        "label": "pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY",
+        "collector": 6189,
+        "quick": true
+      },
+      {
+        "label": "tracking delayed-write order vs Redis 7.4",
+        "collector": 6191,
+        "quick": true
+      },
+      {
+        "label": "tracking-only delivery/drop accounting vs Redis 7.4",
+        "collector": 6192,
+        "quick": true
+      },
+      {
+        "label": "notification compatibility setbit vs Redis 7.4",
+        "collector": 6194,
+        "quick": true
+      },
+      {
+        "label": "notification compatibility setpast vs Redis 7.4",
+        "collector": 6194,
+        "quick": true
+      },
+      {
+        "label": "notification compatibility emptystore vs Redis 7.4",
+        "collector": 6194,
+        "quick": true
+      },
+      {
+        "label": "notification compatibility writemiss vs Redis 7.4",
+        "collector": 6194,
+        "quick": true
+      },
+      {
+        "label": "notification compatibility objectmiss vs Redis 7.4",
+        "collector": 6194,
+        "quick": true
+      },
+      {
+        "label": "notification compatibility expiredstore vs Redis 7.4",
+        "collector": 6194,
+        "quick": true
+      },
+      {
+        "label": "notification compatibility flush vs Redis 7.4",
+        "collector": 6194,
+        "quick": true
+      },
+      {
+        "label": "tracking REDIRECT close vs Redis 7.4",
+        "collector": 6195,
+        "quick": true
+      },
+      {
+        "label": "keyspace lazy-expiry order vs Redis 7.4",
+        "collector": 6196,
+        "quick": true
+      },
+      {
+        "label": "local script notification AOF vs Redis 7.4",
+        "collector": 6197,
+        "quick": true
+      },
+      {
+        "label": "FLIP state battery",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "FLIP under verified load",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "FLIP TTL + expiry events",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "partial-frame conn parks (no io spin)",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "FLIP close during FLIP (uring)",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "FLIP close during FLIP (epoll)",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "FLIP signal stop during FLIP + second SIGINT",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "perfio stale epoll registration (epoll-flip)",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "perfio stale epoll registration (epoll-lb)",
+        "collector": 6199,
+        "quick": true
+      },
+      {
+        "label": "FLIP listener conservation (io-ex, complete)",
+        "collector": 6200,
+        "quick": true
+      },
+      {
+        "label": "FLIP listener conservation (io-ex, rollback)",
+        "collector": 6200,
+        "quick": true
+      },
+      {
+        "label": "FLIP listener conservation (ex-io, complete)",
+        "collector": 6200,
+        "quick": true
+      },
+      {
+        "label": "FLIP listener conservation (ex-io, rollback)",
+        "collector": 6200,
+        "quick": true
+      },
+      {
+        "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers",
+        "collector": 6202,
+        "quick": true
+      },
+      {
+        "label": "FLIP applies under saturated load",
+        "collector": 6203,
+        "quick": true
+      },
+      {
+        "label": "flip battery shutdown invariants",
+        "collector": 6203,
+        "quick": true
+      },
+      {
+        "label": "atomic MGET/MSET floor (N/s >= 120k)",
+        "collector": 6205,
+        "quick": true
+      },
+      {
+        "label": "tripwire arm/disarm round-trip",
+        "collector": 6205,
+        "quick": true
+      },
+      {
+        "label": "pipelined same-conn program order (400 rolls)",
+        "collector": 6205,
+        "quick": true
+      },
+      {
+        "label": "configuration reduction + actual geometry (epoll, atomic 0)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF writer fired (records=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF process-restart script replay (epoll, atomic 0)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF native snapshot streams byte-exact",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF replay fired (records=N skipped=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "configuration reduction + actual geometry (epoll, atomic 1)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF writer fired (records=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF process-restart script replay (epoll, atomic 1)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF native snapshot streams byte-exact",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF replay fired (records=N skipped=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF directed group interruption fired",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF atomic-group recovery + writer order",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF group shutdown invariants",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF always sync + reply gate fired",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF always recovery after quiescent SIGKILL",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window kill recovery (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window term recovery (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window kill recovery (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window term recovery (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF everysec write gate + idle sync fired",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF everysec durability window + tail warning",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF no-sync bypassed sync + reply gate",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF rewrite atomic/stage/corruption matrix",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF rewrite triggers + observability matrix",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF-off negative-control seed landed",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF-off negative control lost data",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 snapshot (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 filename (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 error (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 tickets (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 exec_tickets (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 resurrection (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 rewrite_fail2 (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 manifest_missing (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement always (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 snapshot (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 filename (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 error (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 tickets (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 exec_tickets (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 resurrection (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 rewrite_fail2 (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 manifest_missing (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement always (2s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 large (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 large_placed (1s, epoll)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "configuration reduction + actual geometry (uring, atomic 0)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF writer fired (records=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF process-restart script replay (uring, atomic 0)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF native snapshot streams byte-exact",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF replay fired (records=N skipped=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "configuration reduction + actual geometry (uring, atomic 1)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF writer fired (records=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF process-restart script replay (uring, atomic 1)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF native snapshot streams byte-exact",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF replay fired (records=N skipped=N)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF directed group interruption fired",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF atomic-group recovery + writer order",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF group shutdown invariants",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF always sync + reply gate fired",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF always recovery after quiescent SIGKILL",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window kill recovery (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window term recovery (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window kill recovery (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF in-window term recovery (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF everysec write gate + idle sync fired",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF everysec durability window + tail warning",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF no-sync bypassed sync + reply gate",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF rewrite atomic/stage/corruption matrix",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF rewrite triggers + observability matrix",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF-off negative-control seed landed",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF-off negative control lost data",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 snapshot (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 filename (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 error (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 tickets (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 exec_tickets (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 resurrection (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 rewrite_fail2 (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 manifest_missing (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement always (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 snapshot (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 filename (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 error (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 tickets (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 exec_tickets (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 resurrection (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 rewrite_fail2 (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 manifest_missing (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 off-writer acknowledgement always (2s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 large (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "aoffix2 large_placed (1s, uring)",
+        "collector": 6207,
+        "quick": true
+      },
+      {
+        "label": "AOF control frame never inside a large record (atomic 0)",
+        "collector": 6209,
+        "quick": true
+      },
+      {
+        "label": "AOF control frame never inside a large record (atomic 1)",
+        "collector": 6209,
+        "quick": true
+      },
+      {
+        "label": "AOF commit order single",
+        "collector": 6211,
+        "quick": true
+      },
+      {
+        "label": "AOF commit order crossing",
+        "collector": 6211,
+        "quick": true
+      },
+      {
+        "label": "AOF commit order rewrite",
+        "collector": 6211,
+        "quick": true
+      },
+      {
+        "label": "TLS ephemeral CA/server/client certificates",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "NET2 serverless RX policy and KeyUpdate controls",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "reject TLS listener without certificate",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "reject invalid tls-protocols",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "reject invalid tls-ciphers",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS client-auth yes matrix",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS yes shutdown invariants",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS client-auth optional matrix",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "kTLS TLS 1.2 engaged live (default boot)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS 1.3 KeyUpdate survives (NET2)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS 1.3 userspace KeyUpdate survives (NET2)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS optional shutdown invariants",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS pipeline/torn-record/coexistence battery",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS shutdown invariants",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS application send path error-free",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS connection slots all freed (N/N)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS zc borrow gates fired (suppressed=N)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "TLS silent-peer close after reply (ntfix N2)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "RESP pre-AUTH limit errors (ntfix N3)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "RESP query-buffer frontier (ntfix N4)",
+        "collector": 6213,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-0-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-0-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-0-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-0-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-1-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-1-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-1-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-0-1-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-0-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-0-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-0-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-0-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-1-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-1-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-1-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 1s-1-1-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-0-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-0-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-0-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-0-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-1-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-1-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-1-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-0-1-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-0-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-0-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-0-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-0-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-1-0-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-1-0-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-1-1-0",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature 2s-1-1-1-1",
+        "collector": 6227,
+        "quick": true
+      },
+      {
+        "label": "feature split-home-min",
+        "collector": 6231,
+        "quick": true
+      },
+      {
+        "label": "feature fused-home-max-nopin",
+        "collector": 6231,
+        "quick": true
+      },
+      {
+        "label": "feature split-shards-auto",
+        "collector": 6231,
+        "quick": true
+      },
+      {
+        "label": "ABBA comparison + saturation negative controls",
+        "collector": 6234,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 0, atomic 0)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 0, atomic 1)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 1, atomic 0)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 1, atomic 1)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 0, atomic 0)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 0, atomic 1)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 1, atomic 0)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 1, atomic 1)",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+        "collector": 6240,
+        "quick": true
+      },
+      {
+        "label": "tailgen client-lb outstanding bound",
+        "collector": 6251,
+        "quick": true
+      },
+      {
+        "label": "torture under ASAN",
+        "collector": 6282,
+        "quick": false
+      },
+      {
+        "label": "RYOW under ASAN",
+        "collector": 6282,
+        "quick": false
+      },
+      {
+        "label": "atomic torn/window under ASAN",
+        "collector": 6282,
+        "quick": false
+      },
+      {
+        "label": "atomic RYOW under ASAN",
+        "collector": 6282,
+        "quick": false
+      },
+      {
+        "label": "ASAN clean",
+        "collector": 6282,
+        "quick": false
+      },
+      {
+        "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)",
+        "collector": 6284,
+        "quick": false
+      },
+      {
+        "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)",
+        "collector": 6284,
+        "quick": false
+      },
+      {
+        "label": "zc borrow battery",
+        "collector": 6286,
+        "quick": false
+      },
+      {
+        "label": "zc fired (zc_sends=N)",
+        "collector": 6286,
+        "quick": false
+      },
+      {
+        "label": "zc borrow battery under ASAN",
+        "collector": 6286,
+        "quick": false
+      },
+      {
+        "label": "zc ASAN clean",
+        "collector": 6286,
+        "quick": false
+      },
+      {
+        "label": "read-local ownership-invariant build",
+        "collector": 6288,
+        "quick": false
+      },
+      {
+        "label": "armed block-cache churn battery",
+        "collector": 6290,
+        "quick": false
+      },
+      {
+        "label": "read-local ownership invariants",
+        "collector": 6290,
+        "quick": false
+      },
+      {
+        "label": "Redis 7.4 differential matrix",
+        "collector": 6295,
+        "quick": false
+      },
+      {
+        "label": "Redis 7.4 differential matrix (armed fused + read-local)",
+        "collector": 6306,
+        "quick": false
+      },
+      {
+        "label": "glob/scan grammar parity vs Redis 7.4",
+        "collector": 6308,
+        "quick": false
+      }
+    ],
+    "jobs": [
+      "release",
+      "asan",
+      "config_unit",
+      "source_identity",
+      "iofix-deferred",
+      "iofix-hz",
+      "iofix-sleep",
+      "iofix-signal",
+      "flip_unit",
+      "filter_unit",
+      "ring_unit",
+      "climonfix",
+      "racefix_counters",
+      "racefix_climon",
+      "lbplanner_units",
+      "exbatch_units",
+      "exbatch_live",
+      "persistfix_units",
+      "perfex_units",
+      "perfex_live",
+      "ntnew4_live",
+      "clientfix",
+      "atomfix5_watch",
+      "atomfix5_accounting",
+      "core_units",
+      "flipfix_units",
+      "wb_rule_units",
+      "wbland_units",
+      "witness_contracts",
+      "reorder_bounds",
+      "rob_portable",
+      "inline_quoted",
+      "slotless",
+      "wb_mixed",
+      "reorder_sync",
+      "reorder_engagement",
+      "reorder_identity",
+      "wb_policy",
+      "lb-stationary-1s",
+      "lb-stationary-2s",
+      "netio-1s",
+      "netio-2s",
+      "perfio_stream",
+      "splitlocal_units",
+      "storage_units",
+      "atomic_units",
+      "netcmd_units",
+      "netcap",
+      "netfix_query_stats",
+      "netfix_unix",
+      "netfix_config",
+      "netfix_tls",
+      "netfix_idle_buffers",
+      "respcompat",
+      "crlffix",
+      "ntfix_input",
+      "respresume-fragment-1s-epoll",
+      "respresume-fragment-1s-uring",
+      "respresume-fragment-2s-epoll",
+      "respresume-fragment-2s-uring",
+      "respresume-cpu-1s-epoll",
+      "respresume-cpu-1s-uring",
+      "respresume-cpu-2s-epoll",
+      "respresume-cpu-2s-uring",
+      "respresume-neighbour-1s-epoll",
+      "respresume-neighbour-1s-uring",
+      "respresume-neighbour-2s-epoll",
+      "respresume-neighbour-2s-uring",
+      "acl_metadata",
+      "boot_grammar",
+      "dbdefault",
+      "cmd_metadata",
+      "wait_units",
+      "readonly",
+      "release_batteries",
+      "atomic_batteries",
+      "moverfix",
+      "hexpread",
+      "multifix-1s-uring",
+      "multifix-1s-epoll",
+      "multifix-2s-uring",
+      "multifix-2s-epoll",
+      "compat2",
+      "bugs5",
+      "compat3",
+      "streamfix",
+      "blockfix_registry",
+      "blockfix_mkstream",
+      "blockfix_structure",
+      "blockfix2",
+      "dispatch_arity",
+      "dispatch_errors",
+      "dispatch_children",
+      "acl_subcommands",
+      "router_uniform",
+      "datafix2_notouch",
+      "datafix2_encoding",
+      "datafix2_subkeys",
+      "datafix2_watch",
+      "datafix2_idle",
+      "feature-split-0",
+      "feature-split-1",
+      "fused-0",
+      "fused-1",
+      "txn_group_fused",
+      "feature-armed-0",
+      "feature-armed-1",
+      "evict-lfu-split-0",
+      "evict-lfu-armed-0",
+      "evict-lruclock-split-0",
+      "evict-lruclock-armed-0",
+      "evict-lfu-split-1",
+      "evict-lfu-armed-1",
+      "evict-lruclock-split-1",
+      "evict-lruclock-armed-1",
+      "bplus",
+      "rlfix3_zc",
+      "infofix_latency",
+      "infofix_compat-missing",
+      "infofix_compat-docs",
+      "infofix_compat-loadaof",
+      "rlfix3_info",
+      "acl_recheck",
+      "aclfix",
+      "sort",
+      "datafix1_geo",
+      "datafix1_spop",
+      "datafix1_lists",
+      "datafix1_locale",
+      "datafix1_bitfield",
+      "datafix1_randscan",
+      "datafix1_hexpire",
+      "debug-0",
+      "debug-1",
+      "txn_group_split",
+      "execfair",
+      "exec1s",
+      "txnorder_index",
+      "txnorder_wound",
+      "txnorder2",
+      "txnorder_wake",
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1",
+      "script_bounds",
+      "scriptfix",
+      "scriptfix2",
+      "lualibs",
+      "at412-T1",
+      "at412-T2",
+      "at412-T3",
+      "at412-T4",
+      "at412-T5",
+      "at412-T6",
+      "at412-T7",
+      "at412-T8",
+      "at412-T9",
+      "at412-T10",
+      "at412-T11a",
+      "at412-T11b",
+      "at412-T12",
+      "at412-T13",
+      "at412-T14",
+      "at412-T15",
+      "at412-T16",
+      "at412-owner",
+      "efficiency",
+      "dump_restore",
+      "auth",
+      "authfix",
+      "serverfix_lines",
+      "serverfix_scalar",
+      "latencyfix_grammar",
+      "latencyfix_shape",
+      "latencyfix_off",
+      "wave8b_off",
+      "serverfix_config",
+      "serverfix_hello",
+      "serverfix_waitaof",
+      "serverfix_hll",
+      "serverfix_slowlog",
+      "serverfix_acllog",
+      "persistfix2_lastsave",
+      "persistfix2_shutdown",
+      "persistfix2_commands",
+      "persistfix2_errors",
+      "snapshot-epoll",
+      "snapshot-uring",
+      "snapfix_shutdown",
+      "snapfix_bgsave_script",
+      "snapfix_bgsave_exec",
+      "snapfix2_tables",
+      "notify",
+      "pubtrackfix",
+      "trackfix_order",
+      "trackfix_accounting",
+      "notifycompat",
+      "tracking_redirect",
+      "notify_order",
+      "notify_aof",
+      "flip",
+      "fliplisten",
+      "flipctl",
+      "flip_saturated",
+      "atomic_floor",
+      "aof-epoll",
+      "aof-uring",
+      "aof_frame",
+      "aoforder",
+      "tls",
+      "feature-cell-1s-0-0-0-0",
+      "feature-cell-1s-0-0-0-1",
+      "feature-cell-1s-0-0-1-0",
+      "feature-cell-1s-0-0-1-1",
+      "feature-cell-1s-0-1-0-0",
+      "feature-cell-1s-0-1-0-1",
+      "feature-cell-1s-0-1-1-0",
+      "feature-cell-1s-0-1-1-1",
+      "feature-cell-1s-1-0-0-0",
+      "feature-cell-1s-1-0-0-1",
+      "feature-cell-1s-1-0-1-0",
+      "feature-cell-1s-1-0-1-1",
+      "feature-cell-1s-1-1-0-0",
+      "feature-cell-1s-1-1-0-1",
+      "feature-cell-1s-1-1-1-0",
+      "feature-cell-1s-1-1-1-1",
+      "feature-cell-2s-0-0-0-0",
+      "feature-cell-2s-0-0-0-1",
+      "feature-cell-2s-0-0-1-0",
+      "feature-cell-2s-0-0-1-1",
+      "feature-cell-2s-0-1-0-0",
+      "feature-cell-2s-0-1-0-1",
+      "feature-cell-2s-0-1-1-0",
+      "feature-cell-2s-0-1-1-1",
+      "feature-cell-2s-1-0-0-0",
+      "feature-cell-2s-1-0-0-1",
+      "feature-cell-2s-1-0-1-0",
+      "feature-cell-2s-1-0-1-1",
+      "feature-cell-2s-1-1-0-0",
+      "feature-cell-2s-1-1-0-1",
+      "feature-cell-2s-1-1-1-0",
+      "feature-cell-2s-1-1-1-1",
+      "feature-cell-split-home-min",
+      "feature-cell-fused-home-max-nopin",
+      "feature-cell-split-shards-auto",
+      "abba_selftest",
+      "multidb-1s-0-0",
+      "multidb-1s-0-1",
+      "multidb-1s-1-0",
+      "multidb-1s-1-1",
+      "multidb-2s-0-0",
+      "multidb-2s-0-1",
+      "multidb-2s-1-0",
+      "multidb-2s-1-1",
+      "asan_batteries",
+      "replyoff",
+      "zc",
+      "rldbg",
+      "rlcache",
+      "differ-split",
+      "differ-armed",
+      "globcase"
+    ]
+  },
+  "added": {
+    "blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK": 1,
+    "Redis 7.4 infofix exact latency batch witness": 1,
+    "Redis 7.4 infofix missing (both modes/engines/runtimes)": 1,
+    "Redis 7.4 infofix docs (both modes/engines/runtimes)": 1,
+    "Redis 7.4 infofix loadaof (both modes/engines/runtimes)": 1,
+    "exec1s refinements (1s, atomic 0)": 1,
+    "exec1s refinements (1s, atomic 1)": 1,
+    "exec1s refinements (2s, atomic 0)": 1,
+    "exec1s refinements (2s, atomic 1)": 1,
+    "scriptfix2 EVAL-SHEBANG (1s, uring)": 1,
+    "scriptfix2 EVALSHA-SHA-CASE (1s, uring)": 1,
+    "scriptfix2 FCALL-NAME-CASE (1s, uring)": 1,
+    "scriptfix2 FUNCTION-LOAD-ENV (1s, uring)": 1,
+    "scriptfix2 FUNCTION-REGISTER-ARGS (1s, uring)": 1,
+    "scriptfix2 FUNCTION-SHEBANG-META (1s, uring)": 1,
+    "scriptfix2 FUNCTION-SUBCMD-ARGS (1s, uring)": 1,
+    "scriptfix2 LUA-REDIS-API (1s, uring)": 1,
+    "scriptfix2 LUA-SANDBOX-GLOBALS (1s, uring)": 1,
+    "scriptfix2 SCRIPT-ERROR-WORDING (1s, uring)": 1,
+    "scriptfix2 SCRIPT-NUMBER-ARG (1s, uring)": 1,
+    "scriptfix2 SCRIPT-REPLY-DEPTH (1s, uring)": 1,
+    "scriptfix2 EVAL-SHEBANG (1s, epoll)": 1,
+    "scriptfix2 EVALSHA-SHA-CASE (1s, epoll)": 1,
+    "scriptfix2 FCALL-NAME-CASE (1s, epoll)": 1,
+    "scriptfix2 FUNCTION-LOAD-ENV (1s, epoll)": 1,
+    "scriptfix2 FUNCTION-REGISTER-ARGS (1s, epoll)": 1,
+    "scriptfix2 FUNCTION-SHEBANG-META (1s, epoll)": 1,
+    "scriptfix2 FUNCTION-SUBCMD-ARGS (1s, epoll)": 1,
+    "scriptfix2 LUA-REDIS-API (1s, epoll)": 1,
+    "scriptfix2 LUA-SANDBOX-GLOBALS (1s, epoll)": 1,
+    "scriptfix2 SCRIPT-ERROR-WORDING (1s, epoll)": 1,
+    "scriptfix2 SCRIPT-NUMBER-ARG (1s, epoll)": 1,
+    "scriptfix2 SCRIPT-REPLY-DEPTH (1s, epoll)": 1,
+    "scriptfix2 EVAL-SHEBANG (2s, uring)": 1,
+    "scriptfix2 EVALSHA-SHA-CASE (2s, uring)": 1,
+    "scriptfix2 FCALL-NAME-CASE (2s, uring)": 1,
+    "scriptfix2 FUNCTION-LOAD-ENV (2s, uring)": 1,
+    "scriptfix2 FUNCTION-REGISTER-ARGS (2s, uring)": 1,
+    "scriptfix2 FUNCTION-SHEBANG-META (2s, uring)": 1,
+    "scriptfix2 FUNCTION-SUBCMD-ARGS (2s, uring)": 1,
+    "scriptfix2 LUA-REDIS-API (2s, uring)": 1,
+    "scriptfix2 LUA-SANDBOX-GLOBALS (2s, uring)": 1,
+    "scriptfix2 SCRIPT-ERROR-WORDING (2s, uring)": 1,
+    "scriptfix2 SCRIPT-NUMBER-ARG (2s, uring)": 1,
+    "scriptfix2 SCRIPT-REPLY-DEPTH (2s, uring)": 1,
+    "scriptfix2 EVAL-SHEBANG (2s, epoll)": 1,
+    "scriptfix2 EVALSHA-SHA-CASE (2s, epoll)": 1,
+    "scriptfix2 FCALL-NAME-CASE (2s, epoll)": 1,
+    "scriptfix2 FUNCTION-LOAD-ENV (2s, epoll)": 1,
+    "scriptfix2 FUNCTION-REGISTER-ARGS (2s, epoll)": 1,
+    "scriptfix2 FUNCTION-SHEBANG-META (2s, epoll)": 1,
+    "scriptfix2 FUNCTION-SUBCMD-ARGS (2s, epoll)": 1,
+    "scriptfix2 LUA-REDIS-API (2s, epoll)": 1,
+    "scriptfix2 LUA-SANDBOX-GLOBALS (2s, epoll)": 1,
+    "scriptfix2 SCRIPT-ERROR-WORDING (2s, epoll)": 1,
+    "scriptfix2 SCRIPT-NUMBER-ARG (2s, epoll)": 1,
+    "scriptfix2 SCRIPT-REPLY-DEPTH (2s, epoll)": 1,
+    "snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)": 1,
+    "snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)": 1,
+    "snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)": 1,
+    "snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)": 1,
+    "pubtrackfix TRACK-BCAST-BATCH": 1,
+    "pubtrackfix PUBSUB-REPLY-OFF-PUSH": 1,
+    "pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT": 1,
+    "pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY": 1
+  },
+  "removed": {},
+  "fixture_matches": true,
+  "expected_assignments": [
+    "EXPECT_QUICK=881",
+    "EXPECT_FULL=898"
+  ]
+}

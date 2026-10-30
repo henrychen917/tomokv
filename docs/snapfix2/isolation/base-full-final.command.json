@@ -1,0 +1,66 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix_neighbours.py",
+    "--case",
+    "flushall",
+    "--binary",
+    "build/snapfix2/base/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/isolation/base-full-final"
+  ],
+  "environment": {},
+  "binary": "build/snapfix2/base/tomokv",
+  "binary_sha256": "dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 1,
+  "seconds": 46.623,
+  "log_sha256": "878535251c6ffc9a38f55dbc0c16d5c39fad75c8da35764549e8f8c002fcd303",
+  "removed_data": {
+    "1s-epoll-1/dump.tomo": {
+      "bytes": 940,
+      "sha256": "eed4b87459b56c08eec540bbc1257b78849f0d66ebe8e8e1718232b9e9a268d0"
+    },
+    "2s-uring-0/dump.tomo": {
+      "bytes": 940,
+      "sha256": "f2088beef21fcf51c782fd2bb73ef0013ea06aa06d29853388e7fcc09028df09"
+    },
+    "1s-epoll-0/dump.tomo": {
+      "bytes": 940,
+      "sha256": "a1c20033241e16b9cc122ae8172c9720bad018a58f81396f69d73b2d4087e1c6"
+    },
+    "1s-uring-0/dump.tomo": {
+      "bytes": 940,
+      "sha256": "7c5f6f5f2902811cacfc45a119ecba064ca5f9f6e29b125ca2117e73c3142284"
+    },
+    "2s-epoll-0/dump.tomo": {
+      "bytes": 940,
+      "sha256": "81d870391cf6ad7da1a43744cb8f0eb1445340eea1c2e464c6385e73eaedba0a"
+    },
+    "redis-redis-0/dump.rdb": {
+      "bytes": 200,
+      "sha256": "4a5e12b948caacc6a96a76cf25a87cbbc1101b638cf5d63894b8f4c7f589bf3b"
+    },
+    "2s-epoll-1/dump.tomo": {
+      "bytes": 940,
+      "sha256": "7117f6168b44bb50f6d18e38858391125e2c513ec803e3e541ebe442094f63e7"
+    },
+    "1s-uring-1/dump.tomo": {
+      "bytes": 940,
+      "sha256": "46933d834eac31c627f8842e9d0743fc0cbb8a3df5468923f64837540233e7f2"
+    },
+    "2s-uring-1/dump.tomo": {
+      "bytes": 940,
+      "sha256": "c517e9ea0a3853a99fa37a82bb9bd5068c95cbd69f1580105193a51e6fa1f02d"
+    }
+  }
+}

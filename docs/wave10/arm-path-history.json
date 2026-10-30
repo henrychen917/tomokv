@@ -1,0 +1,12 @@
+{
+  "note": "Historical receipts bind their recorded SHA. The prior POST remains available under the path below; the delivered POST path now names the final source-label rebuild. Executable identity bridge: source-labels-identity.json.",
+  "historical_post": {
+    "sha256": "ed88bd649b62eeec920e23aa21f360470e67df968f02f8e351340b8aad2a2173",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-before-source-labels"
+  },
+  "delivered_post": {
+    "sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+    "path": "/home/user/Projects/cx-wave10/build/wave10/arms/POST",
+    "alias": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-source-labels"
+  }
+}

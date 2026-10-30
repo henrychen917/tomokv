@@ -1,0 +1,19 @@
+2029290:C 29 Oct 2026 00:51:44.467 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2029290:C 29 Oct 2026 00:51:44.467 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2029290:C 29 Oct 2026 00:51:44.467 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2029290, just started
+2029290:C 29 Oct 2026 00:51:44.467 * Configuration loaded
+2029290:M 29 Oct 2026 00:51:44.467 * monotonic clock: POSIX clock_gettime
+2029290:M 29 Oct 2026 00:51:44.468 * Running mode=standalone, port=20100.
+2029290:M 29 Oct 2026 00:51:44.468 * Server initialized
+2029290:M 29 Oct 2026 00:51:44.468 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+2029290:M 29 Oct 2026 00:51:44.468 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+2029290:M 29 Oct 2026 00:51:44.468 * Ready to accept connections tcp
+2029290:M 29 Oct 2026 00:51:44.551 * Creating AOF incr file appendonly.aof.2.incr.aof on background rewrite
+2029290:M 29 Oct 2026 00:51:44.551 * Background append only file rewriting started by pid 2029298
+2029290:M 29 Oct 2026 00:51:46.658 * DB saved on disk
+2029290:M 29 Oct 2026 00:51:46.659 * User requested shutdown...
+2029290:M 29 Oct 2026 00:51:46.659 # There is a child rewriting the AOF. Killing it!
+2029290:M 29 Oct 2026 00:51:46.659 * Killing running AOF rewrite child: 2029298
+2029298:signal-handler (1793206306) Received SIGUSR1 in child, exiting now.
+2029290:M 29 Oct 2026 00:51:46.660 * Calling fsync() on the AOF file.
+2029290:M 29 Oct 2026 00:51:46.660 # Redis is now ready to exit, bye bye...

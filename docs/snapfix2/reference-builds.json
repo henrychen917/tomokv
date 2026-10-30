@@ -1,0 +1,20 @@
+[
+  {
+    "arm": "pre",
+    "commit": "a214652ec262aa9a5eeaeadf129c0ef76ba6c99c",
+    "source_files": 1059,
+    "source_mismatches": [],
+    "make_q": 0,
+    "binary": "build/snapfix2/pre/tomokv",
+    "sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c"
+  },
+  {
+    "arm": "base",
+    "commit": "5572e84ccf435d0f30701527be0563b528ff6281",
+    "source_files": 1073,
+    "source_mismatches": [],
+    "make_q": 0,
+    "binary": "build/snapfix2/base/tomokv",
+    "sha256": "dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98"
+  }
+]

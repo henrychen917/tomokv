@@ -1,0 +1,138 @@
+{
+  "command": [
+    "setarch",
+    "x86_64",
+    "-R",
+    "taskset",
+    "-c",
+    "48-55",
+    "/home/user/Projects/cx-exec1s-c/build/exec1s-word-tsan",
+    "word",
+    "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/word-wide-control.log"
+  ],
+  "returncode": 0,
+  "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/word-tsan.log",
+  "log_sha256": "185429bdca75e8e4ec70bee5c2209d70f3d294d382f7fa65fafce9b49ccdb872",
+  "source_commit": "9db5f2fbb8c3192cbff6a176e761f9a24988b1c9",
+  "production_sha256": "4ccee1eb58d6dfe19279c0e9289c306e0e5c33283c89d3c1b9d29570cb2bf474",
+  "positive_unit_sha256": "eee03d20ef3ab5f6950da53c1bc41f78e7e5991c0a427c16b1c2f6ac6d07e02f",
+  "unit_sha256": "708c496651a8007d1ffa8d2d3dc562062b8be784528a92f3c6d887d0ff58b27c",
+  "production_helper_source_sha256": "6d48eac986b424630b59124bd8f3c3e510552d7790b709e65d56a03712376915",
+  "negative_log_sha256": "3fc2b6ee3499eb805d493d3e92b2e53292c5720f7d4dc6edb86a843c791de1e0",
+  "negative_expected_exit": 66,
+  "actual_group_wrap_and_floor_checks": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "reclaim",
+        "1s",
+        "0"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/reclaim-1s-0.log",
+      "log_sha256": "bcfbb5aa1d3a488a4a0496fcbc78096fa3b75e4fbfda714f410417d0cda7402c"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "floor",
+        "1s",
+        "0"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/floor-1s-0.log",
+      "log_sha256": "d767170783026cdda710b104aae37977febc11c984c9aefba3eb5514401a2324"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "reclaim",
+        "1s",
+        "1"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/reclaim-1s-1.log",
+      "log_sha256": "bcfbb5aa1d3a488a4a0496fcbc78096fa3b75e4fbfda714f410417d0cda7402c"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "floor",
+        "1s",
+        "1"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/floor-1s-1.log",
+      "log_sha256": "d767170783026cdda710b104aae37977febc11c984c9aefba3eb5514401a2324"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "reclaim",
+        "2s",
+        "0"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/reclaim-2s-0.log",
+      "log_sha256": "bcfbb5aa1d3a488a4a0496fcbc78096fa3b75e4fbfda714f410417d0cda7402c"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "floor",
+        "2s",
+        "0"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/floor-2s-0.log",
+      "log_sha256": "d767170783026cdda710b104aae37977febc11c984c9aefba3eb5514401a2324"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "reclaim",
+        "2s",
+        "1"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/reclaim-2s-1.log",
+      "log_sha256": "bcfbb5aa1d3a488a4a0496fcbc78096fa3b75e4fbfda714f410417d0cda7402c"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "/home/user/Projects/cx-exec1s-c/build/exec1s-unit",
+        "floor",
+        "2s",
+        "1"
+      ],
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-c/build/exec1s-evidence/directed/floor-2s-1.log",
+      "log_sha256": "d767170783026cdda710b104aae37977febc11c984c9aefba3eb5514401a2324"
+    }
+  ],
+  "passed": true
+}

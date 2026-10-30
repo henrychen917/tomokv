@@ -1,0 +1,54 @@
+{
+  "functions": 840,
+  "equal": 835,
+  "changed": [
+    "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+    "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+    "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+    "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+    "tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)"
+  ],
+  "symbols": [
+    "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
+    "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+    "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+    "_ZN4tomo9FlatStore15atomic_collapseEmm",
+    "_ZN4tomo9FlatStore26atomic_collapse_read_localEmm"
+  ],
+  "padding": [],
+  "hot": [],
+  "added": [],
+  "removed": [
+    "_ZN4tomoL12atomic_epochERKNS_11AtomicEntryE"
+  ],
+  "arm": "post",
+  "unit": "src/core/reorder.o",
+  "budget": 149149,
+  "initial": 122021,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=149149",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_reorder.o-149149.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_reorder.o-149149.inline"
+  ],
+  "sha256": "5fc9ba6878fde8f76c6e9258a5e76642f82d4c6c7ccbbae3bbf1569868d44a83"
+}

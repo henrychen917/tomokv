@@ -1,0 +1,88 @@
+{
+  "arm": {
+    "arm": "MERGE",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+    "sha256": "462c49e4806e9c208162f0ac9ef688077f3dc909edc7592cc7a88be747292f1c",
+    "bytes": 220032464
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-traceable-MERGE/traceable-server",
+    "20000",
+    "20001",
+    "64-71",
+    "6:2"
+  ],
+  "returncode": 0,
+  "plan_sha256": "691f4ca97536166577ea77321b44f34853f690a70251f7290597768397f41157",
+  "observer_sha256": "ba52ae79ccd1accc6c99e0c82fddd9e1833464d54847a82016fb877b66b4ccd0",
+  "target_log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-traceable-MERGE/observer.log",
+  "target_log_sha256": "48954cb038b8bd1d52d04a9a391be6cfdfb6bf2f84ab221b814ea3bb448d37ca",
+  "results": [
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    },
+    {
+      "result": 0,
+      "error": ""
+    }
+  ],
+  "observer_errors": []
+}

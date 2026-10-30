@@ -1,0 +1,146 @@
+[
+  {
+    "case": "aofrw-exec",
+    "leg": "redis-redis-0",
+    "value": {
+      "rewrites": 25,
+      "units": 201706,
+      "writes": 128493,
+      "live": [
+        201706,
+        201706,
+        128493
+      ]
+    },
+    "pass": true,
+    "seconds": 5.305
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "1s-uring-0",
+    "value": {
+      "rewrites": 12,
+      "units": 85470,
+      "writes": 82123,
+      "live": [
+        85470,
+        85470,
+        82123
+      ]
+    },
+    "pass": true,
+    "seconds": 5.301
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "1s-uring-1",
+    "value": {
+      "rewrites": 12,
+      "units": 84861,
+      "writes": 109850,
+      "live": [
+        84861,
+        84861,
+        109850
+      ]
+    },
+    "pass": true,
+    "seconds": 5.158
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "1s-epoll-0",
+    "value": {
+      "rewrites": 11,
+      "units": 80061,
+      "writes": 149665,
+      "live": [
+        80061,
+        80061,
+        149665
+      ]
+    },
+    "pass": true,
+    "seconds": 5.146
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "1s-epoll-1",
+    "value": {
+      "rewrites": 11,
+      "units": 75952,
+      "writes": 66671,
+      "live": [
+        75952,
+        75952,
+        66671
+      ]
+    },
+    "pass": true,
+    "seconds": 5.112
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "2s-uring-0",
+    "value": {
+      "rewrites": 11,
+      "units": 82449,
+      "writes": 82073,
+      "live": [
+        82449,
+        82449,
+        82073
+      ]
+    },
+    "pass": true,
+    "seconds": 5.137
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "2s-uring-1",
+    "value": {
+      "rewrites": 10,
+      "units": 73016,
+      "writes": 76387,
+      "live": [
+        73016,
+        73016,
+        76387
+      ]
+    },
+    "pass": true,
+    "seconds": 5.124
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "2s-epoll-0",
+    "value": {
+      "rewrites": 11,
+      "units": 82666,
+      "writes": 80723,
+      "live": [
+        82666,
+        82666,
+        80723
+      ]
+    },
+    "pass": true,
+    "seconds": 5.295
+  },
+  {
+    "case": "aofrw-exec",
+    "leg": "2s-epoll-1",
+    "value": {
+      "rewrites": 10,
+      "units": 74682,
+      "writes": 74534,
+      "live": [
+        74682,
+        74682,
+        74534
+      ]
+    },
+    "pass": true,
+    "seconds": 5.12
+  }
+]

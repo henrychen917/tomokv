@@ -1,0 +1,15 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.CCZYTL",
+  "log": "/home/user/Projects/cx-pubtrackfix/build/pubtrackfix/gate-pad-directed.log",
+  "jobs": {
+    "pubtrackfix": {
+      "done": "0\t0\t4\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    }
+  },
+  "summary": [
+    "GATE(PARTIAL): 1 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.CCZYTL/ledger.partial"
+  ]
+}

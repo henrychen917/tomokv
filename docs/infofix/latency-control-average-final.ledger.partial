@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=infofix_latency; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	0.090000	Redis 7.4 infofix exact latency batch witness

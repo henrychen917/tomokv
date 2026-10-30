@@ -1,0 +1,1 @@
+["taskset", "-c", "0-7", "/home/user/Projects/cx-snapfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/climonfix/shutdown-2s-command/default", "--shards", "16", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--appendonly", "no", "--ratio", "6:2"]

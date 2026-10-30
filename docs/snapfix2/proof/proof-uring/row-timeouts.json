@@ -1,0 +1,264 @@
+{
+  "created_at": 1793201779.6183853,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {
+    "build dependency: core-concurrency-tsan": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 78.39,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 78.39,
+      "min_seconds": 78.39,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-index-db0-unit,build/txnorder-index-unit,build/txnorder-retry-unit,build/txnorder-wake-unit,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/waits-unit,build/wb-rule-units,build/wbland-units": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 596.32,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 596.32,
+      "min_seconds": 596.32,
+      "samples": 1,
+      "timeout_seconds": 2386
+    },
+    "build dependency: make build/blockfix-cost": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 40.81,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 40.81,
+      "min_seconds": 40.81,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make default": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 229.15,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 229.15,
+      "min_seconds": 229.15,
+      "samples": 1,
+      "timeout_seconds": 917
+    },
+    "build dependency: store-regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 9.01,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 9.01,
+      "min_seconds": 9.01,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: store-regression-tsan": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 7.54,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 7.54,
+      "min_seconds": 7.54,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "flip controller model unit": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 18.11,
+      "median_seconds": 18.11,
+      "min_seconds": 18.11,
+      "samples": 1,
+      "timeout_seconds": 73
+    },
+    "flip controller: ramp gate, hold, surge + mix re-maneuvers": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 131.97,
+      "median_seconds": 131.97,
+      "min_seconds": 131.97,
+      "samples": 1,
+      "timeout_seconds": 528
+    },
+    "persistfix2 LASTSAVE and rewrite INFO": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 7.86,
+      "median_seconds": 7.86,
+      "min_seconds": 7.86,
+      "samples": 1,
+      "timeout_seconds": 32
+    },
+    "persistfix2 shutdown modifiers and signal policy": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "production source identity + stable assertion ids": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 115.68,
+      "median_seconds": 115.68,
+      "min_seconds": 115.68,
+      "samples": 1,
+      "timeout_seconds": 463
+    },
+    "release build (+footprint locks)": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "release build (+footprint locks) [external-candidate]": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "storage aof-eviction regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage deadline-allocation-failure regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "storage field-index-failure regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage flags regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 0.13,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.13,
+      "min_seconds": 0.13,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "storage flush-prepared-capacity regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage hash-bytes regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage imported-hash regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage intents regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage randomkey regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage rehash regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage rollback regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage snapshot-eviction regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storage unlinked regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 1,
+      "timeout_seconds": 30
+    }
+  },
+  "schema": 1
+}

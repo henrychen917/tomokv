@@ -54,6 +54,7 @@ bool command_metadata_skip_monitor(Op& op);
 // key specifications, and nested subcommands. A null metadata pointer appends protocol-native
 // null. This is intentionally out of line in the cold feature translation unit.
 void command_metadata_reply_info(Op& op, const CommandMetadata* metadata);
+void command_metadata_reply_docs(Op& op, const CommandMetadata& metadata);
 
 // Extract keys and their Redis key-spec intent. `command_argument` identifies the full command's
 // name within op.argv (2 for COMMAND GETKEYS*). The returned argument indexes address op.argv.

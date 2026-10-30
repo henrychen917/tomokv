@@ -1,0 +1,27 @@
+[
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "received": "NO PUSH"
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "received": "NO PUSH"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "received": "NO PUSH"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "received": ">2\r\n$10\r\ninvalidate\r\n*1\r\n$1\r\ns\r\n"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "received": ">2\r\n$10\r\ninvalidate\r\n*1\r\n$1\r\ns\r\n"
+  }
+]

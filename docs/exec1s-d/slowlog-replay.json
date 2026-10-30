@@ -1,0 +1,375 @@
+{
+  "upstream_sha256": "065eb61bfd9ac4f2168c9900f8f5774a18b492f0d60c3a8228c8d7085f3747fd",
+  "driver_sha256": "2b6af29fb79d6320c691fbf8de0d5fd1ee3d6b7f77d8f3e8ecb1aa49d47052a7",
+  "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+  "rows": [
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 0,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-0/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 0,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-0/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 1,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-1/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 1,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-1/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 2,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-2/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 2,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-2/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 3,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-3/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 3,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-3/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 4,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-4/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 4,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": false,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-4/unit/slowlog/result.json",
+      "failures": [
+        {
+          "status": "err",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'blpop l 0' to be equal to 'slowlog reset' (context: type eval line 45 cmd {assert_equal {blpop l 0} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)",
+          "milliseconds": "0"
+        }
+      ],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 5,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-5/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 5,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-5/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 6,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-6/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 6,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-6/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "1s",
+      "attempt": 7,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-PRE-7/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "1s",
+      "attempt": 7,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": false,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/1s-POST-7/unit/slowlog/result.json",
+      "failures": [
+        {
+          "status": "err",
+          "file": "tests/unit/slowlog.tcl",
+          "test": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl",
+          "data": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'blpop l 0' to be equal to 'slowlog reset' (context: type eval line 45 cmd {assert_equal {blpop l 0} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)",
+          "milliseconds": "0"
+        }
+      ],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 0,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-0/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 0,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-0/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 1,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-1/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 1,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-1/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 2,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-2/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 2,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-2/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 3,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-3/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 3,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-3/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 4,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-4/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 4,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-4/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 5,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-5/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 5,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-5/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 6,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-6/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 6,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-6/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "PRE",
+      "mode": "2s",
+      "attempt": 7,
+      "binary_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-PRE-7/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    },
+    {
+      "arm": "POST",
+      "mode": "2s",
+      "attempt": 7,
+      "binary_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/slowlog-replay/2s-POST-7/unit/slowlog/result.json",
+      "failures": [],
+      "error": null,
+      "complete": true
+    }
+  ]
+}

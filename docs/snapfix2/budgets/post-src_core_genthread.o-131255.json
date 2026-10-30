@@ -1,0 +1,54 @@
+{
+  "functions": 783,
+  "equal": 779,
+  "changed": [
+    "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
+    "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, false>()",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()"
+  ],
+  "symbols": [
+    "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv",
+    "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb1ELb1ELb0EEEjv",
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+    "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv"
+  ],
+  "padding": [],
+  "hot": [
+    "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
+    "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, false>()",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)"
+  ],
+  "added": [],
+  "removed": [],
+  "arm": "post",
+  "unit": "src/core/genthread.o",
+  "budget": 131255,
+  "initial": 109405,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=131255",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_genthread.o-131255.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_genthread.o-131255.inline"
+  ],
+  "sha256": "24b4e0d2c3c32d5057b8c5d708284cdb9602fa6d76478cbeec831e60a8c92f75"
+}

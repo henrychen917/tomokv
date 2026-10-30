@@ -1,0 +1,2 @@
+h01 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1 | poll=info1hz
+h17 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1 | poll=info1hz

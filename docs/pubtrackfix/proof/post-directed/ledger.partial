@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=pubtrackfix; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	3.370000	pubtrackfix TRACK-BCAST-BATCH
+ok	11.720000	pubtrackfix PUBSUB-REPLY-OFF-PUSH
+ok	6.020000	pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+ok	19.350000	pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY

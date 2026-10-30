@@ -1,0 +1,14 @@
+527805:C 28 Oct 2026 23:43:00.790 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+527805:C 28 Oct 2026 23:43:00.790 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+527805:C 28 Oct 2026 23:43:00.790 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=527805, just started
+527805:C 28 Oct 2026 23:43:00.790 * Configuration loaded
+527805:M 28 Oct 2026 23:43:00.790 * monotonic clock: POSIX clock_gettime
+527805:M 28 Oct 2026 23:43:00.791 * Running mode=standalone, port=20100.
+527805:M 28 Oct 2026 23:43:00.791 * Server initialized
+527805:M 28 Oct 2026 23:43:00.791 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+527805:M 28 Oct 2026 23:43:00.792 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+527805:M 28 Oct 2026 23:43:00.792 * Ready to accept connections tcp
+527805:M 28 Oct 2026 23:43:00.866 # Error writing to the AOF file: File too large
+527805:M 28 Oct 2026 23:43:00.868 * User requested shutdown...
+527805:M 28 Oct 2026 23:43:00.868 * Calling fsync() on the AOF file.
+527805:M 28 Oct 2026 23:43:00.868 # Redis is now ready to exit, bye bye...

@@ -1867,7 +1867,12 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
     }
 
     WorkError error;
-    if (first_error(state, error)) { reply_work_error(op, error); return; }
+    if (first_error(state, error)) {
+        if (state.kind == Kind::DebugLoadAof)
+            reply_err(op.sink(), "ERR Error trying to load the AOF files, check server logs.");
+        else reply_work_error(op, error);
+        return;
+    }
     switch (state.kind) {
         case Kind::AllShards:
         case Kind::DebugReload:

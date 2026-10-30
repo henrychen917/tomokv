@@ -1,0 +1,2 @@
+  row budget: 900s; median=4.2s; correctness-plan-fallback; persistfix2 AOF write-error refusal and read availability
+  persistfix2 AOF write-error refusal and read availability ok

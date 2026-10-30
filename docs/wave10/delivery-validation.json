@@ -1,0 +1,55 @@
+{
+  "arm_hashes_verified": true,
+  "owned_test_processes": [],
+  "listeners_in_assigned_ports": [],
+  "build_disk": "33G\tbuild",
+  "freshness_after_prune": [
+    {
+      "target": "build/aoforder-scheduled",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/racefix-climon",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/lottery/tomokv",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "target": "all",
+      "exit": 0,
+      "output": ""
+    }
+  ],
+  "earlier_prune_audit": {
+    "arm_hashes_verified": true,
+    "owned_build_processes": [],
+    "build_disk": "33G\tbuild",
+    "freshness_after_prune": [
+      {
+        "target": "build/aoforder-scheduled",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/racefix-climon",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/lottery/tomokv",
+        "exit": 1,
+        "output": ""
+      },
+      {
+        "target": "all",
+        "exit": 0,
+        "output": ""
+      }
+    ]
+  }
+}

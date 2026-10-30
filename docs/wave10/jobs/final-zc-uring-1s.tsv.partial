@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=zc; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	1.200000	ASAN build
+ok	1.370000	zc borrow battery
+ok	0.030000	zc fired (zc_sends=N)
+ok	1.400000	zc borrow battery under ASAN
+ok	0.020000	zc ASAN clean

@@ -1,0 +1,30 @@
+{
+  "created_at": 1793200504.3595085,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {
+    "release build (+footprint locks) [external-candidate]": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    }
+  },
+  "schema": 1
+}

@@ -1,0 +1,15 @@
+{
+  "check": "tests/atomic_survivors_unit.cc txn_intents (gate: txniso_checks, run by the txniso battery rows of debug-0/debug-1 and fused-0/fused-1)",
+  "post": {
+    "binary": "build/atomic-survivors-unit",
+    "sha256": "1f15994ffb128267cb3b0b993864bc31a994280612a2a69e1573b6061eb4a3e4",
+    "rc": 0,
+    "output": "PASS txn_intents"
+  },
+  "negative_control": {
+    "note": "same source with the IoLoop::shutdown_release_abandoned_script_pins(server) line removed, linked against the same POST objects",
+    "sha256": "0ed05ff39ad73f74b045afebcad7a0bfe3dda2273f610be60ddd78a0936eeaf6",
+    "rc": 134,
+    "outcome": "SIGABRT in the unchanged teardown check (abandoned PINs outlive their holder), as PRE aborts"
+  }
+}

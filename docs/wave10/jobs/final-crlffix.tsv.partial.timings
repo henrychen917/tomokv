@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+ok	4.200000	CRLF line replies match Redis and preserve synchronization

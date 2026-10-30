@@ -535,9 +535,6 @@ redis.register_function('persistfix2_write',
                     contents = files[0].read_bytes()
                     return files[0] if b'acknowledged-write' in contents and b'before' in contents else None
                 increment = wait(persisted_increment, 'acknowledged write reached increment')
-                limit = increment.stat().st_size
-                resource.prlimit(process.pid, resource.RLIMIT_FSIZE, (limit, 131072))
-                emit('durability window armed', policy=policy, reorder=reorder, file_limit=limit)
                 queued = Conn('127.0.0.1', args.port, timeout=15)
                 read_only = Conn('127.0.0.1', args.port, timeout=15)
                 script_txn = Conn('127.0.0.1', args.port, timeout=15)
@@ -552,6 +549,13 @@ redis.register_function('persistfix2_write',
                     assert command(read_only, 'EVALSHA', read_sha, '1', 'acknowledged-write') == b'QUEUED'
                     assert command(script_txn, 'MULTI') == b'OK'
                     assert command(script_txn, 'EVAL', write_script, '1', 'refused-script-write') == b'QUEUED'
+                    # Establish the pre-error transactions before injecting the
+                    # write failure. Earlier acknowledged setup records can still
+                    # be buffered with appendfsync=no; capping the file first can
+                    # refuse the SET that this case must prove was already queued.
+                    limit = increment.stat().st_size
+                    resource.prlimit(process.pid, resource.RLIMIT_FSIZE, (limit, 131072))
+                    emit('durability window armed', policy=policy, reorder=reorder, file_limit=limit)
                     conn.send('SET', 'durability-window', b'v' * 200000)
                     emit('durability window', policy=policy, initial_reply=conn.read())
                     wait(lambda: persistence(conn)['aof_last_write_status'] == 'err',

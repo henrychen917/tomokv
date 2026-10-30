@@ -1,0 +1,17 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 91.41,
+  "log_sha256": "aedf57fe7b1ef1518015df8563e27cf7232df76f6ce1d1d409421eddd3dfd4f4",
+  "removed_data": {}
+}

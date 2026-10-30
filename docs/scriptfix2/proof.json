@@ -1,0 +1,482 @@
+{
+  "schema": 1,
+  "base_commit": "a214652ec262aa9a5eeaeadf129c0ef76ba6c99c",
+  "scope": {
+    "implemented_roots": 10,
+    "partial_roots": [
+      "EVAL-SHEBANG",
+      "LUA-REDIS-API"
+    ],
+    "stopped_roots": [
+      "FUNCTION-LOAD-DENYOOM",
+      "ACL-SCRIPTS-NEED-ALLCOMMANDS"
+    ]
+  },
+  "constraints": {
+    "cpus": "96-111",
+    "server_cpus": "96-103",
+    "load_cpus": "104-111",
+    "ports": "20500-20599",
+    "build_jobs": 16,
+    "full_iteration": "NOT RUN; maintainer only",
+    "performance": "NOT RUN; maintainer only"
+  },
+  "artifacts": "artifacts.json",
+  "build_freshness": "build-freshness.json",
+  "directed": {
+    "post": {
+      "binary_sha256": "cb5dbeae537f1171a54171ddc37f7b2517500360bd6fc8c9208763a75994a317",
+      "root_geometry_legs": 192,
+      "root_rows": 48,
+      "wire_steps": 3584,
+      "matched_legs": 192,
+      "differing_legs": 0,
+      "raw_receipt": "post-directed-receipts.json.gz",
+      "gate_ledger": "post-alllegs-gate.partial"
+    },
+    "pre": {
+      "binary_sha256": "3031f4fe0b0dfde2e001493e8521227b9bcec87bee178349bb9ce12a41ec541d",
+      "root_geometry_legs": 192,
+      "root_rows": 48,
+      "wire_steps": 3584,
+      "matched_legs": 0,
+      "differing_legs": 192,
+      "raw_receipt": "pre-directed-receipts.json.gz",
+      "gate_ledger": "pre-alllegs-gate.partial"
+    },
+    "mutant": {
+      "binary_sha256": "013e3577777bfa4e4ce59f8fdc7c7343f10a0b9dae050aee8683b2673213e8f8",
+      "root_geometry_legs": 192,
+      "root_rows": 48,
+      "wire_steps": 3584,
+      "matched_legs": 0,
+      "differing_legs": 192,
+      "raw_receipt": "mutant-directed-receipts.json.gz",
+      "gate_ledger": "mutant-alllegs-gate.partial"
+    }
+  },
+  "tcl": {
+    "1s": {
+      "binary_sha256": "cb5dbeae537f1171a54171ddc37f7b2517500360bd6fc8c9208763a75994a317",
+      "files": 35,
+      "passed_assertions": 1721,
+      "known_setup_errors": 5,
+      "manifest_validation": "PASS for every file, exact assertion inventory and known setup error signatures",
+      "raw_receipt": "tcl-1s-receipt.json.gz"
+    },
+    "2s": {
+      "binary_sha256": "cb5dbeae537f1171a54171ddc37f7b2517500360bd6fc8c9208763a75994a317",
+      "files": 35,
+      "passed_assertions": 1721,
+      "known_setup_errors": 5,
+      "manifest_validation": "PASS for every file, exact assertion inventory and known setup error signatures",
+      "raw_receipt": "tcl-2s-receipt.json.gz"
+    }
+  },
+  "differential": {
+    "uring": {
+      "gate_ledger": "verified-differ-uring.partial",
+      "parts": [
+        {
+          "job": "differ-armed-0",
+          "pass": 277,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            25
+          ],
+          "log": "differ-uring-final/differ-armed-0.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1248998,
+          "coverage_legs": 276
+        },
+        {
+          "job": "differ-armed-1",
+          "pass": 281,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            25
+          ],
+          "log": "differ-uring-final/differ-armed-1.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1266245,
+          "coverage_legs": 280
+        },
+        {
+          "job": "differ-equivalence",
+          "pass": 1,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            25
+          ],
+          "log": "differ-uring-final/differ-equivalence.log"
+        },
+        {
+          "job": "differ-split-0",
+          "pass": 282,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            25
+          ],
+          "log": "differ-uring-final/differ-split-0.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1276773,
+          "coverage_legs": 282
+        },
+        {
+          "job": "differ-split-1",
+          "pass": 286,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            25
+          ],
+          "log": "differ-uring-final/differ-split-1.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1294005,
+          "coverage_legs": 286
+        }
+      ],
+      "note": "The stock fused matrix omits SORT because that suite requires split 6:2. Standard seeds plus discovered replay seeds were retained."
+    },
+    "epoll": {
+      "gate_ledger": "verified-differ-epoll.partial",
+      "parts": [
+        {
+          "job": "differ-armed-0",
+          "pass": 277,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "log": "differ-epoll-final/differ-armed-0.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1248556,
+          "coverage_legs": 276
+        },
+        {
+          "job": "differ-armed-1",
+          "pass": 281,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "log": "differ-epoll-final/differ-armed-1.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1266091,
+          "coverage_legs": 280
+        },
+        {
+          "job": "differ-equivalence",
+          "pass": 1,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "log": "differ-epoll-final/differ-equivalence.log"
+        },
+        {
+          "job": "differ-split-0",
+          "pass": 282,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "log": "differ-epoll-final/differ-split-0.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1276610,
+          "coverage_legs": 282
+        },
+        {
+          "job": "differ-split-1",
+          "pass": 286,
+          "fail": 0,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "log": "differ-epoll-final/differ-split-1.log",
+          "commands_compared": 232,
+          "commands_registered": 245,
+          "comparison_witnesses": 1293929,
+          "coverage_legs": 286
+        }
+      ],
+      "note": "The stock fused matrix omits SORT because that suite requires split 6:2. Standard seeds plus discovered replay seeds were retained."
+    }
+  },
+  "isolated_tcl_negative_controls": {
+    "receipt": "isolated-witnesses.json",
+    "roots": 12,
+    "modes": 2,
+    "unarmed_pass": 24,
+    "named_regressions_detected": 24
+  },
+  "gate_selftests": {
+    "command": "GATE_TEST_PORT=20590 taskset -c 96-111 python3 tests/gates_test.py",
+    "tests": 73,
+    "exit_code": 0,
+    "log": "gates-test-final.log"
+  },
+  "ledger_counts": {
+    "DQ": 48,
+    "DF": 48,
+    "EXPECT_QUICK_unchanged": 807,
+    "EXPECT_FULL_unchanged": 824,
+    "required_quick": 855,
+    "required_full": 872,
+    "collector_line": 5706,
+    "quick_exit_line": 5808,
+    "source_and_fixture_labels": 872,
+    "fixture_check_exit": 1,
+    "reason": "Only the maintainer-owned count differs; no missing or extra labels."
+  },
+  "unexpected_failure": {
+    "status": "UNRESOLVED",
+    "job": "feature-split-1",
+    "label": "bitfield battery (atomic 1)",
+    "log": "bitfield-original-failure.log",
+    "symptom": "BITFIELD bf:oom SET u8 #100000 1 returned [0] after CONFIG SET maxmemory 65536, expected OOM",
+    "context": {
+      "mode": "2s",
+      "shards": 16,
+      "ratio": "6:2",
+      "databases": 1,
+      "atomic": 1,
+      "net_io": "uring"
+    },
+    "same_job_reruns": {
+      "pre": "PASS 35/35; pre-bitfield-context.partial",
+      "post": "PASS 35/35; post-bitfield-context.partial"
+    },
+    "bounded_followup": {
+      "battery_runs_per_arm": 36,
+      "failures": 0,
+      "receipt": "bitfield-investigation/summary.json",
+      "config_growth_probe_iterations_per_arm": 5000,
+      "probe_failures": 0,
+      "probe": "bitfield-admission-probe.py",
+      "probe_receipt": "bitfield-admission-probe/summary.json",
+      "raw_battery_logs": "bitfield-investigation/raw-logs.tar.gz"
+    },
+    "interpretation": "No baseline attribution proved. Subsequent passes do not erase the original failed proof."
+  },
+  "related_gate_jobs": {
+    "ledger": "verified-gate.partial",
+    "ok": 206,
+    "fail": 1,
+    "jobs": [
+      "release",
+      "production_units",
+      "redis_tcl",
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1",
+      "splitlocal_units",
+      "compat3",
+      "script_bounds",
+      "scriptfix",
+      "scriptfix2",
+      "lualibs"
+    ],
+    "unexpected_failures": [
+      "bitfield battery (atomic 1)"
+    ]
+  },
+  "instrument_selftest": {
+    "status": "EXPECTED FAILURE; maintainer count update required",
+    "gate_job": "abba_selftest",
+    "gate_ledger": "instrument-selftest-gate.partial",
+    "log": "instrument-selftest.log",
+    "reason": "Receipt fixture has 872 labels and source declares 872 labels; untouched EXPECT_FULL is 824. No other control suite failed."
+  },
+  "full_tcl_mutant": {
+    "gate_job": "redis_tcl",
+    "gate_ledger": "mutant-tcl-final-gate.partial",
+    "modes": {
+      "1s": {
+        "status": "REJECTED with named regression witnesses",
+        "files_attempted": 35,
+        "raw_receipt": "mutant-tcl-1s-receipt.json.gz",
+        "binary_sha256": "013e3577777bfa4e4ce59f8fdc7c7343f10a0b9dae050aee8683b2673213e8f8",
+        "named_failures": {
+          "unit/functions": [
+            "FUNCTION - Basic usage in tests/unit/functions.tcl",
+            "FUNCTION - Create an already exiting library raise error in tests/unit/functions.tcl",
+            "FUNCTION - Create an already exiting library raise error (case insensitive) in tests/unit/functions.tcl",
+            "FUNCTION - Test uncompiled script in tests/unit/functions.tcl",
+            "FUNCTION - test replace argument in tests/unit/functions.tcl",
+            "FUNCTION - test function case insensitive in tests/unit/functions.tcl",
+            "FUNCTION - test replace argument with failure keeps old libraries in tests/unit/functions.tcl",
+            "FUNCTION - test function delete in tests/unit/functions.tcl",
+            "FUNCTION - test fcall bad arguments in tests/unit/functions.tcl",
+            "FUNCTION - test loading from rdb in tests/unit/functions.tcl",
+            "FUNCTION - test function dump and restore with replace argument in tests/unit/functions.tcl",
+            "FUNCTION - test function restore with bad payload do not drop existing functions in tests/unit/functions.tcl",
+            "FUNCTION - test function restore with wrong number of arguments in tests/unit/functions.tcl",
+            "LIBRARIES - test registration with wrong name format in tests/unit/functions.tcl",
+            "LIBRARIES - test registration with empty name in tests/unit/functions.tcl",
+            "LIBRARIES - math.random from function load in tests/unit/functions.tcl",
+            "LIBRARIES - delete removed all functions on library in tests/unit/functions.tcl",
+            "FUNCTION - function test name with quotes in tests/unit/functions.tcl",
+            "FUNCTION - test getmetatable on script load in tests/unit/functions.tcl"
+          ],
+          "unit/scripting": [
+            "EVAL - No arguments to redis.call/pcall is considered an error in tests/unit/scripting.tcl",
+            "Number conversion precision test (issue #1118) in tests/unit/scripting.tcl",
+            "Script return recursive object in tests/unit/scripting.tcl",
+            "Script check unpack with massive arguments in tests/unit/scripting.tcl",
+            "Script read key with expiration set in tests/unit/scripting.tcl",
+            "Script del key with expiration set in tests/unit/scripting.tcl",
+            "Binary code loading failed in tests/unit/scripting.tcl",
+            "Try trick global protection 1 in tests/unit/scripting.tcl",
+            "Try trick global protection 2 in tests/unit/scripting.tcl",
+            "Try trick global protection 3 in tests/unit/scripting.tcl",
+            "Try trick global protection 4 in tests/unit/scripting.tcl",
+            "Try trick readonly table on redis table in tests/unit/scripting.tcl",
+            "Try trick readonly table on json table in tests/unit/scripting.tcl",
+            "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl",
+            "Try trick readonly table on bit table in tests/unit/scripting.tcl",
+            "Try trick readonly table on basic types metatable in tests/unit/scripting.tcl",
+            "Test loadfile are not available in tests/unit/scripting.tcl",
+            "Test dofile are not available in tests/unit/scripting.tcl",
+            "Test print are not available in tests/unit/scripting.tcl"
+          ]
+        },
+        "incomplete_files": [
+          "unit/scripting"
+        ],
+        "limitation": "Combined mutations leave the scripting file incomplete at its unchanged Tcl idle timeout after named assertions have already failed. The timeout and cascading failures are not counted as independent mutation witnesses; isolated controls provide those.",
+        "additional_failures_not_used_as_regression_witnesses": []
+      },
+      "2s": {
+        "status": "REJECTED with named regression witnesses",
+        "files_attempted": 35,
+        "raw_receipt": "mutant-tcl-2s-receipt.json.gz",
+        "binary_sha256": "013e3577777bfa4e4ce59f8fdc7c7343f10a0b9dae050aee8683b2673213e8f8",
+        "named_failures": {
+          "unit/functions": [
+            "FUNCTION - Basic usage in tests/unit/functions.tcl",
+            "FUNCTION - Create an already exiting library raise error in tests/unit/functions.tcl",
+            "FUNCTION - Create an already exiting library raise error (case insensitive) in tests/unit/functions.tcl",
+            "FUNCTION - Test uncompiled script in tests/unit/functions.tcl",
+            "FUNCTION - test replace argument in tests/unit/functions.tcl",
+            "FUNCTION - test function case insensitive in tests/unit/functions.tcl",
+            "FUNCTION - test replace argument with failure keeps old libraries in tests/unit/functions.tcl",
+            "FUNCTION - test function delete in tests/unit/functions.tcl",
+            "FUNCTION - test fcall bad arguments in tests/unit/functions.tcl",
+            "FUNCTION - test loading from rdb in tests/unit/functions.tcl",
+            "FUNCTION - test function dump and restore with replace argument in tests/unit/functions.tcl",
+            "FUNCTION - test function restore with bad payload do not drop existing functions in tests/unit/functions.tcl",
+            "FUNCTION - test function restore with wrong number of arguments in tests/unit/functions.tcl",
+            "LIBRARIES - test registration with wrong name format in tests/unit/functions.tcl",
+            "LIBRARIES - test registration with empty name in tests/unit/functions.tcl",
+            "LIBRARIES - math.random from function load in tests/unit/functions.tcl",
+            "LIBRARIES - delete removed all functions on library in tests/unit/functions.tcl",
+            "FUNCTION - function test name with quotes in tests/unit/functions.tcl",
+            "FUNCTION - test getmetatable on script load in tests/unit/functions.tcl"
+          ],
+          "unit/introspection": [
+            "MONITOR log blocked command only once in tests/unit/introspection.tcl"
+          ],
+          "unit/scripting": [
+            "EVAL - No arguments to redis.call/pcall is considered an error in tests/unit/scripting.tcl",
+            "Number conversion precision test (issue #1118) in tests/unit/scripting.tcl",
+            "Script return recursive object in tests/unit/scripting.tcl",
+            "Script check unpack with massive arguments in tests/unit/scripting.tcl",
+            "Script read key with expiration set in tests/unit/scripting.tcl",
+            "Script del key with expiration set in tests/unit/scripting.tcl",
+            "Binary code loading failed in tests/unit/scripting.tcl",
+            "Try trick global protection 1 in tests/unit/scripting.tcl",
+            "Try trick global protection 2 in tests/unit/scripting.tcl",
+            "Try trick global protection 3 in tests/unit/scripting.tcl",
+            "Try trick global protection 4 in tests/unit/scripting.tcl",
+            "Try trick readonly table on redis table in tests/unit/scripting.tcl",
+            "Try trick readonly table on json table in tests/unit/scripting.tcl",
+            "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl",
+            "Try trick readonly table on bit table in tests/unit/scripting.tcl",
+            "Try trick readonly table on basic types metatable in tests/unit/scripting.tcl",
+            "Test loadfile are not available in tests/unit/scripting.tcl",
+            "Test dofile are not available in tests/unit/scripting.tcl",
+            "Test print are not available in tests/unit/scripting.tcl"
+          ]
+        },
+        "incomplete_files": [
+          "unit/scripting"
+        ],
+        "limitation": "Combined mutations leave the scripting file incomplete at its unchanged Tcl idle timeout after named assertions have already failed. The timeout and cascading failures are not counted as independent mutation witnesses; isolated controls provide those.",
+        "additional_failures_not_used_as_regression_witnesses": [
+          "unit/introspection"
+        ]
+      }
+    }
+  },
+  "full_tcl_pre": {
+    "gate_job": "redis_tcl",
+    "gate_ledger": "pre-gate.partial",
+    "modes": {
+      "1s": "pre-tcl-1s-receipt.json.gz",
+      "2s": "pre-tcl-2s-receipt.json.gz"
+    }
+  },
+  "cleanup": {
+    "receipt": "cleanup.json",
+    "build_disk_usage": "16G",
+    "owned_port_listeners_remaining": 0
+  }
+}

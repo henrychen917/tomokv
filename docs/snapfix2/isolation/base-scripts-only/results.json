@@ -1,0 +1,173 @@
+[
+  {
+    "case": "flushall",
+    "leg": "redis-redis-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        13484,
+        13484,
+        0,
+        0
+      ],
+      "scripts": 330169,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.243
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        2952,
+        2952,
+        0,
+        0
+      ],
+      "scripts": 72926,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.134
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        2982,
+        2982,
+        0,
+        0
+      ],
+      "scripts": 73687,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.142
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        2852,
+        2852,
+        0,
+        0
+      ],
+      "scripts": 70598,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.133
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        2744,
+        2744,
+        0,
+        0
+      ],
+      "scripts": 67739,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.141
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        3187,
+        3187,
+        0,
+        0
+      ],
+      "scripts": 77675,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.133
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        3146,
+        3146,
+        0,
+        0
+      ],
+      "scripts": 76299,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.141
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        3180,
+        3180,
+        0,
+        0
+      ],
+      "scripts": 77679,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.141
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        3136,
+        3136,
+        0,
+        0
+      ],
+      "scripts": 78730,
+      "execs": 0,
+      "writes": 0
+    },
+    "pass": true,
+    "seconds": 5.141
+  }
+]

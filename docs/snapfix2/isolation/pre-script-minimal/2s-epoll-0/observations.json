@@ -1,0 +1,162 @@
+{
+  "cycles": 93297,
+  "observations": 212483,
+  "torn": 24,
+  "pair": [
+    "snapfix2:flush:0",
+    "snapfix2:flush:1"
+  ],
+  "owners": [
+    [
+      7,
+      7
+    ],
+    [
+      6,
+      6
+    ]
+  ],
+  "examples": [
+    {
+      "observation": 1778,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 25260,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 33152,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 38440,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 45957,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 64849,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 86740,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 104237,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 107128,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 113303,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 119090,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 129283,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 161952,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 162038,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 163872,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 166698,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 169818,
+      "values": [
+        1,
+        null
+      ]
+    },
+    {
+      "observation": 173680,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 178511,
+      "values": [
+        null,
+        1
+      ]
+    },
+    {
+      "observation": 188317,
+      "values": [
+        null,
+        1
+      ]
+    }
+  ],
+  "errors": []
+}

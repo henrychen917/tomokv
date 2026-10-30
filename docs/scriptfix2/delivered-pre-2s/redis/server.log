@@ -1,0 +1,13 @@
+861731:C 28 Oct 2026 09:26:34.535 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+861731:C 28 Oct 2026 09:26:34.536 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+861731:C 28 Oct 2026 09:26:34.536 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=861731, just started
+861731:C 28 Oct 2026 09:26:34.536 * Configuration loaded
+861731:M 28 Oct 2026 09:26:34.536 * monotonic clock: POSIX clock_gettime
+861731:M 28 Oct 2026 09:26:34.536 * Running mode=standalone, port=20541.
+861731:M 28 Oct 2026 09:26:34.537 * Server initialized
+861731:M 28 Oct 2026 09:26:34.537 * Ready to accept connections tcp
+861731:M 28 Oct 2026 09:26:34.582 # WARNING: the new maxmemory value set via CONFIG SET (1) is smaller than the current memory usage (1308296). This will result in key eviction and/or the inability to accept new write commands depending on the maxmemory-policy.
+861731:M 28 Oct 2026 09:26:34.610 * x
+861731:signal-handler (1793150794) Received SIGTERM scheduling shutdown...
+861731:M 28 Oct 2026 09:26:34.740 * User requested shutdown...
+861731:M 28 Oct 2026 09:26:34.740 # Redis is now ready to exit, bye bye...

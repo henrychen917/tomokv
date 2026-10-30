@@ -1,0 +1,34 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "8-15",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20100-20199"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "release_batteries asan_batteries feature-armed-0 feature-armed-1 notify debug-0 debug-1 atomic_batteries script_bounds dump_restore aof_frame snapshot-epoll aof-epoll",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_TXN_FUSED": "1"
+  },
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 681.987,
+  "log_sha256": "d144325a6188429c87bff524f2a43589146b38ac04057dd5f525a3955ca91046",
+  "removed_data": {}
+}

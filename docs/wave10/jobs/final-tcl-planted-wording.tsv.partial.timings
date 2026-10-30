@@ -1,0 +1,3 @@
+ok	0.010000	release build (+footprint locks)
+FAIL	228.820000	Redis 7.4.10 Tcl passing subset (2s)
+FAIL	232.320000	Redis 7.4.10 Tcl passing subset (1s)

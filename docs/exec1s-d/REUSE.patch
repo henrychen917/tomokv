@@ -1,0 +1,42 @@
+--- a/src/cmd/multi.inc
++++ b/src/cmd/multi.inc
+@@ -1387,11 +1387,8 @@
+     // Preserve its one committed predecessor instead of cloning the growing
+     // value on every command. A child-scatter/foreign version above it requires
+     // a fresh parent layer: that child has its own runtime-error decision.
+-    bool private_head = false;
+-    shard.store().atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& entry) {
+-        private_head = entry.plain() && entry.group_epoch == &state.decision.epoch &&
+-            entry.group_aborted == &state.shard_aborted[shard.id()];
+-    });
++    const bool private_head = shard.store().atomic_reuses_transaction(
++        hash, key, &state.decision.epoch, &state.shard_aborted[shard.id()]);
+     if (private_head) {
+         shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+         return MultiPrepareWrite::Ready;
+--- a/src/store/flatstore_atomic.inc
++++ b/src/store/flatstore_atomic.inc
+@@ -259,6 +259,23 @@
+                 intent->key_ns == key.ns && intent->key_len == key.n &&
+                 bytes_equal(intent->key_data(), key.p, key.n))) visit(*intent);
+         }
++    }
++    // Owner-only newest-match lookup for EXEC's private-layer reuse. Older
++    // versions cannot change this answer. In particular a hot key with N old
++    // versions must not pay N visits just to reject the preceding transaction.
++    bool atomic_reuses_transaction(uint64_t hash, Slice key,
++                                   const std::atomic<uint64_t>* epoch,
++                                   const std::atomic<bool>* aborted) const {
++        if (!atomic_pending_) return false;
++        const uint64_t bit = atomic_membership_bit(hash);
++        for (auto* entry = atomic_pending_->tail; entry; entry = entry->prev) {
++            if (!(entry->membership & bit)) continue;
++            for (uint32_t i = 0; i < entry->count; ++i)
++                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key))
++                    return entry->plain() && entry->group_epoch == epoch &&
++                           entry->group_aborted == aborted;
++        }
++        return false;
+     }
+     template <typename Visit>
+     void atomic_visit_unit_records(uint64_t hash, Slice key, bool wildcard, Visit&& visit) {

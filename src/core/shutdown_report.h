@@ -53,6 +53,7 @@ private:
         uint64_t cpu_ns = 0;
         uint64_t wakes_sent = 0;
         uint64_t wakes_recv = 0;
+        Exec1sCounters exec1s;
         uint32_t tid = 0;
         ThreadRole role = ThreadRole::Idle;
         std::vector<IoTenureRecord> io_tenures;
@@ -161,6 +162,11 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
         row.cpu_ns = signals.cpu_ns;
         row.wakes_sent = signals.wakes_sent;
         row.wakes_recv = signals.wakes_recv;
+        row.exec1s = exec1s_counters[tid];
+        row.exec1s.io_enters = exec1s_ring_counters[2 * tid].enters;
+        row.exec1s.ex_enters = exec1s_ring_counters[2 * tid + 1].enters;
+        row.exec1s.io_waits = exec1s_ring_counters[2 * tid].waits;
+        row.exec1s.ex_waits = exec1s_ring_counters[2 * tid + 1].waits;
         row.io_tenures = server.io_tenures(tid);
         if (report.mode_ == ShutdownReport::Mode::Fused) {
             row.role = ShutdownReport::ThreadRole::Fused;
@@ -285,6 +291,8 @@ inline void print_shutdown_report_human(const ShutdownReport& report) {
                     row.busy_ns / 1e6, row.idle_ns / 1e6, row.cpu_ns / 1e6,
                     static_cast<unsigned long long>(row.wakes_sent),
                     static_cast<unsigned long long>(row.wakes_recv));
+        std::printf("t%u ", row.tid);
+        exec1s_print(row.exec1s, false);
         for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
             const auto& t = row.io_tenures[tenure];
             std::printf("io_tenure t%u/%zu busy_ns=%llu idle_ns=%llu entry_ns=%llu "
@@ -392,7 +400,9 @@ inline void print_shutdown_report_json(const ShutdownReport& report) {
     for (uint32_t index = 0; index < report.thread_count_; index++) {
         const ShutdownReport::ThreadRow& row = report.threads_[index];
         if (index) std::putchar(',');
-        std::printf("{\"tid\":%u,\"role\":\"%s\",\"ops\":%llu,\"iterations\":%llu,"
+        std::putchar('{');
+        exec1s_print(row.exec1s, true);
+        std::printf("\"tid\":%u,\"role\":\"%s\",\"ops\":%llu,\"iterations\":%llu,"
                     "\"busy_ns\":%llu,\"idle_ns\":%llu,\"cpu_ns\":%llu,"
                     "\"wake_tx\":%llu,\"wake_rx\":%llu,\"io_tenures\":[",
                     row.tid, shutdown_thread_role_json(row.role),

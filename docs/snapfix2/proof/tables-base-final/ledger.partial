@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=snapfix2_tables; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	5.620000	snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)

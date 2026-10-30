@@ -1,0 +1,101 @@
+[
+  {
+    "case": "flushall",
+    "leg": "redis-redis-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        6219,
+        6219,
+        4124,
+        4124
+      ],
+      "scripts": 149201,
+      "execs": 98971,
+      "writes": 94011
+    },
+    "pass": true,
+    "seconds": 5.249
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 224, in case_flushall\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: [\"STALL > 5s: bgsave-loop: TimeoutError('timed out')\", \"STALL > 5s: exec-7: TimeoutError('timed out')\", \"STALL > 5s: script-4: TimeoutError('timed out')\", \"STALL > 5s: exec-6: TimeoutError('timed out')\", \"STALL > 5s: script-1: TimeoutError('timed out')\", \"STALL > 5s: exec-8: TimeoutError('timed out')\", \"STALL > 5s: script-2: TimeoutError('timed out')\", \"STALL > 5s: exec-9: TimeoutError('timed out')\", \"STALL > 5s: script-0: TimeoutError('timed out')\", \"STALL > 5s: script-5: TimeoutError('timed out')\", \"STALL > 5s: script-3: TimeoutError('timed out')\", \"STALL > 5s: observer: TimeoutError('timed out')\"]\n",
+    "seconds": 5.248
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 224, in case_flushall\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: [\"STALL > 5s: script-3: TimeoutError('timed out')\", \"STALL > 5s: writer-12: TimeoutError('timed out')\", \"STALL > 5s: script-0: TimeoutError('timed out')\", \"STALL > 5s: exec-9: TimeoutError('timed out')\", \"STALL > 5s: exec-7: TimeoutError('timed out')\", \"STALL > 5s: script-1: TimeoutError('timed out')\", \"STALL > 5s: script-5: TimeoutError('timed out')\", \"STALL > 5s: exec-8: TimeoutError('timed out')\", \"STALL > 5s: bgsave-loop: TimeoutError('timed out')\", \"STALL > 5s: exec-6: TimeoutError('timed out')\", \"STALL > 5s: script-4: TimeoutError('timed out')\", \"STALL > 5s: script-2: TimeoutError('timed out')\"]\n",
+    "seconds": 5.142
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 224, in case_flushall\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: [\"STALL > 5s: script-4: TimeoutError('timed out')\", \"STALL > 5s: script-3: TimeoutError('timed out')\", \"STALL > 5s: bgsave-loop: TimeoutError('timed out')\", \"STALL > 5s: exec-9: TimeoutError('timed out')\", \"STALL > 5s: exec-7: TimeoutError('timed out')\", \"STALL > 5s: exec-8: TimeoutError('timed out')\", \"STALL > 5s: exec-6: TimeoutError('timed out')\", \"STALL > 5s: script-1: TimeoutError('timed out')\", \"STALL > 5s: script-2: TimeoutError('timed out')\", \"STALL > 5s: script-0: TimeoutError('timed out')\", \"STALL > 5s: writer-11: TimeoutError('timed out')\", \"STALL > 5s: script-5: TimeoutError('timed out')\"]\n",
+    "seconds": 5.139
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        4527,
+        4527,
+        4104,
+        4104
+      ],
+      "scripts": 111295,
+      "execs": 100289,
+      "writes": 100523
+    },
+    "pass": true,
+    "seconds": 5.165
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 224, in case_flushall\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: [\"STALL > 5s: bgsave-loop: TimeoutError('timed out')\", \"STALL > 5s: exec-6: TimeoutError('timed out')\", \"STALL > 5s: exec-9: TimeoutError('timed out')\", \"STALL > 5s: script-2: TimeoutError('timed out')\", \"STALL > 5s: script-5: TimeoutError('timed out')\", \"STALL > 5s: script-4: TimeoutError('timed out')\", \"STALL > 5s: script-3: TimeoutError('timed out')\", \"STALL > 5s: script-1: TimeoutError('timed out')\", \"STALL > 5s: script-0: TimeoutError('timed out')\", \"STALL > 5s: exec-7: TimeoutError('timed out')\", \"STALL > 5s: exec-8: TimeoutError('timed out')\"]\n",
+    "seconds": 6.457
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-1",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        5544,
+        5544,
+        3789,
+        3789
+      ],
+      "scripts": 136956,
+      "execs": 94189,
+      "writes": 105714
+    },
+    "pass": true,
+    "seconds": 5.165
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 229, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 37, [(['snapfix:fs:0', 'snapfix:fs:1'], b'7790', b'63'), (['snapfix:fs:0', 'snapfix:fs:1'], b'7941', b'214'), (['snapfix:fs:0', 'snapfix:fs:1'], b'8114', b'387'), (['snapfix:fs:0', 'snapfix:fs:1'], b'8271', b'544'), (['snapfix:fs:0', 'snapfix:fs:1'], b'8441', b'714')])\n",
+    "seconds": 5.166
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 224, in case_flushall\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: [\"STALL > 5s: observer: TimeoutError('timed out')\", \"STALL > 5s: bgsave-loop: TimeoutError('timed out')\", \"STALL > 5s: script-0: TimeoutError('timed out')\", \"STALL > 5s: script-4: TimeoutError('timed out')\", \"STALL > 5s: script-1: TimeoutError('timed out')\", \"STALL > 5s: exec-9: TimeoutError('timed out')\", \"STALL > 5s: writer-12: TimeoutError('timed out')\", \"STALL > 5s: script-3: TimeoutError('timed out')\", \"STALL > 5s: script-2: TimeoutError('timed out')\", \"STALL > 5s: exec-8: TimeoutError('timed out')\", \"STALL > 5s: exec-6: TimeoutError('timed out')\", \"STALL > 5s: script-5: TimeoutError('timed out')\", \"STALL > 5s: exec-7: TimeoutError('timed out')\"]\n",
+    "seconds": 11.961
+  }
+]

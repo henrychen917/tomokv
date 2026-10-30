@@ -1,0 +1,31 @@
+SIGINT is used by the debugger.
+Are you sure you want to change it? (y or n) [answered Y; input not from terminal]
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [16,17,18,19,20,21,22,23]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1
+  thread t0: role=unified cpu=16 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=17 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=18 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=19 L3=0 shards=2 send=self
+  thread t4: role=unified cpu=20 L3=0 shards=2 send=self
+  thread t5: role=unified cpu=21 L3=0 shards=2 send=self
+  thread t6: role=unified cpu=22 L3=0 shards=2 send=self
+  thread t7: role=unified cpu=23 L3=0 shards=2 send=self
+[New Thread 0x7ffff567f6c0 (LWP 4045707)]
+[New Thread 0x7ffff4e7e6c0 (LWP 4045708)]
+[New Thread 0x7ffff43ff6c0 (LWP 4045709)]
+[New Thread 0x7ffff37ff6c0 (LWP 4045710)]
+[New Thread 0x7ffff27ff6c0 (LWP 4045711)]
+[New Thread 0x7ffff17ff6c0 (LWP 4045712)]
+[New Thread 0x7ffff09ff6c0 (LWP 4045713)]
+[New Thread 0x7fffef5ff6c0 (LWP 4045714)]
+listening on 127.0.0.1:20202

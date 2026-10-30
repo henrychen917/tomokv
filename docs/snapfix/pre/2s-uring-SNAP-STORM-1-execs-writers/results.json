@@ -1,0 +1,8 @@
+[
+  {
+    "defect": "SNAP-STORM-1",
+    "attempt": 0,
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/at412_diagnostics.py\", line 91, in main\n    row['value'] = a.storm(c, port, keys, call, args.redis, args.seconds, bgsave=True,\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/at412.py\", line 504, in storm\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: [\"TimeoutError('timed out')\", \"TimeoutError('timed out')\", \"TimeoutError('timed out')\", \"TimeoutError('timed out')\", \"TimeoutError('timed out')\"]\n"
+  }
+]

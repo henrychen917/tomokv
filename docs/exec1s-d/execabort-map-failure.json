@@ -1,0 +1,26 @@
+{
+  "failing_production_sha256": "22d10835d2b4ab630f5214d857802a0c72bce83e9f4e06eecf8422d9024b1128",
+  "source": "b3eadebf9",
+  "fix": "cf3bdaa9e",
+  "cause": "Watched queue-error EXEC skipped prepare_commands and dereferenced the absent lazy namespace map during execute_watch_phase.",
+  "gate_row": "EXECABORT releases WATCH reservation",
+  "tests_unchanged": true,
+  "files": {
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-db0-unit-1s-no-error.log": "a99d0ffb54722d3f51d0cfb27e67513db586f47630598b426c16123f60b95cf9",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-db0-unit-2s-no-error.log": "14713333f91ee1cf663e70536c7a0a9ffcbf3956e443fe39bb4d116213241f38",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-unit-2s-no-error.log": "6d5cef53d87e278e4c4a92021d4740da34e203b9045e55e113d3a3a1abf5ebfd",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-db0-unit-1s-no-watch.log": "3c59bfe5039a4ebf11b1d28a5ea554fb071f3f1ec3abdf2884f0d4708ac643b9",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-db0-unit-no-arm.log": "48772fac0118e0248e3e7cd09de809c6a219b85d2e1c014b5e2e26a911183668",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-unit-1s-no-error.log": "daf56e4689e2e07cb3035450072824a2cfcf9c6d55f9bec3dbea6c516791898b",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-db0-unit-2s-no-watch.log": "2e7a4d2207c1f0e285850b294b56a7cf302a5642323062786d925c4fefff90ad",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-db0-unit-1s-armed.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-db0-unit-2s-armed.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-unit-1s-armed.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-unit-no-arm.log": "48772fac0118e0248e3e7cd09de809c6a219b85d2e1c014b5e2e26a911183668",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-unit-2s-no-watch.log": "bdde74b29ab16c9ff3558ccd6d41646f2fe9b7e9ecd26e737f6eb35468c33cb0",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-unit-1s-no-watch.log": "2b2a09f2f5d8ec6eb40049e8f84335a7be0020eda0737203aba0953e47ae223f",
+    "build/gate-run.BZeNRx/jobs/atomic_units/execabort-watch-unit-2s-armed.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build/gate-run.BZeNRx/jobs/atomic_units/ledger": "390a0684fb9709d0b4550f203aceca47cdfa119621d99411e17b358a872b2175",
+    "build/gate-run.BZeNRx/jobs/atomic_units/output.log": "f36878cbabd4c3ab14df9a8b95bab0f7862696528ead75dd22c4b4528a5e7f65"
+  }
+}

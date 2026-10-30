@@ -1,0 +1,63 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/at412_diagnostics.py",
+    "--defect",
+    "SNAP-STORM-1",
+    "--binary",
+    "build/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--atomic",
+    "1",
+    "--mode",
+    "1s",
+    "--engine",
+    "epoll",
+    "--attempts",
+    "5",
+    "--seconds",
+    "30",
+    "--mix",
+    "scripts,writers",
+    "--pre-control",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/diagnostic/1s-epoll"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 150.607,
+  "log_sha256": "00a5cd0af6be614bc62ec85c4f2f05475a3499b642e07a660500ec26bab988be",
+  "removed_data": {
+    "1/dump.tomo": {
+      "bytes": 728,
+      "sha256": "87b300e59256f8934361ef0556b2752a5d1a9f4717dfd9d1daef78776dac3c02"
+    },
+    "0/dump.tomo": {
+      "bytes": 728,
+      "sha256": "462437090488437a1ad883f22db2971a2e2dbb7da00834e6a1e68c78e742fec7"
+    },
+    "2/dump.tomo": {
+      "bytes": 728,
+      "sha256": "c7d330ddec710dee927dadd01dfbaaec19c5a69c2ac614ca490775ce3eefc8eb"
+    },
+    "3/dump.tomo": {
+      "bytes": 728,
+      "sha256": "260cd20366be7caf42f024f15b018feeef8b9f663b943d5edc195df13d104ddf"
+    },
+    "4/dump.tomo": {
+      "bytes": 728,
+      "sha256": "9e4ccbd0f7b8eed8b333987a584672ddb48bcb7551ef473a54027dccccfeee15"
+    }
+  }
+}

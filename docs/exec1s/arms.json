@@ -1,0 +1,145 @@
+[
+  {
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-POST",
+    "sha256": "4ccee1eb58d6dfe19279c0e9289c306e0e5c33283c89d3c1b9d29570cb2bf474",
+    "bytes": 218242336,
+    "source_commit": "bd90f09def74cab733c264d799fc713711f6c2fe",
+    "production_source_tree": "eb6767df283e54832b1a89b3ae38fecadcc541de",
+    "makefile_blob": "af53732afd1dad35c31913ccc8e7080f04a635eb",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c"
+  },
+  {
+    "arm": "PRE",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-PRE",
+    "sha256": "661d176a0e35d8587051b3699fdbfd76910b718b4a73f62662591e38febd2f62",
+    "bytes": 218187712,
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "production_source_tree": "418e149ed6fff3600920b117a6f55fa7bfe14283",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/pre-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/pre-source"
+  },
+  {
+    "arm": "POST-layout",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-POST-layout",
+    "sha256": "5cb5623ba3c28325ff517b277f38986b75f93ce829d78e698738d10967c8a3e8",
+    "bytes": 423537384,
+    "control": "A: PRE behaviour / POST behaviour in the same common image; larger than release",
+    "source_commit": "bd90f09def74cab733c264d799fc713711f6c2fe"
+  },
+  {
+    "arm": "PAD-A",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-PAD-A",
+    "sha256": "04a824a9b0fb9ca777e480d7c68cf7779d80be6a13f6b29b612be30fb75bcbac",
+    "bytes": 423537384,
+    "control": "A: PRE behaviour / POST behaviour in the same common image; larger than release",
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d"
+  },
+  {
+    "arm": "X1",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X1",
+    "sha256": "b656b175412bbc30b34a5ce6b4f845916c7bf69816a0bb2fd4dbb8339aca095b",
+    "bytes": 218108640,
+    "source_commit": "f893d74328fce7e68f17d7c4f3cdd588d9a5ffbe",
+    "production_source_tree": "c3cd67dfa9a97750bf32f57e6db1061adfa11761",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x1-current-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x1-current-source"
+  },
+  {
+    "arm": "X2",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X2",
+    "sha256": "7944540161ab1c53b82766d48769a460649727e995d039803e6d3a40239b684b",
+    "bytes": 218139328,
+    "source_commit": "96624237aa50d8adf457512499d9a7cdd200ad78",
+    "production_source_tree": "7df9318dbe14f1fcb8d939470a8e2028198e5a8c",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x2-current-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x2-current-source"
+  },
+  {
+    "arm": "X3",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X3",
+    "sha256": "51bf1eafea870b59742236fb3862aeaa0418f956d6dec3af293628f305affc0e",
+    "bytes": 218098152,
+    "source_commit": "2022b5374ffbbecb7c6de5473425b05f571aa1f6",
+    "production_source_tree": "1bd95e65a60302fd13ba46e4b5626d26f03e144e",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x3-current-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x3-current-source"
+  },
+  {
+    "arm": "X4",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X4",
+    "sha256": "9a9f5312502280cff511319bedff0a464d12087c3d0e480ee6b19052b49ebe5b",
+    "bytes": 218096928,
+    "source_commit": "a8829929a10885d991d53c66432f0f598e5896e9",
+    "production_source_tree": "a092d9a805b3211f5545a43075be9fb236c7e636",
+    "makefile_blob": "ff310af23ca4e4177f49823feeb2bb2d648555da",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x4-current-source",
+      "-j16",
+      "all",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_EXEC1S_WB"
+    ],
+    "build_macro": "TOMO_EXEC1S_WB",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x4-current-source"
+  },
+  {
+    "arm": "X5",
+    "binary": "/home/user/Projects/cx-exec1s-c/build/exec1s-X5",
+    "sha256": "37a52b13deb9c15e638e574c2b35d3dcf69c586590f1ced54434243cc15da657",
+    "bytes": 218242368,
+    "source_commit": "6e1a805edc753ae97f78c2e49922175a639d24ae",
+    "production_source_tree": "eb6767df283e54832b1a89b3ae38fecadcc541de",
+    "makefile_blob": "cdc7af27b9d5028c6a67f12842ea0b57fa367ee3",
+    "command": [
+      "make",
+      "-C",
+      "/home/user/Projects/cx-exec1s-c/build/exec1s/x5-current-source",
+      "-j16",
+      "all"
+    ],
+    "build_macro": "",
+    "source_snapshot": "/home/user/Projects/cx-exec1s-c/build/exec1s/x5-current-source"
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "functions": 654,
+  "equal": 653,
+  "changed": [
+    "unsigned int tomo_db0::ExLoopT<false>::snapshot_control_pass<32u, false>()"
+  ],
+  "symbols": [
+    "_ZN8tomo_db07ExLoopTILb0EE21snapshot_control_passILj32ELb0EEEjv"
+  ],
+  "padding": [],
+  "hot": [],
+  "added": [],
+  "removed": [],
+  "arm": "post",
+  "unit": "db0/src/main.o",
+  "budget": 146099,
+  "initial": 101706,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=146099",
+    "--param",
+    "max-inline-insns-auto=18",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-db0_src_main.o-146099.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-db0_src_main.o-146099.inline"
+  ],
+  "sha256": "f7aecef3d110af8682880d93c5259a5626d47a7dea4ff392bad6ef6e0b00993f"
+}

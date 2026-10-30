@@ -1,0 +1,70 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix2_rss.py",
+    "--case",
+    "large-rss",
+    "--binary",
+    "build/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/rss/large",
+    "--dataset",
+    "1000000",
+    "--stall",
+    "60"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 65.097,
+  "log_sha256": "fd82dbadc9a1ae61daa2013a7eb6b33cb26a4fc4627ef9c6d8a990a58d562984",
+  "removed_data": {
+    "1s-epoll-1/dump.tomo": {
+      "bytes": 66921610,
+      "sha256": "e5d58457fe057cd4f9b580365c4ec981f199f37e0aee4e05d5fc08f505af01bb"
+    },
+    "2s-uring-0/dump.tomo": {
+      "bytes": 66921514,
+      "sha256": "c7c7ca6fed3d7858a49e30535673256dca5641d7e535496d104224833297bec6"
+    },
+    "1s-epoll-0/dump.tomo": {
+      "bytes": 66921610,
+      "sha256": "67ba5df84663488336ecdaf30508674c5052c6a35eceff1ab29df08fb284648e"
+    },
+    "1s-uring-0/dump.tomo": {
+      "bytes": 66921674,
+      "sha256": "5e80630eebe576147a7c0046ce98148d0e840e8ad0fb8cf5643ef81de2e81497"
+    },
+    "2s-epoll-0/dump.tomo": {
+      "bytes": 66921610,
+      "sha256": "41c5015cee72fbf9bf907d5445ede2bfc7cc57b64fd2c3bb484640c6534a48ee"
+    },
+    "redis-redis-0/dump.rdb": {
+      "bytes": 37888508,
+      "sha256": "2bfd9bd81d273df72e29021fa0416001406a24fc464826db701123ddfdf7bd3a"
+    },
+    "2s-epoll-1/dump.tomo": {
+      "bytes": 66921578,
+      "sha256": "aa8b3521cff0d4db359a6c5f685ca972dcb9686891dde6da1095d6f32095de74"
+    },
+    "1s-uring-1/dump.tomo": {
+      "bytes": 66921674,
+      "sha256": "6f22c3e144c4a6ddd4542e98ff8201d4fc7a536500b4c3a2049dbcadce1a8611"
+    },
+    "2s-uring-1/dump.tomo": {
+      "bytes": 66921578,
+      "sha256": "201ca345886a667df23cfcbedca45134733a9072714d6e0e5ea24f4023238460"
+    }
+  }
+}

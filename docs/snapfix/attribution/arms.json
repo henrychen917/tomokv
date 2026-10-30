@@ -1,0 +1,27 @@
+{
+  "fix1-only": {
+    "source": "a214652ec + 1929d0cac (src only)",
+    "binary": "/home/user/Projects/cx-snapfix/build/snapfix/attr1/tomokv",
+    "sha256": "929ecd4aa85573bfa30e37a644666bf57b53e8f994ad868b4476f5ecfffc3d75"
+  },
+  "fix2-only": {
+    "source": "a214652ec + 6732008ae (src only)",
+    "binary": "/home/user/Projects/cx-snapfix/build/snapfix/attr2/tomokv",
+    "sha256": "b64f8cb00c043aaccba88359cf84080a37ed388938c3f9863c288283c9b58b37"
+  },
+  "fix3-only": {
+    "source": "a214652ec + fb9aaad3e (src only)",
+    "binary": "/home/user/Projects/cx-snapfix/build/snapfix/attr3/tomokv",
+    "sha256": "f68438161bd064a3d9ba4268e7ce7714eb0d969728fa99a7a151907d04ae3059"
+  },
+  "PRE": {
+    "source": "a214652ec",
+    "binary": "/home/user/Projects/cx-snapfix/build/snapfix/pre/tomokv",
+    "sha256": "7e7d803448478ecf8ff4d225c8751421d31a096044f62ea29b2ba1bac1db99c3"
+  },
+  "POST-at-fb9aaad3e": {
+    "source": "fb9aaad3e",
+    "binary": "/home/user/Projects/cx-snapfix/build/tomokv",
+    "sha256": "13f3d45c88a0835498e38596ee1c057f1d68a501abac0640f9c40b7156c6c141"
+  }
+}

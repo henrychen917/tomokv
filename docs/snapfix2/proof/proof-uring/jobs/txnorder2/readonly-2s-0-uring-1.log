@@ -1,0 +1,8 @@
+PASS WATCH owner-turn regression
+geometry 2s atomic b'0' databases b'1'
+tomo mode=2s C=4 N=100: k=400 k2=400 expected 400; duplicate observed v=0; aborted retries=872 0.1s
+server rc 0
+PASS W1
+PASS W2
+read skew torn 0
+PASS S5

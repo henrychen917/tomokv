@@ -1,0 +1,5 @@
+A4 draws=20000 distinct=200 missing=0 unexpected=0 nulls=0 min=77 max=133
+A5 stream_calls=16 stream_keys=[b's6:stream'] unknown_calls=16 unknown_keys=0
+A6 lastsave=1793207190 now=1793207192 delta=2 future_control=0
+A7 zero=[0, 0] negative_replicas=ErrorReply(b'ERR value is out of range, must be positive') negative_timeout=ErrorReply(b'ERR timeout is negative')
+s6: 215 comparisons, 0 failures -> PASS

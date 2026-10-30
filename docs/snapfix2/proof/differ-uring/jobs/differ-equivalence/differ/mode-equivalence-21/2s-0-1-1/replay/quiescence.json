@@ -1,0 +1,10 @@
+{
+  "seconds": 9.964033961296082e-05,
+  "samples": [
+    {
+      "seconds": 5.055032670497894e-05,
+      "connected_clients": 1
+    }
+  ],
+  "observer_eof": true
+}

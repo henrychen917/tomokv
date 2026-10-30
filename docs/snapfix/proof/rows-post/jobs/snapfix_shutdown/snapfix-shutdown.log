@@ -1,0 +1,9 @@
+{"case": "shutdown", "leg": "redis-redis-0", "value": {"restored": [143, 143], "acknowledged_max": [140, 140], "sent": 146, "refused": 0, "acknowledged": 140}, "pass": true, "seconds": 0.164}
+{"case": "shutdown", "leg": "1s-uring-0", "value": {"restored": [69, 69], "acknowledged_max": [69, 69], "sent": 92, "refused": 9, "acknowledged": 69}, "pass": true, "seconds": 0.056}
+{"case": "shutdown", "leg": "1s-uring-1", "value": {"restored": [39, 39], "acknowledged_max": [39, 39], "sent": 59, "refused": 6, "acknowledged": 39}, "pass": true, "seconds": 0.052}
+{"case": "shutdown", "leg": "1s-epoll-0", "value": {"restored": [87, 87], "acknowledged_max": [87, 87], "sent": 108, "refused": 7, "acknowledged": 87}, "pass": true, "seconds": 0.054}
+{"case": "shutdown", "leg": "1s-epoll-1", "value": {"restored": [32, 32], "acknowledged_max": [32, 32], "sent": 69, "refused": 23, "acknowledged": 32}, "pass": true, "seconds": 0.053}
+{"case": "shutdown", "leg": "2s-uring-0", "value": {"restored": [80, 80], "acknowledged_max": [80, 80], "sent": 100, "refused": 6, "acknowledged": 80}, "pass": true, "seconds": 0.052}
+{"case": "shutdown", "leg": "2s-uring-1", "value": {"restored": [90, 90], "acknowledged_max": [90, 90], "sent": 109, "refused": 5, "acknowledged": 90}, "pass": true, "seconds": 0.052}
+{"case": "shutdown", "leg": "2s-epoll-0", "value": {"restored": [78, 78], "acknowledged_max": [78, 78], "sent": 94, "refused": 2, "acknowledged": 78}, "pass": true, "seconds": 0.054}
+{"case": "shutdown", "leg": "2s-epoll-1", "value": {"restored": [99, 99], "acknowledged_max": [99, 99], "sent": 119, "refused": 6, "acknowledged": 99}, "pass": true, "seconds": 0.054}

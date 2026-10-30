@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=infofix_latency latencyfix_grammar latencyfix_shape latencyfix_off; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	6.270000	latencyfix LAT-HIST-1 knob grammar
+ok	1.780000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	13.220000	latencyfix LAT-HIST-1 zero allocations off
+ok	12.840000	Redis 7.4 infofix exact latency batch witness

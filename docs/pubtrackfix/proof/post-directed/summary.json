@@ -1,0 +1,15 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.PTPG1Y",
+  "log": "build/pubtrackfix/gate-pass-order.log",
+  "jobs": {
+    "pubtrackfix": {
+      "done": "0\t4\t0\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    }
+  },
+  "summary": [
+    "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-pubtrackfix/build/gate-run.PTPG1Y/ledger.partial"
+  ]
+}

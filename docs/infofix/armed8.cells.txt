@@ -1,0 +1,8 @@
+h01 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1 | srv=--latency-tracking yes
+h02 | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--latency-tracking yes
+h17 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1 | srv=--latency-tracking yes
+h18 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--latency-tracking yes
+h33 | 1s | rl=0 | ov=0 | ro=0 | GET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--latency-tracking yes
+h34 | 1s | rl=0 | ov=0 | ro=0 | SET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--latency-tracking yes
+h49 | 2s | rl=0 | ov=0 | ro=0 | GET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--latency-tracking yes
+h50 | 2s | rl=0 | ov=0 | ro=0 | SET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--latency-tracking yes

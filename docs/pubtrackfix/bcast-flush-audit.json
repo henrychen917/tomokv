@@ -1,0 +1,638 @@
+[
+  {
+    "arm": "oracle",
+    "shape": "exec",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "frames": [
+      ">2\r\n$10\r\ninvalidate\r\n_\r\n",
+      ">2\r\n$10\r\ninvalidate\r\n*1\r\n$6\r\nbf:key\r\n"
+    ],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a340d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "send": [
+          "'MULTI'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'SET'",
+          "'bf:key'",
+          "1"
+        ]
+      },
+      {
+        "reply_hex": "2b5155455545440d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'FLUSHDB'"
+        ]
+      },
+      {
+        "reply_hex": "2b5155455545440d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'EXEC'"
+        ]
+      },
+      {
+        "reply_hex": "2a320d0a2b4f4b0d0a2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a5f0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24360d0a62663a6b65790d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "oracle",
+    "shape": "pipeline",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "frames": [
+      ">2\r\n$10\r\ninvalidate\r\n_\r\n",
+      ">2\r\n$10\r\ninvalidate\r\n*1\r\n$6\r\nbf:key\r\n"
+    ],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a340d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b504f4e470d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a5f0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24360d0a62663a6b65790d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "post-1s",
+    "shape": "exec",
+    "sha256": "dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f",
+    "frames": [],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a320d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "send": [
+          "'MULTI'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'SET'",
+          "'bf:key'",
+          "1"
+        ]
+      },
+      {
+        "reply_hex": "2b5155455545440d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'FLUSHDB'"
+        ]
+      },
+      {
+        "reply_hex": "2d45525220436f6d6d616e64206e6f7420616c6c6f77656420696e736964652061207472616e73616374696f6e0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'EXEC'"
+        ]
+      },
+      {
+        "reply_hex": "2d4558454341424f5254205472616e73616374696f6e206469736361726465642062656361757365206f662070726576696f7573206572726f72732e0d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "post-1s",
+    "shape": "pipeline",
+    "sha256": "dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f",
+    "frames": [
+      ">2\r\n$10\r\ninvalidate\r\n*1\r\n$6\r\nbf:key\r\n",
+      ">2\r\n$10\r\ninvalidate\r\n_\r\n"
+    ],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a320d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b504f4e470d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24360d0a62663a6b65790d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a5f0d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "post-2s",
+    "shape": "exec",
+    "sha256": "dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f",
+    "frames": [],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a320d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "send": [
+          "'MULTI'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'SET'",
+          "'bf:key'",
+          "1"
+        ]
+      },
+      {
+        "reply_hex": "2b5155455545440d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'FLUSHDB'"
+        ]
+      },
+      {
+        "reply_hex": "2d45525220436f6d6d616e64206e6f7420616c6c6f77656420696e736964652061207472616e73616374696f6e0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'EXEC'"
+        ]
+      },
+      {
+        "reply_hex": "2d4558454341424f5254205472616e73616374696f6e206469736361726465642062656361757365206f662070726576696f7573206572726f72732e0d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "post-2s",
+    "shape": "pipeline",
+    "sha256": "dd675721d0f862c424b6d73719afbe9921607a9a1f1fd95df6ecac3a93cfb19f",
+    "frames": [
+      ">2\r\n$10\r\ninvalidate\r\n*1\r\n$6\r\nbf:key\r\n",
+      ">2\r\n$10\r\ninvalidate\r\n_\r\n"
+    ],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a320d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b504f4e470d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24360d0a62663a6b65790d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a5f0d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "pre-1s",
+    "shape": "exec",
+    "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+    "frames": [],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a330d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "send": [
+          "'MULTI'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'SET'",
+          "'bf:key'",
+          "1"
+        ]
+      },
+      {
+        "reply_hex": "2b5155455545440d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'FLUSHDB'"
+        ]
+      },
+      {
+        "reply_hex": "2d45525220436f6d6d616e64206e6f7420616c6c6f77656420696e736964652061207472616e73616374696f6e0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'EXEC'"
+        ]
+      },
+      {
+        "reply_hex": "2d4558454341424f5254205472616e73616374696f6e206469736361726465642062656361757365206f662070726576696f7573206572726f72732e0d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "pre-1s",
+    "shape": "pipeline",
+    "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+    "frames": [
+      ">2\r\n$10\r\ninvalidate\r\n*1\r\n$6\r\nbf:key\r\n",
+      ">2\r\n$10\r\ninvalidate\r\n_\r\n"
+    ],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a320d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b504f4e470d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24360d0a62663a6b65790d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a5f0d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "pre-2s",
+    "shape": "exec",
+    "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+    "frames": [],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a320d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "send": [
+          "'MULTI'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'SET'",
+          "'bf:key'",
+          "1"
+        ]
+      },
+      {
+        "reply_hex": "2b5155455545440d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'FLUSHDB'"
+        ]
+      },
+      {
+        "reply_hex": "2d45525220436f6d6d616e64206e6f7420616c6c6f77656420696e736964652061207472616e73616374696f6e0d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'EXEC'"
+        ]
+      },
+      {
+        "reply_hex": "2d4558454341424f5254205472616e73616374696f6e206469736361726465642062656361757365206f662070726576696f7573206572726f72732e0d0a",
+        "expected_hex": null
+      }
+    ]
+  },
+  {
+    "arm": "pre-2s",
+    "shape": "pipeline",
+    "sha256": "0cac9819e46cfdcb7836fd04d5ab55ef9a49e92403b13212d9d3edea8427d16f",
+    "frames": [
+      ">2\r\n$10\r\ninvalidate\r\n*1\r\n$6\r\nbf:key\r\n",
+      ">2\r\n$10\r\ninvalidate\r\n_\r\n"
+    ],
+    "wire": [
+      {
+        "send": [
+          "'HELLO'",
+          "3"
+        ]
+      },
+      {
+        "reply_hex": "25370d0a24360d0a7365727665720d0a24350d0a72656469730d0a24370d0a76657273696f6e0d0a24360d0a372e342e31300d0a24350d0a70726f746f0d0a3a330d0a24320d0a69640d0a3a330d0a24340d0a6d6f64650d0a2431300d0a7374616e64616c6f6e650d0a24340d0a726f6c650d0a24360d0a6d61737465720d0a24370d0a6d6f64756c65730d0a2a300d0a",
+        "expected_hex": null
+      },
+      {
+        "send": [
+          "'CLIENT'",
+          "'TRACKING'",
+          "'ON'",
+          "'BCAST'",
+          "'PREFIX'",
+          "'bf:'"
+        ]
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": "2b4f4b0d0a"
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b4f4b0d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "2b504f4e470d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24360d0a62663a6b65790d0a",
+        "expected_hex": null
+      },
+      {
+        "reply_hex": "3e320d0a2431300d0a696e76616c69646174650d0a5f0d0a",
+        "expected_hex": null
+      }
+    ]
+  }
+]

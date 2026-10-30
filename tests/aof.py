@@ -652,7 +652,7 @@ elif MODE == "loadaof":
             os.fsync(output.fileno())
         if os.path.getsize(path) != original_size + 3:
             raise AssertionError("incomplete AOF tail was not armed")
-        expect_loadaof(b"-ERR Error trying to load the AOF, check server logs.\r\n")
+        expect_loadaof(b"-ERR Error trying to load the AOF files, check server logs.\r\n")
         if os.path.getsize(path) != original_size + 3:
             raise AssertionError("strict runtime policy modified the incomplete tail")
         expect(("CONFIG", "SET", "aof-load-truncated", "yes"), b"+OK\r\n")

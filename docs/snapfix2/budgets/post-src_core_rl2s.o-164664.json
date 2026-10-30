@@ -1,0 +1,55 @@
+{
+  "functions": 727,
+  "equal": 722,
+  "changed": [
+    "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra]",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra] [clone .cold]",
+    "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+    "tomo::FlatStore::maybe_start_shrink()"
+  ],
+  "symbols": [
+    "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra",
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.cold",
+    "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+    "_ZN4tomo9FlatStore18maybe_start_shrinkEv"
+  ],
+  "padding": [],
+  "hot": [
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra]",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra] [clone .cold]"
+  ],
+  "added": [],
+  "removed": [],
+  "arm": "post",
+  "unit": "src/core/rl2s.o",
+  "budget": 164664,
+  "initial": 118269,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=164664",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_rl2s.o-164664.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-src_core_rl2s.o-164664.inline"
+  ],
+  "sha256": "125fa1894131be119f73784f14c99d2e5c2eed554dbc86f7e75917b91e803a9c"
+}

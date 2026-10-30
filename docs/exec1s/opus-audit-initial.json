@@ -1,0 +1,24 @@
+{
+  "model": [
+    "claude-opus-5-5"
+  ],
+  "effort": "max",
+  "provider": "firstParty",
+  "is_error": false,
+  "permission_denials": [],
+  "num_turns": 153,
+  "request_sha256": "576d40247e2b7c746899a8e3a6cbb36551c688a8329ced84d1d531a74f84f00c",
+  "result_sha256": "72392639f45f54a69bc272b7d1e483d91757f5683e2be70a431714f417192b83",
+  "production_diff_sha256": "999f34614589a1f2015ff877e2f3e962319fe889d2e930087f6bc090cc950ac6",
+  "requested_head": "d8cbb6596",
+  "observed_head": "766539906",
+  "amend_changed_files": [
+    "MEASURE-REQUEST-exec1s.md",
+    "docs/exec1s/command-counts.json",
+    "docs/exec1s/freshness.json",
+    "docs/exec1s/oracle.json",
+    "docs/exec1s/rules.md",
+    "tools/exec1s_proof.py"
+  ],
+  "status": "Initial audit complete; C1-C4 repaired in source, final rebuild and follow-up audit pending"
+}

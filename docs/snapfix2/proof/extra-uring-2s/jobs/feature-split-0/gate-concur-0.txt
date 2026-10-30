@@ -1,0 +1,21 @@
+SCAN-family completeness under resize (127.0.0.1:20100)
+ -- deterministic single-connection arms (no threads, no timing) --
+  ok   SCAN churn   (deterministic)       calls=347 rehashes_during_walk=112 base_live=2000 base_seen=2000 MISSED=0 []
+  ok   SCAN quiet   (CONTROL)             calls=336 rehashes_during_walk=0 base_live=2000 base_seen=2000 MISSED=0 []
+  ok   ZSCAN churn   (deterministic) dry run (CONTROL) calls=164 base_seen=4000 of 4000, no mutation at all
+  ok   ZSCAN churn   (deterministic)      calls=241 card=4000->peak 4400->4400 base_live=4000 base_seen=4000 MISSED=0 []
+  ok   SSCAN churn   (deterministic) dry run (CONTROL) calls=80 base_seen=4000 of 4000, no mutation at all
+  ok   SSCAN churn   (deterministic)      calls=85 card=4000->peak 4400->4400 base_live=4000 base_seen=4000 MISSED=0 []
+  ok   HSCAN churn   (deterministic) dry run (CONTROL) calls=80 base_seen=4000 of 4000, no mutation at all
+  ok   HSCAN churn   (deterministic)      calls=84 card=4000->peak 4400->4400 base_live=4000 base_seen=4000 MISSED=0 []
+  ok   ZSCAN quiet   (CONTROL) dry run (CONTROL) calls=164 base_seen=4000 of 4000, no mutation at all
+  ok   ZSCAN quiet   (CONTROL)            calls=164 card=4000->peak 4000->4000 base_live=4000 base_seen=4000 MISSED=0 []
+ -- concurrent arms (second connection churns an unrelated set) --
+  ok   SCAN churn   trial0                calls=333 rehashes_during_walk=154 base_live=500 base_seen=500 MISSED=0 []
+  ok   SCAN churn   trial1                calls=332 rehashes_during_walk=154 base_live=500 base_seen=500 MISSED=0 []
+  ok   SCAN quiet  (CONTROL) trial0       calls=832 rehashes_during_walk=0 base_live=500 base_seen=500 MISSED=0 []
+  ok   ZSCAN churn                        calls=3256 card=3000->peak 23000->3000 base_live=3000 base_seen=3000 MISSED=0 []
+  ok   SSCAN churn                        calls=813 card=3000->peak 23000->3000 base_live=3000 base_seen=3000 MISSED=0 []
+  ok   HSCAN churn                        calls=221 card=3000->peak 23000->3000 base_live=3000 base_seen=3000 MISSED=0 []
+
+CONCUR: 16 checks passed, 0 failed

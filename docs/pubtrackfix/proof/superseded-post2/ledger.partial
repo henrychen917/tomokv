@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=pubtrackfix redis_tcl; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	3.220000	pubtrackfix TRACK-BCAST-BATCH
+ok	11.420000	pubtrackfix PUBSUB-REPLY-OFF-PUSH
+ok	3.220000	pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+ok	14.580000	pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY
+ok	188.280000	Redis 7.4.10 Tcl passing subset (2s)
+FAIL	195.200000	Redis 7.4.10 Tcl passing subset (1s)

@@ -1,0 +1,271 @@
+{
+  "binary_sha256": "013e3577777bfa4e4ce59f8fdc7c7343f10a0b9dae050aee8683b2673213e8f8",
+  "rows": [
+    {
+      "root": "EVAL-SHEBANG",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Shebang support for lua engine",
+      "detected": true,
+      "failed_named_tests": [
+        "Shebang support for lua engine"
+      ]
+    },
+    {
+      "root": "EVAL-SHEBANG",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Shebang support for lua engine",
+      "detected": true,
+      "failed_named_tests": [
+        "Shebang support for lua engine"
+      ]
+    },
+    {
+      "root": "EVALSHA-SHA-CASE",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "EVALSHA - Can we call a SHA1 in uppercase?",
+      "detected": true,
+      "failed_named_tests": [
+        "EVALSHA - Can we call a SHA1 in uppercase?"
+      ]
+    },
+    {
+      "root": "EVALSHA-SHA-CASE",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "EVALSHA - Can we call a SHA1 in uppercase?",
+      "detected": true,
+      "failed_named_tests": [
+        "EVALSHA - Can we call a SHA1 in uppercase?"
+      ]
+    },
+    {
+      "root": "FCALL-NAME-CASE",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - test function case insensitive",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - test function case insensitive",
+        "FUNCTION - test replace argument"
+      ]
+    },
+    {
+      "root": "FCALL-NAME-CASE",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - test function case insensitive",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - test function case insensitive",
+        "FUNCTION - test replace argument"
+      ]
+    },
+    {
+      "root": "FUNCTION-LOAD-ENV",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - test getmetatable on script load",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - test getmetatable on script load"
+      ]
+    },
+    {
+      "root": "FUNCTION-LOAD-ENV",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - test getmetatable on script load",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - test getmetatable on script load"
+      ]
+    },
+    {
+      "root": "FUNCTION-REGISTER-ARGS",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "LIBRARIES - test registration with empty name",
+      "detected": true,
+      "failed_named_tests": [
+        "LIBRARIES - test registration with empty name"
+      ]
+    },
+    {
+      "root": "FUNCTION-REGISTER-ARGS",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "LIBRARIES - test registration with empty name",
+      "detected": true,
+      "failed_named_tests": [
+        "LIBRARIES - test registration with empty name"
+      ]
+    },
+    {
+      "root": "FUNCTION-SHEBANG-META",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - function test name with quotes",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - function test name with quotes"
+      ]
+    },
+    {
+      "root": "FUNCTION-SHEBANG-META",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - function test name with quotes",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - function test name with quotes"
+      ]
+    },
+    {
+      "root": "FUNCTION-SUBCMD-ARGS",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - test function restore with wrong number of arguments",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - test function restore with wrong number of arguments"
+      ]
+    },
+    {
+      "root": "FUNCTION-SUBCMD-ARGS",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "FUNCTION - test function restore with wrong number of arguments",
+      "detected": true,
+      "failed_named_tests": [
+        "FUNCTION - test function restore with wrong number of arguments"
+      ]
+    },
+    {
+      "root": "LUA-REDIS-API",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "LUA redis.error_reply API with CRLF injection attempt",
+      "detected": true,
+      "failed_named_tests": [
+        "LUA redis.error_reply API with CRLF injection attempt"
+      ]
+    },
+    {
+      "root": "LUA-REDIS-API",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "LUA redis.error_reply API with CRLF injection attempt",
+      "detected": true,
+      "failed_named_tests": [
+        "LUA redis.error_reply API with CRLF injection attempt"
+      ]
+    },
+    {
+      "root": "LUA-SANDBOX-GLOBALS",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Binary code loading failed",
+      "detected": true,
+      "failed_named_tests": [
+        "Binary code loading failed"
+      ]
+    },
+    {
+      "root": "LUA-SANDBOX-GLOBALS",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Binary code loading failed",
+      "detected": true,
+      "failed_named_tests": [
+        "Binary code loading failed"
+      ]
+    },
+    {
+      "root": "SCRIPT-ERROR-WORDING",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "EVAL - No arguments to redis.call/pcall is considered an error",
+      "detected": true,
+      "failed_named_tests": [
+        "EVAL - No arguments to redis.call/pcall is considered an error"
+      ]
+    },
+    {
+      "root": "SCRIPT-ERROR-WORDING",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "EVAL - No arguments to redis.call/pcall is considered an error",
+      "detected": true,
+      "failed_named_tests": [
+        "EVAL - No arguments to redis.call/pcall is considered an error"
+      ]
+    },
+    {
+      "root": "SCRIPT-NUMBER-ARG",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Number conversion precision test (issue #1118)",
+      "detected": true,
+      "failed_named_tests": [
+        "Number conversion precision test (issue #1118)"
+      ]
+    },
+    {
+      "root": "SCRIPT-NUMBER-ARG",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Number conversion precision test (issue #1118)",
+      "detected": true,
+      "failed_named_tests": [
+        "Number conversion precision test (issue #1118)"
+      ]
+    },
+    {
+      "root": "SCRIPT-REPLY-DEPTH",
+      "mode": "1s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Script return recursive object",
+      "detected": true,
+      "failed_named_tests": [
+        "Script return recursive object"
+      ]
+    },
+    {
+      "root": "SCRIPT-REPLY-DEPTH",
+      "mode": "2s",
+      "exit_code": 1,
+      "unarmed_exit_code": 0,
+      "witness": "Script return recursive object",
+      "detected": true,
+      "failed_named_tests": [
+        "Script return recursive object"
+      ]
+    }
+  ]
+}

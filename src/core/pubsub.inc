@@ -725,6 +725,10 @@
         Op& op = client->rob().at(pending.op_id);
         auto sink = op.sink();
 
+        // Subscription confirmations are pushes, including their RESP2 carriage.
+        // CLIENT REPLY has already consumed SKIP; it cannot discard these frames.
+        if (pending.kind == PubSubPendingKind::Modify) op.clear_reply_skip();
+
         // Publications are independent frames. Suppression may discard only the command reply.
         if (op.reply_skip() && !pending.deferred.empty()) {
             wb_.defer_oob(*client, pending.deferred.data(), pending.deferred.size());
@@ -972,6 +976,9 @@
             work += pubsub_flush_outboxes();
             if (pubsub_local_events_.empty()) break;
         }
+        // Draining notifications can enroll BCAST keys in this same pass. Flush
+        // them after the drain, before clearing the shared pending bit below.
+        work += tracking_bcast_flush();
         pubsub_pass_pending_ = !pubsub_local_events_.empty() || !pubsub_outbox_dirty_.empty();
         return work;
     }
@@ -1112,6 +1119,7 @@
                 pending.items.assign(values.begin(), values.end());
             }
             if (pending.items.empty()) {
+                op.clear_reply_skip();
                 auto sink = op.sink();
                 pubsub_append_ack(sink, pattern, shard, false, nullptr,
                     local_it == pubsub_local_.end()

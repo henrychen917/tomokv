@@ -1,0 +1,251 @@
+{
+  "arm": "PRE",
+  "frozen_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+  "rebuilt_sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+  "all_allocated_sections_equal": true,
+  "mismatches": [],
+  "sections": {
+    ".interp": {
+      "type": 1,
+      "flags": 2,
+      "address": 848,
+      "bytes": 28,
+      "alignment": 1,
+      "sha256": "9097c98ea70f6f3b01d50145eb72bf55ad1f4e9713bccf27bd6405d6254eed00"
+    },
+    ".note.gnu.property": {
+      "type": 7,
+      "flags": 2,
+      "address": 880,
+      "bytes": 48,
+      "alignment": 8,
+      "sha256": "67098b0bd64a1f8fdb6594ba06e1fb1fd39e5d20334df6e6957967935b509beb"
+    },
+    ".note.ABI-tag": {
+      "type": 7,
+      "flags": 2,
+      "address": 964,
+      "bytes": 32,
+      "alignment": 4,
+      "sha256": "6e48317ad93a8ac2dc04321465ede06d1274543fc8ab172e68171a9d684bb313"
+    },
+    ".gnu.hash": {
+      "type": 1879048182,
+      "flags": 2,
+      "address": 1000,
+      "bytes": 344,
+      "alignment": 8,
+      "sha256": "0fa6674612b2998f0882f21832bb810e940520708ab1029476dbcc6b2d5f2d57"
+    },
+    ".dynsym": {
+      "type": 11,
+      "flags": 2,
+      "address": 1344,
+      "bytes": 9120,
+      "alignment": 8,
+      "sha256": "58897afdd52fd8a7eb6334de22aac5fcca43ddb382705a9c51f05734a241d511"
+    },
+    ".dynstr": {
+      "type": 3,
+      "flags": 2,
+      "address": 10464,
+      "bytes": 8230,
+      "alignment": 1,
+      "sha256": "b147a89bc543cfb1b4d94d72009d057a6a1f050f6ecd5e59eb7ba404129e24bd"
+    },
+    ".gnu.version": {
+      "type": 1879048191,
+      "flags": 2,
+      "address": 18694,
+      "bytes": 760,
+      "alignment": 2,
+      "sha256": "4f6a260be281cda985a6d82a93c04721e7b6d812edc6fc3537914b7e9ecaf3c8"
+    },
+    ".gnu.version_r": {
+      "type": 1879048190,
+      "flags": 2,
+      "address": 19456,
+      "bytes": 768,
+      "alignment": 8,
+      "sha256": "37f2119c54fcaf85dacffdb57c1a7e0fabdccb304292baaec609bbf9634e1f36"
+    },
+    ".rela.dyn": {
+      "type": 4,
+      "flags": 2,
+      "address": 20224,
+      "bytes": 90912,
+      "alignment": 8,
+      "sha256": "0da2c1a1a8ee4ebf2a19111cd62dd3c71612728abe7cf9b191622b1e901b9f65"
+    },
+    ".rela.plt": {
+      "type": 4,
+      "flags": 66,
+      "address": 111136,
+      "bytes": 7896,
+      "alignment": 8,
+      "sha256": "45de6b2eb23c31f03a23046aa268b0773c91f3a69187b136720cdab1b017baf9"
+    },
+    ".init": {
+      "type": 1,
+      "flags": 6,
+      "address": 122880,
+      "bytes": 27,
+      "alignment": 4,
+      "sha256": "aef6cf557c7dd29e04195f9bb3bd39b4c7f21309aa454460ee3c3502ff693b6f"
+    },
+    ".plt": {
+      "type": 1,
+      "flags": 6,
+      "address": 122912,
+      "bytes": 5280,
+      "alignment": 16,
+      "sha256": "65856d94808ed7a871bc5111579383489c5ea8cd75a03b0dfb37fdc4b2c6fe2d"
+    },
+    ".plt.got": {
+      "type": 1,
+      "flags": 6,
+      "address": 128192,
+      "bytes": 32,
+      "alignment": 16,
+      "sha256": "a40174c6bc7c3717188f868101d1f320f6b69e3072fbc8ce207373e0b25d3b01"
+    },
+    ".plt.sec": {
+      "type": 1,
+      "flags": 6,
+      "address": 128224,
+      "bytes": 5264,
+      "alignment": 16,
+      "sha256": "c4ac68d5a27cc69609580254261913aad7bebcce34deaa09c66897bd2b973d1c"
+    },
+    ".text": {
+      "type": 1,
+      "flags": 6,
+      "address": 133488,
+      "bytes": 8551031,
+      "alignment": 16,
+      "sha256": "06d7946f7430cce1b2a544e7585ad0a3e508b6d87bae1f3e49bc6269403a8c74"
+    },
+    ".rlfence": {
+      "type": 1,
+      "flags": 6,
+      "address": 8684519,
+      "bytes": 112,
+      "alignment": 1,
+      "sha256": "485f9d8b7147c725a09c00899864379d361aae7c68d1baf02e1171590fd0f2a9"
+    },
+    ".fini": {
+      "type": 1,
+      "flags": 6,
+      "address": 8684632,
+      "bytes": 13,
+      "alignment": 4,
+      "sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8"
+    },
+    ".rodata": {
+      "type": 1,
+      "flags": 2,
+      "address": 8687616,
+      "bytes": 170804,
+      "alignment": 64,
+      "sha256": "3245c07f12b9396527a7651956a4ce5884a67df0a6238121e7b89cde9aa9daaa"
+    },
+    ".eh_frame_hdr": {
+      "type": 1,
+      "flags": 2,
+      "address": 8858420,
+      "bytes": 90900,
+      "alignment": 4,
+      "sha256": "ca8be8cec3f81040bf75b74bcb955426996631e564f5605d85e07a7f941a82d4"
+    },
+    ".eh_frame": {
+      "type": 1,
+      "flags": 2,
+      "address": 8949320,
+      "bytes": 603792,
+      "alignment": 8,
+      "sha256": "c46f446e180cc6a2e155ec401e632ad5b77592368ee519f634482b9ef537ba5b"
+    },
+    ".gcc_except_table": {
+      "type": 1,
+      "flags": 2,
+      "address": 9553112,
+      "bytes": 145717,
+      "alignment": 4,
+      "sha256": "eb76f713e4fcf82e51158dc84a01204b3e133b298a1337a08db4b116c0d585dc"
+    },
+    ".tdata": {
+      "type": 1,
+      "flags": 1027,
+      "address": 9700032,
+      "bytes": 384,
+      "alignment": 16,
+      "sha256": "f4dfc099520050847ab92cab83b83f1d052431057f6737c55539b6e9ac128167"
+    },
+    ".tbss": {
+      "type": 8,
+      "flags": 1027,
+      "address": 9700416,
+      "bytes": 520,
+      "alignment": 16,
+      "sha256": null
+    },
+    ".init_array": {
+      "type": 14,
+      "flags": 3,
+      "address": 9700416,
+      "bytes": 760,
+      "alignment": 8,
+      "sha256": "c2cdce865c1fe24edfc1c34fc183069d32472319489cb84200d36129f8445501"
+    },
+    ".fini_array": {
+      "type": 15,
+      "flags": 3,
+      "address": 9701176,
+      "bytes": 8,
+      "alignment": 8,
+      "sha256": "0b8194ce0903624f5421bb33f05a3e99934d6d9aee831af6a50dc76eeeb65548"
+    },
+    ".data.rel.ro": {
+      "type": 1,
+      "flags": 3,
+      "address": 9701184,
+      "bytes": 68464,
+      "alignment": 32,
+      "sha256": "e46878b6b8ed1bcc48237f84f047ed66a6dfda794d08010dea74c6399af63479"
+    },
+    ".dynamic": {
+      "type": 6,
+      "flags": 3,
+      "address": 9769648,
+      "bytes": 608,
+      "alignment": 8,
+      "sha256": "7ab330f0b6bdb2dffdcbe98250485cdb40f7bbc09b1ac8d84e9609db5c5a9366"
+    },
+    ".got": {
+      "type": 1,
+      "flags": 3,
+      "address": 9770256,
+      "bytes": 2784,
+      "alignment": 8,
+      "sha256": "4c23efc49c1979f3c7dc0f59b9f7ea74d4e2735ff4debce97e49cc9215c66d44"
+    },
+    ".data": {
+      "type": 1,
+      "flags": 3,
+      "address": 9773056,
+      "bytes": 19321,
+      "alignment": 64,
+      "sha256": "008b4a6a60d63dd23dee147e4d3ff40f0e3cd79ca1e6564b4f43385cb806ec59"
+    },
+    ".bss": {
+      "type": 8,
+      "flags": 3,
+      "address": 9792384,
+      "bytes": 1106312,
+      "alignment": 64,
+      "sha256": null
+    }
+  },
+  "excluded": ".note.gnu.build-id only; debug sections are not allocated",
+  "fixture_sha256": "83a5b5b3648e896b5db0a36561840e11273cd034dfc9ed8e742bb4f44f0e17a5"
+}

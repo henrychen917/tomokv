@@ -1,0 +1,26 @@
+  row budget: 900s; median=0s; correctness-plan-fallback; storage unlinked regression
+  storage unlinked regression                          ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; storage randomkey regression
+  storage randomkey regression                         ok
+  row budget: 900s; median=0.015s; correctness-plan-fallback; storage rehash regression
+  storage rehash regression                            ok
+  row budget: 900s; median=0.015s; correctness-plan-fallback; storage rollback regression
+  storage rollback regression                          ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; storage snapshot-eviction regression
+  storage snapshot-eviction regression                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); storage flags regression
+  storage flags regression                             ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; storage aof-eviction regression
+  storage aof-eviction regression                      ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; storage intents regression
+  storage intents regression                           ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; storage imported-hash regression
+  storage imported-hash regression                     ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; storage field-index-failure regression
+  storage field-index-failure regression               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; storage hash-bytes regression
+  storage hash-bytes regression                        ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); storage deadline-allocation-failure regression
+  storage deadline-allocation-failure regression       ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; storage flush-prepared-capacity regression
+  storage flush-prepared-capacity regression           ok

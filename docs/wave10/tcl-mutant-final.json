@@ -1,0 +1,78 @@
+{
+  "binary": "build/wave10/tcl-mutant-final/tomokv-mutant",
+  "sha256": "9b3d58473d5d8c8d0c33ce050bc2e43741b6b1d0777e5d1195b7eddaa3b0f18d",
+  "changes": [
+    {
+      "root": "EVAL-SHEBANG",
+      "file": "src/cmd/scripting.cc",
+      "before": "    body = source;\n    flags = EvalLegacy;",
+      "after": "    body = source;\n    flags = EvalLegacy;\n    if (scriptfix2_broken(\"EVAL-SHEBANG\")) return true;"
+    },
+    {
+      "root": "EVALSHA-SHA-CASE",
+      "file": "src/cmd/scripting.cc",
+      "before": "    std::string key(sha.p, sha.n);",
+      "after": "    std::string key(sha.p, sha.n);\n    if (scriptfix2_broken(\"EVALSHA-SHA-CASE\")) return key;"
+    },
+    {
+      "root": "LUA-REDIS-API",
+      "file": "src/cmd/scripting.cc",
+      "before": "    lua_pushcfunction(state, redis_error_reply); lua_setfield(state, -2, \"error_reply\");",
+      "after": "    if (!scriptfix2_broken(\"LUA-REDIS-API\")) {\n        lua_pushcfunction(state, redis_error_reply); lua_setfield(state, -2, \"error_reply\");\n    }"
+    },
+    {
+      "root": "LUA-SANDBOX-GLOBALS",
+      "file": "src/cmd/scripting.cc",
+      "before": "    remove_global(state, \"dofile\");",
+      "after": "    remove_global(state, \"dofile\");\n    if (scriptfix2_broken(\"LUA-SANDBOX-GLOBALS\")) remove_global(state, \"loadstring\");"
+    },
+    {
+      "root": "SCRIPT-ERROR-WORDING",
+      "file": "src/cmd/scripting.cc",
+      "before": "\"ERR Please specify at least one argument for this redis lib call\");",
+      "after": "scriptfix2_broken(\"SCRIPT-ERROR-WORDING\") ? \"ERR invalid script command\" : \"ERR Please specify at least one argument for this redis lib call\");"
+    },
+    {
+      "root": "SCRIPT-NUMBER-ARG",
+      "file": "src/cmd/scripting.cc",
+      "before": "                    lua_pushlstring(state, number, length);",
+      "after": "                    if (scriptfix2_broken(\"SCRIPT-NUMBER-ARG\"))\n                        length = std::snprintf(number, sizeof(number), \"%.14g\", n);\n                    lua_pushlstring(state, number, length);"
+    },
+    {
+      "root": "SCRIPT-REPLY-DEPTH",
+      "file": "src/cmd/scripting.cc",
+      "before": "    if (!lua_checkstack(state, 4)) {",
+      "after": "    if (scriptfix2_broken(\"SCRIPT-REPLY-DEPTH\") && depth > 32) {\n        error = \"script reply nesting limit exceeded\"; return false;\n    }\n    if (!lua_checkstack(state, 4)) {"
+    },
+    {
+      "root": "FCALL-NAME-CASE",
+      "file": "src/cmd/functions.cc",
+      "before": "    std::string result(name);",
+      "after": "    std::string result(name);\n    if (scriptfix2_broken(\"FCALL-NAME-CASE\")) return result;"
+    },
+    {
+      "root": "FUNCTION-LOAD-ENV",
+      "file": "src/cmd/functions.cc",
+      "before": "    lua_pushcfunction(state, fn_missing_index);\n    lua_setfield(state, environment_meta, \"__index\");",
+      "after": "    if (scriptfix2_broken(\"FUNCTION-LOAD-ENV\")) lua_pushvalue(state, LUA_GLOBALSINDEX);\n    else lua_pushcfunction(state, fn_missing_index);\n    lua_setfield(state, environment_meta, \"__index\");"
+    },
+    {
+      "root": "FUNCTION-REGISTER-ARGS",
+      "file": "src/cmd/functions.cc",
+      "before": "    if (!valid_function_name(name)) return register_error(state, kNameError);",
+      "after": "    if (!scriptfix2_broken(\"FUNCTION-REGISTER-ARGS\") && !valid_function_name(name))\n        return register_error(state, kNameError);"
+    },
+    {
+      "root": "FUNCTION-SHEBANG-META",
+      "file": "src/cmd/functions.cc",
+      "before": "    if (!cfg_split_args(header.c_str(), fields) || fields.empty()) {",
+      "after": "    if ((scriptfix2_broken(\"FUNCTION-SHEBANG-META\") && header.find_first_of(\"\\\"'\") != std::string::npos) ||\n        !cfg_split_args(header.c_str(), fields) || fields.empty()) {"
+    },
+    {
+      "root": "FUNCTION-SUBCMD-ARGS",
+      "file": "src/cmd/functions.cc",
+      "before": "        if (op.argc() > 4) { reply_err_string(op,",
+      "after": "        if (!scriptfix2_broken(\"FUNCTION-SUBCMD-ARGS\") && op.argc() > 4) { reply_err_string(op,"
+    }
+  ]
+}

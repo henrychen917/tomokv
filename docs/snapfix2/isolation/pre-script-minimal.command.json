@@ -1,0 +1,29 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix2_flush.py",
+    "--case",
+    "flush-script",
+    "--binary",
+    "build/snapfix2/pre/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/isolation/pre-script-minimal"
+  ],
+  "environment": {},
+  "binary": "build/snapfix2/pre/tomokv",
+  "binary_sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 1,
+  "seconds": 54.533,
+  "log_sha256": "de46ab8ab7f851d9641e99be8693151782fa8b988831d428b662a7a5f0f1036f",
+  "removed_data": {}
+}

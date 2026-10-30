@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)
+  snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1) ok

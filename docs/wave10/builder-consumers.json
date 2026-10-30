@@ -1,0 +1,82 @@
+[
+  {
+    "tool": "tools/aoforder_schedule.py",
+    "sha256": "8cdfc39b4cdf495ed9e7c0fec336fc1aca20ee4cec4095000a9204edcd75bcc0",
+    "consumers": [
+      {
+        "file": "Makefile",
+        "line": 109,
+        "text": "build/aoforder-scheduled: tools/aoforder_schedule.py $(BIN)"
+      },
+      {
+        "file": "Makefile",
+        "line": 110,
+        "text": "python3 tools/aoforder_schedule.py --objects build --output build/aoforder/scheduled"
+      }
+    ]
+  },
+  {
+    "tool": "tools/exec1s_build.py",
+    "sha256": "c246974b0737207e122396985a9535a362ae604bc70f3d54c9f32dfc5a274455",
+    "consumers": []
+  },
+  {
+    "tool": "tools/lottery_build.py",
+    "sha256": "1acbc231776218144996c02cb7787862873b65d9e6acc6246e3e4887a30a1283",
+    "consumers": [
+      {
+        "file": "Makefile",
+        "line": 93,
+        "text": "build/lottery/tomokv: tools/lottery_build.py tools/assert_map.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile"
+      },
+      {
+        "file": "Makefile",
+        "line": 94,
+        "text": "python3 tools/lottery_build.py build/lottery/source"
+      }
+    ]
+  },
+  {
+    "tool": "tools/notifycompat_schedule.py",
+    "sha256": "8a99471eb658d836f92bbe92c276cf4afb2283b942257e36ba41cc10f2943841",
+    "consumers": [
+      {
+        "file": "tests/gate.sh",
+        "line": 4367,
+        "text": "if ! taskset -c \"$BUILD_CORES\" python3 tools/notifycompat_schedule.py \"${schedule_args[@]}\" \\"
+      }
+    ]
+  },
+  {
+    "tool": "tools/publishfix_schedule.py",
+    "sha256": "8b3461531ed79f775986e9a9218c8db08c67cb4d9365711d41f6884716faa407",
+    "consumers": []
+  },
+  {
+    "tool": "tools/racefix_build.py",
+    "sha256": "f229cc40c75439f2348a4653837525bdd56e95eb0d3e3e222069d285b4a8b493",
+    "consumers": [
+      {
+        "file": "Makefile",
+        "line": 115,
+        "text": "build/racefix-climon: tools/racefix_build.py tools/assert_map.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile"
+      },
+      {
+        "file": "Makefile",
+        "line": 116,
+        "text": "python3 tools/racefix_build.py build/racefix-climon-source"
+      }
+    ]
+  },
+  {
+    "tool": "tools/trackfix_schedule.py",
+    "sha256": "046aa6f02ad8f1757a9ad04775773e628527fe81e28e3fb89970b6076870348a",
+    "consumers": [
+      {
+        "file": "tests/gate.sh",
+        "line": 4152,
+        "text": "if ! taskset -c \"$BUILD_CORES\" python3 tools/trackfix_schedule.py \"${schedule_args[@]}\" \\"
+      }
+    ]
+  }
+]

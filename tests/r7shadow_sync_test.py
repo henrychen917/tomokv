@@ -24,6 +24,8 @@ def main():
         sync.ROOT = target
         try:
             bodies, declarations = sync.envelopes()
+            assert bodies.count('fused_executor_->fused_owner_turn<true>()') == 2
+            assert 'fused_executor_->fused_owner_turn()' not in bodies
             assert 'self_->sample_depth(busy.start_ns() / 1000)' in bodies
             path = target / 'src/core/reorder.cc'
             try:

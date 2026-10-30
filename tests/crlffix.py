@@ -38,6 +38,8 @@ def cases():
             'pfdebug-option': ('PFDEBUG', text, 'crlffix-hll'),
             'lua-error-table': ('EVAL', 'return {err=ARGV[1]}', '0', text),
             'lua-status-table': ('EVAL', 'return {ok=ARGV[1]}', '0', text),
+            'lua-error-api': ('EVAL', 'return redis.error_reply(ARGV[1])', '0', text),
+            'lua-status-api': ('EVAL', 'return redis.status_reply(ARGV[1])', '0', text),
             'lua-runtime-error': ('EVAL', 'error(ARGV[1])', '0', text),
             'script-compile-error': ('EVAL', b"return '" + text, '0'),
             'function-compile-error': ('FUNCTION', 'LOAD', b"#!lua name=crlffix_bad\nreturn '" + text),

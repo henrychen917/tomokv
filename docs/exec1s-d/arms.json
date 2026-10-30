@@ -1,0 +1,74 @@
+[
+  {
+    "arm": "MERGE",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+    "sha256": "462c49e4806e9c208162f0ac9ef688077f3dc909edc7592cc7a88be747292f1c",
+    "bytes": 220032464
+  },
+  {
+    "arm": "C-PRE",
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+    "sha256": "47c4cc498a212922433220c57efca3b7e249e3c23889623a0c7de0e0feeb043b",
+    "bytes": 218187712
+  },
+  {
+    "arm": "X12",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X12",
+    "sha256": "20d40ac975b49935500a75b9b2959d7058c03f54ededcb3b4131e27ef8edbec6",
+    "bytes": 220018024
+  },
+  {
+    "arm": "X3",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X3",
+    "sha256": "9bf432e191a5fed09f6bbc76b50c07281155ed802093bfc0a9578068b78ad4e1",
+    "bytes": 219976976
+  },
+  {
+    "arm": "X5",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/X5",
+    "sha256": "7381c44a183471f9a11521e0eb2ae0ce42201d6adf4b3805e8f3af1c98254cba",
+    "bytes": 220074592
+  },
+  {
+    "arm": "PRE",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/PRE",
+    "sha256": "5347cbd4d66c2bfd9a60c802388f3b04015e2bb2801cd37f7fc49a55f6b0932d",
+    "bytes": 220087840
+  },
+  {
+    "arm": "REUSE",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/REUSE",
+    "sha256": "196fa795a956afd6bd0aa5e0d8980e9fcc4ec1e849d1d866317dc87d93039d53",
+    "bytes": 220095600
+  },
+  {
+    "arm": "POST",
+    "source_commit": "cf3bdaa9e987063444ca7d6d1d40e46603da3362",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST",
+    "sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+    "bytes": 220116944
+  },
+  {
+    "arm": "POST-layout",
+    "source_commit": "cf3bdaa9e987063444ca7d6d1d40e46603da3362",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST-layout",
+    "sha256": "9d99271b801d51d2331b8a686172a98e72099f752a9fae5ef604f741cac7d591",
+    "bytes": 426964632,
+    "control": "A: PRE behaviour in the exact combined POST-layout image; larger than release POST"
+  },
+  {
+    "arm": "PAD-A",
+    "source_commit": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/PAD-A",
+    "sha256": "1b1a7372db7a27a10ba0adce157541e5b5805fc5ed4bcff9ddea8aa0587d23b9",
+    "bytes": 426964632,
+    "control": "A: PRE behaviour in the exact combined POST-layout image; larger than release POST"
+  }
+]

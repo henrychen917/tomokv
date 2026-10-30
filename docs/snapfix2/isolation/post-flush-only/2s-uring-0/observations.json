@@ -1,0 +1,21 @@
+{
+  "cycles": 46423,
+  "observations": 112667,
+  "torn": 0,
+  "pair": [
+    "snapfix2:flush:0",
+    "snapfix2:flush:2"
+  ],
+  "owners": [
+    [
+      7,
+      7
+    ],
+    [
+      6,
+      6
+    ]
+  ],
+  "examples": [],
+  "errors": []
+}

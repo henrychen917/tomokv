@@ -1,0 +1,472 @@
+{
+  "scope": "Four implemented roots only; three owner-decision roots remain stopped.",
+  "passed": true,
+  "checks": [
+    {
+      "check": "all nine proof runs present",
+      "passed": true
+    },
+    {
+      "check": "driver completed all nine cases",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "differ-uring expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "differ-epoll expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "pre-directed expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "pad-directed expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "plant-bcast expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "plant-reply-off expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "plant-consumer expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "plant-eviction expected gate exit",
+      "passed": true
+    },
+    {
+      "check": "PRE current binary SHA-256",
+      "passed": true
+    },
+    {
+      "check": "POST current binary SHA-256",
+      "passed": true
+    },
+    {
+      "check": "PAD-A current binary SHA-256",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final TRACK-BCAST-BATCH complete matrix",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final TRACK-BCAST-BATCH expected verdict",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final TRACK-BCAST-BATCH binary binding",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final TRACK-BCAST-BATCH oracle",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-REPLY-OFF-PUSH complete matrix",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-REPLY-OFF-PUSH expected verdict",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-REPLY-OFF-PUSH binary binding",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-REPLY-OFF-PUSH oracle",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-IMPLICIT-CONSUMER-EVENT complete matrix",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-IMPLICIT-CONSUMER-EVENT expected verdict",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-IMPLICIT-CONSUMER-EVENT binary binding",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-IMPLICIT-CONSUMER-EVENT oracle",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-EVICT-ON-MAXMEMORY complete matrix",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-EVICT-ON-MAXMEMORY expected verdict",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-EVICT-ON-MAXMEMORY binary binding",
+      "passed": true
+    },
+    {
+      "check": "post-affected-final PUBSUB-EVICT-ON-MAXMEMORY oracle",
+      "passed": true
+    },
+    {
+      "check": "pre-directed TRACK-BCAST-BATCH complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pre-directed TRACK-BCAST-BATCH expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pre-directed TRACK-BCAST-BATCH binary binding",
+      "passed": true
+    },
+    {
+      "check": "pre-directed TRACK-BCAST-BATCH oracle",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-REPLY-OFF-PUSH complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-REPLY-OFF-PUSH expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-REPLY-OFF-PUSH binary binding",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-REPLY-OFF-PUSH oracle",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-IMPLICIT-CONSUMER-EVENT complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-IMPLICIT-CONSUMER-EVENT expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-IMPLICIT-CONSUMER-EVENT binary binding",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-IMPLICIT-CONSUMER-EVENT oracle",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-EVICT-ON-MAXMEMORY complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-EVICT-ON-MAXMEMORY expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-EVICT-ON-MAXMEMORY binary binding",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-EVICT-ON-MAXMEMORY oracle",
+      "passed": true
+    },
+    {
+      "check": "pad-directed TRACK-BCAST-BATCH complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pad-directed TRACK-BCAST-BATCH expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pad-directed TRACK-BCAST-BATCH binary binding",
+      "passed": true
+    },
+    {
+      "check": "pad-directed TRACK-BCAST-BATCH oracle",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-REPLY-OFF-PUSH complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-REPLY-OFF-PUSH expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-REPLY-OFF-PUSH binary binding",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-REPLY-OFF-PUSH oracle",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-IMPLICIT-CONSUMER-EVENT complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-IMPLICIT-CONSUMER-EVENT expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-IMPLICIT-CONSUMER-EVENT binary binding",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-IMPLICIT-CONSUMER-EVENT oracle",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-EVICT-ON-MAXMEMORY complete matrix",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-EVICT-ON-MAXMEMORY expected verdict",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-EVICT-ON-MAXMEMORY binary binding",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-EVICT-ON-MAXMEMORY oracle",
+      "passed": true
+    },
+    {
+      "check": "pre-directed TRACK-BCAST-BATCH intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-REPLY-OFF-PUSH intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-IMPLICIT-CONSUMER-EVENT intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "pre-directed PUBSUB-EVICT-ON-MAXMEMORY intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "pad-directed TRACK-BCAST-BATCH intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-REPLY-OFF-PUSH intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-IMPLICIT-CONSUMER-EVENT intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "pad-directed PUBSUB-EVICT-ON-MAXMEMORY intended failure in every leg",
+      "passed": true
+    },
+    {
+      "check": "affected 36 jobs and 245 passing rows",
+      "passed": true
+    },
+    {
+      "check": "affected jobs all successful",
+      "passed": true
+    },
+    {
+      "check": "Tcl has both modes",
+      "passed": true
+    },
+    {
+      "check": "Tcl 1s complete selected files",
+      "passed": true
+    },
+    {
+      "check": "Tcl 1s all 31 promoted names",
+      "passed": true
+    },
+    {
+      "check": "Tcl 1s POST binding",
+      "passed": true
+    },
+    {
+      "check": "Tcl 2s complete selected files",
+      "passed": true
+    },
+    {
+      "check": "Tcl 2s all 31 promoted names",
+      "passed": true
+    },
+    {
+      "check": "Tcl 2s POST binding",
+      "passed": true
+    },
+    {
+      "check": "uring all 954 differential comparisons",
+      "passed": true
+    },
+    {
+      "check": "uring standard permanent seeds",
+      "passed": true
+    },
+    {
+      "check": "uring five differential parts",
+      "passed": true
+    },
+    {
+      "check": "uring gate jobs pass",
+      "passed": true
+    },
+    {
+      "check": "epoll all 954 differential comparisons",
+      "passed": true
+    },
+    {
+      "check": "epoll standard permanent seeds",
+      "passed": true
+    },
+    {
+      "check": "epoll five differential parts",
+      "passed": true
+    },
+    {
+      "check": "epoll gate jobs pass",
+      "passed": true
+    },
+    {
+      "check": "plants built from POST",
+      "passed": true
+    },
+    {
+      "check": "four root-specific plants",
+      "passed": true
+    },
+    {
+      "check": "reply-off Tcl has both modes",
+      "passed": true
+    },
+    {
+      "check": "reply-off 1s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "reply-off 1s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "reply-off 2s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "reply-off 2s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "eviction Tcl has both modes",
+      "passed": true
+    },
+    {
+      "check": "eviction 1s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "eviction 1s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "eviction 2s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "eviction 2s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "consumer Tcl has both modes",
+      "passed": true
+    },
+    {
+      "check": "consumer 1s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "consumer 1s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "consumer 2s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "consumer 2s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "bcast Tcl has both modes",
+      "passed": true
+    },
+    {
+      "check": "bcast 1s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "bcast 1s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "bcast 2s exact promoted witness fails",
+      "passed": true
+    },
+    {
+      "check": "bcast 2s planted binary binding",
+      "passed": true
+    },
+    {
+      "check": "52 zero-instruction comparisons",
+      "passed": true
+    },
+    {
+      "check": "instruction scopes bound to PRE and POST",
+      "passed": true
+    },
+    {
+      "check": "all 56 make-q queries pass",
+      "passed": true
+    },
+    {
+      "check": "freshness POST binding",
+      "passed": true
+    },
+    {
+      "check": "isolated gates_test passes",
+      "passed": true
+    }
+  ],
+  "input_sha256": {
+    "proof-summary.json": "92051727bb2bafc3242c8e09998adb48b2668da25a81f1704562d335c69bdbd9",
+    "proof-driver-affected-differ-controls-gates-test.json": "e0b5c04a38624a91d1bf856430f9acc83118e4ccf17fd1c7b341d4525c5a9647",
+    "plants.json": "f4052a869ed374540ff4232219f2576af16838830f4fecf0b96d42c1f0f38548",
+    "instructions-pc/commands-comparison.json": "2786bad142c13b3126dbb746cb5025216e8bb1e32d8622451372551e6fa6c7c0",
+    "instructions-pc/local-comparison.json": "05be469f71b97fa295c7f7c757989d0800002a9b60b1d3ced97a98a7a1b8ff2c",
+    "instructions-production-binding.json": "eeddfcc5d1ed05592c4db478bcbdd90d9d71c4dc95653af40ba7b95b83d5f5af",
+    "freshness.json": "43ce131c7ecd527f60e38b7eb7c73c27919fe7068f2e69abf3d271a66ab1909c",
+    "gates-test-final.json": "86d046c1144efdad95c2f1814615deb5f775662f3695e9927b4ce9a5854563b6"
+  }
+}

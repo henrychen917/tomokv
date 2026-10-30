@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 128,
+    "BITCOUNT": 761,
+    "BITOP": 552,
+    "BITPOS": 1086,
+    "DEL": 88,
+    "EXISTS": 1,
+    "GET": 101,
+    "GETBIT": 511,
+    "GETRANGE": 2,
+    "SADD": 1,
+    "SET": 147,
+    "SETBIT": 803,
+    "STRLEN": 81
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "BITCOUNT": [
+      "reply"
+    ],
+    "BITOP": [
+      "reply"
+    ],
+    "BITPOS": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "GETBIT": [
+      "reply"
+    ],
+    "GETRANGE": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SETBIT": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ]
+  }
+}

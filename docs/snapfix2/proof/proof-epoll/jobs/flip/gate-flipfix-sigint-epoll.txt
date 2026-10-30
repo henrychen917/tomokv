@@ -1,0 +1,6 @@
+{"affinity": [8, 9, 10, 11, 12, 13, 14, 15], "argv": ["taskset", "-c", "0-7", "/home/user/Projects/cx-snapfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "20100", "--dir", "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/flip/flipfix-sigint-epoll/sigint", "--save", "3600 1", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "sigint", "loadavg": [17.5302734375, 16.50634765625, 18.13525390625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-snapfix2/build/tomokv", "label": "sigint", "pid": 2233950}
+{"acknowledged": 1000, "case": "sigint", "event": "armed", "moving": 1}
+{"elapsed": 0.0011, "event": "second-sigint-exit", "status": 1}
+{"event": "stop", "label": "sigint", "loadavg": [17.5302734375, 16.50634765625, 18.13525390625], "log": "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/flip/flipfix-sigint-epoll/sigint/sigint.log", "rc": 1}
+{"case": "sigint", "result": "PASS"}

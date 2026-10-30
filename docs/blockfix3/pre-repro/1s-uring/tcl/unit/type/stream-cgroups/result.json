@@ -1,0 +1,480 @@
+{
+  "file": "unit/type/stream-cgroups",
+  "mode": "1s",
+  "passed": 0,
+  "failed": 2,
+  "skipped": 53,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "seconds": 0.1687389863654971,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/user/Projects/cx-blockfix3/build/blockfix3/pre/tomokv",
+    "--port",
+    "20190",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-blockfix3/docs/blockfix3/pre-repro/1s-uring/tcl/unit/type/stream-cgroups/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "0-7",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20190",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20192",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/type/stream-cgroups",
+    "--durable",
+    "--timeout",
+    "15",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--only",
+    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP"
+  ],
+  "server_exit": 0,
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3985119",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XGROUP CREATE: creation and duplicate group name detection",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XGROUP CREATE: with ENTRIESREAD parameter",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XGROUP CREATE: automatic stream creation fails without MKSTREAM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XGROUP CREATE: automatic stream creation works with MKSTREAM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XREADGROUP will return only new elements",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XREADGROUP can read the history of the elements we own",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XPENDING is able to return pending items",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XPENDING can return single consumer items",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XPENDING only group",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XPENDING with IDLE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XPENDING with exclusive range intervals works as expected",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XACK is able to remove items from the consumer/group PEL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XACK can't remove the same item multiple times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XACK is able to accept multiple arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XACK should fail if got at least one invalid ID",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "PEL NACK reassignment after XGROUP SETID event",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XREADGROUP will not report data on empty history. Bug #5577",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XREADGROUP history reporting of deleted entries. Bug #5570",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP will not reply with an empty array",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP: key deleted",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP: key type changed with SET",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP: key type changed with transaction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP: flushed DB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP: swapped DB, key doesn't exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP: swapped DB, key is not a stream",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XREAD and XREADGROUP against wrong parameter",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREAD: key deleted",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREAD: key type changed with SET",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP for stream that ran dry (issue #5299)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP will ignore BLOCK if ID is not >",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP for stream key that has clients blocked on list",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+      "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
+      "data": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl\nExpected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) ",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "RENAME can unblock XREADGROUP with data",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "RENAME can unblock XREADGROUP with -NOGROUP",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XCLAIM can claim PEL items from another consumer",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XCLAIM without JUSTID increments delivery count",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XCLAIM same consumer",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XAUTOCLAIM can claim PEL items from another consumer",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XAUTOCLAIM as an iterator",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XAUTOCLAIM COUNT must be > 0",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XCLAIM with XDEL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XCLAIM with trimming",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XAUTOCLAIM with XDEL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XAUTOCLAIM with XDEL and count",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XAUTOCLAIM with out of range count",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XCLAIM with trimming",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XINFO FULL output",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Consumer seen-time and active-time",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XGROUP CREATECONSUMER: create consumer if does not exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XGROUP CREATECONSUMER: group must exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XREADGROUP of multiple entries changes dirty by one",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "XREADGROUP from PEL does not change dirty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": " SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set $param $val\"\n    (procedure \"run_external_server_test\" line 35)\n    invoked from within\n\"run_external_server_test $code $overrides\"\n    (procedure \"start_server\" line 61)\n    invoked from within\n\"start_server {tags {\"stream needs:debug\"} overrides {appendonly yes aof-use-rdb-preamble no appendfsync always}} {\n        test {XREADGROUP with NOACK...\"\n    (\"uplevel\" body line 1072)\n    invoked from within\n\"uplevel 2 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "unit/type/stream-cgroups",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-snapfix/build/snapfix/commands/post-db0-INCR-1s-1-1--1.log
+SHA-256: 5658ce89d8d5fcfff40f8d55f9785cbc7520ff2392c9fe050e4ce7ba9b1a1075
+Exit: 0
+PASS bounded production command scope
+T<true>::exec_batch_prefetched<false> (this=0x7ffff618b088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2367
+2367	    }
+0x00005555558aee18	2367	    }
+0x00005555558aee21	2367	    }
+0x00005555558aee27	2367	    }
+0x00005555558aee2b	2367	    }
+0x00005555558aee2c	2367	    }
+0x00005555558aee2e	2367	    }
+0x00005555558aee30	2367	    }
+0x00005555558aee32	2367	    }
+0x00005555558aee34	2367	    }
+0x00005555558aee35	2367	    }
+0x0000555555d8d4d4 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1953065) exited normally]
+COUNT 1314

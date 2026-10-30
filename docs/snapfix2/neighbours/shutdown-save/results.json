@@ -1,0 +1,155 @@
+[
+  {
+    "case": "shutdown-save",
+    "leg": "redis-redis-0",
+    "value": {
+      "restored": [
+        330,
+        330
+      ],
+      "acknowledged_max": [
+        330,
+        330
+      ],
+      "sent": 336
+    },
+    "pass": true,
+    "seconds": 0.164
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "1s-uring-0",
+    "value": {
+      "restored": [
+        94,
+        94
+      ],
+      "acknowledged_max": [
+        90,
+        90
+      ],
+      "sent": 162
+    },
+    "pass": true,
+    "seconds": 1.605
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "1s-uring-1",
+    "value": {
+      "restored": [
+        87,
+        87
+      ],
+      "acknowledged_max": [
+        82,
+        82
+      ],
+      "sent": 156
+    },
+    "pass": true,
+    "seconds": 1.555
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "1s-epoll-0",
+    "value": {
+      "restored": [
+        84,
+        84
+      ],
+      "acknowledged_max": [
+        79,
+        79
+      ],
+      "sent": 148
+    },
+    "pass": true,
+    "seconds": 1.554
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "1s-epoll-1",
+    "value": {
+      "restored": [
+        86,
+        86
+      ],
+      "acknowledged_max": [
+        82,
+        82
+      ],
+      "sent": 147
+    },
+    "pass": true,
+    "seconds": 1.555
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "2s-uring-0",
+    "value": {
+      "restored": [
+        92,
+        92
+      ],
+      "acknowledged_max": [
+        87,
+        87
+      ],
+      "sent": 169
+    },
+    "pass": true,
+    "seconds": 1.554
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "2s-uring-1",
+    "value": {
+      "restored": [
+        99,
+        99
+      ],
+      "acknowledged_max": [
+        91,
+        91
+      ],
+      "sent": 172
+    },
+    "pass": true,
+    "seconds": 1.554
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "2s-epoll-0",
+    "value": {
+      "restored": [
+        99,
+        99
+      ],
+      "acknowledged_max": [
+        91,
+        91
+      ],
+      "sent": 174
+    },
+    "pass": true,
+    "seconds": 1.554
+  },
+  {
+    "case": "shutdown-save",
+    "leg": "2s-epoll-1",
+    "value": {
+      "restored": [
+        95,
+        95
+      ],
+      "acknowledged_max": [
+        91,
+        91
+      ],
+      "sent": 174
+    },
+    "pass": true,
+    "seconds": 1.554
+  }
+]

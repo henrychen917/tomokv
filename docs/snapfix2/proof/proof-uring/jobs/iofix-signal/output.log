@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.17 immediate signal shutdown
+  iofix IO4.17 immediate signal shutdown               ok

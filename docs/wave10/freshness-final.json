@@ -1,0 +1,801 @@
+{
+  "note": "Post harness-composition rebuild: all original 57 freshness checks, plus both native INFO companions. Gate tooling may build other disposable variants independently. The two mdbqsbr2 labels are parameterized builds, not literal Makefile targets; the mistaken label-only lookups are retained separately, then their recorded commands are checked.",
+  "binary_sha256": "844cf188071bae335a80e8ae15c2acaec2d1f583f235edf4bf4496421299660e",
+  "checks": [
+    {
+      "target": "build/aoforder-scheduled",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ]
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ]
+    },
+    {
+      "target": "build/at15-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/at15-unit"
+      ]
+    },
+    {
+      "target": "build/at412-owner",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/at412-owner"
+      ]
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ]
+    },
+    {
+      "target": "build/blockfix-cost",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix_cost.mk",
+        "-q",
+        "build/blockfix-cost"
+      ]
+    },
+    {
+      "target": "build/blockfix2-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-db0-unit"
+      ]
+    },
+    {
+      "target": "build/blockfix2-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/blockfix2.mk",
+        "-q",
+        "build/blockfix2-unit"
+      ]
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ]
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ]
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ]
+    },
+    {
+      "target": "build/exbatch-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ]
+    },
+    {
+      "target": "build/exec1s-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exec1s-unit"
+      ]
+    },
+    {
+      "target": "build/exec1s-word-tsan",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/exec1s-word-tsan"
+      ]
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ]
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ]
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ]
+    },
+    {
+      "target": "build/flushfix-units",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ]
+    },
+    {
+      "target": "build/gaterows5-units",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/gaterows5-units"
+      ]
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ]
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ]
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ]
+    },
+    {
+      "target": "build/lbplanner-units",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ]
+    },
+    {
+      "target": "mdbqsbr2-park",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+        "all"
+      ]
+    },
+    {
+      "target": "mdbqsbr2-no-wake",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+        "all"
+      ]
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ]
+    },
+    {
+      "target": "build/moverfix-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ]
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ]
+    },
+    {
+      "target": "build/multidb-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ]
+    },
+    {
+      "target": "build/netcap-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ]
+    },
+    {
+      "target": "build/netcmd-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ]
+    },
+    {
+      "target": "build/persistfix-units",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ]
+    },
+    {
+      "target": "build/publishfix-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ]
+    },
+    {
+      "target": "build/racefix-climon",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ]
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ]
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ]
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ]
+    },
+    {
+      "target": "build/respresume-migration",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ]
+    },
+    {
+      "target": "build/respresume-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ]
+    },
+    {
+      "target": "build/rltopo-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ]
+    },
+    {
+      "target": "build/shutdown-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ]
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ]
+    },
+    {
+      "target": "build/storesize-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-episodes",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ]
+    },
+    {
+      "target": "build/txnorder-episodes-debug",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ]
+    },
+    {
+      "target": "build/txnorder-index-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-index-db0-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-index-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-index-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-retry-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-retry-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-wake-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-watch-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-watch-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-wound-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-wound-db0-unit"
+      ]
+    },
+    {
+      "target": "build/txnorder-wound-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/txnorder-wound-unit"
+      ]
+    },
+    {
+      "target": "build/waits-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/waits-unit"
+      ]
+    },
+    {
+      "target": "build/wb-rule-units",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ]
+    },
+    {
+      "target": "build/wbland-units",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/wbland-units"
+      ]
+    },
+    {
+      "target": "all",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "all"
+      ]
+    },
+    {
+      "target": "build/rlfix3-info-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/rlfix3-info-unit"
+      ]
+    },
+    {
+      "target": "build/rlfix3-info-db0-unit",
+      "exit": 0,
+      "diagnostic": "",
+      "command": [
+        "taskset",
+        "-c",
+        "64-95",
+        "make",
+        "-q",
+        "build/rlfix3-info-db0-unit"
+      ]
+    }
+  ],
+  "invalid_label_probes": [
+    {
+      "target": "mdbqsbr2-park",
+      "exit": 2,
+      "diagnostic": "make: *** No rule to make target 'mdbqsbr2-park'.  Stop.\n"
+    },
+    {
+      "target": "mdbqsbr2-no-wake",
+      "exit": 2,
+      "diagnostic": "make: *** No rule to make target 'mdbqsbr2-no-wake'.  Stop.\n"
+    }
+  ]
+}

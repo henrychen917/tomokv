@@ -1,0 +1,78 @@
+[
+  {
+    "case": "shutdown",
+    "leg": "1s-uring-1",
+    "value": {
+      "restored": [
+        67,
+        67
+      ],
+      "acknowledged_max": [
+        67,
+        67
+      ],
+      "sent": 88,
+      "refused": 7,
+      "acknowledged": 67
+    },
+    "pass": true,
+    "seconds": 0.054
+  },
+  {
+    "case": "shutdown",
+    "leg": "1s-epoll-1",
+    "value": {
+      "restored": [
+        84,
+        84
+      ],
+      "acknowledged_max": [
+        84,
+        84
+      ],
+      "sent": 106,
+      "refused": 8,
+      "acknowledged": 84
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-uring-1",
+    "value": {
+      "restored": [
+        93,
+        93
+      ],
+      "acknowledged_max": [
+        93,
+        93
+      ],
+      "sent": 110,
+      "refused": 3,
+      "acknowledged": 93
+    },
+    "pass": true,
+    "seconds": 0.052
+  },
+  {
+    "case": "shutdown",
+    "leg": "2s-epoll-1",
+    "value": {
+      "restored": [
+        106,
+        106
+      ],
+      "acknowledged_max": [
+        106,
+        106
+      ],
+      "sent": 122,
+      "refused": 2,
+      "acknowledged": 106
+    },
+    "pass": true,
+    "seconds": 0.052
+  }
+]

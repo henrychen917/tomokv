@@ -1,0 +1,155 @@
+GATE(full): 32 physical cores; 1 correctness slots = min(8/8 server, 24/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 24 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave10/build/gate-run.nWMM5j
+PARTIAL jobs (including prerequisites): release pubtrackfix production_units blockfix2 snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables crlffix scriptfix2 wave8b_off execfair exec1s infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof
+PARTIAL jobs (including prerequisites): release pubtrackfix production_units blockfix2 snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables crlffix scriptfix2 wave8b_off execfair exec1s infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix TRACK-BCAST-BATCH
+  pubtrackfix TRACK-BCAST-BATCH                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-REPLY-OFF-PUSH
+  pubtrackfix PUBSUB-REPLY-OFF-PUSH                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+  pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT           ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY
+  pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+  blockfix2 BLOCK-WAKE-RENAME-SORTSTORE                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+  blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK            ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+  blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS               ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+  blockfix2 MULTI-XREADGROUP-BLOCK-HANG                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 INFO-TOTAL-BLOCKING-KEYS
+  blockfix2 INFO-TOTAL-BLOCKING-KEYS                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+  blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-SERVE-REFUSED-DROP
+  blockfix2 BLOCK-SERVE-REFUSED-DROP                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1)
+  snapfix XS-SHUT-1 SHUTDOWN NOSAVE in script storm (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1)
+  snapfix SNAP-STORM-1 BGSAVE under script storm (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)
+  snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)
+  snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; CRLF line replies match Redis and preserve synchronization
+  CRLF line replies match Redis and preserve synchronization FAIL (see /home/user/Projects/cx-wave10/build/gate-run.nWMM5j/jobs/crlffix/crlffix.log)
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVAL-SHEBANG (1s, uring)
+  scriptfix2 EVAL-SHEBANG (1s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVALSHA-SHA-CASE (1s, uring)
+  scriptfix2 EVALSHA-SHA-CASE (1s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FCALL-NAME-CASE (1s, uring)
+  scriptfix2 FCALL-NAME-CASE (1s, uring)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-LOAD-ENV (1s, uring)
+  scriptfix2 FUNCTION-LOAD-ENV (1s, uring)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-REGISTER-ARGS (1s, uring)
+  scriptfix2 FUNCTION-REGISTER-ARGS (1s, uring)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SHEBANG-META (1s, uring)
+  scriptfix2 FUNCTION-SHEBANG-META (1s, uring)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SUBCMD-ARGS (1s, uring)
+  scriptfix2 FUNCTION-SUBCMD-ARGS (1s, uring)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-REDIS-API (1s, uring)
+  scriptfix2 LUA-REDIS-API (1s, uring)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-SANDBOX-GLOBALS (1s, uring)
+  scriptfix2 LUA-SANDBOX-GLOBALS (1s, uring)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-ERROR-WORDING (1s, uring)
+  scriptfix2 SCRIPT-ERROR-WORDING (1s, uring)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-NUMBER-ARG (1s, uring)
+  scriptfix2 SCRIPT-NUMBER-ARG (1s, uring)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-REPLY-DEPTH (1s, uring)
+  scriptfix2 SCRIPT-REPLY-DEPTH (1s, uring)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVAL-SHEBANG (1s, epoll)
+  scriptfix2 EVAL-SHEBANG (1s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVALSHA-SHA-CASE (1s, epoll)
+  scriptfix2 EVALSHA-SHA-CASE (1s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FCALL-NAME-CASE (1s, epoll)
+  scriptfix2 FCALL-NAME-CASE (1s, epoll)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-LOAD-ENV (1s, epoll)
+  scriptfix2 FUNCTION-LOAD-ENV (1s, epoll)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-REGISTER-ARGS (1s, epoll)
+  scriptfix2 FUNCTION-REGISTER-ARGS (1s, epoll)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SHEBANG-META (1s, epoll)
+  scriptfix2 FUNCTION-SHEBANG-META (1s, epoll)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SUBCMD-ARGS (1s, epoll)
+  scriptfix2 FUNCTION-SUBCMD-ARGS (1s, epoll)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-REDIS-API (1s, epoll)
+  scriptfix2 LUA-REDIS-API (1s, epoll)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-SANDBOX-GLOBALS (1s, epoll)
+  scriptfix2 LUA-SANDBOX-GLOBALS (1s, epoll)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-ERROR-WORDING (1s, epoll)
+  scriptfix2 SCRIPT-ERROR-WORDING (1s, epoll)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-NUMBER-ARG (1s, epoll)
+  scriptfix2 SCRIPT-NUMBER-ARG (1s, epoll)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-REPLY-DEPTH (1s, epoll)
+  scriptfix2 SCRIPT-REPLY-DEPTH (1s, epoll)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVAL-SHEBANG (2s, uring)
+  scriptfix2 EVAL-SHEBANG (2s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVALSHA-SHA-CASE (2s, uring)
+  scriptfix2 EVALSHA-SHA-CASE (2s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FCALL-NAME-CASE (2s, uring)
+  scriptfix2 FCALL-NAME-CASE (2s, uring)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-LOAD-ENV (2s, uring)
+  scriptfix2 FUNCTION-LOAD-ENV (2s, uring)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-REGISTER-ARGS (2s, uring)
+  scriptfix2 FUNCTION-REGISTER-ARGS (2s, uring)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SHEBANG-META (2s, uring)
+  scriptfix2 FUNCTION-SHEBANG-META (2s, uring)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SUBCMD-ARGS (2s, uring)
+  scriptfix2 FUNCTION-SUBCMD-ARGS (2s, uring)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-REDIS-API (2s, uring)
+  scriptfix2 LUA-REDIS-API (2s, uring)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-SANDBOX-GLOBALS (2s, uring)
+  scriptfix2 LUA-SANDBOX-GLOBALS (2s, uring)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-ERROR-WORDING (2s, uring)
+  scriptfix2 SCRIPT-ERROR-WORDING (2s, uring)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-NUMBER-ARG (2s, uring)
+  scriptfix2 SCRIPT-NUMBER-ARG (2s, uring)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-REPLY-DEPTH (2s, uring)
+  scriptfix2 SCRIPT-REPLY-DEPTH (2s, uring)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVAL-SHEBANG (2s, epoll)
+  scriptfix2 EVAL-SHEBANG (2s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 EVALSHA-SHA-CASE (2s, epoll)
+  scriptfix2 EVALSHA-SHA-CASE (2s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FCALL-NAME-CASE (2s, epoll)
+  scriptfix2 FCALL-NAME-CASE (2s, epoll)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-LOAD-ENV (2s, epoll)
+  scriptfix2 FUNCTION-LOAD-ENV (2s, epoll)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-REGISTER-ARGS (2s, epoll)
+  scriptfix2 FUNCTION-REGISTER-ARGS (2s, epoll)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SHEBANG-META (2s, epoll)
+  scriptfix2 FUNCTION-SHEBANG-META (2s, epoll)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 FUNCTION-SUBCMD-ARGS (2s, epoll)
+  scriptfix2 FUNCTION-SUBCMD-ARGS (2s, epoll)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-REDIS-API (2s, epoll)
+  scriptfix2 LUA-REDIS-API (2s, epoll)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 LUA-SANDBOX-GLOBALS (2s, epoll)
+  scriptfix2 LUA-SANDBOX-GLOBALS (2s, epoll)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-ERROR-WORDING (2s, epoll)
+  scriptfix2 SCRIPT-ERROR-WORDING (2s, epoll)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-NUMBER-ARG (2s, epoll)
+  scriptfix2 SCRIPT-NUMBER-ARG (2s, epoll)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix2 SCRIPT-REPLY-DEPTH (2s, epoll)
+  scriptfix2 SCRIPT-REPLY-DEPTH (2s, epoll)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; wave8b tracking-off EXEC scans and transitions
+  wave8b tracking-off EXEC scans and transitions       ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXEC fast-lane polls
+  EXEC fast-lane polls                                 ok
+  row budget: 900s; median=19.89s; correctness-plan-fallback; exec1s refinements (1s, atomic 0)
+  exec1s refinements (1s, atomic 0)                    ok
+  row budget: 900s; median=19.88s; correctness-plan-fallback; exec1s refinements (1s, atomic 1)
+  exec1s refinements (1s, atomic 1)                    ok
+  row budget: 900s; median=2.92s; correctness-plan-fallback; exec1s refinements (2s, atomic 0)
+  exec1s refinements (2s, atomic 0)                    ok
+  row budget: 900s; median=21.88s; correctness-plan-fallback; exec1s refinements (2s, atomic 1)
+  exec1s refinements (2s, atomic 1)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 infofix exact latency batch witness
+  Redis 7.4 infofix exact latency batch witness        ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 infofix missing (both modes/engines/runtimes)
+  Redis 7.4 infofix missing (both modes/engines/runtimes) ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 infofix docs (both modes/engines/runtimes)
+  Redis 7.4 infofix docs (both modes/engines/runtimes) ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 infofix loadaof (both modes/engines/runtimes)
+  Redis 7.4 infofix loadaof (both modes/engines/runtimes) ok
+GATE(PARTIAL): 74 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/lanes-post.tsv.partial

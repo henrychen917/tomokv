@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "commands": {
+    "CMDGAP2-NOSUCH": 1,
+    "DEL": 126,
+    "GET": 300,
+    "PFADD": 1017,
+    "PFCOUNT": 164,
+    "PFDEBUG": 2627,
+    "SET": 6
+  },
+  "kinds": {
+    "CMDGAP2-NOSUCH": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "PFADD": [
+      "reply"
+    ],
+    "PFCOUNT": [
+      "reply"
+    ],
+    "PFDEBUG": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ]
+  }
+}

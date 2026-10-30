@@ -6,6 +6,9 @@
 #include <type_traits>
 #include "../net/conn.h"
 
+#ifdef TOMO_EXEC1S_WB
+namespace tomo { bool multi_wb_prefix_hold(Client&); }
+#endif
 namespace tomo::wb_rule {
 // MEASURED default S=16, not derived from a batch size or reply size. Constants ledger
 // addendum 12, S=16 KEEP (2026-10-02); PLAN-SERIAL 2026-10-01 16:54 and
@@ -113,6 +116,10 @@ inline bool defer(Connection& c, const Settings& cfg) {
     const unsigned n = rob.in_flight();
     if (n <= 1) return false; // staged-only, pubsub, and p1 use ordinary serve
     size_t bytes = staged_bytes(c);
+#ifdef TOMO_EXEC1S_WB
+    // Already staged bytes may belong to an earlier ordinary command.
+    if (!bytes && multi_wb_prefix_hold(c)) return true;
+#endif
     if (bytes >= kWbufInline) return false;
     const auto head = rob.flush_id();
     const unsigned small_pipe = cfg.small_pipe, complete_visits = cfg.complete_visits;

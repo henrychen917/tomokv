@@ -1,0 +1,282 @@
+{
+  "mix": [
+    "execs",
+    "scripts",
+    "writers"
+  ],
+  "flushes": 17,
+  "saves": 0,
+  "observations": 1814,
+  "torn": 54,
+  "examples": [
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        55,
+        56
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        180,
+        181
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        292,
+        293
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        413,
+        414
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        534,
+        535
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        660,
+        661
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        774,
+        775
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        890,
+        891
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1011,
+        1012
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1122,
+        1123
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1240,
+        1241
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1349,
+        1350
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1461,
+        1462
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1574,
+        1575
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1708,
+        1709
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1822,
+        1823
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        1928,
+        1929
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        2038,
+        2039
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        2155,
+        2156
+      ]
+    },
+    {
+      "keys": [
+        "snapfix:fe:0",
+        "snapfix:fe:2"
+      ],
+      "values": [
+        2270,
+        2271
+      ]
+    }
+  ],
+  "tally": [
+    16217,
+    15329,
+    16031,
+    16155,
+    16102,
+    15726,
+    27158,
+    26976,
+    26440,
+    27089,
+    27042,
+    26565,
+    26051,
+    26287,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "errors": [],
+  "counters": {
+    "script_stage_owner_tasks": 837186,
+    "script_run_attempts": 418593,
+    "script_validate_owner_tasks": 374770,
+    "script_apply_owner_tasks": 191136,
+    "script_crossshard_activations": 95560,
+    "script_group_commits": 95560,
+    "script_group_occ_retries": 308095,
+    "script_group_occ_giveups": 14938,
+    "script_staged_bytes_total": 56926168,
+    "script_crossshard_window_refusals": 0,
+    "script_group_aborts_oom": 0,
+    "script_keys_armed": 220996,
+    "script_keys_released": 220996,
+    "script_intents_live": 0,
+    "script_write_tickets_forced": 0,
+    "script_flush_generation": 0,
+    "script_interpreter_builds": 1,
+    "script_chunk_cache_hits": 418592,
+    "script_chunk_cache_misses": 1,
+    "script_readonly_rejections": 0,
+    "script_effect_writes": 837186,
+    "script_failed_after_effects": 0,
+    "atomic_txn_attempts": 107873,
+    "atomic_txn_retries": 210,
+    "atomic_txn_dooms": 0,
+    "atomic_txn_wounds": 210,
+    "atomic_txn_waits": 296084,
+    "atomic_txn_intents": 0,
+    "atomic_txn_intents_live": 0,
+    "atomic_txn_executed": 107663,
+    "atomic_txn_place_waits": 9352,
+    "atomic_txn_writer_waits": 3,
+    "atomic_txn_writer_marks": 1,
+    "atomic_txn_blind_restarts": 0,
+    "atomic_txn_readonly": 0,
+    "atomic_txn_order_violations": 0,
+    "atomic_txn_fast_polls": 2786494,
+    "atomic_txn_poll_skips": 50942
+  },
+  "final": [
+    3918,
+    3918,
+    4446,
+    4446
+  ]
+}

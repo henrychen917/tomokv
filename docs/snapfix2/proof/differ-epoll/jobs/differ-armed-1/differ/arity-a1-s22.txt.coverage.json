@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "commands": {
+    "ACL": 1377,
+    "CONFIG": 609,
+    "LATENCY": 696,
+    "MEMORY": 587,
+    "OBJECT": 502,
+    "SLOWLOG": 429
+  },
+  "kinds": {
+    "ACL": [
+      "reply"
+    ],
+    "CONFIG": [
+      "reply"
+    ],
+    "LATENCY": [
+      "reply"
+    ],
+    "MEMORY": [
+      "reply"
+    ],
+    "OBJECT": [
+      "reply"
+    ],
+    "SLOWLOG": [
+      "reply"
+    ]
+  }
+}

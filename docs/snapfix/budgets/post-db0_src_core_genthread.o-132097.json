@@ -1,0 +1,43 @@
+{
+  "arm": "post",
+  "unit": "db0/src/core/genthread.o",
+  "budget": 132097,
+  "initial": 108600,
+  "growth": null,
+  "command": [
+    "taskset",
+    "-c",
+    "16-31",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=132097",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix/build/snapfix/budgets/post-db0_src_core_genthread.o-132097.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix/build/snapfix/budgets/post-db0_src_core_genthread.o-132097.inline"
+  ],
+  "hot": 149,
+  "changed": [
+    "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+    "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)"
+  ],
+  "padding": [],
+  "missing": [],
+  "added": []
+}

@@ -1,0 +1,103 @@
+Starting test server at port 20191
+[ready]: 3985935
+[1;37;49mTesting unit/type/stream-cgroups[0m
+[[0;33;49mskip[0m]: XGROUP CREATE: creation and duplicate group name detection
+[[0;33;49mskip[0m]: XGROUP CREATE: with ENTRIESREAD parameter
+[[0;33;49mskip[0m]: XGROUP CREATE: automatic stream creation fails without MKSTREAM
+[[0;33;49mskip[0m]: XGROUP CREATE: automatic stream creation works with MKSTREAM
+[[0;33;49mskip[0m]: XREADGROUP will return only new elements
+[[0;33;49mskip[0m]: XREADGROUP can read the history of the elements we own
+[[0;33;49mskip[0m]: XPENDING is able to return pending items
+[[0;33;49mskip[0m]: XPENDING can return single consumer items
+[[0;33;49mskip[0m]: XPENDING only group
+[[0;33;49mskip[0m]: XPENDING with IDLE
+[[0;33;49mskip[0m]: XPENDING with exclusive range intervals works as expected
+[[0;33;49mskip[0m]: XACK is able to remove items from the consumer/group PEL
+[[0;33;49mskip[0m]: XACK can't remove the same item multiple times
+[[0;33;49mskip[0m]: XACK is able to accept multiple arguments
+[[0;33;49mskip[0m]: XACK should fail if got at least one invalid ID
+[[0;33;49mskip[0m]: PEL NACK reassignment after XGROUP SETID event
+[[0;33;49mskip[0m]: XREADGROUP will not report data on empty history. Bug #5577
+[[0;33;49mskip[0m]: XREADGROUP history reporting of deleted entries. Bug #5570
+[[0;33;49mskip[0m]: Blocking XREADGROUP will not reply with an empty array
+[[0;33;49mskip[0m]: Blocking XREADGROUP: key deleted
+[[0;33;49mskip[0m]: Blocking XREADGROUP: key type changed with SET
+[[0;33;49mskip[0m]: Blocking XREADGROUP: key type changed with transaction
+[[0;33;49mskip[0m]: Blocking XREADGROUP: flushed DB
+[[0;33;49mskip[0m]: Blocking XREADGROUP: swapped DB, key doesn't exist
+[[0;33;49mskip[0m]: Blocking XREADGROUP: swapped DB, key is not a stream
+[[0;33;49mskip[0m]: XREAD and XREADGROUP against wrong parameter
+[[0;33;49mskip[0m]: Blocking XREAD: key deleted
+[[0;33;49mskip[0m]: Blocking XREAD: key type changed with SET
+[[0;33;49mskip[0m]: Blocking XREADGROUP for stream that ran dry (issue #5299)
+[[0;33;49mskip[0m]: Blocking XREADGROUP will ignore BLOCK if ID is not >
+[[0;33;49mskip[0m]: Blocking XREADGROUP for stream key that has clients blocked on list
+[[0;33;49mskip[0m]: Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop
+[[0;33;49mskip[0m]: Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command
+[[0;31;49merr[0m]: XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl
+Expected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) 
+[[0;33;49mskip[0m]: RENAME can unblock XREADGROUP with data
+[[0;33;49mskip[0m]: RENAME can unblock XREADGROUP with -NOGROUP
+[[0;33;49mskip[0m]: XCLAIM can claim PEL items from another consumer
+[[0;33;49mskip[0m]: XCLAIM without JUSTID increments delivery count
+[[0;33;49mskip[0m]: XCLAIM same consumer
+[[0;33;49mskip[0m]: XAUTOCLAIM can claim PEL items from another consumer
+[[0;33;49mskip[0m]: XAUTOCLAIM as an iterator
+[[0;33;49mskip[0m]: XAUTOCLAIM COUNT must be > 0
+[[0;33;49mskip[0m]: XCLAIM with XDEL
+[[0;33;49mskip[0m]: XCLAIM with trimming
+[[0;33;49mskip[0m]: XAUTOCLAIM with XDEL
+[[0;33;49mskip[0m]: XAUTOCLAIM with XDEL and count
+[[0;33;49mskip[0m]: XAUTOCLAIM with out of range count
+[[0;33;49mskip[0m]: XCLAIM with trimming
+[[0;33;49mskip[0m]: XINFO FULL output
+[[0;33;49mskip[0m]: Consumer seen-time and active-time
+[[0;33;49mskip[0m]: XGROUP CREATECONSUMER: create consumer if does not exist
+[[0;33;49mskip[0m]: XGROUP CREATECONSUMER: group must exist
+[[0;33;49mskip[0m]: XREADGROUP of multiple entries changes dirty by one
+[[0;33;49mskip[0m]: XREADGROUP from PEL does not change dirty
+[[0;31;49merr[0m]:  SET failed (possibly related to argument 'appendonly') - can't set immutable config
+ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config
+    while executing
+"[srv $level "client"] {*}$args"
+    (procedure "r" line 7)
+    invoked from within
+"r config set $param $val"
+    (procedure "run_external_server_test" line 35)
+    invoked from within
+"run_external_server_test $code $overrides"
+    (procedure "start_server" line 61)
+    invoked from within
+"start_server {tags {"stream needs:debug"} overrides {appendonly yes aof-use-rdb-preamble no appendfsync always}} {
+        test {XREADGROUP with NOACK..."
+    ("uplevel" body line 1072)
+    invoked from within
+"uplevel 2 $code"
+[1/1 [0;33;49mdone[0m]: unit/type/stream-cgroups (0 seconds)
+
+                   The End
+
+Execution time of different units:
+  0 seconds - unit/type/stream-cgroups
+
+[1;31;49m!!! WARNING[0m The following tests failed:
+
+*** [[0;31;49merr[0m]: XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl
+Expected '' to match '*count=1*' (context: type eval line 13 cmd {assert_match {*count=1*} [errorrstat NOGROUP r]} proc ::test) 
+*** [[0;31;49merr[0m]:  SET failed (possibly related to argument 'appendonly') - can't set immutable config
+ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config
+    while executing
+"[srv $level "client"] {*}$args"
+    (procedure "r" line 7)
+    invoked from within
+"r config set $param $val"
+    (procedure "run_external_server_test" line 35)
+    invoked from within
+"run_external_server_test $code $overrides"
+    (procedure "start_server" line 61)
+    invoked from within
+"start_server {tags {"stream needs:debug"} overrides {appendonly yes aof-use-rdb-preamble no appendfsync always}} {
+        test {XREADGROUP with NOACK..."
+    ("uplevel" body line 1072)
+    invoked from within
+"uplevel 2 $code"

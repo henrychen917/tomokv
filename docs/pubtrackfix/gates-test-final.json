@@ -1,0 +1,28 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "environment": {
+    "GATE_TEST_PORT": "20309"
+  },
+  "returncode": 0,
+  "successful": true,
+  "suites": [
+    {
+      "tests": 14,
+      "seconds": 0.117
+    },
+    {
+      "tests": 73,
+      "seconds": 131.196
+    }
+  ],
+  "log_sha256": "6d074e58de82b9b09b3f6d095cfa068c7477a531588cf9161203cf3c5381cc2d",
+  "test_source_sha256": "057e2c9bb0e8c4e848bc7af14a5c5cc65c3f0a61e21d69881fc7a6edbecde4cd",
+  "post_sha256": "faef9b9099cf0777685dd914571fda687ecc0f5c356191d11c02af6841f45b84",
+  "note": "Isolated final run after all gate jobs, with no concurrent lane build."
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "name": "lottery",
+    "binary": "/home/user/Projects/cx-wave10/build/lottery/tomokv",
+    "sha256": "96b27906306e349d59039423a44195d4ce09d665d9880411e399384d0e9f8b42",
+    "freshness_command": [
+      "make",
+      "-q",
+      "build/lottery/tomokv"
+    ],
+    "freshness_exit": 0
+  },
+  {
+    "name": "publishfix",
+    "binary": "/home/user/Projects/cx-wave10/build/wave10/publishfix/tomokv",
+    "sha256": "f5a85f7b0114cae29df6215e186a02d5e8ee044b6fd9279a28e10fe2f108d8ad",
+    "freshness_command": [
+      "make",
+      "-C",
+      "build/wave10/publishfix/source",
+      "BUILD_ROOT=/home/user/Projects/cx-wave10/build/wave10/publishfix/objects",
+      "-q",
+      "all"
+    ],
+    "freshness_exit": 0
+  }
+]

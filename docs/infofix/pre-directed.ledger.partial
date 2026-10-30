@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=infofix_compat-missing infofix_compat-docs infofix_compat-slowlog infofix_compat-loadaof; NOT A RECEIPT

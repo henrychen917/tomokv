@@ -1,0 +1,106 @@
+[
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-1",
+    "value": {
+      "probe_max": 0.013,
+      "saves": 104,
+      "writes": 5282112,
+      "execs": 50302,
+      "aborted": 24373,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "max_latency": {
+        "exec": 0.605,
+        "writer-burst": 0.829
+      },
+      "snapshot": [
+        50297,
+        50297
+      ]
+    },
+    "pass": true,
+    "seconds": 60.198
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-1",
+    "value": {
+      "probe_max": 0.013,
+      "saves": 120,
+      "writes": 7044480,
+      "execs": 75711,
+      "aborted": 37142,
+      "lanes": {
+        "owner": 6,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "max_latency": {
+        "exec": 0.609,
+        "writer-burst": 0.847
+      },
+      "snapshot": [
+        75693,
+        75693
+      ]
+    },
+    "pass": true,
+    "seconds": 60.167
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-1",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 597,
+      "writes": 22949184,
+      "execs": 278256,
+      "aborted": 127612,
+      "lanes": {
+        "owner": 3,
+        "writer_io": 0,
+        "probe_io": 4
+      },
+      "max_latency": {
+        "exec": 0.058,
+        "writer-burst": 0.082
+      },
+      "snapshot": [
+        278111,
+        278111
+      ]
+    },
+    "pass": true,
+    "seconds": 60.172
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-1",
+    "value": {
+      "probe_max": 0.002,
+      "saves": 597,
+      "writes": 25708288,
+      "execs": 322791,
+      "aborted": 147249,
+      "lanes": {
+        "owner": 6,
+        "writer_io": 0,
+        "probe_io": 2
+      },
+      "max_latency": {
+        "exec": 0.054,
+        "writer-burst": 0.067
+      },
+      "snapshot": [
+        322700,
+        322700
+      ]
+    },
+    "pass": true,
+    "seconds": 60.167
+  }
+]

@@ -1,0 +1,20 @@
+521193:C 28 Oct 2026 23:42:30.961 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+521193:C 28 Oct 2026 23:42:30.961 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+521193:C 28 Oct 2026 23:42:30.961 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=521193, just started
+521193:C 28 Oct 2026 23:42:30.961 * Configuration loaded
+521193:M 28 Oct 2026 23:42:30.961 * monotonic clock: POSIX clock_gettime
+521193:M 28 Oct 2026 23:42:30.962 * Running mode=standalone, port=20100.
+521193:M 28 Oct 2026 23:42:30.962 * Server initialized
+521193:M 28 Oct 2026 23:42:30.962 * Reading RDB base file on AOF loading...
+521193:M 28 Oct 2026 23:42:30.962 * Loading RDB produced by version 7.4.10
+521193:M 28 Oct 2026 23:42:30.962 * RDB age 0 seconds
+521193:M 28 Oct 2026 23:42:30.962 * RDB memory usage when created 1.02 Mb
+521193:M 28 Oct 2026 23:42:30.962 * RDB is base AOF
+521193:M 28 Oct 2026 23:42:30.962 * Done loading RDB, keys loaded: 1, keys expired: 0.
+521193:M 28 Oct 2026 23:42:30.962 * DB loaded from base file appendonly.aof.2.base.rdb: 0.000 seconds
+521193:M 28 Oct 2026 23:42:30.962 * DB loaded from append only file: 0.000 seconds
+521193:M 28 Oct 2026 23:42:30.963 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+521193:M 28 Oct 2026 23:42:30.963 * Ready to accept connections tcp
+521193:M 28 Oct 2026 23:42:31.034 * User requested shutdown...
+521193:M 28 Oct 2026 23:42:31.034 * Calling fsync() on the AOF file.
+521193:M 28 Oct 2026 23:42:31.034 # Redis is now ready to exit, bye bye...

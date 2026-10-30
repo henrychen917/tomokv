@@ -1,0 +1,304 @@
+{
+  "label": "land-followup-trackfix",
+  "source": "/home/user/Projects/cx-blockfix3/build/gate-run.8ebk6A",
+  "archive": "/home/user/Projects/cx-blockfix3/docs/blockfix3/gate-receipts/land-followup-trackfix.tar.gz",
+  "archive_sha256": "a83aaf7d80c222a3f2611e3844f0b1ab0ad133e53bf31d177d232c0551c271d2",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 111,
+      "sha256": "52d44c9acc2f77c7d9234968833a5645afddd1ae41428cfba27b62182d08fc8d"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "00c8c4074fc0ddfb87173e91abd93236918d10daf3a22e3a40345a2b80ad0acf"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/trackfix_order/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/trackfix_order/family.tsv",
+      "size": 59,
+      "sha256": "0e0edd2a8d312c137705a678d8cfb5c58541c385e7eb5bdd2150d26164905367"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.9frZ3C",
+      "size": 7634,
+      "sha256": "5f2e1ab16840ef1f8d4c489b0f9f91aa629820a9fba16480a7fca33abdd00b5b"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.CiBTsE",
+      "size": 7638,
+      "sha256": "3c7c151ac3b6554e6719afaa9ba9feb57bd600e39a838842e3d04fef18d569c7"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.kFJHjf",
+      "size": 7731,
+      "sha256": "23aa9383ed018bc81ac1a7ca4d9bc025d1d8c628153e536fcc117415a1ea9934"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.mIv26Y",
+      "size": 7729,
+      "sha256": "a5184a78df98ed05616fdfbf394eae6c37595cbed5f35478182237d94c727b39"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.pc6nuj",
+      "size": 7636,
+      "sha256": "d1e01ea85747c20751e1cfae3a559f4d7f56fb9ab15633f7241d1c37f40a147c"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.t5rXgi",
+      "size": 7727,
+      "sha256": "b81154f18613330fd3ea7d77a947372330495f2cc5bf90fbb8bbaaba8f2c8679"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.uorFwQ",
+      "size": 7731,
+      "sha256": "416d2ce1cc41dd3caa098b1bc4476b8ffef8dcb21452d7b73f5987b88221ad0f"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-fused.v0S3k5",
+      "size": 7635,
+      "sha256": "aaa84796a2097a582f258eb848ac22ab1effc797021784291e4d58b9bb6c7821"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.HP9fQv",
+      "size": 6922,
+      "sha256": "57fe2aad02c130691fe8b181648ccee97ffe3fb238d4690b33c918743fe697f2"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.KRDhmQ",
+      "size": 6832,
+      "sha256": "40cb12506fe4c852d7cb176e4486f77cfe9c6217a5906a7a84296c617f2a6e93"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.LZvaZJ",
+      "size": 6824,
+      "sha256": "e76dd7f4ab4e68343ca3e1905fdfe7de917d14b691848e6d3c4497db22b72408"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.M9diSO",
+      "size": 6732,
+      "sha256": "7abfac93383aa545b7849d9180dfc85bc43c2bcdafb64b5858d195188bb66ec1"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.UFztx7",
+      "size": 6731,
+      "sha256": "33b4658a5a9674e1c7e8a4f7358fb4fe88f54e25273cdbb8cf487e0477b22191"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.lx60xy",
+      "size": 6832,
+      "sha256": "c1c8bd0e0cc856273c3c1c4f298a16a70dbe0070641b24949ec82dd9d8d68e13"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.q9lszQ",
+      "size": 6820,
+      "sha256": "e9163abfd7d9fa193c1dc93d9eed14f7a8efe236e009902cf0d853e773056a5f"
+    },
+    {
+      "path": "jobs/trackfix_order/gate-srv-main.zLZEIH",
+      "size": 6922,
+      "sha256": "83f94fb6e9f1632f0ab2d92462df01929853a0b9eb3fc5df22070b823fa9d0b4"
+    },
+    {
+      "path": "jobs/trackfix_order/ledger",
+      "size": 56,
+      "sha256": "48ac00ee8d05e393a1a8c76bd3cc81dc20dc41d58575d20c686b4d67668cf2e3"
+    },
+    {
+      "path": "jobs/trackfix_order/oracle.log",
+      "size": 1203,
+      "sha256": "85ad50f014f27b1b18fb12f6cebe53d6ad2d243492f93913936325915a6e0d86"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-epoll-a0-rl0.log",
+      "size": 20982,
+      "sha256": "5d8fa2048505883b0dcc6580002e1d15d3cb18db5afbad83fe14587bae149117"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-epoll-a0-rl1.log",
+      "size": 20982,
+      "sha256": "abbed78879a2511a726a86d0facbdc4f7e27e48ca8d1796088a382e99712f11b"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-epoll-a1-rl0.log",
+      "size": 20982,
+      "sha256": "5d2e9c53556d534dd3047a126099b913af069406c6c3b343f081fb956a011db9"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-epoll-a1-rl1.log",
+      "size": 20982,
+      "sha256": "82d1d2f5c9f1d76f41c19b7dcd66ca1c2ad57167bf31c21948fda434de68785a"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-uring-a0-rl0.log",
+      "size": 20982,
+      "sha256": "3656b11497d9386bf15bf9513cd81d1dc1d232a0373d6c94e13d346811102181"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-uring-a0-rl1.log",
+      "size": 20982,
+      "sha256": "072183c9e54db98a4c53fc64a4d7a44ac76a5a3e27c03a378a99afaff4f73687"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-uring-a1-rl0.log",
+      "size": 20982,
+      "sha256": "0bae6050aa01eabb174b74117759b74915ed4071d05781df6fe9875376b35b8e"
+    },
+    {
+      "path": "jobs/trackfix_order/order-1s-uring-a1-rl1.log",
+      "size": 20982,
+      "sha256": "be672c10d55360136bdcbb3ee75c7d01d2a4aac213c43ec07b62f65024bef035"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-epoll-a0-rl0.log",
+      "size": 20982,
+      "sha256": "5cebaac73904d382d9c0f36f713cfbc694b85b55cc4ed4dc069a8eb3a2c47444"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-epoll-a0-rl1.log",
+      "size": 20982,
+      "sha256": "ad982d7b53c71c15f14c3c0c3283e4fca8c1cd5fac31f4f31372f7ef2b98098f"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-epoll-a1-rl0.log",
+      "size": 20982,
+      "sha256": "e290b865474f776cf15d0ce78f093b283d7733f2a11094aee3254cd8afd32d49"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-epoll-a1-rl1.log",
+      "size": 20982,
+      "sha256": "e7c3266d00d40aef5c18d1e4f2b64edb7afd2b131b153ad8191a92c7790623bd"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-uring-a0-rl0.log",
+      "size": 20982,
+      "sha256": "ad914e2ec18c1b6ced0a945f4d131b31a6e0d30112f915de20237af38063a4d8"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-uring-a0-rl1.log",
+      "size": 20982,
+      "sha256": "871631c7e4082680b706537653554565fcd61a7ccd255b41294f3048904c218c"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-uring-a1-rl0.log",
+      "size": 20982,
+      "sha256": "2d512abc40e165529529a2d09937f64b004fb957534ca5bde7b7e3d420764e84"
+    },
+    {
+      "path": "jobs/trackfix_order/order-2s-uring-a1-rl1.log",
+      "size": 20982,
+      "sha256": "feed106a246bb3a1e20f024d544ee004016caa23c98b5c3af1ad199cc6e33a0a"
+    },
+    {
+      "path": "jobs/trackfix_order/output.log",
+      "size": 158,
+      "sha256": "ae1d91922690747b9b2b82444d81a7c427efa45602b0a92d0ea6e6d82492598d"
+    },
+    {
+      "path": "jobs/trackfix_order/schedule-build.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/trackfix_order/timings",
+      "size": 56,
+      "sha256": "48ac00ee8d05e393a1a8c76bd3cc81dc20dc41d58575d20c686b4d67668cf2e3"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "a161ab0be97ed4a72b9ef68adbafe41dcb54b9032dad23a3b3db9fb127564a14"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1163,
+      "sha256": "efff11f5396cfa0d4dff699620a6a4e3b023b265b583dae075c9757ed7f0e542"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 137421,
+      "sha256": "d789c2d6da6cf13dff2942bfbfdd634eaa8d6ee8136209fe6216230db2417fe7"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "trackfix_order",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "219.130000",
+          "label": "tracking delayed-write order vs Redis 7.4"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "tests/gate.sh",
+    "quick",
+    "--candidate-binary",
+    "/home/user/Projects/cx-blockfix3/build/tomokv",
+    "--server-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "8-15",
+    "--load-smt",
+    "",
+    "--ports",
+    "20100-20189"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-blockfix3/build/blockfix3/land-followup-trackfix.ledger",
+    "GATE_ONLY_JOBS": "trackfix_order"
+  },
+  "exit_code": 0,
+  "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1"
+}

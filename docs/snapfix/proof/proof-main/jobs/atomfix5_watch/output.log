@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+  atomfix5 WATCH key count (both modes, both engines, atomic 0/1) ok

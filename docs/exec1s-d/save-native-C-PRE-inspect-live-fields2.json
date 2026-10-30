@@ -1,0 +1,104 @@
+{
+  "arm": {
+    "arm": "C-PRE",
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+    "sha256": "47c4cc498a212922433220c57efca3b7e249e3c23889623a0c7de0e0feeb043b",
+    "bytes": 218187712
+  },
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "20001",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/oracle",
+      "--enable-debug-command",
+      "yes",
+      "--appendonly",
+      "no"
+    ],
+    [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+      "--port",
+      "20000",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/target",
+      "--enable-debug-command",
+      "yes",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--net-io",
+      "epoll",
+      "--databases",
+      "16",
+      "--atomic",
+      "0"
+    ]
+  ],
+  "seed": 22,
+  "suite": "psfix",
+  "mode": "2s",
+  "atomic": 0,
+  "engine": "epoll",
+  "results": [
+    {
+      "repeat": 0,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/0.log",
+      "sha256": "1affec815eb8b870b36803e63f076eb04ac97c3fa993e5ef6e5cbbd1a72f4613"
+    },
+    {
+      "repeat": 1,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/1.log",
+      "sha256": "966eb6ee84e32847645ad942077aadf914f6af6406bae8cecaf0dfd702b08d70"
+    },
+    {
+      "repeat": 2,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/2.log",
+      "sha256": "f3318c1c46646245097b7ccbbfe08adca0d38f20535fb185108dda5610f5d5bd"
+    },
+    {
+      "repeat": 3,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/3.log",
+      "sha256": "5570248d89678b29031bec6335083f20740e3217d796e48947b12ec131f213c2"
+    },
+    {
+      "repeat": 4,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/4.log",
+      "sha256": "6de3e09bb80afa5aff5612f759e6559ff569eae3aebe4a10135a458c29ad9612"
+    },
+    {
+      "repeat": 5,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/5.log",
+      "sha256": "c9a26f728d69531a418546461ddf7df967c2f51120ffced49ddf8b4865309b36"
+    },
+    {
+      "repeat": 6,
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE-inspect-live-fields2/6.log",
+      "sha256": "f0eb4a3056b94ed316a0690a9eb4eb27bd3440233f2632a323e8890bc723d793"
+    }
+  ]
+}

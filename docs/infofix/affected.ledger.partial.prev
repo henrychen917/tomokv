@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=production_units cmd_metadata rlfix3_info latencyfix_grammar latencyfix_shape latencyfix_off serverfix_slowlog dispatch_arity dispatch_children debug-0 debug-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 snapshot-uring snapshot-epoll aof-uring aof-epoll persistfix2_commands; NOT A RECEIPT

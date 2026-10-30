@@ -1,0 +1,374 @@
+{
+  "label": "land-execfair-pre-repeat3-execfair-pre",
+  "source": "/home/user/Projects/cx-blockfix3/build/gate-run.mPHj3K",
+  "archive": "/home/user/Projects/cx-blockfix3/docs/blockfix3/gate-receipts/land-execfair-pre-repeat3-execfair-pre.tar.gz",
+  "archive_sha256": "25e7e3a11e36f58522617999508808850b4e5e6f99b137471bb64ab8ed2fddab",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 105,
+      "sha256": "fe6ad4620c507df70b27599cb0579e3cd5b2380bf17ed2c591b9dd64c41514f2"
+    },
+    {
+      "path": "jobs/execfair/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-epoll-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-epoll-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-epoll-wave8.log",
+      "size": 1533,
+      "sha256": "3862885bef164857fbef3c029aefaff176ff814504f04757e6d1bc7a3d7c1118"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-epoll.json",
+      "size": 3792,
+      "sha256": "911413db022c5b880f5e10e0956c0cc11dac8039b8602509e0cfb2a7ee02ab38"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-epoll.log",
+      "size": 948,
+      "sha256": "06885178727972c44ec0018947381b99eb2273c6429ad99b69e3f54e8ce6a8c6"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-uring-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-uring-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-uring-wave8.log",
+      "size": 1533,
+      "sha256": "be4a1227d9e9927558fc201dd7ec635b5a4d9f4bad01bef7ee98a12e4ec9cf9e"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-uring.json",
+      "size": 3789,
+      "sha256": "40fdfcee1755eeafe31c536ec08af3d0a1ba925b0e37ed3946a0c959f9381f9c"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-0-uring.log",
+      "size": 947,
+      "sha256": "e38c2bddec78b8887031510d92aa448b4e1a83e0d5881e9e245148c9bc668634"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-epoll-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-epoll-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-epoll-wave8.log",
+      "size": 1534,
+      "sha256": "22576d73a32bfcc301f79c6d5ce33ff28e6c8a1ada13f440f4a0a79dbb6d30b5"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-epoll.json",
+      "size": 3792,
+      "sha256": "727b2d28d6adf7d0567ccd9bb816b2ad35075a687d940fa10efd1d9d9ccb5102"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-epoll.log",
+      "size": 948,
+      "sha256": "06323fb6b8e2418758d15d4f3b0da5b9537b74e7c60b66ed0e8f43a870baebfa"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-uring-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-uring-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-uring-wave8.log",
+      "size": 1533,
+      "sha256": "3588f5b00e249cc7f3f5839e0152137d6c21fe1fe2893cf2d5b49fc5cc5b7393"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-uring.json",
+      "size": 3794,
+      "sha256": "2aced75a24836257fdcc03ac9136302ab065c2191521aa4d8d1ae23d172c4f72"
+    },
+    {
+      "path": "jobs/execfair/execfair-1s-1-uring.log",
+      "size": 949,
+      "sha256": "f43655ca32a943924109cb92acc6d3dd304d4cd09ef8c2e02bf96812a5bfa564"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-epoll-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-epoll-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-epoll-wave8.log",
+      "size": 1535,
+      "sha256": "43fc44480cd53f8d17503c9c63ea331654f340d8d9cd5847cb0f7206de365b95"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-epoll.json",
+      "size": 3774,
+      "sha256": "9c79f504250b841c2c5c179d1430de4bf4a869a7a2350e5b8570e188f83a43ce"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-epoll.log",
+      "size": 939,
+      "sha256": "e7bfb7261a51f4330032e9fc302dd1878fa30ca0587c4f59692175f781705ee7"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-uring-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-uring-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-uring-wave8.log",
+      "size": 1533,
+      "sha256": "5efb1e80c61574e7906b642fa23e1a1f836c5a5e2ee9644551618f6bf943a6bf"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-uring.json",
+      "size": 3777,
+      "sha256": "7edb5e86cd3dbca90f51ce3242f4d6540f378c7a7e4fb957cd4c7eb301aaa7fe"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-0-uring.log",
+      "size": 941,
+      "sha256": "7827d0e798e8021a81c254f82438f33a6feb70f82308c681ebb1ce38b3edf160"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-epoll-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-epoll-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-epoll-wave8.log",
+      "size": 1534,
+      "sha256": "a21efd5e1ecc4efb5ef074eaa9e5542107b60ae23d62b6d52c2069673630d685"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-epoll.json",
+      "size": 3775,
+      "sha256": "3dae70b9a46369debe1c1cafb4913fb8af2a3b62935a997ce4668c2483466d71"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-epoll.log",
+      "size": 939,
+      "sha256": "d3c311564b92fd9c2876006cfb8b3250038e372b620780b56065b525cae48b48"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-uring-wave6.log",
+      "size": 231,
+      "sha256": "2eafbfdc2588ef2a12ee963a077397b1e26d453ff64be82e52d14c30ad5713c0"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-uring-wave7.log",
+      "size": 65,
+      "sha256": "cbd37cc00ebd63a36d01641e5e80e8121841be695c69c783e2ee5b229b83a764"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-uring-wave8.log",
+      "size": 1534,
+      "sha256": "6e81aa87ee75b00759ef80bcf7fb12107d58278952150b5cb7d75a7ffd33153e"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-uring.json",
+      "size": 3773,
+      "sha256": "4c416d5981f1954c58d1dcd6dd3f929552c5a9995f7a142b7a555463f6a6d6ef"
+    },
+    {
+      "path": "jobs/execfair/execfair-2s-1-uring.log",
+      "size": 939,
+      "sha256": "ff0c9f2ab7b191d03d8700a6d2e778223c7157c10e86e3508e59fc01f59e1385"
+    },
+    {
+      "path": "jobs/execfair/family.tsv",
+      "size": 53,
+      "sha256": "40205c7d8c3c2e88e8d6a10c14a087c553845856e10946c8310f03c445096b5a"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-fused.KE6x7x",
+      "size": 7800,
+      "sha256": "af7f9c379926301d95b92d16308d68238604884f6e22f5c36b194454296af27c"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-fused.cWphVS",
+      "size": 7901,
+      "sha256": "d3b30676591a8d3fb503473aa47392cb5cf115799bc5a22b276b648c7694effa"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-fused.rwVHkP",
+      "size": 7802,
+      "sha256": "f42b9d8489a70f695c0f908ecc499f4f3f7d3fc8f42f5f751059e7942ca6a41d"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-fused.zHFDR6",
+      "size": 7893,
+      "sha256": "d2e8b85d96a4e6b3d0c89f025ea5d8cdb7079d8c77326ae12551c09602e81c48"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-main.9m3twr",
+      "size": 6845,
+      "sha256": "290d161028dcbb2fb9cb83cef24e39fb090b88ae7e0b65ad3ca1a68bacb1c6bb"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-main.CzyUNX",
+      "size": 6950,
+      "sha256": "9461c9ffeda59563730ad85fd3e35b85b731297ad4f4ac8236f4622182e8b5f4"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-main.kv664f",
+      "size": 6843,
+      "sha256": "6a4fe8cbb353b80dfe1070c102409d0bc6efe513c38e436cf9a5c74a6e79cd91"
+    },
+    {
+      "path": "jobs/execfair/gate-srv-main.rmy6em",
+      "size": 6945,
+      "sha256": "eec123021835e3d7c235936eb407f34b65fd09454ad60d8a0a0f6fdff2b63e6b"
+    },
+    {
+      "path": "jobs/execfair/ledger",
+      "size": 34,
+      "sha256": "9fabddf59ef2cdce28792996e5096f9d7d6811b165db784a0e7c86c711884d45"
+    },
+    {
+      "path": "jobs/execfair/output.log",
+      "size": 141,
+      "sha256": "38007a18d5e429475be3670983eed5e1b22d898fddc53527f767ea73412c0b01"
+    },
+    {
+      "path": "jobs/execfair/timings",
+      "size": 34,
+      "sha256": "9fabddf59ef2cdce28792996e5096f9d7d6811b165db784a0e7c86c711884d45"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "5109cb2cf55b99e4b167ad0536311c6e98851a4858d6edcd04a1e2873aea651a"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "08881a1c7aa457d2eae2e8873a3df8246a989d0b68f50235b8cad919830b1da5"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1191,
+      "sha256": "7487567799e6adf1baf063bfdeb6e398fca68aed028ed4db0714d0be0b5a2691"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 137396,
+      "sha256": "2246583b3b574176fb1325079f0824afb7d4c1bad405b88b6d6d4c27b2b08d83"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "execfair",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "27.620000",
+          "label": "EXEC fast-lane polls"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "tests/gate.sh",
+    "quick",
+    "--candidate-binary",
+    "/home/user/Projects/cx-blockfix3/build/blockfix3/pre/tomokv",
+    "--server-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "8-15",
+    "--load-smt",
+    "",
+    "--ports",
+    "20100-20189"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-blockfix3/build/blockfix3/land-execfair-pre-repeat3-execfair-pre.ledger",
+    "GATE_ONLY_JOBS": "execfair"
+  },
+  "exit_code": 0,
+  "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615"
+}

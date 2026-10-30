@@ -1,0 +1,377 @@
+# Snapshot table sizing and FLUSHALL isolation
+
+## snapfix2
+
+Worktree `/home/user/Projects/cx-snapfix2`, branch `cx-snapfix2`, PRE `a214652ec`,
+BASE `5572e84cc`. All builds and correctness processes use CPUs 0–15; servers use
+0–7 (16 shards, split ratio 6:2), drivers 8–15, ports 20100–20199. No push and no
+performance measurement in this lane.
+
+### Sizing review
+
+The proposed `docs/snapfix/followup/table-sizing.patch` needs a correction.
+`snapshot_prepare` runs before owners freeze. Both `insert` variants and both
+`atomic_prepare_capacity` variants admit new keys up to the **current** capacity
+while prepared. Sizing a sparse 1024-slot table's destination to 128 can therefore
+accept 513 keys before Mark, then leave a destination too small for the merge.
+The directed addition to `storage flush-prepared-capacity regression` exercises
+that schedule with read-local both armed and disarmed and fails before a stuck
+merge on the unfloored proposal.
+
+POST chooses `max(old_capacity, 2 * min(live_capacity, old_capacity))`, where
+`live_capacity` is the smallest power of two from `kMinCap=64` for which
+`(live+1)*100 < capacity*kLoadPct` (`kLoadPct=70`). Tombstones are omitted from the
+fresh destination's sizing because the merge drops them. The current-capacity
+floor preserves every prepared insert/reservation's existing bound; the upper
+bound is the old allocation rule. The post-cut gate still reserves space for all
+current live keys, current tombstones and frozen live keys. No command admission,
+read visibility, object layout, QSBR or retirement rule changes. Existing oversized
+tables are retained until ordinary deletion-driven shrinking; future idle saves
+do not compound them.
+For a fixed live set, the recurrence cannot exceed
+`max(starting_capacity, 2 * live_capacity)`, regardless of the number of saves.
+
+The sole production caller is `ExLoopT::snapshot_control_pass` in Preparing.
+SAVE, BGSAVE, save-rule cron, shutdown-save, enabled-AOF rewrite and offline-AOF
+rewrite all use `SnapshotManager::start` and that owner path. Scheduled BGSAVE
+and DEBUG RELOAD also reach the same start method. The audited call sites are
+`src/cmd/t_server.cc:822`, `src/core/server.h:1979`,
+`src/cmd/server_tail.cc:235`, `src/persist/aof.cc:1541,1597,1709` and
+`src/cmd/scatter_engine.inc:1671`; the allocator caller is
+`src/core/ex_loop.h:1968`. Read-local Mark uses the same prepared allocation.
+Cancellation before Mark frees the prepared table; completion or cancellation
+after Mark leaves the frozen table for the ordinary bounded merge.
+FLIP creates no snapshot table; its transition mutex and snapshot
+admission exclude simultaneous placement changes, and the shared atomic barrier
+drains units before the snapshot cut.
+
+### Directed rows
+
+`snapfix2_tables` independently runs 12 idle BGSAVEs on 1s/2s × uring/epoll ×
+atomic 0/1 and Redis 7.4. It is collected immediately after `snapfix_bgsave_exec`,
+at `tests/gate.sh:5743`, before the quick-tier exit at line 5819:
+**DQ=+1, DF=+1 relative to BASE**. EXPECT constants are
+unchanged. Including snapfix's inherited +3/+3, the maintainer's 807/824 becomes
+811/828. Final receipts are `docs/snapfix2/proof/tables-{pre,base,post}-final/`.
+Every leg proves exactly 12 completed saves. PRE and BASE fail specifically at
+the RSS-growth assertion on all eight TomoKV legs; POST and all three Redis
+controls pass. The complete curves are retained before the assertion.
+
+| Arm | 1s peak RSS across four legs (MiB) | 2s peak RSS across four legs (MiB) | TomoKV verdict |
+|---|---:|---:|---|
+| PRE a214652ec | 914.11–916.47 | 856.48–858.48 | 8 expected RSS failures |
+| BASE 5572e84cc | 916.10–916.91 | 856.47–858.48 | 8 expected RSS failures |
+| POST | 18.87–20.87 | 15.38–17.39 | 8 passes |
+
+`docs/snapfix2/rss-summary.json` contains the exact per-leg byte counts, including
+the large-data and PAD controls. These are stability observations, not throughput
+or quiet-box latency comparisons.
+
+The prepared-capacity addition remains inside the existing storage regression;
+there is no second new row. Removing the capacity floor from POST makes it fail
+with `prepared destination holds accepted keys`, exit 1, before any unbounded
+merge (`docs/snapfix2/unit/unfloored.json` and `unfloored.patch`). The test prepares
+a sparse 1024-slot store, admits another 512 keys before Mark, then requires the
+capture and merge to complete with every accepted key, with read-local off/on.
+
+### Compiler budgets and body identity
+
+The corrected formula adds **19**, not the unfloored proposal's 14, IPA
+instructions in each of the eight IO units. Compile-only trial receipts are in
+`docs/snapfix2/budgets/`; the selected receipt lists each command and object hash.
+The selection rule minimizes changed hot bodies, then changed bodies of any
+kind, then distance from BASE + 19. Units that already changed only snapshot
+control retain their old budget.
+
+| Unit | BASE budget | POST budget | BASE → POST initial IPA size |
+|---|---:|---:|---:|
+| src/main | 147838 | 147838 | 102431 → 102450 |
+| db0/main | 146080 | 146080 | 101687 → 101706 |
+| src/genthread | 131241 | 131253 | 109386 → 109405 |
+| db0/genthread | 132035 | 132058 | 108600 → 108619 |
+| src/rl2s | 164644 | 164662 | 118250 → 118269 |
+| db0/rl2s | 167496 | 167496 | 117327 → 117346 |
+| src/reorder | 149134 | 149153 | 122002 → 122021 |
+| db0/reorder | 150113 | 150133 | 121085 → 121104 |
+
+The complete 118-object comparison against BASE has 17,945 function bodies across object files: 17,929
+identical, 15 changed, one added function and no removed or padding-only bodies.
+Eight changed bodies are the intended `snapshot_control_pass` instantiations.
+The added body is db0 `service_snapshot_backlogs<false>`, now out of line.
+The remaining seven are `kvobj_external_bytes` ×2, db0 `rehash_step_read_local`,
+db0 `atomic_prepare_capacity_read_local`, `maybe_start_shrink`,
+`pubsub_deliver_one`, and one fused `flush_ready` specialization. The exact
+per-symbol lists, rather than this prose, are authoritative:
+`docs/snapfix2/identity/base-post.json` and `pre-post.json`.
+
+**Residual hot change:** the normal fused
+`flush_ready<false,true,true,false,true,false>` is not body-identical at any of
+this lane's tested budgets. It is not part of the command execution fixture.
+Its template arguments select the plain-TCP, epoll, fused sweep path.
+Neither the body comparison nor equal command counts proves a throughput null;
+the release and PAD-A merit comparisons remain required. No rate claim here.
+
+Serverless GET/SET/INCR/MGET and MSET (atomic 0/1), batch 1/32, both modes and
+both namespaces were counted on PRE, BASE and POST by
+`tools/snapfix2_artifacts.py scope`. This launches GDB only on the serverless
+fixture; it never attaches to or debugs a server. All **48 cells per arm**, hence
+**96 PRE/BASE-vs-POST comparisons**, have identical totals and per-function
+counts: zero added executed instructions in the named production routines and
+inlined code. As in snapfix, the fixture excludes library callees and fixture
+glue, runs with no snapshot armed and read-local 0, and uses atomic 1 except the
+additional MSET atomic-0 cells. Totals are recorded in
+`docs/snapfix2/instructions/comparison.json`.
+
+### FLUSHALL: pre-existing atomicity defect, separate repair required
+
+The final isolation runs establish that this is **pre-existing on a214652ec**,
+independent of BGSAVE and present in both thread modes and both engines. Removing
+both BGSAVE and FLUSHALL made all eight TomoKV legs and Redis clean on every arm.
+The independent `tests/snapfix2_flush.py --case flush-pair` tears on **all eight
+TomoKV legs on PRE, BASE and POST** with one serial EXEC/FLUSHALL connection and
+one MGET observer. Each completed command leaves either `[1,1]` or `[nil,nil]`;
+a mixed pair on the atomic-1 legs establishes the visibility defect. Atomic-0
+counts are diagnostic: the documented relaxation of ordinary multi-shard writes
+means those FLUSHALL observations alone do not establish a contract violation.
+Redis has zero tears in 215,641 / 211,328 / 216,468
+observations in those three corresponding runs.
+
+| Variant | PRE torn legs / 8 | BASE torn legs / 8 | POST torn legs / 8 |
+|---|---:|---:|---:|
+| Original mixture, BGSAVE enabled | 2 | 2 | 4 |
+| Original mixture, BGSAVE disabled | 2 | 0 | 3 |
+| BGSAVE and FLUSHALL disabled | 0 | 0 | 0 |
+| EXEC-only mixture, no BGSAVE | 3 | 3 | 3 |
+| Script-only mixture, no BGSAVE | 0 | 0 | 0 |
+| Serial EXEC pair + FLUSHALL, dense observer | 8 | 8 | 8 |
+| Serial script pair + FLUSHALL, dense observer | 8 | 8 | 8 |
+| FLUSHALL-only observation window | 7 | 7 | 6 |
+
+Every Redis leg in this table is clean. The original-mixture runs last five
+seconds; the minimal witnesses last six seconds. Zero observed tears means
+**NOT REPRODUCED**, not proof of absence. The original mixture samples only every
+5 ms. PRE's BGSAVE-enabled run also encounters
+the old stalls on five legs (one of those has a tear too); those failures are
+kept separate from the torn-pair counts. Exact per-leg counts, examples, worker
+errors and artifact paths are in `docs/snapfix2/isolation-summary.json` and the
+underlying `isolation/*/results.json` / `flushall-observations.json` files.
+The denser script witness resolves the sparse observer's non-reproduction:
+all eight TomoKV legs tear on every arm, versus zero tears in Redis's
+217,970 / 217,745 / 214,537 observations. `flush-script` alternates one EVAL that
+sets both keys to 1 with FLUSHALL; it contains no EXEC, BGSAVE or other writer.
+
+Root cause in unchanged production code:
+
+- `scatter_engine.inc` lowers FLUSHALL/FLUSHDB to `Kind::AllShards`, which is
+  excluded from `is_atomic_write_kind`; the all-shards dispatch barrier is not
+  a shared atomic visibility publication.
+- Each shard's AllShards handler calls `Shard::watch_flush`, then `cmd_flush`.
+  `watch_flush` invokes `FlatStore::atomic_tombstone_all`, which obtains its own
+  `atomic_ticket_fn_` ticket and installs plain, already-decided tombstones.
+  Thus different owners publish different flush cuts. Untracked keys are then
+  physically cleared by `clear`/`clear_during_snapshot`.
+- A reader cut can fall between those owner-local publications, and a writer
+  unit can encounter different clear ordering at its different owners. The
+  shard-local foreign-read poison covers one owner's mutation; it supplies no
+  single commit point for the entire FLUSHALL.
+
+A single shared ticket alone would still leave untracked keys without preserved
+preimages and must coordinate publication with all owners and concurrent units.
+A local change to snapshot sizing cannot establish that protocol. No reader
+retry, seqlock, reader-blocking lock, or weakened EXEC/script guarantee is added.
+This defect is handed off with exact PRE/BASE/POST isolation receipts; it is not
+silently accepted as a passing gate row.
+
+The stronger `--case flush-only` rearms two keys with acknowledged SETs while its
+observer is parked, requires an observer read before issuing FLUSHALL, and parks
+the observer again before rearming. The only concurrent mutation in that window
+is FLUSHALL: no EXEC, scripts, BGSAVE or unrelated writer. Every attempt uses
+fresh logical state, and missing observations/worker progress fail.
+It reproduces with atomic 1 on all three arms. Thus EXEC and scripts are not
+necessary ingredients. PRE 1s/uring atomic 1 alone has 466 torn observations out
+of 124,686 in this case. The original PRE no-save script pair also finishes
+unequal (`4851`, `11882`), with `atomic_txn_order_violations=0`; that counter does
+not detect this visibility defect.
+
+Minimal reproduction (use `flush-only` to isolate the clear itself):
+
+```sh
+taskset -c 8-15 python3 tests/snapfix2_flush.py --case flush-pair \
+  --binary build/snapfix2/pre/tomokv \
+  --oracle /home/user/Projects/redis/src/redis-server \
+  --cores 0-7 --port 20100 --modes 1s --engines uring --atomics 0 1 \
+  --seconds 5 --output build/snapfix2/reproduce-flush
+```
+
+### Correctness proof
+
+`tools/snapfix2_verify.py` records command lines, binary/oracle SHA-256, exit codes
+and logs, and drives the gate's **partial job interface**. No full iteration,
+ABBA or NIC pass runs. `GATE_PROOF_NO_RATES=1` suppresses only the existing
+atomic RYOW performance assertion. The first main pass was interrupted before
+that job to enable the switch; its 18 completed rows and interrupted shutdown
+row are retained in `proof/proof-uring-interrupted` and are not the final proof.
+The oracle is Redis 7.4.10, verified with `--version`; command receipts bind its
+binary digest. The gate's two oracle paths contain identical binaries
+(`oracles.json`). Both main targeted passes completed, including all snapfix rows
+and the new RSS row:
+
+| Main pass | Jobs including prerequisites | Passing rows | Failing rows |
+|---|---:|---:|---:|
+| uring | 53 | 329 | 0 |
+| epoll | 53 | 329 | 0 |
+
+Their ledgers and all per-job outcomes are in `proof/proof-{uring,epoll}/record.json`.
+Both storm rows passed all nine legs. The final million-key matrix proves
+**16 completed saves per leg**, passes the RSS bound on all nine legs and reloads
+the final snapshot with exactly 1,000,000 keys and the latest updated values.
+Peak RSS is at most 162.93 MiB in 1s and 141.84 MiB in 2s; after save 16 it is
+149.76–151.99 MiB and 126.54–126.75 MiB respectively. This includes the expected
+initial destination-table allocation and does not compound across saves.
+See `rss/large-final/results.json`. All **12 long
+EXEC + writer storms** (6/30/60 seconds × both modes/engines, atomic 1) pass both
+the existing correctness/reload checks and an explicit RSS bound. Their sampled
+peak RSS ranges from 25.40 to 39.88 MiB; each 60-second leg completes 91–597 saves.
+See `long-summary.json` and each `long/*/{timeline,rss-check}.json`.
+The five additional neighbours—SHUTDOWN SAVE, SIGTERM, BGSAVE/FLIP, AOF rewrite
+with EXEC and AOF rewrite with scripts—pass **45/45 legs**, including their Redis
+controls (`neighbours/*/results.json`). at412's script +
+writer `SNAP-STORM-1` diagnostic has **0 failures in 20 attempts** (five 30-second
+attempts per mode/engine). As in snapfix's diagnostic, `--pre-control` permits
+the existing BUSY refusals and records their counts; successful scripts, writes
+and saves must still advance. This is a stall/correctness result, not a rate
+claim. The standard differential runs passed **941 driver checks, 0 failures
+on each engine**: split atomic 0/1, armed fused atomic 0/1, and mode equivalence.
+Both used permanent seeds 7, 19, 20, 23; the rotating seeds were 21 for uring and
+22 for epoll. Complete suite, repeat and seed plans are retained in
+`proof/differ-{uring,epoll}/differ-plan.json`.
+All supplementary mode/battery passes completed:
+
+| Supplementary pass | Jobs including prerequisites | Passing rows | Failing rows |
+|---|---:|---:|---:|
+| uring 2s | 12 | 100 | 0 |
+| uring 1s | 16 | 203 | 1 |
+| epoll 2s | 12 | 100 | 0 |
+| epoll 1s | 16 | 204 | 0 |
+
+These add the complete feature/script surfaces, release and ASAN batteries,
+embedded snapshot migration/retirement units and the fused variants of ordinary
+split jobs. The uring fused failure is `txn_nx` at atomic 1: bare
+concurrent RENAMENX returned `ERR no such key` for one contender while its source
+remained present. The transactional half completed all 8,192 rounds cleanly.
+Its original failing receipt is retained in `proof/extra-uring-1s/`; independent
+controls using the unchanged contender check reproduce the same failure on
+**BASE 5572e84cc**, before this sizing fix. With the gate's DB0/read-local-0
+geometry, BASE has one failure in 131,072 rounds (iteration 44,085,
+`[1, ERR no such key]` and `[nil, winner-b, winner-a]`). PRE and POST have zero
+in 131,072 rounds each: **NOT REPRODUCED**, not proof of absence. Fresh multi-DB,
+read-local-1 controls are clean on all three arms, and Redis is clean for
+131,072 rounds. All controls complete every round without worker errors.
+See `control/txn-nx-*/result.json`; this separate RENAMENX defect remains unfixed,
+and its origin before BASE is unconfirmed. A bounded reproduction is:
+
+```sh
+taskset -c 8-15 python3 tools/snapfix2_nx_control.py \
+  --binary build/snapfix2/base/tomokv --databases 1 --read-local 0 \
+  --rounds 131072 --output build/snapfix2/reproduce-nx
+```
+
+The additional `auth` jobs pass **8/8 rows in each of four mode/engine runs**,
+including their typed SAVE/DEBUG RELOAD round-trip and ACL matrices
+(`proof/auth-*/record.json`).
+
+`python3 tests/gates_test.py` passes **73/73 tests** in the isolated rerun
+(`proof/gates-test-isolated.{log,command.json}`). The initial run hit three
+fixture timeout failures while compilation and instruction tracing overlapped;
+its original log is retained. No assertion or timeout was weakened.
+
+`make all` and the gate's entire 45-target `job_production_units` inventory build
+successfully. The two real MDB live-arm builds and blockfix-cost target also
+build. **All 51 `make -q` queries pass**, including PRE and BASE; the phony MDB
+aggregate is checked via its two real recursive `all` targets with identical
+flags. Commands, logs and every output digest are in `freshness.json` and
+`freshness-*.log`.
+
+**NOT RUN:** the unfiltered full iteration, `atomic_floor`, the atomic RYOW rate
+assertion, ABBA/NIC performance passes, the 18 merit cells and the quiet-box
+16-save BASE/POST latency curves. Those performance measurements remain with the
+maintainer under this lane's runtime authorization. Partial-job ledgers are not
+a full-gate receipt.
+
+### Arms
+
+PRE and BASE sources were compared file-by-file with their Git objects: 1,059
+PRE files and 1,073 BASE files match, with zero mismatches. Both builds pass
+`make -q all`. See `docs/snapfix2/reference-builds.json`. Debug paths make their
+binary digests differ from the other worktree's builds.
+
+PAD is **A (behaviour twin)** relative to BASE: BASE behaviour in the exact common
+POST-layout image. `POST-layout` and `PAD-A` have identical sections, symbols and
+function addresses; only the five-byte entry branch differs. They are larger
+than the release binary, so compare those twins separately. Both graphs remain
+in the image; the entry selects which executes. This controls whole-image size
+and layout, but the selected BASE and POST functions occupy different addresses.
+It is not a proof of identical hot-path placement. The generator and
+all object/input digests are recorded in `docs/snapfix2/pad-a.json`.
+The 12-save functional control passed on POST-layout in all four mode/engine
+legs (atomic 1); PAD-A failed the RSS-growth assertion in all four, with exactly
+12 completed saves each (`pad/{post-layout,pad-a}/results.json`).
+
+
+| Arm | Path | SHA-256 |
+|---|---|---|
+| PRE | `build/snapfix2/pre/tomokv` | `da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c` |
+| BASE | `build/snapfix2/base/tomokv` | `dea9309b1ebdf5a46da5fc69d377ed55b26414e7e01d38d3ddfa4b2a8b61db98` |
+| POST | `build/tomokv` | `dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c` |
+| POST-layout | `build/snapfix2/POST-layout` | `e091b35599b3c8ec893facb4132a5d3996fb35a076557303c11174f26df67346` |
+| PAD-A | `build/snapfix2/PAD-A` | `a5f898e5e659944c8f328280654328df4dad60c53fcbf0e6213ce14937303a34` |
+
+Section sizes and merit-cell digests: `docs/snapfix2/arms.json`. POST release
+`.text` is 8,459,175 bytes, **+160 bytes** versus BASE.
+The final delivery audit rechecked all five hashes and production freshness:
+`docs/snapfix2/delivery.json`. Build usage is **17.51 GiB**. Superseded arm
+objects/source trees and raw instruction traces were removed after recording
+digests and counts; repeated instruction address maps are deduplicated into six
+compressed files. Completed gate scratch directories were removed after
+archiving their receipts. Initial scheduler failure artifacts are retained as
+hashed compressed archives. All owned servers have stopped and ports
+20100–20199 are free. No push was performed.
+
+### Maintainer measurement request
+
+Use the gate's own ABBA instrument for the 14 generic cells in
+`docs/execfair/cells/generic14.txt` and 2s GET/SET p1/p32 (`tests/headline_cells.txt`
+h17, h18, h49, h50). The exact 18-cell combined input is
+`docs/snapfix2/cells.txt`, hashed in `arms.json`. BASE vs POST is the sizing-fix comparison; retain PRE vs POST
+for the combined snapfix change. PAD is **A, behaviour twin**: BASE behaviour in
+the exact POST-layout common image. Compare POST-layout vs PAD-A separately from
+the release binaries. Command counts are equal; matched offered
+load, cycles/op and IPC decide any performance effect. No throughput claim here.
+Retain the instrument's uring and epoll passes; the remaining changed hot body
+is in the epoll fused sweep.
+
+On a quiet box, also record RSS and BGSAVE start latency for each of 16 consecutive
+saves, BASE vs POST, idle one-key geometry, both modes/engines, atomic 1. Use 16
+shards, CPUs 0–7, ratio 6:2 in 2s; read-local 1 in 1s and 0 in 2s; databases 16;
+key/client balancing and automatic FLIP off; save rules disabled. Start latency
+is command send to BGSAVE acceptance reply; sample INFO memory RSS after each
+completed save. Plot all 16 save indices. The capacity/RSS growth and start-wait
+curves decide this stability effect. Correctness RSS checks in this lane do not
+establish a latency or throughput result.
+
+Run these two commands separately on the quiet box. BASE is expected to exit 1
+at the RSS assertion; each of its four `rss.json` files must nevertheless contain
+all 16 samples and `completed_saves: 16`. POST must pass. The runner records the
+curves before making the assertion. These 16-save latency measurements are
+**NOT RUN in this lane**, as requested.
+
+```sh
+taskset -c 8-15 python3 tests/snapfix.py --case bgsave-loop \
+  --binary build/snapfix2/base/tomokv --saves 16 --stall 300 \
+  --oracle /home/user/Projects/redis/src/redis-server --no-oracle \
+  --cores 0-7 --port 20100 --atomics 1 --output build/snapfix2/merit-base
+taskset -c 8-15 python3 tests/snapfix.py --case bgsave-loop \
+  --binary build/tomokv --saves 16 --stall 300 \
+  --oracle /home/user/Projects/redis/src/redis-server --no-oracle \
+  --cores 0-7 --port 20100 --atomics 1 --output build/snapfix2/merit-post
+```

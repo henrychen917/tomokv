@@ -1,0 +1,17 @@
+ok	0.010000	release build (+footprint locks)
+ok	33.700000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	36.410000	blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+ok	33.480000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	32.860000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	33.720000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	33.850000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+FAIL	0.010000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	55.230000	blockfix CC4.19 XINFO structural counts vs Redis 7.4
+FAIL	38.230000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	46.660000	blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+ok	70.520000	streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4
+ok	39.440000	streamfix XREAD-PLUS-LAST vs Redis 7.4
+ok	33.040000	streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4
+ok	33.230000	streamfix STREAM-GROUP-ID-DASH vs Redis 7.4
+ok	33.450000	streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4
+ok	33.140000	streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4

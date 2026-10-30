@@ -119,8 +119,17 @@ expect(client.command("EXEC"), [b"OK"], "DEBUG SLEEP inside EXEC")
 sleep_client.file.close()
 sleep_client.sock.close()
 
+expect(client.command("CONFIG", "GET", "appendonly"),
+       [b"appendonly", b"no"], "DEBUG LOADAOF offline setup")
+expect(client.command("SET", "debug:offline-load-canary", "present"), b"OK",
+       "DEBUG LOADAOF flush witness")
 expect(client.command("DEBUG", "LOADAOF"),
-       "ERR appendonly is disabled", "DEBUG LOADAOF appendonly-off guard")
+       "ERR Error trying to load the AOF files, check server logs.",
+       "DEBUG LOADAOF missing offline file")
+expect(client.command("GET", "debug:offline-load-canary"), None,
+       "DEBUG LOADAOF failed offline load flushes keys")
+expect(client.command("CONFIG", "GET", "appendonly"),
+       [b"appendonly", b"no"], "DEBUG LOADAOF keeps appendonly disabled")
 expect(client.command("DEBUG", "JMAP"),
        "ERR unknown subcommand or wrong number of arguments for 'debug' command",
        "DEBUG JMAP intentionally absent")
@@ -178,5 +187,5 @@ for atomic in (0, 1):
 
 client.file.close()
 client.sock.close()
-print("debug: PASS (process-wide sleep, toggle fired, batched shard ownership, LOADAOF off guard, "
+print("debug: PASS (process-wide sleep, toggle fired, batched shard ownership, offline LOADAOF, "
       "mixed snapshot RELOAD atomic=0/1)")

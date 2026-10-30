@@ -1,0 +1,21 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "unmodified PRE a214652ec262aa9a5eeaeadf129c0ef76ba6c99c",
+  "matched": "POST .text address/size and imported PLT entries",
+  "limitation": "Not an exact function-placement or data-layout twin.",
+  "padding_bytes": 4160,
+  "pre_text": {
+    "address": 129328,
+    "size": 8457095
+  },
+  "post_text": {
+    "address": 129424,
+    "size": 8461255
+  },
+  "pad_text": {
+    "address": 129424,
+    "size": 8461255
+  },
+  "source_commit": "a214652ec262aa9a5eeaeadf129c0ef76ba6c99c",
+  "sha256": "b30227d4eedb22d7eed68f1f13c76f490f973f17e64073923801f114961e0a9c"
+}

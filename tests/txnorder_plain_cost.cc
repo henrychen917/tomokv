@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     const char kind=argv[1][0]; require(kind>='a' && kind<='d', "known cost case");
     if (kind=='b' || kind=='d') {
         for (unsigned i=0,n=kind=='b'?1:64;i<n;++i) {
-            auto* state=allocate_state(server,client,0,MultiStateKind::Execute);
+            auto* state=fixture_allocate_state(server,client,0,MultiStateKind::Execute);
             require(state,"cost state"); states.emplace_back(state);
             state->decision.age_ns=i+1;
             txn_add_claim(state->claims[0],slice(kind=='b'?other:hot),TxnClaimMode::Write);

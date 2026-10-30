@@ -24,6 +24,11 @@ void IoLoop::shutdown_on_issuer() {
     }
 }
 
+void IoLoop::shutdown_release_abandoned_script_pins(Server& srv) {
+    for (uint32_t sid = 0; sid < srv.nshards(); ++sid)
+        srv.shard(static_cast<int32_t>(sid)).store().atomic_release_abandoned_script_pins();
+}
+
 void IoLoop::shutdown_clients_after_join() {
     // Serverless fixtures may borrow stack Clients. Only init() creates an owning
     // IO lifetime; partial initialization cannot have admitted a connection.

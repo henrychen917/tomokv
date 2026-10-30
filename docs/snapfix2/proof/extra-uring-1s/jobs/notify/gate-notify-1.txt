@@ -1,0 +1,4 @@
+notify: initial atomic=1
+notify: atomic=0 MSET/DEL assertions completed
+notify: atomic=1 MSET/DEL assertions completed
+notify: ok (notify_events_fired=3161)

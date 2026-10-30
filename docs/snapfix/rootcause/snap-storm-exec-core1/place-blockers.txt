@@ -1,0 +1,13 @@
+unit 0x7fffd9792300 client 3 kind tomo::MultiStateKind::Execute age 4806981244975448 phase tomo::TxnPhase::Placing epoch 0 aborted 0 watch_failed 0 finalized 0
+    blocker shard 9 -> epoch@0x7fffd8e6fc90 val 24468 aborted 0 live 0 owner-unit 0x7fffd8e6f700 client 5 age 4806981244264691
+unit 0x7fffd9108100 client 6 kind tomo::MultiStateKind::Execute age 4806981245662285 phase tomo::TxnPhase::Placing epoch 0 aborted 0 watch_failed 0 finalized 0
+    blocker shard 4 -> epoch@0x7fffd9792890 val 0 aborted 0 live 1 owner-unit 0x7fffd9792300 client 3 age 4806981244975448
+    blocker shard 9 -> epoch@0x7fffd9792890 val 0 aborted 0 live 1 owner-unit 0x7fffd9792300 client 3 age 4806981244975448
+unit 0x7fffd9399100 client 4 kind tomo::MultiStateKind::Execute age 4806981246717801 phase tomo::TxnPhase::Placing epoch 0 aborted 0 watch_failed 0 finalized 0
+    blocker shard 4 -> epoch@0x7fffd9108690 val 0 aborted 0 live 1 owner-unit 0x7fffd9108100 client 6 age 4806981245662285
+    blocker shard 9 -> epoch@0x7fffd9792890 val 0 aborted 0 live 1 owner-unit 0x7fffd9792300 client 3 age 4806981244975448
+unit 0x7fffd9381900 client 8 kind tomo::MultiStateKind::Execute age 4806981245805849 phase tomo::TxnPhase::Placing epoch 0 aborted 1 watch_failed 1 finalized 1
+unit 0x7fffd9106500 client 10 kind tomo::MultiStateKind::Execute age 4806981293730391 phase tomo::TxnPhase::Placing epoch 0 aborted 0 watch_failed 0 finalized 0
+unit 0x7fffd8e6fe00 client 5 kind tomo::MultiStateKind::Execute age 4806981246780933 phase tomo::TxnPhase::Placing epoch 0 aborted 0 watch_failed 0 finalized 0
+unit 0x7fffd9791500 client 7 kind tomo::MultiStateKind::Execute age 4806981246793153 phase tomo::TxnPhase::Placing epoch 0 aborted 0 watch_failed 0 finalized 0
+unit 0x7fffee272000 client 9 kind tomo::MultiStateKind::WatchAdd age 0 phase tomo::TxnPhase::Placing epoch 0 aborted 0 watch_failed 0 finalized 0

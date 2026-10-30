@@ -1,0 +1,156 @@
+{
+  "run": "/home/user/Projects/cx-snapfix2/build/gate-run.xOMZjJ",
+  "command": "env GATE_ONLY_JOBS=auth REDIS74_ROOT=/home/user/Projects/redis GATE_NET_IO=uring GATE_DIFFER_NET_IO=uring GATE_PROOF_NO_RATES=1 GATE_TXN_FUSED=0 taskset -c 0-15 tests/gate.sh iteration --server-cores 0-7 --load-cores 8-15 --server-smt '' --load-smt '' --ports 20100-20199",
+  "binary": "/home/user/Projects/cx-snapfix2/build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "files": {
+    "ledger.partial": "6121934e84faa60350ee794a06d5ac03ba4f5dbda4df2cab61cc1c715aa46279",
+    "ledger.partial.timings": "08a785476520b73be85cfce3dad748443302e756c6f922795a79041c266c8af7",
+    "plan.sh": "aec113bb8ab3e3ea7ea59430fca3c59675304f8e8fa63c1fd931e527a044b46b",
+    "phases.tsv": "970e9338a8243ebcae5432b5964c9cca2b39c8058df3f5ccbe19699c5c66b4da",
+    "families.tsv": "7d269538e69a070be6ffa669823d833ce08fc5a5931e704f1050969927105325",
+    "row-timeouts.json": "888df83cc428875b95499d727cd873d2f84cf00638e6f170d29e53779e4093a0",
+    "gate-output.log": "e905c788bdef7776e9aeaaff2b342bdd230527b7d1539a0463e54af613b54e46",
+    "jobs/auth/acl-0-1s-epoll.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/acl-0-1s-uring.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/acl-0-2s-epoll.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/acl-0-2s-uring.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/acl-1-1s-epoll.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/acl-1-1s-uring.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/acl-1-2s-epoll.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/acl-1-2s-uring.log": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d",
+    "jobs/auth/family.tsv": "7a9641a6aa013555f52d372f356df6b0151d127518fd5371ea2387bb585aa600",
+    "jobs/auth/gate-auth.txt": "4b01e2f31f4f80eda45d582a820be108197ecbfb83b0fae449ff025a16ab1a39",
+    "jobs/auth/gate-debug.txt": "c957bac834b1f1fdc1a9cdfd3c09cd1a2256e71192a35e3b83fb53fda8c8c3ca",
+    "jobs/auth/gate-snap-state-20100.txt": "ddbb07f19d8ebbc9c54c7b0d03e0f4e002f328aafce3480d6ff5e800cf0af75d",
+    "jobs/auth/gate-snap-typed.txt": "716d49713d5fc353ee8b5647dc1977b7229252c42714bc2dbd5987867d8b78a8",
+    "jobs/auth/output.log": "aee94f2fe7199ee1371639973314988cf13ffa265984ec8887c9c399a7ae2edf",
+    "jobs/release/family.tsv": "d5a7cb9e3ab8978ee41f70361e7326e48910bf4d1694f03f98e28263099e8a2e",
+    "jobs/release/gate-build.txt": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+    "jobs/release/output.log": "c62d612287e23dbc56cd185dacfa158f6918aa448ad7f7eb5ed39d511da20680"
+  },
+  "referenced": {
+    "jobs/auth/acl-0-1s-epoll.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/acl-0-1s-uring.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/acl-0-2s-epoll.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/acl-0-2s-uring.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/acl-1-1s-epoll.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/acl-1-1s-uring.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/acl-1-2s-epoll.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/acl-1-2s-uring.acl": {
+      "bytes": 52,
+      "sha256": "381f472a6d8edd6209c45b0f014998aad7abfcb9ea1629afbbbea18c45b49bb9"
+    },
+    "jobs/auth/gate-debug.gDzBMU/reload.tomo": {
+      "bytes": 201408,
+      "sha256": "8b241cd473a9cb5627b7e34bb970c9a56e402275011e4b44b4e98e7c81250735"
+    },
+    "jobs/auth/gate-srv-fused.6kDx5g": {
+      "bytes": 7537,
+      "sha256": "cf6898d16dfa6af38efacbe174da8ae2f4b081db9c6e5c54bcb4f6cf80165128"
+    },
+    "jobs/auth/gate-srv-fused.RXFW9w": {
+      "bytes": 7626,
+      "sha256": "dbd7eca36dfcf1551a678812694047541a60ea5b47c3bb6e3e3f526515e36fe0"
+    },
+    "jobs/auth/gate-srv-fused.Vfg3Uz": {
+      "bytes": 7538,
+      "sha256": "fbb0d66a88c37f60ad579c3b32d9c875a79631c1e0ede02140baa6cb9bc09a8c"
+    },
+    "jobs/auth/gate-srv-fused.mV5Ope": {
+      "bytes": 7628,
+      "sha256": "91eeef4dea78395b421a9a5d012488ef82858e46371b0b05475a20621b59fbc9"
+    },
+    "jobs/auth/gate-srv-main.JySDkq": {
+      "bytes": 6769,
+      "sha256": "ab1fe984467774a9c8bed8f2c46f8be15b5362f53d7cb90749fa12ab2093c6e1"
+    },
+    "jobs/auth/gate-srv-main.Ymmphi": {
+      "bytes": 6737,
+      "sha256": "8eb0e0a3b7e6b448210f3689f3a0a94885eacbacd832fff8bbfba873848996d3"
+    },
+    "jobs/auth/gate-srv-main.gw0fNu": {
+      "bytes": 6826,
+      "sha256": "f043db4ee55f4e574064206c87b6a801b29e2847874f9649978f32f8627ae334"
+    },
+    "jobs/auth/gate-srv-main.mbgte7": {
+      "bytes": 6826,
+      "sha256": "b16355c1b2ce406a1b8ebe360d40dfd35ce6d089a62f5489d21be1c7f4f58d0d"
+    },
+    "jobs/auth/gate-srv-main.qwRjOJ": {
+      "bytes": 6735,
+      "sha256": "8c81079f0bcb4dfcefc56eb58045fe1c23daf7d55c70d48a04ac64256aade5d5"
+    },
+    "jobs/auth/gate-srv-main.ywXi7w": {
+      "bytes": 6657,
+      "sha256": "435225ba2f86472e70b605b5b6ee457e92401463f951170f34a197595332134b"
+    },
+    "jobs/auth/row-timeout-1044766.1044766.487056405.1.cancel": {
+      "bytes": 63,
+      "sha256": "84cbb7eb951c30740987c6c484702f41e932e4b88e94c0e50dc423f1ab11f6c9"
+    },
+    "jobs/auth/row-timeout-1044766.1044766.487056405.2.cancel": {
+      "bytes": 63,
+      "sha256": "56ee572e9cf4f9f25ca3f48617a9c23ce16de5a876459c172adc3e9b11d50cec"
+    },
+    "jobs/auth/row-timeout-1044766.1044766.487056405.3.cancel": {
+      "bytes": 63,
+      "sha256": "20315c74b0af2349e92f1d145238eb5d68b83dab86073badd9a543def0dc1115"
+    },
+    "jobs/auth/row-timeout-1044766.1044766.487056405.4.cancel": {
+      "bytes": 63,
+      "sha256": "4bd601ad3d9eeab2cea58787bdc897b2dd3839b2943d67a2f2518b37fe3f115c"
+    },
+    "jobs/auth/row-timeout-1044766.1044766.487056405.5.cancel": {
+      "bytes": 63,
+      "sha256": "04a8eb793ae21309ccbaa8e0ef65338225a95d7531c3dd26ed7964d20de92118"
+    },
+    "jobs/auth/row-timeout-1044766.1044766.487056405.6.cancel": {
+      "bytes": 63,
+      "sha256": "d067c50527769d51d7b6a0a689178caded71e148adfa6e725f89a7a9f87104a7"
+    },
+    "jobs/auth/row-timeout-1044766.1044766.487056405.7.cancel": {
+      "bytes": 63,
+      "sha256": "d1218da7044f53641c37cf8c38d8c190583e430f41c3f5f458126a29beb938cf"
+    },
+    "jobs/release/row-timeout-1044728.1044728.487056367.1.cancel": {
+      "bytes": 63,
+      "sha256": "9951140211b1a73251ab0f072a9920a0d12cda54976a0e646ad51435b3a1c163"
+    }
+  },
+  "jobs": {
+    "auth": {
+      "ledger": "ok\t0.000000\treject bad protected-mode\nok\t0.010000\treject bad enable-debug-command\nok\t0.150000\tAUTH/HELLO/protected state machine\nok\t5.550000\tACL battery (atomic off)\nok\t5.590000\tACL battery (atomic on)\nok\t2.470000\tDEBUG toggle/reload battery\nok\t0.120000\ttyped snapshot round-trip incl stream\n",
+      "done": "0\t7\t0\n",
+      "timings": "ok\t0.000000\treject bad protected-mode\nok\t0.010000\treject bad enable-debug-command\nok\t0.150000\tAUTH/HELLO/protected state machine\nok\t5.550000\tACL battery (atomic off)\nok\t5.590000\tACL battery (atomic on)\nok\t2.470000\tDEBUG toggle/reload battery\nok\t0.120000\ttyped snapshot round-trip incl stream\n"
+    },
+    "release": {
+      "ledger": "ok\t0.040000\trelease build (+footprint locks)\n",
+      "done": "0\t1\t0\n",
+      "timings": "ok\t0.040000\trelease build (+footprint locks)\n"
+    }
+  },
+  "compressed_large_text": {},
+  "removed_run_artifacts": true
+}

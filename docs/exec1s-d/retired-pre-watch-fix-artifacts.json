@@ -1,0 +1,250 @@
+{
+  "reason": "Completed passing jobs from superseded production image; retain ledgers/logs and content digests, retire large payloads and disassemblies.",
+  "files": [
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-uring/savefix-acks-1s-command/attempt-1/dump.tomo",
+      "bytes": 32673618,
+      "sha256": "b7a4c083a5a67cc767e0f79dbabb4cb51b572187449c5380129fdf49ab03a529"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-uring/savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+      "bytes": 32673650,
+      "sha256": "142ab17ba93f8f74b007b87a98b69ea90d0a7d833fae6ab7c2c7b16e0a86ff67"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-uring/savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+      "bytes": 32673618,
+      "sha256": "7538ed82f6b55c1bd1d8c7d9c6c8894a87f122b1ee01e157c4679679e4ff5a1a"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-uring/savefix-acks-2s-command/attempt-1/dump.tomo",
+      "bytes": 32673650,
+      "sha256": "dfd5b83f9aa0df8048f0747c995bd37f54c04028569b67022674d3a672c4cebd"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-1-0/data/dump.rdb",
+      "bytes": 21459754,
+      "sha256": "2d87049e1fe47f49ae3ac33eb9df4dc8c1af1a24142b39ad785a277b702df61e"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+      "bytes": 21459754,
+      "sha256": "1648ab4a2c4b62a644b85faba4e6773cc4bdad1694c920e26d8b4251d9bde027"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-0-0/data/dump.rdb",
+      "bytes": 21459722,
+      "sha256": "eb164968972fbaa6682d8fd9b7fced280714228935cd08222ef922ec7fe1cf18"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+      "bytes": 21459722,
+      "sha256": "d42e67ff4599a0e13e8bbe7c4ed1d60adf860d40ee106cbb856a786d791bc9df"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data/dump.rdb",
+      "bytes": 21459690,
+      "sha256": "5f4038e643b3757c5df8310ef3c2ac92d14a5c72c555cfeb35bddfec6152f4bf"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+      "bytes": 21459690,
+      "sha256": "e44c84563ad62db494970e1a3987488a2a837a790176111ee5f48daf041090b0"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data/dump.rdb",
+      "bytes": 21459722,
+      "sha256": "9b6f181ca3f729b3f217a1d6f2adc3ce0e4b4e333e31fcc7d192436de08339c6"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+      "bytes": 21459722,
+      "sha256": "3c7790b36ae0063905c42d2e47ab4410812c9dc27fea56da3f503005dba27e11"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-1-0/data/dump.rdb",
+      "bytes": 21459786,
+      "sha256": "58425606df612819d72544ea024ccb1361eaa890e1a4480b7693c4ade0bb5f3c"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+      "bytes": 21459786,
+      "sha256": "2dcb6162599ff297b04d391f7859018b457893281981b2878bcc7fea3687f8ef"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-0-0/data/dump.rdb",
+      "bytes": 21459722,
+      "sha256": "5c60011f995be661e1b3838c146c36078b881cbb51ef53f122eb75780bc6bcd6"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+      "bytes": 21459722,
+      "sha256": "448aa7bfd90b0a113a4dfddc083e4cb9482059c693654e2b3f5295c8ea4909ae"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-1-0/data/dump.rdb",
+      "bytes": 21459754,
+      "sha256": "53cc6dceedc9a07f08e21d7b3065e6ffe70e67ffc268ab8e4141b4b328785391"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+      "bytes": 21459754,
+      "sha256": "fa5de43a4e90a959bc08245e4b0df602448edbe12fcc66859d84f796b255eaa8"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-0-0/data/dump.rdb",
+      "bytes": 21459690,
+      "sha256": "d64c240a383dc54b8199cc77f0efde77d3ab2e89dcb8a7a864ae8e96f0ee4a26"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+      "bytes": 21459690,
+      "sha256": "71722b329f94444c2342d9a0240813d327ce078a54d3d21ba6026718e88189ec"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-epoll/savefix-acks-1s-command/attempt-1/dump.tomo",
+      "bytes": 32673618,
+      "sha256": "e8d675f28796b7ea9e810a6c06d8726cb174494e36ec67f5ff1fb0de48463ea3"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-epoll/savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+      "bytes": 32673682,
+      "sha256": "4a22668e485e07f98963101576a061247625585f135109e87c5ba3139f3246ad"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-epoll/savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+      "bytes": 32673618,
+      "sha256": "cf48687f089e10bfd7c35e02e87167cbc45df5a269dac43c7f355589b281e41d"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/snapshot-epoll/savefix-acks-2s-command/attempt-1/dump.tomo",
+      "bytes": 32673714,
+      "sha256": "3b58fc647be92d45888ba92ffb61438db0971be0e481e79848f91d2357b5b4b8"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/reorder_engagement/db0/fifo-twin",
+      "bytes": 207856824,
+      "sha256": "698accc4b0ffc0d526db134be7674b7a402564565a1d824912d1f87b7bcbac2b"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/reorder_engagement/multi/fifo-twin",
+      "bytes": 108423344,
+      "sha256": "5ec5779de1d942d0b4af4f1b664632d97be05374ad2ba6762af5d1baba3aafed"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135435456,
+      "sha256": "a95a2ef0ff8af0dadaf3f5217e9c7c802a4db1f5d52e52ee7bf5a6202304172e"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/persistfix/2s-term-c0r03gxb/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 9148284,
+      "sha256": "123941e6d8c97b5395be6fce45a81aa2c53d47693587af89b30cc8f72baa724c"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135364741,
+      "sha256": "1ac20ab5bdfb5ad619518edaae4073befd81bf40d4382fbf300d7e143b067665"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/gate-aof-epoll-atomic1.Ti1TyP/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 14329733,
+      "sha256": "30615a93dd7fc4d4134cfee71ed341dda830eae80677d923c25328d6a206f163"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/aoffix2-large-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 8464097,
+      "sha256": "ad7b9386bf1423bafac498558e65cc063667e4cd293d4ab3c4694cbce4473b6f"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135368371,
+      "sha256": "c3413813a9cb4a965a4d2a696a4e5cf88f0762a1bb2d87d80e8c07a1d122fcff"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/gate-aof-epoll-atomic0.z4BYjX/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 14329481,
+      "sha256": "01d7d2bfe2cf536ce6b916bdd63aa71cc3d0ca3ccdeeb14011d689ea7c34f7aa"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-epoll/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135443538,
+      "sha256": "f7bb1f898926b8688c4454738127041b343d2adfd9fc0772fd6be8aaeae49e72"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_shutdown/shutdown-target-2s-uring/active-save-0/data/dump.rdb",
+      "bytes": 21459786,
+      "sha256": "8fc62fea680598c9d1ef01d2567789a6ba55c96aad7094653a5d43d8d44430e6"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/active-save-0/data/dump.rdb",
+      "bytes": 21459722,
+      "sha256": "8d22499424bb92fc656f2c227af48a97711de77ace55c35dd1ae5a1a1686f7a8"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/active-save-0/data/dump.rdb",
+      "bytes": 21459690,
+      "sha256": "26af7d7fbdd28084834df0b31631ef3d7f7297c0a00dbe20369df26b16396c0d"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/persistfix2_shutdown/shutdown-target-1s-uring/active-save-0/data/dump.rdb",
+      "bytes": 21459754,
+      "sha256": "720b7c31ea9c8a3545618f6c24a1532b0cacdc02dc8cec756703fcbfddc145f7"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/reorder_identity/receipt/fifo-twin",
+      "bytes": 220116232,
+      "sha256": "044f96cdd8730a81dc3eb74c7198c3cb19b0458d10d5634df9a3cf2f8455ffe2"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/reorder_identity/receipt/negative/tomokv.22d10835d2b4.objdump",
+      "bytes": 133094254,
+      "sha256": "8dd6080d9aaf5d06a5cd94981fe25c11d96515ccca9d1f5aaaee40f5350d42a9"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/reorder_identity/receipt/identity/tomokv.22d10835d2b4.objdump",
+      "bytes": 133094254,
+      "sha256": "8dd6080d9aaf5d06a5cd94981fe25c11d96515ccca9d1f5aaaee40f5350d42a9"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/reorder_identity/receipt/identity/fifo-twin.044f96cdd873.objdump",
+      "bytes": 133094303,
+      "sha256": "e3a2385b612454c60f8b5d0eb1c684597ad043afa24b7688ef8b680f88768ba9"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135422331,
+      "sha256": "360a458f3f09f884b6260ceebbe8eb02bc3b19b52da19dd28be426a422cf10ec"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135357343,
+      "sha256": "0b7b7862cac7f20e04ee4804ba1d76e78cf213f3d98ed3f9627e98c6902275d4"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-uring/gate-aof-uring-atomic0.MeQajN/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 14329521,
+      "sha256": "20136001b9f486f03e9ce0c00230a5a223a6643fbcf5321beab7bbff9a65fe6f"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-uring/gate-aof-uring-atomic1.nZMUk3/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 14329733,
+      "sha256": "a7968e4dc7a84614e2cc739f944bec903303077143b80a790f1509108f455301"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-uring/aoffix2-large-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 8464097,
+      "sha256": "75bf1804dd6eeaabae36fac8d99833c124fd88f52cc8ef49689abd77bd1091ae"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135357493,
+      "sha256": "e5f88406d1247c70b6e5ee6b85a0f362c0fe3d446b32a828009a3a72f16eb355"
+    },
+    {
+      "path": "build/gate-run.BZeNRx/jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135461958,
+      "sha256": "2cb326614e585d2e92af48aa33310721198b6d374bc9a811aa92d0d63efbaa9a"
+    }
+  ]
+}

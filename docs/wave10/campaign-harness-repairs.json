@@ -1,0 +1,33 @@
+{
+  "note": "run_jobs source_commit/source_diff identify each invocation start. These test-only repairs were made while the broader campaign continued, after their failed jobs had finished. Each affected whole job was rerun; the final-info-exec rerun also rebuilt/rechecked the dependent exec1s fixture. The candidate executable stayed SHA 844cf188... throughout.",
+  "repairs": [
+    {
+      "commit": "4be4311b2",
+      "failed_jobs": [
+        "atomic_units",
+        "reorder_identity"
+      ],
+      "rerun": "final-survivors-reorder-fixed",
+      "commit_time": 1793251695,
+      "failed_job_end_times": {
+        "atomic_units": 1793251277.1926072,
+        "reorder_identity": 1793251234.673022
+      },
+      "failed_jobs_finished_before_fix": true,
+      "rerun_started": 1793251771.5104232
+    },
+    {
+      "commit": "c72654394",
+      "failed_jobs": [
+        "rlfix3_info"
+      ],
+      "rerun": "final-info-exec-harness-fixed",
+      "commit_time": 1793251909,
+      "failed_job_end_times": {
+        "rlfix3_info": 1793251843.5927975
+      },
+      "failed_jobs_finished_before_fix": true,
+      "rerun_started": 1793252053.734994
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{"oracle": {"acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0}}
+{"leg": "1s-uring-db1-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 35267, "owners": [[1, 1], [7, 7]]}
+{"leg": "1s-uring-db1-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 35670, "owners": [[8, 0], [11, 3]]}
+{"leg": "1s-uring-db1-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 36713, "owners": [[13, 5], [10, 2]]}
+{"leg": "1s-uring-db1-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 37186, "owners": [[6, 6], [15, 7]]}
+{"leg": "1s-uring-db16-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 35381, "owners": [[13, 5], [12, 4]]}
+{"leg": "1s-uring-db16-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 34905, "owners": [[11, 3], [8, 0]]}
+{"leg": "1s-uring-db16-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 36950, "owners": [[4, 4], [8, 0]]}
+{"leg": "1s-uring-db16-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 34356, "owners": [[4, 4], [3, 3]]}
+{"leg": "1s-epoll-db1-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 42950, "owners": [[4, 4], [14, 6]]}
+{"leg": "1s-epoll-db1-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 43058, "owners": [[1, 1], [14, 6]]}
+{"leg": "1s-epoll-db1-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 41775, "owners": [[4, 4], [3, 3]]}
+{"leg": "1s-epoll-db1-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 44238, "owners": [[4, 4], [9, 1]]}
+{"leg": "1s-epoll-db16-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 40866, "owners": [[5, 5], [4, 4]]}
+{"leg": "1s-epoll-db16-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 41567, "owners": [[14, 6], [12, 4]]}
+{"leg": "1s-epoll-db16-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 40426, "owners": [[5, 5], [0, 0]]}
+{"leg": "1s-epoll-db16-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 43169, "owners": [[9, 1], [0, 0]]}
+{"leg": "2s-uring-db1-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 47665, "owners": [[5, 7], [14, 6]]}
+{"leg": "2s-uring-db1-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 46983, "owners": [[8, 6], [15, 7]]}
+{"leg": "2s-uring-db1-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 47616, "owners": [[2, 6], [15, 7]]}
+{"leg": "2s-uring-db1-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 47204, "owners": [[3, 7], [12, 6]]}
+{"leg": "2s-uring-db16-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 43851, "owners": [[1, 7], [0, 6]]}
+{"leg": "2s-uring-db16-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 46950, "owners": [[0, 6], [9, 7]]}
+{"leg": "2s-uring-db16-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 46832, "owners": [[8, 6], [13, 7]]}
+{"leg": "2s-uring-db16-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 47290, "owners": [[4, 6], [13, 7]]}
+{"leg": "2s-epoll-db1-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 59098, "owners": [[10, 6], [13, 7]]}
+{"leg": "2s-epoll-db1-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 56676, "owners": [[6, 6], [5, 7]]}
+{"leg": "2s-epoll-db1-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 59229, "owners": [[11, 7], [0, 6]]}
+{"leg": "2s-epoll-db1-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 60290, "owners": [[10, 6], [3, 7]]}
+{"leg": "2s-epoll-db16-atomic1", "repeat": 0, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 55886, "owners": [[1, 7], [10, 6]]}
+{"leg": "2s-epoll-db16-atomic1", "repeat": 1, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 57729, "owners": [[7, 7], [4, 6]]}
+{"leg": "2s-epoll-db16-atomic1", "repeat": 2, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 56828, "owners": [[0, 6], [5, 7]]}
+{"leg": "2s-epoll-db16-atomic1", "repeat": 3, "acknowledged": 258, "visible": 258, "missing": 0, "duplicated": 0, "attempt": 1, "writer_waits": 53317, "owners": [[1, 7], [0, 6]]}
+{"failures": []}

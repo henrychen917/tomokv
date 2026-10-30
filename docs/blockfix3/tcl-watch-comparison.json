@@ -1,0 +1,752 @@
+[
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 0,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 1,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 2,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 3,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 4,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 5,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 6,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": false,
+    "passed": 0,
+    "failed": 2,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      },
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl",
+        "data": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl\nExpected '' to equal or match 'somevalue'",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 7,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 0,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 1,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 2,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 3,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 4,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 5,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 6,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "repeat": 7,
+    "file": "unit/type/list",
+    "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 0,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 1,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": false,
+    "passed": 0,
+    "failed": 2,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      },
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl",
+        "data": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl\nExpected '' to equal or match 'somevalue'",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 2,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 3,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 4,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 5,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 6,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 7,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 0,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 1,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 2,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 3,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 4,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 5,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 6,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "repeat": 7,
+    "file": "unit/type/list",
+    "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "validated": true,
+    "passed": 1,
+    "failed": 1,
+    "error": null,
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/type/list.tcl",
+        "test": "",
+        "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 0,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 1,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 2,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 3,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 4,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 5,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 6,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  },
+  {
+    "arm": "oracle",
+    "mode": "redis",
+    "repeat": 7,
+    "file": "unit/type/list",
+    "binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "validated": true,
+    "passed": 1,
+    "failed": 0,
+    "error": null,
+    "errors": []
+  }
+]

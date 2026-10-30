@@ -1,0 +1,2814 @@
+[
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rdi,%r12"
+    ],
+    "post": [
+      "mov    %rsi,%rbx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    0x0(%r13),%eax"
+    ],
+    "post": [
+      "mov    %rdi,-0x588(%rbp)",
+      "mov    0x8(%r13),%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rdx,-0x5b8(%rbp)",
+      "mov    %ecx,-0x59c(%rbp)",
+      "mov    %r8,-0x5c0(%rbp)",
+      "mov    %r9,-0x5c8(%rbp)",
+      "mov    %rsi,%rbx",
+      "mov    %eax,-0x590(%rbp)",
+      "mov    0x8(%r13),%rax",
+      "mov    %rax,-0x598(%rbp)"
+    ],
+    "post": [
+      "mov    %rdx,-0x5b0(%rbp)",
+      "mov    %ecx,-0x594(%rbp)",
+      "mov    %r8,-0x5b8(%rbp)",
+      "mov    %r9,-0x5c0(%rbp)",
+      "mov    0x0(%r13),%r15d",
+      "mov    %rax,-0x590(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x575(%rbp),%eax",
+      "cmpq   $0x0,-0x598(%rbp)"
+    ],
+    "post": [
+      "cmpq   $0x0,-0x590(%rbp)",
+      "movzbl -0x575(%rbp),%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    $0x3,%al",
+      "mov    %al,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x3,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %dl,-0x5a8(%rbp)"
+    ],
+    "post": [
+      "mov    %dl,-0x5a0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "lea    0x6f2e27(%rip),%rax        # 85d962 <_IO_stdin_used+0x5962>"
+    ],
+    "post": [
+      "lea    0x6f66e0(%rip),%rax        # 86e922 <_IO_stdin_used+0x5922>"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x5d8(%rbp)"
+    ],
+    "post": [
+      "mov    %rax,-0x5d0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x31,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x31,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "sub    $0x4,%eax"
+    ],
+    "post": [
+      "lea    -0x4(%r12),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    0x16c08(%r12),%rcx",
+      "mov    %rcx,-0x5f8(%rbp)"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rax",
+      "mov    0x16c08(%rax),%rcx",
+      "mov    %rcx,-0x5f0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "setne  -0x59d(%rbp)",
+      "mov    0x174a0(%r12),%rax"
+    ],
+    "post": [
+      "setne  -0x595(%rbp)",
+      "mov    0x174a0(%rax),%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "setne  -0x5b0(%rbp)",
+      "movzbl -0x5b0(%rbp),%edx",
+      "or     -0x590(%rbp),%dl"
+    ],
+    "post": [
+      "setne  -0x5a8(%rbp)",
+      "movzbl -0x5a8(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "or     %r15d,%edx"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    %dl,-0x5d8(%rbp)",
+      "je     1781f0 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x3b0>",
+      "cmp    $0xb,%r12b",
+      "ja     17a510 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x26d0>"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "je     16aae0 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x780>",
+      "movzbl -0x588(%rbp),%ecx",
+      "cmp    $0xb,%cl",
+      "ja     16cb70 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x2810>",
+      "mov    %dl,-0x5f0(%rbp)",
+      "cmp    $0x9,%cl"
+    ],
+    "post": [
+      "cmp    $0x9,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovdqa 0x705a12(%rip),%xmm0        # 872520 <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xcb8>",
+      "cmpb   $0x0,-0x5a8(%rbp)"
+    ],
+    "post": [
+      "vmovdqa 0x77a3f2(%rip),%xmm0        # 8f48a0 <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xcb8>",
+      "cmpb   $0x0,-0x5a0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x5e8(%rbp),%eax",
+      "mov    %al,-0x5f0(%rbp)"
+    ],
+    "post": [
+      "movzbl -0x5d8(%rbp),%eax",
+      "mov    %al,-0x5e8(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movb   $0x0,-0x5d0(%rbp)"
+    ],
+    "post": [
+      "movb   $0x0,-0x5c8(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "cmp    $0x9,%al"
+    ],
+    "post": [
+      "cmp    $0x13,%r12b",
+      "je     1783e0 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x5a0>",
+      "cmp    $0x9,%r12b"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "vpxor  %xmm0,%xmm0,%xmm0",
+      "vmovdqa %xmm0,-0x4e0(%rbp)"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "vpxor  %xmm0,%xmm0,%xmm0"
+    ],
+    "post": []
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "vmovdqa %xmm0,-0x4e0(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movl   $0x0,-0x61c(%rbp)",
+      "movq   $0x0,-0x618(%rbp)",
+      "sub    $0x21,%eax"
+    ],
+    "post": [
+      "movl   $0x0,-0x5f8(%rbp)",
+      "movq   $0x0,-0x600(%rbp)",
+      "lea    -0x24(%r12),%eax",
+      "cmp    $0x3,%al",
+      "ja     178f50 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x1110>",
+      "lea    -0x2e(%r12),%eax",
+      "movw   $0x0,-0x540(%rbp)",
+      "movq   $0x1,-0x53c(%rbp)",
+      "mov    %al,-0x596(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "sub    $0x24,%eax",
+      "cmp    $0x3,%al",
+      "jbe    16ad69 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0xa09>",
+      "movzbl -0x588(%rbp),%eax",
+      "movw   $0x0,-0x540(%rbp)",
+      "movq   $0x1,-0x53c(%rbp)",
+      "sub    $0x2e,%eax",
+      "mov    %al,-0x620(%rbp)",
+      "cmp    $0x2,%al",
+      "ja     16cb97 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x2837>",
+      "movzbl -0x588(%rbp),%esi"
+    ],
+    "post": [
+      "lea    -0x2a(%r12),%r14d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "lea    -0x2a(%rsi),%r15d",
+      "cmp    $0x1,%r15b"
+    ],
+    "post": [
+      "cmp    $0x1,%r14b"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "cmpb   $0x2c,-0x588(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "movq   $0x0,-0x4b8(%rbp)"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "movq   $0x0,-0x4b8(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "jne    16a7d5 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x475>",
+      "cmpb   $0x2d,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x2c,%r12b",
+      "je     179060 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x1220>"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "cmp    $0x2d,%r12b"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "cmpb   $0x10,-0x588(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "cmp    $0x10,%r12b"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "cmpb   $0x11,-0x588(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "cmp    $0x11,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "sub    $0x10,%eax",
+      "cmpb   $0x0,-0x5e8(%rbp)",
+      "mov    %al,-0x628(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x5d8(%rbp)",
+      "lea    -0x10(%r12),%eax",
+      "mov    %al,-0x61c(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%ecx",
+      "cmp    $0x1,%r15b",
+      "setbe  -0x59f(%rbp)",
+      "mov    %al,-0x5a0(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x1,%r14b",
+      "setbe  -0x597(%rbp)",
+      "mov    %al,-0x598(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    $0x2c,%cl"
+    ],
+    "post": [
+      "cmp    $0x2c,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "bt     %rcx,%rdx",
+      "setb   -0x59e(%rbp)",
+      "movzbl -0x59e(%rbp),%ecx"
+    ],
+    "post": [
+      "bt     %r12,%rdx",
+      "setb   -0x614(%rbp)",
+      "movzbl -0x614(%rbp),%ecx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x5f0(%rbp),%ecx",
+      "mov    %cl,-0x608(%rbp)"
+    ],
+    "post": [
+      "movzbl -0x5e8(%rbp),%ecx",
+      "mov    %cl,-0x610(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x2d,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x2d,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    $0x1,%r15b",
+      "setbe  -0x59f(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x1,%r14b",
+      "setbe  -0x597(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x59f(%rbp),%ecx",
+      "mov    %dl,-0x5f0(%rbp)"
+    ],
+    "post": [
+      "movzbl -0x597(%rbp),%ecx",
+      "mov    %dl,-0x5e8(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x2,-0x620(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x2,-0x596(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x608(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x610(%rbp)",
+      "movb   $0x0,-0x598(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x608(%rbp),%eax",
+      "movb   $0x0,-0x5a0(%rbp)",
+      "mov    %al,-0x5f0(%rbp)",
+      "nopl   0x0(%rax,%rax,1)",
+      "movzbl -0x5f0(%rbp),%eax",
+      "cmpb   $0x18,-0x588(%rbp)",
+      "movb   $0x0,-0x623(%rbp)",
+      "mov    %al,-0x621(%rbp)"
+    ],
+    "post": [
+      "movzbl -0x610(%rbp),%eax",
+      "mov    %al,-0x5e8(%rbp)",
+      "xchg   %ax,%ax",
+      "movzbl -0x5e8(%rbp),%eax",
+      "movb   $0x0,-0x618(%rbp)",
+      "mov    %al,-0x615(%rbp)",
+      "cmp    $0x18,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x19,-0x588(%rbp)",
+      "movb   $0x0,-0x59e(%rbp)",
+      "movb   $0x0,-0x624(%rbp)",
+      "sete   -0x629(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x19,%r12b",
+      "movb   $0x0,-0x614(%rbp)",
+      "movb   $0x0,-0x621(%rbp)",
+      "sete   -0x622(%rbp)"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "movzbl -0x588(%rbp),%esi"
+    ],
+    "post": []
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    %r12d,%esi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x622(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x616(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x5e8(%rbp)"
+    ],
+    "post": [
+      "mov    %eax,-0x5d8(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "nopl   0x0(%rax,%rax,1)"
+    ],
+    "post": [
+      "data16 cs nopw 0x0(%rax,%rax,1)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    %rax,%rdx"
+    ],
+    "post": [
+      "cmp    %rdx,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpl   $0x20,-0x5e8(%rbp)"
+    ],
+    "post": [
+      "cmpl   $0x20,-0x5d8(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5e8(%rbp),%edi"
+    ],
+    "post": [
+      "mov    -0x5d8(%rbp),%edi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x610(%rbp)"
+    ],
+    "post": [
+      "mov    %rax,-0x608(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x610(%rbp),%rcx",
+      "mov    %r12,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    -0x608(%rbp),%rcx",
+      "xor    %r13d,%r13d",
+      "mov    %r12b,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "xor    %r13d,%r13d",
+      "mov    %rcx,%r12"
+    ],
+    "post": [
+      "mov    %r13d,%r12d",
+      "mov    %r15d,-0x620(%rbp)",
+      "mov    %rcx,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r13d,%r15d",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %r12d,%edx",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "imul   -0x368(%rbp,%rax,1),%r15d",
+      "add    -0x370(%rbp,%rax,1),%r15d"
+    ],
+    "post": [
+      "imul   -0x368(%rbp,%rax,1),%edx",
+      "add    -0x370(%rbp,%rax,1),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15d,%esi"
+    ],
+    "post": [
+      "mov    %edx,%esi",
+      "mov    %rsi,%r15"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "inc    %r13d",
+      "add    $0x10,%r12"
+    ],
+    "post": [
+      "inc    %r12d",
+      "add    $0x10,%r13"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x600(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x10(%r12)",
+      "mov    %r15d,-0x8(%r12)"
+    ],
+    "post": [
+      "mov    %rax,-0x10(%r13)",
+      "mov    %r15d,-0x8(%r13)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %eax,-0x4(%r12)",
+      "mov    -0x5e8(%rbp),%eax",
+      "cmp    %eax,%r13d"
+    ],
+    "post": [
+      "mov    %eax,-0x4(%r13)",
+      "mov    -0x5d8(%rbp),%eax",
+      "cmp    %eax,%r12d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x9,-0x588(%rbp)",
+      "mov    -0x600(%rbp),%r12"
+    ],
+    "post": [
+      "movzbl -0x617(%rbp),%r12d",
+      "mov    -0x620(%rbp),%r15d",
+      "cmp    $0x9,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpq   $0x0,-0x598(%rbp)",
+      "movb   $0x0,-0x600(%rbp)"
+    ],
+    "post": [
+      "cmpq   $0x0,-0x590(%rbp)",
+      "movb   $0x0,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x1,0x10a(%r12)"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rax",
+      "cmpb   $0x1,0x10a(%rax)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5e8(%rbp),%ecx",
+      "mov    -0x610(%rbp),%r13"
+    ],
+    "post": [
+      "mov    -0x5d8(%rbp),%ecx",
+      "mov    -0x608(%rbp),%r13"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x600(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    (%r12,%rax,4),%eax",
+      "cmp    %eax,-0x59c(%rbp)"
+    ],
+    "post": [
+      "mov    (%rcx,%rax,4),%eax",
+      "cmp    %eax,-0x594(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movb   $0x0,-0x600(%rbp)",
+      "mov    -0x5e8(%rbp),%edx"
+    ],
+    "post": [
+      "movb   $0x0,-0x617(%rbp)",
+      "mov    -0x5d8(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x610(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x608(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x622(%rbp),%edx"
+    ],
+    "post": [
+      "movzbl -0x616(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "nopl   0x0(%rax,%rax,1)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x590(%rbp),%eax"
+    ],
+    "post": [
+      "mov    %r15d,%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x2d,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x2d,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "sub    $0x1e,%eax"
+    ],
+    "post": [
+      "lea    -0x1e(%r12),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "sub    $0x25,%eax"
+    ],
+    "post": [
+      "lea    -0x25(%r12),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x2,-0x620(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x2,-0x596(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax"
+    ],
+    "post": [
+      "mov    %r12d,%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x2d,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x2d,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x588(%rbp)"
+    ],
+    "post": [
+      "test   %r12b,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x7,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x7,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0xe,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0xe,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x608(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x610(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5e8(%rbp),%edx"
+    ],
+    "post": [
+      "mov    -0x5d8(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x610(%rbp),%rdi"
+    ],
+    "post": [
+      "mov    -0x608(%rbp),%rdi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "data16 cs nopw 0x0(%rax,%rax,1)"
+    ],
+    "post": [
+      "nopl   0x0(%rax)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x2d,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x2d,%r12b"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "cmpb   $0x0,-0x590(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "test   %r15b,%r15b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x2d,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x2d,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x13,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x13,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "or     %al,-0x59d(%rbp)",
+      "cmpb   $0x0,-0x59d(%rbp)"
+    ],
+    "post": [
+      "or     %al,-0x595(%rbp)",
+      "cmpb   $0x0,-0x595(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5e8(%rbp),%ecx"
+    ],
+    "post": [
+      "mov    -0x5d8(%rbp),%ecx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x9,-0x588(%rbp)",
+      "movzbl -0x608(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x610(%rbp),%eax",
+      "cmp    $0x9,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %cl,-0x59d(%rbp)"
+    ],
+    "post": [
+      "mov    %cl,-0x595(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x590(%rbp),%eax",
+      "movzbl -0x5d0(%rbp),%ecx"
+    ],
+    "post": [
+      "mov    %r15d,%eax",
+      "movzbl -0x5c8(%rbp),%ecx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %cl,-0x598(%rbp)",
+      "mov    %al,-0x5d8(%rbp)",
+      "and    -0x5f0(%rbp),%al",
+      "mov    %al,-0x590(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x596(%rbp)",
+      "and    -0x5e8(%rbp),%al",
+      "mov    %cl,-0x590(%rbp)",
+      "mov    %al,-0x5d0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x5b0(%rbp),%ecx",
+      "mov    -0x59c(%rbp),%esi"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%r14",
+      "movzbl -0x5a8(%rbp),%ecx",
+      "mov    -0x594(%rbp),%esi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r12,%rdi",
+      "mov    %r9d,-0x628(%rbp)",
+      "mov    %r8d,-0x620(%rbp)"
+    ],
+    "post": [
+      "mov    %r9d,-0x620(%rbp)",
+      "mov    %r8d,-0x61c(%rbp)",
+      "mov    %r14,%rdi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %al,-0x590(%rbp)"
+    ],
+    "post": [
+      "mov    %al,-0x5d0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    0x10358(%r12),%rax"
+    ],
+    "post": [
+      "mov    0x10358(%r14),%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x620(%rbp),%r8d",
+      "mov    %cl,-0x5d8(%rbp)",
+      "sub    0x10350(%r12),%rax",
+      "mov    -0x628(%rbp),%r9d"
+    ],
+    "post": [
+      "mov    -0x61c(%rbp),%r8d",
+      "mov    %cl,-0x596(%rbp)",
+      "sub    0x10350(%r14),%rax",
+      "mov    -0x620(%rbp),%r9d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovq  0x10368(%r12),%xmm0",
+      "mov    0x10370(%r12),%r14"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%rax"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "vmovq  0x10368(%rax),%xmm0",
+      "mov    0x10370(%rax),%r14"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x608(%rbp),%eax",
+      "mov    %eax,-0x5b0(%rbp)",
+      "mov    -0x5e8(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x610(%rbp),%eax",
+      "mov    %eax,-0x5a8(%rbp)",
+      "mov    -0x5d8(%rbp),%eax"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "cmpb   $0x8,-0x588(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "cmp    $0x8,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x1,-0x608(%rbp)",
+      "je     16d3e3 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x3083>",
+      "mov    -0x5b0(%rbp),%esi",
+      "movzbl -0x588(%rbp),%edi"
+    ],
+    "post": [
+      "cmp    $0x13,%r12b",
+      "jne    17adf3 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x2fb3>",
+      "mov    -0x5a8(%rbp),%esi",
+      "mov    %r12d,%edi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%ecx",
+      "lea    -0xf(%rcx),%eax"
+    ],
+    "post": [
+      "lea    -0xf(%r12),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    $0x12,%cl"
+    ],
+    "post": [
+      "cmp    $0x12,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "cmp    $0x12,%al"
+    ],
+    "post": [
+      "cmp    $0x12,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x621(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x615(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x5d0(%rbp),%eax",
+      "mov    %al,-0x598(%rbp)"
+    ],
+    "post": [
+      "movzbl -0x5c8(%rbp),%eax",
+      "mov    %al,-0x590(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5b8(%rbp),%rdi"
+    ],
+    "post": [
+      "mov    -0x5b0(%rbp),%rdi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r9d,-0x628(%rbp)",
+      "mov    %r8d,-0x620(%rbp)"
+    ],
+    "post": [
+      "mov    %r9d,-0x620(%rbp)",
+      "mov    %r8d,-0x61c(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x620(%rbp),%r8d",
+      "mov    -0x628(%rbp),%r9d"
+    ],
+    "post": [
+      "mov    -0x61c(%rbp),%r8d",
+      "mov    -0x620(%rbp),%r9d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r9d,-0x620(%rbp)",
+      "mov    %r8d,-0x598(%rbp)"
+    ],
+    "post": [
+      "mov    %r9d,-0x61c(%rbp)",
+      "mov    %r8d,-0x590(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "movzbl -0x59f(%rbp),%edx",
+      "mov    -0x5b0(%rbp),%ecx",
+      "mov    -0x598(%rbp),%r8d",
+      "mov    -0x620(%rbp),%r9d",
+      "mov    %al,0x2e(%r15)",
+      "movzbl -0x5d0(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x5c8(%rbp),%eax",
+      "movzbl -0x597(%rbp),%edx",
+      "mov    -0x5a8(%rbp),%ecx",
+      "mov    -0x590(%rbp),%r8d",
+      "mov    -0x61c(%rbp),%r9d",
+      "mov    %r12b,0x2e(%r15)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x5f0(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x5e8(%rbp),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x5a0(%rbp),%edx"
+    ],
+    "post": [
+      "movzbl -0x598(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x59e(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x614(%rbp),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x12,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x12,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x59e(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x614(%rbp),%eax",
+      "mov    -0x588(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "mov    %r12,0x78(%r15)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x5a8(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x5a0(%rbp),%eax",
+      "mov    %rcx,0x78(%r15)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x590(%rbp),%eax"
+    ],
+    "post": [
+      "movzbl -0x5d0(%rbp),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x59c(%rbp),%esi"
+    ],
+    "post": [
+      "mov    -0x594(%rbp),%esi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r12,%rdi",
+      "mov    %r9d,-0x598(%rbp)"
+    ],
+    "post": [
+      "mov    %rcx,%rdi",
+      "mov    %r9d,-0x5a0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x598(%rbp),%r9d"
+    ],
+    "post": [
+      "mov    -0x5a0(%rbp),%r9d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovd  -0x59c(%rbp),%xmm4",
+      "vmovq  -0x548(%rbp),%xmm5"
+    ],
+    "post": [
+      "mov    -0x588(%rbp),%r14",
+      "vmovd  -0x594(%rbp),%xmm5"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r9d,-0x598(%rbp)"
+    ],
+    "post": [
+      "vmovq  -0x548(%rbp),%xmm6",
+      "mov    %r9d,-0x5a0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    0x10370(%r12),%rax",
+      "sub    0x10368(%r12),%rax"
+    ],
+    "post": [
+      "mov    0x10370(%r14),%rax",
+      "sub    0x10368(%r14),%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vpinsrd $0x1,%eax,%xmm4,%xmm0"
+    ],
+    "post": [
+      "vpinsrd $0x1,%eax,%xmm5,%xmm0"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vpinsrq $0x1,-0x5c0(%rbp),%xmm5,%xmm0"
+    ],
+    "post": [
+      "vpinsrq $0x1,-0x5b8(%rbp),%xmm6,%xmm0"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovd  %r13d,%xmm6",
+      "vpinsrd $0x1,-0x5e8(%rbp),%xmm6,%xmm0"
+    ],
+    "post": [
+      "vmovd  %r13d,%xmm7",
+      "vpinsrd $0x1,-0x5d8(%rbp),%xmm7,%xmm0"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x598(%rbp),%r9d"
+    ],
+    "post": [
+      "mov    -0x5a0(%rbp),%r9d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x621(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x615(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    0x10358(%r12),%rax",
+      "sub    0x10350(%r12),%rax"
+    ],
+    "post": [
+      "mov    0x10358(%r14),%rax",
+      "sub    0x10350(%r14),%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x629(%rbp),%edx"
+    ],
+    "post": [
+      "movzbl -0x622(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovq  -0x550(%rbp),%xmm7"
+    ],
+    "post": [
+      "vmovq  -0x550(%rbp),%xmm5"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vpinsrq $0x1,-0x470(%rbp),%xmm7,%xmm0",
+      "vmovd  -0x480(%rbp),%xmm4",
+      "vmovq  -0x618(%rbp),%xmm5",
+      "vmovdqa -0x4e0(%rbp),%xmm6"
+    ],
+    "post": [
+      "vpinsrq $0x1,-0x470(%rbp),%xmm5,%xmm0",
+      "vmovd  -0x480(%rbp),%xmm6",
+      "vmovq  -0x600(%rbp),%xmm7",
+      "vmovdqa -0x4e0(%rbp),%xmm5"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x624(%rbp),%edx"
+    ],
+    "post": [
+      "movzbl -0x621(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vpinsrd $0x1,-0x478(%rbp),%xmm4,%xmm0"
+    ],
+    "post": [
+      "vpinsrd $0x1,-0x478(%rbp),%xmm6,%xmm0"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x623(%rbp),%edx"
+    ],
+    "post": [
+      "movzbl -0x618(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vpinsrq $0x1,-0x558(%rbp),%xmm5,%xmm0"
+    ],
+    "post": [
+      "vpinsrq $0x1,-0x558(%rbp),%xmm7,%xmm0"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovdqu %xmm6,0x1f8(%r15)"
+    ],
+    "post": [
+      "vmovdqu %xmm5,0x1f8(%r15)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovdqa -0x530(%rbp),%xmm7",
+      "vmovdqa -0x4c0(%rbp),%xmm4"
+    ],
+    "post": [
+      "vmovdqa -0x530(%rbp),%xmm6",
+      "vmovdqa -0x4c0(%rbp),%xmm7"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovdqa %xmm7,0xe0(%r15)"
+    ],
+    "post": [
+      "vmovdqa %xmm6,0xe0(%r15)",
+      "vmovdqa %xmm7,0x130(%r15)"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "vmovdqa %xmm4,0x130(%r15)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rax,-0x590(%rbp)"
+    ],
+    "post": [
+      "mov    %rax,-0x5a0(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovdqa -0x500(%rbp),%xmm4"
+    ],
+    "post": [
+      "vmovdqa -0x500(%rbp),%xmm5"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "vmovdqu %xmm4,0x298(%r15)"
+    ],
+    "post": [
+      "vmovdqu %xmm5,0x298(%r15)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x59d(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x595(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "sub    $0x1a,%eax"
+    ],
+    "post": [
+      "lea    -0x1a(%r12),%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    $0x1,%sil",
+      "je     16c4c7 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x2167>"
+    ],
+    "post": [
+      "cmp    $0x13,%r10b",
+      "jne    179e6e <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x202e>"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %edx,-0x598(%rbp)"
+    ],
+    "post": [
+      "mov    %edx,-0x590(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x598(%rbp),%edx"
+    ],
+    "post": [
+      "mov    -0x590(%rbp),%edx"
+    ]
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "jmp    179f16 <tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)+0x20d6>"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "data16 cs nopw 0x0(%rax,%rax,1)"
+    ],
+    "post": [
+      "nop"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5e8(%rbp),%r11d"
+    ],
+    "post": [
+      "mov    -0x5d8(%rbp),%r11d"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5e8(%rbp),%ecx"
+    ],
+    "post": [
+      "mov    -0x5d8(%rbp),%ecx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x610(%rbp),%rdx"
+    ],
+    "post": [
+      "mov    -0x608(%rbp),%rdx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %rcx,-0x598(%rbp)"
+    ],
+    "post": [
+      "mov    %rcx,-0x590(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x610(%rbp),%rcx"
+    ],
+    "post": [
+      "mov    -0x608(%rbp),%rcx"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x600(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x617(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0xe,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0xe,%r12b"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "mov    -0x588(%rbp),%ecx"
+    ],
+    "post": []
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "bt     %rcx,%rax"
+    ],
+    "post": [
+      "bt     %r12,%rax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x3,-0x588(%rbp)"
+    ],
+    "post": [
+      "cmp    $0x3,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax",
+      "cmp    $0x15,%al"
+    ],
+    "post": [
+      "cmp    $0x15,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmp    $0x16,%al"
+    ],
+    "post": [
+      "cmp    $0x16,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movzbl -0x588(%rbp),%eax"
+    ],
+    "post": [
+      "mov    %r12d,%eax"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x5d8(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x596(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x5c8(%rbp),%rbx"
+    ],
+    "post": [
+      "mov    -0x5c0(%rbp),%rbx"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "cmpb   $0x3,-0x588(%rbp)"
+    ],
+    "post": []
+  },
+  {
+    "tag": "insert",
+    "pre": [],
+    "post": [
+      "cmp    $0x3,%r12b"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "movb   $0x0,-0x598(%rbp)"
+    ],
+    "post": [
+      "movb   $0x0,-0x590(%rbp)"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    -0x590(%rbp),%rdi"
+    ],
+    "post": [
+      "mov    -0x5a0(%rbp),%rdi"
+    ]
+  },
+  {
+    "tag": "delete",
+    "pre": [
+      "lea    -0x500(%rbp),%r15"
+    ],
+    "post": []
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "mov    %r15,%rdi"
+    ],
+    "post": [
+      "lea    -0x500(%rbp),%rdi"
+    ]
+  },
+  {
+    "tag": "replace",
+    "pre": [
+      "cmpb   $0x0,-0x598(%rbp)"
+    ],
+    "post": [
+      "cmpb   $0x0,-0x590(%rbp)"
+    ]
+  }
+]

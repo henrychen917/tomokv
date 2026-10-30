@@ -1,0 +1,7 @@
+{
+  "binary": "/home/user/Projects/cx-wave10/build/wave10/arms/POST",
+  "sha256": "ed88bd649b62eeec920e23aa21f360470e67df968f02f8e351340b8aad2a2173",
+  "supersedes": "af988c19fc61a709aea77c968943e1a5c42c865856b50f9e296f289029920b4f",
+  "commit": "64ce1147753d55a254253652b640f22f575d15ee",
+  "make_q_all": 0
+}

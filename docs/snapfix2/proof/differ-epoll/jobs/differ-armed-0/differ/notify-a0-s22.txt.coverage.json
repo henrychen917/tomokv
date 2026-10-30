@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 13,
+    "HDEL": 14,
+    "HSET": 14,
+    "LPOP": 19,
+    "MSET": 13,
+    "PERSIST": 19,
+    "RENAME": 12,
+    "RPUSH": 19,
+    "SADD": 17,
+    "SET": 67,
+    "SINTERSTORE": 16,
+    "SREM": 17,
+    "XADD": 30,
+    "XDEL": 15,
+    "XTRIM": 15,
+    "ZADD": 15,
+    "ZREM": 15
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "HDEL": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "LPOP": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "PERSIST": [
+      "reply"
+    ],
+    "RENAME": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SINTERSTORE": [
+      "reply"
+    ],
+    "SREM": [
+      "reply"
+    ],
+    "XADD": [
+      "reply"
+    ],
+    "XDEL": [
+      "reply"
+    ],
+    "XTRIM": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZREM": [
+      "reply"
+    ]
+  }
+}

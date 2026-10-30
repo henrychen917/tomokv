@@ -1,0 +1,23 @@
+[
+  {
+    "removed_tree": "build/scheduler-failure-6t_135_q",
+    "files": 1598,
+    "bytes": 669416,
+    "archive": "docs/snapfix2/proof/scheduler-failure-6t_135_q.tar.gz",
+    "archive_sha256": "95f1b5c11c6d8cfdbe51a860f481f6374bd4c733f314d1f566891fa1e53c17b1"
+  },
+  {
+    "removed_tree": "build/scheduler-failure-d4ceaett",
+    "files": 2339,
+    "bytes": 728438,
+    "archive": "docs/snapfix2/proof/scheduler-failure-d4ceaett.tar.gz",
+    "archive_sha256": "3fe4a2921152ad36eb280ff3e6c6de248344a6092ee5ef94aee1548e4c689cd6"
+  },
+  {
+    "removed_tree": "build/scheduler-failure-dka66_38",
+    "files": 1785,
+    "bytes": 679269,
+    "archive": "docs/snapfix2/proof/scheduler-failure-dka66_38.tar.gz",
+    "archive_sha256": "5b37678b1e8f9ed58b812541dbffc6bca851067e209b78d0f6b8e94cce4e57de"
+  }
+]

@@ -1,0 +1,1350 @@
+{
+  "db0/src/main.o": {
+    "functions": 654,
+    "equal": 650,
+    "changed": [
+      "unsigned int tomo_db0::ExLoopT<false>::snapshot_control_pass<32u, false>()",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "main::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN8tomo_db09ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb0EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZN8tomo_db09ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb0EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZZ4mainENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/net/tls.o": {
+    "functions": 37,
+    "equal": 37,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/commands.o": {
+    "functions": 26,
+    "equal": 26,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/glob.o": {
+    "functions": 2,
+    "equal": 2,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/xshard.o": {
+    "functions": 1023,
+    "equal": 1016,
+    "changed": [
+      "tomo_db0::(anonymous namespace)::txn_group_retry(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&) [clone .cold]",
+      "tomo_db0::script_snapshot_done(tomo_db0::Server&, tomo_db0::ScatterState&)",
+      "tomo_db0::FlatStore::read_local_pending_unpublish(tomo_db0::AtomicEntry&) [clone .part] [clone .cold]",
+      "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)"
+    ],
+    "symbols": [
+      "_ZN8tomo_db012_GLOBAL__N_115txn_group_retryERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskE.cold",
+      "_ZN8tomo_db020script_snapshot_doneERNS_6ServerERNS_12ScatterStateE",
+      "_ZN8tomo_db09FlatStore28read_local_pending_unpublishERNS_11AtomicEntryE.part.cold",
+      "_ZN8tomo_db09FlatStore34atomic_prepare_capacity_read_localEj"
+    ],
+    "padding": [
+      "_ZN8tomo_db012_GLOBAL__N_113select_zrangeERKSt6vectorINS0_10ZImageItemESaIS2_EERKNS0_17ImageRangeOptionsERKNS0_14ImageRangeSpecEbRS4_.isra",
+      "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav"
+    ],
+    "hot": [],
+    "added": [
+      "_ZN8tomo_db020script_snapshot_doneERNS_6ServerERNS_12ScatterStateE.cold"
+    ],
+    "removed": []
+  },
+  "db0/src/cmd/acl.o": {
+    "functions": 263,
+    "equal": 263,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/hll.o": {
+    "functions": 30,
+    "equal": 30,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_server.o": {
+    "functions": 241,
+    "equal": 241,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_string.o": {
+    "functions": 148,
+    "equal": 148,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_string_notify.o": {
+    "functions": 178,
+    "equal": 178,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_hash.o": {
+    "functions": 225,
+    "equal": 225,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_hash_ttl.o": {
+    "functions": 97,
+    "equal": 97,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_list.o": {
+    "functions": 193,
+    "equal": 193,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_set.o": {
+    "functions": 208,
+    "equal": 208,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_zset.o": {
+    "functions": 284,
+    "equal": 284,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_zset_ops.o": {
+    "functions": 1,
+    "equal": 1,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/geo.o": {
+    "functions": 111,
+    "equal": 111,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_stream.o": {
+    "functions": 241,
+    "equal": 241,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_stream_groups.o": {
+    "functions": 156,
+    "equal": 156,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/scripting.o": {
+    "functions": 144,
+    "equal": 144,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/functions.o": {
+    "functions": 78,
+    "equal": 78,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/serialize.o": {
+    "functions": 105,
+    "equal": 105,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/snapshot/snapshot.o": {
+    "functions": 130,
+    "equal": 130,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/persist/aof.o": {
+    "functions": 333,
+    "equal": 333,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/climon.o": {
+    "functions": 220,
+    "equal": 220,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/tracking.o": {
+    "functions": 97,
+    "equal": 97,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/server_tail.o": {
+    "functions": 72,
+    "equal": 72,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/slowlog.o": {
+    "functions": 79,
+    "equal": 79,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/lcs.o": {
+    "functions": 14,
+    "equal": 14,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/info_stats.o": {
+    "functions": 19,
+    "equal": 19,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/lbsignals.o": {
+    "functions": 12,
+    "equal": 12,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/flipctl.o": {
+    "functions": 72,
+    "equal": 72,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/genthread.o": {
+    "functions": 775,
+    "equal": 767,
+    "changed": [
+      "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "tomo_db0::IoLoop::pubsub_notification_send(std::shared_ptr<tomo_db0::PubSubNotificationChain> const&)",
+      "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "tomo_db0::FlatStore::rehash_step_read_local()",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "tomo_db0::run_fused_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+      "_ZN8tomo_db06IoLoop24pubsub_notification_sendERKSt10shared_ptrINS_23PubSubNotificationChainEE",
+      "_ZN8tomo_db07ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN8tomo_db09FlatStore22rehash_step_read_localEv",
+      "_ZN8tomo_db09ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZN8tomo_db09ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZZN8tomo_db016run_fused_serverERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)"
+    ],
+    "added": [
+      "_ZN8tomo_db07ExLoopTILb1EE25service_snapshot_backlogsILb0EEEjjb"
+    ],
+    "removed": []
+  },
+  "db0/src/core/rl2s.o": {
+    "functions": 691,
+    "equal": 687,
+    "changed": [
+      "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "tomo_db0::run_split_read_local_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN8tomo_db07ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN8tomo_db09ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZN8tomo_db09ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZZN8tomo_db027run_split_read_local_serverERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/lbstall.o": {
+    "functions": 11,
+    "equal": 11,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/lbplanner.o": {
+    "functions": 79,
+    "equal": 79,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/l4prebuild.o": {
+    "functions": 66,
+    "equal": 66,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/cmdgap.o": {
+    "functions": 4,
+    "equal": 4,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/pfdebug.o": {
+    "functions": 34,
+    "equal": 34,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/cmdmeta.o": {
+    "functions": 37,
+    "equal": 37,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/t_sort.o": {
+    "functions": 26,
+    "equal": 26,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/multidb.o": {
+    "functions": 66,
+    "equal": 66,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/storesize.o": {
+    "functions": 18,
+    "equal": 18,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/multi_admin.o": {
+    "functions": 7,
+    "equal": 7,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/reorder.o": {
+    "functions": 826,
+    "equal": 821,
+    "changed": [
+      "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)",
+      "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN8tomo_db07ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjb",
+      "_ZN8tomo_db07ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN8tomo_db09ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZZN8tomo_db0L26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)",
+      "unsigned int tomo_db0::ThreadCtx::drain_tasks_capped<false, 32u, tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)"
+    ],
+    "added": [
+      "_ZN8tomo_db09ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_"
+    ],
+    "removed": []
+  },
+  "db0/src/cmd/geo_store.o": {
+    "functions": 5,
+    "equal": 5,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/persist/aof_frame_debug.o": {
+    "functions": 6,
+    "equal": 6,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/aclkeys.o": {
+    "functions": 3,
+    "equal": 3,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/blocking_debug.o": {
+    "functions": 3,
+    "equal": 3,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/objectpread.o": {
+    "functions": 15,
+    "equal": 15,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/hexpread.o": {
+    "functions": 36,
+    "equal": 36,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/cmd/autharity.o": {
+    "functions": 6,
+    "equal": 6,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/fliplisten.o": {
+    "functions": 255,
+    "equal": 255,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/shutdown.o": {
+    "functions": 47,
+    "equal": 45,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [
+      "_ZN8tomo_db06IoLoop38shutdown_release_abandoned_script_pinsERNS_6ServerE",
+      "_ZN8tomo_db06IoLoop38shutdown_release_abandoned_script_pinsERNS_6ServerE.cold"
+    ],
+    "removed": []
+  },
+  "db0/src/cmd/latency_tracking.o": {
+    "functions": 142,
+    "equal": 142,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "db0/src/core/version.o": {
+    "functions": 1,
+    "equal": 1,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/main.o": {
+    "functions": 656,
+    "equal": 652,
+    "changed": [
+      "unsigned int tomo::ExLoopT<false>::snapshot_control_pass<32u, false>()",
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "unsigned int tomo::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "tomokv_multidb_main(int, char**)::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN4tomo7ExLoopTILb0EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN4tomo9ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb0EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZN4tomo9ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb0EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZZ19tomokv_multidb_mainiPPcENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "unsigned int tomo::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/net/tls.o": {
+    "functions": 37,
+    "equal": 37,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/commands.o": {
+    "functions": 26,
+    "equal": 26,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/glob.o": {
+    "functions": 2,
+    "equal": 2,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/xshard.o": {
+    "functions": 1023,
+    "equal": 1014,
+    "changed": [
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "tomo::(anonymous namespace)::txn_group_retry(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&) [clone .cold]",
+      "tomo::script_snapshot_done(tomo::Server&, tomo::ScatterState&)",
+      "tomo::FlatStore::atomic_tombstone_all(int)",
+      "tomo::FlatStore::read_local_pending_unpublish(tomo::AtomicEntry&) [clone .part] [clone .cold]",
+      "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+      "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)"
+    ],
+    "symbols": [
+      "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+      "_ZN4tomo12_GLOBAL__N_115txn_group_retryERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskE.cold",
+      "_ZN4tomo20script_snapshot_doneERNS_6ServerERNS_12ScatterStateE",
+      "_ZN4tomo9FlatStore20atomic_tombstone_allEi",
+      "_ZN4tomo9FlatStore28read_local_pending_unpublishERNS_11AtomicEntryE.part.cold",
+      "_ZN4tomo9FlatStore34atomic_prepare_capacity_read_localEj",
+      "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc"
+    ],
+    "padding": [
+      "_ZN4tomo12_GLOBAL__N_113select_zrangeERKSt6vectorINS0_10ZImageItemESaIS2_EERKNS0_17ImageRangeOptionsERKNS0_14ImageRangeSpecEbRS4_.isra"
+    ],
+    "hot": [],
+    "added": [
+      "_ZN4tomo20script_snapshot_doneERNS_6ServerERNS_12ScatterStateE.cold"
+    ],
+    "removed": []
+  },
+  "src/cmd/acl.o": {
+    "functions": 264,
+    "equal": 264,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/hll.o": {
+    "functions": 30,
+    "equal": 30,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_server.o": {
+    "functions": 242,
+    "equal": 242,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_string.o": {
+    "functions": 147,
+    "equal": 147,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_string_notify.o": {
+    "functions": 181,
+    "equal": 181,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_hash.o": {
+    "functions": 224,
+    "equal": 224,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_hash_ttl.o": {
+    "functions": 100,
+    "equal": 100,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_list.o": {
+    "functions": 193,
+    "equal": 193,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_set.o": {
+    "functions": 210,
+    "equal": 210,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_zset.o": {
+    "functions": 287,
+    "equal": 287,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_zset_ops.o": {
+    "functions": 1,
+    "equal": 1,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/geo.o": {
+    "functions": 120,
+    "equal": 120,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_stream.o": {
+    "functions": 243,
+    "equal": 243,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_stream_groups.o": {
+    "functions": 157,
+    "equal": 157,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/scripting.o": {
+    "functions": 576,
+    "equal": 576,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/functions.o": {
+    "functions": 79,
+    "equal": 79,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/serialize.o": {
+    "functions": 105,
+    "equal": 105,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/snapshot/snapshot.o": {
+    "functions": 124,
+    "equal": 124,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/persist/aof.o": {
+    "functions": 340,
+    "equal": 340,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/climon.o": {
+    "functions": 222,
+    "equal": 222,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/tracking.o": {
+    "functions": 98,
+    "equal": 98,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/server_tail.o": {
+    "functions": 72,
+    "equal": 72,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/slowlog.o": {
+    "functions": 79,
+    "equal": 79,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/lcs.o": {
+    "functions": 14,
+    "equal": 14,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/info_stats.o": {
+    "functions": 19,
+    "equal": 19,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/lbsignals.o": {
+    "functions": 12,
+    "equal": 12,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/flipctl.o": {
+    "functions": 72,
+    "equal": 72,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/genthread.o": {
+    "functions": 783,
+    "equal": 777,
+    "changed": [
+      "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
+      "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra]",
+      "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "unsigned int tomo::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv",
+      "_ZN4tomo6IoLoop17pubsub_reply_pingERNS_2OpE.isra",
+      "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN4tomo9ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZN4tomo9ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZZN4tomo16run_fused_serverERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()",
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "unsigned int tomo::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/core/rl2s.o": {
+    "functions": 727,
+    "equal": 722,
+    "changed": [
+      "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "tomo::FlatStore::maybe_start_shrink()",
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "unsigned int tomo::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN4tomo9FlatStore18maybe_start_shrinkEv",
+      "_ZN4tomo9ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZN4tomo9ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZZN4tomo27run_split_read_local_serverERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "unsigned int tomo::ThreadCtx::drain_tasks_unmasked_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "src/core/lbstall.o": {
+    "functions": 11,
+    "equal": 11,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/lbplanner.o": {
+    "functions": 79,
+    "equal": 79,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/l4prebuild.o": {
+    "functions": 69,
+    "equal": 69,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/cmdgap.o": {
+    "functions": 4,
+    "equal": 4,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/pfdebug.o": {
+    "functions": 34,
+    "equal": 34,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/cmdmeta.o": {
+    "functions": 37,
+    "equal": 37,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/t_sort.o": {
+    "functions": 26,
+    "equal": 26,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/multidb.o": {
+    "functions": 83,
+    "equal": 83,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/storesize.o": {
+    "functions": 19,
+    "equal": 19,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/multi_admin.o": {
+    "functions": 8,
+    "equal": 8,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/reorder.o": {
+    "functions": 841,
+    "equal": 834,
+    "changed": [
+      "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+      "unsigned int tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)",
+      "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)",
+      "tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#1}::operator()() const"
+    ],
+    "symbols": [
+      "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+      "_ZN4tomo7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjb",
+      "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+      "_ZN4tomo9ThreadCtx18drain_tasks_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_",
+      "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc",
+      "_ZZN4tomoL26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE_clEv"
+    ],
+    "padding": [],
+    "hot": [
+      "unsigned int tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)",
+      "unsigned int tomo::ThreadCtx::drain_tasks_capped<false, 32u, tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks_snapshot<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)"
+    ],
+    "added": [
+      "_ZN4tomo9ThreadCtx27drain_tasks_unmasked_cappedILb0ELj32ERZNS_7ExLoopTILb1EE20drain_tasks_snapshotILj32ELb0EEEjbEUlRKNS_4TaskEE_EEjOT1_"
+    ],
+    "removed": []
+  },
+  "src/cmd/geo_store.o": {
+    "functions": 5,
+    "equal": 5,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/persist/aof_frame_debug.o": {
+    "functions": 6,
+    "equal": 6,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/aclkeys.o": {
+    "functions": 3,
+    "equal": 3,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/blocking_debug.o": {
+    "functions": 3,
+    "equal": 3,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/objectpread.o": {
+    "functions": 16,
+    "equal": 16,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/hexpread.o": {
+    "functions": 37,
+    "equal": 37,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/cmd/autharity.o": {
+    "functions": 6,
+    "equal": 6,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/fliplisten.o": {
+    "functions": 255,
+    "equal": 255,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/shutdown.o": {
+    "functions": 48,
+    "equal": 46,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [
+      "_ZN4tomo6IoLoop38shutdown_release_abandoned_script_pinsERNS_6ServerE",
+      "_ZN4tomo6IoLoop38shutdown_release_abandoned_script_pinsERNS_6ServerE.cold"
+    ],
+    "removed": []
+  },
+  "src/cmd/latency_tracking.o": {
+    "functions": 144,
+    "equal": 144,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_cjson.o": {
+    "functions": 27,
+    "equal": 27,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_cmsgpack.o": {
+    "functions": 36,
+    "equal": 36,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_bit.o": {
+    "functions": 13,
+    "equal": 13,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/lua_struct.o": {
+    "functions": 7,
+    "equal": 7,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/strbuf.o": {
+    "functions": 7,
+    "equal": 7,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "third_party/lua/helpers/fpconv.o": {
+    "functions": 4,
+    "equal": 4,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  },
+  "src/core/version.o": {
+    "functions": 0,
+    "equal": 0,
+    "changed": [],
+    "symbols": [],
+    "padding": [],
+    "hot": [],
+    "added": [],
+    "removed": []
+  }
+}

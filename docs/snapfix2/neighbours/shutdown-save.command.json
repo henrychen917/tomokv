@@ -1,0 +1,66 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix_neighbours.py",
+    "--case",
+    "shutdown-save",
+    "--binary",
+    "build/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/neighbours/shutdown-save"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 12.732,
+  "log_sha256": "50b5c41e0517ab01d80346d71a1b5d6fe0be305576da1b6364d565d7806417d3",
+  "removed_data": {
+    "1s-epoll-1/dump.tomo": {
+      "bytes": 734,
+      "sha256": "f166120268019c656f5c1cc6c48f46dac18025f4cd5fc468cc1027e6afff408a"
+    },
+    "2s-uring-0/dump.tomo": {
+      "bytes": 734,
+      "sha256": "6abde585650359905a6a830a9fff056ff569857ec88e6870af4cda4a90ed6152"
+    },
+    "1s-epoll-0/dump.tomo": {
+      "bytes": 734,
+      "sha256": "70f79b64bb572cfe6386f26c5be14774a8a23e7193b55fb16a15ff493a4123a9"
+    },
+    "1s-uring-0/dump.tomo": {
+      "bytes": 734,
+      "sha256": "8382772fa9d0399558d49bdb5069ad257d8a02a620b9022cfe5d5214db60cb55"
+    },
+    "2s-epoll-0/dump.tomo": {
+      "bytes": 734,
+      "sha256": "83e6d209fb9944156c8dc06710f372812cd2e17d1740c2c9bc992f0c666045eb"
+    },
+    "redis-redis-0/dump.rdb": {
+      "bytes": 134,
+      "sha256": "812948ec42b8482da7c516a2c21e89da0a0a0f801c9f71d3d4f547f43784ca00"
+    },
+    "2s-epoll-1/dump.tomo": {
+      "bytes": 734,
+      "sha256": "244639c12af02d02008102584e9e2c5c812415f3f61768057ee0678e843b3d9c"
+    },
+    "1s-uring-1/dump.tomo": {
+      "bytes": 734,
+      "sha256": "f7afa868c94a765c360d0455ea8eb9c7fd907455aab7b1bc0d155e57ac16f9d0"
+    },
+    "2s-uring-1/dump.tomo": {
+      "bytes": 734,
+      "sha256": "26e0dff9d9bab03d1f2b513c498c7ebf6477c51ddd7449e52b9d4e85af75e554"
+    }
+  }
+}

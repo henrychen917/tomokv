@@ -1,0 +1,217 @@
+{
+ "argv": [
+  "taskset",
+  "-c",
+  "16-23",
+  "gdb",
+  "-q",
+  "-batch",
+  "-ex",
+  "set pagination off",
+  "-ex",
+  "handle SIGINT stop nopass",
+  "-ex",
+  "handle SIGPIPE nostop noprint pass",
+  "-ex",
+  "run",
+  "-ex",
+  "thread apply all bt",
+  "-ex",
+  "generate-core-file /tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/wd-2s-uring-7/stall.core",
+  "-ex",
+  "kill",
+  "--args",
+  "/home/user/Projects/cx-snapfix/build/snapfix/pre/tomokv",
+  "--bind",
+  "127.0.0.1",
+  "--port",
+  "20218",
+  "--dir",
+  "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/wd-2s-uring-7",
+  "--save",
+  "",
+  "--appendonly",
+  "no",
+  "--appendfsync",
+  "no",
+  "--enable-debug-command",
+  "yes",
+  "--shards",
+  "16",
+  "--thread-mode",
+  "2s",
+  "--net-io",
+  "uring",
+  "--atomic",
+  "1",
+  "--read-local",
+  "0",
+  "--key-lb",
+  "0",
+  "--client-lb",
+  "0",
+  "--flip-auto",
+  "0",
+  "--databases",
+  "16",
+  "--ratio",
+  "6:2"
+ ],
+ "stalled": true,
+ "pid": 888945,
+ "geometry": [
+  [
+   9,
+   7
+  ],
+  [
+   4,
+   6
+  ]
+ ],
+ "keys": [
+  "storm:0",
+  "storm:5"
+ ],
+ "saves": 10,
+ "counts": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  3837,
+  7421,
+  3114,
+  3839,
+  3631,
+  1566,
+  1949,
+  1960,
+  14587,
+  52776,
+  14405,
+  49743
+ ],
+ "maxlat": [
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.084,
+  0.062,
+  0.085,
+  0.085,
+  0.062,
+  0.086,
+  0.084,
+  0.084,
+  0.002,
+  0.002,
+  0.002,
+  0.062
+ ],
+ "hist": {
+  "0": 158767,
+  "1": 61
+ },
+ "stuck": [
+  {
+   "watchdog": [
+    {
+     "worker": 8,
+     "client_id": 4,
+     "waited": 1.008
+    }
+   ]
+  }
+ ],
+ "watchdog": [
+  {
+   "worker": 8,
+   "client_id": 4,
+   "waited": 1.008
+  }
+ ],
+ "errors": [
+  {
+   "worker": 19,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 11,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 14,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 12,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 8,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 16,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 17,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 13,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 18,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 15,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 9,
+   "error": "EOFError('server closed the connection')"
+  },
+  {
+   "worker": 10,
+   "error": "EOFError('server closed the connection')"
+  }
+ ],
+ "client_ids": [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  4,
+  3,
+  5,
+  6,
+  7,
+  9,
+  8,
+  10,
+  12,
+  11,
+  13,
+  14
+ ],
+ "late_replies": [],
+ "rc": 0
+}

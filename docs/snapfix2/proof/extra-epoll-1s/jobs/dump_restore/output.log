@@ -1,0 +1,6 @@
+  row budget: 900s; median=0.06s; correctness-plan-fallback; DUMP/RESTORE prepare + native SAVE
+  DUMP/RESTORE prepare + native SAVE                   ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; DUMP/RESTORE cross-restart round-trip
+  DUMP/RESTORE cross-restart round-trip                ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; DUMP/RESTORE restart shutdown invariants
+  DUMP/RESTORE restart shutdown invariants             ok

@@ -1,0 +1,20 @@
+{
+  "reason": "Superseded copied-source check arms; their completed gate receipts remain, next invocation regenerates them from current production.",
+  "files": [
+    {
+      "path": "build/exbatch/checks/metadata-unit.json",
+      "bytes": 2829,
+      "sha256": "687e41994bb17816e41077178028cfd817aba3856277746e6c040cd43bcbfb67"
+    },
+    {
+      "path": "build/exbatch/checks/watch-unit.json",
+      "bytes": 8587,
+      "sha256": "39617d9c15400b6f7576748290660680542bf8328721c3dbca47bb9cc5301e13"
+    },
+    {
+      "path": "build/exbatch/checks/publication-unit.json",
+      "bytes": 1737,
+      "sha256": "1a9e245e767275f7d820efb614e0fb861121bb4d938f2ab0c783e47e4a148daf"
+    }
+  ]
+}

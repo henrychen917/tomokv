@@ -5,6 +5,10 @@
 #define TOMO_STORE_REGRESSION_TEST
 #include "src/cmd/xshard.cc"
 #include "src/core/read_local.h"
+extern "C" {
+#include "third_party/lua/lua.h"
+#include "third_party/lua/lauxlib.h"
+}
 #include <cstdio>
 #include <type_traits>
 
@@ -18,6 +22,9 @@ __attribute__((noinline)) void* operator new(std::size_t size) {
         allocation_failed = true;
         throw std::bad_alloc();
     }
+#ifdef TOMO_EXEC1S_ALLOCATIONS
+    exec1s_allocated += size;
+#endif
     if (void* p = std::malloc(size ? size : 1)) return p;
     throw std::bad_alloc();
 }
@@ -56,6 +63,19 @@ using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
     if (!yes) { std::fprintf(stderr, "FAIL: %s\n", why); std::exit(1); }
+}
+// Synthetic phase fixtures install claims before real IO participant discovery.
+// Keep their explicit shard IDs; production EXECs use compact participant slots.
+MultiExecState* fixture_allocate_state(Server& server, Client& client, uint32_t owner,
+                                      MultiStateKind kind) {
+    auto* state = allocate_state(server, client, owner, kind);
+    if (state && kind == MultiStateKind::Execute) {
+        state->shard_slots.clear();
+        state->claims.resize(server.nshards());
+        state->shard_commands.resize(server.nshards());
+        allocate_participant_state(*state, server.nshards());
+    }
+    return state;
 }
 Slice slice(const std::string& s) { return Slice(s.data(), s.size()); }
 struct Request {
@@ -319,7 +339,7 @@ void txn_intents(Server& server) {
     require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
     {
         Client client{-1}; client.set_id(887);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "shutdown attempt allocated");
         state->shards.push_back(0);
         state->exec_op_id = 0;
@@ -353,6 +373,24 @@ void txn_intents(Server& server) {
         require(!op->multi_state() && op->state.load() == OpState::Done,
                 "shutdown leaves no carrier pointer to the discarded attempt");
         require(!server.atomic_work_active(), "shutdown releases the admission credit");
+    }
+    {
+        // XS-SHUT-1: cross-owner activations abandoned between their PIN and UNPIN waves still
+        // hold PIN references when the owners join (SHUTDOWN NOSAVE, signal). The coordinator's
+        // post-join teardown drops them (the same two calls as main.cc's sequence), balancing the
+        // script-intent and activity accounting, instead of aborting on the empty-list check.
+        const std::string other = key_on(server, 0, "txn-intent-abandoned");
+        const auto other_hash = FlatStore::hash_key(slice(other));
+        require(store.atomic_script_pin(hash, slice(key)), "abandoned activation PIN armed");
+        require(store.atomic_script_pin(hash, slice(key)), "second abandoned activation shares it");
+        require(store.atomic_script_pin(other_hash, slice(other)), "abandoned PIN on another key");
+        require(store.atomic_has_script_pins() && server.script_intents_active() &&
+                server.atomic_work_active(), "abandoned PINs armed at teardown");
+        IoLoop::shutdown_release_abandoned_script_pins(server);
+        store.atomic_shutdown_release_records();
+        require(!store.atomic_has_records() && !server.script_intents_active() &&
+                !server.atomic_work_active(),
+                "teardown releases abandoned PINs and balances their accounting");
     }
 }
 
@@ -405,7 +443,7 @@ void txn_group(Server& server) {
                 "source claim and lazy anchor retain the attempt");
         require(!txn_group_release(state), "live owner pins prevent sidecar release");
         Client older_client{-1}; older_client.set_id(898);
-        auto* older = allocate_state(server, older_client, 0, MultiStateKind::Execute);
+        auto* older = fixture_allocate_state(server, older_client, 0, MultiStateKind::Execute);
         older->decision.age_ns = state.group_attempt()->age_ns - 1;
         txn_add_claim(older->claims[0], slice(a), TxnClaimMode::Write);
         Shard::WatchReservation claim{older, &older->decision.epoch, &older->decision.aborted,
@@ -475,10 +513,10 @@ void txn_help(Server& server) {
         const auto a = key_on(server, 0, "txn-watch-arrive-a");
         const auto b = key_on(server, 1, "txn-watch-arrive-b");
         Client client{-1}; client.set_id(890);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "WATCH arrival attempt allocated");
         state->shards = {0, 1};
-        state->database_map = server.databases().capture();
+        state->database_map = std::make_unique<DatabaseMap::Map>(server.databases().capture());
         state->watched = {{a, FlatStore::hash_key(slice(a)), 0, 0, 0},
                           {b, FlatStore::hash_key(slice(b)), 1, 0, 0}};
         state->watch_pending.store(2);
@@ -521,7 +559,7 @@ void txn_help(Server& server) {
         AtomicSurvivorsTest::publish_stale_sample(server, first);
         require(server.atomic_snapshot() == first, "completed commit left a conservative watermark");
         Client client{-1}; client.set_id(889);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "Rule P attempt allocated");
         state->read_only = false;
         require(multi_touch_key(*state, shard, FlatStore::hash_key(slice(key)), slice(key), false),
@@ -539,7 +577,7 @@ void txn_help(Server& server) {
         const auto key = key_on(server, 0, "txn-cancel-handler");
         require(local(server, {"LPUSH", key, "seed"}) == ":1\r\n", "collection predecessor");
         Client client{-1}; client.set_id(888);
-        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "collection attempt allocated");
         Request request({"LPUSH", key, "ghost"});
         std::vector<MultiQueuedCommand> queue(1);
@@ -836,7 +874,8 @@ void lua_case(Server& server, const std::string& name) {
              "reg('retained',function() reg('late',function() return 1 end); return 42 end)"}) ==
              "$8\r\nretained\r\n", "retained closure library loaded");
         const auto reply = call({"FCALL", "retained", "0"});
-        require(reply.starts_with("-") && reply.find("not available here") != std::string::npos,
+        require(reply == "-ERR redis.register_function can only be called on FUNCTION LOAD command "
+                         "script: retained, on @user_function:3.\r\n",
                 "escaped registration closure is revoked after materialization");
     } else if (name == "lua_conversion") {
         for (const char* body : {"error('conversion failed')", "while true do end"}) {
@@ -849,14 +888,37 @@ void lua_case(Server& server, const std::string& name) {
         require(call({"EVAL", "return {ok='OK\\r\\n:42'}", "0"}) == "+OK  :42\r\n", "status has exactly one frame");
         require(call({"EVAL", "return {err='ERR bad\\r\\n:42'}", "0"}) == "-ERR bad  :42\r\n", "error has exactly one frame");
     } else if (name == "library_limit") {
-        for (const char* body : {"while true do end", "pcall(function() while true do end end); "
-                               "redis.register_function('late',function() return 1 end)"}) {
+        for (const char* body : {"while true do end", "redis.register_function('late',function() return 1 end); "
+                               "while true do end"}) {
             const auto before = function_stats().libraries;
             const auto reply = call({"FUNCTION", "LOAD", std::string("#!lua name=spin\n") + body});
             require(reply.starts_with("-") && reply.find("instruction limit") != std::string::npos,
-                    "FUNCTION LOAD budget failure is terminal even when caught");
+                    "FUNCTION LOAD budget failure rejects the entire library");
             require(function_stats().libraries == before, "timed out library was not registered");
         }
+        // scriptfix2 correctly removes pcall from the registration environment.
+        // Check that public boundary, then keep the caught-timeout regression at
+        // the real library-call seam with a sandbox that exposes pcall.
+        const auto before = function_stats().libraries;
+        const auto reply = call({"FUNCTION", "LOAD", "#!lua name=spin\n"
+            "pcall(function() while true do end end); "
+            "redis.register_function('late',function() return 1 end)"});
+        require(reply.starts_with("-ERR Error registering functions:") &&
+                reply.find("nonexistent global variable 'pcall'") != std::string::npos,
+                "FUNCTION LOAD cannot access pcall");
+        require(function_stats().libraries == before, "invalid registration environment leaves no library");
+        lua_State* state = script_new_sandbox_state();
+        require(state != nullptr, "library timeout sandbox allocated");
+        require(luaL_loadstring(state,
+            "local ok=pcall(function() while true do end end); return 42") == 0,
+            "caught library timeout chunk compiled");
+        require(script_pcall_library(state) == LUA_ERRRUN && lua_gettop(state) == 1 &&
+                std::string(lua_tostring(state, -1)) == "ERR function library exceeded the instruction limit",
+                "library-call budget failure is terminal even when caught");
+        lua_settop(state, 0);
+        require(luaL_loadstring(state, "return 7") == 0 && script_pcall_library(state) == 0 &&
+                lua_gettop(state) == 0, "library-call context and stack recover after timeout");
+        lua_close(state);
     } else if (name == "instruction_limit") {
         require(call({"EVAL", "local ok=pcall(function() while true do end end); return 42", "0"}).starts_with("-BUSY"),
                 "caught instruction-limit error still fails the activation");

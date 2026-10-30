@@ -1,0 +1,111 @@
+{
+  "arm": {
+    "arm": "MERGE",
+    "source_commit": "d602c8c3641436b992ed4ddf1410ad2d0f557e54",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+    "sha256": "462c49e4806e9c208162f0ac9ef688077f3dc909edc7592cc7a88be747292f1c",
+    "bytes": 220032464
+  },
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/observe.gdb",
+      "--args",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/MERGE",
+      "--port",
+      "20000",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--net-io",
+      "epoll",
+      "--databases",
+      "16",
+      "--atomic",
+      "0",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/target",
+      "--enable-debug-command",
+      "yes"
+    ],
+    [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "20001",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/oracle"
+    ]
+  ],
+  "seed": 22,
+  "suite": "psfix",
+  "mode": "2s",
+  "engine": "epoll",
+  "atomic": 0,
+  "results": [
+    {
+      "repeat": 0,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/psfix-a0-s22-repeat-000.log",
+      "sha256": "50de999c3d4d766b4245930c9067f57350a833337f89fab31254978917aa5266"
+    },
+    {
+      "repeat": 1,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/psfix-a0-s22-repeat-001.log",
+      "sha256": "3dba7ea5ba1d4b09d169cf68cce1fc61b6c3fdf564c5def90ec23d3c5ce5d3f9"
+    },
+    {
+      "repeat": 2,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/psfix-a0-s22-repeat-002.log",
+      "sha256": "0de9b94e2674abeaa9d5e4ee13937dfce94e8ae2699da12d3da559b0c5f948a2"
+    },
+    {
+      "repeat": 3,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/psfix-a0-s22-repeat-003.log",
+      "sha256": "c026bd29034edd215c27d2b0ded412e17b98420fc0d2efef3988866bef155645"
+    },
+    {
+      "repeat": 4,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/psfix-a0-s22-repeat-004.log",
+      "sha256": "2fad096c49d66e3a5132c8b10b33eb741d5f7d90bfb27340eb2adbf6b8b04506"
+    },
+    {
+      "repeat": 5,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/psfix-a0-s22-repeat-005.log",
+      "sha256": "37a575cc8b9f094d7c7e908ef79a6d2b0a4c8346af2b285b2fc7f34cc993971b"
+    },
+    {
+      "repeat": 6,
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-observed-MERGE/psfix-a0-s22-repeat-006.log",
+      "sha256": "f0eb4a3056b94ed316a0690a9eb4eb27bd3440233f2632a323e8890bc723d793"
+    }
+  ],
+  "admissions": [],
+  "observer_sha256": "2b1a6e79366114320a2b05cae4f5a58a9863f3736fd1011dcd2180f91f1399d3",
+  "server_log_sha256": "50203920efa8165a2e4da6fc0e0a6d95409151afa6cc7ab8d457aa99c98fe101"
+}

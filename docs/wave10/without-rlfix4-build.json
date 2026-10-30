@@ -1,0 +1,26 @@
+{
+  "source_commit": "b80334c175dddad279cb5556f12775d24ade6b1e",
+  "purpose": "Additional fair integrated control: final POST source with only the rlfix4 merge production delta reversed. The separately delivered POST-minus-rlfix4 remains the literal pre-merge commit arm.",
+  "patch_sha256": "9f5616ae11e15fc87b71b726ee0441d9ee8944aed89928c9bb51792cd749db67",
+  "files": {
+    "Makefile": {
+      "post": "3f4d23e7359c10e273512fd16968dcbc55bcb4e77c56033dc8d1ee1d3214a70e",
+      "without_rlfix4": "e7174090ab4395dc2638a5550a3775723f1bdcc77f9dcae5d9a02ce5e918e7b0"
+    },
+    "src/core/io_loop.h": {
+      "post": "87bd22c49c87ab2d7239a3353ff05f8aad6ab855b4118546ecee47b96b89d993",
+      "without_rlfix4": "c4b20ff0e92d1270b22aeb818d88e9b6091ee1e11a0dbf6f006cb68b5e5d4d05"
+    },
+    "src/core/reorder.cc": {
+      "post": "df8cde9bfdf6b80f7e0706208da60fd9b9f77389fd92030058416622c4239724",
+      "without_rlfix4": "bc90ba5a4ae81ff35b433230c3cb3ba6be4213289bcbd2ed9520468bf12b5dc9"
+    },
+    "src/store/flatstore.h": {
+      "post": "ff6e605c0bc154b17870a048efb85d12f3c88fcc31add5ac360992886ea41576",
+      "without_rlfix4": "9da86fcaa488a0a24f32f4c178ba39a57f87ee4e4d7d5d9bd5f79cb1a49db39b"
+    }
+  },
+  "binary": "/home/user/Projects/cx-wave10/build/wave10/arms/POST-without-rlfix4-current",
+  "sha256": "d18d9e64d3e8f5ac2f9ec35f1f1b4e3d1f539218f18bc5c7972fc9a2693d4ed7",
+  "make_q_all": 0
+}

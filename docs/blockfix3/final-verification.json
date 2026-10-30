@@ -1,0 +1,508 @@
+{
+  "audited_at_utc": "2026-10-28T06:01:43.609361+00:00",
+  "production_commit": "6df6db12f7d81d248b21c5638f7d17cf538f822a",
+  "binary_sha256": {
+    "build/blockfix3/pre/tomokv": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "build/blockfix3/post/tomokv": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "build/tomokv": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+    "build/blockfix3/pad-a/tomokv": "754a9fe398e27cf7eaf267bf843d921da7794b2d2bac5cc4a4398395abd28636"
+  },
+  "production_sources_unchanged": true,
+  "source_files": [
+    "src/cmd/atomics_glue.inc",
+    "src/cmd/blocking.h",
+    "src/cmd/blocking.inc",
+    "src/cmd/t_server.cc",
+    "src/cmd/t_stream.h",
+    "src/cmd/t_stream_groups.cc",
+    "src/cmd/t_string.cc",
+    "src/core/ex_execute.inc"
+  ],
+  "freshness_checks": 52,
+  "freshness_passed": 52,
+  "make_all": 0,
+  "instruction_comparisons": 48,
+  "instruction_exact_matches": 48,
+  "preserved": {
+    "unchanged_probe_functions": [
+      "waiter",
+      "rename_sort",
+      "wrongtype",
+      "multi",
+      "counts",
+      "slowlog",
+      "probe"
+    ],
+    "tcl_manifest_unchanged": true,
+    "expect_constants_unchanged": true,
+    "DQ": 0,
+    "DF": 0,
+    "lines": {
+      "  row_begin \"blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK\"": 3805,
+      "collect_job blockfix2": 5673,
+      "if [ \"$TIER\" = quick ]; then": 5837
+    }
+  },
+  "latest_required_job_results": {
+    "acl_recheck": {
+      "receipt": "land-broad",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    },
+    "aclfix": {
+      "receipt": "land-broad",
+      "passed": 12,
+      "failed": 0,
+      "done": "0\t12\t0"
+    },
+    "aof-epoll": {
+      "receipt": "land-broad",
+      "passed": 54,
+      "failed": 0,
+      "done": "0\t54\t0"
+    },
+    "aof-uring": {
+      "receipt": "land-broad",
+      "passed": 54,
+      "failed": 0,
+      "done": "0\t54\t0"
+    },
+    "aof_frame": {
+      "receipt": "land-broad",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    },
+    "atomfix5_watch": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "atomic_batteries": {
+      "receipt": "land-broad",
+      "passed": 4,
+      "failed": 0,
+      "done": "0\t4\t0"
+    },
+    "atomic_units": {
+      "receipt": "land-broad",
+      "passed": 27,
+      "failed": 0,
+      "done": "0\t27\t0"
+    },
+    "auth": {
+      "receipt": "land-broad",
+      "passed": 7,
+      "failed": 0,
+      "done": "0\t7\t0"
+    },
+    "blockfix2": {
+      "receipt": "land-directed",
+      "passed": 7,
+      "failed": 0,
+      "done": "0\t7\t0"
+    },
+    "blockfix_mkstream": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "blockfix_registry": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "blockfix_structure": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "clientfix": {
+      "receipt": "land-broad",
+      "passed": 14,
+      "failed": 0,
+      "done": "0\t14\t0"
+    },
+    "climonfix": {
+      "receipt": "land-broad",
+      "passed": 7,
+      "failed": 0,
+      "done": "0\t7\t0"
+    },
+    "compat2": {
+      "receipt": "land-followup-tcl-compat2",
+      "passed": 3,
+      "failed": 0,
+      "done": "0\t3\t0"
+    },
+    "compat3": {
+      "receipt": "land-broad",
+      "passed": 6,
+      "failed": 0,
+      "done": "0\t6\t0"
+    },
+    "core_units": {
+      "receipt": "land-broad",
+      "passed": 9,
+      "failed": 0,
+      "done": "0\t9\t0"
+    },
+    "datafix1_lists": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "datafix2_watch": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "debug-0": {
+      "receipt": "land-broad",
+      "passed": 16,
+      "failed": 0,
+      "done": "0\t16\t0"
+    },
+    "debug-1": {
+      "receipt": "land-broad",
+      "passed": 16,
+      "failed": 0,
+      "done": "0\t16\t0"
+    },
+    "differ-armed-0": {
+      "receipt": "land-differ-epoll",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "differ-armed-1": {
+      "receipt": "land-differ-epoll",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "differ-equivalence": {
+      "receipt": "land-differ-epoll",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "differ-split-0": {
+      "receipt": "land-differ-epoll",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "differ-split-1": {
+      "receipt": "land-differ-epoll",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "exbatch_live": {
+      "receipt": "land-broad",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    },
+    "exbatch_units": {
+      "receipt": "land-broad",
+      "passed": 3,
+      "failed": 0,
+      "done": "0\t3\t0"
+    },
+    "execfair": {
+      "receipt": "land-followup-execfair",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "feature-armed-0": {
+      "receipt": "land-broad",
+      "passed": 35,
+      "failed": 0,
+      "done": "0\t35\t0"
+    },
+    "feature-armed-1": {
+      "receipt": "land-broad",
+      "passed": 35,
+      "failed": 0,
+      "done": "0\t35\t0"
+    },
+    "feature-split-0": {
+      "receipt": "land-broad",
+      "passed": 34,
+      "failed": 0,
+      "done": "0\t34\t0"
+    },
+    "feature-split-1": {
+      "receipt": "land-broad",
+      "passed": 34,
+      "failed": 0,
+      "done": "0\t34\t0"
+    },
+    "fused-0": {
+      "receipt": "land-broad",
+      "passed": 9,
+      "failed": 0,
+      "done": "0\t9\t0"
+    },
+    "fused-1": {
+      "receipt": "land-broad",
+      "passed": 9,
+      "failed": 0,
+      "done": "0\t9\t0"
+    },
+    "latencyfix_shape": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "moverfix": {
+      "receipt": "land-broad",
+      "passed": 8,
+      "failed": 0,
+      "done": "0\t8\t0"
+    },
+    "netcmd_units": {
+      "receipt": "land-broad",
+      "passed": 16,
+      "failed": 0,
+      "done": "0\t16\t0"
+    },
+    "notify": {
+      "receipt": "land-broad",
+      "passed": 6,
+      "failed": 0,
+      "done": "0\t6\t0"
+    },
+    "notify_aof": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "notify_order": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "notifycompat": {
+      "receipt": "land-broad",
+      "passed": 7,
+      "failed": 0,
+      "done": "0\t7\t0"
+    },
+    "ntnew4_live": {
+      "receipt": "land-broad",
+      "passed": 3,
+      "failed": 0,
+      "done": "0\t3\t0"
+    },
+    "perfio_stream": {
+      "receipt": "land-broad",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    },
+    "production_units": {
+      "receipt": "land-followup-tcl-compat2",
+      "passed": 0,
+      "failed": 0,
+      "done": "0\t0\t0"
+    },
+    "redis_tcl": {
+      "receipt": "land-followup-tcl-compat2",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    },
+    "release_batteries": {
+      "receipt": "land-broad",
+      "passed": 8,
+      "failed": 0,
+      "done": "0\t8\t0"
+    },
+    "respcompat": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "serverfix_lines": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "serverfix_slowlog": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "serverfix_waitaof": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "snapshot-epoll": {
+      "receipt": "land-broad",
+      "passed": 16,
+      "failed": 0,
+      "done": "0\t16\t0"
+    },
+    "snapshot-uring": {
+      "receipt": "land-broad",
+      "passed": 16,
+      "failed": 0,
+      "done": "0\t16\t0"
+    },
+    "sort": {
+      "receipt": "land-broad",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    },
+    "source_identity": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "storage_units": {
+      "receipt": "land-broad",
+      "passed": 13,
+      "failed": 0,
+      "done": "0\t13\t0"
+    },
+    "trackfix_accounting": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "trackfix_order": {
+      "receipt": "land-followup-trackfix",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "tracking_redirect": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "txn_group_fused": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "txn_group_split": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "txnorder-fused-0": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "txnorder-fused-1": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "txnorder-split-0": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "txnorder-split-1": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "txnorder2": {
+      "receipt": "land-broad",
+      "passed": 16,
+      "failed": 0,
+      "done": "0\t16\t0"
+    },
+    "txnorder_index": {
+      "receipt": "land-broad",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    },
+    "txnorder_wake": {
+      "receipt": "land-broad",
+      "passed": 1,
+      "failed": 0,
+      "done": "0\t1\t0"
+    },
+    "wait_units": {
+      "receipt": "land-broad",
+      "passed": 2,
+      "failed": 0,
+      "done": "0\t2\t0"
+    }
+  },
+  "required_jobs": 70,
+  "initial_broad_red_rows_retained": 4,
+  "unclassified": [
+    "initial execfair 2s/uring/atomic=0 wave8 BUSY snapshot-window rejection; three PRE jobs and one POST rerun all passed"
+  ],
+  "build_kib": 23520820,
+  "build_gib": 22.431,
+  "affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "tcl_required_named_tests_per_mode": 1661,
+  "tcl_harness_tests": 6,
+  "gate_harness_tests": 73,
+  "inherited_off_control_assertions_unproven": [
+    "SINTERSTORE impossible image",
+    "RENAMENX losing race",
+    "COPY losing race"
+  ],
+  "not_run": [
+    "performance benchmarks",
+    "full tests/gate.sh iteration",
+    "atomic RYOW speed comparison",
+    "acceptance work for owner-stopped BLOCK-WAKE-ORDER-MULTI and BLOCK-CHAIN-ASYNC"
+  ],
+  "lane_listeners_after_tests": []
+}

@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "commands": {
+    "COMMAND": 8,
+    "CONFIG": 24,
+    "DEBUG": 84,
+    "DEL": 40,
+    "EXISTS": 16,
+    "GEOADD": 1166,
+    "GEODIST": 232,
+    "GEOHASH": 225,
+    "GEOPOS": 466,
+    "GEORADIUS": 438,
+    "GEORADIUSBYMEMBER": 446,
+    "GEORADIUSBYMEMBER_RO": 211,
+    "GEORADIUS_RO": 231,
+    "GEOSEARCH": 658,
+    "GEOSEARCHSTORE": 457,
+    "OBJECT": 55,
+    "SET": 8,
+    "TYPE": 16,
+    "ZADD": 492,
+    "ZCARD": 24789,
+    "ZRANGE": 22,
+    "ZREM": 9
+  },
+  "kinds": {
+    "COMMAND": [
+      "CD13b GEO/ACLCAT property"
+    ],
+    "CONFIG": [
+      "CD13 LFU property",
+      "CD13b GEO/ACLCAT property"
+    ],
+    "DEBUG": [
+      "CD13b GEO/ACLCAT property"
+    ],
+    "DEL": [
+      "CD13 LFU property",
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GEOADD": [
+      "CD13 LFU property",
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "GEODIST": [
+      "reply"
+    ],
+    "GEOHASH": [
+      "reply"
+    ],
+    "GEOPOS": [
+      "reply"
+    ],
+    "GEORADIUS": [
+      "CD13 LFU property",
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "GEORADIUSBYMEMBER": [
+      "reply"
+    ],
+    "GEORADIUSBYMEMBER_RO": [
+      "reply"
+    ],
+    "GEORADIUS_RO": [
+      "reply"
+    ],
+    "GEOSEARCH": [
+      "reply"
+    ],
+    "GEOSEARCHSTORE": [
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "OBJECT": [
+      "CD13 LFU property",
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "ZADD": [
+      "CD13 LFU property",
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "ZCARD": [
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "ZRANGE": [
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ],
+    "ZREM": [
+      "CD13 LFU property",
+      "CD13b GEO/ACLCAT property",
+      "reply"
+    ]
+  }
+}

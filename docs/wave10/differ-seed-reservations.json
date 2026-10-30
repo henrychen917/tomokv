@@ -1,0 +1,43 @@
+{
+  "note": "Reserve the next unused rotation; no verdict is recorded. The complete standard gate jobs allocate rotation 22, retain all fixed seeds and record every actual leg.",
+  "reservations": [
+    {
+      "run": "wave10-reserve-rotation-21-not-executed",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-wave10/.gate-history/wave10-differ-uring"
+    },
+    {
+      "run": "wave10-reserve-rotation-21-not-executed",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-wave10/.gate-history/wave10-differ-epoll"
+    }
+  ]
+}

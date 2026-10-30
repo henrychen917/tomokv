@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-snapfix2/build/snapfix2/commands/post-normal-MSET-1s-1-1--1.log
+SHA-256: 01efed202cbda9616cab619da5f86a02feb84192ffc148686e7a834d08ac4e9b
+Exit: 0
+0x0000555555a5e3b4	569	}
+0x0000555555a5e3b6	569	}
+0x0000555555a5e3b8	569	}
+0x0000555555d8d737 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-snapfix2/tests/txnorder_command_scope.cc:112
+112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8d743	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8d74a	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8d752	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8d759	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d8d75f	115	   std::string want="+OK\r\n";
+0x0000555555d8d766	115	   std::string want="+OK\r\n";
+0x00005555TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+55d8d76d	114	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-snapfix2/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 81628) exited normally]
+COUNT 17080

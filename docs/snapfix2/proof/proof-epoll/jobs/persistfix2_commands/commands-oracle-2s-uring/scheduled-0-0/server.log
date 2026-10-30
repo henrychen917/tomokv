@@ -1,0 +1,20 @@
+2036221:C 29 Oct 2026 00:52:06.294 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2036221:C 29 Oct 2026 00:52:06.294 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2036221:C 29 Oct 2026 00:52:06.294 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2036221, just started
+2036221:C 29 Oct 2026 00:52:06.294 * Configuration loaded
+2036221:M 29 Oct 2026 00:52:06.294 * monotonic clock: POSIX clock_gettime
+2036221:M 29 Oct 2026 00:52:06.295 * Running mode=standalone, port=20100.
+2036221:M 29 Oct 2026 00:52:06.295 * Server initialized
+2036221:M 29 Oct 2026 00:52:06.295 * Ready to accept connections tcp
+2036221:M 29 Oct 2026 00:52:06.382 * Background saving started by pid 2036227
+2036227:C 29 Oct 2026 00:52:06.998 * DB saved on disk
+2036227:C 29 Oct 2026 00:52:06.999 * Fork CoW for RDB: current 1 MB, peak 1 MB, average 0 MB
+2036221:M 29 Oct 2026 00:52:07.002 * Background saving terminated with success
+2036221:M 29 Oct 2026 00:52:07.104 * Background append only file rewriting started by pid 2036228
+2036228:C 29 Oct 2026 00:52:07.720 * Successfully created the temporary AOF base file temp-rewriteaof-bg-2036228.aof
+2036228:C 29 Oct 2026 00:52:07.721 * Fork CoW for AOF rewrite: current 1 MB, peak 1 MB, average 0 MB
+2036221:M 29 Oct 2026 00:52:07.810 * Background AOF rewrite terminated with success
+2036221:M 29 Oct 2026 00:52:07.810 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-2036228.aof into appendonly.aof.1.base.rdb
+2036221:M 29 Oct 2026 00:52:07.810 * Background AOF rewrite finished successfully
+2036221:M 29 Oct 2026 00:52:07.811 * User requested shutdown...
+2036221:M 29 Oct 2026 00:52:07.811 # Redis is now ready to exit, bye bye...

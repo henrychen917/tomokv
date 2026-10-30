@@ -49,6 +49,7 @@
 #include <vector>
 
 #include "../core/signal_doorbell.h"
+#include "../core/exec1s.h"
 
 namespace tomo {
 
@@ -74,6 +75,8 @@ enum class UrKind : uint8_t {
     TlsReadPoll = 14,
     TlsWritePoll = 15,
     MigrateCancel = 16, // source-ring cancellation request; original Recv CQE is the fence
+    // 18/19 are fliplisten's accept/cancel tags.
+    WakeSent = 20,      // issuer-side completion, distinct from a peer notification
     DatabaseWake = 17,  // physical-worker database grace/boundary eventfd
 };
 
@@ -108,6 +111,10 @@ public:
         // later SQE in the batch -- including recv re-arms belonging to unrelated connections -- and
         // present as one connection's fault stalling several others.
         p.flags = IORING_SETUP_SINGLE_ISSUER | IORING_SETUP_DEFER_TASKRUN | IORING_SETUP_SUBMIT_ALL;
+        // Fused EX rings skip idle enters. Peer MSG_RING and permanent polls
+        // can enqueue deferred task work without an owned SQE: the kernel flag
+        // is the service request for that incoming work.
+        if (track_owned_) p.flags |= IORING_SETUP_TASKRUN_FLAG;
         int rc = io_uring_queue_init_params(entries, &r_, &p);
         if (rc < 0) {
             // Fall back rather than refuse to boot: an older kernel should still run, just slower.
@@ -154,8 +161,41 @@ public:
         send_pending_ = false;
     }
 
+    // Registration is task-local. The guard ends on the issuer, before the
+    // post-join teardown can call liburing from the coordinator thread.
+    class RegisteredFd {
+        Ring* ring_ = nullptr;
+    public:
+        explicit RegisteredFd(Ring* ring) {
+            if (ring && ring->inited_ && io_uring_register_ring_fd(&ring->r_) == 1)
+                ring_ = ring;
+        }
+        ~RegisteredFd() {
+            if (ring_ && io_uring_unregister_ring_fd(&ring_->r_) != 1) std::abort();
+        }
+        RegisteredFd(const RegisteredFd&) = delete;
+        RegisteredFd& operator=(const RegisteredFd&) = delete;
+    };
+
+    // Only fused executor rings opt in. Permanent shutdown/database polls do
+    // not represent outstanding data work; IO continues entering every rotation.
+    void track_owned_completions() { track_owned_ = true; }
+    void note_owned_completion() { if (track_owned_) ++owned_completions_; }
+    unsigned owned_completions() const { return owned_completions_; }
+    bool completion_service_needed() const {
+        return inited_ && (sq_ready() || owned_completions_ ||
+            (IO_URING_READ_ONCE(*r_.sq.kflags) &
+             (IORING_SQ_TASKRUN | IORING_SQ_CQ_OVERFLOW)));
+    }
+
     bool shutdown_complete() const { return !inited_ && wake_fd_ < 0; }
 
+    // enter counts are submit/get-events entries; waits are separate because liburing
+    // may satisfy a wait from an already populated CQ without entering the kernel.
+    void bind_entry_counters(uint32_t tid, bool executor) {
+        counter_slot_ = 2 * tid + executor;
+        exec1s_ring_counters[counter_slot_] = {};
+    }
     io_uring* raw() { return &r_; }
     bool deferred() const { return deferred_; }
 
@@ -214,6 +254,8 @@ public:
 
     int submit() {
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        if (counter_slot_ < 256 && io_uring_sq_ready(&r_))
+            ++exec1s_ring_counters[counter_slot_].enters;
         return io_uring_submit(&r_);
     }
 
@@ -232,6 +274,7 @@ public:
     int submit_and_reap() {
         if constexpr (ClearSendClassification) send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        if (counter_slot_ < 256) ++exec1s_ring_counters[counter_slot_].enters;
         return io_uring_submit_and_get_events(&r_);
     }
 
@@ -259,6 +302,7 @@ public:
             if (n > 0 && (waits[0].revents & POLLIN)) drain_wake_fd();
             return n < 0 ? 0 : n;
         }
+        if (counter_slot_ < 256) ++exec1s_ring_counters[counter_slot_].waits;
         __kernel_timespec ts{};
         ts.tv_sec  = timeout_ms / 1000;
         ts.tv_nsec = static_cast<long long>(timeout_ms % 1000) * 1000000LL;
@@ -287,6 +331,7 @@ public:
         io_uring_for_each_cqe(&r_, head, cqe) {
             raw++;
             raw_callback_index_ = raw;
+            account_owned_completion(cqe);
             fn(cqe);
             if (raw_callback_taken_) break;
         }
@@ -327,6 +372,7 @@ public:
         io_uring_cqe* cqe;
         unsigned head, raw = 0;
         io_uring_for_each_cqe(&r_, head, cqe) {
+            account_owned_completion(cqe);
             if (fn(cqe)) consumed++;
             else deferred_cqes_.push_back(*cqe);
             raw++;
@@ -359,11 +405,21 @@ public:
         io_uring_sqe* s = sqe();
         if (!s) return false;
         io_uring_prep_msg_ring(s, target.r_.ring_fd, 0, tag, 0);
-        s->user_data = ur_tag(UrKind::Wake, nullptr);
+        s->user_data = ur_tag(track_owned_ ? UrKind::WakeSent : UrKind::Wake, nullptr);
+        note_owned_completion();
         return true;
     }
 
 private:
+    void account_owned_completion(io_uring_cqe* cqe) {
+        const auto kind = ur_kind(cqe->user_data);
+        if (track_owned_ && (kind == UrKind::WakeSent || kind == UrKind::AofIo ||
+                             kind == UrKind::SnapshotIo)) {
+            if (!owned_completions_) std::abort();
+            --owned_completions_;
+            if (kind == UrKind::WakeSent) cqe->user_data = ur_tag(UrKind::Wake, nullptr);
+        }
+    }
     // The epoll-mode doorbell. PAYLOAD FIRST, THEN THE BELL -- the same push-then-flag order the
     // channel mesh uses, and for the same reason: a consumer woken by the bell must be able to see
     // everything the bell was rung for. The mutex is only ever contended by a peer that found this
@@ -399,9 +455,12 @@ private:
     bool     inited_   = false;
     bool     deferred_ = true;
     bool     send_pending_ = false;
+    bool     track_owned_ = false; // existing five-byte hole
+    uint32_t owned_completions_ = 0;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;
+    uint16_t counter_slot_ = 256; // pre-existing two-byte alignment hole
     unsigned raw_callback_index_ = 0;
     // Epoll-mode doorbell state. -1 in uring mode, which is the single test every method above
     // branches on; the vector and mutex are never constructed into use there.

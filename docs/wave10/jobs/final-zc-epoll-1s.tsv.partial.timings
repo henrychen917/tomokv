@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+ok	1.210000	ASAN build
+ok	1.360000	zc borrow battery
+ok	0.020000	zc fired (zc_sends=20)
+ok	1.410000	zc borrow battery under ASAN
+ok	0.020000	zc ASAN clean

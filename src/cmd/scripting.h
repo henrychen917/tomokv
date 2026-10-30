@@ -37,6 +37,7 @@ struct ScriptInvocation {
     uint32_t       key_count = 0;
     ScriptArgStyle style     = ScriptArgStyle::Globals;
     bool           readonly  = false;   // reject Write commands from redis.call/pcall
+    bool           memory_admitted = false; // shebang EVAL uses FUNCTION-style OOM admission
     bool           notify    = false;   // armed keyspace-notification variant entered
     const char*    chunk     = "user_script";
     Slice          tag;

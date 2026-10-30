@@ -1,0 +1,232 @@
+[
+  {
+    "case": "bgsave-exec",
+    "leg": "redis-redis-0",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 60,
+      "writes": 4738048,
+      "execs": 58342,
+      "aborted": 26873,
+      "lanes": null,
+      "max_latency": {
+        "exec": 0.002,
+        "writer-burst": 0.002
+      },
+      "snapshot": [
+        57521,
+        57521
+      ]
+    },
+    "pass": true,
+    "seconds": 6.235
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-0",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 60,
+      "writes": 2707328,
+      "execs": 32302,
+      "aborted": 15122,
+      "lanes": {
+        "owner": 0,
+        "writer_io": 1,
+        "probe_io": 7
+      },
+      "max_latency": {
+        "exec": 0.052,
+        "writer-burst": 0.063
+      },
+      "snapshot": [
+        32010,
+        32010
+      ]
+    },
+    "pass": true,
+    "seconds": 6.133
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-1",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 60,
+      "writes": 2755648,
+      "execs": 33185,
+      "aborted": 15545,
+      "lanes": {
+        "owner": 3,
+        "writer_io": 0,
+        "probe_io": 7
+      },
+      "max_latency": {
+        "exec": 0.053,
+        "writer-burst": 0.061
+      },
+      "snapshot": [
+        32820,
+        32820
+      ]
+    },
+    "pass": true,
+    "seconds": 6.128
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-0",
+    "value": {
+      "probe_max": 0.002,
+      "saves": 48,
+      "writes": 2185472,
+      "execs": 39645,
+      "aborted": 12590,
+      "lanes": {
+        "owner": 4,
+        "writer_io": 0,
+        "probe_io": 1
+      },
+      "max_latency": {
+        "exec": 0.05,
+        "writer-burst": 0.162
+      },
+      "snapshot": [
+        38204,
+        38204
+      ]
+    },
+    "pass": true,
+    "seconds": 6.154
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-1",
+    "value": {
+      "probe_max": 0.004,
+      "saves": 59,
+      "writes": 3992960,
+      "execs": 52381,
+      "aborted": 24039,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 1
+      },
+      "max_latency": {
+        "exec": 0.029,
+        "writer-burst": 0.077
+      },
+      "snapshot": [
+        51586,
+        51586
+      ]
+    },
+    "pass": true,
+    "seconds": 6.148
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-0",
+    "value": {
+      "probe_max": 0.013,
+      "saves": 12,
+      "writes": 588992,
+      "execs": 6572,
+      "aborted": 3084,
+      "lanes": {
+        "owner": 6,
+        "writer_io": 0,
+        "probe_io": 2
+      },
+      "max_latency": {
+        "exec": 0.582,
+        "writer-burst": 0.793
+      },
+      "snapshot": [
+        6561,
+        6561
+      ]
+    },
+    "pass": true,
+    "seconds": 6.127
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-1",
+    "value": {
+      "probe_max": 0.013,
+      "saves": 11,
+      "writes": 523904,
+      "execs": 5591,
+      "aborted": 2723,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "max_latency": {
+        "exec": 0.459,
+        "writer-burst": 0.795
+      },
+      "snapshot": [
+        5528,
+        5528
+      ]
+    },
+    "pass": true,
+    "seconds": 6.16
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-0",
+    "value": {
+      "probe_max": 0.009,
+      "saves": 45,
+      "writes": 2513472,
+      "execs": 23584,
+      "aborted": 11702,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 5
+      },
+      "max_latency": {
+        "exec": 0.354,
+        "writer-burst": 0.488
+      },
+      "snapshot": [
+        23574,
+        23574
+      ]
+    },
+    "pass": true,
+    "seconds": 6.146
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-1",
+    "value": {
+      "probe_max": 0.011,
+      "saves": 15,
+      "writes": 954496,
+      "execs": 11744,
+      "aborted": 5538,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 1
+      },
+      "max_latency": {
+        "exec": 0.228,
+        "writer-burst": 0.912
+      },
+      "snapshot": [
+        11640,
+        11640
+      ]
+    },
+    "pass": true,
+    "seconds": 6.141
+  }
+]

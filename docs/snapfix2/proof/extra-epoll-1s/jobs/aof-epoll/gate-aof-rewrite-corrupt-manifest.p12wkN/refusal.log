@@ -1,0 +1,3 @@
+--net-io epoll: using syscall persistence (no io_uring ring)
+AOF load plan failed: unknown AOF manifest entry
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)

@@ -1,0 +1,17 @@
+  row budget: 900s; median=6.695s; correctness-plan-fallback; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=1s; correctness-plan-fallback; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=1.03s; correctness-plan-fallback; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; direct-reply fired (direct=N)
+  direct-reply fired (direct=11313)                    ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; dispatched==executed (N)
+  dispatched==executed (54993)                         ok

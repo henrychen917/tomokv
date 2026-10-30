@@ -1,0 +1,9 @@
+{"case": "flushall", "leg": "redis-redis-0", "value": {"flushes": 0, "saves": 0, "final": [151956, 151956, 101033, 101033], "scripts": 151956, "execs": 101033, "writes": 95603}, "pass": true, "seconds": 5.154}
+{"case": "flushall", "leg": "1s-uring-0", "value": {"flushes": 0, "saves": 0, "final": [97088, 97088, 104846, 104846], "scripts": 97088, "execs": 104846, "writes": 106538}, "pass": true, "seconds": 5.058}
+{"case": "flushall", "leg": "1s-uring-1", "value": {"flushes": 0, "saves": 0, "final": [105075, 105075, 104503, 104503], "scripts": 105075, "execs": 104503, "writes": 101950}, "pass": true, "seconds": 5.053}
+{"case": "flushall", "leg": "1s-epoll-0", "value": {"flushes": 0, "saves": 0, "final": [124885, 124885, 100383, 100383], "scripts": 124885, "execs": 100383, "writes": 98642}, "pass": true, "seconds": 5.068}
+{"case": "flushall", "leg": "1s-epoll-1", "value": {"flushes": 0, "saves": 0, "final": [133166, 133166, 99514, 99514], "scripts": 133166, "execs": 99514, "writes": 96798}, "pass": true, "seconds": 5.057}
+{"case": "flushall", "leg": "2s-uring-0", "value": {"flushes": 0, "saves": 0, "final": [147661, 147661, 97296, 97296], "scripts": 147661, "execs": 97296, "writes": 92985}, "pass": true, "seconds": 5.071}
+{"case": "flushall", "leg": "2s-uring-1", "value": {"flushes": 0, "saves": 0, "final": [147644, 147644, 96855, 96855], "scripts": 147644, "execs": 96855, "writes": 92992}, "pass": true, "seconds": 5.074}
+{"case": "flushall", "leg": "2s-epoll-0", "value": {"flushes": 0, "saves": 0, "final": [148619, 148619, 97452, 97452], "scripts": 148619, "execs": 97452, "writes": 93674}, "pass": true, "seconds": 5.071}
+{"case": "flushall", "leg": "2s-epoll-1", "value": {"flushes": 0, "saves": 0, "final": [148083, 148083, 97285, 97285], "scripts": 148083, "execs": 97285, "writes": 93765}, "pass": true, "seconds": 5.07}

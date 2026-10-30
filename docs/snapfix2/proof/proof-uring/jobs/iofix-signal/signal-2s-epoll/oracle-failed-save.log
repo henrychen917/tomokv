@@ -1,0 +1,19 @@
+809018:C 28 Oct 2026 23:51:02.686 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+809018:C 28 Oct 2026 23:51:02.686 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+809018:C 28 Oct 2026 23:51:02.686 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=809018, just started
+809018:C 28 Oct 2026 23:51:02.686 * Configuration loaded
+809018:M 28 Oct 2026 23:51:02.687 * monotonic clock: POSIX clock_gettime
+809018:M 28 Oct 2026 23:51:02.687 * Running mode=standalone, port=20101.
+809018:M 28 Oct 2026 23:51:02.687 * Server initialized
+809018:M 28 Oct 2026 23:51:02.687 * Ready to accept connections tcp
+809018:signal-handler (1793202662) Received SIGTERM scheduling shutdown...
+809018:M 28 Oct 2026 23:51:02.789 * User requested shutdown...
+809018:M 28 Oct 2026 23:51:02.789 * Saving the final RDB snapshot before exiting.
+809018:M 28 Oct 2026 23:51:02.789 # Error moving temp DB file temp-809018.rdb on the final destination saved.rdb (in server root dir /home/user/Projects/cx-snapfix2/build/gate-run.1RnZQ6/jobs/iofix-signal/signal-2s-epoll/oracle-failed-save): Is a directory
+809018:M 28 Oct 2026 23:51:02.789 # Error trying to save the DB, can't exit.
+809018:M 28 Oct 2026 23:51:02.789 # Errors trying to shut down the server. Check the logs for more information.
+809018:signal-handler (1793202662) Received SIGTERM scheduling shutdown...
+809018:M 28 Oct 2026 23:51:03.091 * User requested shutdown...
+809018:M 28 Oct 2026 23:51:03.091 * Saving the final RDB snapshot before exiting.
+809018:M 28 Oct 2026 23:51:03.091 * DB saved on disk
+809018:M 28 Oct 2026 23:51:03.091 # Redis is now ready to exit, bye bye...

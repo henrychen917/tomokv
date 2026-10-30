@@ -1,0 +1,60 @@
+{
+  "functions": 775,
+  "equal": 769,
+  "changed": [
+    "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra]",
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra] [clone .cold]",
+    "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+    "tomo_db0::FlatStore::rehash_step_read_local()"
+  ],
+  "symbols": [
+    "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+    "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra",
+    "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.cold",
+    "_ZN8tomo_db07ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+    "_ZN8tomo_db09FlatStore22rehash_step_read_localEv"
+  ],
+  "padding": [],
+  "hot": [
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra]",
+    "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra] [clone .cold]"
+  ],
+  "added": [
+    "_ZN8tomo_db07ExLoopTILb1EE25service_snapshot_backlogsILb0EEEjjb"
+  ],
+  "removed": [],
+  "arm": "post",
+  "unit": "db0/src/core/genthread.o",
+  "budget": 132052,
+  "initial": 108619,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=132052",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-db0_src_core_genthread.o-132052.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-snapfix2/build/snapfix2/budgets/post-db0_src_core_genthread.o-132052.inline"
+  ],
+  "sha256": "b67ed929a8862b7c993cb7d0a94d1e40447e7caffb4f057e3904219faae07885"
+}

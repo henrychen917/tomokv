@@ -1,0 +1,2 @@
+  row budget: 900s; median=1.99s; correctness-plan-fallback; snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1)
+  snapfix2 repeated BGSAVE bounds RSS (both modes, both engines, atomic 0/1) FAIL (see /home/user/Projects/cx-snapfix2/build/gate-run.v3kwW1/jobs/snapfix2_tables/snapfix-bgsave-loop.log)

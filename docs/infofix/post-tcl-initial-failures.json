@@ -1,0 +1,152 @@
+{
+  "2s": [
+    {
+      "file": "integration/redis-cli",
+      "error": "passing subset failed, incomplete, or assertion inventory changed",
+      "failures": [
+        {
+          "status": "err",
+          "file": "tests/integration/redis-cli.tcl",
+          "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+          "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) ",
+          "milliseconds": "0"
+        }
+      ]
+    },
+    {
+      "file": "unit/pubsub",
+      "error": "passing subset failed, incomplete, or assertion inventory changed",
+      "failures": [
+        {
+          "status": "err",
+          "file": "tests/unit/pubsub.tcl",
+          "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+          "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+          "milliseconds": "0"
+        }
+      ]
+    },
+    {
+      "file": "unit/slowlog",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/sort",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/tracking",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/hash",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/incr",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/list",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/list-2",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/list-3",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/set",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/stream",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/stream-cgroups",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    },
+    {
+      "file": "unit/type/string",
+      "error": "RuntimeError: server exited during boot; passing subset failed, incomplete, or assertion inventory changed",
+      "failures": []
+    }
+  ],
+  "1s": [
+    {
+      "file": "integration/redis-cli",
+      "error": "passing subset failed, incomplete, or assertion inventory changed",
+      "failures": [
+        {
+          "status": "err",
+          "file": "tests/integration/redis-cli.tcl",
+          "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl",
+          "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server in tests/integration/redis-cli.tcl\nExpected 'Test case 'MIGRATE ' FAILED: expected 'host port key|\"\" destination-db timeout [COPY] [REPLACE] [AUTH password|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match \"*SUCCESS*\" $output} proc ::test) ",
+          "milliseconds": "0"
+        }
+      ]
+    },
+    {
+      "file": "unit/pubsub",
+      "error": "passing subset failed, incomplete, or assertion inventory changed",
+      "failures": [
+        {
+          "status": "err",
+          "file": "tests/unit/pubsub.tcl",
+          "test": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+          "data": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1 hello]} proc ::test)",
+          "milliseconds": "0"
+        },
+        {
+          "status": "err",
+          "file": "tests/unit/pubsub.tcl",
+          "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+          "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+          "milliseconds": "0"
+        }
+      ]
+    },
+    {
+      "file": "unit/type/list",
+      "error": "passing subset failed, incomplete, or assertion inventory changed",
+      "failures": [
+        {
+          "status": "err",
+          "file": "tests/unit/type/list.tcl",
+          "test": "",
+          "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 2\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+          "milliseconds": "0"
+        },
+        {
+          "status": "err",
+          "file": "tests/unit/type/list.tcl",
+          "test": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl",
+          "data": "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl\nExpected '' to equal or match 'somevalue'",
+          "milliseconds": "0"
+        },
+        {
+          "status": "err",
+          "file": "tests/unit/type/list.tcl",
+          "test": "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl",
+          "data": "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl\nExpected 'somevalue' to equal or match ''",
+          "milliseconds": "0"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "created_at": 1793198959.8745131,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {},
+  "schema": 1
+}

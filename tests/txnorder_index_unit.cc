@@ -24,7 +24,7 @@ struct Unit {
     TxnGroupAttempt group;
     bool grouped;
     Unit(Server& s, Client& c, bool g, uint64_t age) : grouped(g) {
-        exec.reset(allocate_state(s, c, 0, MultiStateKind::Execute)); require(bool(exec), "unit allocated");
+        exec.reset(fixture_allocate_state(s, c, 0, MultiStateKind::Execute)); require(bool(exec), "unit allocated");
         exec->decision.age_ns = group.age_ns = age;
         scatter.server = &s; scatter.watch_refs.store(ScatterState::kGroupAttemptRef);
         scatter.group_attempt_storage = &group;

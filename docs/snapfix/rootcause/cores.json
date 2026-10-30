@@ -1,0 +1,26 @@
+{
+  "xs-shut-1 (codex stack run, PRE 1s uring atomic 1)": {
+    "path": "/home/user/Projects/cx-snapfix/build/snapfix/pre-shutdown.core",
+    "bytes": 113145352,
+    "sha256": "5323ef4d44eac5403c1c2f8db124b56af356899cb432fd10133ba9f8847220bf"
+  },
+  "snap-storm-exec-at412-post-resolution (codex, PRE 1s epoll)": {
+    "path": "/home/user/Projects/cx-snapfix/build/snapfix/pre-exec.core",
+    "bytes": 901706416,
+    "sha256": "6615571ac9eccfd4cf7e0973df0e3cc8089ebb1cf25cc33b4fd6dafd83ef1f76"
+  },
+  "snap-storm-exec-core1 (live, PRE 2s uring atomic 1)": {
+    "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/wd-2s-uring-7/stall.core",
+    "bytes": 499053968,
+    "sha256": "a569e607c509fcdbfd3d73ce692d2928b24eaceb575409ccc725d9d0ddff89f6"
+  },
+  "snap-storm-exec-core2 (live, PRE 2s uring atomic 1)": {
+    "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/wd2-2s-uring-3/stall.core",
+    "bytes": 522647288,
+    "sha256": "7a04b2ff1cdbeec96e2a1d9b2520bfc70c8a5060aea8d450cc9fa3a885e877d5"
+  },
+  "binary": {
+    "path": "/home/user/Projects/cx-snapfix/build/snapfix/pre/tomokv",
+    "sha256": "7e7d803448478ecf8ff4d225c8751421d31a096044f62ea29b2ba1bac1db99c3"
+  }
+}

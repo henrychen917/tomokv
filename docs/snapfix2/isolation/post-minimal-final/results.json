@@ -1,0 +1,76 @@
+[
+  {
+    "case": "flush-pair",
+    "leg": "redis-redis-0",
+    "value": {
+      "cycles": 87799,
+      "observations": 216468,
+      "torn": 0,
+      "pair": [
+        "snapfix2:flush:0",
+        "snapfix2:flush:1"
+      ],
+      "owners": null,
+      "examples": [],
+      "errors": []
+    },
+    "pass": true,
+    "seconds": 6.144
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 57928, 'observations': 173519, 'torn': 258, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(1, 1), (0, 0)], 'examples': [{'observation': 446, 'values': [1, None]}, {'observation': 498, 'values': [1, None]}, {'observation': 1793, 'values': [None, 1]}, {'observation': 1917, 'values': [1, None]}, {'observation': 2925, 'values': [1, None]}, {'observation': 3498, 'values': [1, None]}, {'observation': 6525, 'values': [None, 1]}, {'observation': 6812, 'values': [None, 1]}, {'observation': 6935, 'values': [None, 1]}, {'observation': 6977, 'values': [None, 1]}, {'observation': 7998, 'values': [1, None]}, {'observation': 8255, 'values': [None, 1]}, {'observation': 8848, 'values': [None, 1]}, {'observation': 8972, 'values': [1, None]}, {'observation': 9321, 'values': [None, 1]}, {'observation': 9653, 'values': [1, None]}, {'observation': 10989, 'values': [1, None]}, {'observation': 11163, 'values': [None, 1]}, {'observation': 11210, 'values': [None, 1]}, {'observation': 11768, 'values': [1, None]}], 'errors': []}\n",
+    "seconds": 6.035
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 56413, 'observations': 172080, 'torn': 13967, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(2, 2), (4, 4)], 'examples': [{'observation': 19, 'values': [1, None]}, {'observation': 27, 'values': [1, None]}, {'observation': 38, 'values': [1, None]}, {'observation': 57, 'values': [1, None]}, {'observation': 70, 'values': [1, None]}, {'observation': 92, 'values': [1, None]}, {'observation': 98, 'values': [1, None]}, {'observation': 110, 'values': [1, None]}, {'observation': 116, 'values': [1, None]}, {'observation': 120, 'values': [1, None]}, {'observation': 126, 'values': [1, None]}, {'observation': 131, 'values': [1, None]}, {'observation': 144, 'values': [1, None]}, {'observation': 152, 'values': [1, None]}, {'observation': 167, 'values': [1, None]}, {'observation': 183, 'values': [1, None]}, {'observation': 185, 'values': [1, None]}, {'observation': 189, 'values': [1, None]}, {'observation': 208, 'values': [1, None]}, {'observation': 221, 'values': [1, None]}], 'errors': []}\n",
+    "seconds": 6.032
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 73946, 'observations': 219575, 'torn': 15, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(9, 1), (5, 5)], 'examples': [{'observation': 66264, 'values': [1, None]}, {'observation': 77284, 'values': [None, 1]}, {'observation': 77285, 'values': [None, 1]}, {'observation': 81476, 'values': [1, None]}, {'observation': 94157, 'values': [1, None]}, {'observation': 101775, 'values': [1, None]}, {'observation': 103110, 'values': [None, 1]}, {'observation': 103111, 'values': [None, 1]}, {'observation': 103112, 'values': [None, 1]}, {'observation': 110075, 'values': [1, None]}, {'observation': 111630, 'values': [1, None]}, {'observation': 113538, 'values': [1, None]}, {'observation': 134159, 'values': [1, None]}, {'observation': 139380, 'values': [1, None]}, {'observation': 142648, 'values': [1, None]}], 'errors': []}\n",
+    "seconds": 6.033
+  },
+  {
+    "case": "flush-pair",
+    "leg": "1s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 66840, 'observations': 191381, 'torn': 2, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(3, 3), (12, 4)], 'examples': [{'observation': 51016, 'values': [None, 1]}, {'observation': 128799, 'values': [None, 1]}], 'errors': []}\n",
+    "seconds": 6.033
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 113248, 'observations': 225780, 'torn': 166, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(4, 6), (9, 7)], 'examples': [{'observation': 353, 'values': [None, 1]}, {'observation': 4453, 'values': [None, 1]}, {'observation': 5977, 'values': [None, 1]}, {'observation': 6027, 'values': [None, 1]}, {'observation': 7079, 'values': [None, 1]}, {'observation': 7085, 'values': [None, 1]}, {'observation': 7569, 'values': [None, 1]}, {'observation': 10889, 'values': [None, 1]}, {'observation': 11521, 'values': [None, 1]}, {'observation': 11937, 'values': [None, 1]}, {'observation': 12153, 'values': [None, 1]}, {'observation': 12357, 'values': [None, 1]}, {'observation': 13463, 'values': [None, 1]}, {'observation': 13662, 'values': [None, 1]}, {'observation': 14598, 'values': [None, 1]}, {'observation': 14820, 'values': [None, 1]}, {'observation': 14993, 'values': [None, 1]}, {'observation': 17931, 'values': [None, 1]}, {'observation': 19068, 'values': [None, 1]}, {'observation': 22468, 'values': [None, 1]}], 'errors': []}\n",
+    "seconds": 6.033
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 112608, 'observations': 224620, 'torn': 974, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(11, 7), (0, 6)], 'examples': [{'observation': 3, 'values': [1, None]}, {'observation': 295, 'values': [1, None]}, {'observation': 297, 'values': [1, None]}, {'observation': 551, 'values': [1, None]}, {'observation': 594, 'values': [1, None]}, {'observation': 603, 'values': [1, None]}, {'observation': 851, 'values': [1, None]}, {'observation': 1561, 'values': [1, None]}, {'observation': 1565, 'values': [1, None]}, {'observation': 1802, 'values': [1, None]}, {'observation': 2350, 'values': [1, None]}, {'observation': 2421, 'values': [1, None]}, {'observation': 2423, 'values': [1, None]}, {'observation': 2447, 'values': [1, None]}, {'observation': 2722, 'values': [1, None]}, {'observation': 3264, 'values': [1, None]}, {'observation': 3285, 'values': [1, None]}, {'observation': 3540, 'values': [1, None]}, {'observation': 3542, 'values': [1, None]}, {'observation': 3797, 'values': [1, None]}], 'errors': []}\n",
+    "seconds": 6.033
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 110717, 'observations': 185773, 'torn': 5766, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:1'], 'owners': [(14, 6), (9, 7)], 'examples': [{'observation': 3, 'values': [1, None]}, {'observation': 61, 'values': [1, None]}, {'observation': 153, 'values': [1, None]}, {'observation': 163, 'values': [1, None]}, {'observation': 198, 'values': [1, None]}, {'observation': 201, 'values': [1, None]}, {'observation': 221, 'values': [1, None]}, {'observation': 223, 'values': [1, None]}, {'observation': 278, 'values': [1, None]}, {'observation': 284, 'values': [1, None]}, {'observation': 317, 'values': [1, None]}, {'observation': 320, 'values': [1, None]}, {'observation': 325, 'values': [1, None]}, {'observation': 341, 'values': [1, None]}, {'observation': 358, 'values': [1, None]}, {'observation': 376, 'values': [1, None]}, {'observation': 397, 'values': [1, None]}, {'observation': 505, 'values': [1, None]}, {'observation': 541, 'values': [1, None]}, {'observation': 627, 'values': [1, None]}], 'errors': []}\n",
+    "seconds": 6.033
+  },
+  {
+    "case": "flush-pair",
+    "leg": "2s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix.py\", line 619, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix2_flush.py\", line 48, in case_flush_pair\n    assert counts['torn'] == 0, result\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError: {'cycles': 112013, 'observations': 189155, 'torn': 15380, 'pair': ['snapfix2:flush:0', 'snapfix2:flush:2'], 'owners': [(1, 7), (2, 6)], 'examples': [{'observation': 7, 'values': [None, 1]}, {'observation': 29, 'values': [None, 1]}, {'observation': 42, 'values': [None, 1]}, {'observation': 70, 'values': [None, 1]}, {'observation': 81, 'values': [None, 1]}, {'observation': 89, 'values': [None, 1]}, {'observation': 130, 'values': [None, 1]}, {'observation': 182, 'values': [None, 1]}, {'observation': 241, 'values': [None, 1]}, {'observation': 246, 'values': [None, 1]}, {'observation': 261, 'values': [None, 1]}, {'observation': 264, 'values': [None, 1]}, {'observation': 299, 'values': [None, 1]}, {'observation': 328, 'values': [None, 1]}, {'observation': 333, 'values': [None, 1]}, {'observation': 341, 'values': [None, 1]}, {'observation': 373, 'values': [None, 1]}, {'observation': 391, 'values': [None, 1]}, {'observation': 409, 'values': [None, 1]}, {'observation': 463, 'values': [None, 1]}], 'errors': []}\n",
+    "seconds": 6.033
+  }
+]

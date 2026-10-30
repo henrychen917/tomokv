@@ -1,0 +1,26 @@
+521296:C 28 Oct 2026 23:42:34.400 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+521296:C 28 Oct 2026 23:42:34.400 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+521296:C 28 Oct 2026 23:42:34.400 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=521296, just started
+521296:C 28 Oct 2026 23:42:34.400 * Configuration loaded
+521296:M 28 Oct 2026 23:42:34.400 * monotonic clock: POSIX clock_gettime
+521296:M 28 Oct 2026 23:42:34.401 * Running mode=standalone, port=20100.
+521296:M 28 Oct 2026 23:42:34.401 * Server initialized
+521296:M 28 Oct 2026 23:42:34.401 * Creating AOF base file appendonly.aof.1.base.rdb on server start
+521296:M 28 Oct 2026 23:42:34.401 * Creating AOF incr file appendonly.aof.1.incr.aof on server start
+521296:M 28 Oct 2026 23:42:34.401 * Ready to accept connections tcp
+521296:M 28 Oct 2026 23:42:34.475 * Creating AOF incr file appendonly.aof.2.incr.aof on background rewrite
+521296:M 28 Oct 2026 23:42:34.475 * Background append only file rewriting started by pid 521302
+521302:C 28 Oct 2026 23:42:36.582 * Successfully created the temporary AOF base file temp-rewriteaof-bg-521302.aof
+521302:C 28 Oct 2026 23:42:36.582 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+521296:M 28 Oct 2026 23:42:36.623 * Background AOF rewrite terminated with success
+521296:M 28 Oct 2026 23:42:36.623 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-521302.aof into appendonly.aof.2.base.rdb
+521296:M 28 Oct 2026 23:42:36.623 * Removing the history file appendonly.aof.1.incr.aof in the background
+521296:M 28 Oct 2026 23:42:36.623 * Removing the history file appendonly.aof.1.base.rdb in the background
+521296:M 28 Oct 2026 23:42:36.624 * Background AOF rewrite finished successfully
+521296:M 28 Oct 2026 23:42:36.624 * Background saving started by pid 521330
+521330:C 28 Oct 2026 23:42:38.733 * DB saved on disk
+521330:C 28 Oct 2026 23:42:38.734 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+521296:M 28 Oct 2026 23:42:38.745 * Background saving terminated with success
+521296:M 28 Oct 2026 23:42:38.746 * User requested shutdown...
+521296:M 28 Oct 2026 23:42:38.746 * Calling fsync() on the AOF file.
+521296:M 28 Oct 2026 23:42:38.746 # Redis is now ready to exit, bye bye...

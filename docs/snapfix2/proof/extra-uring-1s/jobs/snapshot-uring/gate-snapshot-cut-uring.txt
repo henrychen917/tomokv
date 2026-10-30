@@ -1,0 +1,6 @@
+BGSAVE: b'+Background saving started'
+bgsave done in 0.0s (mutation storm raced the capture)
+last_save_time: None
+cut verify: mismatch=0 (first=None) ttl=50/50 post-cut-leaked=0 pre-cut-expired=0
+VERIFY_CUT PASS
+SAVE-on-loaded: b'+OK'

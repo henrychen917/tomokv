@@ -1,0 +1,102 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix_neighbours.py",
+    "--case",
+    "aofrw-script",
+    "--binary",
+    "build/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/neighbours/aofrw-script"
+  ],
+  "environment": {},
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 47.326,
+  "log_sha256": "4c971869376dd569fb3215efcf7b07f1d0c40b5200e0bcf1b864efd6f00fdc5a",
+  "removed_data": {
+    "1s-epoll-1/appendonlydir/appendonly.aof.27.incr.tomo": {
+      "bytes": 80,
+      "sha256": "0e5d0dcf6286e6973cda80e0213cbd935acbf5a76f137c995da4bcc184c3218a"
+    },
+    "1s-epoll-1/appendonlydir/appendonly.aof.27.base.tomo": {
+      "bytes": 802,
+      "sha256": "9d80b9732831c4dc8d3a3c4bff7f3f9fc3df19dde83b45ac91fd7bceb67c26eb"
+    },
+    "2s-uring-0/appendonlydir/appendonly.aof.27.incr.tomo": {
+      "bytes": 2272,
+      "sha256": "21f542c9decd122931c1874d4dff6e912fd7fb7f7d1a4cc248637ab2494d522a"
+    },
+    "2s-uring-0/appendonlydir/appendonly.aof.27.base.tomo": {
+      "bytes": 802,
+      "sha256": "358930f0556ea245fa6a50123fcfa1c2db71f10c918a3d448988dc2b3109319a"
+    },
+    "1s-epoll-0/appendonlydir/appendonly.aof.11.incr.tomo": {
+      "bytes": 80,
+      "sha256": "371406834eb1b515712c48b396efa1342752dafa3cecacf04928f4339432f250"
+    },
+    "1s-epoll-0/appendonlydir/appendonly.aof.11.base.tomo": {
+      "bytes": 802,
+      "sha256": "f2d482fac226ccf0e07c32d97d125edaaafe051a00aea9f94f0e513cb8b2a789"
+    },
+    "1s-uring-0/appendonlydir/appendonly.aof.11.incr.tomo": {
+      "bytes": 80,
+      "sha256": "26ef4c75aa4d5f02237123d3431026dbe2e6a476873aa59c2c56cf340a4ef878"
+    },
+    "1s-uring-0/appendonlydir/appendonly.aof.11.base.tomo": {
+      "bytes": 802,
+      "sha256": "96bab22f8b2e70cb334f179cc224927fabb3d385e07e7208861ef218dcc63f5e"
+    },
+    "2s-epoll-0/appendonlydir/appendonly.aof.26.base.tomo": {
+      "bytes": 802,
+      "sha256": "c0a410a38699838e1f042d902a50505537d7b1a8d65d985d22b2dc7ae4d5f860"
+    },
+    "2s-epoll-0/appendonlydir/appendonly.aof.26.incr.tomo": {
+      "bytes": 2981462,
+      "sha256": "2d4ab9d39bb6657a673c2eb50fa79ac12b86d245c9cf2a401f173d50c6fca915"
+    },
+    "redis-redis-0/appendonlydir/appendonly.aof.26.base.rdb": {
+      "bytes": 173,
+      "sha256": "31f222ea686e37221693a6f8a985a996ad09eacdd465ff8a769f3c3518dbe108"
+    },
+    "redis-redis-0/appendonlydir/appendonly.aof.26.incr.aof": {
+      "bytes": 1120279,
+      "sha256": "39ea56408f9bf3b55a6109848dbc0d38cd5b04288106839992cbee0cc6949d02"
+    },
+    "2s-epoll-1/appendonlydir/appendonly.aof.27.incr.tomo": {
+      "bytes": 27466,
+      "sha256": "099890b72c73c8aa01aa334b76de9e455d42b1ad2ca14c2eeea79db0948cb3f0"
+    },
+    "2s-epoll-1/appendonlydir/appendonly.aof.27.base.tomo": {
+      "bytes": 802,
+      "sha256": "bacadc22e7c221b8475c2d3fa540e89fd27ae305b0585961f8dac7659793abd6"
+    },
+    "1s-uring-1/appendonlydir/appendonly.aof.27.incr.tomo": {
+      "bytes": 1648,
+      "sha256": "5f98563f0bc46da19f9546bce61cd6fc123792f27d3b67bc673c1a82dcd9bdc3"
+    },
+    "1s-uring-1/appendonlydir/appendonly.aof.27.base.tomo": {
+      "bytes": 802,
+      "sha256": "1bdec8d7530097560876889f3928200a2eecd0f824a98eca2739a2fbd1153645"
+    },
+    "2s-uring-1/appendonlydir/appendonly.aof.27.incr.tomo": {
+      "bytes": 7060,
+      "sha256": "1d10bcbc3db6614cc8a13a1d46750926b8944a4d678d9804ace83f08fe8081d8"
+    },
+    "2s-uring-1/appendonlydir/appendonly.aof.27.base.tomo": {
+      "bytes": 802,
+      "sha256": "895d76e1903a764f84e6d9bc73a9ff1f05fbdb3caa3f5e72c4d0289d755991c3"
+    }
+  }
+}

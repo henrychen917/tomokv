@@ -1,0 +1,40 @@
+{
+  "initial_receipt": "land-broad",
+  "initial_log": "jobs/execfair/execfair-2s-0-uring-wave8.log",
+  "failure": "BUSY Cross-shard script snapshot window is full",
+  "classification": "unclassified; not reproduced in three PRE whole jobs or one POST whole-job rerun",
+  "runs": [
+    {
+      "receipt": "land-followup-execfair-pre",
+      "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+      "exit_code": 0,
+      "configurations": 8,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "receipt": "land-execfair-pre-repeat2-execfair-pre",
+      "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+      "exit_code": 0,
+      "configurations": 8,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "receipt": "land-execfair-pre-repeat3-execfair-pre",
+      "binary_sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+      "exit_code": 0,
+      "configurations": 8,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "receipt": "land-followup-execfair",
+      "binary_sha256": "e18acab2bb97ff9f2d2c32901d7b50a8061e6ad15ca4c28a62b72a41a53701e1",
+      "exit_code": 0,
+      "configurations": 8,
+      "passed": 1,
+      "failed": 0
+    }
+  ]
+}

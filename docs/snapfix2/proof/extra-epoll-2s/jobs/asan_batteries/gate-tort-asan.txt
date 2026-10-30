@@ -1,0 +1,20 @@
+  ok   value 0KB roundtrip 0.00s
+  ok   value 4KB roundtrip 0.00s
+  ok   value 64KB roundtrip 0.00s
+  ok   value 512KB roundtrip 0.00s
+  ok   value 1024KB roundtrip 0.00s
+  ok   value 2048KB roundtrip 0.01s
+  ok   value 8192KB roundtrip 0.03s
+  ok   value 65536KB roundtrip 0.29s
+  ok   key 16B roundtrip
+  ok   key 1024B roundtrip
+  ok   key 16384B roundtrip
+  ok   key 524288B roundtrip
+  ok   pipe depth 300 (window=64) in order
+  ok   split-frame SET
+  ok   split-frame GET
+  ok   server alive after fuzz
+  ok   server alive after churn
+  ok   churn writes landed (300/300)
+  ok   stream migration/tombstone/head-trim
+TORTURE PASS

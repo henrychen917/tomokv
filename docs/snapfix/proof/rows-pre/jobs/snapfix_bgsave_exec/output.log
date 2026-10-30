@@ -1,0 +1,2 @@
+  row budget: 900s; median=55.755s; correctness-plan-fallback; snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)
+  snapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1) FAIL (see /home/user/Projects/cx-snapfix/build/gate-run.OWOqFa/jobs/snapfix_bgsave_exec/snapfix-bgsave-exec.log)

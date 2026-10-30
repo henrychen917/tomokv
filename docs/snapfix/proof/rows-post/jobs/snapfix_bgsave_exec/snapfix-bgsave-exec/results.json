@@ -1,0 +1,196 @@
+[
+  {
+    "case": "bgsave-exec",
+    "leg": "redis-redis-0",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 60,
+      "writes": 4730240,
+      "execs": 58499,
+      "aborted": 26791,
+      "lanes": null,
+      "snapshot": [
+        57637,
+        57637
+      ]
+    },
+    "pass": true,
+    "seconds": 6.237
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-0",
+    "value": {
+      "probe_max": 0.016,
+      "saves": 6,
+      "writes": 277696,
+      "execs": 5628,
+      "aborted": 1790,
+      "lanes": {
+        "owner": 4,
+        "writer_io": 0,
+        "probe_io": 5
+      },
+      "snapshot": [
+        5198,
+        5198
+      ]
+    },
+    "pass": true,
+    "seconds": 6.141
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-uring-1",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 6,
+      "writes": 334720,
+      "execs": 5028,
+      "aborted": 1967,
+      "lanes": {
+        "owner": 3,
+        "writer_io": 0,
+        "probe_io": 2
+      },
+      "snapshot": [
+        4742,
+        4742
+      ]
+    },
+    "pass": true,
+    "seconds": 6.148
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-0",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 4,
+      "writes": 201664,
+      "execs": 10316,
+      "aborted": 1238,
+      "lanes": {
+        "owner": 4,
+        "writer_io": 0,
+        "probe_io": 1
+      },
+      "snapshot": [
+        5672,
+        5672
+      ]
+    },
+    "pass": true,
+    "seconds": 6.218
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "1s-epoll-1",
+    "value": {
+      "probe_max": 0.001,
+      "saves": 6,
+      "writes": 213440,
+      "execs": 4598,
+      "aborted": 1656,
+      "lanes": {
+        "owner": 5,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "snapshot": [
+        3574,
+        3574
+      ]
+    },
+    "pass": true,
+    "seconds": 6.212
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-0",
+    "value": {
+      "probe_max": 0.019,
+      "saves": 6,
+      "writes": 487744,
+      "execs": 4080,
+      "aborted": 1933,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "snapshot": [
+        4010,
+        4010
+      ]
+    },
+    "pass": true,
+    "seconds": 6.175
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-uring-1",
+    "value": {
+      "probe_max": 0.028,
+      "saves": 4,
+      "writes": 113472,
+      "execs": 1168,
+      "aborted": 577,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 4
+      },
+      "snapshot": [
+        805,
+        805
+      ]
+    },
+    "pass": true,
+    "seconds": 6.207
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-0",
+    "value": {
+      "probe_max": 0.019,
+      "saves": 5,
+      "writes": 253952,
+      "execs": 2658,
+      "aborted": 1326,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 2
+      },
+      "snapshot": [
+        2554,
+        2554
+      ]
+    },
+    "pass": true,
+    "seconds": 6.186
+  },
+  {
+    "case": "bgsave-exec",
+    "leg": "2s-epoll-1",
+    "value": {
+      "probe_max": 0.023,
+      "saves": 4,
+      "writes": 198528,
+      "execs": 2075,
+      "aborted": 1038,
+      "lanes": {
+        "owner": 7,
+        "writer_io": 0,
+        "probe_io": 3
+      },
+      "snapshot": [
+        1987,
+        1987
+      ]
+    },
+    "pass": true,
+    "seconds": 6.116
+  }
+]

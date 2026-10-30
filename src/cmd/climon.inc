@@ -74,6 +74,10 @@
         // Invalidations in flight belong to one TRACKING configuration. This
         // side state migrates with the rest of ClimonConn at ownership commit.
         uint64_t tracking_generation = 0;
+        // prefix -> key -> (publication stamp, last writer). Owner-only and moved
+        // with this node at connection migration; empty when BCAST is unused.
+        using BroadcastKeys = std::unordered_map<std::string, std::pair<uint64_t, uint64_t>>;
+        std::unordered_map<std::string, BroadcastKeys> tracking_bcast_pending;
 
         bool idle() const {
             return !pause_blocked && reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty();
@@ -160,10 +164,13 @@
     void tracking_handle_event(PubSubEvent& event);
     void tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id, uint64_t stamp);
     void tracking_broadcast_flush();
-    void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush);
+    uint32_t tracking_bcast_flush();
+    void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush,
+                                bool batched = false);
     void tracking_redirect_broken(ClimonConn& state);
     void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,
-                                    uint64_t source_id = 0, uint64_t generation = 0);
+                                    uint64_t source_id = 0, uint64_t generation = 0,
+                                    bool batched = false);
     void tracking_note_prefix_registered(const std::string& prefix, bool added);
     void tracking_migration_snapshot(uint64_t id, std::vector<std::string>& keys) const;
     void tracking_migration_extract(uint64_t id, std::vector<std::string>& keys);

@@ -1,0 +1,34 @@
+{
+  "source_commit": "435cc32f1a19598840ab68dcc1d604746202d847",
+  "path": "/home/user/Projects/cx-wave10/build/wave10/selftest-source",
+  "real_gate_sha256": "14a4a5036539ac15544d5bf26eabf35e50b7c8aec8d0e40dd21cd7193eec679e",
+  "throwaway_gate_sha256": "57fc6d8ddbcdf32e2b1a441d6a7b70bd668ed2bf9f3d0d1da500e62e9b99b4a3",
+  "changes": [
+    "EXPECT_QUICK 881 -> 946",
+    "EXPECT_FULL 898 -> 963"
+  ],
+  "fixture": "Identical 963-label fixture copied from final worktree",
+  "corrected_stage": {
+    "commit": "14fe9b924",
+    "real_gate_sha256": "ef483d43ddd0466e4ffd62b120c97f11faeb590209d397e077e895a150e8a38c",
+    "throwaway_gate_sha256": "6e99a1fe6d465653a8bc1026df4c892c96fefec0383af49e087c015ba2cac98b",
+    "changes": [
+      "EXPECT_QUICK 881 -> 946",
+      "EXPECT_FULL 898 -> 963"
+    ]
+  },
+  "isolated_attempt_stage": {
+    "commit": "214deabb13c1d547f13d605ef090d726756c746e",
+    "gate_sha256": "6e99a1fe6d465653a8bc1026df4c892c96fefec0383af49e087c015ba2cac98b",
+    "changed_files": [
+      "src/core/exec1s.h",
+      "tests/debug.py"
+    ],
+    "execution_cpus": "80-87; no concurrent standalone gates_test or compilation requested by this attempt"
+  },
+  "missing_staging_dependency_repair": {
+    "path": ".githooks/pre-push",
+    "sha256": "312a59bf0fdb432c6ed3ef386e5ca979abaa91424dcd61d248e0568e94b901af",
+    "reason": "Receipt selftests copy the actual pre-push hook into private git fixtures; earlier throwaway staging omitted .githooks."
+  }
+}

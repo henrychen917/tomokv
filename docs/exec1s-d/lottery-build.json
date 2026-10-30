@@ -1,0 +1,7 @@
+{
+  "binary": "/home/user/Projects/cx-exec1s-d/build/lottery/tomokv",
+  "sha256": "efed1f73bee7660334d07b3488d262a307698d2fee5eff2602c51fa6bf318992",
+  "production_sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+  "copy_patches_sha256": "4e3c461c59dfb806ea9250d6237904740f8ced613b20e4b0c0e12cd0d703dcee",
+  "build_log_sha256": "4a010d6ea1efcdb3eab38988bdd7fb90642c557ddde60bce4f92adb46cb71717"
+}

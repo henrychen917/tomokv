@@ -1,0 +1,2339 @@
+{
+  "created_at": 1793220174.2515194,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {
+    "Climon armed refresh + stale-store suppression control": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0880503144654088,
+      "max_seconds": 1.73,
+      "median_seconds": 1.59,
+      "min_seconds": 1.58,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "Lua feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "MULTI feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0048309178743962,
+      "max_seconds": 2.08,
+      "median_seconds": 2.07,
+      "min_seconds": 2.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "NET1 serverless bounds + scan + reclamation": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "Redis 7.4 differential part (armed fused, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0051043730001525,
+      "max_seconds": 527.72,
+      "median_seconds": 525.04,
+      "min_seconds": 522.36,
+      "samples": 2,
+      "timeout_seconds": 2101
+    },
+    "Redis 7.4 differential part (armed fused, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0055694184843973,
+      "max_seconds": 529.92,
+      "median_seconds": 526.9849999999999,
+      "min_seconds": 524.05,
+      "samples": 2,
+      "timeout_seconds": 2108
+    },
+    "Redis 7.4 differential part (split, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0040724324733872,
+      "max_seconds": 530.09,
+      "median_seconds": 527.94,
+      "min_seconds": 525.79,
+      "samples": 2,
+      "timeout_seconds": 2112
+    },
+    "Redis 7.4 differential part (split, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0030960917723009,
+      "max_seconds": 532.96,
+      "median_seconds": 531.315,
+      "min_seconds": 529.67,
+      "samples": 2,
+      "timeout_seconds": 2126
+    },
+    "Redis 7.4.10 Tcl passing subset (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0011269914451104,
+      "max_seconds": 195.43,
+      "median_seconds": 195.21,
+      "min_seconds": 189.34,
+      "samples": 3,
+      "timeout_seconds": 781
+    },
+    "Redis 7.4.10 Tcl passing subset (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.006426598682813,
+      "max_seconds": 189.49,
+      "median_seconds": 188.28,
+      "min_seconds": 186.91,
+      "samples": 5,
+      "timeout_seconds": 754
+    },
+    "Redis config quoting + mid-value #": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1231617647058825,
+      "max_seconds": 6.11,
+      "median_seconds": 5.4399999999999995,
+      "min_seconds": 5.31,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "aclsel battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "aclsel battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "arity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.4000000000000001,
+      "max_seconds": 0.07,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "arity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "bitfield battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.8333333333333335,
+      "max_seconds": 0.11,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "bitfield battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000631313131313,
+      "max_seconds": 47.55,
+      "median_seconds": 47.52,
+      "min_seconds": 47.27,
+      "samples": 3,
+      "timeout_seconds": 191
+    },
+    "blocking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.019108280254777,
+      "max_seconds": 1.6,
+      "median_seconds": 1.57,
+      "min_seconds": 1.57,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "blocking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0064102564102564,
+      "max_seconds": 1.57,
+      "median_seconds": 1.56,
+      "min_seconds": 1.55,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "blocking feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0130718954248366,
+      "max_seconds": 1.55,
+      "median_seconds": 1.53,
+      "min_seconds": 1.51,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "blockmulti battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0833333333333335,
+      "max_seconds": 0.52,
+      "median_seconds": 0.48,
+      "min_seconds": 0.48,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "blockmulti battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.48,
+      "median_seconds": 0.48,
+      "min_seconds": 0.47,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "build dependency: core-concurrency-tsan": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 2.1647767540751244,
+      "max_seconds": 61.09,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 28.22,
+      "min_seconds": 6.52,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/at412-owner,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/gaterows5-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-index-db0-unit,build/txnorder-index-unit,build/txnorder-retry-unit,build/txnorder-wake-unit,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/txnorder-wound-db0-unit,build/txnorder-wound-unit,build/waits-unit,build/wb-rule-units,build/wbland-units": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.697631057290338,
+      "max_seconds": 432.48,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 254.755,
+      "min_seconds": 187.72,
+      "samples": 4,
+      "timeout_seconds": 1020
+    },
+    "build dependency: make build/blockfix-cost": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.069416996047431,
+      "max_seconds": 43.29,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 40.48,
+      "min_seconds": 40.4,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make build/blockfix2-db0-unit,build/blockfix2-unit": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.027942604380192,
+      "max_seconds": 47.64,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 46.345,
+      "min_seconds": 46.29,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make default": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.960474308300395,
+      "max_seconds": 171.12,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 87.28500000000001,
+      "min_seconds": 17.16,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: store-regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.979247730220493,
+      "max_seconds": 7.63,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 3.855,
+      "min_seconds": 0.19,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: store-regression-tsan": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.9784283513097074,
+      "max_seconds": 6.42,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 3.2449999999999997,
+      "min_seconds": 0.21,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "clientfix geo-count (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.1,
+      "median_seconds": 0.1,
+      "min_seconds": 0.1,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix geo-count (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.1,
+      "median_seconds": 0.1,
+      "min_seconds": 0.1,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix geo-store (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix geo-store (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix pattern-cleanup (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.3,
+      "median_seconds": 0.3,
+      "min_seconds": 0.3,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix pattern-cleanup (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.3,
+      "median_seconds": 0.3,
+      "min_seconds": 0.3,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix pause-deadline (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.13,
+      "median_seconds": 1.13,
+      "min_seconds": 1.13,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix pause-deadline (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.13,
+      "median_seconds": 1.13,
+      "min_seconds": 1.13,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix reply-skip (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 13.82,
+      "median_seconds": 13.82,
+      "min_seconds": 13.82,
+      "samples": 1,
+      "timeout_seconds": 56
+    },
+    "clientfix reply-skip (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 11.62,
+      "median_seconds": 11.62,
+      "min_seconds": 11.62,
+      "samples": 1,
+      "timeout_seconds": 47
+    },
+    "clientfix tracking-cap (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.75,
+      "median_seconds": 1.75,
+      "min_seconds": 1.75,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix tracking-cap (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.75,
+      "median_seconds": 1.75,
+      "min_seconds": 1.75,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix tracking-pipeline (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 6.85,
+      "median_seconds": 6.85,
+      "min_seconds": 6.85,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "clientfix tracking-pipeline (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 6.85,
+      "median_seconds": 6.85,
+      "min_seconds": 6.85,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "climon battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0258620689655173,
+      "max_seconds": 1.19,
+      "median_seconds": 1.16,
+      "min_seconds": 1.15,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "climon battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.14,
+      "median_seconds": 1.14,
+      "min_seconds": 1.14,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "climon2 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.35,
+      "median_seconds": 3.35,
+      "min_seconds": 3.32,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "climon2 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0029761904761905,
+      "max_seconds": 3.37,
+      "median_seconds": 3.36,
+      "min_seconds": 3.31,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "cmdgap battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "cmdgap battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "cmdmeta covers every registered command": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.13,
+      "median_seconds": 0.065,
+      "min_seconds": 0.06,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "compat2 autharity": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.87,
+      "median_seconds": 1.87,
+      "min_seconds": 1.87,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "compat2 expire_notify": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 6.81,
+      "median_seconds": 6.81,
+      "min_seconds": 6.81,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "compat2 ktls_lifetime": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.63,
+      "median_seconds": 1.63,
+      "min_seconds": 1.63,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "concur battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.8,
+      "median_seconds": 2.8,
+      "min_seconds": 2.79,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "concur battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0035714285714286,
+      "max_seconds": 2.81,
+      "median_seconds": 2.8,
+      "min_seconds": 2.8,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "configuration docs match parser": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0632911392405062,
+      "max_seconds": 0.42,
+      "median_seconds": 0.395,
+      "min_seconds": 0.39,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "contarity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "contarity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "core concurrency config": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.18,
+      "median_seconds": 0.18,
+      "min_seconds": 0.17,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "core concurrency drain": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0909090909090908,
+      "max_seconds": 0.12,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "core concurrency lifetime": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.32,
+      "median_seconds": 0.32,
+      "min_seconds": 0.32,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "core concurrency notify": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.17,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "core concurrency route": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0013908205841446,
+      "max_seconds": 7.2,
+      "median_seconds": 7.19,
+      "min_seconds": 7.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "core concurrency snapshot": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.11,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "core concurrency watch": {
+      "basis": "own-row-history",
+      "max_over_median": 3.5454545454545454,
+      "max_seconds": 0.39,
+      "median_seconds": 0.11,
+      "min_seconds": 0.11,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "dumprestore battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.7500000000000002,
+      "max_seconds": 0.14,
+      "median_seconds": 0.08,
+      "min_seconds": 0.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "dumprestore battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.09,
+      "median_seconds": 0.09,
+      "min_seconds": 0.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "edgeenc battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.37,
+      "median_seconds": 0.37,
+      "min_seconds": 0.36,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "edgeenc battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.37,
+      "median_seconds": 0.37,
+      "min_seconds": 0.37,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "edgeproto battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1875,
+      "max_seconds": 0.76,
+      "median_seconds": 0.64,
+      "min_seconds": 0.6,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "edgeproto battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2666666666666668,
+      "max_seconds": 0.76,
+      "median_seconds": 0.6,
+      "min_seconds": 0.6,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "edgetime battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.82,
+      "median_seconds": 3.82,
+      "min_seconds": 3.62,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "edgetime battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0078534031413613,
+      "max_seconds": 3.85,
+      "median_seconds": 3.82,
+      "min_seconds": 3.81,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "encodingfix knob": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "encodingfix precedence": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "eviction lfu battery (fused+armed, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.31,
+      "median_seconds": 0.31,
+      "min_seconds": 0.3,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "eviction lfu battery (fused+armed, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.31,
+      "median_seconds": 0.31,
+      "min_seconds": 0.31,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "eviction lfu battery (split, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.31,
+      "median_seconds": 0.31,
+      "min_seconds": 0.3,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "eviction lfu battery (split, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.31,
+      "median_seconds": 0.31,
+      "min_seconds": 0.3,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "eviction lruclock battery (fused+armed, atomic 0)": {
+      "basis": "own-row-history; mechanism-floor=512s (two production 256s clock buckets)",
+      "max_over_median": 1.0,
+      "max_seconds": 255.31,
+      "mechanism_floor_seconds": 512,
+      "median_seconds": 255.31,
+      "min_seconds": 255.23,
+      "samples": 3,
+      "timeout_seconds": 1022
+    },
+    "eviction lruclock battery (fused+armed, atomic 1)": {
+      "basis": "own-row-history; mechanism-floor=512s (two production 256s clock buckets)",
+      "max_over_median": 1.0000391680701892,
+      "max_seconds": 255.32,
+      "mechanism_floor_seconds": 512,
+      "median_seconds": 255.31,
+      "min_seconds": 255.2,
+      "samples": 3,
+      "timeout_seconds": 1022
+    },
+    "eviction lruclock battery (split, atomic 0)": {
+      "basis": "own-row-history; mechanism-floor=512s (two production 256s clock buckets)",
+      "max_over_median": 1.0001952286127056,
+      "max_seconds": 256.16,
+      "mechanism_floor_seconds": 512,
+      "median_seconds": 256.11,
+      "min_seconds": 256.0,
+      "samples": 3,
+      "timeout_seconds": 1025
+    },
+    "eviction lruclock battery (split, atomic 1)": {
+      "basis": "own-row-history; mechanism-floor=512s (two production 256s clock buckets)",
+      "max_over_median": 1.0000783637645954,
+      "max_seconds": 255.24,
+      "mechanism_floor_seconds": 512,
+      "median_seconds": 255.22,
+      "min_seconds": 255.2,
+      "samples": 3,
+      "timeout_seconds": 1021
+    },
+    "expwide battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.035780792764033,
+      "max_seconds": 77.87,
+      "median_seconds": 75.18,
+      "min_seconds": 71.4,
+      "samples": 3,
+      "timeout_seconds": 301
+    },
+    "expwide battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.109043659043659,
+      "max_seconds": 106.69,
+      "median_seconds": 96.2,
+      "min_seconds": 72.36,
+      "samples": 3,
+      "timeout_seconds": 385
+    },
+    "feature battery shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "feature shutdown invariants (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "feature shutdown invariants (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.5,
+      "max_seconds": 0.03,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed aclsel battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed aclsel battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed arity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed arity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed bitfield battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed bitfield battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed blocking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.65,
+      "median_seconds": 1.65,
+      "min_seconds": 1.6,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed blocking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.012422360248447,
+      "max_seconds": 1.63,
+      "median_seconds": 1.61,
+      "min_seconds": 1.6,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed blockmulti battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.48,
+      "median_seconds": 0.48,
+      "min_seconds": 0.47,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed blockmulti battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.48,
+      "median_seconds": 0.48,
+      "min_seconds": 0.48,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed boot line (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.26,
+      "median_seconds": 0.26,
+      "min_seconds": 0.25,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed boot line (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.26,
+      "median_seconds": 0.26,
+      "min_seconds": 0.26,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.15,
+      "median_seconds": 1.15,
+      "min_seconds": 1.14,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.15,
+      "median_seconds": 1.15,
+      "min_seconds": 1.14,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon2 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0029850746268656,
+      "max_seconds": 3.36,
+      "median_seconds": 3.35,
+      "min_seconds": 3.34,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed climon2 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0210843373493976,
+      "max_seconds": 3.39,
+      "median_seconds": 3.32,
+      "min_seconds": 3.32,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed cmdgap battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed cmdgap battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed concur battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0070671378091873,
+      "max_seconds": 2.85,
+      "median_seconds": 2.83,
+      "min_seconds": 2.82,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed concur battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0034843205574913,
+      "max_seconds": 2.88,
+      "median_seconds": 2.87,
+      "min_seconds": 2.81,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed contarity battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed contarity battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed dumprestore battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.09,
+      "median_seconds": 0.09,
+      "min_seconds": 0.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed dumprestore battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.09,
+      "median_seconds": 0.09,
+      "min_seconds": 0.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeenc battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.39,
+      "median_seconds": 0.39,
+      "min_seconds": 0.39,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeenc battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.051282051282051,
+      "max_seconds": 0.41,
+      "median_seconds": 0.39,
+      "min_seconds": 0.39,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeproto battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0135135135135136,
+      "max_seconds": 0.75,
+      "median_seconds": 0.74,
+      "min_seconds": 0.72,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgeproto battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.74,
+      "median_seconds": 0.74,
+      "min_seconds": 0.73,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgetime battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0052356020942408,
+      "max_seconds": 3.84,
+      "median_seconds": 3.82,
+      "min_seconds": 3.82,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed edgetime battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0026041666666667,
+      "max_seconds": 3.85,
+      "median_seconds": 3.84,
+      "min_seconds": 3.82,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed expwide battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.3417496443812231,
+      "max_seconds": 75.46,
+      "median_seconds": 56.24,
+      "min_seconds": 53.56,
+      "samples": 3,
+      "timeout_seconds": 225
+    },
+    "fused+armed expwide battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.001259842519685,
+      "max_seconds": 63.58,
+      "median_seconds": 63.5,
+      "min_seconds": 59.2,
+      "samples": 3,
+      "timeout_seconds": 254
+    },
+    "fused+armed geo battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed geo battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed hexpire battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.003257328990228,
+      "max_seconds": 3.08,
+      "median_seconds": 3.07,
+      "min_seconds": 3.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed hexpire battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.003257328990228,
+      "max_seconds": 3.08,
+      "median_seconds": 3.07,
+      "min_seconds": 3.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed infofix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0071428571428571,
+      "max_seconds": 4.23,
+      "median_seconds": 4.2,
+      "min_seconds": 4.1,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed infofix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.22,
+      "median_seconds": 4.22,
+      "min_seconds": 4.18,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed lcs battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.19,
+      "median_seconds": 0.19,
+      "min_seconds": 0.18,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed lcs battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0555555555555556,
+      "max_seconds": 0.19,
+      "median_seconds": 0.18,
+      "min_seconds": 0.18,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed limits battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.036144578313253,
+      "max_seconds": 15.48,
+      "median_seconds": 14.94,
+      "min_seconds": 14.61,
+      "samples": 3,
+      "timeout_seconds": 60
+    },
+    "fused+armed limits battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.011826544021025,
+      "max_seconds": 15.4,
+      "median_seconds": 15.22,
+      "min_seconds": 14.67,
+      "samples": 3,
+      "timeout_seconds": 61
+    },
+    "fused+armed lua_scripting battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed lua_scripting battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed multi_exec battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.1,
+      "median_seconds": 2.1,
+      "min_seconds": 2.1,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed multi_exec battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0047619047619047,
+      "max_seconds": 2.11,
+      "median_seconds": 2.1,
+      "min_seconds": 2.1,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed netcmd battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed netcmd battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed pubsub battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.021505376344086,
+      "max_seconds": 0.95,
+      "median_seconds": 0.93,
+      "min_seconds": 0.91,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed pubsub battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.010752688172043,
+      "max_seconds": 0.94,
+      "median_seconds": 0.93,
+      "min_seconds": 0.91,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed pushtear battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.8172757475083057,
+      "max_seconds": 5.47,
+      "median_seconds": 3.01,
+      "min_seconds": 2.98,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed pushtear battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.8239202657807312,
+      "max_seconds": 5.49,
+      "median_seconds": 3.01,
+      "min_seconds": 2.98,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed resp3 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed resp3 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed s6 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.2,
+      "median_seconds": 1.2,
+      "min_seconds": 1.19,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed s6 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0165289256198347,
+      "max_seconds": 1.23,
+      "median_seconds": 1.21,
+      "min_seconds": 1.19,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed scriptsurf battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.08,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed scriptsurf battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1428571428571428,
+      "max_seconds": 0.08,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed servertail battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0166666666666666,
+      "max_seconds": 0.61,
+      "median_seconds": 0.6,
+      "min_seconds": 0.59,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed servertail battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.59,
+      "median_seconds": 0.59,
+      "min_seconds": 0.59,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed shutdown report + lane fired (hits=N, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.17,
+      "median_seconds": 1.17,
+      "min_seconds": 1.17,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed shutdown report + lane fired (hits=N, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.17,
+      "median_seconds": 1.17,
+      "min_seconds": 1.16,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed stream battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0357142857142858,
+      "max_seconds": 0.87,
+      "median_seconds": 0.84,
+      "min_seconds": 0.83,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed stream battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0120481927710843,
+      "max_seconds": 0.84,
+      "median_seconds": 0.83,
+      "min_seconds": 0.78,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed streamgroups battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.08,
+      "min_seconds": 0.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed streamgroups battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.08,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed tracking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.001507159005275,
+      "max_seconds": 13.29,
+      "median_seconds": 13.27,
+      "min_seconds": 13.25,
+      "samples": 3,
+      "timeout_seconds": 54
+    },
+    "fused+armed tracking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0007535795026374,
+      "max_seconds": 13.28,
+      "median_seconds": 13.27,
+      "min_seconds": 13.24,
+      "samples": 3,
+      "timeout_seconds": 54
+    },
+    "fused+armed zsetops battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.08,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "fused+armed zsetops battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1428571428571428,
+      "max_seconds": 0.08,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "geo battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.1,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "geo battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "hexpire battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.32,
+      "median_seconds": 3.32,
+      "min_seconds": 3.32,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "hexpire battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.32,
+      "median_seconds": 3.32,
+      "min_seconds": 3.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "infofix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0118483412322274,
+      "max_seconds": 4.27,
+      "median_seconds": 4.22,
+      "min_seconds": 4.19,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "infofix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.22,
+      "median_seconds": 4.22,
+      "min_seconds": 4.22,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "keyspace lazy-expiry order vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0102806335093082,
+      "max_seconds": 72.72,
+      "median_seconds": 71.97999999999999,
+      "min_seconds": 71.24,
+      "samples": 2,
+      "timeout_seconds": 288
+    },
+    "keyspace notification battery (atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 46.71,
+      "median_seconds": 46.71,
+      "min_seconds": 46.32,
+      "samples": 3,
+      "timeout_seconds": 187
+    },
+    "lcs battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0555555555555556,
+      "max_seconds": 0.19,
+      "median_seconds": 0.18,
+      "min_seconds": 0.18,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "lcs battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.18,
+      "median_seconds": 0.18,
+      "min_seconds": 0.18,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "limits battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0496598639455783,
+      "max_seconds": 15.43,
+      "median_seconds": 14.7,
+      "min_seconds": 14.66,
+      "samples": 3,
+      "timeout_seconds": 59
+    },
+    "limits battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0163934426229508,
+      "max_seconds": 15.5,
+      "median_seconds": 15.25,
+      "min_seconds": 14.71,
+      "samples": 3,
+      "timeout_seconds": 61
+    },
+    "local script notification AOF vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.001507159005275,
+      "max_seconds": 13.29,
+      "median_seconds": 13.27,
+      "min_seconds": 13.25,
+      "samples": 2,
+      "timeout_seconds": 54
+    },
+    "lua_scripting battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "lua_scripting battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.2,
+      "max_seconds": 0.06,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "mode equivalence part (all execution modes and knobs)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 21.28,
+      "median_seconds": 21.28,
+      "min_seconds": 21.28,
+      "samples": 2,
+      "timeout_seconds": 86
+    },
+    "multi_exec battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.1,
+      "median_seconds": 2.1,
+      "min_seconds": 2.1,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "multi_exec battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.1,
+      "median_seconds": 2.1,
+      "min_seconds": 2.1,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.05,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd config regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.25,
+      "max_seconds": 0.05,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd flush regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd hexpire-oom regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd notify-oom regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd notify-retry regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd output regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd pubsub regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd receive regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd regression build": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 900.0
+    },
+    "netcmd streams regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd wb-complete-visits regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd wb-small-pipe regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "netcmd zpop regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.0,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "notification compatibility emptystore vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000491883915396,
+      "max_seconds": 50.85,
+      "median_seconds": 50.825,
+      "min_seconds": 50.8,
+      "samples": 2,
+      "timeout_seconds": 204
+    },
+    "notification compatibility expiredstore vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000034529194434,
+      "max_seconds": 144.81,
+      "median_seconds": 144.805,
+      "min_seconds": 144.8,
+      "samples": 2,
+      "timeout_seconds": 580
+    },
+    "notification compatibility flush vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000439715064638,
+      "max_seconds": 56.88,
+      "median_seconds": 56.855000000000004,
+      "min_seconds": 56.83,
+      "samples": 2,
+      "timeout_seconds": 228
+    },
+    "notification compatibility objectmiss vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000228414801279,
+      "max_seconds": 43.79,
+      "median_seconds": 43.78,
+      "min_seconds": 43.77,
+      "samples": 2,
+      "timeout_seconds": 176
+    },
+    "notification compatibility setbit vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 22.58,
+      "median_seconds": 22.58,
+      "min_seconds": 22.54,
+      "samples": 3,
+      "timeout_seconds": 91
+    },
+    "notification compatibility setpast vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0041909196740395,
+      "max_seconds": 43.13,
+      "median_seconds": 42.95,
+      "min_seconds": 42.77,
+      "samples": 2,
+      "timeout_seconds": 172
+    },
+    "notification compatibility writemiss vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0004666355576295,
+      "max_seconds": 42.88,
+      "median_seconds": 42.86,
+      "min_seconds": 42.84,
+      "samples": 2,
+      "timeout_seconds": 172
+    },
+    "production source identity + stable assertion ids": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0109830191618632,
+      "max_seconds": 129.79,
+      "median_seconds": 128.38,
+      "min_seconds": 127.39,
+      "samples": 4,
+      "timeout_seconds": 514
+    },
+    "pubsub battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0108695652173914,
+      "max_seconds": 0.93,
+      "median_seconds": 0.92,
+      "min_seconds": 0.92,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "pubsub battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0108695652173914,
+      "max_seconds": 0.93,
+      "median_seconds": 0.92,
+      "min_seconds": 0.91,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "pubsub feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.89,
+      "median_seconds": 0.89,
+      "min_seconds": 0.88,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1891472868217055,
+      "max_seconds": 23.01,
+      "median_seconds": 19.35,
+      "min_seconds": 14.58,
+      "samples": 9,
+      "timeout_seconds": 78
+    },
+    "pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT": {
+      "basis": "own-row-history",
+      "max_over_median": 2.048172757475083,
+      "max_seconds": 12.33,
+      "median_seconds": 6.02,
+      "min_seconds": 3.22,
+      "samples": 9,
+      "timeout_seconds": 30
+    },
+    "pubtrackfix PUBSUB-REPLY-OFF-PUSH": {
+      "basis": "own-row-history",
+      "max_over_median": 1.3298520452567448,
+      "max_seconds": 15.28,
+      "median_seconds": 11.49,
+      "min_seconds": 11.42,
+      "samples": 9,
+      "timeout_seconds": 46
+    },
+    "pubtrackfix TRACK-BCAST-BATCH": {
+      "basis": "own-row-history",
+      "max_over_median": 1.6441717791411046,
+      "max_seconds": 5.36,
+      "median_seconds": 3.26,
+      "min_seconds": 3.22,
+      "samples": 9,
+      "timeout_seconds": 30
+    },
+    "pushtear battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.010989010989011,
+      "max_seconds": 5.52,
+      "median_seconds": 5.46,
+      "min_seconds": 5.46,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "pushtear battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0018315018315018,
+      "max_seconds": 5.47,
+      "median_seconds": 5.46,
+      "min_seconds": 2.96,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "read-local topology demotion (1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.3728813559322035,
+      "max_seconds": 0.81,
+      "median_seconds": 0.59,
+      "min_seconds": 0.55,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "read-local topology demotion (2s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0175438596491229,
+      "max_seconds": 0.58,
+      "median_seconds": 0.57,
+      "min_seconds": 0.56,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "release build (+footprint locks) [external-candidate]": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 16,
+      "timeout_seconds": 30
+    },
+    "resp3 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.8333333333333335,
+      "max_seconds": 0.11,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "resp3 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "s6 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0080645161290323,
+      "max_seconds": 2.5,
+      "median_seconds": 2.48,
+      "min_seconds": 2.47,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "s6 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.004016064257028,
+      "max_seconds": 2.5,
+      "median_seconds": 2.49,
+      "min_seconds": 2.48,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "scriptsurf battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "scriptsurf battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "servertail battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0169491525423728,
+      "max_seconds": 0.6,
+      "median_seconds": 0.59,
+      "min_seconds": 0.59,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "servertail battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.033898305084746,
+      "max_seconds": 0.61,
+      "median_seconds": 0.59,
+      "min_seconds": 0.59,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (1s, command)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.34,
+      "median_seconds": 0.34,
+      "min_seconds": 0.33,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (1s, sigint)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.14,
+      "median_seconds": 0.14,
+      "min_seconds": 0.13,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (1s, sigterm)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.13,
+      "median_seconds": 0.13,
+      "min_seconds": 0.13,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (2s, command)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.34,
+      "median_seconds": 0.34,
+      "min_seconds": 0.33,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (2s, sigint)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.13,
+      "median_seconds": 0.13,
+      "min_seconds": 0.13,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown persistence (2s, sigterm)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.076923076923077,
+      "max_seconds": 0.14,
+      "median_seconds": 0.13,
+      "min_seconds": 0.13,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "shutdown policy + signal handoff serverless": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "storage aof-eviction regression": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage deadline-allocation-failure regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "storage field-index-failure regression": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage flags regression": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.1428571428571428,
+      "max_seconds": 0.08,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 4,
+      "timeout_seconds": 900.0
+    },
+    "storage flush-prepared-capacity regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage hash-bytes regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage imported-hash regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage intents regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage randomkey regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage rehash regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage rollback regression": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage snapshot-eviction regression": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "storage unlinked regression": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.01,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "stream battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1153846153846154,
+      "max_seconds": 0.87,
+      "median_seconds": 0.78,
+      "min_seconds": 0.78,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "stream battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0379746835443038,
+      "max_seconds": 0.82,
+      "median_seconds": 0.79,
+      "min_seconds": 0.79,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "streamfix MPOP-ARG-ERROR-TEXT vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0011820330969268,
+      "max_seconds": 33.88,
+      "median_seconds": 33.84,
+      "min_seconds": 33.77,
+      "samples": 3,
+      "timeout_seconds": 136
+    },
+    "streamfix STREAM-GROUP-ID-DASH vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0011890606420928,
+      "max_seconds": 33.68,
+      "median_seconds": 33.64,
+      "min_seconds": 33.58,
+      "samples": 3,
+      "timeout_seconds": 135
+    },
+    "streamfix STREAM-TRIM-APPROX-LIMIT vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0022487702037948,
+      "max_seconds": 71.31,
+      "median_seconds": 71.15,
+      "min_seconds": 71.06,
+      "samples": 3,
+      "timeout_seconds": 285
+    },
+    "streamfix XAUTOCLAIM-COUNT-RANGE vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0020820939916717,
+      "max_seconds": 33.69,
+      "median_seconds": 33.62,
+      "min_seconds": 33.55,
+      "samples": 3,
+      "timeout_seconds": 135
+    },
+    "streamfix XRANGE-EXCLUSIVE-SENTINEL vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0002970002970002,
+      "max_seconds": 33.68,
+      "median_seconds": 33.67,
+      "min_seconds": 33.57,
+      "samples": 3,
+      "timeout_seconds": 135
+    },
+    "streamfix XREAD-PLUS-LAST vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0024912805181865,
+      "max_seconds": 40.24,
+      "median_seconds": 40.14,
+      "min_seconds": 40.14,
+      "samples": 3,
+      "timeout_seconds": 161
+    },
+    "streamgroups battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.25,
+      "max_seconds": 0.1,
+      "median_seconds": 0.08,
+      "min_seconds": 0.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "streamgroups battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1428571428571428,
+      "max_seconds": 0.08,
+      "median_seconds": 0.07,
+      "min_seconds": 0.06,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "tracking REDIRECT close vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0017820424948596,
+      "max_seconds": 36.54,
+      "median_seconds": 36.474999999999994,
+      "min_seconds": 36.41,
+      "samples": 2,
+      "timeout_seconds": 146
+    },
+    "tracking battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 13.29,
+      "median_seconds": 13.29,
+      "min_seconds": 13.24,
+      "samples": 3,
+      "timeout_seconds": 54
+    },
+    "tracking battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0030075187969925,
+      "max_seconds": 13.34,
+      "median_seconds": 13.3,
+      "min_seconds": 13.24,
+      "samples": 3,
+      "timeout_seconds": 54
+    },
+    "tracking delayed-write order vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.000318790418071,
+      "max_seconds": 219.65,
+      "median_seconds": 219.57999999999998,
+      "min_seconds": 219.51,
+      "samples": 2,
+      "timeout_seconds": 879
+    },
+    "tracking-only delivery/drop accounting vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0004559131941277,
+      "max_seconds": 54.86,
+      "median_seconds": 54.835,
+      "min_seconds": 54.81,
+      "samples": 2,
+      "timeout_seconds": 220
+    },
+    "zsetops battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.08,
+      "median_seconds": 0.08,
+      "min_seconds": 0.08,
+      "samples": 3,
+      "timeout_seconds": 30
+    },
+    "zsetops battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 3,
+      "timeout_seconds": 30
+    }
+  },
+  "schema": 1
+}

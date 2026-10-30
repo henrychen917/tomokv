@@ -1,0 +1,2 @@
+  row budget: 900s; median=14.09s; correctness-plan-fallback; atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+  atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1) ok

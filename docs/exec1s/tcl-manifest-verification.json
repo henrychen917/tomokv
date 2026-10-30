@@ -1,0 +1,757 @@
+{
+  "manifest_sha256": "b20e0fc1643934fdda394025ad18e783308dd3b78cfb1b73e65b221d32be120a",
+  "manifest_unchanged_from": "83e0b809d",
+  "validator_sha256": "a77d8b16dce2a74c891f6f9d74dc9e9097971a6f9ddeaf036967a1bee5e3c4e8",
+  "rows": [
+    {
+      "mode": "2s",
+      "unit": "integration/redis-cli",
+      "required_passes": 45,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/integration/redis-cli/result.json",
+      "result_sha256": "573098d3738b378be657e3779035245cd047edc74cb0bf82fe8536d239c81b34"
+    },
+    {
+      "mode": "2s",
+      "unit": "integration/replication-buffer",
+      "required_passes": 2,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/integration/replication-buffer/result.json",
+      "result_sha256": "fe5ad1a4748fc2152b459d8ce85a4f9d577a69d4ac3368fc8746319bc1a64b77"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/bitfield",
+      "required_passes": 18,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/bitfield/result.json",
+      "result_sha256": "441f37ad52bc0036fc0adaedeb0756314bc403e06386746f02a8967706881f38"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/bitops",
+      "required_passes": 48,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/bitops/result.json",
+      "result_sha256": "2652feec2a92ff8573c9bb7b172cda72ebc33109a3b61531319c7070d255b495"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/dump",
+      "required_passes": 8,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/dump/result.json",
+      "result_sha256": "8d2df11f97704353f97f73052208430cc67e30a2082f4c826b377c0c8e3c5486"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/expire",
+      "required_passes": 60,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/expire/result.json",
+      "result_sha256": "17b723dd3881500721c25c87bb32d6344eb729b1073335994fd1fd3c6f57d6e1"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/functions",
+      "required_passes": 67,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/functions/result.json",
+      "result_sha256": "18f880ee1a095123c1ec258375ee2f8cce5f0f8a5a183191395eac10c2d9618d"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/geo",
+      "required_passes": 64,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/geo/result.json",
+      "result_sha256": "650bad0a4dcb5400581164b244d737cb944d0ec4e676d173c87f0b997246234a"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/hyperloglog",
+      "required_passes": 24,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/hyperloglog/result.json",
+      "result_sha256": "8a9699eb1a4f1bca0fe9a9f76fefde56817e48b575ae8bd2a6be8416e832fdf3"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/introspection",
+      "required_passes": 21,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+      "result_sha256": "bc4ae906500c4c087e5e61b3fdafedcb5d8a487ea0730f73f563018ca2333010"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/introspection-2",
+      "required_passes": 41,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/introspection-2/result.json",
+      "result_sha256": "73c6a85260586fee0f005cb627271a13715504001d98fb896c953f39bbfa2997"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/keyspace",
+      "required_passes": 37,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/keyspace/result.json",
+      "result_sha256": "e7075934c04a74ff32701b3004a18d66d48032e3e993fe8f42c5ba33a0103ad3"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/latency-monitor",
+      "required_passes": 14,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/latency-monitor/result.json",
+      "result_sha256": "5058150c44474a785308dffd76d8de294ee9879f372289928c0257c2857bed56"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/multi",
+      "required_passes": 27,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/multi/result.json",
+      "result_sha256": "183c8487e9b27ce9cf8d1b8caea278d78a801965a7e85cdfc1c0f0a7f8fd0d36"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/other",
+      "required_passes": 18,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/other/result.json",
+      "result_sha256": "b86a030a5bcc8c21b5d32c17d6072ef16178f52c7f2a4f4e68ad1a69bb49ed53"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/pause",
+      "required_passes": 2,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/pause/result.json",
+      "result_sha256": "1e345a71de77e778199c53cc4097dee3861c172fb8110226db6fd776522c283f"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/protocol",
+      "required_passes": 17,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/protocol/result.json",
+      "result_sha256": "5dd4ae29dfeec30596ade840f6c082a43bf6f157a71f1c55b0a7b620776b68bd"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/pubsub",
+      "required_passes": 26,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/pubsub/result.json",
+      "result_sha256": "91339f07da5952b8da848c9cffc50019c3bced7b24445c68a2d7ffef9cb19eca"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/quit",
+      "required_passes": 3,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/quit/result.json",
+      "result_sha256": "c6970aa366b0ec8f9509ceda00446d4efd90f5acdd295fbd606577a50c993c8e"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/scan",
+      "required_passes": 25,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/scan/result.json",
+      "result_sha256": "70d56f390204fb840199acc3eb805e38dc27106d2369a0a9a2f9b67e1c5c3ef4"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/scripting",
+      "required_passes": 70,
+      "known_setup_errors": [
+        {
+          "command": "r debug set-disable-deny-scripts 1",
+          "count": 2,
+          "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command"
+        }
+      ],
+      "raw_failed_count": 2,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/scripting/result.json",
+      "result_sha256": "96b0c41f086795164683107dc4b30d1a476255750333d63cf7e7a6d25f91ba67"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/slowlog",
+      "required_passes": 6,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/slowlog/result.json",
+      "result_sha256": "fc586b02aad8913ecf434dfdba2ab9c5304c34f271d14cd5755169b139cc998e"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/sort",
+      "required_passes": 52,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/sort/result.json",
+      "result_sha256": "41318ae5517915db6552413160cc9efd5ab5d80b73ed18e42e18c4a9e26eb716"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/tracking",
+      "required_passes": 14,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/tracking/result.json",
+      "result_sha256": "57a7eb5987c4900c122cead85be3afcbf22ac58ff54e7209a2211294fda6b325"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/hash",
+      "required_passes": 74,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/hash/result.json",
+      "result_sha256": "76e4ccf39ff218f65bf5cb7ae2ab38b1ac8eb5eb8a0032ea6434c0aa79858a95"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/incr",
+      "required_passes": 31,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/incr/result.json",
+      "result_sha256": "380bdf0c4eacd410e5017ab9a752c1866cbbc24b7db6dba8723ac11bafba510e"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/list",
+      "required_passes": 226,
+      "known_setup_errors": [
+        {
+          "command": "r config set list-compress-depth 2",
+          "count": 1,
+          "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'"
+        }
+      ],
+      "raw_failed_count": 1,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/list/result.json",
+      "result_sha256": "e0e6b2276975612fc4ebaadbccceea4ed1c632c97a7d5871452fcfad48fc28ed"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/list-2",
+      "required_passes": 2,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/list-2/result.json",
+      "result_sha256": "901deb0bc1e3c6aa488760434090435a64af61fbb9693b5438d18de18a516374"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/list-3",
+      "required_passes": 2,
+      "known_setup_errors": [
+        {
+          "command": "config_set list-compress-depth $comp",
+          "count": 1,
+          "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'"
+        }
+      ],
+      "raw_failed_count": 1,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/list-3/result.json",
+      "result_sha256": "8d833aea836e7c4623176db3f38af079bb903bcf3eda5fff6485eafbc11abc36"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/set",
+      "required_passes": 109,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/set/result.json",
+      "result_sha256": "09ebc168bbb4375a60da6915af109131517502b6fa722b6c915e5ffd48bd0f0f"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/stream",
+      "required_passes": 59,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/stream/result.json",
+      "result_sha256": "44c1f1d47022a283054b6085061a7e2b1671781ba69ba90cd5888bf01868e408"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/stream-cgroups",
+      "required_passes": 35,
+      "known_setup_errors": [
+        {
+          "command": "r config set $param $val",
+          "count": 1,
+          "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+        }
+      ],
+      "raw_failed_count": 1,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/stream-cgroups/result.json",
+      "result_sha256": "03b1d17e8ad31780ddf05a0c84fbd955daedd2aa550d64d3cc4657179f3195da"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/string",
+      "required_passes": 80,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/string/result.json",
+      "result_sha256": "b62b480d47de5494bb459191f70372e181bd6f663e3cc3d0e2769629802204db"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/type/zset",
+      "required_passes": 315,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/type/zset/result.json",
+      "result_sha256": "0583683c197b5c68d6c075cd4b358a25857400c5872626b87ed288b3795e9102"
+    },
+    {
+      "mode": "2s",
+      "unit": "unit/violations",
+      "required_passes": 1,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-2s/unit/violations/result.json",
+      "result_sha256": "31506500157d0d1e244463c595331356e91f7d0288794a3ff329639e8885ff40"
+    },
+    {
+      "mode": "1s",
+      "unit": "integration/redis-cli",
+      "required_passes": 45,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/integration/redis-cli/result.json",
+      "result_sha256": "d82ee09a0928e53000f33715a2c8a3971fde916fb5763636a568a980abdb7911"
+    },
+    {
+      "mode": "1s",
+      "unit": "integration/replication-buffer",
+      "required_passes": 2,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/integration/replication-buffer/result.json",
+      "result_sha256": "7bf3a54a771227cee03874cbe707a75bc0257319d25ab5f0ca1d1560cb2c09d8"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/bitfield",
+      "required_passes": 18,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/bitfield/result.json",
+      "result_sha256": "fd96b7c6f869cc0d6d3a4511c658ee28e38f82e5d399c180a2534a5838e3422a"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/bitops",
+      "required_passes": 48,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/bitops/result.json",
+      "result_sha256": "fc1c278975a8a4fbdf9d7855f2ae5d70f4c1485e9c0fa344e9c3ff8473537ef8"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/dump",
+      "required_passes": 8,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/dump/result.json",
+      "result_sha256": "5f882583d313a1bd63e348bf055c74d431f34af5aeea17021ef9b887a554539b"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/expire",
+      "required_passes": 60,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/expire/result.json",
+      "result_sha256": "50446343bf187c2fc7b13b4c20481a4f628440480fd170ea1a8dfac3236b636c"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/functions",
+      "required_passes": 67,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/functions/result.json",
+      "result_sha256": "7eee3089f6b262f401a7c7a7ec73951bfef980a83c292dae6d442a2fd70657d8"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/geo",
+      "required_passes": 64,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/geo/result.json",
+      "result_sha256": "3437fc33ed5c2a7fcbd8c301eb70802713f84e36ecc793958259ed17c5bce00b"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/hyperloglog",
+      "required_passes": 24,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/hyperloglog/result.json",
+      "result_sha256": "ddab225a629f76366c27b6ae83e07fd85c6619417d881f8f41de9568bcf31d0e"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/introspection",
+      "required_passes": 21,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+      "result_sha256": "a15cb4deb3308a9738a2d27211e21e9258b6f38f4759d0d486c715ec4830c573"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/introspection-2",
+      "required_passes": 41,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/introspection-2/result.json",
+      "result_sha256": "f5cd8ce56e0f2e1cf2297340c4c2d28a0c1b78907545765a058a70418787c382"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/keyspace",
+      "required_passes": 37,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/keyspace/result.json",
+      "result_sha256": "95241eba0921636a915b22756a3975c856b57d34063e9f161a2f6a9bb795783f"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/latency-monitor",
+      "required_passes": 14,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/latency-monitor/result.json",
+      "result_sha256": "51971cfadb1f461cddaa8721041a36682060aea5b9e5afe5b9ccb9b6116a3777"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/multi",
+      "required_passes": 27,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/multi/result.json",
+      "result_sha256": "cddc977ffceea16c212d7892099d5466de1355ef36d8d7824105646290b39a48"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/other",
+      "required_passes": 18,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/other/result.json",
+      "result_sha256": "0a7ae725b0395604c4f4c9f4101bc3270f32f48ef1a939aaa881ca6e9753a148"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/pause",
+      "required_passes": 2,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/pause/result.json",
+      "result_sha256": "ce806c72a2795f86645d6bbd2097c2fb3da476c26b120d7c3c0d097dab24e35a"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/protocol",
+      "required_passes": 17,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/protocol/result.json",
+      "result_sha256": "8265b63d6ab3fc06758b97b052c70a76a1950e15b70ee07f6fa4388dbf097bfb"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/pubsub",
+      "required_passes": 26,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/pubsub/result.json",
+      "result_sha256": "0f07600b1a563a3fb7502ca008284f605941991538218c7132f56694d44d8917"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/quit",
+      "required_passes": 3,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/quit/result.json",
+      "result_sha256": "ffa8670dc0faca09531e4cc2731be5f9e6364cdba246a7c5b2894268f2c9c1c6"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/scan",
+      "required_passes": 25,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/scan/result.json",
+      "result_sha256": "a0b34e9f0ef04205387c85ccb846ceec123bbedd773e1561cf53b26636bc7122"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/scripting",
+      "required_passes": 70,
+      "known_setup_errors": [
+        {
+          "command": "r debug set-disable-deny-scripts 1",
+          "count": 2,
+          "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command"
+        }
+      ],
+      "raw_failed_count": 2,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/scripting/result.json",
+      "result_sha256": "9b775cce426d3ea0509c9f80ab5ed95b84f4a8935057bdf8f05376b7f9c896b1"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/slowlog",
+      "required_passes": 6,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/slowlog/result.json",
+      "result_sha256": "dbdae0d7eef804977658d9a1c3b175532089b2419b4f7f1ff1303ab8984957a5"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/sort",
+      "required_passes": 52,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/sort/result.json",
+      "result_sha256": "49f8e78d0894336011a1d6130dc3b7d9cd4183b83252ffd687aa979cc24269a2"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/tracking",
+      "required_passes": 14,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/tracking/result.json",
+      "result_sha256": "e1a94947719970e5eb2264e1687bffc3cd965c0d3259de387afcca177fbdf593"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/hash",
+      "required_passes": 74,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/hash/result.json",
+      "result_sha256": "e38441d401bbf818914b2f391457f5d9d1cab482d4c9407ac7751e74536208c8"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/incr",
+      "required_passes": 31,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/incr/result.json",
+      "result_sha256": "fbe299c86257984b680572e78bb4359ea927f7f5ddfaad64596c4f9927b7aaa4"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/list",
+      "required_passes": 226,
+      "known_setup_errors": [
+        {
+          "command": "r config set list-compress-depth 2",
+          "count": 1,
+          "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'"
+        }
+      ],
+      "raw_failed_count": 1,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/list/result.json",
+      "result_sha256": "9bf000df0610a1e407df3498efcb32febb8952a316ff712fd427da65a31d313e"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/list-2",
+      "required_passes": 2,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/list-2/result.json",
+      "result_sha256": "82bd34c200e3f8a3727a6ea743eba86133461c252cb3124ecc7c91d58f48e1c4"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/list-3",
+      "required_passes": 2,
+      "known_setup_errors": [
+        {
+          "command": "config_set list-compress-depth $comp",
+          "count": 1,
+          "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'"
+        }
+      ],
+      "raw_failed_count": 1,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/list-3/result.json",
+      "result_sha256": "b79b83acaa412eac5b36f754b11950bb0588e4932ba0b1da3414a2e8df7da8c2"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/set",
+      "required_passes": 109,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/set/result.json",
+      "result_sha256": "37ce58aa4060ed803d82e8bfabb8d74f7f84d8c0ef9f5994f8de88d47b98ad39"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/stream",
+      "required_passes": 59,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/stream/result.json",
+      "result_sha256": "dc171efc05fdcb4734343a94f58b28a70ad491942f1efbcbb80e02368e99a92c"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/stream-cgroups",
+      "required_passes": 35,
+      "known_setup_errors": [
+        {
+          "command": "r config set $param $val",
+          "count": 1,
+          "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+        }
+      ],
+      "raw_failed_count": 1,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/stream-cgroups/result.json",
+      "result_sha256": "9ef2eb31692c07a6709a646947cbf10689c0f8927d27286a13a403c8176f91b4"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/string",
+      "required_passes": 80,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/string/result.json",
+      "result_sha256": "dfb613d4b4a74d6195ec3c57802b73c2219a2fdfc62d438501fce18760817232"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/type/zset",
+      "required_passes": 315,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/type/zset/result.json",
+      "result_sha256": "d44a55eed75a35ef54686747c08b0b87f8cc1cb8c43eab65ce14afc188ce44da"
+    },
+    {
+      "mode": "1s",
+      "unit": "unit/violations",
+      "required_passes": 1,
+      "known_setup_errors": [],
+      "raw_failed_count": 0,
+      "passed": true,
+      "result": "/home/user/Projects/cx-exec1s-c/build/gate-run.OqQ6P5/jobs/redis_tcl/redis-tcl-1s/unit/violations/result.json",
+      "result_sha256": "900c5e536e912215ad26faae4648465c5abb2792819f29a8efccb933485e851d"
+    }
+  ],
+  "passed": true,
+  "required_passes": 3286
+}

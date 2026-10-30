@@ -1,0 +1,49 @@
+{
+  "mix": [
+    "execs",
+    "scripts",
+    "writers"
+  ],
+  "flushes": 17,
+  "saves": 19,
+  "observations": 686,
+  "torn": 0,
+  "examples": [],
+  "tally": [
+    9618,
+    9809,
+    6578,
+    9659,
+    9662,
+    9857,
+    6368,
+    9604,
+    9604,
+    9760,
+    112068,
+    105664,
+    9191,
+    105023,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "errors": [
+    "STALL > 5s: observer: TimeoutError('timed out')",
+    "STALL > 5s: bgsave-loop: TimeoutError('timed out')",
+    "STALL > 5s: script-0: TimeoutError('timed out')",
+    "STALL > 5s: script-4: TimeoutError('timed out')",
+    "STALL > 5s: script-1: TimeoutError('timed out')",
+    "STALL > 5s: exec-9: TimeoutError('timed out')",
+    "STALL > 5s: writer-12: TimeoutError('timed out')",
+    "STALL > 5s: script-3: TimeoutError('timed out')",
+    "STALL > 5s: script-2: TimeoutError('timed out')",
+    "STALL > 5s: exec-8: TimeoutError('timed out')",
+    "STALL > 5s: exec-6: TimeoutError('timed out')",
+    "STALL > 5s: script-5: TimeoutError('timed out')",
+    "STALL > 5s: exec-7: TimeoutError('timed out')"
+  ]
+}

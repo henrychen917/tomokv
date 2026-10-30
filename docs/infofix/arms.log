@@ -1,0 +1,60 @@
+{
+  "base": "393d6ceb129d8c99dffd70959d6a19267c525fe0",
+  "pad_kind": "A: behaviour twin",
+  "pad_behaviour": "Unmodified PRE production objects; only unreachable code/data padding added.",
+  "pad_match": "POST .text virtual start and total size; additive .rodata size control.",
+  "pad_limitation": "Individual function/data placement is not identical to POST; no exact symbol-layout claim.",
+  "padding_bytes": 21648,
+  "rodata_padding": 464256,
+  "regression": "POST with PRE t_server/cmdmeta/slowlog/xshard objects in both namespaces; restores all four cold compatibility defects.",
+  "arms": {
+    "PRE": {
+      "path": "build/infofix/pre/tomokv",
+      "sha256": "5285c0225adbdb8e1204548b010d68238c3358e242d5fab932f4c28a5369dd76",
+      "text": {
+        "address": 133488,
+        "size": 8551031
+      },
+      "rodata": {
+        "address": 8687616,
+        "size": 170804
+      }
+    },
+    "POST": {
+      "path": "build/infofix/post/tomokv",
+      "sha256": "63d57541078450bb987820d425577d502c25120406e57f94febcb00869eb0455",
+      "text": {
+        "address": 182768,
+        "size": 8572679
+      },
+      "rodata": {
+        "address": 8757248,
+        "size": 635060
+      }
+    },
+    "PAD-A": {
+      "path": "build/infofix/pad-a/tomokv",
+      "sha256": "61a8fac6150b41eed17d710cc525126653d1aedbaf7c14915d92c9daf7e0364a",
+      "text": {
+        "address": 182768,
+        "size": 8572679
+      },
+      "rodata": {
+        "address": 8757248,
+        "size": 635060
+      }
+    },
+    "REGRESSION": {
+      "path": "build/infofix/regression/tomokv",
+      "sha256": "760eca3aa016819cb5f18ea3538ae5e8cefee5b3fa6d1dba37d5e0db15b284cc",
+      "text": {
+        "address": 133616,
+        "size": 8572039
+      },
+      "rodata": {
+        "address": 8708096,
+        "size": 171572
+      }
+    }
+  }
+}

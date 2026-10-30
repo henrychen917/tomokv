@@ -1,0 +1,8 @@
+truthful row inventory + commandstats
+monotonic object-memory high-water mark
+read-lookup keyspace hits/misses
+variadic INFO sections + Redis default set
+RESETSTAT auth baseline
+IO-owned wire bytes + sampled operation rate
+  loaded sampled rates: [0, 3122]
+INFOFIX: PASS (41 checks)

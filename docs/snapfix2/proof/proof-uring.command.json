@@ -1,0 +1,33 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "8-15",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20100-20199"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables snapshot-epoll snapshot-uring persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors persistfix_units dump_restore debug-0 debug-1 aof-epoll aof-uring aof_frame aoforder notify_aof serverfix_waitaof iofix-signal climonfix txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder2 txnorder_wake txnorder_index execfair txn_group_fused txn_group_split script_bounds scriptfix lualibs flip fliplisten flipctl flip_saturated flip_unit flipfix_units atomic_units atomic_batteries atomfix5_watch atomfix5_accounting moverfix fused-0 fused-1 source_identity storage_units",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "build/tomokv",
+  "binary_sha256": "dd169c2f10040c4b13cb87c3731e4ba1a2dbd74088635008e8512ba64e84021c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 0,
+  "seconds": 1752.907,
+  "log_sha256": "b810b6b3801d0715c98cfe667b0ea7f0480c4e8cf88d41b8b6991c8f35a6f879",
+  "removed_data": {}
+}

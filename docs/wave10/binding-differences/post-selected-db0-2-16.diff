@@ -1,0 +1,333 @@
+--- server tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+
++++ probe tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+
+@@ -1,168 +1,173 @@
+
+ 0000 [ 7] cmpb $0x1,<rip>(%rip) # <tomo_db0::g_hash_kind> | 80 3d ?? ?? ?? ?? 01
+-0007 [ 3] mov %rdi,%r9 | 49 89 f9
+-000a [ 3] mov %esi,%r8d | 41 89 f0
+-000d [ 6] je <+0x160> | 0f 84 4d 01 00 00
+-0013 [10] movabs $0xff51afd7ed558ccd,%rsi | 48 be cd 8c 55 ed d7 af 51 ff
+-001d [ 3] mov %r8,%rdx | 4c 89 c2
+-0020 [10] movabs $0x9e3779b97f4a7c15,%rax | 48 b8 15 7c 4a 7f b9 79 37 9e
+-002a [ 3] mov %r8,%rcx | 4c 89 c1
+-002d [ 4] imul %rsi,%rdx | 48 0f af d6
+-0031 [ 7] xor <rip>(%rip),%rdx # <tomo_db0::g_hash_seed> | 48 33 15 ?? ?? ?? ??
+-0038 [ 3] xor %rax,%rdx | 48 31 c2
+-003b [ 4] cmp $0x7,%r8d | 41 83 f8 07
+-003f [ 2] jbe <+0x95> | 76 54
+-0041 [ 4] lea -0x8(%r8),%eax | 41 8d 40 f8
+-0045 [10] movabs $0xc4ceb9fe1a85ec53,%r8 | 49 b8 53 ec 85 1a fe b9 ce c4
+-004f [ 3] shr $0x3,%eax | c1 e8 03
+-0052 [ 2] inc %eax | ff c0
+-0054 [ 4] lea (%rdi,%rax,8),%rdi | 48 8d 3c c7
+-0058 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
+-0060 [ 3] xor (%r9),%rdx | 49 33 11
+-0063 [ 4] add $0x8,%r9 | 49 83 c1 08
++0007 [ 3] mov %rdi,%rcx | 48 89 f9
++000a [ 2] mov %esi,%edx | 89 f2
++000c [ 6] je <+0x160> | 0f 84 4e 01 00 00
++0012 [10] movabs $0xff51afd7ed558ccd,%rdi | 48 bf cd 8c 55 ed d7 af 51 ff
++001c [10] movabs $0x9e3779b97f4a7c15,%rax | 48 b8 15 7c 4a 7f b9 79 37 9e
++0026 [ 4] imul %rdi,%rdx | 48 0f af d7
++002a [ 7] xor <rip>(%rip),%rdx # <tomo_db0::g_hash_seed> | 48 33 15 ?? ?? ?? ??
++0031 [ 3] xor %rax,%rdx | 48 31 c2
++0034 [ 3] cmp $0x7,%esi | 83 fe 07
++0037 [ 6] jbe <+0x2e0> | 0f 86 a3 02 00 00
++003d [ 3] lea -0x8(%rsi),%eax | 8d 46 f8
++0040 [10] movabs $0xc4ceb9fe1a85ec53,%r9 | 49 b9 53 ec 85 1a fe b9 ce c4
++004a [ 3] shr $0x3,%eax | c1 e8 03
++004d [ 2] inc %eax | ff c0
++004f [ 4] lea (%rcx,%rax,8),%r8 | 4c 8d 04 c1
++0053 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
++005e [ 2] xchg %ax,%ax | 66 90
++0060 [ 3] xor (%rcx),%rdx | 48 33 11
++0063 [ 4] add $0x8,%rcx | 48 83 c1 08
+ 0067 [ 3] mov %rdx,%rax | 48 89 d0
+ 006a [ 4] shr $0x21,%rax | 48 c1 e8 21
+ 006e [ 3] xor %rdx,%rax | 48 31 d0
+-0071 [ 4] imul %rsi,%rax | 48 0f af c6
++0071 [ 4] imul %rdi,%rax | 48 0f af c7
+ 0075 [ 3] mov %rax,%rdx | 48 89 c2
+ 0078 [ 4] shr $0x21,%rdx | 48 c1 ea 21
+ 007c [ 3] xor %rdx,%rax | 48 31 d0
+-007f [ 4] imul %r8,%rax | 49 0f af c0
++007f [ 4] imul %r9,%rax | 49 0f af c1
+ 0083 [ 3] mov %rax,%rdx | 48 89 c2
+ 0086 [ 4] shr $0x21,%rdx | 48 c1 ea 21
+ 008a [ 3] xor %rax,%rdx | 48 31 c2
+-008d [ 3] cmp %rdi,%r9 | 49 39 f9
++008d [ 3] cmp %r8,%rcx | 4c 39 c1
+ 0090 [ 2] jne <+0x60> | 75 ce
+-0092 [ 3] and $0x7,%ecx | 83 e1 07
+-0095 [ 3] cmp $0x3,%ecx | 83 f9 03
++0092 [ 3] and $0x7,%esi | 83 e6 07
++0095 [ 3] cmp $0x3,%esi | 83 fe 03
+ 0098 [ 6] jbe <+0x130> | 0f 86 92 00 00 00
+-009e [ 4] mov -0x4(%rdi,%rcx,1),%eax | 8b 44 0f fc
+-00a2 [ 2] mov (%rdi),%ecx | 8b 0f
+-00a4 [ 4] shl $0x20,%rcx | 48 c1 e1 20
+-00a8 [ 3] or %rcx,%rax | 48 09 c8
+-00ab [ 3] xor %rdx,%rax | 48 31 d0
+-00ae [ 3] mov %rax,%rdx | 48 89 c2
+-00b1 [ 4] shr $0x21,%rdx | 48 c1 ea 21
+-00b5 [ 3] xor %rax,%rdx | 48 31 c2
+-00b8 [10] movabs $0xff51afd7ed558ccd,%rax | 48 b8 cd 8c 55 ed d7 af 51 ff
+-00c2 [ 4] imul %rax,%rdx | 48 0f af d0
+-00c6 [ 3] mov %rdx,%rax | 48 89 d0
+-00c9 [ 4] shr $0x21,%rax | 48 c1 e8 21
+-00cd [ 3] xor %rax,%rdx | 48 31 c2
+-00d0 [10] movabs $0xc4ceb9fe1a85ec53,%rax | 48 b8 53 ec 85 1a fe b9 ce c4
+-00da [ 4] imul %rax,%rdx | 48 0f af d0
+-00de [ 3] mov %rdx,%rax | 48 89 d0
+-00e1 [ 4] shr $0x21,%rax | 48 c1 e8 21
+-00e5 [ 3] xor %rax,%rdx | 48 31 c2
+-00e8 [ 3] mov %rdx,%rax | 48 89 d0
+-00eb [ 4] shr $0x21,%rax | 48 c1 e8 21
+-00ef [ 3] xor %rdx,%rax | 48 31 d0
+-00f2 [10] movabs $0xff51afd7ed558ccd,%rdx | 48 ba cd 8c 55 ed d7 af 51 ff
+-00fc [ 4] imul %rdx,%rax | 48 0f af c2
+-0100 [ 3] mov %rax,%rdx | 48 89 c2
+-0103 [ 4] shr $0x21,%rdx | 48 c1 ea 21
+-0107 [ 3] xor %rdx,%rax | 48 31 d0
+-010a [10] movabs $0xc4ceb9fe1a85ec53,%rdx | 48 ba 53 ec 85 1a fe b9 ce c4
+-0114 [ 4] imul %rdx,%rax | 48 0f af c2
+-0118 [ 3] mov %rax,%rdx | 48 89 c2
+-011b [ 4] shr $0x21,%rdx | 48 c1 ea 21
+-011f [ 3] xor %rdx,%rax | 48 31 d0
+-0122 [ 1] ret | c3
+-0123 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+-012e [ 2] xchg %ax,%ax | 66 90
+-0130 [ 2] test %ecx,%ecx | 85 c9
+-0132 [ 2] je <+0xe8> | 74 b4
+-0134 [ 3] lea -0x1(%rcx),%eax | 8d 41 ff
+-0137 [ 4] movzbl (%rdi,%rax,1),%esi | 0f b6 34 07
+-013b [ 3] movzbl (%rdi),%eax | 0f b6 07
+-013e [ 2] shr $1,%ecx | d1 e9
+-0140 [ 4] shl $0x10,%rax | 48 c1 e0 10
+-0144 [ 3] or %rax,%rsi | 48 09 c6
+-0147 [ 4] movzbl (%rdi,%rcx,1),%eax | 0f b6 04 0f
+-014b [ 4] shl $0x8,%rax | 48 c1 e0 08
+-014f [ 3] or %rsi,%rax | 48 09 f0
+-0152 [ 5] jmp <+0xab> | e9 54 ff ff ff
++009e [ 3] mov (%r8),%ecx | 41 8b 08
++00a1 [ 2] mov %esi,%esi | 89 f6
++00a3 [ 5] mov -0x4(%r8,%rsi,1),%eax | 41 8b 44 30 fc
++00a8 [ 4] shl $0x20,%rcx | 48 c1 e1 20
++00ac [ 3] or %rcx,%rax | 48 09 c8
++00af [ 3] xor %rdx,%rax | 48 31 d0
++00b2 [ 3] mov %rax,%rdx | 48 89 c2
++00b5 [ 4] shr $0x21,%rdx | 48 c1 ea 21
++00b9 [ 3] xor %rax,%rdx | 48 31 c2
++00bc [10] movabs $0xff51afd7ed558ccd,%rax | 48 b8 cd 8c 55 ed d7 af 51 ff
++00c6 [ 4] imul %rax,%rdx | 48 0f af d0
++00ca [ 3] mov %rdx,%rax | 48 89 d0
++00cd [ 4] shr $0x21,%rax | 48 c1 e8 21
++00d1 [ 3] xor %rax,%rdx | 48 31 c2
++00d4 [10] movabs $0xc4ceb9fe1a85ec53,%rax | 48 b8 53 ec 85 1a fe b9 ce c4
++00de [ 4] imul %rax,%rdx | 48 0f af d0
++00e2 [ 3] mov %rdx,%rax | 48 89 d0
++00e5 [ 4] shr $0x21,%rax | 48 c1 e8 21
++00e9 [ 3] xor %rax,%rdx | 48 31 c2
++00ec [ 3] mov %rdx,%rax | 48 89 d0
++00ef [ 4] shr $0x21,%rax | 48 c1 e8 21
++00f3 [ 3] xor %rdx,%rax | 48 31 d0
++00f6 [10] movabs $0xff51afd7ed558ccd,%rdx | 48 ba cd 8c 55 ed d7 af 51 ff
++0100 [ 4] imul %rdx,%rax | 48 0f af c2
++0104 [ 3] mov %rax,%rdx | 48 89 c2
++0107 [ 4] shr $0x21,%rdx | 48 c1 ea 21
++010b [ 3] xor %rdx,%rax | 48 31 d0
++010e [10] movabs $0xc4ceb9fe1a85ec53,%rdx | 48 ba 53 ec 85 1a fe b9 ce c4
++0118 [ 4] imul %rdx,%rax | 48 0f af c2
++011c [ 3] mov %rax,%rdx | 48 89 c2
++011f [ 4] shr $0x21,%rdx | 48 c1 ea 21
++0123 [ 3] xor %rdx,%rax | 48 31 d0
++0126 [ 1] ret | c3
++0127 [ 9] nopw 0x0(%rax,%rax,1) | 66 0f 1f 84 00 00 00 00 00
++0130 [ 2] test %esi,%esi | 85 f6
++0132 [ 2] je <+0xec> | 74 b8
++0134 [ 3] lea -0x1(%rsi),%eax | 8d 46 ff
++0137 [ 5] movzbl (%r8,%rax,1),%ecx | 41 0f b6 0c 00
++013c [ 4] movzbl (%r8),%eax | 41 0f b6 00
++0140 [ 2] shr $1,%esi | d1 ee
++0142 [ 4] shl $0x10,%rax | 48 c1 e0 10
++0146 [ 3] or %rax,%rcx | 48 09 c1
++0149 [ 5] movzbl (%r8,%rsi,1),%eax | 41 0f b6 04 30
++014e [ 4] shl $0x8,%rax | 48 c1 e0 08
++0152 [ 5] jmp <+0xac> | e9 55 ff ff ff
+ 0157 [ 9] nopw 0x0(%rax,%rax,1) | 66 0f 1f 84 00 00 00 00 00
+-0160 [ 2] push %r13 | 41 55
+-0162 [ 2] push %r12 | 41 54
+-0164 [ 1] push %rbp | 55
+-0165 [10] movabs $0x736f6d6570736575,%rax | 48 b8 75 65 73 70 65 6d 6f 73
+-016f [ 1] push %rbx | 53
+-0170 [10] movabs $0x646f72616e646f6d,%rcx | 48 b9 6d 6f 64 6e 61 72 6f 64
+-017a [ 3] mov %r8,%rbx | 4c 89 c3
+-017d [ 4] sub $0x20,%rsp | 48 83 ec 20
+-0181 [ 7] mov <rip>(%rip),%rdx # <tomo_db0::g_sip_k0> | 48 8b 15 ?? ?? ?? ??
+-0188 [ 3] xor %rdx,%rax | 48 31 d0
+-018b [ 4] mov %rax,(%rsp) | 48 89 04 24
+-018f [ 7] mov <rip>(%rip),%rax # <tomo_db0::g_sip_k1> | 48 8b 05 ?? ?? ?? ??
+-0196 [ 3] xor %rax,%rcx | 48 31 c1
+-0199 [ 5] mov %rcx,0x8(%rsp) | 48 89 4c 24 08
+-019e [10] movabs $0x6c7967656e657261,%rcx | 48 b9 61 72 65 6e 65 67 79 6c
+-01a8 [ 3] xor %rcx,%rdx | 48 31 ca
+-01ab [ 5] mov %rdx,0x10(%rsp) | 48 89 54 24 10
+-01b0 [10] movabs $0x7465646279746573,%rdx | 48 ba 73 65 74 79 62 64 65 74
+-01ba [ 3] xor %rdx,%rax | 48 31 d0
+-01bd [ 4] and $0xfffffffffffffff8,%rbx | 48 83 e3 f8
+-01c1 [ 3] mov %rax,%r13 | 49 89 c5
+-01c4 [ 6] je <+0x29a> | 0f 84 d0 00 00 00
+-01ca [ 3] xor %r10d,%r10d | 45 31 d2
+-01cd [ 5] lea 0x18(%rsp),%r12 | 4c 8d 64 24 18
+-01d2 [ 5] lea 0x10(%rsp),%rbp | 48 8d 6c 24 10
+-01d7 [ 5] lea 0x8(%rsp),%rsi | 48 8d 74 24 08
+-01dc [ 3] mov %rsp,%rdi | 48 89 e7
+-01df [ 1] nop | 90
+-01e0 [ 4] mov (%r9,%r10,1),%r11 | 4f 8b 1c 11
+-01e4 [ 3] mov %r13,%rax | 4c 89 e8
+-01e7 [ 3] mov %r12,%rcx | 4c 89 e1
+-01ea [ 3] mov %rbp,%rdx | 48 89 ea
+-01ed [ 4] add $0x8,%r10 | 49 83 c2 08
+-01f1 [ 3] xor %r11,%rax | 4c 31 d8
+-01f4 [ 5] mov %rax,0x18(%rsp) | 48 89 44 24 18
+-01f9 [ 5] call <tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]> | e8 ?? ?? ?? ??
+-01fe [ 5] mov 0x18(%rsp),%r13 | 4c 8b 6c 24 18
+-0203 [ 4] xor %r11,(%rsp) | 4c 31 1c 24
+-0207 [ 3] cmp %rbx,%r10 | 49 39 da
+-020a [ 2] jb <+0x1e0> | 72 d4
+-020c [ 3] mov %r8,%r10 | 4d 89 c2
+-020f [ 4] shl $0x38,%r10 | 49 c1 e2 38
+-0213 [ 3] cmp %r8,%rbx | 4c 39 c3
+-0216 [ 2] jae <+0x246> | 73 2e
+-0218 [ 4] lea (%r9,%rbx,1),%rax | 49 8d 04 19
+-021c [ 3] add %r9,%r8 | 4d 01 c8
+-021f [ 2] xor %ecx,%ecx | 31 c9
+-0221 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+-022c [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+-0230 [ 3] movzbl (%rax),%edx | 0f b6 10
+-0233 [ 3] inc %rax | 48 ff c0
+-0236 [ 5] shlx %rcx,%rdx,%rdx | c4 e2 f1 f7 d2
+-023b [ 3] add $0x8,%ecx | 83 c1 08
+-023e [ 3] or %rdx,%r10 | 49 09 d2
+-0241 [ 3] cmp %rax,%r8 | 49 39 c0
+-0244 [ 2] jne <+0x230> | 75 ea
+-0246 [ 3] mov %r13,%rax | 4c 89 e8
+-0249 [ 3] mov %r12,%rcx | 4c 89 e1
+-024c [ 3] mov %rbp,%rdx | 48 89 ea
+-024f [ 3] xor %r10,%rax | 4c 31 d0
+-0252 [ 5] mov %rax,0x18(%rsp) | 48 89 44 24 18
+-0257 [ 5] call <tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]> | e8 ?? ?? ?? ??
+-025c [ 3] mov %rbp,%rdx | 48 89 ea
+-025f [ 4] xor %r10,(%rsp) | 4c 31 14 24
+-0263 [ 9] xorq $0xff,0x10(%rsp) | 48 81 74 24 10 ff 00 00 00
+-026c [ 5] call <tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]> | e8 ?? ?? ?? ??
+-0271 [ 3] mov %rbp,%rdx | 48 89 ea
++0160 [ 4] sub $0x20,%rsp | 48 83 ec 20
++0164 [ 7] mov <rip>(%rip),%r11 # <tomo_db0::g_sip_k0> | 4c 8b 1d ?? ?? ?? ??
++016b [ 7] mov <rip>(%rip),%rdi # <tomo_db0::g_sip_k1> | 48 8b 3d ?? ?? ?? ??
++0172 [10] movabs $0x6c7967656e657261,%r8 | 49 b8 61 72 65 6e 65 67 79 6c
++017c [10] movabs $0x736f6d6570736575,%rsi | 48 be 75 65 73 70 65 6d 6f 73
++0186 [10] movabs $0x646f72616e646f6d,%rax | 48 b8 6d 6f 64 6e 61 72 6f 64
++0190 [ 3] xor %r11,%rsi | 4c 31 de
++0193 [ 3] xor %r8,%r11 | 4d 31 c3
++0196 [10] movabs $0x7465646279746573,%r8 | 49 b8 73 65 74 79 62 64 65 74
++01a0 [ 3] xor %rdi,%rax | 48 31 f8
++01a3 [ 3] xor %r8,%rdi | 4c 31 c7
++01a6 [ 3] mov %rdx,%r8 | 49 89 d0
++01a9 [ 4] mov %rsi,(%rsp) | 48 89 34 24
++01ad [ 5] mov %rax,0x8(%rsp) | 48 89 44 24 08
++01b2 [ 4] and $0xfffffffffffffff8,%r8 | 49 83 e0 f8
++01b6 [ 5] mov %r11,0x10(%rsp) | 4c 89 5c 24 10
++01bb [ 2] je <+0x21d> | 74 60
++01bd [ 3] xor %r9d,%r9d | 45 31 c9
++01c0 [ 4] mov (%rcx,%r9,1),%r10 | 4e 8b 14 09
++01c4 [ 3] add %rax,%rsi | 48 01 c6
++01c7 [ 6] rorx $0x33,%rax,%rax | c4 e3 fb f0 c0 33
++01cd [ 4] add $0x8,%r9 | 49 83 c1 08
++01d1 [ 3] xor %rsi,%rax | 48 31 f0
++01d4 [ 6] rorx $0x20,%rsi,%rsi | c4 e3 fb f0 f6 20
++01da [ 3] xor %r10,%rdi | 4c 31 d7
++01dd [ 3] add %rdi,%r11 | 49 01 fb
++01e0 [ 6] rorx $0x30,%rdi,%rdi | c4 e3 fb f0 ff 30
++01e6 [ 3] xor %r11,%rdi | 4c 31 df
++01e9 [ 3] add %rax,%r11 | 49 01 c3
++01ec [ 6] rorx $0x2f,%rax,%rax | c4 e3 fb f0 c0 2f
++01f2 [ 3] add %rdi,%rsi | 48 01 fe
++01f5 [ 3] xor %r11,%rax | 4c 31 d8
++01f8 [ 6] rorx $0x2b,%rdi,%rdi | c4 e3 fb f0 ff 2b
++01fe [ 6] rorx $0x20,%r11,%r11 | c4 43 fb f0 db 20
++0204 [ 3] xor %rsi,%rdi | 48 31 f7
++0207 [ 3] xor %r10,%rsi | 4c 31 d6
++020a [ 3] cmp %r8,%r9 | 4d 39 c1
++020d [ 2] jb <+0x1c0> | 72 b1
++020f [ 5] mov %rax,0x8(%rsp) | 48 89 44 24 08
++0214 [ 5] mov %r11,0x10(%rsp) | 4c 89 5c 24 10
++0219 [ 4] mov %rsi,(%rsp) | 48 89 34 24
++021d [ 3] mov %rdx,%r9 | 49 89 d1
++0220 [ 4] shl $0x38,%r9 | 49 c1 e1 38
++0224 [ 3] cmp %rdx,%r8 | 49 39 d0
++0227 [ 2] jae <+0x257> | 73 2e
++0229 [ 3] add %rcx,%r8 | 49 01 c8
++022c [ 3] add %rcx,%rdx | 48 01 ca
++022f [ 2] xor %ecx,%ecx | 31 c9
++0231 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
++023c [ 4] nopl 0x0(%rax) | 0f 1f 40 00
++0240 [ 4] movzbl (%r8),%eax | 41 0f b6 00
++0244 [ 3] inc %r8 | 49 ff c0
++0247 [ 5] shlx %rcx,%rax,%rax | c4 e2 f1 f7 c0
++024c [ 3] add $0x8,%ecx | 83 c1 08
++024f [ 3] or %rax,%r9 | 49 09 c1
++0252 [ 3] cmp %r8,%rdx | 4c 39 c2
++0255 [ 2] jne <+0x240> | 75 e9
++0257 [ 5] lea 0x10(%rsp),%r8 | 4c 8d 44 24 10
++025c [ 3] xor %r9,%rdi | 4c 31 cf
++025f [ 5] lea 0x18(%rsp),%rcx | 48 8d 4c 24 18
++0264 [ 5] lea 0x8(%rsp),%rsi | 48 8d 74 24 08
++0269 [ 5] mov %rdi,0x18(%rsp) | 48 89 7c 24 18
++026e [ 3] mov %r8,%rdx | 4c 89 c2
++0271 [ 3] mov %rsp,%rdi | 48 89 e7
+ 0274 [ 5] call <tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]> | e8 ?? ?? ?? ??
+-0279 [ 4] mov (%rsp),%rax | 48 8b 04 24
+-027d [ 5] mov 0x10(%rsp),%rdx | 48 8b 54 24 10
+-0282 [ 5] xor 0x8(%rsp),%rax | 48 33 44 24 08
+-0287 [ 5] xor 0x18(%rsp),%rdx | 48 33 54 24 18
+-028c [ 4] add $0x20,%rsp | 48 83 c4 20
+-0290 [ 1] pop %rbx | 5b
+-0291 [ 1] pop %rbp | 5d
+-0292 [ 2] pop %r12 | 41 5c
+-0294 [ 2] pop %r13 | 41 5d
+-0296 [ 3] xor %rdx,%rax | 48 31 d0
+-0299 [ 1] ret | c3
+-029a [ 5] lea 0x18(%rsp),%r12 | 4c 8d 64 24 18
+-029f [ 5] lea 0x10(%rsp),%rbp | 48 8d 6c 24 10
+-02a4 [ 5] lea 0x8(%rsp),%rsi | 48 8d 74 24 08
+-02a9 [ 3] mov %rsp,%rdi | 48 89 e7
+-02ac [ 5] jmp <+0x20c> | e9 5b ff ff ff
++0279 [ 3] mov %r8,%rdx | 4c 89 c2
++027c [ 4] xor %r9,(%rsp) | 4c 31 0c 24
++0280 [ 9] xorq $0xff,0x10(%rsp) | 48 81 74 24 10 ff 00 00 00
++0289 [ 5] call <tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]> | e8 ?? ?? ?? ??
++028e [ 5] mov 0x8(%rsp),%rax | 48 8b 44 24 08
++0293 [ 4] mov (%rsp),%rdx | 48 8b 14 24
++0297 [ 5] mov 0x10(%rsp),%rsi | 48 8b 74 24 10
++029c [ 3] add %rax,%rdx | 48 01 c2
++029f [ 6] rorx $0x33,%rax,%rax | c4 e3 fb f0 c0 33
++02a5 [ 3] xor %rax,%rdx | 48 31 c2
++02a8 [ 5] mov 0x18(%rsp),%rax | 48 8b 44 24 18
++02ad [ 4] add $0x20,%rsp | 48 83 c4 20
++02b1 [ 3] add %rax,%rsi | 48 01 c6
++02b4 [ 6] rorx $0x30,%rax,%rax | c4 e3 fb f0 c0 30
++02ba [ 4] lea (%rdx,%rsi,1),%rcx | 48 8d 0c 32
++02be [ 3] xor %rsi,%rax | 48 31 f0
++02c1 [ 6] rorx $0x2f,%rdx,%rdx | c4 e3 fb f0 d2 2f
++02c7 [ 6] rorx $0x2b,%rax,%rax | c4 e3 fb f0 c0 2b
++02cd [ 3] xor %rcx,%rax | 48 31 c8
++02d0 [ 6] rorx $0x20,%rcx,%rcx | c4 e3 fb f0 c9 20
++02d6 [ 3] xor %rcx,%rdx | 48 31 ca
++02d9 [ 3] xor %rdx,%rax | 48 31 d0
++02dc [ 1] ret | c3
++02dd [ 3] nopl (%rax) | 0f 1f 00
++02e0 [ 3] mov %rcx,%r8 | 49 89 c8
++02e3 [ 5] jmp <+0x95> | e9 ad fd ff ff

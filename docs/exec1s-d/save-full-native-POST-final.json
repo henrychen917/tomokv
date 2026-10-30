@@ -1,0 +1,25 @@
+{
+  "arm": {
+    "arm": "POST",
+    "source_commit": "cf3bdaa9e987063444ca7d6d1d40e46603da3362",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST",
+    "sha256": "4111f5c6ad1784fc6b95fceedc9efe361cf715dbad97f912e130811ab7544f18",
+    "bytes": 220116944
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-exec1s-d/build/exec1s-d/POST",
+    "20000",
+    "20001",
+    "64-71",
+    "6:2"
+  ],
+  "returncode": 0,
+  "plan_sha256": "691f4ca97536166577ea77321b44f34853f690a70251f7290597768397f41157",
+  "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-full-native-POST-final/run.log",
+  "log_sha256": "c67d2ec40cf5b1fe900216a0eb1c3c5e750f8349e90baa583eb37813fb548668",
+  "observer": false
+}

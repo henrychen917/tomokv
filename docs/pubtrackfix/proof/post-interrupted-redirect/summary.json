@@ -1,0 +1,34 @@
+{
+  "run": "/home/user/Projects/cx-pubtrackfix/build/gate-run.dwMKWO",
+  "log": "build/pubtrackfix/gate-proof-final.log",
+  "jobs": {
+    "cmd_metadata": {
+      "done": "0\t1\t0\n"
+    },
+    "config_unit": {
+      "done": "0\t2\t0\n"
+    },
+    "core_tsan_build": {
+      "done": "0\t0\t0\n"
+    },
+    "production_units": {
+      "done": "0\t0\t0\n"
+    },
+    "pubtrackfix": {
+      "done": "0\t3\t1\n"
+    },
+    "redis_tcl": {
+      "done": "1\t1\t2\n"
+    },
+    "release": {
+      "done": "0\t1\t0\n"
+    },
+    "source_identity": {
+      "done": "0\t1\t0\n"
+    },
+    "storage_units": {
+      "done": "0\t13\t0\n"
+    }
+  },
+  "summary": []
+}

@@ -1,0 +1,4 @@
+{"case": "flushall", "leg": "redis-redis-0", "value": {"flushes": 0, "saves": 0, "final": [140838, 140838, 93249, 93249], "scripts": 140838, "execs": 93249, "writes": 89595}, "pass": true, "seconds": 5.158}
+{"case": "flushall", "leg": "1s-uring-0", "value": {"flushes": 0, "saves": 0, "final": [68226, 68226, 39492, 39492], "scripts": 68226, "execs": 39492, "writes": 60662}, "pass": true, "seconds": 5.073}
+{"case": "flushall", "leg": "1s-uring-1", "value": {"flushes": 0, "saves": 0, "final": [68196, 68196, 40533, 40533], "scripts": 68196, "execs": 40533, "writes": 49256}, "pass": true, "seconds": 5.075}
+{"case": "flushall", "leg": "1s-epoll-0", "value": {"flushes": 0, "saves": 0, "final": [42494, 42494, 29753, 29753], "scripts": 42494, "execs": 29753, "writes": 43263}, "pass": true, "seconds": 5.049}

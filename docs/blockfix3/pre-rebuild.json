@@ -1,0 +1,46 @@
+[
+  {
+    "path": "build/blockfix3/pre/tomokv",
+    "sha256": "207adc87aaca14b4e0c9c54287a12a571bb1ed1fb00f86423e29114872fdd615",
+    "sections": {
+      ".text": {
+        "size": 8470039,
+        "sha256": "079ad5bcd1e5a4d82c0f16899dad8bd567b5510e08f2f46800b7ff4d97f281fa"
+      },
+      ".rodata": {
+        "size": 170420,
+        "sha256": "0aee438abce73db5957cca6c9d41df031cd5726e1298819821e97dba781171df"
+      },
+      ".data": {
+        "size": 19321,
+        "sha256": "c3664e4ac7c75657d3045d9e160f2579dab9a69b9e05b19734b738fee8d1e1f1"
+      },
+      ".bss": {
+        "size": 1106312,
+        "sha256": "72012de821edff21f7d55423f3a4f09790a14a3ff1c8a297f4a23b8b752eb448"
+      }
+    }
+  },
+  {
+    "path": "build/blockfix3/pre-source/build/tomokv",
+    "sha256": "6ae9b7a39b47da950197d1c1e652ed68f56d534b37a6adb50825dceca17bbc2a",
+    "sections": {
+      ".text": {
+        "size": 8470039,
+        "sha256": "079ad5bcd1e5a4d82c0f16899dad8bd567b5510e08f2f46800b7ff4d97f281fa"
+      },
+      ".rodata": {
+        "size": 170420,
+        "sha256": "0aee438abce73db5957cca6c9d41df031cd5726e1298819821e97dba781171df"
+      },
+      ".data": {
+        "size": 19321,
+        "sha256": "c3664e4ac7c75657d3045d9e160f2579dab9a69b9e05b19734b738fee8d1e1f1"
+      },
+      ".bss": {
+        "size": 1106312,
+        "sha256": "72012de821edff21f7d55423f3a4f09790a14a3ff1c8a297f4a23b8b752eb448"
+      }
+    }
+  }
+]

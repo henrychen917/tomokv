@@ -1,0 +1,599 @@
+PARTIAL	0	GATE_ONLY_JOBS=lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal txnorder_index txnorder2 txnorder_wake reorder_identity reorder_sync reorder_engagement wb_rule_units wbland_units scriptfix atomfix5_watch datafix2_watch blockfix_registry serverfix_slowlog rlfix3_info compat3 netcmd_units atomic_units splitlocal_units exbatch_units moverfix core_units wait_units serverfix_waitaof netfix_query_stats ntfix_input persistfix2_lastsave racefix_counters notify_aof notify_order notifycompat exbatch_live atomfix5_accounting acl_recheck aclfix authfix rlcache blockfix2 txnorder_wound trackfix_order trackfix_accounting tracking_redirect aoforder racefix_climon dispatch_arity dispatch_errors dispatch_children serverfix_lines serverfix_scalar serverfix_hello serverfix_config bplus clientfix perfio_stream climonfix ntnew4_live perfex_units perfex_live netcap netfix_unix netfix_config netfix_tls netfix_idle_buffers boot_grammar dbdefault readonly hexpread serverfix_hll serverfix_acllog rlfix3_zc aof_frame sort lbplanner_units persistfix_units flipfix_units lb-stationary-1s lb-stationary-2s acl_subcommands router_uniform datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_idle auth persistfix2_shutdown persistfix2_commands persistfix2_errors tls feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto globcase fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 replyoff wb_policy respcompat flip fliplisten flip_saturated aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 script_bounds notify asan_batteries atomic_batteries release_batteries dump_restore atomic_floor; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	1.180000	ASAN build
+ok	75.620000	read-local ownership-invariant build
+ok	34.270000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	36.730000	blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+ok	34.060000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	33.640000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	33.850000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	33.720000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+ok	0.020000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	39.020000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	7.830000	persistfix2 LASTSAVE and rewrite INFO
+ok	62.310000	persistfix2 shutdown modifiers and signal policy
+ok	55.240000	persistfix2 persistence command replies and scheduling
+ok	4.370000	persistfix2 AOF write-error refusal and read availability
+ok	0.070000	configuration reduction + actual geometry (epoll, atomic 0)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (epoll, atomic 0)
+ok	0.030000	AOF native snapshot streams byte-exact
+ok	0.000000	AOF replay fired (records=N skipped=N)
+ok	0.070000	configuration reduction + actual geometry (epoll, atomic 1)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (epoll, atomic 1)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.240000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.030000	AOF always sync + reply gate fired
+ok	0.030000	AOF always recovery after quiescent SIGKILL
+ok	0.910000	AOF in-window kill recovery (2s, epoll)
+ok	3.860000	AOF in-window term recovery (2s, epoll)
+ok	0.900000	AOF in-window kill recovery (1s, epoll)
+ok	2.280000	AOF in-window term recovery (1s, epoll)
+ok	1.810000	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)
+ok	1.840000	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)
+ok	2.000000	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)
+ok	2.030000	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)
+ok	1.300000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	5.270000	AOF rewrite atomic/stage/corruption matrix
+ok	5.620000	AOF rewrite triggers + observability matrix
+ok	0.000000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data
+ok	0.430000	aoffix2 snapshot (1s, epoll)
+ok	1.540000	aoffix2 filename (1s, epoll)
+ok	0.170000	aoffix2 error (1s, epoll)
+ok	0.550000	aoffix2 tickets (1s, epoll)
+ok	0.560000	aoffix2 exec_tickets (1s, epoll)
+ok	0.560000	aoffix2 resurrection (1s, epoll)
+ok	0.410000	aoffix2 rewrite_fail2 (1s, epoll)
+ok	0.310000	aoffix2 manifest_missing (1s, epoll)
+ok	0.290000	aoffix2 off-writer acknowledgement everysec (1s, epoll)
+ok	0.290000	aoffix2 off-writer acknowledgement always (1s, epoll)
+ok	0.430000	aoffix2 snapshot (2s, epoll)
+ok	1.530000	aoffix2 filename (2s, epoll)
+ok	0.170000	aoffix2 error (2s, epoll)
+ok	0.560000	aoffix2 tickets (2s, epoll)
+ok	0.560000	aoffix2 exec_tickets (2s, epoll)
+ok	0.550000	aoffix2 resurrection (2s, epoll)
+ok	0.420000	aoffix2 rewrite_fail2 (2s, epoll)
+ok	0.310000	aoffix2 manifest_missing (2s, epoll)
+ok	0.290000	aoffix2 off-writer acknowledgement everysec (2s, epoll)
+ok	0.300000	aoffix2 off-writer acknowledgement always (2s, epoll)
+ok	0.360000	aoffix2 large (1s, epoll)
+ok	0.210000	aoffix2 large_placed (1s, epoll)
+ok	0.060000	configuration reduction + actual geometry (uring, atomic 0)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (uring, atomic 0)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.060000	configuration reduction + actual geometry (uring, atomic 1)
+ok	0.440000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+ok	0.050000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (uring, atomic 1)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.260000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.030000	AOF always sync + reply gate fired
+ok	0.020000	AOF always recovery after quiescent SIGKILL
+ok	0.940000	AOF in-window kill recovery (2s, uring)
+ok	3.400000	AOF in-window term recovery (2s, uring)
+ok	0.890000	AOF in-window kill recovery (1s, uring)
+ok	2.620000	AOF in-window term recovery (1s, uring)
+ok	1.840000	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)
+ok	1.920000	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)
+ok	2.000000	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)
+ok	2.050000	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)
+ok	1.300000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	5.260000	AOF rewrite atomic/stage/corruption matrix
+ok	5.680000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data
+ok	0.430000	aoffix2 snapshot (1s, uring)
+ok	1.460000	aoffix2 filename (1s, uring)
+ok	0.180000	aoffix2 error (1s, uring)
+ok	0.560000	aoffix2 tickets (1s, uring)
+ok	0.560000	aoffix2 exec_tickets (1s, uring)
+ok	0.540000	aoffix2 resurrection (1s, uring)
+ok	0.410000	aoffix2 rewrite_fail2 (1s, uring)
+ok	0.310000	aoffix2 manifest_missing (1s, uring)
+ok	0.290000	aoffix2 off-writer acknowledgement everysec (1s, uring)
+ok	0.290000	aoffix2 off-writer acknowledgement always (1s, uring)
+ok	0.430000	aoffix2 snapshot (2s, uring)
+ok	1.480000	aoffix2 filename (2s, uring)
+ok	0.180000	aoffix2 error (2s, uring)
+ok	0.550000	aoffix2 tickets (2s, uring)
+ok	0.550000	aoffix2 exec_tickets (2s, uring)
+ok	0.550000	aoffix2 resurrection (2s, uring)
+ok	0.330000	aoffix2 rewrite_fail2 (2s, uring)
+ok	0.300000	aoffix2 manifest_missing (2s, uring)
+ok	0.280000	aoffix2 off-writer acknowledgement everysec (2s, uring)
+ok	0.290000	aoffix2 off-writer acknowledgement always (2s, uring)
+ok	0.340000	aoffix2 large (1s, uring)
+ok	0.200000	aoffix2 large_placed (1s, uring)
+ok	0.650000	snapshot concurrent cut (epoll)
+ok	0.190000	snapshot cut reload (epoll)
+ok	2.830000	snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+ok	5.340000	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+ok	0.050000	typed snapshot save (epoll)
+ok	0.050000	typed snapshot reload (epoll)
+ok	0.160000	typed snapshot preimage race (epoll)
+ok	0.060000	typed snapshot race reload (epoll)
+ok	0.830000	shutdown keeps acknowledged writes (1s, sigterm, epoll)
+ok	0.820000	shutdown keeps acknowledged writes (1s, command, epoll)
+ok	0.980000	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)
+ok	0.970000	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)
+ok	0.840000	shutdown keeps acknowledged writes (2s, sigterm, epoll)
+ok	0.840000	shutdown keeps acknowledged writes (2s, command, epoll)
+ok	1.090000	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)
+ok	1.080000	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)
+ok	0.630000	snapshot concurrent cut (uring)
+ok	0.170000	snapshot cut reload (uring)
+ok	2.770000	snapshot never tears a cross-shard MSET group (uring, atomic 1)
+ok	5.300000	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+ok	0.050000	typed snapshot save (uring)
+ok	0.050000	typed snapshot reload (uring)
+ok	0.160000	typed snapshot preimage race (uring)
+ok	0.060000	typed snapshot race reload (uring)
+ok	0.850000	shutdown keeps acknowledged writes (1s, sigterm, uring)
+ok	0.830000	shutdown keeps acknowledged writes (1s, command, uring)
+ok	0.990000	shutdown cancels BGSAVE capture (1s, atomic 0, uring)
+ok	0.980000	shutdown cancels BGSAVE capture (1s, atomic 1, uring)
+ok	0.840000	shutdown keeps acknowledged writes (2s, sigterm, uring)
+ok	0.840000	shutdown keeps acknowledged writes (2s, command, uring)
+ok	1.090000	shutdown cancels BGSAVE capture (2s, atomic 0, uring)
+ok	1.070000	shutdown cancels BGSAVE capture (2s, atomic 1, uring)
+ok	9.170000	plain-write lost updates (atomic 0)
+ok	0.160000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.130000	scriptatomic battery (atomic 0)
+ok	14.470000	execatomic battery (atomic 0)
+ok	11.880000	execiso battery (atomic 0)
+ok	0.440000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.780000	multirace battery (atomic 0)
+ok	30.590000	session_monotonic battery (atomic 0)
+ok	0.360000	xacct battery (atomic 0)
+ok	0.030000	xmove battery (atomic 0)
+ok	3.270000	xscript battery (atomic 0)
+ok	1.990000	txn_nx battery (atomic 0)
+ok	9.320000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.480000	slowlog battery (atomic 1)
+ok	0.040000	atomfix battery (atomic 1)
+ok	0.130000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.860000	execiso battery (atomic 1)
+ok	0.440000	execfix battery (atomic 1)
+ok	0.110000	multires battery (atomic 1)
+ok	0.780000	multirace battery (atomic 1)
+ok	30.600000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.030000	xmove battery (atomic 1)
+ok	3.270000	xscript battery (atomic 1)
+ok	2.330000	txn_nx battery (atomic 1)
+ok	9.470000	txniso battery (atomic 1)
+ok	26.970000	iofix WB4.1 deferred IO parks
+ok	39.860000	iofix IO4.9 Redis hz cron
+ok	31.750000	iofix IO4.10 global DEBUG SLEEP
+ok	18.520000	iofix IO4.17 immediate signal shutdown
+ok	5.980000	writeback policies 0/1: 22 standard fixtures
+ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (1s)
+ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (2s)
+ok	42.380000	stationary balanced LB holds still (1s)
+ok	42.370000	stationary balanced LB holds still (2s)
+ok	1.010000	R7 generated envelope parity
+ok	14.460000	R7 production engagement (both database runtimes)
+FAIL	71.230000	R7 FIFO twin off-path identity + negative controls
+ok	1.990000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	13.980000	atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+ok	0.110000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.120000	core concurrency drain
+ok	7.060000	core concurrency route
+ok	0.120000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	0.130000	FLIP planned-connection close lifetime (ASAN+TSAN)
+ok	0.130000	FLIP fingerprint publication (ASAN+TSAN)
+ok	0.030000	shutdown policy + signal handoff serverless
+ok	0.340000	shutdown persistence (1s, command)
+ok	0.130000	shutdown persistence (1s, sigterm)
+ok	0.140000	shutdown persistence (1s, sigint)
+ok	0.340000	shutdown persistence (2s, command)
+ok	0.130000	shutdown persistence (2s, sigterm)
+ok	0.130000	shutdown persistence (2s, sigint)
+ok	1.750000	clientfix tracking-cap (1s)
+ok	6.850000	clientfix tracking-pipeline (1s)
+ok	13.820000	clientfix reply-skip (1s)
+ok	0.300000	clientfix pattern-cleanup (1s)
+ok	1.120000	clientfix pause-deadline (1s)
+ok	0.110000	clientfix geo-count (1s)
+ok	0.110000	clientfix geo-store (1s)
+ok	1.750000	clientfix tracking-cap (2s)
+ok	6.850000	clientfix tracking-pipeline (2s)
+ok	11.610000	clientfix reply-skip (2s)
+ok	0.300000	clientfix pattern-cleanup (2s)
+ok	1.120000	clientfix pause-deadline (2s)
+ok	0.110000	clientfix geo-count (2s)
+ok	0.110000	clientfix geo-store (2s)
+ok	1.430000	INFO command/socket counters (TSan, both modes)
+ok	1.590000	Climon armed refresh + stale-store suppression control
+ok	0.040000	AOF publication/shutdown witnesses + negative controls
+ok	0.130000	perfex clock binary regression
+ok	0.130000	perfex batch binary regression
+ok	15.240000	perfex TTL sampler beat (1s)
+ok	15.240000	perfex TTL sampler beat (2s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s)
+ok	1.180000	NT-new-4 command clock after dequeue (1s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s, epoll)
+ok	0.200000	LB sampler exceptional cleanup + negative control
+ok	0.200000	LB monitor plan handoff + negative controls
+ok	15.980000	exbatch publication unit + negative controls
+ok	42.190000	exbatch watch unit + negative controls
+ok	17.520000	exbatch metadata unit + negative controls
+ok	0.270000	exbatch publication and WATCH lifecycle (1s)
+ok	0.280000	exbatch publication and WATCH lifecycle (2s)
+ok	0.100000	writeback c12 policy witnesses + negative controls
+ok	5.330000	writeback c12 phase witnesses + negative controls
+ok	2.090000	writeback c12 stages witnesses + negative controls
+ok	5.750000	writeback c12 split-phase witnesses + negative controls
+ok	7.120000	writeback policy clauses witnesses + negative controls
+ok	2.100000	writeback policy paths witnesses + negative controls
+ok	1.020000	splitlocal template forwarding + old-argument controls
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.200000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.500000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	12.210000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+FAIL	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.000000	atomic survivor: write_latest
+ok	0.000000	atomic survivor: script_apply
+ok	0.000000	atomic survivor: post_apply_probe
+ok	0.000000	atomic survivor: lua_conversion
+ok	0.000000	atomic survivor: watch_parent
+ok	0.000000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+FAIL	0.000000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	0.000000	netcmd regression build
+ok	0.000000	netcmd streams regression
+ok	0.000000	netcmd zpop regression
+ok	0.000000	netcmd notify-oom regression
+ok	0.010000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.000000	netcmd output regression
+ok	0.000000	netcmd pubsub regression
+ok	0.010000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.000000	encodingfix knob
+ok	0.000000	encodingfix precedence
+ok	0.010000	NET1 serverless bounds + scan + reclamation
+ok	0.310000	NET1 inline + query cap (1s, uring)
+ok	0.310000	NET1 inline + query cap (1s, epoll)
+ok	0.310000	NET1 inline + query cap (2s, uring)
+ok	0.300000	NET1 inline + query cap (2s, epoll)
+ok	1.670000	netfix NT4.6 query-limit INFO parity
+ok	1.140000	netfix NT4.11 Unix pathname parity
+ok	2.570000	netfix NT4.8 network CONFIG error parity
+ok	11.370000	netfix NT4.7 TLS default cipher parity
+ok	316.180000	netfix NT4.19 idle buffer reclamation
+ok	539.300000	RESP protocol error compatibility
+ok	0.010000	reject --mode (flag deleted)
+ok	0.010000	reject --spread
+ok	0.010000	reject --nodes
+ok	0.000000	reject 3-part ratio
+ok	0.000000	reject missing conf
+ok	0.000000	reject bad conf key
+ok	0.000000	reject aclfile + conf user lines
+ok	0.300000	Redis default databases 16 (both modes)
+ok	0.050000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence
+ok	2.140000	read-only resize split read-local=0
+ok	2.140000	read-only resize split read-local=1
+ok	1.630000	read-only resize fused read-local=0
+ok	1.640000	read-only resize fused read-local=1
+ok	6.630000	torture battery
+ok	1.020000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+ok	32.840000	atomic torn/window battery
+ok	4.070000	atomic RYOW/mixed-write battery
+ok	4.230000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	2.700000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.700000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.740000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.710000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.690000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.690000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.680000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.680000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	1.170000	hexpread torn (1s)
+ok	3.350000	hexpread replies (1s)
+ok	1.170000	hexpread deferred (1s)
+ok	1.160000	hexpread OBJECT expiry (1s)
+ok	1.160000	hexpread torn (2s)
+ok	3.350000	hexpread replies (2s)
+ok	1.180000	hexpread deferred (2s)
+ok	1.170000	hexpread OBJECT expiry (2s)
+ok	35.580000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	35.570000	compat3 CC4.13 pending vs Redis 7.4
+ok	35.530000	compat3 CC4.14 history vs Redis 7.4
+ok	35.590000	compat3 CC4.16 grammar vs Redis 7.4
+ok	35.550000	compat3 CC4.5 glob vs Redis 7.4
+ok	37.780000	compat3 CC4.17 flags vs Redis 7.4
+ok	34.830000	datafix2 CD4.7 no-touch lookups vs Redis 7.4
+ok	34.020000	datafix2 CD4.15 string encoding vs Redis 7.4
+ok	59.920000	datafix2 CD4.14 expired_subkeys vs Redis 7.4
+ok	121.050000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	599.720000	datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4
+ok	0.910000	dispatchfix EX4.10 container outer arity
+ok	0.940000	dispatchfix EX4.11 container errors
+ok	1.470000	dispatchfix EX4.4 advertised children
+ok	14.780000	dispatchfix CC4.15 ACL subcommand grants
+ok	5.200000	dispatchfix EX4.17 uniform routing and legacy recovery
+ok	2.140000	B+ held-group GET/MGET filter battery
+ok	0.170000	read-local lane admission battery
+ok	0.090000	read-local MGET fence battery (1s)
+ok	1.930000	read-local GET miss battery (1s)
+ok	0.140000	read-local one-key delete battery (1s)
+ok	0.400000	read-local MGET fence battery (2s)
+ok	1.930000	read-local GET miss battery (2s)
+ok	0.130000	read-local one-key delete battery (2s)
+ok	0.290000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.290000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.330000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.280000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.290000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.290000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.300000	read-local borrow capability (2s, uring, read-local 1)
+FAIL	0.350000	INFO selective collection (1s, epoll, read-local 0)
+FAIL	0.360000	INFO selective collection (1s, epoll, read-local 1)
+FAIL	0.350000	INFO selective collection (1s, uring, read-local 0)
+FAIL	0.350000	INFO selective collection (1s, uring, read-local 1)
+FAIL	0.350000	INFO selective collection (2s, epoll, read-local 0)
+FAIL	0.340000	INFO selective collection (2s, epoll, read-local 1)
+FAIL	0.350000	INFO selective collection (2s, uring, read-local 0)
+FAIL	0.360000	INFO selective collection (2s, uring, read-local 1)
+ok	6.100000	ACL recheck one-reply battery (2s)
+ok	6.200000	ACL recheck one-reply battery (1s)
+ok	0.070000	aclfix sort (1s)
+ok	0.060000	aclfix streams-name (1s)
+ok	0.070000	aclfix save-load (1s)
+ok	2.050000	aclfix capacity (1s)
+ok	0.080000	aclfix wake-pop (1s)
+ok	0.080000	aclfix wake-scatter (1s)
+ok	0.070000	aclfix sort (2s)
+ok	0.060000	aclfix streams-name (2s)
+ok	0.070000	aclfix save-load (2s)
+ok	1.870000	aclfix capacity (2s)
+ok	0.080000	aclfix wake-pop (2s)
+ok	0.070000	aclfix wake-scatter (2s)
+ok	0.120000	cross-owner SORT battery (atomic 0)
+ok	0.120000	cross-owner SORT battery (atomic 1)
+ok	0.050000	xscript limit control
+ok	1.040000	xscript window control
+ok	0.120000	scriptfix sandbox (1s)
+ok	0.120000	scriptfix functions (1s)
+ok	0.710000	scriptfix replies (1s)
+ok	1.450000	scriptfix dump (1s)
+ok	0.120000	scriptfix sandbox (2s)
+ok	0.110000	scriptfix functions (2s)
+ok	0.710000	scriptfix replies (2s)
+ok	1.460000	scriptfix dump (2s)
+ok	38.850000	lualibs CC4.7 vs Redis 7.4
+ok	0.070000	DUMP/RESTORE prepare + native SAVE
+ok	0.050000	DUMP/RESTORE cross-restart round-trip
+ok	0.030000	DUMP/RESTORE restart shutdown invariants
+ok	0.010000	reject bad protected-mode
+ok	0.000000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	5.570000	ACL battery (atomic off)
+ok	5.570000	ACL battery (atomic on)
+ok	2.470000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream
+ok	0.910000	authfix CG4.1 binary config requirepass
+ok	3.470000	authfix CG4.2 missing config value refuses boot
+ok	0.910000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.310000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.300000	authfix SV4.1 slowlog credential redaction (2s)
+ok	6.320000	latencyfix LAT-HIST-1 knob grammar
+ok	1.780000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	13.400000	latencyfix LAT-HIST-1 zero allocations off
+ok	8.520000	serverfix CG4.3 physical config lines
+ok	19.760000	serverfix CG4.4 shared scalar grammar
+ok	0.980000	serverfix SV4.6 CONFIG validation matrix
+ok	0.790000	serverfix SV4.7 HELLO canonical protocol
+ok	6.880000	serverfix SV4.5 WAITAOF wait lifecycle
+ok	6.150000	serverfix SV4.8 HyperLogLog self-test controls
+ok	13.650000	serverfix SV4.14 disabled slowlog allocation
+ok	14.280000	serverfix CC4.26 disabled ACL log allocation
+ok	2.080000	MULTI feature battery
+ok	1.580000	blocking feature battery
+ok	0.900000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	46.660000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants
+ok	22.570000	notification compatibility setbit vs Redis 7.4
+ok	41.510000	notification compatibility setpast vs Redis 7.4
+ok	50.810000	notification compatibility emptystore vs Redis 7.4
+ok	42.850000	notification compatibility writemiss vs Redis 7.4
+ok	43.770000	notification compatibility objectmiss vs Redis 7.4
+ok	144.800000	notification compatibility expiredstore vs Redis 7.4
+ok	57.040000	notification compatibility flush vs Redis 7.4
+ok	37.450000	tracking REDIRECT close vs Redis 7.4
+ok	73.590000	keyspace lazy-expiry order vs Redis 7.4
+ok	13.270000	local script notification AOF vs Redis 7.4
+ok	54.850000	tracking-only delivery/drop accounting vs Redis 7.4
+ok	220.710000	tracking delayed-write order vs Redis 7.4
+ok	0.150000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.250000	FLIP close during FLIP (uring)
+ok	2.210000	FLIP close during FLIP (epoll)
+ok	1.180000	FLIP signal stop during FLIP + second SIGINT
+ok	0.540000	perfio stale epoll registration (epoll-flip)
+ok	1.100000	perfio stale epoll registration (epoll-lb)
+ok	29.780000	FLIP listener conservation (io-ex, complete)
+ok	29.970000	FLIP listener conservation (io-ex, rollback)
+ok	29.300000	FLIP listener conservation (ex-io, complete)
+ok	29.440000	FLIP listener conservation (ex-io, rollback)
+ok	6.110000	FLIP applies under saturated load
+ok	0.020000	flip battery shutdown invariants
+ok	0.000000	tripwire arm/disarm round-trip
+ok	0.070000	pipelined same-conn program order (400 rolls)
+ok	0.320000	AOF control frame never inside a large record (atomic 0)
+ok	0.330000	AOF control frame never inside a large record (atomic 1)
+ok	10.280000	AOF commit order single
+ok	4.520000	AOF commit order crossing
+ok	4.740000	AOF commit order rewrite
+ok	0.880000	TLS ephemeral CA/server/client certificates
+ok	0.040000	NET2 serverless RX policy and KeyUpdate controls
+ok	0.010000	reject TLS listener without certificate
+ok	0.010000	reject invalid tls-protocols
+ok	0.010000	reject invalid tls-ciphers
+ok	0.050000	TLS client-auth yes matrix
+ok	0.020000	TLS yes shutdown invariants
+ok	0.060000	TLS client-auth optional matrix
+ok	0.030000	kTLS TLS 1.2 engaged live (default boot)
+ok	0.170000	TLS 1.3 KeyUpdate survives (NET2)
+ok	0.170000	TLS 1.3 userspace KeyUpdate survives (NET2)
+ok	0.020000	TLS optional shutdown invariants
+ok	15.090000	TLS pipeline/torn-record/coexistence battery
+ok	0.020000	TLS shutdown invariants
+ok	0.020000	TLS application send path error-free
+ok	0.060000	TLS connection slots all freed (N/N)
+ok	0.010000	TLS zc borrow gates fired (suppressed=N)
+ok	5.810000	TLS silent-peer close after reply (ntfix N2)
+ok	10.620000	RESP pre-AUTH limit errors (ntfix N3)
+ok	15.030000	RESP query-buffer frontier (ntfix N4)
+ok	5.570000	INFO received bytes exact (ntfix N1)
+ok	0.260000	fused boot line (atomic 0)
+ok	1.190000	fused s6 battery (atomic 0)
+ok	2.110000	fused multi_exec battery (atomic 0)
+ok	0.760000	fused edgeproto battery (atomic 0)
+ok	0.070000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.160000	fused shutdown report (atomic 0)
+ok	1.630000	fused txn_nx battery (atomic 0)
+ok	9.730000	fused txniso battery (atomic 0)
+ok	0.260000	fused boot line (atomic 1)
+ok	1.180000	fused s6 battery (atomic 1)
+ok	2.100000	fused multi_exec battery (atomic 1)
+ok	0.730000	fused edgeproto battery (atomic 1)
+ok	0.080000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.160000	fused shutdown report (atomic 1)
+ok	2.910000	fused txn_nx battery (atomic 1)
+ok	8.820000	fused txniso battery (atomic 1)
+ok	12.870000	fused txngroup battery (atomic 1)
+ok	12.880000	txngroup battery (atomic 1)
+ok	102.250000	txnorder index oracle
+ok	2.550000	txnorder index complexity
+ok	0.030000	txnorder wound group
+ok	0.030000	txnorder wound exec
+ok	0.030000	txnorder wound oom
+ok	0.090000	txnorder wound d2
+ok	0.030000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.020000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.030000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.070000	txnorder2 writer episode R8
+ok	0.020000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.020000	txnorder2 writer episode R11
+ok	4.560000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.690000	txnorder2 WATCH serve
+ok	30.370000	txnorder2 WATCH flush
+ok	27.920000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake
+ok	49.000000	txnorder battery (fused, atomic 0)
+ok	49.020000	txnorder battery (fused, atomic 1)
+ok	49.780000	txnorder battery (split, atomic 0)
+ok	48.680000	txnorder battery (split, atomic 1)
+ok	6.940000	torture under ASAN
+ok	1.030000	RYOW under ASAN
+ok	27.850000	atomic torn/window under ASAN
+ok	4.080000	atomic RYOW under ASAN
+ok	0.020000	ASAN clean
+ok	1.240000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+ok	25.210000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants
+ok	2.050000	glob/scan grammar parity vs Redis 7.4
+ok	1.230000	feature 1s-0-0-0-0
+ok	0.110000	feature 1s-0-0-0-1
+ok	1.240000	feature 1s-0-0-1-0
+ok	0.100000	feature 1s-0-0-1-1
+ok	1.240000	feature 1s-0-1-0-0
+ok	0.100000	feature 1s-0-1-0-1
+ok	1.230000	feature 1s-0-1-1-0
+ok	0.110000	feature 1s-0-1-1-1
+ok	1.240000	feature 1s-1-0-0-0
+ok	0.100000	feature 1s-1-0-0-1
+ok	1.240000	feature 1s-1-0-1-0
+ok	0.110000	feature 1s-1-0-1-1
+ok	1.250000	feature 1s-1-1-0-0
+ok	0.110000	feature 1s-1-1-0-1
+ok	1.250000	feature 1s-1-1-1-0
+ok	0.110000	feature 1s-1-1-1-1
+ok	1.240000	feature 2s-0-0-0-0
+ok	1.250000	feature 2s-0-0-0-1
+ok	1.240000	feature 2s-0-0-1-0
+ok	1.240000	feature 2s-0-0-1-1
+ok	1.240000	feature 2s-0-1-0-0
+ok	1.240000	feature 2s-0-1-0-1
+ok	1.240000	feature 2s-0-1-1-0
+ok	2.340000	feature 2s-0-1-1-1
+ok	1.230000	feature 2s-1-0-0-0
+ok	1.240000	feature 2s-1-0-0-1
+ok	1.240000	feature 2s-1-0-1-0
+ok	1.240000	feature 2s-1-0-1-1
+ok	1.250000	feature 2s-1-1-0-0
+ok	1.240000	feature 2s-1-1-0-1
+ok	2.360000	feature 2s-1-1-1-0
+ok	1.240000	feature 2s-1-1-1-1
+ok	1.240000	feature split-home-min
+ok	1.240000	feature fused-home-max-nopin
+ok	1.240000	feature split-shards-auto

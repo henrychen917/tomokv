@@ -1,0 +1,204 @@
+{
+  "uring": {
+    "summary": "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/infofix/differ-uring-final.ledger.partial",
+    "parts": [
+      {
+        "job": "differ-armed-0",
+        "completion": {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "full:gate-run.HvHCR6",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            25
+          ],
+          "comparisons": 322,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-armed-1",
+        "completion": {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "full:gate-run.HvHCR6",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            25
+          ],
+          "comparisons": 326,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-equivalence",
+        "completion": {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "full:gate-run.HvHCR6",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            25
+          ],
+          "comparisons": 16,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-split-0",
+        "completion": {
+          "schema": 1,
+          "part": "split-0",
+          "run": "full:gate-run.HvHCR6",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            25
+          ],
+          "comparisons": 329,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-split-1",
+        "completion": {
+          "schema": 1,
+          "part": "split-1",
+          "run": "full:gate-run.HvHCR6",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            25
+          ],
+          "comparisons": 333,
+          "complete": true
+        }
+      }
+    ],
+    "archive": "docs/infofix/evidence/differ-uring-final.tar.gz"
+  },
+  "epoll": {
+    "summary": "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/infofix/differ-epoll-final.ledger.partial",
+    "parts": [
+      {
+        "job": "differ-armed-0",
+        "completion": {
+          "schema": 1,
+          "part": "armed-0",
+          "run": "full:gate-run.7lqvFn",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            24
+          ],
+          "comparisons": 322,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-armed-1",
+        "completion": {
+          "schema": 1,
+          "part": "armed-1",
+          "run": "full:gate-run.7lqvFn",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            24
+          ],
+          "comparisons": 326,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-equivalence",
+        "completion": {
+          "schema": 1,
+          "part": "equivalence",
+          "run": "full:gate-run.7lqvFn",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            24
+          ],
+          "comparisons": 16,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-split-0",
+        "completion": {
+          "schema": 1,
+          "part": "split-0",
+          "run": "full:gate-run.7lqvFn",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            24
+          ],
+          "comparisons": 329,
+          "complete": true
+        }
+      },
+      {
+        "job": "differ-split-1",
+        "completion": {
+          "schema": 1,
+          "part": "split-1",
+          "run": "full:gate-run.7lqvFn",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22,
+            24
+          ],
+          "comparisons": 333,
+          "complete": true
+        }
+      }
+    ],
+    "archive": "docs/infofix/evidence/differ-epoll-final.tar.gz"
+  }
+}

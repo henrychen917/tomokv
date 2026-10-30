@@ -1,0 +1,7 @@
+{
+  "status": "NOT RUN",
+  "reason": "Kernel tracing permission unavailable: passwordless sudo was denied and perf_event_open for an owned-child uprobe returned EACCES (13). No password requested and no system setting changed.",
+  "capability_probe_only": true,
+  "uprobe_type": 9,
+  "perf_event_paranoid": -1
+}

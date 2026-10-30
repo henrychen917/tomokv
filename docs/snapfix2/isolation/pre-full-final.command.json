@@ -1,0 +1,58 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "8-15",
+    "python3",
+    "tests/snapfix_neighbours.py",
+    "--case",
+    "flushall",
+    "--binary",
+    "build/snapfix2/pre/tomokv",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "0-7",
+    "--port",
+    "20100",
+    "--output",
+    "/home/user/Projects/cx-snapfix2/docs/snapfix2/isolation/pre-full-final"
+  ],
+  "environment": {},
+  "binary": "build/snapfix2/pre/tomokv",
+  "binary_sha256": "da219bf6c15d7f7649e6f6f2758ed7407f8ba6e4456ef48ea2a416ba01de710c",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "exit": 1,
+  "seconds": 54.788,
+  "log_sha256": "2b5b65ef310f9d3c783515cbd456e423cb32be0a6a82d97eda34bed248dad951",
+  "removed_data": {
+    "1s-epoll-1/dump.tomo": {
+      "bytes": 940,
+      "sha256": "a280ee8cbe6fe7ceecb07ee4b32f751a566df1f0e6538d59b13f49a761293a13"
+    },
+    "2s-uring-0/dump.tomo": {
+      "bytes": 940,
+      "sha256": "d5ef0fbc8e164f319e098479b9eb2ba068cbdd46081f711fa50b5c7300d99914"
+    },
+    "1s-uring-0/dump.tomo": {
+      "bytes": 940,
+      "sha256": "9ca42989712ebb1daba697bc20e4f03413eefb6d28679c8fc9e3546dc6d9c431"
+    },
+    "2s-epoll-0/dump.tomo": {
+      "bytes": 940,
+      "sha256": "f538a274dd27e7746c411517c52a71e9939f1a122e6b40d84695d09794a42c47"
+    },
+    "redis-redis-0/dump.rdb": {
+      "bytes": 200,
+      "sha256": "8bb4c2c9ab581775e0c2770274eba6b27211302fe54d73547e3848625ff74770"
+    },
+    "2s-epoll-1/dump.tomo": {
+      "bytes": 940,
+      "sha256": "b41c0f92f870b003dd91cdebda6c04a09cdf92102a350748fda395dbd3c5d20c"
+    },
+    "2s-uring-1/dump.tomo": {
+      "bytes": 940,
+      "sha256": "25f23579d159c49610265b2f3da23b5d5b20bedbf724d29d58c1da7c8f7c2ec8"
+    }
+  }
+}

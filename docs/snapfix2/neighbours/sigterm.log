@@ -1,0 +1,9 @@
+{"case": "sigterm", "leg": "redis-redis-0", "value": {"restored": [2391, 2391], "acknowledged_max": [2388, 2388], "sent": 2394}, "pass": true, "seconds": 0.277}
+{"case": "sigterm", "leg": "1s-uring-0", "value": {"restored": [87, 87], "acknowledged_max": [87, 87], "sent": 107}, "pass": true, "seconds": 0.054}
+{"case": "sigterm", "leg": "1s-uring-1", "value": {"restored": [81, 81], "acknowledged_max": [81, 81], "sent": 107}, "pass": true, "seconds": 0.054}
+{"case": "sigterm", "leg": "1s-epoll-0", "value": {"restored": [97, 97], "acknowledged_max": [97, 97], "sent": 117}, "pass": true, "seconds": 0.051}
+{"case": "sigterm", "leg": "1s-epoll-1", "value": {"restored": [107, 107], "acknowledged_max": [107, 107], "sent": 125}, "pass": true, "seconds": 0.052}
+{"case": "sigterm", "leg": "2s-uring-0", "value": {"restored": [99, 99], "acknowledged_max": [99, 99], "sent": 120}, "pass": true, "seconds": 0.051}
+{"case": "sigterm", "leg": "2s-uring-1", "value": {"restored": [84, 84], "acknowledged_max": [84, 84], "sent": 100}, "pass": true, "seconds": 0.054}
+{"case": "sigterm", "leg": "2s-epoll-0", "value": {"restored": [116, 116], "acknowledged_max": [116, 116], "sent": 133}, "pass": true, "seconds": 0.052}
+{"case": "sigterm", "leg": "2s-epoll-1", "value": {"restored": [108, 108], "acknowledged_max": [108, 108], "sent": 125}, "pass": true, "seconds": 0.052}

@@ -1,0 +1,104 @@
+{
+  "arm": {
+    "arm": "C-PRE",
+    "source_commit": "83e0b809d0fdeb4bf43647bd0cada7a4f14f241d",
+    "binary": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+    "sha256": "47c4cc498a212922433220c57efca3b7e249e3c23889623a0c7de0e0feeb043b",
+    "bytes": 218187712
+  },
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "20001",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/oracle",
+      "--enable-debug-command",
+      "yes",
+      "--appendonly",
+      "no"
+    ],
+    [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/C-PRE",
+      "--port",
+      "20000",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/target",
+      "--enable-debug-command",
+      "yes",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--net-io",
+      "epoll",
+      "--databases",
+      "16",
+      "--atomic",
+      "0"
+    ]
+  ],
+  "seed": 22,
+  "suite": "psfix",
+  "mode": "2s",
+  "atomic": 0,
+  "engine": "epoll",
+  "results": [
+    {
+      "repeat": 0,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/0.log",
+      "sha256": "48a4daf0fcf1caf8b4c2280599351b6064613c90fae789ce4bd4e74075713c5a"
+    },
+    {
+      "repeat": 1,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/1.log",
+      "sha256": "931e31b81d6294d6b47d2a1baaa7b33fbdd57cb9e1acd2e100e51a164e421296"
+    },
+    {
+      "repeat": 2,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/2.log",
+      "sha256": "0ebbe014cd5e13500b00ecfbdc3880e49d668e14f0b18ceea0dfef966606b63e"
+    },
+    {
+      "repeat": 3,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/3.log",
+      "sha256": "7217bd99351035dbf103aa7680f587a0a21d951f0916a9d21b43de0fd4005ee9"
+    },
+    {
+      "repeat": 4,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/4.log",
+      "sha256": "e82081b78b59afae6f7b517ac25158144f74dc48ca577ef5f89a712597183603"
+    },
+    {
+      "repeat": 5,
+      "returncode": 0,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/5.log",
+      "sha256": "973c10157eddc86c7302f2c3cf6dd027585ebc29e32a9bab22b51ae29e73fdac"
+    },
+    {
+      "repeat": 6,
+      "returncode": 1,
+      "log": "/home/user/Projects/cx-exec1s-d/build/exec1s-d/save-native-C-PRE/6.log",
+      "sha256": "f0eb4a3056b94ed316a0690a9eb4eb27bd3440233f2632a323e8890bc723d793"
+    }
+  ]
+}

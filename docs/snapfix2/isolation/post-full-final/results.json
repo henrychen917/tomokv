@@ -1,0 +1,125 @@
+[
+  {
+    "case": "flushall",
+    "leg": "redis-redis-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        6136,
+        6136,
+        4101,
+        4101
+      ],
+      "scripts": 149583,
+      "execs": 99304,
+      "writes": 94242
+    },
+    "pass": true,
+    "seconds": 5.25
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 229, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 110, [(['snapfix:fe:0', 'snapfix:fe:1'], b'6303', None), (['snapfix:fe:0', 'snapfix:fe:1'], b'36', b'35'), (['snapfix:fe:0', 'snapfix:fe:1'], b'151', b'150'), (['snapfix:fe:0', 'snapfix:fe:1'], b'261', b'260'), (['snapfix:fe:0', 'snapfix:fe:1'], b'377', b'376')])\n",
+    "seconds": 5.169
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-1",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        4563,
+        4563,
+        4088,
+        4088
+      ],
+      "scripts": 112381,
+      "execs": 99671,
+      "writes": 97737
+    },
+    "pass": true,
+    "seconds": 5.151
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 229, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 216, [(['snapfix:fe:0', 'snapfix:fe:1'], b'69', b'68'), (['snapfix:fe:0', 'snapfix:fe:1'], b'181', b'180'), (['snapfix:fe:0', 'snapfix:fe:1'], b'295', b'294'), (['snapfix:fe:0', 'snapfix:fe:1'], b'408', b'407'), (['snapfix:fe:0', 'snapfix:fe:1'], b'528', b'527')])\n",
+    "seconds": 5.162
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 229, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 53, [(['snapfix:fe:0', 'snapfix:fe:1'], b'74', b'73'), (['snapfix:fe:0', 'snapfix:fe:1'], b'187', b'186'), (['snapfix:fe:0', 'snapfix:fe:1'], b'302', b'301'), (['snapfix:fe:0', 'snapfix:fe:1'], b'414', b'413'), (['snapfix:fe:0', 'snapfix:fe:1'], b'530', b'529')])\n",
+    "seconds": 5.147
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        5926,
+        5926,
+        3674,
+        3674
+      ],
+      "scripts": 145436,
+      "execs": 90502,
+      "writes": 101965
+    },
+    "pass": true,
+    "seconds": 5.162
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 415, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 229, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 54, [(['snapfix:fe:0', 'snapfix:fe:1'], b'86', b'85'), (['snapfix:fe:0', 'snapfix:fe:1'], b'191', b'190'), (['snapfix:fe:0', 'snapfix:fe:1'], b'281', b'280'), (['snapfix:fe:0', 'snapfix:fe:1'], b'384', b'383'), (['snapfix:fe:0', 'snapfix:fe:1'], b'476', b'475')])\n",
+    "seconds": 5.163
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        5748,
+        5748,
+        4198,
+        4198
+      ],
+      "scripts": 144625,
+      "execs": 96461,
+      "writes": 95176
+    },
+    "pass": true,
+    "seconds": 5.163
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 50,
+      "final": [
+        6111,
+        6111,
+        3986,
+        3986
+      ],
+      "scripts": 149491,
+      "execs": 93160,
+      "writes": 95762
+    },
+    "pass": true,
+    "seconds": 5.163
+  }
+]

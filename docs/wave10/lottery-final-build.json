@@ -1,0 +1,13 @@
+{
+  "note": "Rebuilt after final pruning audit found the lottery executable older than the explicit telemetry-label header. The old 96b279... receipt remains in variant-builds.json; this current-source build replaces that path.",
+  "path": "/home/user/Projects/cx-wave10/build/lottery/tomokv",
+  "sha256": "caf62aa1d822b66a7cbee87048d60d73f82143a7404691087c59b082c49516d3",
+  "build_log": "docs/wave10/lottery-final-rebuild.log",
+  "freshness_exit": 0,
+  "freshness_output": "",
+  "netio_receipt": "docs/wave10/jobs/final-lottery-current-source.json",
+  "netio_summary": [
+    "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave10/docs/wave10/jobs/final-lottery-current-source.tsv.partial"
+  ],
+  "freshness_after_object_prune": 0
+}

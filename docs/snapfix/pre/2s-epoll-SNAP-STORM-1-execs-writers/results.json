@@ -1,0 +1,64 @@
+[
+  {
+    "defect": "SNAP-STORM-1",
+    "attempt": 0,
+    "value": {
+      "counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6334,
+        9147,
+        9197,
+        9256,
+        17,
+        9,
+        11,
+        4,
+        18874,
+        296572,
+        28105,
+        287940
+      ],
+      "attempts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6334,
+        9147,
+        9197,
+        9256,
+        5371,
+        3915,
+        3920,
+        3989,
+        18874,
+        296572,
+        28105,
+        287940
+      ],
+      "flips": 0,
+      "saves": 11,
+      "flip_refusals": [],
+      "flip_max_seconds": 0,
+      "pre_control_refusals": 0
+    },
+    "pass": true
+  },
+  {
+    "defect": "SNAP-STORM-1",
+    "attempt": 1,
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix/tests/at412_diagnostics.py\", line 91, in main\n    row['value'] = a.storm(c, port, keys, call, args.redis, args.seconds, bgsave=True,\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix/tests/at412.py\", line 504, in storm\n    assert not errors, errors\n           ^^^^^^^^^^\nAssertionError: [\"TimeoutError('timed out')\", \"TimeoutError('timed out')\", \"TimeoutError('timed out')\", \"TimeoutError('timed out')\", \"TimeoutError('timed out')\", \"TimeoutError('timed out')\"]\n"
+  }
+]

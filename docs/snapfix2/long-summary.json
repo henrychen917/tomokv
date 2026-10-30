@@ -1,0 +1,182 @@
+[
+  {
+    "leg": "1s-epoll-30",
+    "samples": 30,
+    "baseline": 30281728,
+    "peak": 40296448,
+    "limit": 157954048,
+    "pass": true,
+    "saves": 299,
+    "writes": 11942592,
+    "execs": 147824,
+    "snapshot": [
+      147731,
+      147731
+    ]
+  },
+  {
+    "leg": "1s-epoll-6",
+    "samples": 6,
+    "baseline": 29650944,
+    "peak": 31961088,
+    "limit": 156061696,
+    "pass": true,
+    "saves": 60,
+    "writes": 3480128,
+    "execs": 41399,
+    "snapshot": [
+      40657,
+      40657
+    ]
+  },
+  {
+    "leg": "1s-epoll-60",
+    "samples": 60,
+    "baseline": 28905472,
+    "peak": 39735296,
+    "limit": 153825280,
+    "pass": true,
+    "saves": 597,
+    "writes": 42244224,
+    "execs": 520934,
+    "snapshot": [
+      520296,
+      520296
+    ]
+  },
+  {
+    "leg": "1s-uring-30",
+    "samples": 30,
+    "baseline": 30326784,
+    "peak": 40402944,
+    "limit": 158089216,
+    "pass": true,
+    "saves": 299,
+    "writes": 12387264,
+    "execs": 154719,
+    "snapshot": [
+      154709,
+      154709
+    ]
+  },
+  {
+    "leg": "1s-uring-6",
+    "samples": 6,
+    "baseline": 30015488,
+    "peak": 32989184,
+    "limit": 157155328,
+    "pass": true,
+    "saves": 60,
+    "writes": 2560960,
+    "execs": 31548,
+    "snapshot": [
+      31240,
+      31240
+    ]
+  },
+  {
+    "leg": "1s-uring-60",
+    "samples": 60,
+    "baseline": 31920128,
+    "peak": 41820160,
+    "limit": 162869248,
+    "pass": true,
+    "saves": 597,
+    "writes": 27439936,
+    "execs": 319524,
+    "snapshot": [
+      319417,
+      319417
+    ]
+  },
+  {
+    "leg": "2s-epoll-30",
+    "samples": 30,
+    "baseline": 28188672,
+    "peak": 33742848,
+    "limit": 151674880,
+    "pass": true,
+    "saves": 67,
+    "writes": 4032640,
+    "execs": 43763,
+    "snapshot": [
+      43758,
+      43758
+    ]
+  },
+  {
+    "leg": "2s-epoll-6",
+    "samples": 6,
+    "baseline": 26140672,
+    "peak": 26636288,
+    "limit": 145530880,
+    "pass": true,
+    "saves": 13,
+    "writes": 450368,
+    "execs": 4252,
+    "snapshot": [
+      3924,
+      3924
+    ]
+  },
+  {
+    "leg": "2s-epoll-60",
+    "samples": 60,
+    "baseline": 26144768,
+    "peak": 36933632,
+    "limit": 145543168,
+    "pass": true,
+    "saves": 491,
+    "writes": 42441280,
+    "execs": 277382,
+    "snapshot": [
+      277379,
+      277379
+    ]
+  },
+  {
+    "leg": "2s-uring-30",
+    "samples": 30,
+    "baseline": 26828800,
+    "peak": 31268864,
+    "limit": 147595264,
+    "pass": true,
+    "saves": 59,
+    "writes": 3204480,
+    "execs": 31145,
+    "snapshot": [
+      31134,
+      31134
+    ]
+  },
+  {
+    "leg": "2s-uring-6",
+    "samples": 6,
+    "baseline": 26349568,
+    "peak": 28123136,
+    "limit": 146157568,
+    "pass": true,
+    "saves": 19,
+    "writes": 1055168,
+    "execs": 12154,
+    "snapshot": [
+      12148,
+      12148
+    ]
+  },
+  {
+    "leg": "2s-uring-60",
+    "samples": 60,
+    "baseline": 27381760,
+    "peak": 33050624,
+    "limit": 149254144,
+    "pass": true,
+    "saves": 91,
+    "writes": 4522176,
+    "execs": 45828,
+    "snapshot": [
+      45811,
+      45811
+    ]
+  }
+]

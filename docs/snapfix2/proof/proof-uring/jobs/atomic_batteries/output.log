@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; atomic torn/window battery
+  atomic torn/window battery                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic RYOW/mixed-write battery
+  atomic RYOW/mixed-write battery                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic owner-local hazard battery
+  atomic owner-local hazard battery                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic shutdown invariants
+  atomic shutdown invariants                           ok

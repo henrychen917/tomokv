@@ -1,0 +1,697 @@
+{
+  "mode": "1s",
+  "net_io": "uring",
+  "databases": 16,
+  "binary_sha256": "e3e27f91e173ab1ebedbf45f598890a67dcbbbb0acbf129c3faa42b740ec4f35",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "rows": [
+    {
+      "root": "EVAL-SHEBANG",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "#!lua\nreturn 1",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],'1')",
+            "1",
+            "x"
+          ],
+          "equal": false,
+          "target": "-ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'\r\n",
+          "redis": "-ERR Write commands are not allowed from read-only scripts. script: c1f7bebd018cef984bb55939ec4cec6a331c78d3, on @user_script:2.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "#!not-lua\nreturn 1",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'\r\n",
+          "redis": "-ERR Unexpected engine in script shebang: #!not-lua\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "load",
+            "#!lua\nreturn 1"
+          ],
+          "equal": false,
+          "target": "-ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'\r\n",
+          "redis": "$40\r\ncb70127618f0b0be70c53cf6bfcfa54a29d9b0c0\r\n"
+        }
+      ],
+      "differences": 4
+    },
+    {
+      "root": "EVALSHA-SHA-CASE",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "load",
+            "return 'hello'"
+          ],
+          "equal": true,
+          "target": "$40\r\n1b936e3fe509bcbc9cd0664897bbe8fd0cac101b\r\n",
+          "redis": "$40\r\n1b936e3fe509bcbc9cd0664897bbe8fd0cac101b\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "evalsha",
+            "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+            "0"
+          ],
+          "equal": false,
+          "target": "-NOSCRIPT No matching script. Please use EVAL.\r\n",
+          "redis": "$5\r\nhello\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "script",
+            "exists",
+            "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B"
+          ],
+          "equal": false,
+          "target": "*1\r\n:0\r\n",
+          "redis": "*1\r\n:1\r\n"
+        }
+      ],
+      "differences": 2
+    },
+    {
+      "root": "FCALL-NAME-CASE",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib1\nredis.register_function('test', function() return 'hello' end)"
+          ],
+          "equal": true,
+          "target": "$4\r\nlib1\r\n",
+          "redis": "$4\r\nlib1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "TEST",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR Function not found\r\n",
+          "redis": "$5\r\nhello\r\n"
+        }
+      ],
+      "differences": 1
+    },
+    {
+      "root": "FUNCTION-LOAD-DENYOOM",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "set",
+            "x",
+            "123"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "config",
+            "set",
+            "maxmemory",
+            "1"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "set",
+            "x",
+            "456"
+          ],
+          "equal": true,
+          "target": "-OOM command not allowed when used memory > 'maxmemory'.\r\n",
+          "redis": "-OOM command not allowed when used memory > 'maxmemory'.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=oom1\nredis.register_function('o1', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "$4\r\noom1\r\n",
+          "redis": "-OOM command not allowed when used memory > 'maxmemory'.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "config",
+            "set",
+            "maxmemory",
+            "0"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        }
+      ],
+      "differences": 1
+    },
+    {
+      "root": "FUNCTION-LOAD-ENV",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=env1\nlocal p = math.pi\nredis.register_function('e1', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "$4\r\nenv1\r\n",
+          "redis": "-ERR Error registering functions: ERR user_function:2: Script attempted to access nonexistent global variable 'math'\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=env2\nlocal mt = getmetatable(_G)\nredis.register_function('e2', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "$4\r\nenv2\r\n",
+          "redis": "-ERR Error registering functions: ERR user_function:2: Script attempted to access nonexistent global variable 'getmetatable'\r\n"
+        }
+      ],
+      "differences": 2
+    },
+    {
+      "root": "FUNCTION-REGISTER-ARGS",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib2\nredis.register_function('f2', 'not a function')"
+          ],
+          "equal": false,
+          "target": "-ERR Error registering functions: ERR callback argument given to redis.register_function must be a function\r\n",
+          "redis": "-ERR Error registering functions: ERR second argument to redis.register_function must be a function\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib2\nredis.register_function(nil, function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "-ERR Error registering functions: ERR function_name argument given to redis.register_function must be a string\r\n",
+          "redis": "-ERR Error registering functions: ERR first argument to redis.register_function must be a string\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib2\nredis.register_function('test\u0000test', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "$4\r\nlib2\r\n",
+          "redis": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=lib3\nredis.register_function('', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "-ERR Error registering functions: ERR redis.register_function must get a function name argument\r\n",
+          "redis": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib4\nlocal lib = redis\nlib.register_function('f4', function() lib.register_function('f5', function() return 1 end) end)"
+          ],
+          "equal": true,
+          "target": "$4\r\nlib4\r\n",
+          "redis": "$4\r\nlib4\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "f4",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR redis.register_function is not available here script: f4, on @user_function:3.\r\n",
+          "redis": "-ERR redis.register_function can only be called on FUNCTION LOAD command script: f4, on @user_function:3.\r\n"
+        }
+      ],
+      "differences": 5
+    },
+    {
+      "root": "FUNCTION-SHEBANG-META",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=foo name=bar\nredis.register_function('foo', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "$3\r\nbar\r\n",
+          "redis": "-ERR Invalid metadata value, name argument was given multiple times\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=\"foo\"\nredis.register_function('foo', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "-ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n",
+          "redis": "$3\r\nfoo\r\n"
+        }
+      ],
+      "differences": 2
+    },
+    {
+      "root": "FUNCTION-SUBCMD-ARGS",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "foo",
+            "bar",
+            "#!lua name=lib9\nredis.register_function('t9', function() return 1 end)"
+          ],
+          "equal": false,
+          "target": "-ERR wrong number of arguments for 'function|load' command\r\n",
+          "redis": "-ERR Unknown option given: foo\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "restore",
+            "arg1",
+            "arg2",
+            "arg3"
+          ],
+          "equal": false,
+          "target": "-ERR wrong number of arguments for 'function|restore' command\r\n",
+          "redis": "-ERR unknown subcommand or wrong number of arguments for 'restore'. Try FUNCTION HELP.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "flush",
+            "sync",
+            "extra"
+          ],
+          "equal": false,
+          "target": "-ERR FUNCTION FLUSH only supports SYNC|ASYNC option\r\n",
+          "redis": "-ERR unknown subcommand or wrong number of arguments for 'flush'. Try FUNCTION HELP.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "list",
+            "withcode",
+            "withcode"
+          ],
+          "equal": false,
+          "target": "*0\r\n",
+          "redis": "-ERR Unknown argument withcode\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "list",
+            "libraryname",
+            "a",
+            "libraryname",
+            "b"
+          ],
+          "equal": false,
+          "target": "*0\r\n",
+          "redis": "-ERR Unknown argument libraryname\r\n"
+        }
+      ],
+      "differences": 5
+    },
+    {
+      "root": "LUA-REDIS-API",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply('MY_ERR custom msg')",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR user_script:1: attempt to call field 'error_reply' (a nil value) script: 9e5fbfbf0caf4946c7553a1a67b8951c35e24649, on @user_script:1.\r\n",
+          "redis": "-MY_ERR custom msg\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.status_reply('MY_OK custom msg')",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR user_script:1: attempt to call field 'status_reply' (a nil value) script: ddb4265bb3c19b8e216f2d272497e935e173695f, on @user_script:1.\r\n",
+          "redis": "+MY_OK custom msg\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.log(redis.LOG_NOTICE,'x') return 1",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR user_script:1: attempt to call field 'log' (a nil value) script: 63e775bb86ea47dfad4445067aef6fe929b1a2fe, on @user_script:1.\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.REDIS_VERSION_NUM",
+            "0"
+          ],
+          "equal": false,
+          "target": "$-1\r\n",
+          "redis": ":459786\r\n"
+        }
+      ],
+      "differences": 4
+    },
+    {
+      "root": "LUA-SANDBOX-GLOBALS",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(os.clock)",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR user_script:1: Script attempted to access nonexistent global variable 'os' script: a77c6b6a35d742ce4fa4148cd19b1d66c90f8fe7, on @user_script:1.\r\n",
+          "redis": "$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(loadstring)",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR user_script:1: Script attempted to access nonexistent global variable 'loadstring' script: 1619785578fc037f9b68d726a70e9ea43a5d8ab3, on @user_script:1.\r\n",
+          "redis": "$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(coroutine)",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR user_script:1: Script attempted to access nonexistent global variable 'coroutine' script: ee9a75a6fda6c1ece25420e1b3337791f1842f30, on @user_script:1.\r\n",
+          "redis": "$5\r\ntable\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return type(collectgarbage)",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR user_script:1: Script attempted to access nonexistent global variable 'collectgarbage' script: 1ea1369d2ef1dd1deecf7b4d07df03d714e627a1, on @user_script:1.\r\n",
+          "redis": "$8\r\nfunction\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return {type(math.random), type(math.randomseed)}",
+            "0"
+          ],
+          "equal": false,
+          "target": "*2\r\n$3\r\nnil\r\n$3\r\nnil\r\n",
+          "redis": "*2\r\n$8\r\nfunction\r\n$8\r\nfunction\r\n"
+        }
+      ],
+      "differences": 5
+    },
+    {
+      "root": "SCRIPT-ERROR-WORDING",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.call()",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR redis.call requires a command name script: 0a907e1429221a4d85516cab7fd219a82a9439d8, on @user_script:1.\r\n",
+          "redis": "-ERR Please specify at least one argument for this redis lib call script: 0a907e1429221a4d85516cab7fd219a82a9439d8, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.call('get','a','b','c')",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR wrong number of arguments for command from script script: f5f71fcf8b24988a9c8238862169363942a76e38, on @user_script:1.\r\n",
+          "redis": "-ERR Wrong number of args calling Redis command from script script: f5f71fcf8b24988a9c8238862169363942a76e38, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.call('get',{})",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR Lua redis() command arguments must be strings or integers script: 4deb073a545207f215b56dcef5ca825f9f406808, on @user_script:1.\r\n",
+          "redis": "-ERR Lua redis lib command arguments must be strings or integers script: 4deb073a545207f215b56dcef5ca825f9f406808, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "error({})",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR runtime error script: 367bf7fe449ba40e54d99d9086aa3c2164008136, on @user_script:1.\r\n",
+          "redis": "-ERR unknown error script: 367bf7fe449ba40e54d99d9086aa3c2164008136, on @user_script:1.\r\n"
+        }
+      ],
+      "differences": 4
+    },
+    {
+      "root": "SCRIPT-NUMBER-ARG",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.call('set',KEYS[1],9007199254740991) return redis.call('get',KEYS[1])",
+            "1",
+            "foo"
+          ],
+          "equal": false,
+          "target": "$18\r\n9.007199254741e+15\r\n",
+          "redis": "$16\r\n9007199254740991\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.call('set',KEYS[1],0.1+0.2) return redis.call('get',KEYS[1])",
+            "1",
+            "foo"
+          ],
+          "equal": false,
+          "target": "$3\r\n0.3\r\n",
+          "redis": "$19\r\n0.30000000000000004\r\n"
+        }
+      ],
+      "differences": 2
+    },
+    {
+      "root": "SCRIPT-REPLY-DEPTH",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "local t={} local c=t for i=1,40 do c[1]={} c=c[1] end return t",
+            "0"
+          ],
+          "equal": false,
+          "target": "-ERR Error running script: script reply nesting is too deep\r\n",
+          "redis": "*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*1\r\n*0\r\n"
+        }
+      ],
+      "differences": 1
+    },
+    {
+      "root": "ACL-SCRIPTS-NEED-ALLCOMMANDS",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "acl",
+            "setuser",
+            "bob",
+            "on",
+            ">123",
+            "+@scripting",
+            "~*"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        },
+        {
+          "c": "b",
+          "send": [
+            "auth",
+            "bob",
+            "123"
+          ],
+          "equal": true,
+          "target": "+OK\r\n",
+          "redis": "+OK\r\n"
+        },
+        {
+          "c": "b",
+          "send": [
+            "eval",
+            "return 1",
+            "0"
+          ],
+          "equal": false,
+          "target": "-NOPERM User bob has no permissions to run the 'eval' command\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "b",
+          "send": [
+            "fcall",
+            "nosuch",
+            "0"
+          ],
+          "equal": false,
+          "target": "-NOPERM User bob has no permissions to run the 'fcall' command\r\n",
+          "redis": "-ERR Function not found\r\n"
+        }
+      ],
+      "differences": 2
+    }
+  ],
+  "target_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-scriptfix2/build/scriptfix2/pre/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20500",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-scriptfix2/docs/scriptfix2/pre-1s/target",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--net-io",
+    "uring",
+    "--flip-auto",
+    "0"
+  ],
+  "oracle_argv": [
+    "taskset",
+    "-c",
+    "104",
+    "/home/user/Projects/redis74/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20501",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-scriptfix2/docs/scriptfix2/pre-1s/redis",
+    "--enable-debug-command",
+    "yes"
+  ]
+}

@@ -1,0 +1,11 @@
+--- a/src/store/flatstore.h
++++ b/src/store/flatstore.h
+@@ -1039,7 +1039,7 @@
+         // Keeping at least cap_[0] makes their existing admission bound safe for the merge.
+         uint64_t sized = kMinCap;
+         while ((static_cast<uint64_t>(live_[0]) + 1) * 100 >= sized * kLoadPct) sized *= 2;
+-        uint64_t wanted = std::max<uint64_t>(cap_[0], std::min<uint64_t>(sized, cap_[0]) * 2);
++        uint64_t wanted = std::min<uint64_t>(sized, cap_[0]) * 2;
+         if (wanted > UINT32_MAX) return SnapshotWriteResult::Error;
+         const uint32_t cap = round_pow2(static_cast<uint32_t>(wanted));
+         if (!cap) return SnapshotWriteResult::Error;

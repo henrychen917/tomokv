@@ -1,0 +1,24 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/user/Projects/redis/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20100",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-snapfix2/build/gate-run.R7avud/jobs/serverfix_waitaof/serverfix-waitaof/oracle/redis-redis/data",
+    "--protected-mode",
+    "no"
+  ],
+  "pid": 2226791,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

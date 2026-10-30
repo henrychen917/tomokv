@@ -7,6 +7,7 @@ namespace tomo {
 namespace {
 constexpr UrKind kListenerAccept = static_cast<UrKind>(18);
 constexpr UrKind kListenerCancel = static_cast<UrKind>(19);
+static_assert(UrKind::WakeSent != kListenerAccept && UrKind::WakeSent != kListenerCancel);
 constexpr uint32_t kListeners = 3 * kMaxThreads;
 constexpr UrKind kinds[] = {UrKind::Accept, UrKind::TlsAccept, UrKind::UnixAccept};
 

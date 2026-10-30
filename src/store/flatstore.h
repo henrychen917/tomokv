@@ -60,6 +60,7 @@
 // kilo-slot runs. Measured at ~6,600 probes per lookup. slot_start() mixes again before taking the
 // index; that alone was worth 2.5-2.7x.
 #pragma once
+#include "../core/exec1s.h"
 #include <algorithm>
 #include <atomic>
 #include "../base/tomo_assert.h"
@@ -1033,7 +1034,14 @@ public:
         if (snapshot_prepared_) return SnapshotWriteResult::Ready;
         if (read_local_enabled_ && !prepare_resize_retirement())
             return SnapshotWriteResult::Error;
-        uint64_t wanted = static_cast<uint64_t>(cap_[0]) * 2;
+        // A completed snapshot leaves its fresh table installed. Doubling cap_[0] on every
+        // cut therefore grows an idle store forever. Reserve twice the ordinary live-set
+        // capacity instead, bounded above by the old rule. Do not shrink here: until Mark,
+        // prepared inserts (including atomic reservations) may still fill the current table.
+        // Keeping at least cap_[0] makes their existing admission bound safe for the merge.
+        uint64_t sized = kMinCap;
+        while ((static_cast<uint64_t>(live_[0]) + 1) * 100 >= sized * kLoadPct) sized *= 2;
+        uint64_t wanted = std::max<uint64_t>(cap_[0], std::min<uint64_t>(sized, cap_[0]) * 2);
         if (wanted > UINT32_MAX) return SnapshotWriteResult::Error;
         const uint32_t cap = round_pow2(static_cast<uint32_t>(wanted));
         if (!cap) return SnapshotWriteResult::Error;
@@ -1676,6 +1684,9 @@ public:
         return refuse_over_budget();
     }
 
+
+    // Cold owner maintenance; ordinary admission keeps its existing instruction path.
+    uint32_t evict_over_limit();
 
     // Takes ownership of `o` only on success; frees anything it displaces.
     InsertResult insert(uint64_t h, KvObj* o) {
@@ -2406,9 +2417,10 @@ private:
         return o;
     }
 
+    template <bool ProtectKey = true>
     KvObj* choose_victim(Slice protected_key) {
         if (__builtin_expect(read_local_enabled_, false))
-            return choose_victim_read_local(protected_key);
+            return choose_victim_read_local<ProtectKey>(protected_key);
         KvObj* best = nullptr;
         KvObj* seen[64];
         uint32_t seen_count = 0;
@@ -2416,7 +2428,8 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key().key_eq(protected_key)) continue;
+            if (!candidate) continue;
+            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
@@ -2523,10 +2536,10 @@ private:
             flatstore_table_calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
     }
 
-    // FLUSH's replacement table. A prepared snapshot sized its post-cut table at twice the current
-    // capacity and suppresses every resize until the cut, refusing new keys only when the current
-    // table is full: a larger replacement would accept keys that table cannot absorb and wedge the
-    // post-capture merge. clear() changes neither input, so it may ask again before installing.
+    // FLUSH's replacement table. A prepared snapshot suppresses every resize until the cut,
+    // refusing new keys only when the current table is full. Keep the replacement below the
+    // prepared destination's capacity so those keys still fit in the post-capture merge.
+    // clear() changes neither input, so it may ask again before installing.
     uint32_t clear_capacity() const {
         return snapshot_prepared_ ? std::min<uint32_t>(snapshot_new_cap_ / 2, 1024) : 1024;
     }
@@ -3093,6 +3106,7 @@ private:
         write_eviction_meta_read_local(o, count);
     }
 
+    template <bool ProtectKey = true>
     KvObj* choose_victim_read_local(Slice protected_key) {
         KvObj* best = nullptr;
         KvObj* seen[64];
@@ -3101,7 +3115,8 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key().key_eq(protected_key)) continue;
+            if (!candidate) continue;
+            if constexpr (ProtectKey) if (candidate->key().key_eq(protected_key)) continue;
             if (atomic_needs_version(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)

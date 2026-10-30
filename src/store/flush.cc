@@ -9,7 +9,7 @@ AtomicEntry* FlatStore::atomic_install_flush(ScatterState* group, int ns,
                                  std::atomic<uint64_t>* epoch,
                                  std::atomic<bool>* aborted,
                                  std::atomic<uint32_t>* refs, uint64_t origin, uint32_t shard) {
-    if (!atomic_ensure_pending() || atomic_pending_->ranges == UINT16_MAX) return nullptr;
+    if (!atomic_ensure_pending()) return nullptr;
     auto* entry = atomic_alloc_entry(0, 0);
     if (!entry) return nullptr;
     entry->group = group;
@@ -23,7 +23,9 @@ AtomicEntry* FlatStore::atomic_install_flush(ScatterState* group, int ns,
     entry->range_all = ns < 0;
     entry->key_ns = ns < 0 ? 0 : ns;
     if (read_local_enabled_) foreign_read_poison_open();
-    ++atomic_pending_->ranges;
+    if (atomic_pending_->ranges != UINT8_MAX) ++atomic_pending_->ranges;
+    // Range installs do not use atomic_finish_group_install's fused count.
+    if (group) ++atomic_pending_->group_records;
     refs->fetch_add(1, std::memory_order_relaxed);
     atomic_link_entry(*entry);
     return entry;
@@ -36,7 +38,13 @@ void FlatStore::atomic_flush_release(AtomicEntry* entry) {
     if (entry->next) entry->next->prev = entry->prev;
     else atomic_pending_->tail = entry->prev;
     atomic_unlink_conn(*entry);
-    --atomic_pending_->ranges;
+    if (atomic_pending_->ranges != UINT8_MAX) --atomic_pending_->ranges;
+    else {
+        uint8_t remaining = 0;
+        for (auto* e = atomic_pending_->head; e && remaining != UINT8_MAX; e = e->next)
+            remaining += e->namespace_range;
+        atomic_pending_->ranges = remaining;
+    }
     --atomic_pending_->live;
     if (!atomic_pending_->live && !atomic_pending_->script_intent_count && atomic_activity_)
         atomic_activity_->fetch_sub(1, std::memory_order_release);

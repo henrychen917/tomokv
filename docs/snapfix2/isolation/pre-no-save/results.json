@@ -1,0 +1,137 @@
+[
+  {
+    "case": "flushall",
+    "leg": "redis-redis-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        6313,
+        6313,
+        4182,
+        4182
+      ],
+      "scripts": 152255,
+      "execs": 100804,
+      "writes": 96696
+    },
+    "pass": true,
+    "seconds": 5.247
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 389, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 205, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 34, [(['snapfix:fe:0', 'snapfix:fe:1'], None, b'5584'), (['snapfix:fe:0', 'snapfix:fe:1'], None, b'5883'), (['snapfix:fe:0', 'snapfix:fe:1'], b'62', b'61'), (['snapfix:fe:0', 'snapfix:fe:1'], b'108', b'107'), (['snapfix:fe:0', 'snapfix:fe:1'], b'175', b'174')])\n",
+    "seconds": 5.186
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-uring-1",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 389, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 205, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 107, [(['snapfix:fe:0', 'snapfix:fe:1'], b'110', b'109'), (['snapfix:fe:0', 'snapfix:fe:1'], b'228', b'227'), (['snapfix:fe:0', 'snapfix:fe:1'], b'340', b'339'), (['snapfix:fe:0', 'snapfix:fe:1'], b'455', b'454'), (['snapfix:fe:0', 'snapfix:fe:1'], b'627', b'626')])\n",
+    "seconds": 5.151
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-0",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 389, in main\n    row['value'] = CASES[args.case](args, args.output / label, mode, engine, atomic, oracle)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-snapfix2/tests/snapfix_neighbours.py\", line 205, in case_flushall\n    assert not torn, ('torn atomic pair observed', len(torn), torn[:5])\n           ^^^^^^^^\nAssertionError: ('torn atomic pair observed', 110, [(['snapfix:fe:0', 'snapfix:fe:1'], b'67', b'69'), (['snapfix:fe:0', 'snapfix:fe:1'], b'181', b'183'), (['snapfix:fe:0', 'snapfix:fe:1'], b'314', b'316'), (['snapfix:fe:0', 'snapfix:fe:1'], b'440', b'442'), (['snapfix:fe:0', 'snapfix:fe:1'], b'562', b'564')])\n",
+    "seconds": 5.146
+  },
+  {
+    "case": "flushall",
+    "leg": "1s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        4965,
+        4965,
+        4246,
+        4246
+      ],
+      "scripts": 121025,
+      "execs": 103495,
+      "writes": 100395
+    },
+    "pass": true,
+    "seconds": 5.146
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        6095,
+        6095,
+        4034,
+        4034
+      ],
+      "scripts": 148754,
+      "execs": 98185,
+      "writes": 91238
+    },
+    "pass": true,
+    "seconds": 5.162
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-uring-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        5961,
+        5961,
+        3952,
+        3952
+      ],
+      "scripts": 148347,
+      "execs": 98044,
+      "writes": 95034
+    },
+    "pass": true,
+    "seconds": 5.163
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-0",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        6064,
+        6064,
+        4073,
+        4073
+      ],
+      "scripts": 147305,
+      "execs": 97448,
+      "writes": 94378
+    },
+    "pass": true,
+    "seconds": 5.164
+  },
+  {
+    "case": "flushall",
+    "leg": "2s-epoll-1",
+    "value": {
+      "flushes": 17,
+      "saves": 0,
+      "final": [
+        6176,
+        6176,
+        3959,
+        3959
+      ],
+      "scripts": 148197,
+      "execs": 97397,
+      "writes": 93886
+    },
+    "pass": true,
+    "seconds": 5.163
+  }
+]

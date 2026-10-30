@@ -212,8 +212,13 @@ def epoll_lb(args):
         assert after == before + 1, "directed client-LB move never completed within 35 seconds"
         traffic(peers, 2)  # replies prove destination installation, without a guessed sleep
         moved = audit(p.pid, "lb-moved", len(peers)+1)
+        current_io = selected.must("DEBUG", "IO-THREAD")
+        emit(event="lb-destination", client_id=client_id, inode=inode,
+             source_ep=source_ep, destination_ep=destination_ep,
+             actual_ep=moved.get(inode), source_io=source_io,
+             destination_io=destination_io, actual_io=current_io)
         assert moved[inode] == [destination_ep], ("selected socket did not move", inode, moved[inode])
-        assert selected.must("DEBUG", "IO-THREAD") == destination_io
+        assert current_io == destination_io
         events(admin, peers, "lb-moved")
 
 
