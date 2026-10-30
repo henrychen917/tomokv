@@ -1,0 +1,2396 @@
+{
+  "function_groups": 10208,
+  "unchanged": 9467,
+  "changed": 741,
+  "lane_equal": 286,
+  "residual": 455,
+  "hot_groups": 1386,
+  "hot_headline": 1220,
+  "hot_lane": 41,
+  "command_hot_groups": 86,
+  "command_hot_headline": 74,
+  "command_hot_lane": 1,
+  "hot_residual": [
+    {
+      "name": "tomo::(anonymous namespace)::command_key_args(tomo::MultiQueuedCommand const&, std::vector<unsigned int, std::allocator<unsigned int> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2095
+      ],
+      "post_sizes": [
+        2095
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        407
+      ],
+      "post_sizes": [
+        407
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::eval_header(tomo::Slice, tomo::Slice&, unsigned int&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2151
+      ],
+      "post_sizes": [
+        2041
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10358
+      ],
+      "post_sizes": [
+        10358
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1476
+      ],
+      "post_sizes": [
+        1471
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::readonly_eval(lua_State*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        98
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4739
+      ],
+      "post_sizes": [
+        4931
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, std::shared_ptr<tomo::(anonymous namespace)::ScriptSource const> const&, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        854
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::serialize_object(tomo::KvObj*, tomo::(anonymous namespace)::ObjectImage&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        736
+      ],
+      "post_sizes": [
+        656
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::set_global_raw(lua_State*, char const*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        289
+      ],
+      "post_sizes": [
+        305
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::execute_latency<false, false>(tomo::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<false, false>(tomo::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<false, true>(tomo::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<true, false>(tomo::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_latency<true, true>(tomo::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12897
+      ],
+      "post_sizes": [
+        12903
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19438
+      ],
+      "post_sizes": [
+        19438
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19808
+      ],
+      "post_sizes": [
+        19808
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19987
+      ],
+      "post_sizes": [
+        19931
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12923
+      ],
+      "post_sizes": [
+        12939
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10662,
+        11211,
+        10556,
+        12255
+      ],
+      "post_sizes": [
+        10662,
+        11227,
+        10556,
+        12271
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19418
+      ],
+      "post_sizes": [
+        19418
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20016,
+        20491
+      ],
+      "post_sizes": [
+        20016,
+        20491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19925
+      ],
+      "post_sizes": [
+        19858
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19052
+      ],
+      "post_sizes": [
+        19052
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18931
+      ],
+      "post_sizes": [
+        18931
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::climon_refresh_armed()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1174
+      ],
+      "post_sizes": [
+        1100
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        467
+      ],
+      "post_sizes": [
+        467
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::MultiExecState::~MultiExecState()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2047
+      ],
+      "post_sizes": [
+        2047
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21
+      ],
+      "post_sizes": [
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1861
+      ],
+      "post_sizes": [
+        1861
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::WatchEffectScope::WatchEffectScope(tomo::Shard&, bool&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        42
+      ],
+      "post_sizes": [
+        42
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::WatchEffectScope::~WatchEffectScope()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18
+      ],
+      "post_sizes": [
+        18
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::WatchMutationScope::WatchMutationScope(tomo::Shard&, void const*, std::atomic<unsigned long>*, std::atomic<bool>*, std::atomic<unsigned int>*, tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        217
+      ],
+      "post_sizes": [
+        217
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::blocking_cleanup_published(tomo::Shard&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        126
+      ],
+      "post_sizes": [
+        126
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::command_set_local_context(tomo::Client*, tomo::ThreadCtx*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        23
+      ],
+      "post_sizes": [
+        23
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10008
+      ],
+      "post_sizes": [
+        10008
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9295
+      ],
+      "post_sizes": [
+        9295
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        958
+      ],
+      "post_sizes": [
+        953
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::script_cross_access_begin(tomo::Op&, unsigned char*, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        50
+      ],
+      "post_sizes": [
+        50
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::script_cross_access_end()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        43
+      ],
+      "post_sizes": [
+        43
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4400
+      ],
+      "post_sizes": [
+        4538
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::script_thread_state(tomo::ScriptArgStyle)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        656
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::watch_execute_handler(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        130
+      ],
+      "post_sizes": [
+        130
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::watch_record_modified(tomo::Shard&, tomo::Slice)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        169
+      ],
+      "post_sizes": [
+        169
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        21069
+      ],
+      "post_sizes": [
+        21069
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1731
+      ],
+      "post_sizes": [
+        1731
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1743
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        375
+      ],
+      "post_sizes": [
+        375
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        947
+      ],
+      "post_sizes": [
+        963
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::command_key_args(tomo_db0::MultiQueuedCommand const&, std::vector<unsigned int, std::allocator<unsigned int> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2095
+      ],
+      "post_sizes": [
+        2095
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::destroy_multi_state(tomo_db0::MultiExecState*) [clone .part.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        407
+      ],
+      "post_sizes": [
+        407
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        11455
+      ],
+      "post_sizes": [
+        11455
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::prepare_local_write_keys(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::MultiCommand&, tomo_db0::Shard&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1428
+      ],
+      "post_sizes": [
+        1439
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::readonly_eval(lua_State*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        56
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4279
+      ],
+      "post_sizes": [
+        4421
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::run_eval(tomo_db0::Shard&, tomo_db0::Op&, std::shared_ptr<tomo_db0::(anonymous namespace)::ScriptSource const> const&, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        774
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::script_workbench(tomo_db0::Server&, int, tomo_db0::TypeLimits const&, tomo_db0::StreamLimits const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1090
+      ],
+      "post_sizes": [
+        1090
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::execute_latency<false, false>(tomo_db0::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<false, false>(tomo_db0::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<false, true>(tomo_db0::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<true, false>(tomo_db0::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_latency<true, true>(tomo_db0::Task const&)::{lambda()#1}::operator()() const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        114
+      ],
+      "post_sizes": [
+        114
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12815
+      ],
+      "post_sizes": [
+        12815
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19211
+      ],
+      "post_sizes": [
+        19211
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21092
+      ],
+      "post_sizes": [
+        21025
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        277
+      ],
+      "post_sizes": [
+        281
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5"
+      ],
+      "reason": "flipfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21562
+      ],
+      "post_sizes": [
+        21572
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12953
+      ],
+      "post_sizes": [
+        12953
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10516,
+        12453,
+        10546,
+        12320
+      ],
+      "post_sizes": [
+        10516,
+        12501,
+        10439,
+        12320
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19180
+      ],
+      "post_sizes": [
+        19180
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21289,
+        20488
+      ],
+      "post_sizes": [
+        21198,
+        20488
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21442
+      ],
+      "post_sizes": [
+        21442
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19014
+      ],
+      "post_sizes": [
+        19014
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18817
+      ],
+      "post_sizes": [
+        18817
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::climon_refresh_armed()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1174
+      ],
+      "post_sizes": [
+        1100
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        467
+      ],
+      "post_sizes": [
+        467
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::MultiExecState::~MultiExecState()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2047
+      ],
+      "post_sizes": [
+        2047
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::Shard::watch_remove(tomo_db0::Slice, tomo_db0::Client*, unsigned long)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        662
+      ],
+      "post_sizes": [
+        678
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1861
+      ],
+      "post_sizes": [
+        1861
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::WatchEffectScope::WatchEffectScope(tomo_db0::Shard&, bool&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        42
+      ],
+      "post_sizes": [
+        42
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::WatchEffectScope::~WatchEffectScope()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18
+      ],
+      "post_sizes": [
+        18
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::WatchMutationScope::WatchMutationScope(tomo_db0::Shard&, void const*, std::atomic<unsigned long>*, std::atomic<bool>*, std::atomic<unsigned int>*, tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        217
+      ],
+      "post_sizes": [
+        217
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::blocking_cleanup_published(tomo_db0::Shard&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        126
+      ],
+      "post_sizes": [
+        126
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::command_set_local_context(tomo_db0::Client*, tomo_db0::ThreadCtx*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        23
+      ],
+      "post_sizes": [
+        23
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9058
+      ],
+      "post_sizes": [
+        9058
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::multi_handle_io(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::MultiExecState*&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9255
+      ],
+      "post_sizes": [
+        9255
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::multi_handle_io(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::MultiExecState*&) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        973
+      ],
+      "post_sizes": [
+        949
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::script_cross_access_begin(tomo_db0::Op&, unsigned char*, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        50
+      ],
+      "post_sizes": [
+        50
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::script_cross_access_end()",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        43
+      ],
+      "post_sizes": [
+        43
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3648
+      ],
+      "post_sizes": [
+        3457
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::script_thread_state(tomo_db0::ScriptArgStyle)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::snapshot_bind_io(tomo_db0::ThreadCtx*, tomo_db0::Ring*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        26
+      ],
+      "post_sizes": [
+        26
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::watch_execute_handler(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        130
+      ],
+      "post_sizes": [
+        130
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::watch_record_modified(tomo_db0::Shard&, tomo_db0::Slice)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        169
+      ],
+      "post_sizes": [
+        169
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1731
+      ],
+      "post_sizes": [
+        1731
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1743
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        375
+      ],
+      "post_sizes": [
+        375
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2084
+      ],
+      "post_sizes": [
+        2084
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2549
+      ],
+      "post_sizes": [
+        2549
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2001
+      ],
+      "post_sizes": [
+        2001
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2434
+      ],
+      "post_sizes": [
+        2434
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2084
+      ],
+      "post_sizes": [
+        2084
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2549
+      ],
+      "post_sizes": [
+        2549
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2001
+      ],
+      "post_sizes": [
+        2001
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2434
+      ],
+      "post_sizes": [
+        2434
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1606,
+        410,
+        306,
+        306,
+        306,
+        1606,
+        618,
+        306,
+        410,
+        306,
+        826,
+        1447,
+        810,
+        810,
+        410,
+        746,
+        1606,
+        1111,
+        810,
+        1606,
+        1606
+      ],
+      "post_sizes": [
+        1606,
+        410,
+        306,
+        306,
+        306,
+        1606,
+        618,
+        306,
+        410,
+        306,
+        826,
+        1290,
+        810,
+        810,
+        410,
+        746,
+        1606,
+        1111,
+        810,
+        1606,
+        1606
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flipfix5",
+        "scriptfix3"
+      ],
+      "reason": "Composition of flipfix5, scriptfix3; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_eval<false, false, false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        60
+      ],
+      "post_sizes": [
+        1637
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_eval<false, true, false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        275
+      ],
+      "post_sizes": [
+        622
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1183
+      ],
+      "post_sizes": [
+        1183
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        831
+      ],
+      "post_sizes": [
+        831
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        16299
+      ],
+      "post_sizes": [
+        16299
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17436
+      ],
+      "post_sizes": [
+        17436
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, false, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        59
+      ],
+      "post_sizes": [
+        1390
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3",
+        "climonfix5"
+      ],
+      "reason": "Composition of scriptfix3, climonfix5; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        275
+      ],
+      "post_sizes": [
+        439
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1183
+      ],
+      "post_sizes": [
+        1183
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        883
+      ],
+      "post_sizes": [
+        883
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        16136
+      ],
+      "post_sizes": [
+        16136
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17476
+      ],
+      "post_sizes": [
+        17476
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "climonfix5"
+      ],
+      "reason": "climonfix5 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::r7::ExReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2584
+      ],
+      "post_sizes": [
+        2584
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2772
+      ],
+      "post_sizes": [
+        2772
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "scriptfix3"
+      ],
+      "reason": "scriptfix3 changes this body; merged compiler propagation differs from isolated POST."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-e2b237926",
+      "sha256": "a6077774d6bbb800a1752e014d27c81cf2d2fa334d76ebd72d38ff7dd82bf7db"
+    },
+    "flipfix5": {
+      "path": "/home/user/Projects/bins/flipfix5-post-230c841c",
+      "sha256": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b"
+    },
+    "scriptfix3": {
+      "path": "/home/user/Projects/bins/scriptfix3-post-d9f883e8",
+      "sha256": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01"
+    },
+    "climonfix5": {
+      "path": "/home/user/Projects/bins/climonfix5-post-5580e65f",
+      "sha256": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f"
+    },
+    "baseline_climonfix5": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-393d6ceb1",
+      "sha256": "80e48ae961e1e290b46bbbace613509aaefc9a59a6c9df5ec68ea972ddca938e"
+    }
+  },
+  "post": {
+    "path": "build/wave11/tomokv-POST",
+    "sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9"
+  }
+}

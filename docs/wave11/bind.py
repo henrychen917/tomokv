@@ -34,6 +34,8 @@ def main():
     assert os.sched_getaffinity(0) <= set(range(64, 96))
     p = argparse.ArgumentParser()
     p.add_argument('label'); p.add_argument('server', type=Path)
+    p.add_argument('--domain', choices=('complete','lua'), default='complete')
+    p.add_argument('--receipt', help='Distinct receipt name for another frozen reference')
     a = p.parse_args()
     server = identity.inventory(a.server)
     _, server_asm = assembly(a.server)
@@ -46,7 +48,7 @@ def main():
         addresses = sorted(by_address)
         asm_start, probe_asm = assembly(binary)
         used, asm_used = {}, {}
-        traces = list((DOC / 'instructions' / a.label / 'complete').glob(ns+'-*.json'))
+        traces = list((DOC / 'instructions' / a.label / a.domain).glob(ns+'-*.json'))
         assert traces, (a.label, ns, 'no traces')
         for file in traces:
             row = json.loads(file.read_text())
@@ -71,9 +73,9 @@ def main():
             rows.append(dict(namespace=ns, name='[asm .rlfence]', offset=hex(offset), count=count,
                              probe=probe_asm[offset], server=server_asm.get(offset),
                              passed=probe_asm[offset] == server_asm.get(offset)))
-    result = dict(label=a.label, server_sha256=server['sha256'], bodies=rows,
+    result = dict(label=a.label, domain=a.domain, server_sha256=server['sha256'], bodies=rows,
                   passed=all(r['passed'] for r in rows))
-    (DOC / ('binding-'+a.label+'.json')).write_text(json.dumps(result, indent=2)+'\n')
+    (DOC / ('binding-'+(a.receipt or a.label)+('' if a.domain=='complete' else '-'+a.domain)+'.json')).write_text(json.dumps(result, indent=2)+'\n')
     print(a.label, len(rows), 'bodies/stub instructions;', sum(not r['passed'] for r in rows), 'mismatches', flush=True)
     raise SystemExit(0 if result['passed'] else 1)
 

@@ -1,0 +1,26 @@
+[
+  {
+    "path": "build/wave11/moverfix-unit",
+    "sha256": "50b879e6b6b56ed0fc85dda783795b6cc39b082eba3b0d8c88db397c718da3db"
+  },
+  {
+    "path": "build/wave11/moverfix-db0-unit",
+    "sha256": "32279834fbc6cfd87d24548479017ab26f04c48d9622d447d8406b81d6bf1a34"
+  },
+  {
+    "path": "build/wave11/txnorder-wake-unit",
+    "sha256": "5e6d5d9578b717f7bebcfd533c888ae56b99e35c5d2e1ba91c3198cbc91704f9"
+  },
+  {
+    "path": "build/wave11/txnorder-episodes",
+    "sha256": "80abfbb0c81660e47f25efc1cdf7cad9769121c6365726e9793d1b7650a8aab7"
+  },
+  {
+    "path": "build/wave11/txnorder-watch-unit",
+    "sha256": "7ba054f938d7e66e0cf7d30fe0aadb02d0deec61c31bf941cee8e1ec9c1916f0"
+  },
+  {
+    "path": "build/wave11/txnorder-watch-db0-unit",
+    "sha256": "18cf48371dab76f68abd41cc5fb2d8f6dd72ae71de1bb8048e06452c74e95d39"
+  }
+]

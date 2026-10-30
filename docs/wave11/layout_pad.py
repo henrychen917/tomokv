@@ -10,7 +10,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 from lbstall_artifacts import Elf
 OUT=ROOT/'build/wave11/pad-a';SRC=OUT/'source';OBJ=OUT/'objects'
 DOC=ROOT/'docs/wave11/pad-a.json'
-PRE=ROOT/'build/wave11/pre-source/build/tomokv';POST=ROOT/'build/wave11/tomokv-POST'
+PRE=ROOT/'build/wave11/tomokv-PRE';POST=ROOT/'build/wave11/tomokv-POST'
 os.sched_setaffinity(0,set(range(64,96)))
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def text(p):
@@ -38,6 +38,10 @@ def main():
          'struct ScriptSource;\nusing ScriptSourceRef = std::shared_ptr<const ScriptSource>;\nstruct LuaEngine {')
  replace('src/cmd/scripting.cc', '    ~LuaEngine() {',
          '    std::vector<ScriptSourceRef> compiled_sources;\n    ~LuaEngine() {')
+ replace('src/cmd/scripting.cc', 'thread_local LuaEngine t_lua_engine;',
+         'thread_local LuaEngine t_lua_engine;\n'
+         'thread_local LuaEngine t_function_engine __attribute__((used));\n'
+         'thread_local ScriptContext** t_eval_context_slot __attribute__((used)) = nullptr;')
  replace('src/cmd/climon.inc', '    struct ClimonConn {',
          '    struct ClimonConn {\n'
          '        struct MonitorPending { uint64_t id, excluded; bool script; uint32_t multi_order; std::string line; };')
@@ -71,7 +75,7 @@ def relink(changes,cmd):
   assert actual['address']==desired['address'];padding+=desired['size']-actual['size']
  else:raise AssertionError((actual,desired))
  result=dict(kind='A: behaviour twin',behavior='e2b237926 with inert candidate layout fields',
-   matched='ClientMeta, NotifyBatch, ClimonConn, ScriptContext and LuaEngine candidate member layout; POST .text origin and total size',
+   matched='ClientMeta, NotifyBatch, ClimonConn, ScriptContext and LuaEngine candidate member layout; inert FUNCTION engine and activation-slot TLS; POST .text origin and total size',
    limitation='Individual function offsets and data sections retain PRE placement; text extent is matched, not every function address.',
    changes=changes,command=cmd,link=link,padding_bytes=padding,pre_layout_text=before,post_text=desired,pad_text=actual,
    inputs=[dict(path=x,sha256=sha(x)) for x in link if x.endswith('.o')],

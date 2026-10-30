@@ -146,7 +146,7 @@ def main():
         from wave11_normalize import install
         install(identity.audit)
         identity.OUT = BUILD / 'identity-wave11'
-        for label in ('pre', 'selected-post', 'post'):
+        for label in ('pre', 'final-post', 'final-control', 'final-dispatch', 'final-session'):
             for counted in (DOC / 'instructions' / label).glob('*-complete-counts.json'):
                 for row in json.loads(counted.read_text())['rows']:
                     identity.COUNTED_HOT.update(identity.audit.canonical(name)

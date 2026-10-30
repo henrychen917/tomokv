@@ -1,0 +1,1047 @@
+{
+  "arms": {
+    "PRE": {
+      "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-PRE",
+      "sha256": "68c714d4059033b967dbd6d1fa8ce056e60b5988bdbf3c3f510c7f584b746edb",
+      "extent": 928,
+      "alignment": 16,
+      "aligned": 928,
+      "symbols": {
+        "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": {
+          "offset": 408,
+          "size": 8,
+          "tp_offset": -520
+        },
+        "_ZN8tomo_db012_GLOBAL__N_119xshard_commit_batchE": {
+          "offset": 64,
+          "size": 40,
+          "tp_offset": -864
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": {
+          "offset": 432,
+          "size": 8,
+          "tp_offset": -496
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": {
+          "offset": 424,
+          "size": 8,
+          "tp_offset": -504
+        },
+        "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": {
+          "offset": 416,
+          "size": 1,
+          "tp_offset": -512
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118multi_retry_signalE": {
+          "offset": 417,
+          "size": 1,
+          "tp_offset": -511
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118watch_effect_scopeE": {
+          "offset": 392,
+          "size": 8,
+          "tp_offset": -536
+        },
+        "_ZN8tomo_db012_GLOBAL__N_120watch_mutation_scopeE": {
+          "offset": 400,
+          "size": 8,
+          "tp_offset": -528
+        },
+        "__tls_guard": {
+          "offset": 832,
+          "size": 1,
+          "tp_offset": -96
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": {
+          "offset": 440,
+          "size": 16,
+          "tp_offset": -488
+        },
+        "_ZN8tomo_db012_GLOBAL__N_18g_clientE": {
+          "offset": 536,
+          "size": 8,
+          "tp_offset": -392
+        },
+        "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": {
+          "offset": 464,
+          "size": 56,
+          "tp_offset": -464
+        },
+        "_ZN8tomo_db012_GLOBAL__N_18g_threadE": {
+          "offset": 528,
+          "size": 8,
+          "tp_offset": -400
+        },
+        "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": {
+          "offset": 520,
+          "size": 8,
+          "tp_offset": -408
+        },
+        "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": {
+          "offset": 544,
+          "size": 8,
+          "tp_offset": -384
+        },
+        "_ZZN8tomo_db012_GLOBAL__N_111next_randomEvE5state": {
+          "offset": 104,
+          "size": 8,
+          "tp_offset": -824
+        },
+        "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": {
+          "offset": 600,
+          "size": 24,
+          "tp_offset": -328
+        },
+        "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": {
+          "offset": 576,
+          "size": 24,
+          "tp_offset": -352
+        },
+        "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": {
+          "offset": 624,
+          "size": 16,
+          "tp_offset": -304
+        },
+        "_ZN8tomo_db012_GLOBAL__N_113active_timingE": {
+          "offset": 112,
+          "size": 8,
+          "tp_offset": -816
+        },
+        "_ZZN8tomo_db014multidb_randomEmE5state": {
+          "offset": 136,
+          "size": 8,
+          "tp_offset": -792
+        },
+        "_ZN8tomo_db012_GLOBAL__N_111active_partE": {
+          "offset": 640,
+          "size": 8,
+          "tp_offset": -288
+        },
+        "_ZN8tomo_db012_GLOBAL__N_116active_get_batchE": {
+          "offset": 648,
+          "size": 8,
+          "tp_offset": -280
+        },
+        "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": {
+          "offset": 680,
+          "size": 8,
+          "tp_offset": -248
+        },
+        "_ZN4tomo12_GLOBAL__N_119xshard_commit_batchE": {
+          "offset": 256,
+          "size": 40,
+          "tp_offset": -672
+        },
+        "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": {
+          "offset": 704,
+          "size": 8,
+          "tp_offset": -224
+        },
+        "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": {
+          "offset": 696,
+          "size": 8,
+          "tp_offset": -232
+        },
+        "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": {
+          "offset": 688,
+          "size": 1,
+          "tp_offset": -240
+        },
+        "_ZN4tomo12_GLOBAL__N_118multi_retry_signalE": {
+          "offset": 689,
+          "size": 1,
+          "tp_offset": -239
+        },
+        "_ZN4tomo12_GLOBAL__N_118watch_effect_scopeE": {
+          "offset": 664,
+          "size": 8,
+          "tp_offset": -264
+        },
+        "_ZN4tomo12_GLOBAL__N_120watch_mutation_scopeE": {
+          "offset": 672,
+          "size": 8,
+          "tp_offset": -256
+        },
+        "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": {
+          "offset": 712,
+          "size": 16,
+          "tp_offset": -216
+        },
+        "_ZN4tomo12_GLOBAL__N_18g_clientE": {
+          "offset": 808,
+          "size": 8,
+          "tp_offset": -120
+        },
+        "_ZN4tomo12_GLOBAL__N_113g_client_metaE": {
+          "offset": 736,
+          "size": 56,
+          "tp_offset": -192
+        },
+        "_ZN4tomo12_GLOBAL__N_18g_threadE": {
+          "offset": 800,
+          "size": 8,
+          "tp_offset": -128
+        },
+        "_ZN4tomo12_GLOBAL__N_116g_database_statsE": {
+          "offset": 792,
+          "size": 8,
+          "tp_offset": -136
+        },
+        "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": {
+          "offset": 816,
+          "size": 8,
+          "tp_offset": -112
+        },
+        "_ZZN4tomo12_GLOBAL__N_111next_randomEvE5state": {
+          "offset": 296,
+          "size": 8,
+          "tp_offset": -632
+        },
+        "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": {
+          "offset": 872,
+          "size": 24,
+          "tp_offset": -56
+        },
+        "_ZN4tomo12_GLOBAL__N_114t_script_crossE": {
+          "offset": 848,
+          "size": 24,
+          "tp_offset": -80
+        },
+        "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": {
+          "offset": 896,
+          "size": 16,
+          "tp_offset": -32
+        },
+        "_ZN4tomo12_GLOBAL__N_113active_timingE": {
+          "offset": 304,
+          "size": 8,
+          "tp_offset": -624
+        },
+        "_ZZN4tomo14multidb_randomEmE5state": {
+          "offset": 328,
+          "size": 8,
+          "tp_offset": -600
+        },
+        "_ZN4tomo12_GLOBAL__N_111active_partE": {
+          "offset": 912,
+          "size": 8,
+          "tp_offset": -16
+        },
+        "_ZN4tomo12_GLOBAL__N_116active_get_batchE": {
+          "offset": 920,
+          "size": 8,
+          "tp_offset": -8
+        },
+        "_ZN8tomo_db07ExLoopTILb1EE12timed_batch_ILb1EEE": {
+          "offset": 120,
+          "size": 8,
+          "tp_offset": -808
+        },
+        "_ZZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpEE7message": {
+          "offset": 16,
+          "size": 42,
+          "tp_offset": -912
+        },
+        "_ZN4tomo21latency_xshard_retireE": {
+          "offset": 352,
+          "size": 8,
+          "tp_offset": -576
+        },
+        "_ZN4tomo7ExLoopTILb1EE12timed_batch_ILb1EEE": {
+          "offset": 312,
+          "size": 8,
+          "tp_offset": -616
+        },
+        "_ZN8tomo_db023latency_blocking_retireE": {
+          "offset": 152,
+          "size": 8,
+          "tp_offset": -776
+        },
+        "_ZN4tomo7ExLoopTILb1EE12timed_batch_ILb0EEE": {
+          "offset": 320,
+          "size": 8,
+          "tp_offset": -608
+        },
+        "_ZZN4tomo24resp_expected_bulk_errorEcRNS_2OpEE7message": {
+          "offset": 208,
+          "size": 42,
+          "tp_offset": -720
+        },
+        "_ZN8tomo_db022latency_xshard_executeE": {
+          "offset": 176,
+          "size": 8,
+          "tp_offset": -752
+        },
+        "_ZN4tomo20latency_multi_retireE": {
+          "offset": 336,
+          "size": 8,
+          "tp_offset": -592
+        },
+        "_ZN8tomo_db016slowlog_recorderE": {
+          "offset": 184,
+          "size": 8,
+          "tp_offset": -744
+        },
+        "_ZN8tomo_db020latency_multi_retireE": {
+          "offset": 144,
+          "size": 8,
+          "tp_offset": -784
+        },
+        "_ZN4tomo22latency_xshard_executeE": {
+          "offset": 368,
+          "size": 8,
+          "tp_offset": -560
+        },
+        "_ZN8tomo_db07ExLoopTILb1EE12timed_batch_ILb0EEE": {
+          "offset": 128,
+          "size": 8,
+          "tp_offset": -800
+        },
+        "_ZN8tomo_db07ExLoopTILb0EE12timed_batch_ILb0EEE": {
+          "offset": 0,
+          "size": 8,
+          "tp_offset": -928
+        },
+        "_ZN4tomo23latency_blocking_retireE": {
+          "offset": 344,
+          "size": 8,
+          "tp_offset": -584
+        },
+        "_ZN8tomo_db021latency_xshard_retireE": {
+          "offset": 160,
+          "size": 8,
+          "tp_offset": -768
+        },
+        "_ZN4tomo7ExLoopTILb0EE12timed_batch_ILb0EEE": {
+          "offset": 192,
+          "size": 8,
+          "tp_offset": -736
+        },
+        "_ZN4tomo16slowlog_recorderE": {
+          "offset": 376,
+          "size": 8,
+          "tp_offset": -552
+        },
+        "_ZN4tomo21latency_watch_executeE": {
+          "offset": 360,
+          "size": 8,
+          "tp_offset": -568
+        },
+        "_ZN8tomo_db021latency_watch_executeE": {
+          "offset": 168,
+          "size": 8,
+          "tp_offset": -760
+        }
+      }
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-POST",
+      "sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9",
+      "extent": 1088,
+      "alignment": 16,
+      "aligned": 1088,
+      "symbols": {
+        "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": {
+          "offset": 408,
+          "size": 8,
+          "tp_offset": -680
+        },
+        "_ZN8tomo_db012_GLOBAL__N_119xshard_commit_batchE": {
+          "offset": 64,
+          "size": 40,
+          "tp_offset": -1024
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": {
+          "offset": 432,
+          "size": 8,
+          "tp_offset": -656
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": {
+          "offset": 424,
+          "size": 8,
+          "tp_offset": -664
+        },
+        "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": {
+          "offset": 416,
+          "size": 1,
+          "tp_offset": -672
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118multi_retry_signalE": {
+          "offset": 417,
+          "size": 1,
+          "tp_offset": -671
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118watch_effect_scopeE": {
+          "offset": 392,
+          "size": 8,
+          "tp_offset": -696
+        },
+        "_ZN8tomo_db012_GLOBAL__N_120watch_mutation_scopeE": {
+          "offset": 400,
+          "size": 8,
+          "tp_offset": -688
+        },
+        "__tls_guard": {
+          "offset": 912,
+          "size": 1,
+          "tp_offset": -176
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": {
+          "offset": 440,
+          "size": 16,
+          "tp_offset": -648
+        },
+        "_ZN8tomo_db012_GLOBAL__N_18g_clientE": {
+          "offset": 536,
+          "size": 8,
+          "tp_offset": -552
+        },
+        "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": {
+          "offset": 464,
+          "size": 56,
+          "tp_offset": -624
+        },
+        "_ZN8tomo_db012_GLOBAL__N_18g_threadE": {
+          "offset": 528,
+          "size": 8,
+          "tp_offset": -560
+        },
+        "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": {
+          "offset": 520,
+          "size": 8,
+          "tp_offset": -568
+        },
+        "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": {
+          "offset": 544,
+          "size": 8,
+          "tp_offset": -544
+        },
+        "_ZZN8tomo_db012_GLOBAL__N_111next_randomEvE5state": {
+          "offset": 104,
+          "size": 8,
+          "tp_offset": -984
+        },
+        "_ZN8tomo_db012_GLOBAL__N_119t_eval_context_slotE": {
+          "offset": 600,
+          "size": 8,
+          "tp_offset": -488
+        },
+        "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": {
+          "offset": 576,
+          "size": 24,
+          "tp_offset": -512
+        },
+        "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": {
+          "offset": 656,
+          "size": 48,
+          "tp_offset": -432
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117t_function_engineE": {
+          "offset": 608,
+          "size": 48,
+          "tp_offset": -480
+        },
+        "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": {
+          "offset": 704,
+          "size": 16,
+          "tp_offset": -384
+        },
+        "_ZN8tomo_db012_GLOBAL__N_113active_timingE": {
+          "offset": 112,
+          "size": 8,
+          "tp_offset": -976
+        },
+        "_ZZN8tomo_db014multidb_randomEmE5state": {
+          "offset": 136,
+          "size": 8,
+          "tp_offset": -952
+        },
+        "_ZN8tomo_db012_GLOBAL__N_111active_partE": {
+          "offset": 720,
+          "size": 8,
+          "tp_offset": -368
+        },
+        "_ZN8tomo_db012_GLOBAL__N_116active_get_batchE": {
+          "offset": 728,
+          "size": 8,
+          "tp_offset": -360
+        },
+        "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": {
+          "offset": 760,
+          "size": 8,
+          "tp_offset": -328
+        },
+        "_ZN4tomo12_GLOBAL__N_119xshard_commit_batchE": {
+          "offset": 256,
+          "size": 40,
+          "tp_offset": -832
+        },
+        "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": {
+          "offset": 784,
+          "size": 8,
+          "tp_offset": -304
+        },
+        "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": {
+          "offset": 776,
+          "size": 8,
+          "tp_offset": -312
+        },
+        "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": {
+          "offset": 768,
+          "size": 1,
+          "tp_offset": -320
+        },
+        "_ZN4tomo12_GLOBAL__N_118multi_retry_signalE": {
+          "offset": 769,
+          "size": 1,
+          "tp_offset": -319
+        },
+        "_ZN4tomo12_GLOBAL__N_118watch_effect_scopeE": {
+          "offset": 744,
+          "size": 8,
+          "tp_offset": -344
+        },
+        "_ZN4tomo12_GLOBAL__N_120watch_mutation_scopeE": {
+          "offset": 752,
+          "size": 8,
+          "tp_offset": -336
+        },
+        "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": {
+          "offset": 792,
+          "size": 16,
+          "tp_offset": -296
+        },
+        "_ZN4tomo12_GLOBAL__N_18g_clientE": {
+          "offset": 888,
+          "size": 8,
+          "tp_offset": -200
+        },
+        "_ZN4tomo12_GLOBAL__N_113g_client_metaE": {
+          "offset": 816,
+          "size": 56,
+          "tp_offset": -272
+        },
+        "_ZN4tomo12_GLOBAL__N_18g_threadE": {
+          "offset": 880,
+          "size": 8,
+          "tp_offset": -208
+        },
+        "_ZN4tomo12_GLOBAL__N_116g_database_statsE": {
+          "offset": 872,
+          "size": 8,
+          "tp_offset": -216
+        },
+        "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": {
+          "offset": 896,
+          "size": 8,
+          "tp_offset": -192
+        },
+        "_ZZN4tomo12_GLOBAL__N_111next_randomEvE5state": {
+          "offset": 296,
+          "size": 8,
+          "tp_offset": -792
+        },
+        "_ZN4tomo12_GLOBAL__N_119t_eval_context_slotE": {
+          "offset": 952,
+          "size": 8,
+          "tp_offset": -136
+        },
+        "_ZN4tomo12_GLOBAL__N_114t_script_crossE": {
+          "offset": 928,
+          "size": 24,
+          "tp_offset": -160
+        },
+        "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": {
+          "offset": 1008,
+          "size": 48,
+          "tp_offset": -80
+        },
+        "_ZN4tomo12_GLOBAL__N_117t_function_engineE": {
+          "offset": 960,
+          "size": 48,
+          "tp_offset": -128
+        },
+        "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": {
+          "offset": 1056,
+          "size": 16,
+          "tp_offset": -32
+        },
+        "_ZN4tomo12_GLOBAL__N_113active_timingE": {
+          "offset": 304,
+          "size": 8,
+          "tp_offset": -784
+        },
+        "_ZZN4tomo14multidb_randomEmE5state": {
+          "offset": 328,
+          "size": 8,
+          "tp_offset": -760
+        },
+        "_ZN4tomo12_GLOBAL__N_111active_partE": {
+          "offset": 1072,
+          "size": 8,
+          "tp_offset": -16
+        },
+        "_ZN4tomo12_GLOBAL__N_116active_get_batchE": {
+          "offset": 1080,
+          "size": 8,
+          "tp_offset": -8
+        },
+        "_ZN8tomo_db07ExLoopTILb1EE12timed_batch_ILb1EEE": {
+          "offset": 120,
+          "size": 8,
+          "tp_offset": -968
+        },
+        "_ZZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpEE7message": {
+          "offset": 16,
+          "size": 42,
+          "tp_offset": -1072
+        },
+        "_ZN4tomo21latency_xshard_retireE": {
+          "offset": 352,
+          "size": 8,
+          "tp_offset": -736
+        },
+        "_ZN4tomo7ExLoopTILb1EE12timed_batch_ILb1EEE": {
+          "offset": 312,
+          "size": 8,
+          "tp_offset": -776
+        },
+        "_ZN8tomo_db023latency_blocking_retireE": {
+          "offset": 152,
+          "size": 8,
+          "tp_offset": -936
+        },
+        "_ZN4tomo7ExLoopTILb1EE12timed_batch_ILb0EEE": {
+          "offset": 320,
+          "size": 8,
+          "tp_offset": -768
+        },
+        "_ZZN4tomo24resp_expected_bulk_errorEcRNS_2OpEE7message": {
+          "offset": 208,
+          "size": 42,
+          "tp_offset": -880
+        },
+        "_ZN8tomo_db022latency_xshard_executeE": {
+          "offset": 176,
+          "size": 8,
+          "tp_offset": -912
+        },
+        "_ZN4tomo20latency_multi_retireE": {
+          "offset": 336,
+          "size": 8,
+          "tp_offset": -752
+        },
+        "_ZN8tomo_db016slowlog_recorderE": {
+          "offset": 184,
+          "size": 8,
+          "tp_offset": -904
+        },
+        "_ZN8tomo_db020latency_multi_retireE": {
+          "offset": 144,
+          "size": 8,
+          "tp_offset": -944
+        },
+        "_ZN4tomo22latency_xshard_executeE": {
+          "offset": 368,
+          "size": 8,
+          "tp_offset": -720
+        },
+        "_ZN8tomo_db07ExLoopTILb1EE12timed_batch_ILb0EEE": {
+          "offset": 128,
+          "size": 8,
+          "tp_offset": -960
+        },
+        "_ZN8tomo_db07ExLoopTILb0EE12timed_batch_ILb0EEE": {
+          "offset": 0,
+          "size": 8,
+          "tp_offset": -1088
+        },
+        "_ZN4tomo23latency_blocking_retireE": {
+          "offset": 344,
+          "size": 8,
+          "tp_offset": -744
+        },
+        "_ZN8tomo_db021latency_xshard_retireE": {
+          "offset": 160,
+          "size": 8,
+          "tp_offset": -928
+        },
+        "_ZN4tomo7ExLoopTILb0EE12timed_batch_ILb0EEE": {
+          "offset": 192,
+          "size": 8,
+          "tp_offset": -896
+        },
+        "_ZN4tomo16slowlog_recorderE": {
+          "offset": 376,
+          "size": 8,
+          "tp_offset": -712
+        },
+        "_ZN4tomo21latency_watch_executeE": {
+          "offset": 360,
+          "size": 8,
+          "tp_offset": -728
+        },
+        "_ZN8tomo_db021latency_watch_executeE": {
+          "offset": 168,
+          "size": 8,
+          "tp_offset": -920
+        }
+      }
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-PAD-A",
+      "sha256": "d101ece1fb44e1e9d232e50eafd2b879d2a795f34e3bf49fbd803d20e641b79b",
+      "extent": 1088,
+      "alignment": 16,
+      "aligned": 1088,
+      "symbols": {
+        "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": {
+          "offset": 408,
+          "size": 8,
+          "tp_offset": -680
+        },
+        "_ZN8tomo_db012_GLOBAL__N_119xshard_commit_batchE": {
+          "offset": 64,
+          "size": 40,
+          "tp_offset": -1024
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": {
+          "offset": 432,
+          "size": 8,
+          "tp_offset": -656
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": {
+          "offset": 424,
+          "size": 8,
+          "tp_offset": -664
+        },
+        "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": {
+          "offset": 416,
+          "size": 1,
+          "tp_offset": -672
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118multi_retry_signalE": {
+          "offset": 417,
+          "size": 1,
+          "tp_offset": -671
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118watch_effect_scopeE": {
+          "offset": 392,
+          "size": 8,
+          "tp_offset": -696
+        },
+        "_ZN8tomo_db012_GLOBAL__N_120watch_mutation_scopeE": {
+          "offset": 400,
+          "size": 8,
+          "tp_offset": -688
+        },
+        "__tls_guard": {
+          "offset": 912,
+          "size": 1,
+          "tp_offset": -176
+        },
+        "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": {
+          "offset": 440,
+          "size": 16,
+          "tp_offset": -648
+        },
+        "_ZN8tomo_db012_GLOBAL__N_18g_clientE": {
+          "offset": 536,
+          "size": 8,
+          "tp_offset": -552
+        },
+        "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": {
+          "offset": 464,
+          "size": 56,
+          "tp_offset": -624
+        },
+        "_ZN8tomo_db012_GLOBAL__N_18g_threadE": {
+          "offset": 528,
+          "size": 8,
+          "tp_offset": -560
+        },
+        "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": {
+          "offset": 520,
+          "size": 8,
+          "tp_offset": -568
+        },
+        "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": {
+          "offset": 544,
+          "size": 8,
+          "tp_offset": -544
+        },
+        "_ZZN8tomo_db012_GLOBAL__N_111next_randomEvE5state": {
+          "offset": 104,
+          "size": 8,
+          "tp_offset": -984
+        },
+        "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": {
+          "offset": 656,
+          "size": 48,
+          "tp_offset": -432
+        },
+        "_ZN8tomo_db012_GLOBAL__N_117t_function_engineE": {
+          "offset": 608,
+          "size": 48,
+          "tp_offset": -480
+        },
+        "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": {
+          "offset": 576,
+          "size": 24,
+          "tp_offset": -512
+        },
+        "_ZN8tomo_db012_GLOBAL__N_119t_eval_context_slotE": {
+          "offset": 600,
+          "size": 8,
+          "tp_offset": -488
+        },
+        "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": {
+          "offset": 704,
+          "size": 16,
+          "tp_offset": -384
+        },
+        "_ZN8tomo_db012_GLOBAL__N_113active_timingE": {
+          "offset": 112,
+          "size": 8,
+          "tp_offset": -976
+        },
+        "_ZZN8tomo_db014multidb_randomEmE5state": {
+          "offset": 136,
+          "size": 8,
+          "tp_offset": -952
+        },
+        "_ZN8tomo_db012_GLOBAL__N_111active_partE": {
+          "offset": 720,
+          "size": 8,
+          "tp_offset": -368
+        },
+        "_ZN8tomo_db012_GLOBAL__N_116active_get_batchE": {
+          "offset": 728,
+          "size": 8,
+          "tp_offset": -360
+        },
+        "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": {
+          "offset": 760,
+          "size": 8,
+          "tp_offset": -328
+        },
+        "_ZN4tomo12_GLOBAL__N_119xshard_commit_batchE": {
+          "offset": 256,
+          "size": 40,
+          "tp_offset": -832
+        },
+        "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": {
+          "offset": 784,
+          "size": 8,
+          "tp_offset": -304
+        },
+        "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": {
+          "offset": 776,
+          "size": 8,
+          "tp_offset": -312
+        },
+        "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": {
+          "offset": 768,
+          "size": 1,
+          "tp_offset": -320
+        },
+        "_ZN4tomo12_GLOBAL__N_118multi_retry_signalE": {
+          "offset": 769,
+          "size": 1,
+          "tp_offset": -319
+        },
+        "_ZN4tomo12_GLOBAL__N_118watch_effect_scopeE": {
+          "offset": 744,
+          "size": 8,
+          "tp_offset": -344
+        },
+        "_ZN4tomo12_GLOBAL__N_120watch_mutation_scopeE": {
+          "offset": 752,
+          "size": 8,
+          "tp_offset": -336
+        },
+        "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": {
+          "offset": 792,
+          "size": 16,
+          "tp_offset": -296
+        },
+        "_ZN4tomo12_GLOBAL__N_18g_clientE": {
+          "offset": 888,
+          "size": 8,
+          "tp_offset": -200
+        },
+        "_ZN4tomo12_GLOBAL__N_113g_client_metaE": {
+          "offset": 816,
+          "size": 56,
+          "tp_offset": -272
+        },
+        "_ZN4tomo12_GLOBAL__N_18g_threadE": {
+          "offset": 880,
+          "size": 8,
+          "tp_offset": -208
+        },
+        "_ZN4tomo12_GLOBAL__N_116g_database_statsE": {
+          "offset": 872,
+          "size": 8,
+          "tp_offset": -216
+        },
+        "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": {
+          "offset": 896,
+          "size": 8,
+          "tp_offset": -192
+        },
+        "_ZZN4tomo12_GLOBAL__N_111next_randomEvE5state": {
+          "offset": 296,
+          "size": 8,
+          "tp_offset": -792
+        },
+        "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": {
+          "offset": 1008,
+          "size": 48,
+          "tp_offset": -80
+        },
+        "_ZN4tomo12_GLOBAL__N_117t_function_engineE": {
+          "offset": 960,
+          "size": 48,
+          "tp_offset": -128
+        },
+        "_ZN4tomo12_GLOBAL__N_114t_script_crossE": {
+          "offset": 928,
+          "size": 24,
+          "tp_offset": -160
+        },
+        "_ZN4tomo12_GLOBAL__N_119t_eval_context_slotE": {
+          "offset": 952,
+          "size": 8,
+          "tp_offset": -136
+        },
+        "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": {
+          "offset": 1056,
+          "size": 16,
+          "tp_offset": -32
+        },
+        "_ZN4tomo12_GLOBAL__N_113active_timingE": {
+          "offset": 304,
+          "size": 8,
+          "tp_offset": -784
+        },
+        "_ZZN4tomo14multidb_randomEmE5state": {
+          "offset": 328,
+          "size": 8,
+          "tp_offset": -760
+        },
+        "_ZN4tomo12_GLOBAL__N_111active_partE": {
+          "offset": 1072,
+          "size": 8,
+          "tp_offset": -16
+        },
+        "_ZN4tomo12_GLOBAL__N_116active_get_batchE": {
+          "offset": 1080,
+          "size": 8,
+          "tp_offset": -8
+        },
+        "_ZN8tomo_db07ExLoopTILb1EE12timed_batch_ILb1EEE": {
+          "offset": 120,
+          "size": 8,
+          "tp_offset": -968
+        },
+        "_ZZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpEE7message": {
+          "offset": 16,
+          "size": 42,
+          "tp_offset": -1072
+        },
+        "_ZN4tomo21latency_xshard_retireE": {
+          "offset": 352,
+          "size": 8,
+          "tp_offset": -736
+        },
+        "_ZN4tomo7ExLoopTILb1EE12timed_batch_ILb1EEE": {
+          "offset": 312,
+          "size": 8,
+          "tp_offset": -776
+        },
+        "_ZN8tomo_db023latency_blocking_retireE": {
+          "offset": 152,
+          "size": 8,
+          "tp_offset": -936
+        },
+        "_ZN4tomo7ExLoopTILb1EE12timed_batch_ILb0EEE": {
+          "offset": 320,
+          "size": 8,
+          "tp_offset": -768
+        },
+        "_ZZN4tomo24resp_expected_bulk_errorEcRNS_2OpEE7message": {
+          "offset": 208,
+          "size": 42,
+          "tp_offset": -880
+        },
+        "_ZN8tomo_db022latency_xshard_executeE": {
+          "offset": 176,
+          "size": 8,
+          "tp_offset": -912
+        },
+        "_ZN4tomo20latency_multi_retireE": {
+          "offset": 336,
+          "size": 8,
+          "tp_offset": -752
+        },
+        "_ZN8tomo_db016slowlog_recorderE": {
+          "offset": 184,
+          "size": 8,
+          "tp_offset": -904
+        },
+        "_ZN8tomo_db020latency_multi_retireE": {
+          "offset": 144,
+          "size": 8,
+          "tp_offset": -944
+        },
+        "_ZN4tomo22latency_xshard_executeE": {
+          "offset": 368,
+          "size": 8,
+          "tp_offset": -720
+        },
+        "_ZN8tomo_db07ExLoopTILb1EE12timed_batch_ILb0EEE": {
+          "offset": 128,
+          "size": 8,
+          "tp_offset": -960
+        },
+        "_ZN8tomo_db07ExLoopTILb0EE12timed_batch_ILb0EEE": {
+          "offset": 0,
+          "size": 8,
+          "tp_offset": -1088
+        },
+        "_ZN4tomo23latency_blocking_retireE": {
+          "offset": 344,
+          "size": 8,
+          "tp_offset": -744
+        },
+        "_ZN8tomo_db021latency_xshard_retireE": {
+          "offset": 160,
+          "size": 8,
+          "tp_offset": -928
+        },
+        "_ZN4tomo7ExLoopTILb0EE12timed_batch_ILb0EEE": {
+          "offset": 192,
+          "size": 8,
+          "tp_offset": -896
+        },
+        "_ZN4tomo16slowlog_recorderE": {
+          "offset": 376,
+          "size": 8,
+          "tp_offset": -712
+        },
+        "_ZN4tomo21latency_watch_executeE": {
+          "offset": 360,
+          "size": 8,
+          "tp_offset": -728
+        },
+        "_ZN8tomo_db021latency_watch_executeE": {
+          "offset": 168,
+          "size": 8,
+          "tp_offset": -920
+        }
+      }
+    }
+  },
+  "post_pad_differences": []
+}

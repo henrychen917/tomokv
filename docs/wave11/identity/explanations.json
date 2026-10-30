@@ -1,0 +1,14 @@
+{
+  "counts": {
+    "TLS-offsets-only": 155,
+    "composition-or-codegen": 300,
+    "lane-identical": 286
+  },
+  "arms": {
+    "headline": "a6077774d6bbb800a1752e014d27c81cf2d2fa334d76ebd72d38ff7dd82bf7db",
+    "flipfix5": "230c841c9b313f9a2b4e82ee97536fa3593b7bc81ff9fefaacba991ca9c0363b",
+    "scriptfix3": "d9f883e8babf349d9d7f3435bb0e27b0a2973cdd307fd67830923b18475abe01",
+    "climonfix5": "5580e65fb3d5135ca6829d272cf4de89c2661715bc58247ad26a7163939a0f5f",
+    "post": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9"
+  }
+}

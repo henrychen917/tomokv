@@ -1,0 +1,21 @@
+{
+  "reason": "Frozen candidate requires adjacent production-linked cost helper and binding sidecar.",
+  "files": [
+    {
+      "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-POST",
+      "sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave11/build/wave11/blockfix-cost",
+      "sha256": "983623e23eccacc28ea818a6fe345b5a6fd5abd9a169c5979c45b438bac1b7e1"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave11/build/wave11/blockfix2-unit",
+      "sha256": "11a63bf1a7106905ed64994962d1980965b1daa9bd5169172fce4d7e48fb345b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave11/build/wave11/blockfix2-db0-unit",
+      "sha256": "17cf2d1df7559c847ba8af84cf2a227baa2d30f0c9a90768c57a254411d94fd9"
+    }
+  ]
+}

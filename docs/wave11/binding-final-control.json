@@ -1,0 +1,602 @@
+{
+  "label": "final-control",
+  "domain": "complete",
+  "server_sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9",
+  "bodies": [
+    {
+      "namespace": "normal",
+      "name": "tomo::ThreadCtx::io_inbound_quiesced() const",
+      "count": 226,
+      "probe": {
+        "size": 134,
+        "address": "0x497b30",
+        "digest": "dce8d2726177f87d049a145f89bbd60f3ca8f973792425006f930607418d2cc7"
+      },
+      "matches": [
+        {
+          "size": 134,
+          "address": "0x497990",
+          "digest": "dce8d2726177f87d049a145f89bbd60f3ca8f973792425006f930607418d2cc7"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::Server::flip_ack(unsigned int, tomo::FlipStage)",
+      "count": 18,
+      "probe": {
+        "size": 35,
+        "address": "0x499400",
+        "digest": "e20a5e634d3706dcc5eabc1b16c8e3c659b1c1dccc2806c28dce4bc49de026b6"
+      },
+      "matches": [
+        {
+          "size": 35,
+          "address": "0x499260",
+          "digest": "e20a5e634d3706dcc5eabc1b16c8e3c659b1c1dccc2806c28dce4bc49de026b6"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::Server::flip_stage_owed(unsigned int, tomo::FlipStage) const",
+      "count": 144,
+      "probe": {
+        "size": 106,
+        "address": "0x499430",
+        "digest": "04f9e4109b4570cbb7ba2c9af7ad0fbb42d0281c66712df2acace7559e8f304d"
+      },
+      "matches": [
+        {
+          "size": 106,
+          "address": "0x499290",
+          "digest": "04f9e4109b4570cbb7ba2c9af7ad0fbb42d0281c66712df2acace7559e8f304d"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::Server::atomic_apply_inflight() const",
+      "count": 166,
+      "probe": {
+        "size": 186,
+        "address": "0x49a5e0",
+        "digest": "c7870a571ddc311ebc5238c97e8505dd9e83133bee08356899b7e04b4cd6c19f"
+      },
+      "matches": [
+        {
+          "size": 186,
+          "address": "0x49a440",
+          "digest": "c7870a571ddc311ebc5238c97e8505dd9e83133bee08356899b7e04b4cd6c19f"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_io_drain_ordered() const",
+      "count": 16,
+      "probe": {
+        "size": 126,
+        "address": "0x49b5f0",
+        "digest": "0bd653de3a49f8a8054dd6a05232ea6dc65048a8bebd580cce4974b6fc447cff"
+      },
+      "matches": [
+        {
+          "size": 126,
+          "address": "0x49b450",
+          "digest": "0bd653de3a49f8a8054dd6a05232ea6dc65048a8bebd580cce4974b6fc447cff"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_reflag_inbound()",
+      "count": 548,
+      "probe": {
+        "size": 187,
+        "address": "0x49b670",
+        "digest": "c92e2e76cc74b66590894b51cd3c37ba6c0a45dc8fad30108ee5f500dfa950fe"
+      },
+      "matches": [
+        {
+          "size": 187,
+          "address": "0x49b4d0",
+          "digest": "c92e2e76cc74b66590894b51cd3c37ba6c0a45dc8fad30108ee5f500dfa950fe"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::flip_io_drained() const",
+      "count": 77,
+      "probe": {
+        "size": 709,
+        "address": "0x49f880",
+        "digest": "a7997327574e6fc9faef15ed0778a452463d66251fd30f73abca743f2daca440"
+      },
+      "matches": [
+        {
+          "size": 709,
+          "address": "0x49f6e0",
+          "digest": "a7997327574e6fc9faef15ed0778a452463d66251fd30f73abca743f2daca440"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)",
+      "count": 457,
+      "probe": {
+        "size": 752,
+        "address": "0x4b4770",
+        "digest": "0c7144134394e51c020f3bc8f485b48b43e7394b0f4d1f585579b0666a4e49e5"
+      },
+      "matches": [
+        {
+          "size": 752,
+          "address": "0x4b45d0",
+          "digest": "0c7144134394e51c020f3bc8f485b48b43e7394b0f4d1f585579b0666a4e49e5"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo::IoLoop::PubSubRef, std::allocator<tomo::IoLoop::PubSubRef> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo::IoLoop::PubSubRef, std::allocator<tomo::IoLoop::PubSubRef> > > >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::clear()",
+      "count": 38,
+      "probe": {
+        "size": 151,
+        "address": "0x4b6af0",
+        "digest": "5c88cfd5bb3c6a3ee4f61add59a96e946b64ff04beb3a84bf4b3c7310bf429dc"
+      },
+      "matches": [
+        {
+          "size": 151,
+          "address": "0x4b6950",
+          "digest": "5c88cfd5bb3c6a3ee4f61add59a96e946b64ff04beb3a84bf4b3c7310bf429dc"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::pubsub_clear_home_indexes()",
+      "count": 30,
+      "probe": {
+        "size": 455,
+        "address": "0x4b6b90",
+        "digest": "b673de11b0bb2b896ad012baed4026eba1de4705929ca85d582630f5f69654d7"
+      },
+      "matches": [
+        {
+          "size": 455,
+          "address": "0x4b69f0",
+          "digest": "b673de11b0bb2b896ad012baed4026eba1de4705929ca85d582630f5f69654d7"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<false>::flip_quiesced() const",
+      "count": 272,
+      "probe": {
+        "size": 501,
+        "address": "0x4cb300",
+        "digest": "a161869dea2967e74ec24ff7865666dd4b10504f769c3dac99d0862f260f7648"
+      },
+      "matches": [
+        {
+          "size": 501,
+          "address": "0x4cb160",
+          "digest": "a161869dea2967e74ec24ff7865666dd4b10504f769c3dac99d0862f260f7648"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::pubsub_rehome_local(unsigned long)",
+      "count": 44,
+      "probe": {
+        "size": 1543,
+        "address": "0x4d47f0",
+        "digest": "8715f3fa8202a73b25e84f592aa17c1747b378e17d760042401a8de0c210c498"
+      },
+      "matches": [
+        {
+          "size": 1543,
+          "address": "0x4d4650",
+          "digest": "8715f3fa8202a73b25e84f592aa17c1747b378e17d760042401a8de0c210c498"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::ExLoopT<false>::flip_control_pass()",
+      "count": 253,
+      "probe": {
+        "size": 1171,
+        "address": "0x4d8a30",
+        "digest": "2f6569a604af56e04a161b97cfc86fa9d585b3eaed66d81448b79e08c7b6fef8"
+      },
+      "matches": [
+        {
+          "size": 1171,
+          "address": "0x4d8890",
+          "digest": "2f6569a604af56e04a161b97cfc86fa9d585b3eaed66d81448b79e08c7b6fef8"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+      "count": 417,
+      "probe": {
+        "size": 5058,
+        "address": "0x4e8760",
+        "digest": "9b4f4d7bde647adc206f814340016dde8481170d2bbec3cf3c90d9d66ce64677"
+      },
+      "matches": [
+        {
+          "size": 5058,
+          "address": "0x4e85c0",
+          "digest": "9b4f4d7bde647adc206f814340016dde8481170d2bbec3cf3c90d9d66ce64677"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::fliplisten_quiesce()",
+      "count": 20,
+      "probe": {
+        "size": 550,
+        "address": "0x859670",
+        "digest": "502438fd2477afa79734594dcb7f0614936455b74cbd9b58b3d8403c54b681a8"
+      },
+      "matches": [
+        {
+          "size": 550,
+          "address": "0x8594d0",
+          "digest": "502438fd2477afa79734594dcb7f0614936455b74cbd9b58b3d8403c54b681a8"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::fliplisten_quiet() const",
+      "count": 19,
+      "probe": {
+        "size": 151,
+        "address": "0x8598a0",
+        "digest": "1111a3f8f3d3f93ec9c25eccb75acc4b4819ea5034749ebd95a0929494eb235b"
+      },
+      "matches": [
+        {
+          "size": 151,
+          "address": "0x859700",
+          "digest": "1111a3f8f3d3f93ec9c25eccb75acc4b4819ea5034749ebd95a0929494eb235b"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "normal",
+      "name": "tomo::IoLoop::fliplisten_resume()",
+      "count": 80,
+      "probe": {
+        "size": 1161,
+        "address": "0x867c30",
+        "digest": "456f14814a829486e45ae854a54089c4c07b20236040e49132df2d36eb64c3a4"
+      },
+      "matches": [
+        {
+          "size": 1161,
+          "address": "0x867a90",
+          "digest": "456f14814a829486e45ae854a54089c4c07b20236040e49132df2d36eb64c3a4"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::ThreadCtx::io_inbound_quiesced() const",
+      "count": 226,
+      "probe": {
+        "size": 134,
+        "address": "0xa0800",
+        "digest": "dce8d2726177f87d049a145f89bbd60f3ca8f973792425006f930607418d2cc7"
+      },
+      "matches": [
+        {
+          "size": 134,
+          "address": "0xa0540",
+          "digest": "dce8d2726177f87d049a145f89bbd60f3ca8f973792425006f930607418d2cc7"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::Server::flip_ack(unsigned int, tomo_db0::FlipStage)",
+      "count": 18,
+      "probe": {
+        "size": 35,
+        "address": "0xa1ee0",
+        "digest": "914e43bbb76dedbeed9bea20f06130f74526c134200e14692c37bbddbd59e391"
+      },
+      "matches": [
+        {
+          "size": 35,
+          "address": "0xa1c20",
+          "digest": "914e43bbb76dedbeed9bea20f06130f74526c134200e14692c37bbddbd59e391"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const",
+      "count": 144,
+      "probe": {
+        "size": 106,
+        "address": "0xa1f10",
+        "digest": "c8b70168d24bd555d364b5ab08c3753c5e9ce1af09b94fed76820a5f0cfe25c6"
+      },
+      "matches": [
+        {
+          "size": 106,
+          "address": "0xa1c50",
+          "digest": "c8b70168d24bd555d364b5ab08c3753c5e9ce1af09b94fed76820a5f0cfe25c6"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_io_drain_ordered() const",
+      "count": 16,
+      "probe": {
+        "size": 126,
+        "address": "0xa4010",
+        "digest": "b9b5906b80a4975f5e768f0fb0ff8752c994de930d4fd413367bb91ee320d7b7"
+      },
+      "matches": [
+        {
+          "size": 126,
+          "address": "0xa3d50",
+          "digest": "b9b5906b80a4975f5e768f0fb0ff8752c994de930d4fd413367bb91ee320d7b7"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_reflag_inbound()",
+      "count": 548,
+      "probe": {
+        "size": 187,
+        "address": "0xa4090",
+        "digest": "c92e2e76cc74b66590894b51cd3c37ba6c0a45dc8fad30108ee5f500dfa950fe"
+      },
+      "matches": [
+        {
+          "size": 187,
+          "address": "0xa3dd0",
+          "digest": "c92e2e76cc74b66590894b51cd3c37ba6c0a45dc8fad30108ee5f500dfa950fe"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::flip_io_drained() const",
+      "count": 77,
+      "probe": {
+        "size": 709,
+        "address": "0xa8870",
+        "digest": "b3036559d8f2ac0587a43dece0d5e14a2beac7719020d4d2fc2323c5a728cb6c"
+      },
+      "matches": [
+        {
+          "size": 709,
+          "address": "0xa85b0",
+          "digest": "b3036559d8f2ac0587a43dece0d5e14a2beac7719020d4d2fc2323c5a728cb6c"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::MaskedSpscArray<tomo_db0::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)",
+      "count": 457,
+      "probe": {
+        "size": 752,
+        "address": "0xbe370",
+        "digest": "0c7144134394e51c020f3bc8f485b48b43e7394b0f4d1f585579b0666a4e49e5"
+      },
+      "matches": [
+        {
+          "size": 752,
+          "address": "0xbe0b0",
+          "digest": "0c7144134394e51c020f3bc8f485b48b43e7394b0f4d1f585579b0666a4e49e5"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo_db0::IoLoop::PubSubRef, std::allocator<tomo_db0::IoLoop::PubSubRef> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::vector<tomo_db0::IoLoop::PubSubRef, std::allocator<tomo_db0::IoLoop::PubSubRef> > > >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::clear()",
+      "count": 38,
+      "probe": {
+        "size": 151,
+        "address": "0xc0790",
+        "digest": "5c88cfd5bb3c6a3ee4f61add59a96e946b64ff04beb3a84bf4b3c7310bf429dc"
+      },
+      "matches": [
+        {
+          "size": 151,
+          "address": "0xc04d0",
+          "digest": "5c88cfd5bb3c6a3ee4f61add59a96e946b64ff04beb3a84bf4b3c7310bf429dc"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::pubsub_clear_home_indexes()",
+      "count": 30,
+      "probe": {
+        "size": 455,
+        "address": "0xc0830",
+        "digest": "0d9f09d3b6dfbee87f7a6b8c0a16b30c5a67ef4de922379df016092b2fb122f5"
+      },
+      "matches": [
+        {
+          "size": 455,
+          "address": "0xc0570",
+          "digest": "0d9f09d3b6dfbee87f7a6b8c0a16b30c5a67ef4de922379df016092b2fb122f5"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<false>::flip_quiesced() const",
+      "count": 428,
+      "probe": {
+        "size": 639,
+        "address": "0xd55e0",
+        "digest": "f96f109a7143d4b572b5a7439ce80f7e1bb13e000169485982c4ae9243131066"
+      },
+      "matches": [
+        {
+          "size": 639,
+          "address": "0xd5320",
+          "digest": "f96f109a7143d4b572b5a7439ce80f7e1bb13e000169485982c4ae9243131066"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::pubsub_rehome_local(unsigned long)",
+      "count": 44,
+      "probe": {
+        "size": 1543,
+        "address": "0xe4660",
+        "digest": "81d97b6d0c5da8433f3d297e505172cfd5452aa0eb6bc2a604c073158449dac9"
+      },
+      "matches": [
+        {
+          "size": 1543,
+          "address": "0xe43a0",
+          "digest": "81d97b6d0c5da8433f3d297e505172cfd5452aa0eb6bc2a604c073158449dac9"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::ExLoopT<false>::flip_control_pass()",
+      "count": 268,
+      "probe": {
+        "size": 1172,
+        "address": "0xe8b00",
+        "digest": "842e6393d11ab35722b94234f0d382fd4becba8f01e389a91a39bd1577f77bcb"
+      },
+      "matches": [
+        {
+          "size": 1172,
+          "address": "0xe8840",
+          "digest": "842e6393d11ab35722b94234f0d382fd4becba8f01e389a91a39bd1577f77bcb"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+      "count": 411,
+      "probe": {
+        "size": 6798,
+        "address": "0xf9f10",
+        "digest": "f15f2bd1eed907c930e78d9c6eb6cd987cc9e7560d2e6e72ad1228bf17313f5b"
+      },
+      "matches": [
+        {
+          "size": 6798,
+          "address": "0xf9c50",
+          "digest": "f15f2bd1eed907c930e78d9c6eb6cd987cc9e7560d2e6e72ad1228bf17313f5b"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::fliplisten_quiesce()",
+      "count": 20,
+      "probe": {
+        "size": 550,
+        "address": "0x45e950",
+        "digest": "4d24883200b6d017aa5639c6a8e43a70bfcfe49cf4551be6c708221fb5d09680"
+      },
+      "matches": [
+        {
+          "size": 550,
+          "address": "0x45e690",
+          "digest": "4d24883200b6d017aa5639c6a8e43a70bfcfe49cf4551be6c708221fb5d09680"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::fliplisten_quiet() const",
+      "count": 19,
+      "probe": {
+        "size": 151,
+        "address": "0x45eb80",
+        "digest": "68452f88bf5323cf89b7f8442efe6d995b2110bd8374928dc2e51ede8bdec3a4"
+      },
+      "matches": [
+        {
+          "size": 151,
+          "address": "0x45e8c0",
+          "digest": "68452f88bf5323cf89b7f8442efe6d995b2110bd8374928dc2e51ede8bdec3a4"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "namespace": "db0",
+      "name": "tomo_db0::IoLoop::fliplisten_resume()",
+      "count": 80,
+      "probe": {
+        "size": 1161,
+        "address": "0x46cf50",
+        "digest": "94060643702c6b56c5d69e370ecc65ab7609364c84b5d1755bcda195a75f1257"
+      },
+      "matches": [
+        {
+          "size": 1161,
+          "address": "0x46cc90",
+          "digest": "94060643702c6b56c5d69e370ecc65ab7609364c84b5d1755bcda195a75f1257"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

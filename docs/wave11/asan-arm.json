@@ -1,0 +1,8 @@
+{
+  "source": "build/gate-cache/tomokv-asan",
+  "path": "/home/user/Projects/cx-wave11/build/wave11/tomokv-ASAN",
+  "alias": "/home/user/Projects/cx-wave11/build/wave11/tomokv-ASAN",
+  "sha256": "eebc348aa707acedf1efcd7ca60efa4fe18c1f049097a1623cb32f63d183d5ec",
+  "from_passed_run": "landing-builds",
+  "note": "Frozen ASAN artifact; supplies the mistakenly requested per-run path for the already started main campaign. Any missing-arm row remains a failed attempt and is rerun."
+}
