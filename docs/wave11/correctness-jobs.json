@@ -978,6 +978,51 @@
       ]
     },
     {
+      "name": "landing-abba-complete-copy",
+      "receipt": "docs/wave11/jobs/landing-abba-complete-copy.json",
+      "receipt_sha256": "e131fb3fc693e152e9c1ed895e2ba947815e887d50936f4913e5e591edab9891",
+      "binary_sha256": "8d9ec2439f25dbcf8e638d5d9eec1a612da96bd1b6265f33cf6e5f9d5c42cec9",
+      "source_commit": "09232b2f5b2f4b9dc89892b5ff832c6bf0e41f54",
+      "gate_sha256": "3bf5264fe297d8ab7849fd3bdfe376a0f0eb313d25031fb18f6dcf3353a50e46",
+      "env": {
+        "LANG": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "abba_selftest",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave11/docs/wave11/jobs/landing-abba-complete-copy.tsv"
+      },
+      "exit": 0,
+      "seconds": 393.1924502849579,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave11/docs/wave11/jobs/landing-abba-complete-copy.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "abba_selftest",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave11/build/wave11/selftest-source-full/build/gate-run.c0D8u4/jobs/abba_selftest",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "6a680d4262bd62592d08fd49aa8f88bd9c518f6d3e20456e947efa6f4c7407d8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "391.880000",
+              "label": "ABBA comparison + saturation negative controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "landing-abba-selftest",
       "receipt": "docs/wave11/jobs/landing-abba-selftest.json",
       "receipt_sha256": "5804babfdb8040421cb68ff27d469c4b5eeb7385c47b1b3bc3238442f49b1350",

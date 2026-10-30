@@ -38,7 +38,7 @@
       "run": "landing-abba-selftest",
       "kind": "incomplete throwaway copy",
       "reason": "The directory-based copy omitted .githooks/pre-push and MEASURE-REQUEST-nullpublish3.md. gate_receipt reported 21 setup errors and nullpublish_refreeze_test one setup error.",
-      "resolution": "Preserved the failed whole-job receipt; the replay uses a complete git archive with only EXPECT and fixture edits. Its receipt is landing-abba-complete-copy.",
+      "resolution": "Preserved the failed whole-job receipt. landing-abba-complete-copy exported all 120179 tracked files, changed only EXPECT and the label fixture, and passed the complete abba_selftest job. No test assertion or production source changed.",
       "production_change": false
     }
   ]

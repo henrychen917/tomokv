@@ -190,6 +190,10 @@ see [production units](docs/wave11/production-units.json). The standalone
 ([receipt](docs/wave11/gates-test-final.json)). All three flushmerit instrument
 self-tests passed ([receipts](docs/wave11/flushmerit-selftests.json)); the
 shared `calib/flushmerit.py` helper is exercised through those instruments.
+The complete `abba_selftest` job also passed in the throwaway tree with
+977/994 and the prepared fixture
+([job receipt](docs/wave11/jobs/landing-abba-complete-copy.json),
+[complete-copy audit](docs/wave11/abba-copy-replay.json)).
 
 Original failed attempts are preserved in the
 [failure review](docs/wave11/failure-review.json). The main sweep's missing
@@ -199,7 +203,18 @@ AOF everysec window failed its exact witness assertion once, then its single
 isolated whole-job replay passed all 54 AOF rows with 17 gate waits and 528
 replayed records. No assertion, timeout or tolerance changed. The initial
 ABBA self-test copy omitted root hook/report inputs; its complete-tree replay
-is recorded separately. No tracked EXPECT constant or label fixture changed.
+passed without changing any test assertion. No tracked EXPECT constant or
+label fixture changed. There are no unresolved correctness failures in the
+requested coverage; the failed attempts remain visible rather than being
+replaced by their replays.
+
+The [delivery audit](docs/wave11/delivery-validation.json) rechecks all three
+arm hashes, all 48 locked-layout checks, all 13 instruction-binding receipts,
+source stability and final freshness. `build/` is **30.93 GiB**. Superseded
+trial objects, probes, step traces and throwaway source trees were removed
+after recording hashes and counts; the final binaries and gate artifacts
+remain. Cleanup inventories are `docs/wave11/pruned-*.json*`. No worktree
+server or listener remains on the lane's ports.
 
 **NOT RUN (maintainer-owned performance work):** `flip_saturated` (memtier),
 `atomic_floor` (throughput floor), `efficiency` (perf comparison), the inline
