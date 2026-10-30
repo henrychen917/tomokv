@@ -2301,6 +2301,10 @@ int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index) {
     return index < dispatch.state->nsub ? dispatch.state->groups[index].shard : -1;
 }
 
+// Cold range routing must not add executed alignment padding to normal fan-out.
+#if !TOMO_SINGLE_DATABASE
+__attribute__((optimize("align-jumps=1,align-loops=1")))
+#endif
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
                               ScatterDispatch& dispatch, bool force_atomic,
@@ -2930,7 +2934,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     PinnedNowMs now_cut(shard, state.now_cut_ms);
     // Reuse the existing script escape for the appended cold kind. Ordinary
     // kinds still execute one discriminator before their original owner path.
-    if (state.kind >= Kind::Script &&
+    if (__builtin_expect(state.kind >= Kind::Script, false) &&
         (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);
     ShardGroup& group = *group_for(state, shard.id());

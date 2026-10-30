@@ -23,7 +23,7 @@ bool Shard::watch_reserve_flush(int physical_db, const void* token,
     } catch (const std::bad_alloc&) { return false; }
 }
 
-ScatterPrepare xshard_prepare_flush(Server& server, Op& op, ScatterArenaPool& pool,
+[[gnu::cold, gnu::noinline]] ScatterPrepare xshard_prepare_flush(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t io, uint64_t origin, ScatterDispatch& dispatch,
                               bool force_atomic) {
     if (!command_validate_all_shards(op)) return ScatterPrepare::Error;
@@ -82,7 +82,7 @@ namespace {
     txn_group_cancel(group, shard);
 }
 
-ScatterTaskResult execute_flush(const Task& task, Shard& shard, Op& op) {
+[[gnu::cold, gnu::noinline]] ScatterTaskResult execute_flush(const Task& task, Shard& shard, Op& op) {
     auto& state = *task.scatter;
     auto& group = *group_for(state, shard.id());
     auto& store = shard.store();

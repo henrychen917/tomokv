@@ -147,6 +147,49 @@ static void allocation_failure() {
     std::puts("PASS scratch OOM before mutation and successful retry");
 }
 
+static void repeated_occurrences() {
+    std::atomic<uint64_t> epoch{10};
+    std::atomic<bool> aborted{false};
+    std::atomic<uint32_t> refs{0};
+    FlatStore s;
+    const Slice key("repeat", 6, kSingleDatabase ? 0 : 7);
+    const auto hash = FlatStore::hash_key(key);
+    need(s.insert(hash, kvobj_new_int(key, 5)) == FlatStore::InsertResult::Inserted,
+         "repeated-key seed");
+    auto* range = s.atomic_install_flush(nullptr, key.ns, &epoch, &aborted, &refs, 42, 0);
+    need(range != nullptr, "repeated-key range");
+    std::vector<AtomicEntry*> entries;
+    for (unsigned i = 0; i < 5; ++i) {
+        void* opaque = nullptr;
+        need(s.atomic_prepare_plain(key, hash, 77, opaque), "repeated-key record");
+        entries.push_back(static_cast<AtomicEntry*>(opaque));
+        KvObj* value = i == 2 ? nullptr : kvobj_new_int(key, 11 + i);
+        need(s.atomic_admit(key, value), "repeated-key admission");
+        s.atomic_install_plain(hash, key, opaque, value, 11 + i);
+        s.atomic_finish_plain();
+    }
+    need(s.atomic_flush_ready(range, 11, 10) && s.atomic_flush_has_post(*range),
+         "repeated-key collapse armed");
+    need(s.atomic_flush_erase(*range), "repeated-key collapse");
+    need(!entries.front()->parked()[0], "only first predecessor loses pre-flush value");
+    for (unsigned i = 1; i < entries.size(); ++i) {
+        auto* predecessor = entries[i]->parked()[0];
+        need(i == 3 ? predecessor == nullptr : predecessor && predecessor->int_value() == 10 + i,
+             "later predecessor remains owned by its occurrence");
+    }
+    s.atomic_flush_release(range);
+    for (unsigned i = 0; i < entries.size(); ++i) {
+        auto* visible = s.atomic_resolve(hash, key, 11 + i);
+        need(i == 2 ? visible == nullptr : visible && visible->int_value() == 11 + i,
+             "each live post-flush cut keeps the correct value or deletion");
+    }
+    s.atomic_sweep(UINT64_MAX, UINT64_MAX, 1);
+    need(s.size() == 1 && s.find_no_touch(hash, key)->int_value() == 15 && refs.load() == 0,
+         "repeated-key final value and range lifetime");
+    s.atomic_shutdown_release_records();
+    std::puts("PASS repeated occurrences retire only the first predecessor");
+}
+
 static void saturated_ranges() {
     std::atomic<uint64_t> epoch{10};
     std::atomic<bool> aborted{false};
@@ -179,6 +222,7 @@ int main(int argc, char** argv) {
         else {
             collisions();
             allocation_failure();
+            repeated_occurrences();
             saturated_ranges();
             for (uint32_t later : {1000u, 10000u, 100000u, 1000000u}) work_case(later);
         }
