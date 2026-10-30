@@ -71,6 +71,9 @@ Thus collisions cannot introduce a P-dependent unbounded chain scan. For fixed
 key lengths the work is O(C + P + R), where R is the later zero-key range/header
 population; counting key bytes makes the length factor explicit. The ordinary
 case is O(C + P), with O(P) temporary memory allocated only on slow collapse.
+These bounds concern record selection and traversal; existing object destruction
+and expiry-index bookkeeping retain their existing costs and are not charged
+by the visited-entry counter.
 Scratch allocation failure defers before mutation and preserves the decision.
 An already-decided FLUSH then needs memory to become available before it can
 complete; this is a temporary-memory tradeoff, not an OOM completion guarantee.
@@ -199,7 +202,8 @@ gate's selected-job interface. The final idle run has one failed sample:
 DB1 / 2s / uring / atomic1 / FLUSHALL ASYNC took 9,079,092 ns, over 5 ms.
 All original fused-stall legs pass. This failure is retained. One complete fresh
 idle recheck, with builds and artifact processing stopped, passes all 64,000
-calls at the same bound; `docs/flushfix3/idle-final-recheck.json` records every
+calls at the same bound (maximum 1,033,161 ns);
+`docs/flushfix3/idle-final-recheck.json` records every
 form's count and maximum. No tolerance or retry-until-green rule was added.
 The final work rows pass both namespaces and their F2 falsifiers. The 73 gate
 self-tests pass again after exposing scriptfix's engine/atomic selections and

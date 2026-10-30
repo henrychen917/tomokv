@@ -131,7 +131,11 @@
               "verdict": "ok",
               "seconds": 0.01
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.DgKCat/jobs/release/output.log",
+            "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+          }
         },
         {
           "name": "flushfix3",
@@ -157,7 +161,11 @@
               "verdict": "FAIL",
               "seconds": 45.69
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix3/output.log",
+            "sha256": "51e5f49acf525d01338a14ccf166dc1286b8711680e0e2bc0f520910644be121"
+          }
         },
         {
           "name": "flushfix3_units",
@@ -183,7 +191,11 @@
               "verdict": "ok",
               "seconds": 11.22
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix3_units/output.log",
+            "sha256": "97e96fcff97b1e4d27f7a9db88584635990534d2d1916fe779f2ba79ff431508"
+          }
         },
         {
           "name": "flushfix2",
@@ -281,7 +293,11 @@
               "verdict": "ok",
               "seconds": 62.47
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix2/output.log",
+            "sha256": "2d3bec5fac2129e1f8d8d9ef4cec31c57ff7a08d28375f051e8477f1e0ee1044"
+          }
         },
         {
           "name": "flushfix2_units",
@@ -307,7 +323,11 @@
               "verdict": "ok",
               "seconds": 0.05
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.DgKCat/jobs/flushfix2_units/output.log",
+            "sha256": "570559974a71a3dbd6d90b488727a1c70e54e4fd938167a9c7a96d9c820f0941"
+          }
         }
       ],
       "omitted_unfinished_jobs": [],
@@ -316,7 +336,8 @@
         "ok": 20,
         "FAIL": 1
       },
-      "complete_selection": true
+      "complete_selection": true,
+      "explicit_not_run": []
     },
     "final/broad": {
       "log": {
@@ -343,7 +364,11 @@
               "verdict": "ok",
               "seconds": 0.0
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/release/output.log",
+            "sha256": "4fc1a4fcb7a3593edd9bcff481138239f3ab51334ca726fdb1ae90004276ad23"
+          }
         },
         {
           "name": "core_tsan_build",
@@ -356,7 +381,11 @@
             "path": "build/gate-run.C2Fan8/jobs/core_tsan_build/ledger",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
-          "rows": []
+          "rows": [],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/core_tsan_build/output.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
         },
         {
           "name": "racefix_tsan_build",
@@ -369,7 +398,11 @@
             "path": "build/gate-run.C2Fan8/jobs/racefix_tsan_build/ledger",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
-          "rows": []
+          "rows": [],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/racefix_tsan_build/output.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
         },
         {
           "name": "multifix-1s-uring",
@@ -419,7 +452,11 @@
               "verdict": "ok",
               "seconds": 11.89
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-1s-uring/output.log",
+            "sha256": "3640047e91a72d68b002d9f4fef4d0004af05a2302e63bad46e562114f855eae"
+          }
         },
         {
           "name": "multifix-1s-epoll",
@@ -469,7 +506,11 @@
               "verdict": "ok",
               "seconds": 12.1
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-1s-epoll/output.log",
+            "sha256": "b6246f5f9669577bd4ee51d382e7af39269093b7093dd34879bc8c8703fee667"
+          }
         },
         {
           "name": "multifix-2s-uring",
@@ -519,7 +560,11 @@
               "verdict": "ok",
               "seconds": 11.84
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-2s-uring/output.log",
+            "sha256": "98bf96e9aca8d0a3e4d8b9c1bf484ecea347ad03e88004e7827999332ca77f52"
+          }
         },
         {
           "name": "multifix-2s-epoll",
@@ -569,7 +614,11 @@
               "verdict": "ok",
               "seconds": 11.97
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multifix-2s-epoll/output.log",
+            "sha256": "fac88f14340ca020ef3637485c1ba905addcbb260edc995af07e97812cc81cdd"
+          }
         },
         {
           "name": "flip_unit",
@@ -589,7 +638,11 @@
               "verdict": "ok",
               "seconds": 18.32
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/flip_unit/output.log",
+            "sha256": "b2916b9d2766c80c39b98effddfab8faeb8286a37636c89456c4695233e06534"
+          }
         },
         {
           "name": "storage_units",
@@ -681,7 +734,11 @@
               "verdict": "ok",
               "seconds": 0.0
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/storage_units/output.log",
+            "sha256": "ef79f9801360eda35e8b63fc66b0075c8179de40f14237bdc17b796014abdff0"
+          }
         },
         {
           "name": "production_units",
@@ -694,7 +751,11 @@
             "path": "build/gate-run.C2Fan8/jobs/production_units/ledger",
             "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           },
-          "rows": []
+          "rows": [],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/production_units/output.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
         },
         {
           "name": "flipctl",
@@ -714,7 +775,11 @@
               "verdict": "ok",
               "seconds": 132.93
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/flipctl/output.log",
+            "sha256": "ac8ba29e232242b4bec2a3e712924b61f1ddde3c5628702ea4b014a782c3be7e"
+          }
         },
         {
           "name": "at412-T1",
@@ -734,7 +799,11 @@
               "verdict": "ok",
               "seconds": 14.79
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T1/output.log",
+            "sha256": "7fdc441bb5617718b5cbbb939bb5adb21ca74f9dad3e2b391881cb297a6461a2"
+          }
         },
         {
           "name": "at412-T2",
@@ -754,7 +823,11 @@
               "verdict": "ok",
               "seconds": 26.89
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T2/output.log",
+            "sha256": "bcb4c40b911bb6c443f26dc3e99c618b66caa163b2befc8ba6f248bab19f2378"
+          }
         },
         {
           "name": "at412-T3",
@@ -774,7 +847,11 @@
               "verdict": "ok",
               "seconds": 6.77
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T3/output.log",
+            "sha256": "d603cc3a9b5033ae6511fbee4b34b2787e6b01c2c40ebe97dd6e09bd63391d80"
+          }
         },
         {
           "name": "at412-T4",
@@ -794,7 +871,11 @@
               "verdict": "ok",
               "seconds": 13.1
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T4/output.log",
+            "sha256": "96df3406fb7f866ff34e94d6bcb9e5ea6a1953a496212dadb351f39550fa89d2"
+          }
         },
         {
           "name": "at412-T5",
@@ -814,7 +895,11 @@
               "verdict": "ok",
               "seconds": 134.51
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T5/output.log",
+            "sha256": "233e2bb29db94b7508170f7235db793a6b2af649fcee4449c65c874ddf63774e"
+          }
         },
         {
           "name": "at412-T6",
@@ -834,7 +919,11 @@
               "verdict": "ok",
               "seconds": 812.44
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T6/output.log",
+            "sha256": "ea6def9e97afe084ea3f634019c17d109320deab329663703059fdba41193143"
+          }
         },
         {
           "name": "at412-T7",
@@ -854,7 +943,11 @@
               "verdict": "ok",
               "seconds": 37.11
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T7/output.log",
+            "sha256": "f3a3c57fa7a2501deb0e7cac3a61d443b655941f73f9988da704e141c4deadbb"
+          }
         },
         {
           "name": "at412-T8",
@@ -874,7 +967,11 @@
               "verdict": "ok",
               "seconds": 4.05
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T8/output.log",
+            "sha256": "46a8e247232f3e2c55a0ae412945cb06d6822a6a2d87049747a982ff84579036"
+          }
         },
         {
           "name": "at412-T9",
@@ -894,7 +991,11 @@
               "verdict": "ok",
               "seconds": 3.72
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T9/output.log",
+            "sha256": "b454bd8d9fd8b2440d337ebf81052c9f724e8349cd98d9e05c21543abf77bce3"
+          }
         },
         {
           "name": "at412-T10",
@@ -914,7 +1015,11 @@
               "verdict": "ok",
               "seconds": 451.78
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T10/output.log",
+            "sha256": "664682b6e733fb870a062d8f753420d41c116eb5ec67616801148a174b87ea09"
+          }
         },
         {
           "name": "at412-T11a",
@@ -934,7 +1039,11 @@
               "verdict": "ok",
               "seconds": 7.06
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T11a/output.log",
+            "sha256": "e1fb5b22d0cd68674e3e1cfc9555214e28a4ff51036d1bba6a64f70534460cf7"
+          }
         },
         {
           "name": "at412-T11b",
@@ -954,7 +1063,11 @@
               "verdict": "ok",
               "seconds": 43.27
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T11b/output.log",
+            "sha256": "47f1d413eb9c37dece4e607dfda3a7b914ec71e177444e264942c36f97491ca5"
+          }
         },
         {
           "name": "at412-T12",
@@ -974,7 +1087,11 @@
               "verdict": "ok",
               "seconds": 14.79
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T12/output.log",
+            "sha256": "a3addde04afb09df5da490f16b12249eed22ad64207ca944b1d865a28414959c"
+          }
         },
         {
           "name": "at412-T13",
@@ -994,7 +1111,11 @@
               "verdict": "ok",
               "seconds": 122.0
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T13/output.log",
+            "sha256": "64c2e5671700cab285be8e4557d04376aed2a379bb6d48bd82fdb4faacf4a953"
+          }
         },
         {
           "name": "at412-T14",
@@ -1014,7 +1135,11 @@
               "verdict": "ok",
               "seconds": 5.93
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T14/output.log",
+            "sha256": "75e0929db7779b93bb242902df06496b10282c256097013c0b19b8d237031caa"
+          }
         },
         {
           "name": "at412-T15",
@@ -1034,7 +1159,11 @@
               "verdict": "ok",
               "seconds": 109.16
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T15/output.log",
+            "sha256": "5b59c7c29c301a0487001b15f1fbbfc1aa6682ae6603f79b138228085fd049c0"
+          }
         },
         {
           "name": "at412-T16",
@@ -1054,7 +1183,11 @@
               "verdict": "ok",
               "seconds": 17.47
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-T16/output.log",
+            "sha256": "0016dfc5712305e26faec403af2af51af6f5aab0a49e49cda222a641b1b6652b"
+          }
         },
         {
           "name": "at412-owner",
@@ -1074,7 +1207,11 @@
               "verdict": "ok",
               "seconds": 0.06
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/at412-owner/output.log",
+            "sha256": "f0fdf32fdffd169cf2bd0fe2a8b5779a35f30c5d8cafc159c5ad1874fd1635fe"
+          }
         },
         {
           "name": "feature-split-0",
@@ -1292,7 +1429,11 @@
               "verdict": "ok",
               "seconds": 0.02
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-split-0/output.log",
+            "sha256": "5b2efbfe1501db90e05a4369f10773addfd60c4fcddc0ef4094f8a94ddf37cec"
+          }
         },
         {
           "name": "feature-armed-0",
@@ -1516,7 +1657,11 @@
               "verdict": "ok",
               "seconds": 1.17
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-armed-0/output.log",
+            "sha256": "813e8f1f7e87586214ca000859bd41e30445b0e9ca3c8dd0461f61bf7a299cfa"
+          }
         },
         {
           "name": "feature-split-1",
@@ -1734,7 +1879,11 @@
               "verdict": "ok",
               "seconds": 0.02
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-split-1/output.log",
+            "sha256": "42be18c0824d73f5461238f19f348386b3e4fa7df462699c29f643abaf5dac9e"
+          }
         },
         {
           "name": "feature-armed-1",
@@ -1958,7 +2107,11 @@
               "verdict": "ok",
               "seconds": 1.16
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/feature-armed-1/output.log",
+            "sha256": "7ba22b5fe39cef4fa9909ee3123ba8a3e2064e59022bbe7e7ee23999782f37c6"
+          }
         },
         {
           "name": "multidb-1s-0-0",
@@ -1990,7 +2143,11 @@
               "verdict": "ok",
               "seconds": 0.3
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-0-0/output.log",
+            "sha256": "bce6ef3997d70322b2ff8f4c4ad38b27cb1144f1d9cb73242be6db6568f03e64"
+          }
         },
         {
           "name": "multidb-1s-0-1",
@@ -2022,7 +2179,11 @@
               "verdict": "ok",
               "seconds": 0.35
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-0-1/output.log",
+            "sha256": "e793f2daf902ddf58a96351e82e06afc33413499f0b15a600f2328e213cf4f58"
+          }
         },
         {
           "name": "multidb-1s-1-0",
@@ -2054,7 +2215,11 @@
               "verdict": "ok",
               "seconds": 0.35
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-1-0/output.log",
+            "sha256": "b5cae6f64cf4c4c402de62b5e76a85db1b5ecba093eedfec570c329cecde718f"
+          }
         },
         {
           "name": "multidb-1s-1-1",
@@ -2086,7 +2251,11 @@
               "verdict": "ok",
               "seconds": 0.35
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-1s-1-1/output.log",
+            "sha256": "d5978c0bf8061943819cf3ed63a2080c5d24ba20b3488704740291111a23aac3"
+          }
         },
         {
           "name": "multidb-2s-0-0",
@@ -2118,7 +2287,11 @@
               "verdict": "ok",
               "seconds": 0.35
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-0-0/output.log",
+            "sha256": "5040890856e17043f8bbc8dcf2478944ba937ec5d845acc81830ac5e78ea4fed"
+          }
         },
         {
           "name": "multidb-2s-0-1",
@@ -2150,7 +2323,11 @@
               "verdict": "ok",
               "seconds": 0.35
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-0-1/output.log",
+            "sha256": "86ccdaa4e563209691b56e1767be9d5efa38dd832ef8277cd45a6df015ecc8fc"
+          }
         },
         {
           "name": "multidb-2s-1-0",
@@ -2182,7 +2359,11 @@
               "verdict": "ok",
               "seconds": 0.35
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-1-0/output.log",
+            "sha256": "28ddc2d1dfa0595f984e20d0531ab68149344c913914b8ea7424122ba6ffab39"
+          }
         },
         {
           "name": "multidb-2s-1-1",
@@ -2214,7 +2395,11 @@
               "verdict": "ok",
               "seconds": 0.35
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/multidb-2s-1-1/output.log",
+            "sha256": "7aedf98b53a7aa72e4c2dd10cbafa2d70bf58dfadc7665c0da11e09b289e0b29"
+          }
         },
         {
           "name": "persistfix2_lastsave",
@@ -2234,7 +2419,11 @@
               "verdict": "ok",
               "seconds": 10.34
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_lastsave/output.log",
+            "sha256": "43cde3e78bbdb54ffffe3f323c62b817f0a5bd8c7a5f963b56e569ebe1539608"
+          }
         },
         {
           "name": "persistfix2_shutdown",
@@ -2254,7 +2443,11 @@
               "verdict": "ok",
               "seconds": 85.97
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_shutdown/output.log",
+            "sha256": "f3b24a220a55d29dd988e42c312e1aa4b6504363b70ed699787e758d2fb72df2"
+          }
         },
         {
           "name": "persistfix2_commands",
@@ -2274,7 +2467,11 @@
               "verdict": "ok",
               "seconds": 55.14
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_commands/output.log",
+            "sha256": "456b3454941acde210e72f2e0592abc4fee51585d87113f0ec8571df50f0e8ef"
+          }
         },
         {
           "name": "persistfix2_errors",
@@ -2294,7 +2491,11 @@
               "verdict": "ok",
               "seconds": 4.26
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/persistfix2_errors/output.log",
+            "sha256": "60b05bcfd5b6bd93a61d1efb9687a5c5a8f2cdb182a16582d84e763b22d89358"
+          }
         },
         {
           "name": "aof-epoll",
@@ -2632,7 +2833,11 @@
               "verdict": "ok",
               "seconds": 0.21
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/aof-epoll/output.log",
+            "sha256": "fee31c759fa0bef6a8ed23e9ae065078859ad849e2f54ba9be31a98ce69bc18f"
+          }
         },
         {
           "name": "aof-uring",
@@ -2970,7 +3175,11 @@
               "verdict": "ok",
               "seconds": 0.2
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/aof-uring/output.log",
+            "sha256": "6d255981a5b98e8975c6a7d3c9f0c1f2e85e4e4efe93401f541fd56acf8ca5a7"
+          }
         },
         {
           "name": "snapshot-epoll",
@@ -3080,7 +3289,11 @@
               "verdict": "ok",
               "seconds": 1.08
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/snapshot-epoll/output.log",
+            "sha256": "21316b28811497e896feefe01a84fd7357416a24841aac1693aedc82cc6a65c1"
+          }
         },
         {
           "name": "snapshot-uring",
@@ -3190,7 +3403,11 @@
               "verdict": "ok",
               "seconds": 1.08
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/snapshot-uring/output.log",
+            "sha256": "55204cca43e40f113a0d3fe421817a375b87b355f81c77348b5c11bdaa32dd19"
+          }
         },
         {
           "name": "snapfix_shutdown",
@@ -3210,7 +3427,11 @@
               "verdict": "ok",
               "seconds": 0.62
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix_shutdown/output.log",
+            "sha256": "0294956cefa56a636224a19e754241aae324cc7f4a97453bf5deb03d24d44096"
+          }
         },
         {
           "name": "snapfix_bgsave_script",
@@ -3230,7 +3451,11 @@
               "verdict": "ok",
               "seconds": 58.55
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix_bgsave_script/output.log",
+            "sha256": "b42483d491881d41a0889f0916314dc5ee3f7c454fb9b0e52d803201d25dc3ed"
+          }
         },
         {
           "name": "snapfix_bgsave_exec",
@@ -3250,7 +3475,11 @@
               "verdict": "ok",
               "seconds": 55.37
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix_bgsave_exec/output.log",
+            "sha256": "69ffddca285a9abb86d65285dde92ea20712d3778a50c06081ed79233fd7ae82"
+          }
         },
         {
           "name": "snapfix2_tables",
@@ -3270,7 +3499,11 @@
               "verdict": "ok",
               "seconds": 1.98
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/snapfix2_tables/output.log",
+            "sha256": "bdd389a58e0a2bce16b512a1c1931b8ea7ddfc01e7d025104a00b85b94ddfa51"
+          }
         },
         {
           "name": "debug-0",
@@ -3380,7 +3613,11 @@
               "verdict": "ok",
               "seconds": 8.51
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.C2Fan8/jobs/debug-0/output.log",
+            "sha256": "351202faeef9b239521e169a634f09a80bafe21069850f36b3b0c69d3462229f"
+          }
         }
       ],
       "omitted_unfinished_jobs": [
@@ -3432,7 +3669,8 @@
       "verdicts": {
         "ok": 384
       },
-      "complete_selection": false
+      "complete_selection": false,
+      "explicit_not_run": []
     },
     "idle-recheck/idle": {
       "log": {
@@ -3459,7 +3697,11 @@
               "verdict": "ok",
               "seconds": 0.0
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.aVVHmT/jobs/release/output.log",
+            "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+          }
         },
         {
           "name": "flushfix3",
@@ -3485,7 +3727,11 @@
               "verdict": "ok",
               "seconds": 45.87
             }
-          ]
+          ],
+          "output_log": {
+            "path": "build/gate-run.aVVHmT/jobs/flushfix3/output.log",
+            "sha256": "f7b0f1b45e3f9696bc84bc6dafd691789f09c2398e62ae3d605f9373d0d4bc94"
+          }
         }
       ],
       "omitted_unfinished_jobs": [],
@@ -3493,7 +3739,8 @@
       "verdicts": {
         "ok": 3
       },
-      "complete_selection": true
+      "complete_selection": true,
+      "explicit_not_run": []
     }
   },
   "differential_inventory": []

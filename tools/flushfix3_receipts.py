@@ -28,6 +28,15 @@ def main():
             evidence = gate(log, completed=completed)
             evidence['complete_selection'] = not evidence['omitted_unfinished_jobs']
             assert row['status'] or evidence['complete_selection'], 'successful incomplete selection'
+            evidence['explicit_not_run'] = []
+            for job in evidence['jobs']:
+                output = folder/'jobs'/job['name']/'output.log'
+                if not output.exists():
+                    continue
+                job['output_log'] = ref(output)
+                for line in output.read_text().splitlines():
+                    if re.search(r'\b(?:NOT RUN|SKIP)\b', line):
+                        evidence['explicit_not_run'].append(dict(job=job['name'], line=line))
             gates[label] = evidence
             folder = ROOT/evidence['root']
             if row['phase'].startswith('differ-'):
