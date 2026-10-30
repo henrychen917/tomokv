@@ -2,18 +2,24 @@
   "receipt": "docs/wave11/jobs/landing-tcl.json",
   "summary": {
     "1s": {
-      "units": 38,
-      "passed_assertions": 1818,
+      "manifest_files": 37,
+      "unit_invocations": 38,
+      "passed_assertions": 1817,
       "known_setup_failures": 5,
-      "complete": true
+      "complete": true,
+      "summary_sha256": "f983b4aaba0484d4fa78e7af641fabd3238295574921ea392b98eaf604144600",
+      "known_setup_sites": 4
     },
     "2s": {
-      "units": 38,
-      "passed_assertions": 1818,
+      "manifest_files": 37,
+      "unit_invocations": 38,
+      "passed_assertions": 1817,
       "known_setup_failures": 5,
-      "complete": true
+      "complete": true,
+      "summary_sha256": "2353ba5bc5d741f9dc2c5681d736e90e6d7ae369aad503f3c6824808be796534",
+      "known_setup_sites": 4
     }
   },
-  "note": "Raw upstream setup diagnostics remain recorded and must match the manifest exactly; gate verdict checks the selected assertion multiset and named setup exceptions.",
+  "note": "Counts use the authoritative top-level summary. Its slowlog row already includes the fresh EXEC assertion; recursively summing nested result.json files would count that assertion twice. Raw upstream setup diagnostics remain recorded and match the manifest exactly; the gate checks the selected assertion multiset and named setup exceptions.",
   "passed": true
 }

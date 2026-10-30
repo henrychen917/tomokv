@@ -1,0 +1,71 @@
+{
+  "receipt": "docs/wave11/jobs/negative-client-list-cmd-name.json",
+  "binary_sha256": "263168d938130ec631ee3059158f63fc324cf36e5bc06b37c5222525ab9e1a20",
+  "manifest_sha256": "7d0bb0547183fc99f8c3a7ef973ba44d79e81f80adffef1c4801c09f6ea0256d",
+  "manifest_scope": "complete merged manifest in both modes",
+  "expected_gate_exit": 1,
+  "actual_gate_exit": 1,
+  "modes": {
+    "1s": {
+      "manifest_files": 37,
+      "passed_assertions": 1814,
+      "known_setup_failures": 5,
+      "unexpected_failures": [
+        {
+          "status": "err",
+          "file": "tests/unit/introspection.tcl",
+          "test": "CLIENT LIST in tests/unit/introspection.tcl",
+          "data": "CLIENT LIST in tests/unit/introspection.tcl\nExpected 'id=* addr=*:* laddr=*:* fd=* name=* age=* idle=* flags=N db=* sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=* argv-mem=* multi-mem=0 rbs=* rbp=* obl=0 oll=0 omem=0 tot-mem=* events=r cmd=client|list user=* redir=-1 resp=*' to equal or match 'id=2 addr=127.0.0.1:34571 laddr=127.0.0.1:20080 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=16204 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n'",
+          "milliseconds": "0"
+        },
+        {
+          "status": "err",
+          "file": "tests/unit/introspection.tcl",
+          "test": "CLIENT LIST with IDs in tests/unit/introspection.tcl",
+          "data": "CLIENT LIST with IDs in tests/unit/introspection.tcl\nExpected 'id=2 addr=127.0.0.1:34571 laddr=127.0.0.1:20080 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=41 qbuf-free=16139 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=' to match 'id=2 * cmd=client|list *' (context: type eval line 4 cmd {assert_match \"id=$myid * cmd=client|list *\" [lindex $cl 0]} proc ::test) ",
+          "milliseconds": "0"
+        },
+        {
+          "status": "err",
+          "file": "tests/unit/introspection.tcl",
+          "test": "CLIENT INFO in tests/unit/introspection.tcl",
+          "data": "CLIENT INFO in tests/unit/introspection.tcl\nExpected 'id=* addr=*:* laddr=*:* fd=* name=* age=* idle=* flags=N db=* sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=* argv-mem=* multi-mem=0 rbs=* rbp=* obl=0 oll=0 omem=0 tot-mem=* events=r cmd=client|info user=* redir=-1 resp=*' to equal or match 'id=2 addr=127.0.0.1:34571 laddr=127.0.0.1:20080 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=16113 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n'",
+          "milliseconds": "0"
+        }
+      ],
+      "summary_sha256": "f54b45e4aa8d36350582a895d78f5bbd717dc7fb1faad3974a5875f587669f13",
+      "complete": true
+    },
+    "2s": {
+      "manifest_files": 37,
+      "passed_assertions": 1814,
+      "known_setup_failures": 5,
+      "unexpected_failures": [
+        {
+          "status": "err",
+          "file": "tests/unit/introspection.tcl",
+          "test": "CLIENT LIST in tests/unit/introspection.tcl",
+          "data": "CLIENT LIST in tests/unit/introspection.tcl\nExpected 'id=* addr=*:* laddr=*:* fd=* name=* age=* idle=* flags=N db=* sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=* argv-mem=* multi-mem=0 rbs=* rbp=* obl=0 oll=0 omem=0 tot-mem=* events=r cmd=client|list user=* redir=-1 resp=*' to equal or match 'id=2 addr=127.0.0.1:43191 laddr=127.0.0.1:20080 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=16204 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n'",
+          "milliseconds": "0"
+        },
+        {
+          "status": "err",
+          "file": "tests/unit/introspection.tcl",
+          "test": "CLIENT LIST with IDs in tests/unit/introspection.tcl",
+          "data": "CLIENT LIST with IDs in tests/unit/introspection.tcl\nExpected 'id=2 addr=127.0.0.1:43191 laddr=127.0.0.1:20080 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=41 qbuf-free=16139 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=' to match 'id=2 * cmd=client|list *' (context: type eval line 4 cmd {assert_match \"id=$myid * cmd=client|list *\" [lindex $cl 0]} proc ::test) ",
+          "milliseconds": "0"
+        },
+        {
+          "status": "err",
+          "file": "tests/unit/introspection.tcl",
+          "test": "CLIENT INFO in tests/unit/introspection.tcl",
+          "data": "CLIENT INFO in tests/unit/introspection.tcl\nExpected 'id=* addr=*:* laddr=*:* fd=* name=* age=* idle=* flags=N db=* sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=* argv-mem=* multi-mem=0 rbs=* rbp=* obl=0 oll=0 omem=0 tot-mem=* events=r cmd=client|info user=* redir=-1 resp=*' to equal or match 'id=2 addr=127.0.0.1:43191 laddr=127.0.0.1:20080 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=26 qbuf-free=16113 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=\n'",
+          "milliseconds": "0"
+        }
+      ],
+      "summary_sha256": "899b74a88393cdce85c4dec7c90b1ac6ff683470e9549b47cd9a7cb6200d4a1f",
+      "complete": true
+    }
+  },
+  "passed": true
+}
