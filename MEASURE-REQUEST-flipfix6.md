@@ -107,8 +107,8 @@ preflight also refuses a session in both linked namespace probes.
 The directed gate run passed **18 rows, zero failures**, including all **72/72**
 fresh-boot live cases. Across the 64 storm cases there were **1,478,476 FLIP
 attempts**, **22,758 immediate close refusals**, and **zero S2 refusals**. The
-largest observed FLIP was **17.586 ms**, PING was **17.524 ms**, and command
-reply gap was **17.552 ms**. Every no-churn EXEC FLIP succeeded. All pairs,
+largest observed FLIP was **17.585 ms**, PING was **17.524 ms**, and command
+reply gap was **17.551 ms**. Every no-churn EXEC FLIP succeeded. All pairs,
 reply counts, final values and session-move counters passed. These are
 correctness stall observations, not throughput results.
 
@@ -127,8 +127,9 @@ Per-leg EXEC storm refusal counts (S2 is zero in every cell):
 
 The live storm did not naturally enter S2. Its refusal and unchanged-state
 resumption are proved by the 16 deliberately prepared core cases, including
-WATCH as well as EXEC. The expanded 54-assertion ASAN/UBSAN and TSAN run is
-pending; the first gate run passed the earlier 46-assertion selection.
+WATCH as well as EXEC. The expanded **54/54-assertion** ASAN/UBSAN and TSAN runs both passed;
+the first gate run also passed the earlier 46-assertion selection. Both WATCH
+allocation-failure sweeps passed again. Logs are in `docs/flipfix6/unit-expanded/`.
 Per-case counters and timings are in [live-summary.json](docs/flipfix6/live-summary.json);
 the full episode records are retained in the two compressed live-result files.
 
@@ -208,7 +209,7 @@ retaining ownership/lifetime/quota checks. The BLPOP-held IoDrain signal test in
 
 Completed: `make all`; all `job_production_units` targets; 58 `make -q` checks
 ([freshness.json](docs/flipfix6/freshness.json)); initial sanitizer core/FLIP rows;
-command/control counts. The expanded WATCH-S2 sanitizer selection is pending.
+command/control counts. The expanded WATCH-S2 sanitizer selection passed 54/54 assertions in each sanitizer.
 Still running/pending: full requested live/gate matrix, both differential engines,
 PAD-A negative control and final `python3 tests/gates_test.py`. These are not yet
 claimed as passes. Any unresolved failure or NOT RUN item will be explicit here.
