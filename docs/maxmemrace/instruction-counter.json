@@ -24,15 +24,15 @@
   "probes": {
     "pre-normal": "c19a96bc2a75b0f67b577f0930cc7973f999ed9736d1c7a270692b1d0307beb1",
     "pre-db0": "d6cf9d87799ef2a01c04d022b2b8028c4052324734ff78ddca6ef064ed97e026",
-    "post-normal": "ea9de3a8af96aeaa8815869dbaf7d5025935a3ed68c03be18721f2bae46a0e51",
-    "post-db0": "b6d79fa2a1bef8ccc5c0b997c34d42dc1576a2c11081fcb3c2f469707270c9f7"
+    "post-normal": "e63901513ff5e85d596f25ae443d4322b435278ffc2cb4a59b9caae0cb91a890",
+    "post-db0": "03617321aea4d8dc594b30a621f53961a91b36c96bc499b0c6df53063150699a"
   },
   "pre_tree": {
     "commit": "e32b04a44",
     "binary_sha256": "5ddfb25b705eb08584a84fc8bb01d9ee743df745b0d67d9dd377608748db8004",
     "note": "exported e32b04a44 sources built in place; differs from build/maxmemrace/pre/tomokv only by build path and INFO git identity"
   },
-  "post_objects": "build/ (make all at 9a57b4706); frozen POST build/maxmemrace/post/tomokv sha256 982fb6931cb1a31ea52f5a3137f554d47f6cbd18afb79ceac21c5b446d089443",
+  "post_objects": "build/ (make all at ea98be941); frozen POST build/maxmemrace/post/tomokv sha256 a3cb3cc9ca5973af492b577f7647633c4835dd3a6ff3e0b35fd6e6fd78b10faa",
   "trace_bound": 10000000,
   "mechanism": "ptrace single-step of an owned finite serverless child; data/exit check after scope_end; clock_gettime frozen; no perf events or rate measurement",
   "same_counter_as": "docs/pubtrackfix/instruction-counter.json (identical step_pc.c, wave9_scope.cc and step-pc hashes)"

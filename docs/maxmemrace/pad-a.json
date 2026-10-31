@@ -144,7 +144,7 @@
     "-lm",
     "-Wl,--section-start=.text=0x2cab0"
   ],
-  "padding_text_bytes": 3024,
+  "padding_text_bytes": 3360,
   "padding_tbss_bytes": 32,
   "pre_text": {
     "address": 182960,
@@ -152,11 +152,11 @@
   },
   "post_text": {
     "address": 182960,
-    "size": 8732455
+    "size": 8732791
   },
   "pad_text": {
     "address": 182960,
-    "size": 8732455
+    "size": 8732791
   },
   "pre_tbss": {
     "address": 10416816,
@@ -212,7 +212,7 @@
     "POST": {
       ".text": {
         "address": 182960,
-        "size": 8732455
+        "size": 8732791
       },
       ".rodata": {
         "address": 8916992,
@@ -220,11 +220,11 @@
       },
       ".eh_frame": {
         "address": 9648016,
-        "size": 621056
+        "size": 621088
       },
       ".gcc_except_table": {
-        "address": 10269072,
-        "size": 148640
+        "address": 10269104,
+        "size": 148688
       },
       ".tdata": {
         "address": 10420528,
@@ -250,7 +250,7 @@
     "PAD-A": {
       ".text": {
         "address": 182960,
-        "size": 8732455
+        "size": 8732791
       },
       ".rodata": {
         "address": 8916992,
@@ -286,7 +286,7 @@
       }
     }
   },
-  "inputs_sha256": "9075e0027df429c6ae5ee11e20ec2833a5d927486b7301354439fb7caf0d6079",
+  "inputs_sha256": "48447dceec6ab42bd81a387b85a1ff3363c7fc24ee18b677873168719eac1e1e",
   "arms": {
     "PRE": {
       "path": "build/maxmemrace/pre/tomokv",
@@ -294,11 +294,11 @@
     },
     "POST": {
       "path": "build/maxmemrace/post/tomokv",
-      "sha256": "982fb6931cb1a31ea52f5a3137f554d47f6cbd18afb79ceac21c5b446d089443"
+      "sha256": "a3cb3cc9ca5973af492b577f7647633c4835dd3a6ff3e0b35fd6e6fd78b10faa"
     },
     "PAD-A": {
       "path": "build/maxmemrace/pad-a/tomokv",
-      "sha256": "0564d8f785b8e582ac82e5df3f623020b2cf11ff356882c257a9a0966d1e0066"
+      "sha256": "7eb78717853bf5b5c2ef3629fb8b4cddd5f986d2b6a5177bb58ca035a7232bfe"
     }
   }
 }
