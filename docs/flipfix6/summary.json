@@ -10,5 +10,11 @@
     "planned": 17,
     "sessions": 9,
     "s2": 0
+  },
+  "legacy-diagnostic-v2": {
+    "refusals": 28,
+    "planned": 17,
+    "sessions": 12,
+    "s2": 0
   }
 }

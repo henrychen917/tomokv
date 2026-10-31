@@ -3,7 +3,7 @@
 ## flipfix6
 
 Branch `cx-flipfix6`, base `e32b04a445b056976abb308aa598e356fcbaae74`. No push.
-Witness/diagnosis only so far; **no production change**. D18.1 and D18.2 were
+Witness and diagnosis delivered; **no production change**. D18.1 and D18.2 were
 approved on 2026-10-31. A further, explicit requirement conflicts with active
 WATCH transfer and needs an owner ruling before implementation.
 
@@ -98,6 +98,32 @@ atomic snapshots of the exact drain conditions to investigate those separately.
 The original driver's `pass` classification permits refusals if any FLIP
 completed; it is not the POST acceptance criterion of the new witness.
 
+Diagnostic v2 reran the unchanged partner twice per leg (16 fresh boots):
+28 refusals, comprising 12 ClientPrepare/session-pointer failures and 16
+IoDrain failures. Fourteen IoDrain dumps identify **only
+`!multi_deferred_.empty()`** as false readiness (`mask=256`, bit 8 in the
+diagnostic). Both epoll atomic modes and both database configurations reproduced
+that earlier-stage blocker. Two more IoDrain failures had no unacknowledged IO
+left by the dump; their exact clause is **NOT CAPTURED**. The two v1 IoDrain
+clauses are likewise **NOT CAPTURED**, rather than retrospectively assigned the
+v2 diagnosis. All 40 directed ClientPrepare refusals and all 12 v2
+ClientPrepare refusals have exact clause records.
+
+This partially refutes the brief's premise about the EXEC workload: successful
+IoDrain does retire in-flight work, but the original partner can also exhaust
+the deadline while waiting for deferred transaction state reclamation. A
+ClientPrepare-only fix cannot resolve those episodes. `multi_reap_deferred`
+(`multi.inc:3121-3130`) waits for `multi_records_done` (record/watch references
+and child records, `:517-523`). The retained reference/root reclamation cause
+has **not** been diagnosed beyond that clause. No drain predicate, transaction
+state lifetime or txnorder rule has been weakened. Treat this as a separate
+owner review item before promising every EXEC-workload FLIP completes.
+
+The two original-driver diagnostic sets observed another 9 and 12 planned
+session-connection occurrences respectively, all with `pending=0`. Across the
+recorded diagnostics: **0 S2 / 141 planned session occurrences**, within 214
+total planned-connection occurrences. No inference that S2 is impossible.
+
 Evidence: `docs/flipfix6/diagnosis-results.json`,
 `docs/flipfix6/diagnosis-diagnosis.json`, and the `legacy-*-results.json` /
 `legacy-diagnostic-diagnosis.json` files. Every directed refusal has its epoch,
@@ -143,6 +169,8 @@ relative to the quick exit. `EXPECT_QUICK=977` and `EXPECT_FULL=994` are untouch
 PRE: `build/flipfix6/PRE`, SHA-256
 `89f2fa028dbe7f05e2a4d9b0f799c6819a391debf8cf4de5506f57397621cf77`.
 POST and PAD-A do not exist: production implementation is paused as above.
+Diagnostic-v1 and v2 hashes/provenance are in `docs/flipfix6/artifacts.json`;
+neither diagnostic is a POST candidate or a PAD arm.
 There is no throughput claim.
 
 ### Verification status
@@ -152,7 +180,7 @@ There is no throughput claim.
 | `make -j16 all` on e32b04a44; `make -q all` freshness | PASS; freshness exit 0; layout assertions compiled |
 | Unchanged flipfix5 EXEC partner, all eight 2s legs | RUN on PRE and diagnostic PRE; refusals and all clean exits retained above |
 | Directed EXEC/P1/P2/P3/active-WATCH + unrelated PING, all eight legs | 40/40 confirmed PRE failures using `--expect pre`; exact reply/value accounting retained |
-| `python3 tests/gates_test.py` | PASS, 76 tests on the idle rerun. First run overlapped this lane's correctness servers and failed five scheduler fixtures at their unchanged 45 s timeout; both logs retained |
+| `python3 tests/gates_test.py` | PASS, 76 tests on the final idle run with `LC_ALL=C GATE_TEST_PORT=20390`. Earlier idle run also passed 76; the first, concurrent run failed five scheduler fixtures at their unchanged 45 s timeout. Logs retained |
 | Python syntax checks for new witness/diagnostic/archive tools | PASS |
 | New `flipfix6` live gate row and ASAN/UBSAN/TSAN core fixture units | NOT RUN / not registered: production implementation paused on the preserved WATCH clause |
 | Every FLIP gate job: `flip`, `fliplisten`, `flipctl`, `flip_unit`, `flipfix_units`, `flipfix5`, `flipfix5_units`, `core_units` | NOT RUN through the job interface: no candidate implementation; the standalone EXEC-partner run is not substituted for these jobs |
@@ -172,6 +200,34 @@ evidence/proposal if a correct fix requires changing a preserved rule. It is not
 a request to reapprove D18.1 or D18.2. The additional question concerns only the
 durable WATCH-reference clause. All pending proof remains required if that
 exception is approved and implementation resumes.
+
+The two earlier harness runs used its default ephemeral port for its synthetic
+socket ownership checks; that was outside the lane's requested listening-port
+range. The final complete run explicitly set `GATE_TEST_PORT=20390`. Every
+TomoKV boot used 20300 or 20310 and the requested CPU ranges.
+
+### Reproduction commands
+
+From this worktree (correctness only):
+
+```sh
+taskset -c 32-47 env LC_ALL=C python3 tests/flipfix6.py \
+  --binary build/flipfix6/PRE --cores 32-39 --port 20300 --expect pre \
+  --cases exec p1 p2 p3 watch --output build/flipfix6/reproduce-pre
+
+taskset -c 32-47 python3 tools/flipfix6_diag.py
+taskset -c 32-47 env LC_ALL=C make -C build/flipfix6/diag-source -j16 all
+taskset -c 32-47 env LC_ALL=C python3 tests/flipfix5.py \
+  --case op-flip --op EXEC --binary build/flipfix6/diag-source/build/tomokv \
+  --cores 32-39 --port 20300 --seconds 6 --attempts 2 \
+  --output build/flipfix6/reproduce-partner
+
+taskset -c 32-47 env LC_ALL=C GATE_TEST_PORT=20390 python3 tests/gates_test.py
+```
+
+Build storage was about 3.0 GiB before removing superseded diagnostic-v1
+artifacts. Raw superseded diagnostic logs are archived compressed with hashes
+and counts. No server or harness child remains running. No push was made.
 
 After the additional ruling and implementation, the maintainer's request remains
 the 14 generic cells plus 2s GET/SET p1/p32 null cells, and FLIP episode latency

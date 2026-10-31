@@ -1,0 +1,35 @@
+{
+  "base": "e32b04a445b056976abb308aa598e356fcbaae74",
+  "artifacts": [
+    {
+      "name": "PRE",
+      "path": "build/flipfix6/PRE",
+      "source": "e32b04a445b056976abb308aa598e356fcbaae74",
+      "sha256": "89f2fa028dbe7f05e2a4d9b0f799c6819a391debf8cf4de5506f57397621cf77",
+      "bytes": 224567696,
+      "production_candidate": false,
+      "retained": true
+    },
+    {
+      "name": "diagnostic-v1",
+      "path": "build/flipfix6/DIAG-v1",
+      "source": "09e57971d:tools/flipfix6_diag.py",
+      "sha256": "6de9ede3bbd4a5d9e3ffb0c821a6e126a242d3e0b1bc16f978b6eea6255b73f5",
+      "bytes": 224531152,
+      "production_candidate": false,
+      "retained": false,
+      "removed_reason": "Superseded diagnostic; source generator, hashes, counts and compressed logs retained."
+    },
+    {
+      "name": "diagnostic-v2",
+      "path": "build/flipfix6/diag-source/build/tomokv",
+      "source": "4c8da6bfe:tools/flipfix6_diag.py",
+      "sha256": "5df71b1071e602b22abb5060a2da236fa3ba449ee20ad78a65ec96974a96e5fb",
+      "bytes": 224511120,
+      "production_candidate": false,
+      "retained": true
+    }
+  ],
+  "post": null,
+  "pad_a": null
+}

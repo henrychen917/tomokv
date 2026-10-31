@@ -1,0 +1,20 @@
+{
+  "base": "e32b04a445b056976abb308aa598e356fcbaae74",
+  "production_and_gate_diff": [],
+  "make_all": "PASS",
+  "make_q_all": 0,
+  "gates_test": {
+    "tests": 76,
+    "result": "PASS",
+    "LC_ALL": "C",
+    "GATE_TEST_PORT": 20390,
+    "log_sha256": "4629422f93525098adbe37c876abd16e0b4b1da3455bce708341c918070cc2c5"
+  },
+  "directed_pre_cases": 40,
+  "directed_pre_failures_confirmed": 40,
+  "post": null,
+  "pad_a": null,
+  "DQ": 0,
+  "DF": 0,
+  "pending": "Additional ruling on durable WATCH refs; separate IoDrain multi_deferred_ diagnosis remains open"
+}

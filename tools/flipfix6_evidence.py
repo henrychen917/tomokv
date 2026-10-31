@@ -71,7 +71,10 @@ def classify(directory, label):
             if failure['stage_name'] == 'ClientPrepare':
                 assert any(c['clauses'] for c in failure['clauses']), failure
             elif not failure['drains']:
-                failure['limitation'] = 'Drain clauses not captured by diagnostic v1; see v2 rerun.'
+                failure['limitation'] = (
+                    'No unacknowledged IO remained by the v2 dump; failing clause not captured.'
+                    if label.endswith('v2') else
+                    'Drain clauses not captured by diagnostic v1; see v2 rerun.')
         all_planned = [entry for group in planned.values() for entry in group]
         row = dict(path=str(path.relative_to(directory)), failures=failures,
                    planned=len(all_planned), sessions=sum(p['session'] for p in all_planned),
@@ -97,11 +100,15 @@ summary = {}
 for name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2', 'legacy-pre', 'pre-smoke'):
     directory = BUILD / name
     if not (directory / 'results.json').exists():
+        archived = OUT / f'{name}-diagnosis.json'
+        if archived.exists():
+            summary[name] = {k: v for k, v in json.loads(archived.read_text()).items() if k != 'rows'}
         continue
     (OUT / f'{name}-results.json').write_bytes((directory / 'results.json').read_bytes())
     if name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2'):
         summary[name] = classify(directory, name)
-for name in ('pre-build.log', 'diag-build.log', 'gates-test.log', 'gates-test-contended.log'):
+for name in ('pre-build.log', 'diag-build.log', 'diag-v2-build.log', 'gates-test.log',
+             'gates-test-contended.log', 'gates-test-idle.log'):
     source = BUILD / name
     if source.exists():
         with gzip.GzipFile(filename=str(OUT / (name + '.gz')), mode='wb', mtime=0) as stream:
