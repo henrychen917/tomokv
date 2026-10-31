@@ -4,5 +4,11 @@
     "phase": "matrix-uring",
     "archive": "docs/persistfmt/gate-run.Ver4C5.tar.gz",
     "sha256": "9c4f6108bdaa7f0d5f04c7ab138addfcc214acea1f5b05f8fe3d7a27dec6137f"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.Oty9Qh",
+    "phase": "matrix-epoll",
+    "archive": "docs/persistfmt/gate-run.Oty9Qh.tar.gz",
+    "sha256": "7ba979906849ae26031c778753bcf8e225b3226f20b62e8057ba5e2e3b48d52c"
   }
 ]

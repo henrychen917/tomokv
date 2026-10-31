@@ -128,6 +128,11 @@ Completed on the corrected, frozen POST:
 - Tcl passing-subset job in both modes: 1,820 passing assertions per mode, including
   all three promotions. Its five existing setup errors per mode remain explicitly
   inventoried; no new skip or known-failure allowance was added.
+- Standard differential jobs on both engines: 1,860 distinct suite/seed cases,
+  16 prescribed repeat executions, and both mode-equivalence checks pass.
+  `differ-verdict.json` retains the gate's seed manifests and all leg counts.
+  The only declared suite skips are `sort` in the armed geometry; its split 6:2
+  cases run and pass on both engines.
 - `python3 tests/gates_test.py`: 76/76 pass on the quiet rerun. The earlier attempt
   under compilation/trace contention hit nine scheduler deadlines; both logs remain.
 - `make -k -j16 all` with all 51 main `job_production_units` targets, plus the
