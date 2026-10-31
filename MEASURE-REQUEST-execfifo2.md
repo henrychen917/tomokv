@@ -92,6 +92,19 @@ will be retained under `docs/execfifo2/`. This is a selected-job proof, never a
 full iteration receipt. The full iteration and all performance cells are
 **NOT RUN** by this lane.
 
+The selected-job runner uses the gate's two slots: server CPUs 0–15, protocol
+client CPUs 16–31, eight server threads per slot, 16 shards and ratio 6:2
+(apart from a job's own explicit geometry). No shortened leg or reduced seed
+inventory is used. `GATE_PROOF_NO_RATES=1` retains finite correctness checks
+while leaving the atomic throughput floor, atomic RYOW rate assertions and
+stream/xmove rate checks **NOT RUN**. `flip_saturated` is **NOT RUN** because
+it launches memtier, which the runtime authorization reserves to the maintainer.
+
+`python3 tests/gates_test.py` passed **76/76** on a quiet rerun with unchanged
+deadlines. Its initial run had five scheduler-fixture timeouts while this lane's
+builds and instruction traces were active; both attempts are retained in
+`docs/execfifo2/selftests/`.
+
 ### Instruction counts
 
 **48/48 ordinary command cells are exactly PRE = POST:** GET/SET/INCR/MGET/MSET,
