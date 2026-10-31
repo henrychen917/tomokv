@@ -3,7 +3,8 @@
 `session-readers.txt` records every source match for `multi_session(`,
 `MultiSession`, and `multi_session_` (64 lines). This audit also follows the
 session fields and the WATCH reference producers. Line numbers below refer to
-PRE. Production source has not changed.
+PRE. This opening section records the witness-stage audit; the final
+implementation audit appears below.
 
 | Readers / writers | IO assumption and transfer obligation |
 |---|---|
@@ -97,3 +98,9 @@ existing `flip_error_mu_`. A precommit close wins the lock and causes rollback;
 after commitment, the existing pin defers cleanup until the bounded completion
 reaches Idle. Existing listener handover operations keep their order. No
 executor quiesce readiness, mask, re-mask or transaction mechanism changes.
+
+A committed foreign write does not remove the installed aliases: `watch_write_committed`
+sets the stable Client's dirty bit. Expiry/physical deletion do the same. The
+registered generation and alias count therefore remain exact until the ordinary
+UNWATCH/EXEC/RESET/DISCARD/close cleanup removes them. This was rechecked against
+the final source; live tests verify a foreign write after movement returns nil EXEC.

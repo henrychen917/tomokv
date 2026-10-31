@@ -3,259 +3,254 @@
 ## flipfix6
 
 Branch `cx-flipfix6`, PRE `e32b04a445b056976abb308aa598e356fcbaae74`.
-Resumed from `fe0f82542` under resume addendum 2. No push.
+Resumed from `fe0f82542`; implementation commit `44f561020`, additional proof
+commit `139b498d3`. No push. **Implementation complete; extended proof in progress.**
+D18.1 and the conservative D18.2 policy in resume addendum 2 are implemented.
+No further owner decision is requested. D18.4 is not implemented.
 
-The conservative implementation is now applied. D18.1 carries the session and
-accepts exactly its installed WATCH aliases. S2 on **any** source refuses at
-IoDrain, leaving its state and original admission untouched. A pinned close
-refuses a reversible FLIP before preparing cleanup. If the ownership commit
-has already won, the existing pin holds cleanup until Idle; that edge cannot
-be rolled back. The refusal and commit edge share the existing error mutex.
-The active-close retry revisits the same idempotent cleanup before the unchanged
-zero-pin lifetime check, so deferral cannot leak a watched connection.
+A clean MULTI/WATCH session now moves with its Client through FLIP. Prepared
+unpublished state refuses FLIP at IoDrain on any source. A pinned close refuses
+a reversible FLIP before cleanup can publish to frozen executors. The ordinary
+reply/order/error contract is unchanged; the new errors are FLIP refusals only.
 
-The preserved executor readiness predicate has no credit discount. **D18.4
-(not implemented, owner decision after the freeze)** is the receipt alternative
-in [s2-exdrain-review.md](docs/flipfix6/s2-exdrain-review.md). The earlier draft and
-witnesses below remain historical evidence. Current validation: release build,
-fast core session/S2/close units, existing planned-close lifetime units, WATCH
-allocation rollback (db1/db16), and `make -q` PASS. Gate/sanitizer/live/counting
-proof and final POST/PAD-A arms are in progress; no landing claim yet.
+### Witness and diagnosis retained
 
-### What the resume established
+The original 40/40 PRE directed failures, P1/P2/P3 confirmation, five-second PING
+stalls and exact deadline predicates remain in
+[the witness report](docs/flipfix6/witness-report.md). No production change was
+made before that witness. The extended v3 diagnostic captured 24 refusals over
+16 fresh boots: eight ClientPrepare and 16 IoDrain. All 16 IoDrain failures held
+finalized, published, retired EXEC states with only MVCC owner-record references:
+zero tasks, WATCH refs, child debt, registered cuts and pending sessions. They
+were transient reclamation work, not S2. The v4 diagnostic showed that repeated
+FLIP wake completions starved the executor's idle cleanup sweep.
 
-| Proof | Result |
-|---|---|
-| Original directed PRE witness | Existing 40/40 failures retained; every deadline refusal's ClientPrepare clauses recorded |
-| Extended diagnostic, unchanged flipfix5 EXEC partner | 16 fresh boots over all eight legs; 24 refusals: 8 ClientPrepare and 16 IoDrain |
-| IoDrain reference classification | All 16 captured IoDrain failures held retired, published, finalized EXEC states with only MVCC record references remaining; no S2 |
-| Owner cleanup diagnostic | Four further IoDrain refusals; executor control passes continue but the idle cleanup sweep is starved by FLIP wake completions |
-| Draft EXEC/P1/P2/P3/active-WATCH storms | 40/40 fresh-boot cases passed over all eight legs; 316,801 FLIPs, 633,722 moved-session counter increments |
-| Draft semantics after an actual move | 8/8 fresh boots, six subcases each: WATCH clean/dirty, split queue, queue error, DISCARD, RESET |
-| Draft WATCH core units | Exact aliases and lifetime checks pass with databases 1 and 16 |
-| Draft WATCH allocation-failure sweep | PASS for databases 1 and 16, including rollback after alias append and successful retry |
-| PRE-compatible S2 executor-fence witness | 8/8 cases prove ExDrain obstruction; abandoning the same state opens the fence |
-| Draft close-after-ExDrain core witness | Both database configurations publish new cleanup tasks into acknowledged owner inboxes; rollback releases the pins |
+The two old v2 late-ack events and two old v1 missing-clause events remain
+**NOT CAPTURED historically**. They were not reassigned a clause. The extended
+diagnostic retained snapshots of acknowledged IOs as well; no corresponding
+late-ack event recurred. Existing logs and compressed evidence remain under
+`docs/flipfix6/`. The prior unsafe draft is historical, not the delivered POST.
 
-The live draft checks every EXEC reply for an equal pair and exact final values,
-requires all FLIPs to succeed, and requires the moved-session counter to rise.
-The largest unrelated PING wait was **25.080 ms**; the largest transaction/read
-reply gap was **28.427 ms**. Every fresh boot exited cleanly. These are bounded
-correctness/stall checks, **not throughput or performance claims**. Runs used
-3 seconds per storm and a minimum of 50 completed FLIPs; actual counts are in
-[draft-live-summary.json](docs/flipfix6/draft-live-summary.json). Complete reply,
-FLIP and worker records are compressed in `draft-live-results.json.gz`; owned
-server logs, argv and exit receipts are in `draft-live-logs.tar.gz`.
+### Implementation and invariants
 
-All work and builds used CPUs 32-47 only (`-j16` builds). Runtime servers used
-32-39 / port 20300, plus a separate diagnostic on 40-47 / port 20310. The
-harness socket self-tests used port 20390. Every server boot had `LC_ALL=C`,
-16 shards and ratio 6:2, with read-local, key/client LB and automatic FLIP off.
+`src/cmd/flip_session.inc` owns the cold session helpers. The FLIP-only readiness
+requires `pending == nullptr`, exactly `watched_refs_ == session->watched.size()`
+(or zero with no session), and every original drain condition. The count is of
+installed physical aliases: one per key in db1, sixteen in db16. An excess or
+missing pin refuses readiness. ROB, output/borrow, atomic groups, barriers,
+retire queue, executor completion, directory and protocol-mode checks remain.
+The shared LB readiness and zero-pin destruction predicate are unchanged.
+Both transfer request and finish recheck choose FLIP readiness through
+`hold_for_commit`; merely changing the first preflight would be insufficient.
 
-### WATCH pins: approved exception and proof
+The Client address, queue, queue-error state, ROB sequence, watched aliases and
+monitor state survive the existing transfer. The WATCH registry still names
+`Client*`, so a later foreign write reaches the moved connection. Every PRE
+session reader (64 matches) and the new readers are classified in
+[session-audit.md](docs/flipfix6/session-audit.md).
 
-The draft's FLIP-only predicate requires `session->pending == nullptr`, the
-unchanged connection drain predicates, and `watched_refs_ == session->watched.size()`
-(or zero with no session). This counts **physical aliases**, not the public
-logical watch count. LB still calls the original `migration_protocol_idle()`;
-`safe_to_release()` still requires zero references. Both transfer preflight and
-`finish_client_transfer` select the FLIP predicate through `hold_for_commit`.
-No Client, Op, ThreadCtx, Shard, FlatStore, ROB, AtomicEntry or Config field moves.
+S2 is detected on the original IO during an owed IoDrain pass, before ExDrain.
+It refuses on **both surviving and converting sources** with
+`ERR FLIP refused: prepared but unpublished MULTI/WATCH state`.
+The pending attempt, admission/apply credits, age, queue and owner IO stay
+untouched. Idle after rollback allows the same state to publish. No skip/drop,
+receipt, executor-credit discount, cancellation/reprepare or DEBUG hook exists.
 
-The core fixture completes WATCH through real preparation, owner fragments and
-retirement. It proves the exact count by temporarily removing the expected
-number of pins in its single-threaded state fixture, checking the unchanged
-zero-pin lifetime fence, and restoring them. One excess pin and one missing pin
-both refuse FLIP readiness. Cases cover completed/repeated WATCH, UNWATCH,
-DISCARD, EXEC success, dirty-WATCH nil, EXECABORT, and RESET/close's common
-cleanup entry, at 1 and 16 aliases per logical key. The existing allocator-fault
-fixture sweeps failures through WATCH preparation and alias-vector append,
-requires rollback, retries installation, and checks FLIP equality and cleanup.
-There is no claim of exhaustive failure injection into every allocator site.
+A pinned close uses `ERR FLIP refused: a pinned connection closed`. The refusal
+and ClientPrepare -> ClientCommit edge serialize through the existing error
+mutex. Before that edge it rolls back; if commitment already won, the existing
+pin holds cleanup until completion reaches Idle. Rollback after commitment is
+not possible. No new WATCH cleanup is prepared or published while pinned. Both
+IO engines' already-closing branch revisits the same idempotent cleanup before
+the unchanged lifetime check: otherwise a deferred WATCH close would wait for
+zero pins without ever initiating their removal. The close implementation,
+SPSC safe point and re-mask themselves are unchanged.
 
-Live semantic cases force the session connection off IO 5 using `FLIP 1 7`,
-require exactly one moved-session increment, and verify IO 0 after completion.
-A foreign write after movement dirties WATCH and makes EXEC nil; without the
-write EXEC runs. Queued INCRs straddling the move return `[1,1]`; a queue error
-still returns EXECABORT without writes; DISCARD and RESET remove the old WATCH.
-The registry continues to find the unchanged `Client*`.
+The IoDrain reclamation starvation is resolved by invoking the existing bounded
+`atomic_cleanup_cycle(64)` in an owed executor IoDrain control pass, before any
+ExDrain acknowledgement. There is no new time constant, admission exemption,
+MVCC rule or cleanup after the frozen-owner safe point.
 
-Session readers remain audited in [session-audit.md](docs/flipfix6/session-audit.md)
-and `session-readers.txt` (all 64 PRE matches). The queue/specs, queue error,
-monitor queue, watched aliases and ROB sequence belong to the Client. Pending
-attempts, admission, retry nodes and snapshot pools are IO-bound. The new cold
-predicate reads only that session and Client state; it adds no IO identity.
+INFO counters are `flip_session_clients_transferred`, `flip_refused_s2` and
+`flip_refused_close`. Refusal counters count the winning reason once per episode;
+the live row requires exact agreement between replies and counter deltas. No
+S2-skip counter is exposed because the latest policy never skips a connection.
 
-### IoDrain: retired records, not S2
+### Directed proof
 
-Diagnostic v3 adds atomic owner-thread snapshots of deferred-state count,
-record refs, watch refs, child debt, retired/published/kind, tasks, registered
-read cuts, finalization, commit epoch, pending sessions and global floor/cutoff.
-Every IO's last snapshot is dumped, including already-acknowledged IOs.
+The gate's `flipfix6` job boots every engine x atomic 0/1 x databases 1/16 leg
+fresh for each case: EXEC storm, P1, P2, P3, active WATCH, semantic moves and
+EXEC plus WATCH-close churn. A second pass runs EXEC and close churn with eight
+clients per IO (48 session clients). Every EXEC reply must be an equal pair;
+its sequence and final stored values must match every transaction sent. A moved
+session counter must rise. Only the two exact immediate refusal reasons are
+accepted; every FLIP episode, command gap and unrelated PING must stay below one
+second. Close churn must actually raise its counter. PRE/PAD refusals are judged
+separately at their existing five-second deadline, never counted as POST passes.
 
-All 16 v3 IoDrain failures had the same classification: a finalized, published,
-retired EXEC, zero tasks, zero WATCH refs, zero child debt, no registered cut,
-no `session->pending`, and one or two retained MVCC owner references. The global
-read floor was UINT64_MAX and the commit cutoff allowed reclamation. These are
-**not prepared unpublished EXECs** and do not qualify for the S2 skip policy.
+Semantic moves force the client off IO 5 with FLIP 1 7 and verify its new owner
+and moved-session counter. Cases cover clean WATCH -> successful EXEC; foreign
+write after movement -> nil EXEC; a queue spanning the move -> atomic `[1,1]`;
+queue error -> EXECABORT without writes; DISCARD and RESET. Restore episodes
+may retry only the exact approved close refusal, at most 64 fresh episodes.
 
-Diagnostic v4 identifies starvation: the coordinator calls `flip_wake_all()` on
-every FLIP pass (`io_loop.h:2430` in the draft; PRE's matching tail), and those
-CQ/mailbox completions count as work on each executor. `idle_spins` keeps
-resetting before `sweep()` can perform atomic cleanup. One five-second episode
-recorded 33,314,892 / 33,867,572 executor control passes but only seven total
-cleanup calls per owner, all before the outstanding committed records became
-reclaimable. The IO therefore waits for reclamation that its own FLIP wakes
-prevent. The four v4 refusals retain their exact clauses and owner snapshots.
+Core fixture assertions cover exact aliases after completed/repeated WATCH,
+UNWATCH, DISCARD, EXEC success/nil/EXECABORT and RESET/close cleanup, plus one
+excess and one missing pin. Allocator injection covers WATCH preparation,
+alias append rollback and successful retry for db1/db16; it is not an exhaustive
+allocator-site proof. There are 16 prepared EXEC/WATCH cases (both database
+settings, atomic modes and source kinds), and 36 close cases spanning IoDrain
+through rollback/commit/install. Every closed WATCH retains all pins while
+frozen and loses them through normal cleanup after Idle. LB's actual production
+preflight also refuses a session in both linked namespace probes.
 
-The draft runs the existing `atomic_cleanup_cycle(64)` from a live, owed IoDrain
-executor control pass. This is bounded by the existing cleanup budget and runs
-strictly before ExDrain acknowledgement. It changes no MVCC rule, time constant,
-SPSC mask, wake policy, global pause or executor safe point. The complete draft
-storm above finishes without a five-second gap. A final candidate must still
-carry the gate and sanitizer proof before landing.
+The directed gate run passed **18 rows, zero failures**, including all **72/72**
+fresh-boot live cases. Across the 64 storm cases there were **1,478,476 FLIP
+attempts**, **22,758 immediate close refusals**, and **zero S2 refusals**. The
+largest observed FLIP was **17.586 ms**, PING was **17.524 ms**, and command
+reply gap was **17.552 ms**. Every no-churn EXEC FLIP succeeded. All pairs,
+reply counts, final values and session-move counters passed. These are
+correctness stall observations, not throughput results.
 
-The two v2 IoDrain events with no unacknowledged IO at the dump remain **NOT
-CAPTURED historically**; no corresponding late-ack event recurred in v3. The
-v3/v4 diagnostic retains all IO snapshots if it recurs. Neither those two nor
-the earlier two v1 events are retrospectively assigned a clause.
+Per-leg EXEC storm refusal counts (S2 is zero in every cell):
 
-### Remaining blocker 1: S2 cannot reach ClientPrepare
+| Engine | Atomic | DBs | EXEC, 6 clients: completed | Close churn, 6 clients: refusals / attempts | EXEC, 48 clients: completed | Close churn, 48 clients: refusals / attempts |
+|---|---:|---:|---:|---:|---:|---:|
+| uring | 0 | 1 | 26,680 | 2,456 / 25,232 (9.73%) | 6,499 | 87 / 6,438 (1.35%) |
+| uring | 1 | 1 | 28,071 | 2,495 / 25,357 (9.84%) | 6,470 | 104 / 6,377 (1.63%) |
+| epoll | 0 | 1 | 28,716 | 2,661 / 26,445 (10.06%) | 6,457 | 89 / 6,403 (1.39%) |
+| epoll | 1 | 1 | 30,066 | 2,601 / 26,494 (9.82%) | 6,477 | 88 / 6,414 (1.37%) |
+| uring | 0 | 16 | 28,911 | 2,842 / 25,282 (11.24%) | 6,473 | 146 / 6,321 (2.31%) |
+| uring | 1 | 16 | 28,801 | 2,713 / 24,815 (10.93%) | 6,331 | 148 / 6,403 (2.31%) |
+| epoll | 0 | 16 | 29,705 | 2,945 / 25,545 (11.53%) | 6,460 | 131 / 6,293 (2.08%) |
+| epoll | 1 | 16 | 29,430 | 3,107 / 25,357 (12.25%) | 6,398 | 145 / 6,246 (2.32%) |
 
-`tests/flipfix6_s2_scope.cc` links against e32b04a44 production objects in both
-namespaces, atomic 0/1, with surviving and converting sources. It prepares a
-real MULTI/INCR/EXEC and deliberately stops before publication; the same pending
-state is returned on re-entry, with no owner tasks and an empty ROB.
+The live storm did not naturally enter S2. Its refusal and unchanged-state
+resumption are proved by the 16 deliberately prepared core cases, including
+WATCH as well as EXEC. The expanded 54-assertion ASAN/UBSAN and TSAN run is
+pending; the first gate run passed the earlier 46-assertion selection.
+Per-case counters and timings are in [live-summary.json](docs/flipfix6/live-summary.json);
+the full episode records are retained in the two compressed live-result files.
 
-All eight cases report:
+### Executed instruction counts
 
-```
-IoDrain=1  atomic_inflight=1  atomic_apply_inflight=1  ExDrain=0
-```
+[comparison-all.json](docs/flipfix6/counts/comparison-all.json) contains 100 PRE/POST
+pairs. The established serverless command-scope fixture was extended with MULTI;
+production objects take link precedence. `tools/crlffix_step.c` steps an owned
+child; executed NOPs count, library callees and fixture glue do not. No server,
+load generator or rate measurement is involved.
 
-EXEC force-admits and opens apply before publishing. The preserved
-`ExLoopT::flip_quiesced()` checks those global counts for zero, so both owners
-refuse ExDrain and ClientPrepare is unreachable. As a control, abandoning that
-same pending state on its admitting IO makes both counts zero and both actual
-executor passes acknowledge. A test that skips directly to ClientPrepare would
-hide this blocker. No DEBUG hook or added EXEC instruction is needed for this
-witness. Logs and build/link/SHA receipts: `s2-fence-witness.log`, `s2-scope/`.
+**All 80 GET/SET/INCR/MGET/MSET cells are identical**, including every per-function
+count: batch 1/32, 1s/2s, atomic 0/1 and both namespaces. Read-local execution is
+not counted by this fixture (`read_local=0`); its live gate legs remain required.
 
-Proposed extension: refuse converting S2 during IoDrain; on a surviving source,
-retain its state and publish an exact FLIP receipt of unpublished admission/apply
-credits. Only the FLIP ExDrain test may discount those credits. All published
-work, other queues and lifetime fences still drain; LB remains unchanged. Close
-handling must keep the receipt exact. **Not implemented; approval pending.**
+MULTI INCR INCR EXEC totals (atomic 0 and 1 have the same counts):
 
-### Remaining blocker 2: closing WATCH after the owner safe point
+| Namespace | Mode | Batch | PRE | POST | Added |
+|---|---|---:|---:|---:|---:|
+| db0 | 1s | 1 | 31,717 | 31,739 | 22 |
+| db0 | 1s | 32 | 850,136 | 850,840 | 704 |
+| db0 | 2s | 1 | 31,481 | 31,503 | 22 |
+| db0 | 2s | 32 | 842,094 | 842,798 | 704 |
+| normal | 1s | 1 | 33,722 | 33,762 | 40 |
+| normal | 1s | 32 | 922,882 | 924,162 | 1,280 |
+| normal | 2s | 1 | 33,495 | 33,536 | 41 |
+| normal | 2s | 32 | 914,849 | 916,130 | 1,281 |
 
-The core fixture completes WATCH and acknowledges the real ExDrain on both
-owners. It then closes the connection while the existing FLIP close pin holds.
-`close_client` calls `multi_close_entry` **before** consulting that pin. The next
-ordinary IO cleanup pass publishes WATCH-removal tasks into one owner inbox for
-db1 and two for db16, although those owners have already acknowledged ExDrain.
-The Client's WATCH pins remain live. Rollback and normal owner drain remove them.
+The extra instructions reflect compiler inlining changes in `txn_add_claim`,
+`database_owned_key`, `ensure_state_slot` and `snapshot_prepare_write`, plus
+one instruction in the normal split executor. No new EXEC hook executes.
+Code identity and a MULTI performance improvement are not claimed.
 
-This is an actual state-machine witness, not a claim of a live crash. It violates
-the frozen-owner producer assumption if the partial session fix is allowed to
-commit. We must not weaken the re-mask or lifetime checks to accommodate it.
+| One production ClientPrepare pass | PRE normal | POST normal | PRE db0 | POST db0 |
+|---|---:|---:|---:|---:|
+| One connection without a session | 2,446 | 2,526 | 2,432 | 2,516 |
+| One connection with an idle session | 649 | 2,556 | 649 | 2,546 |
 
-Proposed extension: defer session close cleanup while the FLIP pin holds; keep
-it on a surviving IO, and immediately roll back before commitment if a converting
-IO would retain it. Pair this with the S2 receipt above. **Not implemented.**
-TLS, BLPOP 0 and non-draining connections remain outside this lane (D18.3).
+PRE's session pass refuses readiness; POST prepares an actual transfer. This is
+not an equal-work timing comparison. The empty-session case shows the extra
+cold-control work. `.text` is 8,729,431 bytes on PRE and 8,726,423 on POST/PAD-A.
 
 ### Owner rulings
 
 | Ruling | Status |
 |---|---|
-| D18.1: queue, queue error and watched keys move with Client | Approved; implemented and proved in the retained draft |
-| Resume ruling: exact durable WATCH aliases may remain pinned | Implemented in draft; shared LB and destruction checks unchanged |
-| D18.2: surviving S2 stays; converting S2 refuses immediately | Approved policy; implementation blocked earlier by ExDrain's global admission/apply counts |
-| Other readiness clauses, atomic groups, barriers, ROB/output/retire state, executor fences | Untouched in production and in draft, except the expressly approved session/WATCH predicate; proposed ExDrain exception awaits approval |
-| SPSC masked monolith, block masks, ExDrain -> ExInstall re-mask and truth tables | Untouched; close witness exposes a producer after the safe point, requiring cleanup scheduling to be settled |
-| Global FLIP dispatch pause | Untouched; no publication or reparse through it proposed |
-| Listener handover 2026-10-22, IO4.3/NT4.4 option (a) | Untouched |
-| Five-second deadline; no added time constant | Untouched |
-| txnorder claims, wound-wait, versions and FIFO hand-off | Untouched; no cancel/reprepare of retained S2 proposed |
-| LB mover and shared readiness predicate | Untouched |
+| D18.1: session queue, queue error and watched keys move with Client | Approved; implemented |
+| Exact durable WATCH alias-count exception | Approved resume ruling; implemented; transient/excess pins still refuse |
+| D18.2, resume addendum 2: S2 on any source refuses at IoDrain | Approved; implemented; original state/credits/IO retained |
+| Pinned-close conservative refusal | Approved; precommit rollback, cleanup deferred behind existing pin through Idle |
+| D18.4 receipt alternative | **Not implemented, owner decision after the freeze**; evidence in `docs/flipfix6/s2-exdrain-review.md` |
+| SPSC masked monolith, block masks, ExDrain -> ExInstall re-mask and truth tables | Untouched |
+| Global FLIP dispatch pause | Untouched; no frame publishes through it |
+| Listener handover 2026-10-22, IO4.3/NT4.4 option (a) | Same operations/order; surrounding failure/commit serialization only |
+| Five-second deadline and no new time constant | Untouched |
+| txnorder claims, wound-wait, versions, FIFO hand-off | Untouched |
+| Executor quiesce readiness and admission/apply fences | Untouched; no receipt/discount |
+| Other connection readiness clauses | Untouched except the expressly approved session/WATCH exception |
+| LB mover | Original session refusal and shared predicate retained |
 | Single-owner writes, immutable replacement/QSBR, no reader retries/seqlocks, RYOW | Untouched |
-| Layout locks and both thread modes | Locked fields untouched; draft release build compiles all assertions; new live proof is 2s only |
-| D18.3: TLS, blocked and non-draining connections | No implementation changes |
+| Layout locks and both thread modes | Release assertions pass; no locked field added/moved |
+| D18.3 TLS, blocked BLPOP 0 and non-draining connections | No readiness changes; their liveness policy stays out of scope |
 
 ### Proof status and gate accounting
 
-No `collect_job` line was added before or after the quick-tier exit:
-**DQ=0, DF=0**. `EXPECT_QUICK=977` and `EXPECT_FULL=994` are untouched.
-The following unfinished proof is explicit, not replaced by standalone evidence:
+All commands and builds use CPUs 32-47 only, builds `-j16`; gate server CPUs
+32-39, load CPUs 40-47, ports 20300-20399. Every server/oracle boot has `LC_ALL=C`.
+Every correctness run uses the gate job interface and its own declared geometry;
+no full iteration, performance benchmark or load-generator merit run is started.
 
-| Requested proof | Status |
-|---|---|
-| Draft `make -j16 all`, release core fixture and allocator fixture; `make -q` | PASS before draft withdrawal; logs archived; source is now restored to PRE production |
-| Python syntax and draft patch apply check | PASS |
-| `python3 tests/gates_test.py` | PASS: 76 tests, 143.009 s; `LC_ALL=C`, CPUs 32-47, socket test port 20390; `gates-test-resume.log.gz` |
-| New gate jobs and ASAN/UBSAN/TSAN core fixture | NOT RUN: no safe complete candidate until executor-fence/close decision |
-| `flip`, `fliplisten`, `flipctl`, `flip_unit`, `flipfix_units`, `flipfix5`, `flipfix5_units`, `core_units` via gate job interface | NOT RUN in resumed work: same blocker |
-| LB `lb_stationary`, `lbplanner_units`, `moverfix` | NOT RUN: same blocker |
-| txnorder, txnorder2, txnorder_index, txnorder_wake, txnorder_wound, txn_group_fused/split | NOT RUN: same blocker |
-| multifix, blockmulti, execfair, multirace, debug batteries | NOT RUN: same blocker |
-| atomfix5_watch, datafix2_watch, atomics, multidb, snapfix_bgsave_exec | NOT RUN: same blocker |
-| tls, netfix_tls and unchanged BLPOP-held IoDrain row | NOT RUN: same blocker; no sibling behaviour changed |
-| Redis 7.4 oracle; `differ_gate.sh` standard seeds on both engines | NOT RUN: same blocker |
-| Every `job_production_units` target and freshness | NOT RUN: same blocker; only release, fast core and allocator fixtures built |
-| Main-command/MULTI command scopes and ClientPrepare instruction counts | NOT RUN: no complete POST; no zero-instruction claim made |
-| GDB attachment for an extra diagnostic | Attempted, unavailable (`ptrace: Inappropriate ioctl for device`); atomic owner snapshots supplied the diagnosis instead |
-| Performance benchmarks/load generators/full iteration/ABBA | NOT RUN: reserved for maintainer |
+The new jobs add two serverless rows at `collect_job flipfix6_units` and one live
+row at `collect_job flipfix6`, all **before** the quick-tier exit. **DQ=+3, DF=+3**.
+`EXPECT_QUICK=977` / `EXPECT_FULL=994` are untouched; the owner update is **980 / 997**.
+The existing planned-close test now asserts the approved prompt refusal while
+retaining ownership/lifetime/quota checks. The BLPOP-held IoDrain signal test in
+`tests/flipfix.py` is unchanged.
 
-### Arms and measurement request
+Completed: `make all`; all `job_production_units` targets; 58 `make -q` checks
+([freshness.json](docs/flipfix6/freshness.json)); initial sanitizer core/FLIP rows;
+command/control counts. The expanded WATCH-S2 sanitizer selection is pending.
+Still running/pending: full requested live/gate matrix, both differential engines,
+PAD-A negative control and final `python3 tests/gates_test.py`. These are not yet
+claimed as passes. Any unresolved failure or NOT RUN item will be explicit here.
 
-PRE remains `build/flipfix6/PRE`, SHA-256
-`89f2fa028dbe7f05e2a4d9b0f799c6819a391debf8cf4de5506f57397621cf77`.
+### Delivered arms and maintainer measurement request
 
-The provisional, **unsafe to land** draft remains `build/flipfix6/DRAFT`, SHA-256
-`578b243efe3807ea392be41928397403ec9f2f516c00249a3e0bcbe7dbb072c6`.
-Its patch SHA-256 is
-`41bd6c6db0a50b7576a8fc5ba9471ed52676f125524bcbb28ad81bf12c7327da`.
-The patch contains the approved readiness work, INFO counters, bounded IoDrain
-cleanup and its core units. Its ClientPrepare-only S2 handling is deliberately
-identified as incomplete by the separate PRE-compatible witness. Diagnostic
-hashes and retention status are in `docs/flipfix6/artifacts.json`.
-The duplicate `build/tomokv` draft was removed after preserving `DRAFT`, so a
-subsequent ordinary build cannot accidentally use it with restored source.
-The retained unit binaries also belong to the draft, not to the restored source.
+| Arm | Path | SHA-256 |
+|---|---|---|
+| PRE e32b04a44 | `build/flipfix6/PRE` | `89f2fa028dbe7f05e2a4d9b0f799c6819a391debf8cf4de5506f57397621cf77` |
+| POST | `build/flipfix6/POST` | `19f9b4a1f2a52c781ce338c4886c291f28f9e8d2c72ae265d8913d6528187b02` |
+| PAD-A | `build/flipfix6/PAD-A` | `a943edf1437d9274b90624009bb26afd8f0356c6d625760b33d5f692530ef944` |
 
-**POST and PAD-A: NOT BUILT.** Completing their behaviour requires the decision
-above. The draft is not substituted for either requested arm. Once complete,
-PAD-A must be labelled **A: behaviour twin**: POST's ELF with only the FLIP-only
-session predicate restored to PRE, preserving POST text size and layout.
+PAD-A is **(A) behaviour twin**, exactly as requested: POST's ELF with only the
+FLIP-only session clause restored to PRE. Two bytes in each namespace change
+(`je` past the pending-state rejection -> two-byte NOP); every non-null session
+then returns false. All other bytes, section layouts and symbol addresses are
+identical. POST's S2/close policy and bounded IoDrain cleanup remain in PAD-A.
+[pad-a.json](docs/flipfix6/pad-a.json) records offsets and before/after bytes;
+`tools/flipfix6_artifacts.py` rebuilds and verifies it.
 
-The pending maintainer merit request is unchanged: PRE/POST/PAD-A on the gate's
-14 generic cells plus 2s GET/SET p1/p32 (expected null, to be verified); also FLIP
-episode latency for all three arms, both with and without a session client,
-with PRE refusals reported as refusal durations. Use matched offered loads;
-rates decide merit and cycles/op, instructions/op and IPC explain differences.
-No throughput claim is made here and none of these measurements was started.
+Maintainer-only merit request: PRE, POST and PAD-A, the gate's instrument on the
+quiet box, matched offered loads and its normal ABBA/null controls:
 
-### Reproduce the independent draft evidence
+- [merit-cells.txt](docs/flipfix6/merit-cells.txt): the established generic 14 cells,
+  plus explicit 2s GET/SET p1/p32 null cells. The p32 shapes also occur in the
+  generic set; the separate labels retain the explicit null request. Rate at
+  matched load decides merit; cycles/op, instructions/op and IPC explain it.
+- FLIP episode latency for all three arms, with and without a session client:
+  8 threads, 16 shards, initial 6:2, alternate FLIP 4 4 / FLIP 6 2; report
+  completion/refusal counts and p50/p99/max duration separately. Session arm:
+  same pipelined cross-owner MULTI INCR INCR EXEC partner; control: equivalent
+  ordinary clients with no MULTI/WATCH history. Cover both engines, atomic modes
+  and namespaces. PRE/PAD session refusal durations are results, not successful
+  episode latencies. POST S2/close refusals must be separated by their counters.
 
-Apply the saved patch only in an isolated review checkout; it is not a complete
-candidate. Build with:
+**No throughput claim.** Performance cells, `flip_saturated`, `atomic_floor` and
+the full `tests/gate.sh iteration` are **NOT RUN: maintainer-owned by instruction**.
+`GATE_PROOF_NO_RATES=1` omits only the existing performance assertions in selected
+correctness jobs. The correctness stall limits above are not a merit measurement.
 
-```sh
-taskset -c 32-47 env LC_ALL=C make -j16 all \
-  build/signalacct-core-unit build/atomic-survivors-unit
-```
-
-The fixture build/link receipts retain full argv. The live draft command was:
-
-```sh
-taskset -c 32-47 env LC_ALL=C python3 tests/flipfix6.py \
-  --binary build/flipfix6/DRAFT --cores 32-39 --port 20300 --expect post \
-  --cases exec p1 p2 p3 watch semantics --seconds 3 --min-flips 50 \
-  --output build/flipfix6/reproduce-draft
-```
-
-`--expect post` selects the witness acceptance assertions; it does not certify
-the incomplete binary as a POST arm. Original PRE witness/audit details remain
-in [witness-report.md](docs/flipfix6/witness-report.md). Superseded diagnostic
-sources/logs are removed after hashes, counts and compressed evidence are saved.
+Disk: superseded S2 arm binaries/source were removed after SHA/count retention;
+non-delivery unit debug sections were compressed with every allocated section
+verified unchanged (`debug-compression.json`). PRE/POST/PAD-A were not compressed.
+Further source/log cleanup follows the final evidence archive; target is under
+about 20 GiB in `build/`.
