@@ -1,0 +1,27 @@
+{
+  "index": 243,
+  "file": "unit/type/set",
+  "test": "SMOVE from regular set to non existing destination set",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/set.tcl",
+      "test": "SMOVE from regular set to non existing destination set in tests/unit/type/set.tcl",
+      "data": "SMOVE from regular set to non existing destination set",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/243/1s-2/unit/type/set/result.json",
+  "raw_sha256": "3de765e2e199488296ac24d2fc5706aa82f0eb2800c41a58be81706c11376006",
+  "pruned_data": []
+}

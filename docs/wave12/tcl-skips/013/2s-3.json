@@ -1,0 +1,27 @@
+{
+  "index": 13,
+  "file": "unit/expire",
+  "test": "GETEX propagate as to replica as PERSIST, DEL, or nothing",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/expire.tcl",
+      "test": "GETEX propagate as to replica as PERSIST, DEL, or nothing in tests/unit/expire.tcl",
+      "data": "GETEX propagate as to replica as PERSIST, DEL, or nothing in tests/unit/expire.tcl\nn option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\nERR Unknown option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set repl-ping-replica-period 3600\"\n    (procedure \"attach_to_replication_stream_on_connection\" line 2)\n    invoked from within\n\"attach_to_replication_stream_on_connection 0\"\n    (procedure \"attach_to_replication_stream\" line 2)\n    invoked from within\n\"attach_to_replication_stream\"\n    (\"uplevel\" body line 5)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "GETEX propagate as to replica as PERSIST, DEL, or nothing in tests/unit/expire.tcl\nn option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\nERR Unknown option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set repl-ping-replica-period 3600\"\n    (procedure \"attach_to_replication_stream_on_connection\" line 2)\n    invoked from within\n\"attach_to_replication_stream_on_connection 0\"\n    (procedure \"attach_to_replication_stream\" line 2)\n    invoked from within\n\"attach_to_replication_stream\"\n    (\"uplevel\" body line 5)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/013/2s-3/unit/expire/result.json",
+  "raw_sha256": "bb654bcf1351cf57ff2efe9315c53c27e48d43dd3e4d6131aad0cda800918a19",
+  "pruned_data": []
+}

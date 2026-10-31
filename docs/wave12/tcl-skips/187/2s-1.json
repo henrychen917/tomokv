@@ -1,0 +1,27 @@
+{
+  "index": 187,
+  "file": "unit/tracking",
+  "test": "RESP3 based basic invalidation with client reply off",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/tracking.tcl",
+      "test": "RESP3 based basic invalidation with client reply off in tests/unit/tracking.tcl",
+      "data": "RESP3 based basic invalidation with client reply off in tests/unit/tracking.tcl\n SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set tracking-table-max-keys 1000000\"\n    (\"uplevel\" body line 16)\n    invoked from within\n\"uplevel {\n            # We should make r TRACKING off first. If r is in RESP3,\n            # r FLUSH ALL will send us tracking-redir-broken or other\n ...\"\n    (procedure \"clean_all\" line 2)\n    invoked from within\n\"clean_all\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "RESP3 based basic invalidation with client reply off in tests/unit/tracking.tcl\n SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set tracking-table-max-keys 1000000\"\n    (\"uplevel\" body line 16)\n    invoked from within\n\"uplevel {\n            # We should make r TRACKING off first. If r is in RESP3,\n            # r FLUSH ALL will send us tracking-redir-broken or other\n ...\"\n    (procedure \"clean_all\" line 2)\n    invoked from within\n\"clean_all\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/187/2s-1/unit/tracking/result.json",
+  "raw_sha256": "b63a3c28c59c73a4a1d3827ac345c7ba8e0edd321eaa1f6b8012dc45f36a1323",
+  "pruned_data": []
+}

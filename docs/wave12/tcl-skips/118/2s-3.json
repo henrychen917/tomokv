@@ -1,0 +1,34 @@
+{
+  "index": 118,
+  "file": "unit/scripting",
+  "test": "Correct handling of reused argv (issue #1939)",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Correct handling of reused argv (issue #1939) in tests/unit/scripting.tcl",
+      "data": "Correct handling of reused argv (issue #1939) in tests/unit/scripting.tcl\nd 'MGET' is not allowed from scripts script: test, on @user_function:6.\nERR command 'MGET' is not allowed from scripts script: test, on @user_function:6.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n              for i = 0, 10 do\n                  redis.call('SET', 'a{t}', '1')\n                  redis.call('MGET', 'a{t}', 'b{t}', 'c{t...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Correct handling of reused argv (issue #1939) in tests/unit/scripting.tcl",
+      "data": "Correct handling of reused argv (issue #1939) in tests/unit/scripting.tcl\nd 'MGET' is not allowed from scripts script: def82bc4755a25b0ae728076d1344c2b5788fcc6, on @user_script:4.\nERR command 'MGET' is not allowed from scripts script: def82bc4755a25b0ae728076d1344c2b5788fcc6, on @user_script:4.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {*}$args\"\n    (procedure \"run_script\" line 2)\n    invoked from within\n\"run_script {\n              for i = 0, 10 do\n                  redis.call('SET', 'a{t}', '1')\n                  redis.call('MGET', 'a{t}', 'b{t}', 'c{t...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Correct handling of reused argv (issue #1939) in tests/unit/scripting.tcl\nd 'MGET' is not allowed from scripts script: test, on @user_function:6.\nERR command 'MGET' is not allowed from scripts script: test, on @user_function:6.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n              for i = 0, 10 do\n                  redis.call('SET', 'a{t}', '1')\n                  redis.call('MGET', 'a{t}', 'b{t}', 'c{t...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/118/2s-3/unit/scripting/result.json",
+  "raw_sha256": "a538202f25ade78fd3488549777ee89473e8c477f199f58d925a0b87a6c9a64c",
+  "pruned_data": []
+}

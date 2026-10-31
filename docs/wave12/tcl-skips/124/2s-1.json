@@ -1,0 +1,34 @@
+{
+  "index": 124,
+  "file": "unit/scripting",
+  "test": "EVAL - Redis status reply -> Lua type conversion",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Redis status reply -> Lua type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Redis status reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Redis status reply -> Lua type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Redis status reply -> Lua type conversion",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/124/2s-1/unit/scripting/result.json",
+  "raw_sha256": "9344bfc9ffd16590aa7ef863d7f5f8dff4aebff2e9fc2bc0ba09529e233730d6",
+  "pruned_data": []
+}

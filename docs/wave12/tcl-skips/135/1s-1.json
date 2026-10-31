@@ -1,0 +1,34 @@
+{
+  "index": 135,
+  "file": "unit/scripting",
+  "test": "EVAL - Scripts do not block on bzpopmin command",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Scripts do not block on bzpopmin command in tests/unit/scripting.tcl",
+      "data": "EVAL - Scripts do not block on bzpopmin command in tests/unit/scripting.tcl\nd 'BZPOPMIN' is not allowed from scripts\nERR command 'BZPOPMIN' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('bzpopmin','empty_zset', 0)} 1 empty_zset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Scripts do not block on bzpopmin command in tests/unit/scripting.tcl",
+      "data": "EVAL - Scripts do not block on bzpopmin command in tests/unit/scripting.tcl\nd 'BZPOPMIN' is not allowed from scripts\nERR command 'BZPOPMIN' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {*}$args\"\n    (procedure \"run_script\" line 2)\n    invoked from within\n\"run_script {return redis.pcall('bzpopmin','empty_zset', 0)} 1 empty_zset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "EVAL - Scripts do not block on bzpopmin command in tests/unit/scripting.tcl\nd 'BZPOPMIN' is not allowed from scripts\nERR command 'BZPOPMIN' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('bzpopmin','empty_zset', 0)} 1 empty_zset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/135/1s-1/unit/scripting/result.json",
+  "raw_sha256": "6cdab5747ae60b6d5b31c04da450825b18a3261d343ba6643f227811c0c249b7",
+  "pruned_data": []
+}

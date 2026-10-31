@@ -1,0 +1,27 @@
+{
+  "index": 205,
+  "file": "unit/type/list",
+  "test": "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely in tests/unit/type/list.tcl",
+      "data": "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely",
+      "milliseconds": "53"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/205/1s-2/unit/type/list/result.json",
+  "raw_sha256": "661aa1126226c07700e574442ef80473ff6e6b94c505893cfc24bf93f441b972",
+  "pruned_data": []
+}

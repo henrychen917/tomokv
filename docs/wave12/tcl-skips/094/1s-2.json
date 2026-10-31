@@ -1,0 +1,27 @@
+{
+  "index": 94,
+  "file": "unit/protocol",
+  "test": "test argument rewriting - issue 9598",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/protocol.tcl",
+      "test": "test argument rewriting - issue 9598 in tests/unit/protocol.tcl",
+      "data": "test argument rewriting - issue 9598",
+      "milliseconds": "3"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/094/1s-2/unit/protocol/result.json",
+  "raw_sha256": "9218ce41f5a1f57812df1c346508383311f38e68e6e82db5004818257b1088a0",
+  "pruned_data": []
+}

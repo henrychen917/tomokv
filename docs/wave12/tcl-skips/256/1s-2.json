@@ -1,0 +1,27 @@
+{
+  "index": 256,
+  "file": "unit/type/zset",
+  "test": "BZMPOP with multiple blocked clients",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/zset.tcl",
+      "test": "BZMPOP with multiple blocked clients in tests/unit/type/zset.tcl",
+      "data": "BZMPOP with multiple blocked clients",
+      "milliseconds": "24"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/256/1s-2/unit/type/zset/result.json",
+  "raw_sha256": "8eb72e4dfdb9fecddc027deecc9962179eccb12db4b6e7c780ab30356752dbfb",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 7,
+  "file": "unit/dump",
+  "test": "RESTORE can set LFU",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/dump.tcl",
+      "test": "RESTORE can set LFU in tests/unit/dump.tcl",
+      "data": "RESTORE can set LFU in tests/unit/dump.tcl\nExpected 0 == 100 (context: type eval line 8 cmd {assert {$freq == 100}} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "RESTORE can set LFU in tests/unit/dump.tcl\nExpected 0 == 100 (context: type eval line 8 cmd {assert {$freq == 100}} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/007/1s-2/unit/dump/result.json",
+  "raw_sha256": "2d2bac39d78d7a18be3934b57aaee9e16c2cf16c36ec366b3488796211db73ae",
+  "pruned_data": []
+}

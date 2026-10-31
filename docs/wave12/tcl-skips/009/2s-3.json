@@ -1,0 +1,27 @@
+{
+  "index": 9,
+  "file": "unit/dump",
+  "test": "RESTORE fail with invalid payload size",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/dump.tcl",
+      "test": "RESTORE fail with invalid payload size in tests/unit/dump.tcl",
+      "data": "RESTORE fail with invalid payload size in tests/unit/dump.tcl\nn subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-skip-checksum-validation 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "RESTORE fail with invalid payload size in tests/unit/dump.tcl\nn subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-skip-checksum-validation 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/009/2s-3/unit/dump/result.json",
+  "raw_sha256": "8b12391ab084ec1eb830b1e8b0598fe11b2f69c6e3129aa93e95a39e9696c0c3",
+  "pruned_data": []
+}

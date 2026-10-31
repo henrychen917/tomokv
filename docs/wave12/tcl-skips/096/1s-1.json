@@ -1,0 +1,27 @@
+{
+  "index": 96,
+  "file": "unit/protocol",
+  "test": "test bool parsing",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/protocol.tcl",
+      "test": "test bool parsing in tests/unit/protocol.tcl",
+      "data": "test bool parsing in tests/unit/protocol.tcl\nn subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug protocol true\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "test bool parsing in tests/unit/protocol.tcl\nn subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug protocol true\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/096/1s-1/unit/protocol/result.json",
+  "raw_sha256": "a3a23214a31d50cc77192a2ee57094bc3b1513fb5147dbbcb1376f680ea04d1a",
+  "pruned_data": []
+}

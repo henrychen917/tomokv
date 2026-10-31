@@ -1,0 +1,34 @@
+{
+  "index": 130,
+  "file": "unit/scripting",
+  "test": "EVAL - Scripts do not block on blmove command",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Scripts do not block on blmove command in tests/unit/scripting.tcl",
+      "data": "EVAL - Scripts do not block on blmove command in tests/unit/scripting.tcl\nd 'BLMOVE' is not allowed from scripts\nERR command 'BLMOVE' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('blmove','empty_list1{t}', 'empty_list2{t}', 'LEFT', 'LEFT', 0)} 2 empty_list1{t} empty_list2{t}\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Scripts do not block on blmove command in tests/unit/scripting.tcl",
+      "data": "EVAL - Scripts do not block on blmove command in tests/unit/scripting.tcl\nd 'BLMOVE' is not allowed from scripts\nERR command 'BLMOVE' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {*}$args\"\n    (procedure \"run_script\" line 2)\n    invoked from within\n\"run_script {return redis.pcall('blmove','empty_list1{t}', 'empty_list2{t}', 'LEFT', 'LEFT', 0)} 2 empty_list1{t} empty_list2{t}\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "EVAL - Scripts do not block on blmove command in tests/unit/scripting.tcl\nd 'BLMOVE' is not allowed from scripts\nERR command 'BLMOVE' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('blmove','empty_list1{t}', 'empty_list2{t}', 'LEFT', 'LEFT', 0)} 2 empty_list1{t} empty_list2{t}\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/130/2s-2/unit/scripting/result.json",
+  "raw_sha256": "505b8b131ea290eb1d1da92e3e138d013b01c3ae59db0f8abc732ecba723919e",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 88,
+  "file": "unit/pause",
+  "test": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/pause.tcl",
+      "test": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE in tests/unit/pause.tcl",
+      "data": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE",
+      "milliseconds": "2"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/088/1s-2/unit/pause/result.json",
+  "raw_sha256": "10e8b4d2a3c54b714ebaa5e4b502517b6b85b15516750173b7028e38238fcb86",
+  "pruned_data": []
+}

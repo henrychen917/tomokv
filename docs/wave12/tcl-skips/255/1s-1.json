@@ -1,0 +1,27 @@
+{
+  "index": 255,
+  "file": "unit/type/zset",
+  "test": "BZMPOP should not blocks on non key arguments - #10762",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/zset.tcl",
+      "test": "BZMPOP should not blocks on non key arguments - #10762 in tests/unit/type/zset.tcl",
+      "data": "BZMPOP should not blocks on non key arguments - #10762",
+      "milliseconds": "3"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/255/1s-1/unit/type/zset/result.json",
+  "raw_sha256": "c0dd33806b8ed0e0b3762addfe03ca16d723b5433d8a0ada2459a6daaa7b12b9",
+  "pruned_data": []
+}

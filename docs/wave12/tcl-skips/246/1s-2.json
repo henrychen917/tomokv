@@ -1,0 +1,27 @@
+{
+  "index": 246,
+  "file": "unit/type/set",
+  "test": "SMOVE wrong dst key type",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/set.tcl",
+      "test": "SMOVE wrong dst key type in tests/unit/type/set.tcl",
+      "data": "SMOVE wrong dst key type in tests/unit/type/set.tcl\nExpected an error matching 'WRONGTYPE*' but got '0' (context: type eval line 3 cmd {assert_error \"WRONGTYPE*\" {r smove myset2{t} x{t} foo}} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SMOVE wrong dst key type in tests/unit/type/set.tcl\nExpected an error matching 'WRONGTYPE*' but got '0' (context: type eval line 3 cmd {assert_error \"WRONGTYPE*\" {r smove myset2{t} x{t} foo}} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/246/1s-2/unit/type/set/result.json",
+  "raw_sha256": "24b9c6c5d122921b255dbcb95295a5e73a483debb56c41f2e66f726f1456c143",
+  "pruned_data": []
+}

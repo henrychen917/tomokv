@@ -1,0 +1,27 @@
+{
+  "index": 81,
+  "file": "unit/multi",
+  "test": "exec with read commands and stale replica state change",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/multi.tcl",
+      "test": "exec with read commands and stale replica state change in tests/unit/multi.tcl",
+      "data": "exec with read commands and stale replica state change in tests/unit/multi.tcl\nn option or number of arguments for CONFIG SET - 'replica-serve-stale-data'\nERR Unknown option or number of arguments for CONFIG SET - 'replica-serve-stale-data'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set replica-serve-stale-data no\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "exec with read commands and stale replica state change in tests/unit/multi.tcl\nn option or number of arguments for CONFIG SET - 'replica-serve-stale-data'\nERR Unknown option or number of arguments for CONFIG SET - 'replica-serve-stale-data'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set replica-serve-stale-data no\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/081/1s-1/unit/multi/result.json",
+  "raw_sha256": "991d789e98edfa3eda3db5455654c2bd5811f40e60431bd7e1c32866fda4ec81",
+  "pruned_data": []
+}

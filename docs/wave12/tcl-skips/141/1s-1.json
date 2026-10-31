@@ -1,0 +1,34 @@
+{
+  "index": 141,
+  "file": "unit/scripting",
+  "test": "EVAL_RO - Successful case",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL_RO - Successful case in tests/unit/scripting.tcl",
+      "data": "EVAL_RO - Successful case",
+      "milliseconds": "3"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL_RO - Successful case in tests/unit/scripting.tcl",
+      "data": "EVAL_RO - Successful case",
+      "milliseconds": "2"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/141/1s-1/unit/scripting/result.json",
+  "raw_sha256": "9e794940b260e290ddf1761579cb9a61264c388f030fee93e047e10ba7cd9876",
+  "pruned_data": []
+}

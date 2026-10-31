@@ -1,0 +1,27 @@
+{
+  "index": 41,
+  "file": "unit/introspection",
+  "test": "CONFIG sanity",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/introspection.tcl",
+      "test": "CONFIG sanity in tests/unit/introspection.tcl",
+      "data": "CONFIG sanity in tests/unit/introspection.tcl\n SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set $k $v\"\n    (\"foreach\" body line 7)\n    invoked from within\n\"foreach {k v} [r config get *] {\n            if {[lsearch $skip_configs $k] != -1} {\n                continue\n            }\n            dict set confi...\"\n    (\"uplevel\" body line 73)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "CONFIG sanity in tests/unit/introspection.tcl\n SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set $k $v\"\n    (\"foreach\" body line 7)\n    invoked from within\n\"foreach {k v} [r config get *] {\n            if {[lsearch $skip_configs $k] != -1} {\n                continue\n            }\n            dict set confi...\"\n    (\"uplevel\" body line 73)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/041/1s-1/unit/introspection/result.json",
+  "raw_sha256": "f6e039b952cec45111ab079c1898fdde8a4dbd54ade70bcc532dae09e2e01ff8",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 26,
+  "file": "unit/functions",
+  "test": "FUNCTION - verify OOM on function load and function restore",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - verify OOM on function load and function restore in tests/unit/functions.tcl",
+      "data": "FUNCTION - verify OOM on function load and function restore in tests/unit/functions.tcl\nExpected 'test' to match '*command not allowed when used memory*' (context: type eval line 13 cmd {assert_match {*command not allowed when used memory*} $e} proc ::test) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "FUNCTION - verify OOM on function load and function restore in tests/unit/functions.tcl\nExpected 'test' to match '*command not allowed when used memory*' (context: type eval line 13 cmd {assert_match {*command not allowed when used memory*} $e} proc ::test) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/026/2s-1/unit/functions/result.json",
+  "raw_sha256": "6e4bdb20b2105ff930c6f97042da56f717ae52c7d2150092ccb99a96cf052bd2",
+  "pruned_data": []
+}

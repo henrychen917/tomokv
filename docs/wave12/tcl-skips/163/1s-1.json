@@ -1,0 +1,34 @@
+{
+  "index": 163,
+  "file": "unit/scripting",
+  "test": "Timedout script does not cause a false dead client",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Timedout script does not cause a false dead client in tests/unit/scripting.tcl",
+      "data": "Timedout script does not cause a false dead client in tests/unit/scripting.tcl\nn option or number of arguments for CONFIG SET - 'lua-time-limit'\nERR Unknown option or number of arguments for CONFIG SET - 'lua-time-limit'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set lua-time-limit 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Timedout script does not cause a false dead client in tests/unit/scripting.tcl",
+      "data": "Timedout script does not cause a false dead client in tests/unit/scripting.tcl\nn option or number of arguments for CONFIG SET - 'lua-time-limit'\nERR Unknown option or number of arguments for CONFIG SET - 'lua-time-limit'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set lua-time-limit 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Timedout script does not cause a false dead client in tests/unit/scripting.tcl\nn option or number of arguments for CONFIG SET - 'lua-time-limit'\nERR Unknown option or number of arguments for CONFIG SET - 'lua-time-limit'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set lua-time-limit 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/163/1s-1/unit/scripting/result.json",
+  "raw_sha256": "f2fec0d024ceb9510336a9df46ba57fe0e60c39a6747c03b19a6a3f6f0deb542",
+  "pruned_data": []
+}

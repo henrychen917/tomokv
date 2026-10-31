@@ -1,0 +1,27 @@
+{
+  "index": 34,
+  "file": "unit/introspection",
+  "test": "CLIENT KILL close the client connection during bgsave",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/introspection.tcl",
+      "test": "CLIENT KILL close the client connection during bgsave in tests/unit/introspection.tcl",
+      "data": "CLIENT KILL close the client connection during bgsave in tests/unit/introspection.tcl\nn option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\nERR Unknown option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set rdb-key-save-delay 10000000\"\n    (\"uplevel\" body line 5)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "CLIENT KILL close the client connection during bgsave in tests/unit/introspection.tcl\nn option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\nERR Unknown option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set rdb-key-save-delay 10000000\"\n    (\"uplevel\" body line 5)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/034/2s-3/unit/introspection/result.json",
+  "raw_sha256": "06aff9f79c1aeb3b0e2e31c511fd1bcf7fe9e94ca59602d423c63e18c7ce3b9e",
+  "pruned_data": []
+}

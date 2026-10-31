@@ -1,0 +1,27 @@
+{
+  "index": 152,
+  "file": "unit/scripting",
+  "test": "SORT is normally not alpha re-ordered for the scripting engine",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "SORT is normally not alpha re-ordered for the scripting engine in tests/unit/scripting.tcl",
+      "data": "SORT is normally not alpha re-ordered for the scripting engine in tests/unit/scripting.tcl\nd 'SORT' is not allowed from scripts script: a7f71e49316dfad0dc5eb3fb098a9899b73be282, on @user_script:1.\nERR command 'SORT' is not allowed from scripts script: a7f71e49316dfad0dc5eb3fb098a9899b73be282, on @user_script:1.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {return redis.call('sort',KEYS[1],'desc')} 1 myset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SORT is normally not alpha re-ordered for the scripting engine in tests/unit/scripting.tcl\nd 'SORT' is not allowed from scripts script: a7f71e49316dfad0dc5eb3fb098a9899b73be282, on @user_script:1.\nERR command 'SORT' is not allowed from scripts script: a7f71e49316dfad0dc5eb3fb098a9899b73be282, on @user_script:1.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {return redis.call('sort',KEYS[1],'desc')} 1 myset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/152/2s-3/unit/scripting/result.json",
+  "raw_sha256": "4667ec843ad4efcf5230123f398b41f93a09fa9c4675f793f4eb3f96a87ac2e4",
+  "pruned_data": []
+}

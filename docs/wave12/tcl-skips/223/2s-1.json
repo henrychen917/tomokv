@@ -1,0 +1,27 @@
+{
+  "index": 223,
+  "file": "unit/type/list",
+  "test": "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds in tests/unit/type/list.tcl",
+      "data": "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds",
+      "milliseconds": "1"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/223/2s-1/unit/type/list/result.json",
+  "raw_sha256": "fbab5bdf9942a925bee8259e7723ac12d164118b472ee2436d7174723f320c1a",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 3,
+  "file": "integration/redis-cli",
+  "test": "Non-interactive non-TTY CLI: ASK redirect test",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: ASK redirect test in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: ASK redirect test in tests/integration/redis-cli.tcl\nled: ERR unexpected command ASKING\nError: \nASKING failed: ERR unexpected command ASKING\nError: \n    while executing\n\"close $fd\"\n    (procedure \"_run_cli\" line 16)\n    invoked from within\n\"_run_cli $host $port $db {} {*}$args\"\n    (procedure \"run_cli_host_port_db\" line 2)\n    invoked from within\n\"run_cli_host_port_db \"127.0.0.1\" $port1 0 -c SET foo bar\"\n    (\"uplevel\" body line 16)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Non-interactive non-TTY CLI: ASK redirect test in tests/integration/redis-cli.tcl\nled: ERR unexpected command ASKING\nError: \nASKING failed: ERR unexpected command ASKING\nError: \n    while executing\n\"close $fd\"\n    (procedure \"_run_cli\" line 16)\n    invoked from within\n\"_run_cli $host $port $db {} {*}$args\"\n    (procedure \"run_cli_host_port_db\" line 2)\n    invoked from within\n\"run_cli_host_port_db \"127.0.0.1\" $port1 0 -c SET foo bar\"\n    (\"uplevel\" body line 16)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/003/2s-3/integration/redis-cli/result.json",
+  "raw_sha256": "94a77fee04fdbebf57e8a5bf1270efc46ff1eed8a6e78754415f2bdcf2605b58",
+  "pruned_data": []
+}

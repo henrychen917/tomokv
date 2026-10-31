@@ -1,0 +1,27 @@
+{
+  "index": 175,
+  "file": "unit/slowlog",
+  "test": "SLOWLOG - get all slow logs",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - get all slow logs in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - get all slow logs in tests/unit/slowlog.tcl\nExpected '5' to be equal to '3' (context: type eval line 11 cmd {assert_equal [r slowlog len] 3} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SLOWLOG - get all slow logs in tests/unit/slowlog.tcl\nExpected '5' to be equal to '3' (context: type eval line 11 cmd {assert_equal [r slowlog len] 3} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/175/2s-1/unit/slowlog/result.json",
+  "raw_sha256": "a8630919392a20071cfd9c62a066c8cad67a78d25a632a742b204368b8154288",
+  "pruned_data": []
+}

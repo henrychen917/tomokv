@@ -1,0 +1,27 @@
+{
+  "index": 244,
+  "file": "unit/type/set",
+  "test": "SMOVE non existing key",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/set.tcl",
+      "test": "SMOVE non existing key in tests/unit/type/set.tcl",
+      "data": "SMOVE non existing key",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/244/2s-3/unit/type/set/result.json",
+  "raw_sha256": "0f50c9a8b723936b416749780aed073a62ebddea04041ff731b60afd1a0e0569",
+  "pruned_data": []
+}

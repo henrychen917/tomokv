@@ -1,0 +1,27 @@
+{
+  "index": 21,
+  "file": "unit/functions",
+  "test": "FUNCTION - test debug reload different options",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test debug reload different options in tests/unit/functions.tcl",
+      "data": "FUNCTION - test debug reload different options in tests/unit/functions.tcl\nExpected 'ERR unknown subcommand or wrong number of arguments for 'debug' command' to match '*Error trying to load the RDB*' (context: type eval line 3 cmd {assert_match \"*Error trying to load the RDB*\" $e} proc ::test) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "FUNCTION - test debug reload different options in tests/unit/functions.tcl\nExpected 'ERR unknown subcommand or wrong number of arguments for 'debug' command' to match '*Error trying to load the RDB*' (context: type eval line 3 cmd {assert_match \"*Error trying to load the RDB*\" $e} proc ::test) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/021/2s-3/unit/functions/result.json",
+  "raw_sha256": "e7d1954ead9a09965497c9da5b687dffc784d2b473caa4c31c692bb30c202618",
+  "pruned_data": []
+}

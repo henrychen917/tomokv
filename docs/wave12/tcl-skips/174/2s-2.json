@@ -1,0 +1,27 @@
+{
+  "index": 174,
+  "file": "unit/slowlog",
+  "test": "SLOWLOG - commands with too many arguments are trimmed",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - commands with too many arguments are trimmed in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - commands with too many arguments are trimmed",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/174/2s-2/unit/slowlog/result.json",
+  "raw_sha256": "4bc9c5ce1520a2b744084d313699edac63275838cd76d443ea09e3656318ca2f",
+  "pruned_data": []
+}

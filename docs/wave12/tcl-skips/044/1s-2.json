@@ -1,0 +1,27 @@
+{
+  "index": 44,
+  "file": "unit/introspection-2",
+  "test": "COMMAND LIST FILTERBY PATTERN - list all commands/subcommands",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/introspection-2.tcl",
+      "test": "COMMAND LIST FILTERBY PATTERN - list all commands/subcommands in tests/unit/introspection-2.tcl",
+      "data": "COMMAND LIST FILTERBY PATTERN - list all commands/subcommands in tests/unit/introspection-2.tcl\nExpected '-1' not equal to '-1' (context: type eval line 19 cmd {assert_not_equal [lsearch $commands \"cluster|help\"] -1} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "COMMAND LIST FILTERBY PATTERN - list all commands/subcommands in tests/unit/introspection-2.tcl\nExpected '-1' not equal to '-1' (context: type eval line 19 cmd {assert_not_equal [lsearch $commands \"cluster|help\"] -1} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/044/1s-2/unit/introspection-2/result.json",
+  "raw_sha256": "d6f605873d19b39a2f3ab51a9fdab815bbe65692d3dcfed52b9998789bccb7ab",
+  "pruned_data": []
+}

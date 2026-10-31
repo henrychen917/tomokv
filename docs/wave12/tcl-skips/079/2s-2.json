@@ -1,0 +1,27 @@
+{
+  "index": 79,
+  "file": "unit/multi",
+  "test": "MULTI with config error",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "MULTI with config error in tests/unit/multi.tcl",
+      "data": "MULTI with config error",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/079/2s-2/unit/multi/result.json",
+  "raw_sha256": "f422cfe5bdb814a42c322bec4a55937ef7e313959b955301514d91fd758a34e7",
+  "pruned_data": []
+}

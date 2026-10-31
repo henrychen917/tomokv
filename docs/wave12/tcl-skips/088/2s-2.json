@@ -1,0 +1,27 @@
+{
+  "index": 88,
+  "file": "unit/pause",
+  "test": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/pause.tcl",
+      "test": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE in tests/unit/pause.tcl",
+      "data": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE in tests/unit/pause.tcl\nExpected '1' to be equal to '0' (context: type eval line 22 cmd {assert_equal 1 [r client unblock $client_id1 timeout]} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE in tests/unit/pause.tcl\nExpected '1' to be equal to '0' (context: type eval line 22 cmd {assert_equal 1 [r client unblock $client_id1 timeout]} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/088/2s-2/unit/pause/result.json",
+  "raw_sha256": "e370fb0785b0e50c7feba1458fbfbde2b8dc255e68be2731ddce65d6b9be79e2",
+  "pruned_data": []
+}

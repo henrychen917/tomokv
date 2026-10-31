@@ -1,0 +1,27 @@
+{
+  "index": 251,
+  "file": "unit/type/stream-cgroups",
+  "test": "XREADGROUP of multiple entries changes dirty by one",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/stream-cgroups.tcl",
+      "test": "XREADGROUP of multiple entries changes dirty by one in tests/unit/type/stream-cgroups.tcl",
+      "data": "XREADGROUP of multiple entries changes dirty by one in tests/unit/type/stream-cgroups.tcl\nExpected 0 == 0 + 1 (context: type eval line 14 cmd {assert {$dirty2 == $dirty + 1}} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "XREADGROUP of multiple entries changes dirty by one in tests/unit/type/stream-cgroups.tcl\nExpected 0 == 0 + 1 (context: type eval line 14 cmd {assert {$dirty2 == $dirty + 1}} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/251/1s-3/unit/type/stream-cgroups/result.json",
+  "raw_sha256": "64804075cbe2c5f3462f8e3e93c732efb6f556a17e2f4f2de0518ed596602629",
+  "pruned_data": []
+}

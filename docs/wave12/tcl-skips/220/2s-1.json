@@ -1,0 +1,27 @@
+{
+  "index": 220,
+  "file": "unit/type/list",
+  "test": "Linked LMOVEs",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Linked LMOVEs in tests/unit/type/list.tcl",
+      "data": "Linked LMOVEs",
+      "milliseconds": "2"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/220/2s-1/unit/type/list/result.json",
+  "raw_sha256": "f58f0b4816e8360e0cac65cfeeaf0a64fe09d32dd0cd9b6d8ddd810a997afab3",
+  "pruned_data": []
+}

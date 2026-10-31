@@ -1,0 +1,27 @@
+{
+  "index": 191,
+  "file": "unit/tracking",
+  "test": "Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/tracking.tcl",
+      "test": "Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort in tests/unit/tracking.tcl",
+      "data": "Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort in tests/unit/tracking.tcl\n SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set tracking-table-max-keys 1000000\"\n    (\"uplevel\" body line 16)\n    invoked from within\n\"uplevel {\n            # We should make r TRACKING off first. If r is in RESP3,\n            # r FLUSH ALL will send us tracking-redir-broken or other\n ...\"\n    (procedure \"clean_all\" line 2)\n    invoked from within\n\"clean_all\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort in tests/unit/tracking.tcl\n SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set tracking-table-max-keys 1000000\"\n    (\"uplevel\" body line 16)\n    invoked from within\n\"uplevel {\n            # We should make r TRACKING off first. If r is in RESP3,\n            # r FLUSH ALL will send us tracking-redir-broken or other\n ...\"\n    (procedure \"clean_all\" line 2)\n    invoked from within\n\"clean_all\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/191/1s-2/unit/tracking/result.json",
+  "raw_sha256": "9f264f81025ace775c99b0050a4b40f950feeea15c8ad5ffac969da203f58b64",
+  "pruned_data": []
+}

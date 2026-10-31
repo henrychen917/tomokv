@@ -1,0 +1,27 @@
+{
+  "index": 32,
+  "file": "unit/hyperloglog",
+  "test": "Hyperloglog promote to dense well in different hll-sparse-max-bytes",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/hyperloglog.tcl",
+      "test": "Hyperloglog promote to dense well in different hll-sparse-max-bytes in tests/unit/hyperloglog.tcl",
+      "data": "Hyperloglog promote to dense well in different hll-sparse-max-bytes in tests/unit/hyperloglog.tcl\n SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set hll-sparse-max-bytes $max($i)\"\n    (\"uplevel\" body line 6)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Hyperloglog promote to dense well in different hll-sparse-max-bytes in tests/unit/hyperloglog.tcl\n SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set hll-sparse-max-bytes $max($i)\"\n    (\"uplevel\" body line 6)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/032/1s-1/unit/hyperloglog/result.json",
+  "raw_sha256": "b7afa5dd69d9b25fee40370acab6f53124b06ac59a47f90414b15f498221b815",
+  "pruned_data": []
+}

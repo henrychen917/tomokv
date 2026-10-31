@@ -1,0 +1,27 @@
+{
+  "index": 203,
+  "file": "unit/type/list",
+  "test": "BLMPOP propagate as pop with count command to replica",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLMPOP propagate as pop with count command to replica in tests/unit/type/list.tcl",
+      "data": "BLMPOP propagate as pop with count command to replica in tests/unit/type/list.tcl\nn option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\nERR Unknown option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set repl-ping-replica-period 3600\"\n    (procedure \"attach_to_replication_stream_on_connection\" line 2)\n    invoked from within\n\"attach_to_replication_stream_on_connection 0\"\n    (procedure \"attach_to_replication_stream\" line 2)\n    invoked from within\n\"attach_to_replication_stream\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "BLMPOP propagate as pop with count command to replica in tests/unit/type/list.tcl\nn option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\nERR Unknown option or number of arguments for CONFIG SET - 'repl-ping-replica-period'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set repl-ping-replica-period 3600\"\n    (procedure \"attach_to_replication_stream_on_connection\" line 2)\n    invoked from within\n\"attach_to_replication_stream_on_connection 0\"\n    (procedure \"attach_to_replication_stream\" line 2)\n    invoked from within\n\"attach_to_replication_stream\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/203/2s-1/unit/type/list/result.json",
+  "raw_sha256": "442c2cb1b75485dbe47f0a643c8f2cdee0a9595e2b365ca42d766a35a6e5939f",
+  "pruned_data": []
+}

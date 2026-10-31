@@ -1,0 +1,27 @@
+{
+  "index": 151,
+  "file": "unit/scripting",
+  "test": "SORT BY <constant> with GET gets ordered for scripting",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "SORT BY <constant> with GET gets ordered for scripting in tests/unit/scripting.tcl",
+      "data": "SORT BY <constant> with GET gets ordered for scripting in tests/unit/scripting.tcl\nd 'SORT' is not allowed from scripts script: e9beb397ca34facf839ac6126d322a6553367b59, on @user_script:1.\nERR command 'SORT' is not allowed from scripts script: e9beb397ca34facf839ac6126d322a6553367b59, on @user_script:1.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {return redis.call('sort',KEYS[1],'by','_','get','#','get','_:*')} 1 myset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SORT BY <constant> with GET gets ordered for scripting in tests/unit/scripting.tcl\nd 'SORT' is not allowed from scripts script: e9beb397ca34facf839ac6126d322a6553367b59, on @user_script:1.\nERR command 'SORT' is not allowed from scripts script: e9beb397ca34facf839ac6126d322a6553367b59, on @user_script:1.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {return redis.call('sort',KEYS[1],'by','_','get','#','get','_:*')} 1 myset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/151/2s-2/unit/scripting/result.json",
+  "raw_sha256": "fafc65573fc7e740e99776b132ecb2738f08376096f19b03d0ed666c35f2a5ea",
+  "pruned_data": []
+}

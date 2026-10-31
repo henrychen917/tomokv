@@ -1,0 +1,27 @@
+{
+  "index": 1,
+  "file": "integration/redis-cli",
+  "test": "Dumping an RDB - functions only: no",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Dumping an RDB - functions only: no in tests/integration/redis-cli.tcl",
+      "data": "Dumping an RDB - functions only: no in tests/integration/redis-cli.tcl\nn option or number of arguments for CONFIG SET - 'repl-diskless-sync'\nERR Unknown option or number of arguments for CONFIG SET - 'repl-diskless-sync'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set repl-diskless-sync no\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Dumping an RDB - functions only: no in tests/integration/redis-cli.tcl\nn option or number of arguments for CONFIG SET - 'repl-diskless-sync'\nERR Unknown option or number of arguments for CONFIG SET - 'repl-diskless-sync'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set repl-diskless-sync no\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/001/1s-2/integration/redis-cli/result.json",
+  "raw_sha256": "4a598546d52884734e1caf334055965b924d73d8e5590116306c90a88cb64235",
+  "pruned_data": []
+}

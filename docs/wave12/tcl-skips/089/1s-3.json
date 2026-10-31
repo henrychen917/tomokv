@@ -1,0 +1,27 @@
+{
+  "index": 89,
+  "file": "unit/pause",
+  "test": "Test may-replicate commands are rejected in RO scripts",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/pause.tcl",
+      "test": "Test may-replicate commands are rejected in RO scripts in tests/unit/pause.tcl",
+      "data": "Test may-replicate commands are rejected in RO scripts in tests/unit/pause.tcl\nExpected 'ERR command 'PUBLISH' is not allowed from scripts script: 182a3b6a9baccb64fbda951faab9575c9707d126, on @user_script:1.' to match 'ERR Write commands are not allowed from read-only scripts. script:*' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Test may-replicate commands are rejected in RO scripts in tests/unit/pause.tcl\nExpected 'ERR command 'PUBLISH' is not allowed from scripts script: 182a3b6a9baccb64fbda951faab9575c9707d126, on @user_script:1.' to match 'ERR Write commands are not allowed from read-only scripts. script:*' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/089/1s-3/unit/pause/result.json",
+  "raw_sha256": "03083b6c8caa2c8b83237602f56d5a8f4de01009b45755550421020a2842e6c1",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 11,
+  "file": "unit/dump",
+  "test": "RESTORE with ABSTTL in the past",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/dump.tcl",
+      "test": "RESTORE with ABSTTL in the past in tests/unit/dump.tcl",
+      "data": "RESTORE with ABSTTL in the past in tests/unit/dump.tcl\nExpected 'ERR no such key' to equal or match 'ERR unknown subcommand or wrong number of arguments for 'debug' command'",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "RESTORE with ABSTTL in the past in tests/unit/dump.tcl\nExpected 'ERR no such key' to equal or match 'ERR unknown subcommand or wrong number of arguments for 'debug' command'",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/011/2s-2/unit/dump/result.json",
+  "raw_sha256": "b41979ff6f5743e6042a73eb2ba980dd7a33debe1a6e5efe203eda108f5ec2ed",
+  "pruned_data": []
+}

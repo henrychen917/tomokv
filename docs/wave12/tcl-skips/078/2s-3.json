@@ -1,0 +1,27 @@
+{
+  "index": 78,
+  "file": "unit/multi",
+  "test": "MULTI with SHUTDOWN",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "MULTI with SHUTDOWN in tests/unit/multi.tcl",
+      "data": "MULTI with SHUTDOWN",
+      "milliseconds": "5"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/078/2s-3/unit/multi/result.json",
+  "raw_sha256": "ad7cf24bccbd2eca2a151356d42f736df43ea273df9f428a34f7f8479bc62cd2",
+  "pruned_data": []
+}

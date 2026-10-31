@@ -1,0 +1,27 @@
+{
+  "index": 18,
+  "file": "unit/expire",
+  "test": "SET - use KEEPTTL option, TTL should not be removed after loadaof",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET - use KEEPTTL option, TTL should not be removed after loadaof in tests/unit/expire.tcl",
+      "data": "SET - use KEEPTTL option, TTL should not be removed after loadaof in tests/unit/expire.tcl\n SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set appendonly yes\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SET - use KEEPTTL option, TTL should not be removed after loadaof in tests/unit/expire.tcl\n SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set appendonly yes\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/018/1s-1/unit/expire/result.json",
+  "raw_sha256": "793906c0f862b214e720148b896a4d6b8397a072babdbc292fe46b2a14793b10",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 63,
+  "file": "unit/multi",
+  "test": "EXEC with only read commands should not be rejected when OOM",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC with only read commands should not be rejected when OOM in tests/unit/multi.tcl",
+      "data": "EXEC with only read commands should not be rejected when OOM",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/063/2s-1/unit/multi/result.json",
+  "raw_sha256": "e56a078bae8c825761e87057f5a3d1fab016bc4c7ef9d29935193c7136833c5f",
+  "pruned_data": []
+}

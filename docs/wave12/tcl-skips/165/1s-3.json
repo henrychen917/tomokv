@@ -1,0 +1,27 @@
+{
+  "index": 165,
+  "file": "unit/scripting",
+  "test": "allow-oom shebang flag",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "allow-oom shebang flag in tests/unit/scripting.tcl",
+      "data": "allow-oom shebang flag in tests/unit/scripting.tcl\nExpected an error matching 'OOM *' but got '1' (context: type eval line 21 cmd {assert_error {OOM *} {\n            r eval {#!lua flags=\n                return 1\n            } 0\n        }} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "allow-oom shebang flag in tests/unit/scripting.tcl\nExpected an error matching 'OOM *' but got '1' (context: type eval line 21 cmd {assert_error {OOM *} {\n            r eval {#!lua flags=\n                return 1\n            } 0\n        }} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/165/1s-3/unit/scripting/result.json",
+  "raw_sha256": "3dd5725c873e614d119f5b50b5dc9c21f04b4061baf79f7e47885bc9df69dac8",
+  "pruned_data": []
+}

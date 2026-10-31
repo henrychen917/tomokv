@@ -1,0 +1,27 @@
+{
+  "index": 195,
+  "file": "unit/tracking",
+  "test": "Tracking invalidation message is not interleaved with multiple keys response",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/tracking.tcl",
+      "test": "Tracking invalidation message is not interleaved with multiple keys response in tests/unit/tracking.tcl",
+      "data": "Tracking invalidation message is not interleaved with multiple keys response in tests/unit/tracking.tcl\nExpected 'invalidate y{t}' to be equal to '1 {}' (context: type eval line 15 cmd {assert_equal $res {1 {}}} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Tracking invalidation message is not interleaved with multiple keys response in tests/unit/tracking.tcl\nExpected 'invalidate y{t}' to be equal to '1 {}' (context: type eval line 15 cmd {assert_equal $res {1 {}}} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/195/1s-2/unit/tracking/result.json",
+  "raw_sha256": "5beee0bb9e3694a7362f0ea80a8cdcd5454b2e7df1704faf6566f5329008434d",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 208,
+  "file": "unit/type/list",
+  "test": "BLPOP/BLMOVE should increase dirty",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP/BLMOVE should increase dirty in tests/unit/type/list.tcl",
+      "data": "BLPOP/BLMOVE should increase dirty in tests/unit/type/list.tcl\nExpected 0 == 0 + 2 (context: type eval line 11 cmd {assert {$dirty2 == $dirty + 2}} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "BLPOP/BLMOVE should increase dirty in tests/unit/type/list.tcl\nExpected 0 == 0 + 2 (context: type eval line 11 cmd {assert {$dirty2 == $dirty + 2}} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/208/1s-1/unit/type/list/result.json",
+  "raw_sha256": "b5ceff1bb539698938a62fbadc048a23be193c8b5b93ae4d5ef93be9be877454",
+  "pruned_data": []
+}

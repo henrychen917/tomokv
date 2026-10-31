@@ -1,0 +1,34 @@
+{
+  "index": 157,
+  "file": "unit/scripting",
+  "test": "String containing number precision test (regression of issue #1118)",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "String containing number precision test (regression of issue #1118) in tests/unit/scripting.tcl",
+      "data": "String containing number precision test (regression of issue #1118)",
+      "milliseconds": "1"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "String containing number precision test (regression of issue #1118) in tests/unit/scripting.tcl",
+      "data": "String containing number precision test (regression of issue #1118)",
+      "milliseconds": "2"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/157/1s-1/unit/scripting/result.json",
+  "raw_sha256": "7170bfeae754624b944421227ce33b5474a03edce83c9e9560ec7fc46aabcc12",
+  "pruned_data": []
+}

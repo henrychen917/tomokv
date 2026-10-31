@@ -1,0 +1,27 @@
+{
+  "index": 37,
+  "file": "unit/introspection",
+  "test": "CONFIG SET rollback on apply error",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/introspection.tcl",
+      "test": "CONFIG SET rollback on apply error in tests/unit/introspection.tcl",
+      "data": "CONFIG SET rollback on apply error in tests/unit/introspection.tcl\nExpected 'ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config' to match 'ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port*' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "CONFIG SET rollback on apply error in tests/unit/introspection.tcl\nExpected 'ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config' to match 'ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port*' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/037/1s-2/unit/introspection/result.json",
+  "raw_sha256": "c3339709a771c914756514f52a0e0450142fdcf67de486c73cb82290c0f1ac5f",
+  "pruned_data": []
+}

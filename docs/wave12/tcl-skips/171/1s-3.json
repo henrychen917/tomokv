@@ -1,0 +1,27 @@
+{
+  "index": 171,
+  "file": "unit/slowlog",
+  "test": "SLOWLOG - Some commands can redact sensitive fields",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/slowlog.tcl",
+      "test": "SLOWLOG - Some commands can redact sensitive fields in tests/unit/slowlog.tcl",
+      "data": "SLOWLOG - Some commands can redact sensitive fields in tests/unit/slowlog.tcl\nn command 'migrate', with args beginning with: '127.0.0.1' '20072' 'key' '9' '5000'\nERR unknown command 'migrate', with args beginning with: '127.0.0.1' '20072' 'key' '9' '5000'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r migrate [srv 0 host] [srv 0 port] key 9 5000\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SLOWLOG - Some commands can redact sensitive fields in tests/unit/slowlog.tcl\nn command 'migrate', with args beginning with: '127.0.0.1' '20072' 'key' '9' '5000'\nERR unknown command 'migrate', with args beginning with: '127.0.0.1' '20072' 'key' '9' '5000'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r migrate [srv 0 host] [srv 0 port] key 9 5000\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/171/1s-3/unit/slowlog/result.json",
+  "raw_sha256": "0c3e78dd5fa1262defbcbb0c5032792c837fd0d2f832a7b69b8ac6c438bfee9f",
+  "pruned_data": []
+}

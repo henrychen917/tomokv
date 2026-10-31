@@ -1,0 +1,27 @@
+{
+  "index": 220,
+  "file": "unit/type/list",
+  "test": "Linked LMOVEs",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Linked LMOVEs in tests/unit/type/list.tcl",
+      "data": "Linked LMOVEs in tests/unit/type/list.tcl\nExpected '' to be equal to 'foo' (context: type eval line 15 cmd {assert_equal {} [r lrange list2{t} 0 -1]} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Linked LMOVEs in tests/unit/type/list.tcl\nExpected '' to be equal to 'foo' (context: type eval line 15 cmd {assert_equal {} [r lrange list2{t} 0 -1]} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/220/1s-1/unit/type/list/result.json",
+  "raw_sha256": "ac0d12780bb4fce1f5ac643ee5f0d885f7f045034df2bb90e6d15b1dfd6d7243",
+  "pruned_data": []
+}

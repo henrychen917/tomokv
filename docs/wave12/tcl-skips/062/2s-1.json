@@ -1,0 +1,27 @@
+{
+  "index": 62,
+  "file": "unit/multi",
+  "test": "EXEC with at least one use-memory command should fail",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC with at least one use-memory command should fail in tests/unit/multi.tcl",
+      "data": "EXEC with at least one use-memory command should fail in tests/unit/multi.tcl\nExpected 'OOM command not allowed when used memory > 'maxmemory'.' to match 'EXECABORT*OOM*' (context: type eval line 13 cmd {assert_match {EXECABORT*OOM*} $e} proc ::test) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "EXEC with at least one use-memory command should fail in tests/unit/multi.tcl\nExpected 'OOM command not allowed when used memory > 'maxmemory'.' to match 'EXECABORT*OOM*' (context: type eval line 13 cmd {assert_match {EXECABORT*OOM*} $e} proc ::test) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/062/2s-1/unit/multi/result.json",
+  "raw_sha256": "9d0b7ae13434bf60a8cdffafc2dd2c2994135c07fcaac0a50a7fdf744f05c868",
+  "pruned_data": []
+}

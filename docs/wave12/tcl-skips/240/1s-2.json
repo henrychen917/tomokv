@@ -1,0 +1,27 @@
+{
+  "index": 240,
+  "file": "unit/type/set",
+  "test": "SMOVE basics - from intset to regular set",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/set.tcl",
+      "test": "SMOVE basics - from intset to regular set in tests/unit/type/set.tcl",
+      "data": "SMOVE basics - from intset to regular set",
+      "milliseconds": "1"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/240/1s-2/unit/type/set/result.json",
+  "raw_sha256": "8039d3cf221fc58046d5c4d2150a194d72d8e2d52d7bb9fef7153b3bfbb5a7ae",
+  "pruned_data": []
+}

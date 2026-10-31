@@ -1,0 +1,27 @@
+{
+  "index": 207,
+  "file": "unit/type/list",
+  "test": "BLPOP unblock but the key is expired and then block again - reprocessing command",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list.tcl",
+      "test": "BLPOP unblock but the key is expired and then block again - reprocessing command in tests/unit/type/list.tcl",
+      "data": "BLPOP unblock but the key is expired and then block again - reprocessing command",
+      "milliseconds": "1019"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/207/2s-2/unit/type/list/result.json",
+  "raw_sha256": "cffbe8554616246304a00048792dcb94b852c765af1ae0135f2feced5100a693",
+  "pruned_data": []
+}

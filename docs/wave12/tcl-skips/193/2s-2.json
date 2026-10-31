@@ -1,0 +1,27 @@
+{
+  "index": 193,
+  "file": "unit/tracking",
+  "test": "Tracking gets notification on tracking table key eviction",
+  "mode": "2s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/tracking.tcl",
+      "test": "Tracking gets notification on tracking table key eviction in tests/unit/tracking.tcl",
+      "data": "Tracking gets notification on tracking table key eviction in tests/unit/tracking.tcl\n SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set tracking-table-max-keys 1\"\n    (\"uplevel\" body line 8)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Tracking gets notification on tracking table key eviction in tests/unit/tracking.tcl\n SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set tracking-table-max-keys 1\"\n    (\"uplevel\" body line 8)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/193/2s-2/unit/tracking/result.json",
+  "raw_sha256": "be93b894b4d6972e8de219a8a348b448ceb2acfe4f38dfbf2af4e234ecedc50b",
+  "pruned_data": []
+}

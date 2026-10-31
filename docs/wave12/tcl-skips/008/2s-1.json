@@ -1,0 +1,27 @@
+{
+  "index": 8,
+  "file": "unit/dump",
+  "test": "RESTORE can set LRU",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/dump.tcl",
+      "test": "RESTORE can set LRU in tests/unit/dump.tcl",
+      "data": "RESTORE can set LRU in tests/unit/dump.tcl\nExpected 0 >= 1000 && 0 <= 1010 (context: type eval line 8 cmd {assert {$idle >= 1000 && $idle <= 1010}} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "RESTORE can set LRU in tests/unit/dump.tcl\nExpected 0 >= 1000 && 0 <= 1010 (context: type eval line 8 cmd {assert {$idle >= 1000 && $idle <= 1010}} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/008/2s-1/unit/dump/result.json",
+  "raw_sha256": "5a7bce1e6fe3bc307e433ae0de35e7deacf83201a7c4e270fd45aadfc2b2e300",
+  "pruned_data": []
+}

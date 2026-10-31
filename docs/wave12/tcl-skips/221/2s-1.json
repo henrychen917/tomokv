@@ -1,0 +1,27 @@
+{
+  "index": 221,
+  "file": "unit/type/list",
+  "test": "List invalid list-max-listpack-size config",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/list.tcl",
+      "test": "List invalid list-max-listpack-size config in tests/unit/type/list.tcl",
+      "data": "List invalid list-max-listpack-size config in tests/unit/type/list.tcl\nExpected 'listpack' to match 'quicklist' (context: type source line 100 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $enc $val} proc ::assert_encoding level 1) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "List invalid list-max-listpack-size config in tests/unit/type/list.tcl\nExpected 'listpack' to match 'quicklist' (context: type source line 100 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $enc $val} proc ::assert_encoding level 1) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/221/2s-1/unit/type/list/result.json",
+  "raw_sha256": "6dc9450e85278072f9b55c2f49d1655ab10721017bab5e8b5cdb35b2b3700f06",
+  "pruned_data": []
+}

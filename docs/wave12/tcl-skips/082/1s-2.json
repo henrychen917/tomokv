@@ -1,0 +1,27 @@
+{
+  "index": 82,
+  "file": "unit/multi",
+  "test": "exec with write commands and state change",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/multi.tcl",
+      "test": "exec with write commands and state change in tests/unit/multi.tcl",
+      "data": "exec with write commands and state change in tests/unit/multi.tcl\nn option or number of arguments for CONFIG SET - 'min-replicas-to-write'\nERR Unknown option or number of arguments for CONFIG SET - 'min-replicas-to-write'\n    while executing\n\"$r1 config set min-replicas-to-write 2\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "exec with write commands and state change in tests/unit/multi.tcl\nn option or number of arguments for CONFIG SET - 'min-replicas-to-write'\nERR Unknown option or number of arguments for CONFIG SET - 'min-replicas-to-write'\n    while executing\n\"$r1 config set min-replicas-to-write 2\"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/082/1s-2/unit/multi/result.json",
+  "raw_sha256": "bef0e199a4546f3d9f4f1c6e362e6ea13070bf3c4c3a156b6c00fd9edce96b7e",
+  "pruned_data": []
+}

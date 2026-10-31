@@ -1,0 +1,27 @@
+{
+  "index": 49,
+  "file": "unit/introspection-2",
+  "test": "errors stats for GEOADD",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/introspection-2.tcl",
+      "test": "errors stats for GEOADD in tests/unit/introspection-2.tcl",
+      "data": "errors stats for GEOADD in tests/unit/introspection-2.tcl\nExpected 'calls=1,rejected_calls=0' to match '*calls=1*,rejected_calls=0,failed_calls=1*' (context: type eval line 6 cmd {assert_match {*calls=1*,rejected_calls=0,failed_calls=1*} [cmdstat geoadd]} proc ::test) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "errors stats for GEOADD in tests/unit/introspection-2.tcl\nExpected 'calls=1,rejected_calls=0' to match '*calls=1*,rejected_calls=0,failed_calls=1*' (context: type eval line 6 cmd {assert_match {*calls=1*,rejected_calls=0,failed_calls=1*} [cmdstat geoadd]} proc ::test) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/049/1s-3/unit/introspection-2/result.json",
+  "raw_sha256": "bd9a4ed8191823c625659fff5b9f67132bafa70ab1f4c4bb5ccaf362865f7ff5",
+  "pruned_data": []
+}

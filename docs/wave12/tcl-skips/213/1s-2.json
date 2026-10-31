@@ -1,0 +1,27 @@
+{
+  "index": 213,
+  "file": "unit/type/list",
+  "test": "Blocking command accounted only once in commandstats after timeout",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/list.tcl",
+      "test": "Blocking command accounted only once in commandstats after timeout in tests/unit/type/list.tcl",
+      "data": "Blocking command accounted only once in commandstats after timeout in tests/unit/type/list.tcl\nExpected 'calls=1,rejected_calls=0' to match '*calls=1,*,rejected_calls=0,failed_calls=0' (context: type eval line 20 cmd {assert_match {*calls=1,*,rejected_calls=0,failed_calls=0} [cmdrstat blpop r]} proc ::test) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "Blocking command accounted only once in commandstats after timeout in tests/unit/type/list.tcl\nExpected 'calls=1,rejected_calls=0' to match '*calls=1,*,rejected_calls=0,failed_calls=0' (context: type eval line 20 cmd {assert_match {*calls=1,*,rejected_calls=0,failed_calls=0} [cmdrstat blpop r]} proc ::test) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/213/1s-2/unit/type/list/result.json",
+  "raw_sha256": "f9d981f6a90b03d5d92be1d11e1a7e1f4dfaf855eb7a0e70f3a02ffa9c6dc7f3",
+  "pruned_data": []
+}

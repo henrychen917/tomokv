@@ -1,0 +1,27 @@
+{
+  "index": 144,
+  "file": "unit/scripting",
+  "test": "LUA test pcall with non string/integer arg",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA test pcall with non string/integer arg in tests/unit/scripting.tcl",
+      "data": "LUA test pcall with non string/integer arg in tests/unit/scripting.tcl\nd 'PING' is not allowed from scripts script: cf412faafadb9db5689008ed5333d3994c1d130b, on @user_script:2.\nERR command 'PING' is not allowed from scripts script: cf412faafadb9db5689008ed5333d3994c1d130b, on @user_script:2.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {\n                return redis.call(\"ping\", \"asdf\")\n            } 0\"\n    (\"uplevel\" body line 10)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "LUA test pcall with non string/integer arg in tests/unit/scripting.tcl\nd 'PING' is not allowed from scripts script: cf412faafadb9db5689008ed5333d3994c1d130b, on @user_script:2.\nERR command 'PING' is not allowed from scripts script: cf412faafadb9db5689008ed5333d3994c1d130b, on @user_script:2.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {\n                return redis.call(\"ping\", \"asdf\")\n            } 0\"\n    (\"uplevel\" body line 10)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/144/2s-1/unit/scripting/result.json",
+  "raw_sha256": "81c91b2f930ef896602bd1df64e7ccd10302da0acfaf68ce4ba34f3a1418b881",
+  "pruned_data": []
+}

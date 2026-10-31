@@ -1,0 +1,27 @@
+{
+  "index": 20,
+  "file": "unit/functions",
+  "test": "FUNCTION - deny oom",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - deny oom in tests/unit/functions.tcl",
+      "data": "FUNCTION - deny oom in tests/unit/functions.tcl\nExpected 'invalid command name \"OK\"' to match 'OOM *when used memory > 'maxmemory'*' (context: type eval line 9 cmd {assert_match {OOM *when used memory > 'maxmemory'*} $e} proc ::test) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "FUNCTION - deny oom in tests/unit/functions.tcl\nExpected 'invalid command name \"OK\"' to match 'OOM *when used memory > 'maxmemory'*' (context: type eval line 9 cmd {assert_match {OOM *when used memory > 'maxmemory'*} $e} proc ::test) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/020/2s-1/unit/functions/result.json",
+  "raw_sha256": "2cf273c1064925c39055fd4928ba1a269ea1582b131e512b31e481fc6cac6227",
+  "pruned_data": []
+}

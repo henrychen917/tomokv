@@ -1,0 +1,34 @@
+{
+  "index": 156,
+  "file": "unit/scripting",
+  "test": "Script with RESP3 map",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script with RESP3 map in tests/unit/scripting.tcl",
+      "data": "Script with RESP3 map",
+      "milliseconds": "1"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script with RESP3 map in tests/unit/scripting.tcl",
+      "data": "Script with RESP3 map",
+      "milliseconds": "1"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/156/1s-3/unit/scripting/result.json",
+  "raw_sha256": "4d692cc0c8790e8866fc66dbbf2145d67d1e08199ab1d1d9b5ff43aab2643b65",
+  "pruned_data": []
+}

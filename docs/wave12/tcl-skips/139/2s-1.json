@@ -1,0 +1,34 @@
+{
+  "index": 139,
+  "file": "unit/scripting",
+  "test": "EVAL does not leak in the Lua stack",
+  "mode": "2s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 2,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL does not leak in the Lua stack in tests/unit/scripting.tcl",
+      "data": "EVAL does not leak in the Lua stack",
+      "milliseconds": "1123"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL does not leak in the Lua stack in tests/unit/scripting.tcl",
+      "data": "EVAL does not leak in the Lua stack",
+      "milliseconds": "148"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/139/2s-1/unit/scripting/result.json",
+  "raw_sha256": "cad58bbd295c3eacec7b95ce61cc4e08d92c6233346e6174391a5bc11301e628",
+  "pruned_data": []
+}

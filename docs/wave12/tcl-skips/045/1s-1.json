@@ -1,0 +1,27 @@
+{
+  "index": 45,
+  "file": "unit/introspection-2",
+  "test": "MIGRATE command is marked with movablekeys",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/introspection-2.tcl",
+      "test": "MIGRATE command is marked with movablekeys in tests/unit/introspection-2.tcl",
+      "data": "MIGRATE command is marked with movablekeys in tests/unit/introspection-2.tcl\nExpected '' to match '*movablekeys*' (context: type eval line 3 cmd {assert_match {*movablekeys*} [lindex $info 2]} proc ::test) ",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "MIGRATE command is marked with movablekeys in tests/unit/introspection-2.tcl\nExpected '' to match '*movablekeys*' (context: type eval line 3 cmd {assert_match {*movablekeys*} [lindex $info 2]} proc ::test) ",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/045/1s-1/unit/introspection-2/result.json",
+  "raw_sha256": "218a31b88fe8e93b3fc4fc50c4231c682761ae8e67320b33504127b5dcb0d825",
+  "pruned_data": []
+}

@@ -1,0 +1,27 @@
+{
+  "index": 106,
+  "file": "unit/pubsub",
+  "test": "ssubscribe  fails with OOM when memory limit exceeded",
+  "mode": "1s",
+  "attempt": 2,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/pubsub.tcl",
+      "test": "ssubscribe  fails with OOM when memory limit exceeded in tests/unit/pubsub.tcl",
+      "data": "ssubscribe  fails with OOM when memory limit exceeded in tests/unit/pubsub.tcl\nExpected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test)",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "ssubscribe  fails with OOM when memory limit exceeded in tests/unit/pubsub.tcl\nExpected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test)",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/106/1s-2/unit/pubsub/result.json",
+  "raw_sha256": "7a29e5d172a1aef42d2fb522a106cfed47eff2fdbf8ad48c4302edd33236421e",
+  "pruned_data": []
+}

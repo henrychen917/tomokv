@@ -1,0 +1,27 @@
+{
+  "index": 27,
+  "file": "unit/functions",
+  "test": "FUNCTION - verify allow-omm allows running any command",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - verify allow-omm allows running any command in tests/unit/functions.tcl",
+      "data": "FUNCTION - verify allow-omm allows running any command",
+      "milliseconds": "1"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/027/1s-1/unit/functions/result.json",
+  "raw_sha256": "f433133ee0628669911b8cc61db5f8e6c12ca4bba9f8a9284d4b766577001eb5",
+  "pruned_data": []
+}

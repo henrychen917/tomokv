@@ -1,0 +1,27 @@
+{
+  "index": 248,
+  "file": "unit/type/set",
+  "test": "SRANDMEMBER with a dict containing long chain",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/type/set.tcl",
+      "test": "SRANDMEMBER with a dict containing long chain in tests/unit/type/set.tcl",
+      "data": "SRANDMEMBER with a dict containing long chain in tests/unit/type/set.tcl\nn option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\nERR Unknown option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\n    while executing\n\"error $err\"\n    (procedure \"config_set\" line 16)\n    invoked from within\n\"config_set $param $value $options\"\n    (procedure \"config_get_set\" line 3)\n    invoked from within\n\"config_get_set rdb-key-save-delay 2147483647\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SRANDMEMBER with a dict containing long chain in tests/unit/type/set.tcl\nn option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\nERR Unknown option or number of arguments for CONFIG SET - 'rdb-key-save-delay'\n    while executing\n\"error $err\"\n    (procedure \"config_set\" line 16)\n    invoked from within\n\"config_set $param $value $options\"\n    (procedure \"config_get_set\" line 3)\n    invoked from within\n\"config_get_set rdb-key-save-delay 2147483647\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/248/1s-3/unit/type/set/result.json",
+  "raw_sha256": "bc02cc532e5953bf728128512752ec33ec5bdedb4c8239091d0ecf7141e5905e",
+  "pruned_data": []
+}

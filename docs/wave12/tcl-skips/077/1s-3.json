@@ -1,0 +1,27 @@
+{
+  "index": 77,
+  "file": "unit/multi",
+  "test": "MULTI with SAVE",
+  "mode": "1s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": true,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "MULTI with SAVE in tests/unit/multi.tcl",
+      "data": "MULTI with SAVE",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": null,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "validation_error": null,
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/077/1s-3/unit/multi/result.json",
+  "raw_sha256": "515b27380cb061684415ded09192b605920f34e3e64c537757a94cda3c4a1164",
+  "pruned_data": []
+}

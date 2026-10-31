@@ -1,0 +1,27 @@
+{
+  "index": 23,
+  "file": "unit/functions",
+  "test": "FUNCTION - test function kill",
+  "mode": "1s",
+  "attempt": 1,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function kill in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function kill in tests/unit/functions.tcl\nn option or number of arguments for CONFIG SET - 'busy-reply-threshold'\nERR Unknown option or number of arguments for CONFIG SET - 'busy-reply-threshold'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set busy-reply-threshold 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "FUNCTION - test function kill in tests/unit/functions.tcl\nn option or number of arguments for CONFIG SET - 'busy-reply-threshold'\nERR Unknown option or number of arguments for CONFIG SET - 'busy-reply-threshold'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set busy-reply-threshold 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/023/1s-1/unit/functions/result.json",
+  "raw_sha256": "2316d4c92fb2e9f4cdd8b3063c31ce2ff3efa88b16445cfe9d88b44cccd23481",
+  "pruned_data": []
+}

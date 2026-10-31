@@ -1,0 +1,27 @@
+{
+  "index": 180,
+  "file": "unit/sort",
+  "test": "SORT STORE quicklist with the right options",
+  "mode": "2s",
+  "attempt": 3,
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "passed": false,
+  "occurrences": 1,
+  "selected": [
+    {
+      "status": "err",
+      "file": "tests/unit/sort.tcl",
+      "test": "SORT STORE quicklist with the right options in tests/unit/sort.tcl",
+      "data": "SORT STORE quicklist with the right options in tests/unit/sort.tcl\nn option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 12\"\n    (\"uplevel\" body line 5)\n    invoked from within\n\"uplevel 1 $code\"",
+      "milliseconds": "0"
+    }
+  ],
+  "first_failure": "SORT STORE quicklist with the right options in tests/unit/sort.tcl\nn option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set list-compress-depth 12\"\n    (\"uplevel\" body line 5)\n    invoked from within\n\"uplevel 1 $code\"",
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "validation_error": "passing subset failed, incomplete, or assertion inventory changed",
+  "raw_result": "/home/user/Projects/cx-wave12/build/wave12/tcl-skips/180/2s-3/unit/sort/result.json",
+  "raw_sha256": "117a94f09d8bec116cfa409fe194f93b13793550805faf03bd9cf96f913e06f5",
+  "pruned_data": []
+}
