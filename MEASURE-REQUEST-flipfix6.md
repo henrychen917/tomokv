@@ -169,7 +169,7 @@ Code identity and a MULTI performance improvement are not claimed.
 | One connection with an idle session | 649 | 2,556 | 649 | 2,546 |
 
 PRE's session pass refuses readiness; POST prepares an actual transfer. This is
-not an equal-work timing comparison. The empty-session case shows the extra
+not an equal-work timing comparison. The no-session case shows the extra
 cold-control work. `.text` is 8,729,431 bytes on PRE and 8,726,423 on POST/PAD-A.
 
 ### Owner rulings
@@ -257,6 +257,12 @@ quiet box, matched offered loads and its normal ABBA/null controls:
   ordinary clients with no MULTI/WATCH history. Cover both engines, atomic modes
   and namespaces. PRE/PAD session refusal durations are results, not successful
   episode latencies. POST S2/close refusals must be separated by their counters.
+
+The steady-state cells are null checks: judge any repeatable change against the
+instrument's matched-null spread. For session episodes, the deciding observation
+is removal of the five-second stall: POST must complete or return an exact
+S2/close refusal below the existing one-second test bound. PRE/PAD-A retain the
+deadline failure. The no-session episode arm is also a null comparison.
 
 **No throughput claim.** Performance cells, `flip_saturated`, `atomic_floor` and
 the full `tests/gate.sh iteration` are **NOT RUN: maintainer-owned by instruction**.

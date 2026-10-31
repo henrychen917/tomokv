@@ -1,0 +1,709 @@
+{
+  "scope": "Completed correctness selections through native AOF retries; epoll differential and final controls still running.",
+  "required_jobs": [
+    "atomfix5_watch",
+    "atomic_batteries",
+    "atomic_units",
+    "core_units",
+    "datafix2_watch",
+    "debug-0",
+    "debug-1",
+    "execfair",
+    "flip",
+    "flip_unit",
+    "flipctl",
+    "flipfix5",
+    "flipfix5_units",
+    "flipfix6",
+    "flipfix6_units",
+    "flipfix_units",
+    "fliplisten",
+    "lb-stationary-1s",
+    "lb-stationary-2s",
+    "lbplanner_units",
+    "moverfix",
+    "multidb-1s-0-0",
+    "multidb-1s-0-1",
+    "multidb-1s-1-0",
+    "multidb-1s-1-1",
+    "multidb-2s-0-0",
+    "multidb-2s-0-1",
+    "multidb-2s-1-0",
+    "multidb-2s-1-1",
+    "multifix-1s-epoll",
+    "multifix-1s-uring",
+    "multifix-2s-epoll",
+    "multifix-2s-uring",
+    "netfix_tls",
+    "snapfix_bgsave_exec",
+    "tls",
+    "txn_group_fused",
+    "txn_group_split",
+    "txnorder-fused-0",
+    "txnorder-fused-1",
+    "txnorder-split-0",
+    "txnorder-split-1",
+    "txnorder2",
+    "txnorder_index",
+    "txnorder_wake",
+    "txnorder_wound"
+  ],
+  "all_required_jobs_executed": true,
+  "proof_runs": [
+    {
+      "name": "gate-differ-uring",
+      "manifest": "docs/flipfix6/gate-differ-uring-archive.json",
+      "archive_sha256": "744189a8c462080e3d3079758e4c1c2aae6d377ac3e49d7cb1382970cd7a0ea1",
+      "jobs": {
+        "differ-equivalence": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "differ-armed-0": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "differ-split-0": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "differ-split-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "differ-armed-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-fused-epoll",
+      "manifest": "docs/flipfix6/gate-fused-epoll-archive.json",
+      "archive_sha256": "17cbf1b69f8656d03dfdb6e2f28f0baaaaebbf12fa67f959b173f63b1eda1800",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "debug-1": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "debug-0": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "fused-0": {
+          "exit": 0,
+          "passed": 9,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "fused-1": {
+          "exit": 0,
+          "passed": 9,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-fused-uring",
+      "manifest": "docs/flipfix6/gate-fused-uring-archive.json",
+      "archive_sha256": "53f46b0b4120d4c868de11e637d8f1dca89fbd40f9b427cab099542ef7e7e835",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "debug-1": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "debug-0": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "fused-0": {
+          "exit": 0,
+          "passed": 9,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "fused-1": {
+          "exit": 0,
+          "passed": 9,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-regression-epoll",
+      "manifest": "docs/flipfix6/gate-regression-epoll-archive.json",
+      "archive_sha256": "c587edee8535d8d2fde0f6a31d7130c24618f1e27cbfcebfb22ddd69fcd9feb1",
+      "jobs": {
+        "multidb-1s-1-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "multidb-2s-0-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "feature-armed-1": {
+          "exit": 0,
+          "passed": 35,
+          "failed": 0
+        },
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "debug-1": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "feature-split-1": {
+          "exit": 0,
+          "passed": 34,
+          "failed": 0
+        },
+        "txnorder-fused-0": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "multidb-1s-0-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txnorder-split-0": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "multidb-1s-1-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txnorder-split-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "flipctl": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "lb-stationary-2s": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "flip": {
+          "exit": 0,
+          "passed": 9,
+          "failed": 0
+        },
+        "multidb-2s-0-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txnorder-fused-1": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 1
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "multidb-2s-1-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "multidb-2s-1-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "feature-split-0": {
+          "exit": 0,
+          "passed": 34,
+          "failed": 0
+        },
+        "debug-0": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "tls": {
+          "exit": 0,
+          "passed": 20,
+          "failed": 0
+        },
+        "feature-armed-0": {
+          "exit": 0,
+          "passed": 35,
+          "failed": 0
+        },
+        "lb-stationary-1s": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "multidb-1s-0-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txn_group_split": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "txn_group_fused": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-regression-uring",
+      "manifest": "docs/flipfix6/gate-regression-uring-archive.json",
+      "archive_sha256": "a0d6362b1d3f299252f20ee657e3196597d0d1b897fbbae720bf8ee380a143a6",
+      "jobs": {
+        "lbplanner_units": {
+          "exit": 0,
+          "passed": 2,
+          "failed": 0
+        },
+        "txnorder_wound": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "multidb-1s-1-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "multidb-2s-0-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "feature-armed-1": {
+          "exit": 0,
+          "passed": 35,
+          "failed": 0
+        },
+        "multifix-2s-epoll": {
+          "exit": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "moverfix": {
+          "exit": 0,
+          "passed": 8,
+          "failed": 0
+        },
+        "multifix-1s-uring": {
+          "exit": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "netfix_tls": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "debug-1": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "feature-split-1": {
+          "exit": 0,
+          "passed": 34,
+          "failed": 0
+        },
+        "txnorder-fused-0": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "txnorder_wake": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "core_tsan_build": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "multidb-1s-0-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txnorder-split-0": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "txnorder_index": {
+          "exit": 0,
+          "passed": 2,
+          "failed": 0
+        },
+        "multidb-1s-1-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txnorder-split-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "multifix-2s-uring": {
+          "exit": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "txnorder2": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "datafix2_watch": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "flipctl": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "lb-stationary-2s": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "flip": {
+          "exit": 0,
+          "passed": 9,
+          "failed": 0
+        },
+        "multidb-2s-0-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txnorder-fused-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "multidb-2s-1-1": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "fliplisten": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "multidb-2s-1-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "feature-split-0": {
+          "exit": 0,
+          "passed": 34,
+          "failed": 0
+        },
+        "debug-0": {
+          "exit": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "flipfix5": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "tls": {
+          "exit": 0,
+          "passed": 20,
+          "failed": 0
+        },
+        "feature-armed-0": {
+          "exit": 0,
+          "passed": 35,
+          "failed": 0
+        },
+        "flipfix6_units": {
+          "exit": 0,
+          "passed": 2,
+          "failed": 0
+        },
+        "lb-stationary-1s": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "atomfix5_watch": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "execfair": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "atomic_units": {
+          "exit": 0,
+          "passed": 27,
+          "failed": 0
+        },
+        "multifix-1s-epoll": {
+          "exit": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "multidb-1s-0-0": {
+          "exit": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "txn_group_split": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "snapfix_bgsave_exec": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "txn_group_fused": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-session",
+      "manifest": "docs/flipfix6/gate-session-archive.json",
+      "archive_sha256": "25574d25e545aa6ef5d966511037ba34b9921b819e60fd036b2429ec3591ad09",
+      "jobs": {
+        "core_tsan_build": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "core_units": {
+          "exit": 0,
+          "passed": 9,
+          "failed": 0
+        },
+        "flip_unit": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "flipfix5_units": {
+          "exit": 0,
+          "passed": 2,
+          "failed": 0
+        },
+        "flipfix6": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "flipfix6_units": {
+          "exit": 0,
+          "passed": 2,
+          "failed": 0
+        },
+        "flipfix_units": {
+          "exit": 0,
+          "passed": 2,
+          "failed": 0
+        },
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-txnorder-native-1-POST",
+      "manifest": "docs/flipfix6/gate-txnorder-native-1-POST-archive.json",
+      "archive_sha256": "87b7338e3b205a13fbf465e9178eb6161fe5cefb7babd5662b4d011d89727c0c",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "txnorder-fused-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-txnorder-native-1-PRE",
+      "manifest": "docs/flipfix6/gate-txnorder-native-1-PRE-archive.json",
+      "archive_sha256": "7bd4b43addd68703e0c26560535d1fb3a12874fdfcc500f76eed0bcfc950cfd0",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "txnorder-fused-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-txnorder-native-2-POST",
+      "manifest": "docs/flipfix6/gate-txnorder-native-2-POST-archive.json",
+      "archive_sha256": "65795001a2ed51539e519c1c61f0f71836aeb03eb2b846aefa556ac8b99d68ce",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "txnorder-fused-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "name": "gate-txnorder-native-2-PRE",
+      "manifest": "docs/flipfix6/gate-txnorder-native-2-PRE-archive.json",
+      "archive_sha256": "858b4a44a093c0f06bd536cce5f59788558f1283204c03adf09b587804d819bc",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "txnorder-fused-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
+    }
+  ]
+}

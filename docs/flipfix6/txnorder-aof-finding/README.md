@@ -19,15 +19,15 @@ small correctness diagnosis; they are not an estimate of failure probability.
 
 The PRE abort trace shows:
 
-- two workers waiting in `aof_commit_group`, `src/persist/aof.cc:1233`, from EXEC
-  and a cross-shard mover;
+- two workers retrying commit-chunk publication in `aof_commit_group`,
+  `src/persist/aof.cc:1233`, from EXEC and a cross-shard mover;
 - another worker in `ReadLocalDeferredQueue::force_oldest_grace`,
   `src/core/read_local.h:408`, reached by ordinary INCR immutable replacement;
 - the other workers waiting in `AofManager::worker_shutdown` after SIGTERM.
 
 `src/persist/aof.cc`, `src/core/read_local.h`, `src/store/flatstore.h`,
 `src/cmd/t_string.cc` and `src/cmd/multi_execute.inc` are unchanged relative to PRE.
-The stack suggests an AOF/group-completion versus reclamation wait interaction,
+The stack suggests AOF publication/backpressure interacting with reclamation,
 but it does not establish the complete dependency cycle. The original POST
 abort has no thread trace, so exact cycle identity is not claimed. The same
 failure class demonstrably exists on PRE, in a mode where FLIP is unavailable.

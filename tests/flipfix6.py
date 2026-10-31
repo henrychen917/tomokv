@@ -204,6 +204,10 @@ def witness(args, directory, engine, atomic, case):
             for thread in threads:
                 thread.join(args.stall)
             assert all(not thread.is_alive() for thread in threads), 'worker failed to stop'
+            # Keep the deadline/PING witness even when the strict POST row has
+            # already rejected PRE's refusal above. The negative control must
+            # distinguish that intended failure from a boot or harness error.
+            (directory / 'witness.json').write_text(json.dumps(result, indent=2) + '\n')
         after = s.stats(control)
         result['sessions_moved'] = after.get('flip_session_clients_transferred', 0) - before.get(
             'flip_session_clients_transferred', 0)
