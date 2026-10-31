@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Check completed selected-job groups and explicit live-leg inventories."""
-import hashlib,json,re
+import hashlib,itertools,json,re
 from pathlib import Path
 from execfifo2_validate import GROUPS
 ROOT=Path(__file__).resolve().parents[1]
@@ -27,6 +27,27 @@ if 'fifo-contract' in latest:
     legs=list(run.glob('F*-txnorder-fifo-*.log'))
     expected=10*2*2*2*2
     summary['leg_inventories'].append(dict(job='txnorder_fifo',expected=expected,actual=len(legs),passed=len(legs)==expected and all('PASS' in file.read_text() and 'FAIL' not in file.read_text() for file in legs),source=str(run)))
+if 'directed' in latest:
+    run=Path(latest['directed']['run_directory'])/'jobs/txnorder_chain'
+    expected={f'{case}-{unit}-{mode}.log' for case,unit,mode in itertools.product(
+        ('local','boundary','serve','hot'),('txnorder-chain-unit','txnorder-chain-db0-unit'),('1s','2s'))}
+    legs=list(run.glob('*-txnorder-chain-*.log'))
+    summary['leg_inventories'].append(dict(job='txnorder_chain',expected=len(expected),actual=len(legs),passed={file.name for file in legs}==expected and all('PASS' in file.read_text() and 'FAIL' not in file.read_text() for file in legs),source=str(run)))
+if 'fairness' in latest:
+    run=Path(latest['fairness']['run_directory'])/'jobs/txnorder_fifo_live'
+    expected={f'fifo-{databases}-{mode}-{atomic}-{engine}.json' for databases,mode,atomic,engine in itertools.product(
+        (1,16),('1s','2s'),(0,1),('uring','epoll'))}
+    legs=list(run.glob('fifo-*.json')); witnesses=[]
+    for file in legs:
+        evidence=json.loads(file.read_text());windows=evidence.get('windows',[])
+        good=(evidence.get('pass') is True and evidence.get('seconds')==60 and
+              evidence.get('protocol_ready_clients')==68 and len(windows)==60 and
+              [row['index'] for row in windows]==list(range(60)) and
+              all(len(row['completions'])==68 and min(row['completions'])>0 for row in windows) and
+              evidence.get('actual')==evidence.get('expected') and
+              evidence.get('deltas',{}).get('atomic_txn_fifo_waits',0)>0)
+        witnesses.append(dict(file=file.name,windows=len(windows),passed=good))
+    summary['leg_inventories'].append(dict(job='txnorder_fifo_live',expected=len(expected),actual=len(legs),passed={file.name for file in legs}==expected and all(row['passed'] for row in witnesses),witnesses=witnesses,source=str(run)))
 for engine in ('uring','epoll'):
     if 'differ-'+engine not in latest:continue
     run=Path(latest['differ-'+engine]['run_directory'])
