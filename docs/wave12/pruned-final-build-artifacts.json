@@ -47,5 +47,11 @@
     "bytes": 224690896,
     "sha256": "aee862288a87c0ea45eeb3f2b9ef5c367b0366fb3c88bc2849669583499fd647",
     "reason": "superseded PAD build object or duplicate of retained final arm"
+  },
+  {
+    "path": "build/wave12/tomokv-initial",
+    "bytes": 227218832,
+    "sha256": "72639fc8e9cdc538209e60b6e134eedd00a3e81bb90641036086ebf501c51fd8",
+    "reason": "Superseded initial integration arm; all initial identity and correctness receipts retained."
   }
 ]

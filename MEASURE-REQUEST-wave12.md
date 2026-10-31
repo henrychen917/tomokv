@@ -2,23 +2,25 @@
 
 ## wave12 integration
 
-Work in progress on `cx-wave12`, based on headline `e32b04a44`. No push.
+Integrated on `cx-wave12`, based on headline `e32b04a44`. No push.
 Owner approval D12 authorizes design A. The three lane reports, including
 flushfix2's inherited findings and the design review, were read before merging.
 
 Merge order: `15acf5102` (cx-flushfix3), `83b29aaa5` (cx-trackorder),
 `3adae5254` (cx-maxmemrace), all with two-parent `--no-ff` merges.
-Only the FLUSH merge conflicted, in five Makefile inline budgets. Initial
-resolution preserves both source changes and applies the additive budget
-deltas pending compile-only re-derivation. Lane branches remain untouched.
+Only the FLUSH merge conflicted, in five Makefile inline budgets. The initial
+resolution preserved both source changes and applied the additive budget
+deltas; the compile-only trials below then selected the final budgets.
+Lane branches remain untouched. Neither flipfix6 nor execfifo2 was merged.
 
 All builds and authorized correctness work use CPUs 64–95 and ports
 20000–20099. Performance measurements, load generators and the full iteration
 are reserved for the maintainer. No throughput claim is made.
 
-The remaining correctness campaign is in progress. The row census, named-skip
-sweep, binary builds, compiler trials, instruction census and production-unit
-freshness proof are complete. EXPECT_QUICK/EXPECT_FULL remain unchanged.
+The row census, named-skip sweep, binary builds, compiler trials, instruction
+census and production-unit freshness proof are complete. EXPECT_QUICK/EXPECT_FULL
+remain unchanged. The shared-body identity exceptions and PAD-A's aggregate
+layout limitation are explicit below; merit remains the maintainer's decision.
 
 ### Exact source-declared rows
 
@@ -37,7 +39,7 @@ coverage and row count are unchanged; no test was removed. The checked-in label
 fixture now matches the actual declarations, including FLUSHDB. The earlier
 incorrect inventory remains visible in commit 787fd64ae.
 
-### Semantic audit, before runtime proof
+### Semantic interactions
 
 - R3 range conflict detection remains on the script validation path. Cached
   script metadata owns immutable source/flags; the persistent interpreter's
@@ -48,8 +50,9 @@ incorrect inventory remains visible in commit 787fd64ae.
 - The FLUSH unit retains atomic admission through collapse. FLIP/LB drains
   therefore wait for its admission to retire. Wave11's stage actions still
   use flip_stage_owed; the FLUSH continuation wake remains unconditional.
-  The live eight-leg witness remains required; this source argument is not
-  an abort-free runtime result.
+  The final live witness passed all eight target legs (both engines, atomic
+  settings and namespace configurations), with positive FLUSH/FLIP counts,
+  zero refusals and clean child exits. Both Redis oracle legs also passed.
 - climon_flush_completed still runs at ROB retirement after all shard effects
   finish, before reply assembly, with the originating Op still Done. Thus the
   trackorder helper sees the intended SYNC/default boundary; ASYNC retains
@@ -194,7 +197,14 @@ name assertion. All other manifest files passed. The mutated source and binary
 were confined to a throwaway build and removed after recording their hashes.
 [Both negative-control attempts](docs/wave12/isolated-regressions.json).
 
-### Correctness receipts completed so far
+The final quiet complete Tcl job passed **1,875 required assertions in each
+mode**, with all 37 files and the two isolated slowlog executions present.
+The retained setup errors are still accounted for exactly. The proof reuses
+the runner's assertion-multiset validator and binds the same final runner and
+manifest to both positive runs and the planted negative control.
+[Final Tcl proof and compressed receipts](docs/wave12/tcl-final-proof.json).
+
+### Correctness receipts
 
 The primary whole-job invocation completed **269 jobs, 993 passing row
 executions and zero failures**, on the frozen POST. It is a selected partial
@@ -220,7 +230,26 @@ The maxmemory row passed all **48 target geometries** and the oracle, three
 trials per case. Every target witnessed its required open window. No failed
 OOM/admit/evict assertion was observed. The complete leg inventories, raw JSON
 archives and hash bindings are retained in
-[the primary interaction proof](docs/wave12/primary-semantic-runtime-proof.json).
+[the complete interaction proof](docs/wave12/semantic-runtime-proof.json).
+
+The final flushfix3 idle job passed all 16 legs and all **64,000** recorded
+calls against its existing 5 ms deadline. This is the requested correctness
+job; it is not the populated-FLUSH latency merit instrument. The final
+[live-FLIP witness](docs/wave12/final-flip.json) uses the delivered POST and
+retains all eight target legs and both oracle legs.
+
+The standard differential suites passed on both io_uring and epoll. Each engine
+ran all 47 suites, permanent seeds 7/19/20/23, its selected rotating seed,
+the four mandatory seed-19 MULTI repeats and all 16 mode-equivalence cells.
+The gate's own strict public folds validate **490 split + 464 armed = 954
+comparisons per engine**, including complete journals. These are the two public
+rows whose private child jobs are selected through the partial job interface.
+[Differential proof](docs/wave12/differential-proof.json).
+
+The additional mode/engine replays, atomic-0 script bounds and all four atomic
+battery geometries passed. Eight complete stream feature-job replays retain
+all three release memory bounds, giving 24 checked assertions. PRE and PAD-A
+each passed the gate's dbdefault boot/control job in both thread modes.
 
 `make all` and all production-unit builds/freshness queries passed: 64 checks,
 including the 55 production-unit targets/arms, the two mdbqsbr live arms,
@@ -228,13 +257,22 @@ blockfix cost binding, blockfix2 and both namespaces of flushfix2/3. The complet
 commands and `make -q` results are in
 [production-units.json](docs/wave12/production-units.json).
 
-The remaining whole-job matrix and final isolated reruns are still in progress.
 The initial Tcl promotion run failed on the two manifest interactions above.
 The next run passed all 1,875 required occurrences in 2s; 1s hit the unchanged
-upstream Lua GC watchdog while other correctness stress jobs were active.
+upstream Lua GC watchdog while other correctness stress jobs were active
+(also failing compat2's dependent public row).
 The first Python harness run likewise hit its unchanged one-slot watchdog
-during concurrent compilation. These attempts are retained; quiet full-job
-reruns, with unchanged deadlines, are required before reporting completion.
+during concurrent compilation. These attempts are retained. The final quiet
+Tcl jobs and all **83 tests in `python3 tests/gates_test.py` passed**, with
+unchanged deadlines. [Final sequential-stage receipt](docs/wave12/final-correctness-stage.json),
+[Python test output](docs/wave12/final-harness/final-gates-test.log).
+
+The first complete ABBA self-test exposed one stale serverless fixture in
+`redis_tcl_test.py`: it supplied the tuple of two allowed WATCH ordering names
+as though it were one assertion name. The fixture now exercises each name,
+retaining its complete-pass, missing, duplicate, timeout and unrelated-failure
+controls. Its ten tests pass. The live Tcl runner, manifest and server binary
+did not change; their positive and planted-regression bindings remain valid.
 
 ### Checks reserved for the maintainer — NOT RUN
 
@@ -246,10 +284,10 @@ bound were also not run. These seven public rows require the performance work
 or load generators reserved for the maintainer; they remain in the 999/1016
 landing declaration and label fixture.
 
-The `atomic_floor` job's tripwire and 400-roll program-order checks run with its
+The `atomic_floor` job's tripwire and 400-roll program-order checks passed with its
 existing correctness-only switch. Atomic RYOW rate assertions and XMOVE
 size-ratio timing assertions remain NOT RUN under that switch. Stream's three
-release memory bounds receive additional complete feature-job runs with the
+release memory bounds passed in additional complete feature-job runs with the
 normal release assertions enabled; those jobs invoke no throughput benchmark.
 
 An explicit attempt to select `tailgen_build` alone was rejected by

@@ -99,7 +99,7 @@ def main():
     for job in matrix['tcl']:
         require(job, run='landing-tcl-quiet')
     require('flushfix3', run='landing-flush-idle')
-    require('abba_selftest', run='landing-abba-selftest')
+    require('abba_selftest', run='landing-abba-selftest-final')
 
     registry = set(job_names())
     completed = {a['job'] for a in attempts if a['passed']}

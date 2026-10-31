@@ -25,7 +25,9 @@ class Controls(unittest.TestCase):
         from types import SimpleNamespace
         from unittest.mock import patch
         import redis_tcl
-        for unit, name in redis_tcl.ORDER_TESTS.items():
+        order_tests = [(unit, name) for unit, names in redis_tcl.ORDER_TESTS.items()
+                       for name in ((names,) if isinstance(names, str) else names)]
+        for unit, name in order_tests:
             original = dict(events=[dict(status='err', test=name)], failed=1, passed=0,
                             error=None, complete=True, exit_code=1, seconds=0)
             good = dict(events=[dict(status='ok', test=name)], failed=0, passed=1,
