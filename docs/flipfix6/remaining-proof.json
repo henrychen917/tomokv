@@ -1,0 +1,31 @@
+[
+  {
+    "name": "gate-regression-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "flip flipctl lb-stationary-1s lb-stationary-2s debug-0 debug-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomic_batteries multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 tls feature-split-0 feature-split-1 feature-armed-0 feature-armed-1",
+      "GATE_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793446856.7990592,
+    "expected_exit": 0
+  }
+]

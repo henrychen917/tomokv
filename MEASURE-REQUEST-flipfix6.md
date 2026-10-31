@@ -210,7 +210,9 @@ retaining ownership/lifetime/quota checks. The BLPOP-held IoDrain signal test in
 Completed: `make all`; all `job_production_units` targets; 58 `make -q` checks
 ([freshness.json](docs/flipfix6/freshness.json)); initial sanitizer core/FLIP rows;
 command/control counts. The expanded WATCH-S2 sanitizer selection passed 54/54 assertions in each sanitizer.
-Still running/pending: full requested live/gate matrix, both differential engines,
+The broad uring/default-engine selection passed **333 rows, zero failures**
+(`gate-regression-uring.ledger`), including every requested family. The epoll
+supplement and fused debug coverage are running/pending, followed by both differential engines,
 PAD-A negative control and final `python3 tests/gates_test.py`. These are not yet
 claimed as passes. Any unresolved failure or NOT RUN item will be explicit here.
 
