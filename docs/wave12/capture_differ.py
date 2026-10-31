@@ -37,7 +37,7 @@ def main():
             proof = directory / 'differ'
             files += sorted(proof.rglob('*.json')) + sorted(proof.rglob('*.tsv'))
             assert not (proof / 'proof-seeds.json').exists(), 'focused proof is not standard coverage'
-            for path in sorted(proof.rglob('*.log')):
+            for path in sorted([*proof.rglob('*.log'), *proof.rglob('*.txt')]):
                 data = path.read_bytes()
                 logs.append(dict(path=str(path.relative_to(ROOT)), bytes=len(data), sha256=digest(data)))
         archives = []

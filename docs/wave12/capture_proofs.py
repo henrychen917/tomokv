@@ -121,12 +121,16 @@ def main():
         assert len(rows) == 8 and {r['leg'] for r in rows} == target_legs
         for row in rows:
             assert row['passed'] and len(row['samples']) == 4
+            assert {(s['command'], s['option']) for s in row['samples']} == {
+                (command, option) for command in ('FLUSHALL', 'FLUSHDB') for option in ('SYNC', 'ASYNC')}
             for sample in row['samples']:
-                assert sample['misses'] == 0 and len(sample['ns']) == sample['required_calls']
+                assert sample['misses'] == 0 and len(sample['ns']) == sample['required_calls'] == 1000
+                assert sample['maximum_ns'] == max(sample['ns'])
+                assert all(0 < ns <= 5_000_000 for ns in sample['ns'])
         idle_rows += rows
         archive(path, Path('flushfix3-idle') / path.relative_to(idle), index)
     assert {r['databases'] for r in idle_rows} == {1, 16}
-    findings['flushfix3_idle'] = dict(legs=len(idle_rows), all_deadlines_passed=True,
+    findings['flushfix3_idle'] = dict(legs=len(idle_rows), deadline_ms=5, all_deadlines_passed=True,
                                      calls=sum(len(s['ns']) for r in idle_rows for s in r['samples']))
 
     flip = ROOT / 'build/flushfix2/siblings/wave12-final-flip'
