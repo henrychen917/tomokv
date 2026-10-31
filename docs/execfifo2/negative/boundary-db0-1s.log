@@ -8,5 +8,5 @@ To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
 Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
 CONTROL FIRED
 FAIL: held claim refuses serve and closes chain
-[Inferior 1 (process 1489617) exited with code 01]
+[Inferior 1 (process 1859691) exited with code 01]
 INFERIOR_EXIT 1

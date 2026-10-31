@@ -19,7 +19,7 @@ def main():
             script.write_text('set pagination off\nset confirm off\nset breakpoint pending off\n'+
                 f'break {symbol}\ncommands\nsilent\nprintf "CONTROL FIRED\\n"\nreturn {value}\ncontinue\nend\nrun\n'+
                 'python\nprint("INFERIOR_EXIT", gdb.parse_and_eval("$_exitcode"))\nend\n')
-            cmd=['gdb','-q','-batch','-x',str(script),'--args',str(binary),*args]
+            cmd=['taskset','-c','0-7','gdb','-nx','-q','-batch','-x',str(script),'--args',str(binary),*args]
             with log.open('w') as stream:r=subprocess.run(cmd,cwd=ROOT,env=dict(os.environ,LC_ALL='C'),stdout=stream,stderr=subprocess.STDOUT,timeout=60)
             text=log.read_text();valid=r.returncode==0 and 'CONTROL FIRED' in text and 'FAIL: '+failure in text and 'INFERIOR_EXIT 1' in text
             rows.append(dict(case=label,binary=str(binary),sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),command=cmd,breakpoint=symbol,forced_return=value,expected_failure=failure,gdb_returncode=r.returncode,detected=valid))

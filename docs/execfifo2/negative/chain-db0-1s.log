@@ -9,5 +9,5 @@ Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
 CONTROL FIRED
 CONTROL FIRED
 FAIL: all same-owner fragments finish in the sibling's owner turn, without a poll pass
-[Inferior 1 (process 1481755) exited with code 01]
+[Inferior 1 (process 1859353) exited with code 01]
 INFERIOR_EXIT 1

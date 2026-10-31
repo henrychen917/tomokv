@@ -17,7 +17,8 @@ def classify(name):
     if 'txn_add_claim(' in name or 'database_owned_key' in name:return 'Claim construction codegen', 'Source-equivalent claim/key construction is outlined differently in the enlarged xshard unit; pair caller and callee'
     if 'vector<' in name and 'TxnClaim' in name:return 'Claim size', 'B EXEC-filter links enlarge embedded TxnWaiter copies in TxnClaim vector growth'
     if 'MultiExecState::~MultiExecState' in name:return 'Retry node destruction', 'C1 retry-node stride/destruction codegen'
-    if 'FlatStore::atomic_collapse(' in name or 'FlatStore::snapshot_prepare_write(' in name:return 'Store codegen spillover', 'Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work'
+    if 'FlatStore::snapshot_prepare_write(' in name:return 'Store codegen spillover', 'Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained'
+    if 'FlatStore::atomic_collapse(' in name:return 'Store codegen spillover', 'Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work'
     raise AssertionError('unattributed function: '+name)
 all_rows=[]
 for kind in ('exec','owner'):

@@ -119,7 +119,10 @@ unclassified per-function differences as well. There is no unaccounted residual.
 - Normal-namespace `FlatStore::snapshot_prepare_write` and `atomic_collapse`
   show residual compiler/COMDAT changes despite unchanged source. They are
   reported explicitly, not attributed to FIFO semantics or hidden inside the
-  zero-cost ordinary-command claim.
+  zero-cost ordinary-command claim. Disassembly in `builds/*-snapshot_prepare_write.asm`
+  confirms the new normal snapshot helper has a stack-protector prologue/epilogue
+  (+6 instructions per observed fast-path call) after its changed outlining.
+  `store-codegen.json` records the emitted body sizes and hashes for both arms.
 
 For example, the normal 2s cross-owner four-child MSET EXEC adds 1824:
 H3 boundary 735, runnable drain 420, retry queue 140, local event promotion 294,

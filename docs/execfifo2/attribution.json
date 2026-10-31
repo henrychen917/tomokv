@@ -51,13 +51,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -149,13 +149,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -247,13 +247,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -345,13 +345,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -443,13 +443,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -541,13 +541,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -639,13 +639,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -737,13 +737,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -835,13 +835,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -933,13 +933,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1031,13 +1031,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1129,13 +1129,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1227,13 +1227,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1325,13 +1325,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1423,13 +1423,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1521,13 +1521,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1619,13 +1619,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 32,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1717,13 +1717,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 32,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1815,13 +1815,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -1913,13 +1913,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 20,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 6,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -2011,13 +2011,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -2109,13 +2109,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -2207,13 +2207,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 32,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -2305,13 +2305,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 32,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::MultiExecState::~MultiExecState()",
@@ -4448,13 +4448,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -4539,13 +4539,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -4630,13 +4630,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -4721,13 +4721,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -4812,13 +4812,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 96,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -4903,13 +4903,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 96,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -4994,13 +4994,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5085,13 +5085,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5176,13 +5176,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5267,13 +5267,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5358,13 +5358,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 96,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5449,13 +5449,13 @@
         "function": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
         "delta": 1,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; body sizes/hashes and disassembly retained; this is residual compiler cost, not FIFO work"
       },
       {
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 96,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5553,7 +5553,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5657,7 +5657,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5761,7 +5761,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5865,7 +5865,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -5969,7 +5969,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -6073,7 +6073,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -6177,7 +6177,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -6281,7 +6281,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 12,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -6385,7 +6385,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -6489,7 +6489,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 24,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -6593,7 +6593,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
@@ -6697,7 +6697,7 @@
         "function": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
         "delta": 48,
         "category": "Store codegen spillover",
-        "reason": "Unchanged FlatStore source has different emitted COMDAT code from the changed translation unit; this is residual compiler cost, not FIFO work"
+        "reason": "Unchanged source: changed outlining adds stack-protector prologue/epilogue, +6 instructions per observed fast-path call in normal namespace; disassembly retained"
       },
       {
         "function": "tomo::Shard::watch_key_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, void const*, bool)",
