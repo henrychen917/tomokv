@@ -16,7 +16,7 @@ import traceback
 
 import snapfix as s
 import snapfix2_flush as original
-from _lib import Conn, encode
+from _lib import Conn, RespError, encode
 
 
 def falsify(b, args):
@@ -57,11 +57,21 @@ def falsify(b, args):
             # cut. A separate key avoids legitimately aborting the script here.
             key = f'flushfix2:post:{attempt}'
             assert c.must('GET', key) is None
+            # The old script cut keeps the FLUSH range resident across both
+            # CONFIG barriers. All three memory-family values must apply on
+            # the owners before the following admission decision.
+            c.must('CONFIG', 'SET', 'maxmemory', 1,
+                   'maxmemory-policy', 'noeviction', 'maxmemory-samples', 7)
+            denied = c.cmd('SET', key, 'must-not-exist')
+            assert isinstance(denied, RespError) and denied.message.startswith(b'OOM'), denied
+            c.must('CONFIG', 'SET', 'maxmemory', 0,
+                   'maxmemory-policy', 'allkeys-lru', 'maxmemory-samples', 9)
             assert c.must('SET', key, 'post') == b'OK'
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 0)
             reply = script.read()
             assert reply in ([1, 1], [6, 6]), reply
             assert flush.read() == b'OK'
+            c.must('CONFIG', 'SET', 'maxmemory-policy', 'noeviction', 'maxmemory-samples', 5)
             after = s.stats(c)
             delta = {k: after.get(k, 0) - before.get(k, 0) for k in (
                 'atomic_flush_units', 'atomic_flush_range_reads', 'atomic_flush_post_versions',

@@ -27,8 +27,13 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--namespace', choices=('normal', 'db0'), required=True)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--cores', default='0-15', help='caller-owned build/test CPU allocation')
     a = p.parse_args()
-    assert os.sched_getaffinity(0) <= set(range(16))
+    allowed = set()
+    for part in a.cores.split(','):
+        ends = list(map(int, part.split('-')))
+        allowed.update(range(ends[0], ends[-1] + 1))
+    assert allowed and os.sched_getaffinity(0) <= allowed
     BUILD.mkdir(parents=True, exist_ok=True)
     a.output.mkdir(parents=True, exist_ok=True)
     original = subprocess.check_output(['git', 'show', F2 + ':src/store/flush.cc'], text=True)

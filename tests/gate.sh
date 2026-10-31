@@ -1435,7 +1435,7 @@ job_flushfix3_units(){
     make -f Makefile -f tools/flushfix3.mk -q "build/$target" && \
         taskset -c "$CORES" "build/$target" >"$TMPDIR/$target.log" 2>&1 \
         && pausable taskset -c "$BUILD_CORES" python3 tools/flushfix3_work_reference.py \
-            --namespace "$namespace" --output "$TMPDIR/reference-$namespace" \
+            --namespace "$namespace" --cores "$BUILD_CORES" --output "$TMPDIR/reference-$namespace" \
             >"$TMPDIR/reference-$namespace.log" 2>&1 \
         && ok "$target linear collapse, collisions, OOM and saturated ranges" \
         || bad "$target linear collapse, collisions, OOM and saturated ranges" \
