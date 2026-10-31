@@ -1,0 +1,31 @@
+{
+  "trackorder": {
+    "exit": 0,
+    "passed_rows": 1,
+    "failed_rows": 0,
+    "target_cases": 20736
+  },
+  "maxmemrace": {
+    "exit": 0,
+    "passed_rows": 1,
+    "failed_rows": 0,
+    "target_geometries": 48
+  },
+  "flushfix2": {
+    "exit": 0,
+    "passed_rows": 14,
+    "failed_rows": 0,
+    "falsifiers": 112
+  },
+  "flushfix2_units": {
+    "exit": 0,
+    "passed_rows": 2,
+    "failed_rows": 0
+  },
+  "flushfix3_units": {
+    "exit": 0,
+    "passed_rows": 2,
+    "failed_rows": 0
+  },
+  "post_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4"
+}

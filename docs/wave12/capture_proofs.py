@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Retain and validate the complete wave12 lane witnesses, including every leg."""
+import argparse
 import gzip
 import hashlib
 import itertools
@@ -29,6 +30,9 @@ def archive(path, relative, index):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--primary-only', action='store_true')
+    args = parser.parse_args()
     post = sha((ROOT / 'build/wave12/tomokv-POST').read_bytes())
     receipt = read(DOC / 'jobs/landing-main-2s-uring.json')
     assert receipt['binary_sha256'] == post and receipt['binary_unchanged']
@@ -98,6 +102,13 @@ def main():
     for name in ('flushfix2', 'flushfix2_units', 'flushfix3_units', 'trackorder', 'maxmemrace'):
         for path in sorted((jobs / name).rglob('*.json')):
             archive(path, Path(name) / path.relative_to(jobs / name), index)
+
+    if args.primary_only:
+        output = dict(binary_sha256=post, findings=findings, archives=index, passed=True,
+                      scope='Primary lane jobs only; final idle and live-FLIP checks are separate.')
+        (DOC / 'primary-semantic-runtime-proof.json').write_text(json.dumps(output, indent=2) + '\n')
+        print(json.dumps(findings, indent=2))
+        return
 
     idle_receipt = read(DOC / 'jobs/landing-flush-idle.json')
     assert idle_receipt['exit'] == 0 and idle_receipt['binary_sha256'] == post

@@ -196,6 +196,14 @@ were confined to a throwaway build and removed after recording their hashes.
 
 ### Correctness receipts completed so far
 
+The primary whole-job invocation completed **269 jobs, 993 passing row
+executions and zero failures**, on the frozen POST. It is a selected partial
+invocation, not an iteration receipt. Production source and binary hashes were
+stable throughout. Only the Tcl runner, manifest and Python harness tests
+changed during it; the affected jobs were excluded from this invocation and
+are replayed separately. [Primary receipt](docs/wave12/jobs/landing-main-2s-uring.json),
+[exact harness delta](docs/wave12/primary-harness-delta.json).
+
 The primary campaign has passed all 14 FLUSH rows: 112 target legs and 14 Redis
 oracle legs. Every target leg also passed the directed cached-EVALSHA / retained
 range / CONFIG interaction, with positive range-read, post-version, script
@@ -210,7 +218,9 @@ independent REDIRECT streams are not assigned an artificial total order.
 
 The maxmemory row passed all **48 target geometries** and the oracle, three
 trials per case. Every target witnessed its required open window. No failed
-OOM/admit/evict assertion was observed.
+OOM/admit/evict assertion was observed. The complete leg inventories, raw JSON
+archives and hash bindings are retained in
+[the primary interaction proof](docs/wave12/primary-semantic-runtime-proof.json).
 
 `make all` and all production-unit builds/freshness queries passed: 64 checks,
 including the 55 production-unit targets/arms, the two mdbqsbr live arms,
