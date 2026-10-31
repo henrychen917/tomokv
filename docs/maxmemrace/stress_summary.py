@@ -10,7 +10,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / 'build/maxmemrace/stress-results'
-LABELS = ('pre', 'post', 'pre-fused-shard0', 'post-fused-shard0', 'oracle')
+LABELS = ('pre', 'post', 'pre-fused-shard0', 'post-fused-shard0', 'pre-reorder1', 'post-reorder1',
+          'oracle', 'post-superseded-982fb693', 'post-fused-shard0-superseded-982fb693')
 KEEP = ('cycles', 'lift_sets', 'lift_oom', 'lift_other', 'tight_sets', 'tight_strict_sets',
         'tight_strict_admitted', 'tight_ok', 'tight_oom', 'eviction_checks', 'evicted_after_lift',
         'bg_mode', 'bg_shard', 'bg_threads', 'bg_conns', 'bg_pipe', 'bg_keys', 'bg_groups',
@@ -26,6 +27,9 @@ def main():
     out = dict(binaries={k: dict(path=p, sha256=sha(ROOT / p)) for k, p in (
                    ('PRE', 'build/maxmemrace/pre/tomokv'), ('POST', 'build/maxmemrace/post/tomokv'),
                    ('Redis', '/home/user/Projects/redis/src/redis-server'))},
+               superseded=dict(binary='982fb6931cb1a31ea52f5a3137f554d47f6cbd18afb79ceac21c5b446d089443',
+                               note='earlier POST candidate without the reorder-entry binding; '
+                                    'its legs are retained but are not the POST evidence'),
                drivers=dict(v1=sha(ROOT / 'build/maxmemrace/stress-v1'),
                             v2=sha(ROOT / 'build/maxmemrace/stress'),
                             note='v1 ran the PRE main matrix; v2 adds only --bg-shard (default -1 '

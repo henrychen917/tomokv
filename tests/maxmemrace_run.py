@@ -63,12 +63,15 @@ def legs(args):
     if args.oracle:
         for policy, submit in itertools.product(args.policies, args.submits):
             out.append(dict(server='redis', mode='-', engine='-', atomic='-', read_local='-',
-                            policy=policy, submit=submit))
+                            reorder='-', policy=policy, submit=submit))
     if args.binary:
-        for mode, engine, atomic, read_local, policy, submit in itertools.product(
-                args.modes, args.engines, args.atomics, args.read_locals, args.policies, args.submits):
+        for mode, engine, atomic, read_local, reorder, policy, submit in itertools.product(
+                args.modes, args.engines, args.atomics, args.read_locals, args.reorders,
+                args.policies, args.submits):
+            if reorder != '0' and mode != '1s':
+                continue  # the shadow scheduler is fused-only
             out.append(dict(server='tomokv', mode=mode, engine=engine, atomic=atomic,
-                            read_local=read_local, policy=policy, submit=submit))
+                            read_local=read_local, reorder=reorder, policy=policy, submit=submit))
     return out
 
 
@@ -80,6 +83,8 @@ def argv_for(args, leg, directory):
     argv = [args.binary, '--port', port, '--bind', '127.0.0.1', '--shards', '16',
             '--dir', str(directory), '--save', '', '--enable-debug-command', 'yes',
             '--net-io', leg['engine'], '--atomic', leg['atomic'], '--read-local', leg['read_local']]
+    if leg['reorder'] != '0':
+        argv += ['--reorder', leg['reorder']]
     argv += ['--ratio', args.ratio] if leg['mode'] == '2s' else ['--thread-mode', '1s']
     return argv
 
@@ -98,6 +103,7 @@ def main():
     p.add_argument('--engines', nargs='+', default=['uring', 'epoll'])
     p.add_argument('--atomics', nargs='+', default=['0', '1'])
     p.add_argument('--read-locals', nargs='+', default=['0'])
+    p.add_argument('--reorders', nargs='+', default=['0'])
     p.add_argument('--policies', nargs='+', default=['noeviction', 'allkeys-lru'])
     p.add_argument('--submits', nargs='+', default=['single', 'pipe'])
     p.add_argument('--driver-args', default='--bg-threads 3 --bg-conns 4 --bg-pipe 16 '
@@ -113,8 +119,10 @@ def main():
     results = json.loads(results_path.read_text()) if results_path.exists() else []
     done = {r['leg_id'] for r in results if r.get('complete')}
     for leg in legs(args):
-        leg_id = '-'.join(str(leg[k]) for k in ('server', 'mode', 'engine', 'atomic', 'read_local',
-                                                  'policy', 'submit'))
+        keys = ('server', 'mode', 'engine', 'atomic', 'read_local', 'policy', 'submit')
+        # Legs without the shadow scheduler keep their original identifiers.
+        leg_id = '-'.join(str(leg[k]) for k in keys) + \
+            (f"-reorder{leg['reorder']}" if leg['reorder'] not in ('0', '-') else '')
         if leg_id in done:
             continue
         with tempfile.TemporaryDirectory(dir=out_dir, prefix='leg-') as directory:
