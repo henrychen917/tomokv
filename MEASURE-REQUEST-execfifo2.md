@@ -82,6 +82,16 @@ will be retained under `docs/execfifo2/`. This is a selected-job proof, never a
 full iteration receipt. The full iteration and all performance cells are
 **NOT RUN** by this lane.
 
+### Falsification controls
+
+All **12/12** process-local GDB controls detected the intended break, in both
+modes and both compiled namespaces. Returning true from the plain-writer probe
+fails F1's older-waiter refusal; disabling the chain drain fails the same-turn
+completion assertion; bypassing boundary service fails the held-claim BLPOP
+refusal. Each record requires a fired breakpoint, the exact expected assertion
+and inferior exit 1. No broken source or executable is published. Commands,
+unit hashes and outputs are in `docs/execfifo2/negative/`.
+
 ### Frozen artifacts
 
 Paths below are relative to this worktree's `build/execfifo2/`.
