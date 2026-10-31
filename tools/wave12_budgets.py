@@ -5,7 +5,7 @@ import hashlib,json,os,re,shlex,subprocess,sys
 from pathlib import Path
 import wave12
 identity=wave12.references()
-from wave10_normalize import install
+from wave12_normalize import install
 install(identity.audit)
 identity.OUT=identity.ROOT/"build/wave12/budget-identity"
 os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64,96)))

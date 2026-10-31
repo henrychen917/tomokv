@@ -78,7 +78,7 @@ def trace(prepared,label,namespace,domain,command,mode,batch,atomic):
 def main():
     assert os.sched_getaffinity(0)<=set(range(64,96))
     os.environ['LC_ALL']='C'
-    p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--source',type=Path,default=ROOT);p.add_argument('--objects',type=Path,default=ROOT/'build');p.add_argument('--domain',choices=('namespace','lua','complete'),default='complete');p.add_argument('--only',default='');p.add_argument('--fixture',default='tests/wave11_scope.cc');p.add_argument('--kind',choices=('all','scripts','ordinary','control','session'),default='all');p.add_argument('--no-build',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--source',type=Path,default=ROOT);p.add_argument('--objects',type=Path,default=ROOT/'build');p.add_argument('--domain',choices=('namespace','lua','complete'),default='complete');p.add_argument('--only',default='');p.add_argument('--fixture',default='tests/wave12_scope.cc');p.add_argument('--kind',choices=('all','scripts','ordinary','control','session'),default='all');p.add_argument('--no-build',action='store_true');a=p.parse_args()
     a.source=a.source.resolve();a.objects=a.objects.resolve()
     BUILD.mkdir(parents=True,exist_ok=True)
     # Publish a tracer atomically: concurrent arm censuses must never execute
@@ -91,7 +91,7 @@ def main():
     if a.kind=='session':commands=['PING','WATCH','EXEC-single','EXEC-cross','EXEC-abort-single','EXEC-abort-cross']
     elif a.kind in ('all','ordinary'):
         ordinary=['GET','SET','INCR','MGET','MSET','EXEC-same','EXEC-cross','READLOCAL-GET']
-        commands=commands+ordinary if a.kind=='all' else ordinary
+        commands=commands+ordinary+['FLUSHALL-empty','FLUSHALL-small'] if a.kind=='all' else ordinary
     elif a.kind=='control':
         commands=['ex-idle','ex-exdrain-owed','ex-exdrain-acked','ex-exinstall-owed','ex-exinstall-acked','io-idle','io-iodrain-owed','io-iodrain-acked','io-roleready-owed','io-roleready-acked']
     if a.only:commands=a.only.split(',')

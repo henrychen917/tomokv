@@ -123,6 +123,24 @@ phase-14 changes relative to e2b237926. Existing lane inventories remain frozen.
 | persistent EVAL/FUNCTION interpreters and FUNCTION library environment | Existing compile/run/result builders survive unchanged, including wave10's FUNCTION LOAD option trim-before-map repair. Lua error/status tables still use distinct central error/status builders. |
 | flushmerit | Harness only; no production reply site. |
 
+## Wave12 integration additions
+
+[Added/moved reply sites](wave12-added-sites.json) cover the production diff
+from `e32b04a44`. The two allocation failures in `xshard_prepare_flush` call
+`set_oom`, which uses the existing central literal OOM builder. Owner-side
+allocation failures set `WorkError::Oom`; completion assembles them through
+`reply_work_error` and `reply_err`. FLUSH's commit-stage `reply_ok` is a fixed
+literal; final completion still owns reply assembly. Argument validation
+continues through `command_validate_all_shards` and its existing safe builders.
+
+Tracking adds no error/status writer: the null invalidation retains the existing
+structured RESP push/pubsub encoding, and the retirement predicate only reads
+reply-suppression state. CONFIG publication/application adds no reply site;
+existing validation uses central error builders. FLUSH range/index, snapshot,
+AOF GroupFlush and lost-wake changes add no raw line writer. No new client-derived
+text bypasses the CRLF-safe builders. Runtime framing remains a separate gate
+job, not an inference from this source audit.
+
 Source review found no added unescaped request-derived status/error writer.
 The existing `crlffix` and `scriptfix2` gate jobs exercise malformed headers,
 Lua/FUNCTION errors and frame synchronization on the merged executable;

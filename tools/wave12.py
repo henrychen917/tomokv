@@ -47,6 +47,7 @@ def references():
     identity.REFS = {
         'headline': '/home/user/Projects/bench-bins/tomokv-headline-e32b04a44',
         'flushfix3': '/home/user/Projects/bins/flushfix3-post-a9469f15',
+        'baseline_flushfix3': '/home/user/Projects/bench-bins/tomokv-headline-e2b237926',
         'trackorder': '/home/user/Projects/bins/trackorder-post-8a8a8e98',
         'maxmemrace': '/home/user/Projects/bins/maxmemrace-post-a3cb3cc9',
     }
@@ -142,7 +143,7 @@ def main():
         # tables also used to bind counted probes to their production bodies.
         # Keep a separate cache: compile-trial receipts used the older strict
         # normalizer and must remain reproducible.
-        from wave11_normalize import install
+        from wave12_normalize import install
         install(identity.audit)
         identity.OUT = BUILD / 'identity-wave12'
         for label in ('pre', 'final-post', 'final-control', 'final-dispatch', 'final-session'):

@@ -38,9 +38,17 @@ def falsify(b, args):
             db = 7 if args.command == 'FLUSHDB' and args.databases > 1 else 0
             script.must('SELECT', db)
             flush.must('SELECT', db)
+            # Wave12: the range/OCC witness must also cover scriptfix3's warm
+            # metadata and persistent interpreter. Compile on this connection,
+            # reuse its SHA, then restore the original fixture before pinning.
+            sha = script.must('SCRIPT', 'LOAD', s.WRITE)
+            assert script.must('EVALSHA', sha, 2, *pair) == [6, 6]
+            assert script.must('EVALSHA', sha, 2, *pair) == [7, 7]
+            c.must('MSET', pair[0], 5, pair[1], 5)
+            before = s.stats(c)
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 500000)
             c.must('DEBUG', 'SCRIPT-STAGE-WATCH', script.must('CLIENT', 'ID'))
-            script.raw(encode('EVAL', s.WRITE, 2, *pair))
+            script.raw(encode('EVALSHA', sha, 2, *pair))
             s.wait(lambda: s.stats(c)['script_stage_watch_tasks'] > 0, 'script never gathered', args.stall)
             flush.raw(encode(args.command, args.flush_mode))
             s.wait(lambda: s.stats(c).get('atomic_flush_units', 0) > before.get('atomic_flush_units', 0),
@@ -57,7 +65,8 @@ def falsify(b, args):
             after = s.stats(c)
             delta = {k: after.get(k, 0) - before.get(k, 0) for k in (
                 'atomic_flush_units', 'atomic_flush_range_reads', 'atomic_flush_post_versions',
-                'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses')}
+                'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses',
+                'script_chunk_cache_hits')}
             history.append(dict(delta, script_reply=reply))
             if all(delta[k] > 0 for k in delta):
                 assert reply == [1, 1], 'OCC retry used the pre-flush script image'
