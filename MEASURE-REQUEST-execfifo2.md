@@ -29,8 +29,9 @@ keys), local same-shard multi-key writes, and non-group, non-child, non-script
 cross-shard writes under atomic=0. Read-only operations do not enter this gate.
 
 EXEC and escalated scripts use the same `TxnKeyQueue::head`, comparator
-`(age_ns, age_io, age_seq)`, monotonic clock and IO sequence. A script draws that
-age at its **first escalated IO dispatch**, preserving it across retries. Its
+`(age_ns, age_io, age_seq)`, monotonic clock and IO sequence. EXEC draws its age
+at initial state allocation on IO and preserves it through wound retries.
+A script draws that age at its **first escalated IO dispatch**, preserving it across retries. Its
 optimistic-slot FIFO remains per IO and counts only optimistic activations;
 escalated attempts use neither a slot nor a read cut (AT4.12 C8). No second
 EXEC-versus-script priority queue or script age reset is introduced. F10 checks
