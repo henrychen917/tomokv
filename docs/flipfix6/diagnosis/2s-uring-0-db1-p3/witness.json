@@ -1,0 +1,118 @@
+{
+  "case": "p3",
+  "flips": [
+    {
+      "seconds": 5.000319350510836,
+      "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+    }
+  ],
+  "pings": 57,
+  "ping_max": 4.997258108109236,
+  "errors": [],
+  "workers": [
+    {
+      "io_before": 0,
+      "ops": 19,
+      "execs": 20,
+      "max_gap": 4.997542758472264,
+      "owners": [
+        [
+          14,
+          6
+        ],
+        [
+          2,
+          6
+        ]
+      ],
+      "io_after": 0
+    },
+    {
+      "io_before": 1,
+      "ops": 17,
+      "execs": 18,
+      "max_gap": 5.0006211921572685,
+      "owners": [
+        [
+          12,
+          6
+        ],
+        [
+          6,
+          6
+        ]
+      ],
+      "io_after": 1
+    },
+    {
+      "io_before": 2,
+      "ops": 17,
+      "execs": 18,
+      "max_gap": 5.000614752061665,
+      "owners": [
+        [
+          7,
+          7
+        ],
+        [
+          11,
+          7
+        ]
+      ],
+      "io_after": 2
+    },
+    {
+      "io_before": 3,
+      "ops": 16,
+      "execs": 17,
+      "max_gap": 5.000670020468533,
+      "owners": [
+        [
+          15,
+          7
+        ],
+        [
+          11,
+          7
+        ]
+      ],
+      "io_after": 3
+    },
+    {
+      "io_before": 4,
+      "ops": 12,
+      "execs": 13,
+      "max_gap": 5.004132625646889,
+      "owners": [
+        [
+          2,
+          6
+        ],
+        [
+          0,
+          6
+        ]
+      ],
+      "io_after": 4
+    },
+    {
+      "io_before": 5,
+      "ops": 14,
+      "execs": 15,
+      "max_gap": 5.000603732652962,
+      "owners": [
+        [
+          7,
+          7
+        ],
+        [
+          5,
+          7
+        ]
+      ],
+      "io_after": 5
+    }
+  ],
+  "sessions_moved": 0,
+  "clients_moved": 0
+}

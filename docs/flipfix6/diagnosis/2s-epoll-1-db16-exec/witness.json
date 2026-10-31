@@ -1,0 +1,118 @@
+{
+  "case": "exec",
+  "flips": [
+    {
+      "seconds": 5.000500390306115,
+      "reply": "ERR FLIP timed out before the ownership commit"
+    }
+  ],
+  "pings": 8,
+  "ping_max": 4.9986406322568655,
+  "errors": [],
+  "workers": [
+    {
+      "io_before": 0,
+      "ops": 20,
+      "execs": 21,
+      "max_gap": 4.997971950098872,
+      "owners": [
+        [
+          10,
+          6
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "io_after": 0
+    },
+    {
+      "io_before": 1,
+      "ops": 16,
+      "execs": 17,
+      "max_gap": 5.0002121683210135,
+      "owners": [
+        [
+          4,
+          6
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "io_after": 1
+    },
+    {
+      "io_before": 2,
+      "ops": 47,
+      "execs": 48,
+      "max_gap": 4.9981840113177896,
+      "owners": [
+        [
+          13,
+          7
+        ],
+        [
+          0,
+          6
+        ]
+      ],
+      "io_after": 2
+    },
+    {
+      "io_before": 3,
+      "ops": 13,
+      "execs": 14,
+      "max_gap": 4.998165589757264,
+      "owners": [
+        [
+          14,
+          6
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "io_after": 3
+    },
+    {
+      "io_before": 4,
+      "ops": 12,
+      "execs": 13,
+      "max_gap": 4.997827319428325,
+      "owners": [
+        [
+          6,
+          6
+        ],
+        [
+          13,
+          7
+        ]
+      ],
+      "io_after": 4
+    },
+    {
+      "io_before": 5,
+      "ops": 4,
+      "execs": 5,
+      "max_gap": 5.001638604328036,
+      "owners": [
+        [
+          14,
+          6
+        ],
+        [
+          13,
+          7
+        ]
+      ],
+      "io_after": 5
+    }
+  ],
+  "sessions_moved": 0,
+  "clients_moved": 0
+}

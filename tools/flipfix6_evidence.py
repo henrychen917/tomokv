@@ -11,6 +11,16 @@ ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / 'build/flipfix6'
 OUT = ROOT / 'docs/flipfix6'
 OUT.mkdir(parents=True, exist_ok=True)
+DRAIN_BITS = dict(enumerate((
+    'pending_serve_', 'pending_releases_', 'pending_handoffs_', 'deferred_timers_',
+    'client_migrations_', 'epoll_closes_', 'dead_next_', 'dead_ready_',
+    'multi_deferred_', 'pending_multi_cleanups_', 'pubsub_notification_chains_',
+    'io_inbound_quiesced', 'pubsub_inflight', 'pubsub_pending', 'accepts_quiesced',
+    'flip_io_drain_ordered', 'closing client before removal')))
+DRAIN_BITS.update(dict(enumerate((
+    'ROB not quiesced', 'send_inflight', 'serve_pending', 'retire_queued',
+    'barrier_owners', 'atomic_groups_io', 'blocked', 'output pending',
+    'WB migration not ready', 'coordinator ROB/reply/WB busy'), start=20)))
 
 
 def save(path, data):
@@ -23,6 +33,7 @@ def classify(directory, label):
     for path in sorted(directory.rglob('server.log')):
         text = path.read_text(errors='replace')
         planned = collections.defaultdict(list)
+        drains = collections.defaultdict(list)
         failures = []
         for line in text.splitlines():
             if line.startswith('FLIPFIX6 planned '):
@@ -32,10 +43,17 @@ def classify(directory, label):
                 fields = {key: int(value) for key, value in re.findall(r'(\w+)=(\d+)', line)}
                 fields['error'] = line.split(' error=', 1)[1]
                 failures.append(fields)
+            elif line.startswith('FLIPFIX6 drain '):
+                fields = {key: int(value) for key, value in re.findall(r'(\w+)=(\d+)', line)}
+                fields['clauses'] = [name for bit, name in DRAIN_BITS.items() if fields['mask'] & (1 << bit)]
+                drains[fields['epoch']].append(fields)
         for failure in failures:
-            db1 = '-db1-' in str(path) or '/2s-' in str(path) and '-db1/' in str(path)
-            expected_stage = 5 if db1 else 8
-            failure['stage_name'] = 'ClientPrepare' if failure['stage'] == expected_stage else 'OTHER'
+            db1 = re.search(r'-db1(?:/|-)', str(path)) is not None
+            names = ['Idle'] + ([] if db1 else ['DatabaseIoDrain', 'DatabaseExDrain', 'DatabaseRun'])
+            names += ['Planning', 'IoDrain', 'IoPrepare', 'ExDrain', 'ClientPrepare',
+                      'ClientCommit', 'ClientInstall', 'RoleReady', 'ShardCommit', 'ExInstall', 'Rollback']
+            failure['stage_name'] = names[failure['stage']]
+            failure['drains'] = drains[failure['epoch']]
             failure['planned'] = planned[failure['epoch']]
             failure['clauses'] = []
             for entry in failure['planned']:
@@ -49,8 +67,11 @@ def classify(directory, label):
                 if entry['watched_refs']:
                     clauses.append('watched_refs_ == 0')
                 failure['clauses'].append(dict(io=entry['io'], id=entry['id'], clauses=clauses))
-            assert failure['stage_name'] == 'ClientPrepare' and failure['deadline'] == 1, failure
-            assert any(c['clauses'] for c in failure['clauses']), failure
+            assert failure['deadline'] == 1, failure
+            if failure['stage_name'] == 'ClientPrepare':
+                assert any(c['clauses'] for c in failure['clauses']), failure
+            elif not failure['drains']:
+                failure['limitation'] = 'Drain clauses not captured by diagnostic v1; see v2 rerun.'
         all_planned = [entry for group in planned.values() for entry in group]
         row = dict(path=str(path.relative_to(directory)), failures=failures,
                    planned=len(all_planned), sessions=sum(p['session'] for p in all_planned),
@@ -73,14 +94,14 @@ def classify(directory, label):
 
 
 summary = {}
-for name in ('diagnosis', 'legacy-diagnostic', 'legacy-pre', 'pre-smoke'):
+for name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2', 'legacy-pre', 'pre-smoke'):
     directory = BUILD / name
     if not (directory / 'results.json').exists():
         continue
     (OUT / f'{name}-results.json').write_bytes((directory / 'results.json').read_bytes())
-    if name in ('diagnosis', 'legacy-diagnostic'):
+    if name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2'):
         summary[name] = classify(directory, name)
-for name in ('pre-build.log', 'diag-build.log', 'gates-test.log'):
+for name in ('pre-build.log', 'diag-build.log', 'gates-test.log', 'gates-test-contended.log'):
     source = BUILD / name
     if source.exists():
         with gzip.GzipFile(filename=str(OUT / (name + '.gz')), mode='wb', mtime=0) as stream:

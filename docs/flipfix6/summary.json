@@ -1,0 +1,14 @@
+{
+  "diagnosis": {
+    "refusals": 40,
+    "planned": 180,
+    "sessions": 120,
+    "s2": 0
+  },
+  "legacy-diagnostic": {
+    "refusals": 11,
+    "planned": 17,
+    "sessions": 9,
+    "s2": 0
+  }
+}

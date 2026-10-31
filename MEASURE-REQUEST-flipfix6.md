@@ -52,7 +52,7 @@ This is outside the explicit "every other clause stays" instruction, despite
 being consistent with the intended D18.1 behaviour. Implementation is paused
 pending that narrow ruling; the requested witness and reader audit continue.
 
-### Witness status
+### Step 1: witness and predicate
 
 `tests/flipfix6.py` adapts the EXEC partner's exact pipelined MULTI/INCR/INCR/EXEC
 sequence, verifies equal replies and exact final values, and places a session on
@@ -61,9 +61,63 @@ every IO. It covers P1 (one EXEC then only GET), P2 (WATCH/UNWATCH then GET), P3
 records its largest wait. The PRE expectation requires a deadline refusal and
 a real >=4 s stall; an unopened window fails.
 
-The first epoll/atomic 0/db1 run confirmed all five cases, with PING waits
-5.0001-5.0007 s. The all-leg diagnostic matrix and the unchanged flipfix5 EXEC
-driver are running; final counts and evidence will be appended here.
+All **40/40** directed PRE cases reproduced the refusal: five cases on each of
+the eight 2s legs, each on a fresh boot. Every refusal was in **ClientPrepare**
+at the deadline. FLIP duration was 5.000-5.017 s; the unrelated PING waited
+4.996-5.014 s, and every worker on every IO had a >=4 s reply gap. All servers
+exited cleanly; reply/value checks passed after the refusal. These are liveness
+witness durations, not performance measurements.
+
+| 2s leg | EXEC refusal (s) | P1 (s) | P2 (s) | P3 (s) | Active WATCH (s) | Largest PING wait (s) |
+|---|---:|---:|---:|---:|---:|---:|
+| uring / atomic 0 / db1 | 5.000 | 5.000 | 5.000 | 5.000 | 5.001 | 5.001 |
+| uring / atomic 1 / db1 | 5.000 | 5.000 | 5.002 | 5.000 | 5.003 | 5.003 |
+| epoll / atomic 0 / db1 | 5.014 | 5.010 | 5.017 | 5.001 | 5.006 | 5.014 |
+| epoll / atomic 1 / db1 | 5.004 | 5.005 | 5.012 | 5.002 | 5.003 | 5.009 |
+| uring / atomic 0 / db16 | 5.012 | 5.003 | 5.007 | 5.007 | 5.008 | 5.011 |
+| uring / atomic 1 / db16 | 5.004 | 5.008 | 5.015 | 5.009 | 5.012 | 5.011 |
+| epoll / atomic 0 / db16 | 5.004 | 5.012 | 5.002 | 5.010 | 5.013 | 5.013 |
+| epoll / atomic 1 / db16 | 5.001 | 5.000 | 5.002 | 5.000 | 5.000 | 5.003 |
+
+For EXEC/P1/P2/P3, `flip_drain_idle=1`, `watched_refs=0`, session non-null and
+`pending=0`: **the session-pointer clause is the sole protocol-idle failure**.
+For active WATCH, both the session-pointer clause and the watched-reference
+clause fail. The watched-reference count is exactly 1/16 in db1/db16,
+respectively. No S2 was observed in **120 planned session-connection occurrences
+out of 180 planned connection occurrences**. That bounded sample is not a
+claim that S2 cannot occur.
+
+The unchanged `tests/flipfix5.py --case op-flip --op EXEC` also ran on all eight
+legs, both on PRE and on the diagnostic copy. Its uncontrolled placement may
+leave the session on a surviving IO: PRE saw ten refusals on five legs, with
+three legs completing FLIPs. Diagnostic v1 saw eleven refusals on six legs.
+Nine were ClientPrepare/session-pointer failures; **two were IoDrain** before
+planning, so they cannot be attributed to `migration_protocol_idle`. The first
+diagnostic did not record the IoDrain clause; a second diagnostic adds per-IO
+atomic snapshots of the exact drain conditions to investigate those separately.
+The original driver's `pass` classification permits refusals if any FLIP
+completed; it is not the POST acceptance criterion of the new witness.
+
+Evidence: `docs/flipfix6/diagnosis-results.json`,
+`docs/flipfix6/diagnosis-diagnosis.json`, and the `legacy-*-results.json` /
+`legacy-diagnostic-diagnosis.json` files. Every directed refusal has its epoch,
+stage, planned connections and failing clauses recorded; compressed server logs,
+argv and clean-exit receipts are under `docs/flipfix6/diagnosis/`.
+
+Runtime: `LC_ALL=C` for every boot, 16 shards, ratio 6:2, read-local/key-LB/client-LB/
+automatic-FLIP off. Original partner servers used CPUs 32-39, port 20300; the
+directed diagnostic servers used CPUs 40-47, port 20310. Harnesses/builds stayed
+within CPUs 32-47; builds used `-j16`. No other lane's processes were touched.
+
+### Session-reader audit
+
+Completed source audit: [session-audit.md](docs/flipfix6/session-audit.md), with
+all 64 source matches in [session-readers.txt](docs/flipfix6/session-readers.txt).
+It covers both parser copies, fused/read-local eligibility, both LB selectors,
+all `MultiSession` accessors and ownership transitions, retirement/close,
+CLIENT/MONITOR and tracking. The queue keeps global registry specs; climon map
+nodes already move through the existing routing transfer. Pending state is the
+IO-bound member. Durable WATCH pins are the extra readiness blocker above.
 
 ### Owner rulings
 

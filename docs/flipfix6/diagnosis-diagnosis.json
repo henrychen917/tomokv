@@ -1,0 +1,3872 @@
+{
+  "rows": [
+    {
+      "path": "2s-epoll-0-db1-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 1,
+              "id": 51,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 54,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 6,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 26,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 51,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 54,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 26,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "6a8541f20d174f4dd3d8ce75dc2f6991bf134fe98cb99ca1460604b3f08b4e10"
+    },
+    {
+      "path": "2s-epoll-0-db1-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 72,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 59,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 23,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 24,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 72,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 59,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 24,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "385ac117e6902a82eca0997b9eb2f5bd001029296fa71cfd8c9a9facc85f916d"
+    },
+    {
+      "path": "2s-epoll-0-db1-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 1,
+              "id": 66,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 75,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 22,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 40,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 66,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 75,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 40,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "15d76cc8e70f14faf9cc403fab658e74d4da0206f1d4174c268b8537e69f59a0"
+    },
+    {
+      "path": "2s-epoll-0-db1-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 20,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 29,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 5,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 9,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 20,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 29,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 9,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "f69afb9535e5908486d2c4a508c6493155340dc6422ce73ccd32ee309761d939"
+    },
+    {
+      "path": "2s-epoll-0-db1-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 61,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 63,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 11,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 23,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 61,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 63,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 23,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "7e46bd413f281ea110fab2259fa4ce34ac9b9bbaaffc57b1b18c35ba5015309d"
+    },
+    {
+      "path": "2s-epoll-0-db16-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 30,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 6,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 9,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 23,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 30,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 9,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 23,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "398b1b9a6a05443cc25f8eb2ff3546e03168f1d97e958b1bf22a9a152f703b06"
+    },
+    {
+      "path": "2s-epoll-0-db16-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 31,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 33,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 15,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 22,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 31,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 33,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 22,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "7098696e026ab1b294b7e15f84901eb8be1c2c960364982cbaca961b00ccf824"
+    },
+    {
+      "path": "2s-epoll-0-db16-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 49,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 31,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 8,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 16,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 49,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 31,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 16,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "e2f2da5415b69fffab422f6c6cb6de66b1b7ffbb7d522356dfe73699f999613b"
+    },
+    {
+      "path": "2s-epoll-0-db16-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 25,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 31,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 11,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 15,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 25,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 31,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 15,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "cce13e450822a823cd4cf17e74b816c57a3de8541cac0c5adba066ea70bb5f13"
+    },
+    {
+      "path": "2s-epoll-0-db16-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 77,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 63,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 8,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 10,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 77,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 63,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 10,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "740d837b9bcbc4f666d3870e40f533d5da94f21c4adf2eb96bdbe4cb5573e468"
+    },
+    {
+      "path": "2s-epoll-1-db1-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 26,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 6,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 12,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 32,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 26,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 12,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 32,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "4c6f095fe513dae72b4c982e5c719b2d0bc487edc01691aa7d4e3934609d047a"
+    },
+    {
+      "path": "2s-epoll-1-db1-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 20,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 21,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 45,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 43,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 0,
+              "id": 21,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 45,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 43,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "3870d8be74baff5b0be82d77437ae1e586f32e2f6dac686d844058170eebeb85"
+    },
+    {
+      "path": "2s-epoll-1-db1-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 14,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 2,
+              "id": 18,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 42,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 35,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 0,
+              "id": 18,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 42,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 35,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "11ba774cd3335d7fa5f4714cd25779fa7c22cf8ad7da5a29004df4a44dea5a23"
+    },
+    {
+      "path": "2s-epoll-1-db1-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 8,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 10,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 33,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 36,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 0,
+              "id": 10,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 33,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 36,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "0b571f65901227a6772e2b9078bb690a9a77ca28daaf59828079633ce4e13861"
+    },
+    {
+      "path": "2s-epoll-1-db1-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 1,
+              "id": 54,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 60,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 8,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 13,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 54,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 60,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 13,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "f6c3cccebcd775eefb7dfe53b07dab90049e83bec0e7c4bed204dd606e93ede8"
+    },
+    {
+      "path": "2s-epoll-1-db16-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP timed out before the ownership commit",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 72,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 10,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 13,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 68,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 72,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 13,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 68,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "7cc243be7850ce6f8794b554195394d1730582c8cdfd829650c96e01c69e8cca"
+    },
+    {
+      "path": "2s-epoll-1-db16-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 58,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 56,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 11,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 23,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 58,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 56,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 23,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "8ba2e75c0b0b652f348811853fb656691b578f06abe7d0d18df4381d4de77c4a"
+    },
+    {
+      "path": "2s-epoll-1-db16-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 51,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 63,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 18,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 25,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 51,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 63,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 25,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "c0db034a2682be5d63b9e6dcfae64b3f1e3b6451b11dff98b5af715e26923bd7"
+    },
+    {
+      "path": "2s-epoll-1-db16-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 44,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 43,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 6,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 22,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 44,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 43,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 22,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "36e6746cac6bd62c088750a6fac8f649b08134dff4ea9ebf4a9baff77614f193"
+    },
+    {
+      "path": "2s-epoll-1-db16-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 62,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 4,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 7,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 1,
+              "id": 42,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 62,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 7,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 42,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "38e7dbad18ab41c2e29b9518e4d6ffa0749ae67406b77db32eba27a78268b393"
+    },
+    {
+      "path": "2s-uring-0-db1-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 38,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 45,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 11,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 2,
+              "id": 25,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 38,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 45,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 25,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "0440e4ff7442b2032eb5bfb684a4e7579aba40b1e2db5120052bb08d5525327b"
+    },
+    {
+      "path": "2s-uring-0-db1-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 43,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 23,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 5,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 6,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 43,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 23,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 6,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "38b32e114d8c013570aaaa0cc3bea24593e735548d047dddee015c54ba21cf5e"
+    },
+    {
+      "path": "2s-uring-0-db1-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 38,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 35,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 19,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 21,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 38,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 35,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 21,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "5c3f52fd9d18f2dfab442f794de15817584e67c1fe65c5c85b8fb5d4865723f8"
+    },
+    {
+      "path": "2s-uring-0-db1-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 91,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 96,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 6,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 2,
+              "id": 10,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 91,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 96,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 10,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "0234be3e37b73ac8cf48a90d5f043e61de3eab3709b60ba33cbf49c1e5d83d33"
+    },
+    {
+      "path": "2s-uring-0-db1-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 53,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 52,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 12,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 2,
+              "id": 31,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 53,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 52,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 31,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "39761cd6b5a2913cfc94e98bb5f86d3c5e72c4b4824d506e0a5ee12467b278d4"
+    },
+    {
+      "path": "2s-uring-0-db16-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 84,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 78,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 19,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 23,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 84,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 78,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 23,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "7350437a229369aec4e9c51fc6e521f15c6ff093b5ea3af8e362ec3bc531efcc"
+    },
+    {
+      "path": "2s-uring-0-db16-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 51,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 49,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 11,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 17,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 51,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 49,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 17,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "4827ecb87177f80dca15b321b2d960567081344f3f79e8c391c41a00c31e0c87"
+    },
+    {
+      "path": "2s-uring-0-db16-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 48,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 65,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 7,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 13,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 48,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 65,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 13,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "04988f64d8f7c8a77e8c6986e51c973a7e79fd924f0dc981ce235f02f1924577"
+    },
+    {
+      "path": "2s-uring-0-db16-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 71,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 80,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 7,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 9,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 71,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 80,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 9,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "95cc262fe4e31f0f0e2064357639622cdcd6d9305e725fef52e0a3801e5eb472"
+    },
+    {
+      "path": "2s-uring-0-db16-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 32,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 34,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 10,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 2,
+              "id": 11,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 32,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 34,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 11,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "aac120ab156e7dd66d413329e0f920796a79aae430700792ae3fa744a981e44b"
+    },
+    {
+      "path": "2s-uring-1-db1-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 1,
+              "id": 32,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 34,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 7,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 8,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 32,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 34,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 8,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "333a71c55f9eae17e849d559788d0cba06b34657b3c23fc2e18aa5ceda595271"
+    },
+    {
+      "path": "2s-uring-1-db1-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 96,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 106,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 22,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 29,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 96,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 106,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 29,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "74ebf106f53025e6c4f23ec2a1710c271509d6db0fde33420bf1e42c9062ae2a"
+    },
+    {
+      "path": "2s-uring-1-db1-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 46,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 1,
+              "id": 51,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 4,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 20,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 46,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 51,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 20,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "0c67f8b14d050e103406617ab097d20f795afd11882d26ba2e7c2005dab54fb9"
+    },
+    {
+      "path": "2s-uring-1-db1-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 43,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 52,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 29,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 31,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 43,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 52,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 31,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "a832f5759a86e785ea78db20e5ab2754afab6e411f4fa4a086a9e427612b9986"
+    },
+    {
+      "path": "2s-uring-1-db1-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 5,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 64,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 51,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 10,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 16,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 1,
+              "watched_keys": 1
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 64,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 51,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 16,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "05cc78a99a0635f7ed0500c5cf7a4410c7e4509c523f69629e8ae09b4d74fb15"
+    },
+    {
+      "path": "2s-uring-1-db16-exec/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 35,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 37,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 18,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 23,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 35,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 37,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 23,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "9a6563fd8bcac6fb27bc8c6429d876e4fcd21dccacb2d59bf587ba05b425306f"
+    },
+    {
+      "path": "2s-uring-1-db16-p1/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 73,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 76,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 21,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 27,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 73,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 76,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 27,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "adc9336ae44a6e83f3d71cfb227408b122da060d17033cb978941fd645afb0f5"
+    },
+    {
+      "path": "2s-uring-1-db16-p2/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 1,
+              "id": 50,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 60,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 34,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 37,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 4,
+              "id": 50,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 5,
+              "id": 60,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 37,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "d1b38aade6eef2168912d1ad6997f7860bf6ee7886314df8fb22bfed5009004b"
+    },
+    {
+      "path": "2s-uring-1-db16-p3/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 44,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 1,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 1,
+              "id": 43,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 23,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 28,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 0,
+              "watched_keys": 0
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 44,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 43,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 28,
+              "clauses": [
+                "multi_session_ == nullptr"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 5,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "ddba1c4a493e3d0ab105fb81c9e39163002a591562e0f655240a9ff5278803c9"
+    },
+    {
+      "path": "2s-uring-1-db16-watch/server.log",
+      "failures": [
+        {
+          "epoch": 1,
+          "stage": 8,
+          "deadline": 1,
+          "error": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy",
+          "stage_name": "ClientPrepare",
+          "drains": [],
+          "planned": [
+            {
+              "epoch": 1,
+              "io": 5,
+              "ordinal": 0,
+              "id": 46,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 4,
+              "ordinal": 0,
+              "id": 39,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 0,
+              "id": 3,
+              "session": 0,
+              "pending": 0,
+              "drain": 1,
+              "migration": 1,
+              "watched_refs": 0,
+              "watched_keys": 0
+            },
+            {
+              "epoch": 1,
+              "io": 0,
+              "ordinal": 1,
+              "id": 13,
+              "session": 1,
+              "pending": 0,
+              "drain": 1,
+              "migration": 0,
+              "watched_refs": 16,
+              "watched_keys": 16
+            }
+          ],
+          "clauses": [
+            {
+              "io": 5,
+              "id": 46,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 4,
+              "id": 39,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            },
+            {
+              "io": 0,
+              "id": 13,
+              "clauses": [
+                "multi_session_ == nullptr",
+                "watched_refs_ == 0"
+              ]
+            }
+          ]
+        }
+      ],
+      "planned": 4,
+      "sessions": 3,
+      "s2": 0,
+      "log_sha256": "ceeafce35dc8e63284461820be1575e488642da7e37b26a3f859ac43d0526b22"
+    }
+  ],
+  "refusals": 40,
+  "planned": 180,
+  "sessions": 120,
+  "s2": 0
+}
