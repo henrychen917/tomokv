@@ -21,6 +21,8 @@ The row census, named-skip sweep, binary builds, compiler trials, instruction
 census and production-unit freshness proof are complete. EXPECT_QUICK/EXPECT_FULL
 remain unchanged. The shared-body identity exceptions and PAD-A's aggregate
 layout limitation are explicit below; merit remains the maintainer's decision.
+The authorized correctness matrix passed all **362/362 required job/geometry
+entries**. The full iteration and performance work listed below remain NOT RUN.
 
 ### Exact source-declared rows
 
@@ -29,6 +31,19 @@ with no removed label. `docs/wave12/row-inventory.json` records every row agains
 its collector LINE and the quick exit. Flushfix2 adds 14 directed + 2 lifecycle
 rows, flushfix3 adds 4, trackorder +1, maxmemrace +1. All are before the quick exit.
 The owner should set EXPECT_QUICK=999 and EXPECT_FULL=1016 at landing.
+
+| Added declaration | Rows | Collector line in `tests/gate.sh` |
+|---|---:|---:|
+| flushfix3 idle, two namespace configurations | 2 | 6145 |
+| flushfix3 lifecycle units, both namespaces | 2 | 6146 |
+| flushfix2 seven directed cells × two namespace configurations | 14 | 6147 |
+| flushfix2 lifecycle units, both namespaces | 2 | 6148 |
+| maxmemrace | 1 | 6387 |
+| trackorder | 1 | 6394 |
+
+Every collector precedes the quick-tier exit at line **6464**. The total is
+22 added quick and full rows; Tcl promotions change assertions inside existing
+rows and add no public row.
 
 The initial source census falsely reported 1001/1018: gate_ledger_fixture ignored
 conditional assignments in job_flushfix2, inventing ASYNC legs for three cases
@@ -206,6 +221,19 @@ manifest to both positive runs and the planted negative control.
 
 ### Correctness receipts
 
+The final [coverage verifier](docs/wave12/correctness-coverage.json) passed:
+362/362 required job/geometry entries, 281/284 registered jobs, and both control
+arms booted in both modes. The three unselected registry entries are the two
+reserved performance jobs and the build-only tailgen prerequisite described
+below. No required correctness job is missing.
+
+The source-row multiset has evidence for **1009/1016 declarations**: 1007 from
+complete passing job ledgers plus the two official strict differential folds.
+All 21 duplicate AOF declarations retain their multiplicities; extra geometry
+repeats cannot fill a missing declaration. The seven remaining rows are exactly
+the reserved performance/load-generator rows below. This is not a full-gate
+pass. [All attempts, including failures](docs/wave12/correctness-jobs.json).
+
 The primary whole-job invocation completed **269 jobs, 993 passing row
 executions and zero failures**, on the frozen POST. It is a selected partial
 invocation, not an iteration receipt. Production source and binary hashes were
@@ -255,7 +283,9 @@ each passed the gate's dbdefault boot/control job in both thread modes.
 including the 55 production-unit targets/arms, the two mdbqsbr live arms,
 blockfix cost binding, blockfix2 and both namespaces of flushfix2/3. The complete
 commands and `make -q` results are in
-[production-units.json](docs/wave12/production-units.json).
+[production-units.json](docs/wave12/production-units.json). The final
+[`make -q all` check](docs/wave12/final-freshness.json) also passed; production
+source has no delta from the frozen POST.
 
 The initial Tcl promotion run failed on the two manifest interactions above.
 The next run passed all 1,875 required occurrences in 2s; 1s hit the unchanged
@@ -273,6 +303,30 @@ as though it were one assertion name. The fixture now exercises each name,
 retaining its complete-pass, missing, duplicate, timeout and unrelated-failure
 controls. Its ten tests pass. The live Tcl runner, manifest and server binary
 did not change; their positive and planted-regression bindings remain valid.
+[Failure and directed fix](docs/wave12/abba-fixture-fix.json).
+
+The complete ABBA self-test then passed through the gate job interface,
+including the 83 scheduler/harness tests and ten Tcl controls. Landing EXPECT
+overrides were confined to a throwaway copy carrying the prepared label
+fixture; the tracked constants remain 977/994. The copy comparison, failed
+first attempt, passing replay and full raw control log are retained in
+[the final harness proof](docs/wave12/final-harness-proof.json).
+
+### Artifact retention
+
+`build/` finishes at about **32 GiB**. The three delivered arms and current
+production/unit outputs remain available. Superseded trial objects, initial
+arm, PRE/PAD source trees, throwaway self-test source copies and instruction
+step traces were removed after recording hashes and counts. Complete job
+ledgers remain at their receipt paths; raw lane/Tcl/differential evidence is
+also archived under `docs/wave12/`. The pruning manifests are
+[trial artifacts](docs/wave12/pruned-trial-artifacts.json),
+[instruction traces](docs/wave12/pruned-instruction-traces.json),
+[final build artifacts](docs/wave12/pruned-final-build-artifacts.json), and
+[the final self-test copy](docs/wave12/pruned-abba-final-copy.json).
+The [delivery check](docs/wave12/delivery-check.json) verifies arm hashes,
+archived proofs, unchanged production source and EXPECT constants, and no
+remaining lane servers or listeners on ports 20000–20099.
 
 ### Checks reserved for the maintainer — NOT RUN
 

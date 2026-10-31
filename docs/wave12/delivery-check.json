@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "production_source_frozen_at": "5a9f38173",
+  "production_delta": "",
+  "tracked_expect": [
+    "EXPECT_QUICK=977",
+    "EXPECT_FULL=994"
+  ],
+  "report_links_missing": [],
+  "archived_proofs_verified": true,
+  "remaining_listeners_20000_20099": [],
+  "remaining_server_processes": [],
+  "build_allocated_bytes": 33694081024,
+  "arms": {
+    "PRE": "02796cdccee7fd16ffaa0dff2633b0d5c30ecdf3c59d404b5a2bb6135a764e48",
+    "POST": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+    "PAD-A": "aee862288a87c0ea45eeb3f2b9ef5c367b0366fb3c88bc2849669583499fd647"
+  },
+  "source_commit_before_receipt": "ea097fcd0ffb3481f90efeb2abc6fd99efa2f9d5"
+}
