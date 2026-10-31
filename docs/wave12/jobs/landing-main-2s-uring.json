@@ -1,0 +1,51 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave12/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave12",
+  "env": {
+    "LANG": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "source_identity lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal execfair txnorder_index txnorder2 txnorder_wake reorder_identity reorder_sync reorder_engagement wb_rule_units wbland_units scriptfix atomfix5_watch datafix2_watch blockfix_structure blockfix_registry blockfix_mkstream serverfix_slowlog rlfix3_info compat3 netcmd_units atomic_units splitlocal_units exbatch_units moverfix core_units wait_units serverfix_waitaof netio-1s netio-2s asan rldbg netfix_query_stats ntfix_input persistfix2_lastsave racefix_counters notify_aof notify_order notifycompat exbatch_live atomfix5_accounting acl_recheck aclfix authfix bugs5 rlcache inline_quoted crlffix multifix-1s-uring multifix-1s-epoll multifix-2s-uring multifix-2s-epoll streamfix blockfix2 txnorder_wound witness_contracts rob_portable slotless wb_mixed wave8b_off reorder_bounds trackfix_order trackfix_accounting tracking_redirect aoforder racefix_climon dispatch_arity dispatch_errors dispatch_children serverfix_lines serverfix_scalar serverfix_hello serverfix_config bplus at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16 at412-owner clientfix respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring climonfix ntnew4_live perfex_units perfex_live netcap netfix_unix netfix_config netfix_tls netfix_idle_buffers boot_grammar dbdefault readonly hexpread serverfix_hll serverfix_acllog rlfix3_zc config_unit flip_unit filter_unit ring_unit lbplanner_units persistfix_units flipfix_units lb-stationary-1s lb-stationary-2s storage_units acl_metadata cmd_metadata acl_subcommands router_uniform datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_idle evict-lfu-split-0 evict-lfu-armed-0 evict-lruclock-split-0 evict-lruclock-armed-0 evict-lfu-split-1 evict-lfu-armed-1 evict-lruclock-split-1 evict-lruclock-armed-1 datafix1_geo datafix1_spop datafix1_lists datafix1_locale datafix1_bitfield datafix1_randscan datafix1_hexpire persistfix2_shutdown persistfix2_commands persistfix2_errors tls feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto globcase flipfix5_units flipfix5 climonfix4-1s-uring climonfix4-1s-epoll climonfix4-2s-uring climonfix4-2s-epoll exec1s scriptfix2 pubtrackfix infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables flushfix2 flushfix2_units flushfix3_units trackorder maxmemrace feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 wb_policy multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 respcompat flip fliplisten flipctl aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 script_bounds notify asan_batteries release_batteries dump_restore sort auth aof_frame replyoff zc",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave12/docs/wave12/jobs/landing-main-2s-uring.tsv"
+  },
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "source_commit": "5a9f38173f63787d66ae55c6cc527450cfef24b2",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "gate_sha256": "1c16b1f11774bdc0aa3033e031627b3f6cdf2112d2e01426e0813500e5bdb8d2",
+  "tests_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "started": 1793440790.4361641,
+  "source_tree_sha256": "5171c8c4c354b6552fd48f983309b98495107494eeeaef30dc3a74f7045bbf39",
+  "tests_tools_sha256": "145994efb898923c40eec1bffa8c5dadeb2e994cb7f5863fb07a51ce7d111ab9",
+  "exit": 0,
+  "seconds": 4453.2980699539185,
+  "source_tree_unchanged": true,
+  "tests_tools_unchanged": false,
+  "artifacts": "/home/user/Projects/cx-wave12/build/gate-run.IRaQK5",
+  "summary": [
+    "GATE(PARTIAL): 993 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave12/docs/wave12/jobs/landing-main-2s-uring.tsv.partial"
+  ],
+  "binary_unchanged": true
+}
