@@ -26,6 +26,102 @@
       "GATE_DIFFER_ORACLE_CORES": "40-47"
     },
     "start": 1793446856.7990592,
+    "expected_exit": 0,
+    "exit": 1,
+    "seconds": 1284.065135717392,
+    "passed": false
+  },
+  {
+    "name": "gate-fused-uring",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries fused-0 fused-1",
+      "GATE_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "1",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793448140.8645065,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 258.73553490638733,
+    "passed": true
+  },
+  {
+    "name": "gate-fused-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries fused-0 fused-1",
+      "GATE_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793448399.600381,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 261.87813663482666,
+    "passed": true
+  },
+  {
+    "name": "gate-differ-uring",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+      "GATE_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793448661.479001,
     "expected_exit": 0
   }
 ]

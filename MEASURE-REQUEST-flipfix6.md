@@ -197,8 +197,10 @@ cold-control work. `.text` is 8,729,431 bytes on PRE and 8,726,423 on POST/PAD-A
 
 All commands and builds use CPUs 32-47 only, builds `-j16`; gate server CPUs
 32-39, load CPUs 40-47, ports 20300-20399. Every server/oracle boot has `LC_ALL=C`.
-Every correctness run uses the gate job interface and its own declared geometry;
-no full iteration, performance benchmark or load-generator merit run is started.
+Requested regression families use the gate job interface and its declared
+geometry. Additional directed negative controls and failure diagnoses use the
+same batteries on owned boots. No full iteration, performance benchmark or
+load-generator merit run is started.
 
 The new jobs add two serverless rows at `collect_job flipfix6_units` and one live
 row at `collect_job flipfix6`, at lines **6138 / 6352**, both **before** the quick-tier exit at line **6412**. **DQ=+3, DF=+3**.
@@ -212,7 +214,12 @@ Completed: `make all`; all `job_production_units` targets; 58 `make -q` checks
 command/control counts. The expanded WATCH-S2 sanitizer selection passed 54/54 assertions in each sanitizer.
 The broad uring/default-engine selection passed **333 rows, zero failures**
 (`gate-regression-uring.ledger`), including every requested family. The epoll
-supplement and fused debug coverage are running/pending, followed by both differential engines,
+supplement completed **236 rows passed / 1 failed**: `txnorder-fused-1` timed
+out in its fresh AOF row d and then hit the worker-shutdown timeout. Its normal
+rows a/b/c passed. This boot is fused, read-local 1, atomic 1, databases 16,
+epoll, with FLIP disabled. Matched PRE/POST diagnosis is pending; the failure
+is not dismissed or counted as green. Both fused debug/atomic/production supplements passed **55 rows each, zero failures**.
+Both differential engines remain in progress/pending, followed by
 PAD-A negative control and final `python3 tests/gates_test.py`. These are not yet
 claimed as passes. Any unresolved failure or NOT RUN item will be explicit here.
 
