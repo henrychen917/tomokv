@@ -15,7 +15,7 @@ BASE = ROOT / "build/execfifo2"
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--arms", default="PRE,POST")
-    p.add_argument("--kind", choices=("commands", "exec"), default="commands")
+    p.add_argument("--kind", choices=("commands", "exec", "owner"), default="commands")
     p.add_argument("--build-only", action="store_true")
     p.add_argument("--trace-only", action="store_true")
     p.add_argument("--workers", type=int, default=8)
@@ -38,6 +38,8 @@ def main():
         scope.OBJECT_OVERRIDES = json.loads(args.overrides.read_text())
     if args.kind == "exec":
         scope.FIXTURE = ROOT / "tests/exec1sd_scope.cc"
+    if args.kind == "owner":
+        scope.FIXTURE = ROOT / "tests/execfifo2_owner_scope.cc"
     if not args.trace_only:
         for arm in arms:
             for ns in ("normal", "db0"):
@@ -53,7 +55,7 @@ def main():
     else:
         cases = [(arm, ns, cmd, mode, children, atomic, -1)
                  for arm in arms for ns in ("normal", "db0")
-                 for cmd in ("EXEC", "EXEC-cross") for mode in ("1s", "2s")
+                 for cmd in (("OWNER-single", "OWNER-cross") if args.kind=="owner" else ("EXEC", "EXEC-cross")) for mode in ("1s", "2s")
                  for children in (1, 2, 4) for atomic in (0, 1)]
     if args.commands:
         cases = [c for c in cases if c[2] in args.commands.split(",")]

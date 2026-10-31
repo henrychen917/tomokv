@@ -279,10 +279,13 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # Final trials/scores: docs/wave8b/budgets-exact/selected.json, including
 # exact callback starts and WAIT slices. Identity is a proxy; merit is pending.
 # Instruction scopes and the maintainer merit still decide, not body identity.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=153728
+# execfifo2: FIFO/C1 add 1710 / 1759 IPA instructions to these units. Preserve
+# the PRE absolute inlining allowance; all MGET/MSET scope cells remain exact.
+# See docs/execfifo2/budgets-POST and commands-budget for the derivation/trial.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=155438
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=152544
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=154303
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
