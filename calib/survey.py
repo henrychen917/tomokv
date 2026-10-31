@@ -304,7 +304,7 @@ def parser(description, all_variants=False):
     p.add_argument('--seconds', type=float, default=15)
     p.add_argument('--keys', type=int, default=1024)
     p.add_argument('--connections', type=int, default=512)
-    p.add_argument('--workers', type=int, default=0, help='0: one native worker per load CPU, at most connections')
+    p.add_argument('--workers', type=int, default=-1, help='-1: one native worker per load CPU, at most connections; positive: explicit limit')
     p.add_argument('--timeout', type=float, default=120)
     p.add_argument('--ratio', help='default 3:1 split, using all server CPUs')
     p.add_argument('--shards', type=int, default=256)
@@ -324,13 +324,13 @@ def configure(args):
         require(set(server + load) <= set(range(48, 64)), 'smokes must use CPUs 48-63 only')
         args.blocks, args.seconds = 1, 2.0
         args.keys, args.connections = min(args.keys, 32), min(args.connections, 4)
-        args.workers = min(args.workers or 2, 2)
+        args.workers = min(args.workers if args.workers > 0 else 2, 2)
         args.shards = 16
     require(20400 <= args.port <= 20499, 'survey port must be 20400-20499')
     require(args.blocks > 0 and args.seconds > 0 and args.timeout > 0 and args.keys > 0 and args.connections > 0,
             'invalid duration/population/connections')
-    require(args.workers >= 0 and args.sidecar_samples > 0, 'invalid workers/sidecar sample count')
-    require(args.workers <= len(load), 'native workers must not oversubscribe load CPUs')
+    require(args.workers == -1 or 1 <= args.workers <= len(load), 'workers must be -1 or a positive count within load CPUs')
+    require(args.sidecar_samples > 0, 'sidecar sample count must be positive')
     require(0 < args.disk_limit_gib <= 12, 'persistence budget must be in (0,12] GiB')
     if args.ratio is None:
         require(len(server) % 4 == 0, 'automatic ratio requires server CPU count divisible by four')
@@ -534,6 +534,8 @@ def validate_client(document, operations, seconds, offered=None, max_lag_ms=20, 
         require(all(n == row['cycles'] for n in row['counts']), 'partial cycle')
         require(row['primary'] == row['cycles'] * sum(op['primary'] for op in operations), 'wrong primary count')
         require(row['scheduled'] == row['primary'], 'dropped deadline')
+        if row['primary']:
+            require(all(row[field]['n'] == row['primary'] for field in ('rtt', 'response', 'lag')), 'per-worker observation loss')
         for operation, n in zip(operations, row['counts']):
             counts[command_name(operation['command'])] += n
     require(primary > 0 or count is not None, 'no primary completions')
@@ -541,10 +543,13 @@ def validate_client(document, operations, seconds, offered=None, max_lag_ms=20, 
         require(cycles == count, 'incomplete preload/delete population')
     elapsed = max((row['finish_ns'] - document['epoch_ns']) / 1e9 for row in rows)
     require(elapsed > 0, 'invalid client interval')
+    if count is None and offered is None:
+        require(elapsed >= seconds, 'short native throughput window')
+    rate_interval = max(seconds, elapsed) if offered is not None else elapsed
     result = dict(completed=primary, cycles=cycles, commands=dict(counts), elapsed=elapsed,
                   client_epoch_ns=document['epoch_ns'],
                   engine='native',
-                  ops_per_second=primary / elapsed, total_command_rate=sum(counts.values()) / elapsed,
+                  ops_per_second=primary / rate_interval, total_command_rate=sum(counts.values()) / rate_interval,
                   worker_cpu_fraction=[row['cpu_seconds'] / elapsed for row in rows])
     if primary:
         result.update(latency=histogram(rows, 'rtt'), scheduled_latency=histogram(rows, 'response'),
@@ -565,7 +570,7 @@ def native(args, conn, folder, operations, keys, connections, pipeline=1, second
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / 'script.resp'
     write_script(path, operations)
-    workers = min(args.workers or len(cpus(args.load_cores)), connections)
+    workers = min(len(cpus(args.load_cores)) if args.workers == -1 else args.workers, connections)
     seconds = seconds or args.seconds
     argv = ['taskset', '-c', args.load_cores, str(args.client), '--port', str(args.port), '--script', str(path),
             '--out', str(folder / 'client.json'), '--connections', str(connections), '--threads', str(workers),
@@ -684,7 +689,7 @@ def memtier(args, conn, folder, cell):
     operations = cell['workload']['cycle']
     require(len(operations) == 1 and operations[0]['primary'], 'memtier requires one primary command')
     connections = cell['connections']
-    limit = min(args.workers or len(cpus(args.load_cores)), connections)
+    limit = min(len(cpus(args.load_cores)) if args.workers == -1 else args.workers, connections)
     threads = max(n for n in range(1, limit + 1) if connections % n == 0)
     argv = ['taskset', '-c', args.load_cores, str(args.memtier), '--server=127.0.0.1', f'--port={args.port}',
             '--protocol=redis', f'--threads={threads}', f'--clients={connections // threads}',
@@ -842,7 +847,14 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
                             folder.mkdir(parents=True, exist_ok=True)
                             save(folder / 'record.json', row)
                             append(args.output / 'records.jsonl', row)
-                            print(f'{tool}: cell={cell["name"]} block={block} visit={seq} arm={arm} status={"VALID" if row["valid"] else "INVALID"} kind={"SMOKE_ONLY" if args.smoke else "SURVEY"}', flush=True)
+                            metrics = ''
+                            if not args.smoke and row['valid']:
+                                if 'ops_per_second' in row:
+                                    h = row['latency']
+                                    metrics = f' ops_s={row["ops_per_second"]:.3f} p50_ns={h["p50"]} p99_ns={h["p99"]} p999_ns={h["p999"]} max_ns={h["max"]}'
+                                elif 'loaded' in row:
+                                    metrics = f' used_B_per_key={row["loaded"]["used_memory_per_key"]:.3f} rss_B_per_key={row["loaded"]["rss_per_key"]:.3f} half_rss_B_per_key={row["after_half_del"]["rss_per_key"]:.3f}'
+                            print(f'{tool}: cell={cell["name"]} block={block} visit={seq} arm={arm} status={"VALID" if row["valid"] else "INVALID"} kind={"SMOKE_ONLY" if args.smoke else "SURVEY"}{metrics}', flush=True)
         save(args.output / 'ratios.json', paired_ratios(records))
         if finish:
             finish(args, records)

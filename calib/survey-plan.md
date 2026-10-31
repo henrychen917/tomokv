@@ -26,7 +26,7 @@ Python uses the standard library. The throughput driver also uses the installed
 `memtier_benchmark` 2.5.1. Its drained HDR decoder is shared with
 `tests/abba_workloads.py`; there is no change to that gate module. Every run pins
 the binary hashes, exact argv, command scripts, CPU sets and reference version.
-All output directories must be new. No resume, overwrite, retries to obtain a
+Full and first-pass results go under the already ignored `.gate-history/surveytools/`, keeping `build/` small. All output directories must be new. No resume, overwrite, retries to obtain a
 passing result, port-based killing, or unowned shutdown is performed.
 
 ## Full survey
@@ -48,24 +48,24 @@ common=(--candidate "$PWD/build/tomokv"
 
 taskset -c 32-111 python3 calib/survey-cmds.py "${common[@]}" \
   --variants 1s-rl0,1s-rl1,2s-rl0,2s-rl1 --redis-threads 1,4 \
-  --families all --pipelines 1,32 --seconds 15 --blocks 3 --output build/survey-full-cmds
+  --families all --pipelines 1,32 --seconds 15 --blocks 3 --output .gate-history/surveytools/full-cmds
 
 taskset -c 32-111 python3 calib/survey-latency.py "${common[@]}" \
   --variants 2s-rl0 --redis-threads 4 --fractions .25,.5,.75 \
   --calibration-connections 256,512,1024 --calibration-seconds 5 \
-  --seconds 15 --blocks 3 --output build/survey-full-latency
+  --seconds 15 --blocks 3 --output .gate-history/surveytools/full-latency
 
 taskset -c 32-111 python3 calib/survey-memory.py "${common[@]}" \
   --variants 2s-rl0 --redis-threads 4 --populations 1000000,10000000 \
-  --shapes all --settle 5 --blocks 3 --output build/survey-full-memory
+  --shapes all --settle 5 --blocks 3 --output .gate-history/surveytools/full-memory
 
 taskset -c 32-111 python3 calib/survey-persist.py "${common[@]}" \
   --variants 2s-rl0 --redis-threads 4 --persistence off,everysec,always,bgsave \
-  --seconds 10 --always-seconds 3 --blocks 3 --output build/survey-full-persist
+  --seconds 10 --always-seconds 3 --blocks 3 --output .gate-history/surveytools/full-persist
 
 taskset -c 32-111 python3 calib/survey-scale.py "${common[@]}" \
   --variants 2s-rl0 --redis-threads 4 --connection-counts 50,500,5000,10000 \
-  --value-sizes 16,1024,16384,262144 --seconds 15 --blocks 3 --output build/survey-full-scale
+  --value-sizes 16,1024,16384,262144 --seconds 15 --blocks 3 --output .gate-history/surveytools/full-scale
 ```
 
 All tools accept the four TomoKV variants and Redis io-threads 1/4. Only the
@@ -104,22 +104,23 @@ first=(--candidate "$PWD/build/tomokv"
 
 taskset -c 32-111 python3 calib/survey-cmds.py "${first[@]}" \
   --variants 1s-rl0,1s-rl1,2s-rl0,2s-rl1 --redis-threads 1,4 \
-  --families all --pipelines 1,32 --seconds 4 --output build/survey-first-cmds
+  --families all --pipelines 1,32 --seconds 4 --output .gate-history/surveytools/first-cmds
 
 taskset -c 32-111 python3 calib/survey-latency.py "${first[@]}" \
-  --fractions .25,.5,.75 --calibration-connections 64,128,256 --calibration-seconds 3 \
-  --seconds 5 --output build/survey-first-latency
+  --connections 512 --keys 1024 --fractions .25,.5,.75 \
+  --calibration-connections 256,512,1024 --calibration-seconds 3 \
+  --seconds 5 --output .gate-history/surveytools/first-latency
 
 taskset -c 32-111 python3 calib/survey-memory.py "${first[@]}" \
-  --populations 1000000,10000000 --shapes all --settle 2 --output build/survey-first-memory
+  --populations 1000000,10000000 --shapes all --settle 2 --output .gate-history/surveytools/first-memory
 
 taskset -c 32-111 python3 calib/survey-persist.py "${first[@]}" \
   --persistence off,everysec,always,bgsave --seconds 4 --always-seconds 2 \
-  --output build/survey-first-persist
+  --output .gate-history/surveytools/first-persist
 
 taskset -c 32-111 python3 calib/survey-scale.py "${first[@]}" \
   --connection-counts 50,500,5000,10000 --value-sizes 16,1024,16384,262144 \
-  --seconds 4 --output build/survey-first-scale
+  --seconds 4 --output .gate-history/surveytools/first-scale
 ```
 
 Budget roughly 3.4–4.2 hours for commands, 40–90 minutes for memory, and 20–35
@@ -208,7 +209,7 @@ Client/server CPU masks and per-worker CPU samples are retained. There is no
 automatic retry of unstable or failed arms.
 
 The latency tool calibrates Redis4 at increasing closed-loop p32 connection
-counts. The last two rungs must be within 5% and must not be generator limited;
+counts. The last two rungs must be within the box's 2% validity boundary and must not be generator limited;
 the smaller rate is frozen as the capacity basis. No plateau means INVALID,
 with the evidence retained; increase the rungs on a new run. All arms use exactly
 25%, 50% and 75% of that rate. Scheduled deadlines continue independently of
@@ -267,5 +268,5 @@ Full latency observations are result evidence, not preload data: budget up to
 million observations/second for 15 seconds is 480 MB before compression per
 visit. Use a separate results volume or shorter windows if needed, preserving
 every observation. Archive completed results before starting the next tool if
-the worktree must stay below 15 GiB in total. Delete smoke output only after
+the whole worktree, including retained observations, must stay below 15 GiB in total. Delete smoke output only after
 recording the summary and any behaviour differences; no smoke preload persists.

@@ -1,0 +1,297 @@
+{
+  "kind": "SMOKE_ONLY; no performance conclusions",
+  "created_utc": "2026-10-31T09:59:25.060377+00:00",
+  "branch": "cx-surveytools",
+  "production_base": "e32b04a44",
+  "server_cpus": "48-55",
+  "load_cpus": "56-63",
+  "port": 20400,
+  "runs": [
+    {
+      "name": "cmds-4",
+      "summary": "survey_cmds: status=VALID kind=SMOKE_ONLY runs=32/32",
+      "visits": 32,
+      "owned_servers_cleanly_reaped": 34,
+      "arm_names": [
+        "2s-rl0",
+        "redis-4"
+      ],
+      "configuration": {
+        "variants": "2s-rl0",
+        "redis_threads": "4",
+        "blocks": 1,
+        "seconds": 2.0,
+        "keys": 32,
+        "connections": 4,
+        "server_cores": "48-55",
+        "load_cores": "56-63",
+        "port": 20400
+      },
+      "behaviour_comparisons": 141,
+      "behaviour_differences": 3,
+      "raw_observation_files_verified": false,
+      "all_raw_timestamps_and_counts_valid": null
+    },
+    {
+      "name": "latency-1",
+      "summary": "survey_latency: status=VALID kind=SMOKE_ONLY runs=60/60",
+      "visits": 60,
+      "owned_servers_cleanly_reaped": 72,
+      "arm_names": [
+        "2s-rl0",
+        "redis-4"
+      ],
+      "configuration": {
+        "variants": "2s-rl0",
+        "redis_threads": "4",
+        "blocks": 1,
+        "seconds": 2.0,
+        "keys": 32,
+        "connections": 4,
+        "server_cores": "48-55",
+        "load_cores": "56-63",
+        "port": 20400
+      },
+      "behaviour_comparisons": 18,
+      "behaviour_differences": 0,
+      "raw_observation_files_verified": true,
+      "all_raw_timestamps_and_counts_valid": true
+    },
+    {
+      "name": "memory-2",
+      "summary": "survey_memory: status=VALID kind=SMOKE_ONLY runs=64/64",
+      "visits": 64,
+      "owned_servers_cleanly_reaped": 66,
+      "arm_names": [
+        "2s-rl0",
+        "redis-4"
+      ],
+      "configuration": {
+        "variants": "2s-rl0",
+        "redis_threads": "4",
+        "blocks": 1,
+        "seconds": 2.0,
+        "keys": 32,
+        "connections": 4,
+        "server_cores": "48-55",
+        "load_cores": "56-63",
+        "port": 20400
+      },
+      "behaviour_comparisons": 21,
+      "behaviour_differences": 0,
+      "raw_observation_files_verified": false,
+      "all_raw_timestamps_and_counts_valid": null
+    },
+    {
+      "name": "persist-1",
+      "summary": "survey_persist: status=VALID kind=SMOKE_ONLY runs=32/32",
+      "visits": 32,
+      "owned_servers_cleanly_reaped": 34,
+      "arm_names": [
+        "2s-rl0",
+        "redis-4"
+      ],
+      "configuration": {
+        "variants": "2s-rl0",
+        "redis_threads": "4",
+        "blocks": 1,
+        "seconds": 2.0,
+        "keys": 32,
+        "connections": 4,
+        "server_cores": "48-55",
+        "load_cores": "56-63",
+        "port": 20400
+      },
+      "behaviour_comparisons": 9,
+      "behaviour_differences": 0,
+      "raw_observation_files_verified": false,
+      "all_raw_timestamps_and_counts_valid": null
+    },
+    {
+      "name": "scale-1",
+      "summary": "survey_scale: status=VALID kind=SMOKE_ONLY runs=64/64",
+      "visits": 64,
+      "owned_servers_cleanly_reaped": 66,
+      "arm_names": [
+        "2s-rl0",
+        "redis-4"
+      ],
+      "configuration": {
+        "variants": "2s-rl0",
+        "redis_threads": "4",
+        "blocks": 1,
+        "seconds": 2.0,
+        "keys": 32,
+        "connections": 4,
+        "server_cores": "48-55",
+        "load_cores": "56-63",
+        "port": 20400
+      },
+      "behaviour_comparisons": 24,
+      "behaviour_differences": 0,
+      "raw_observation_files_verified": false,
+      "all_raw_timestamps_and_counts_valid": null
+    },
+    {
+      "name": "geometries-1",
+      "summary": "survey_cmds: status=VALID kind=SMOKE_ONLY runs=32/32",
+      "visits": 32,
+      "owned_servers_cleanly_reaped": 37,
+      "arm_names": [
+        "1s-rl0",
+        "1s-rl1",
+        "2s-rl0",
+        "2s-rl1",
+        "redis-1",
+        "redis-4"
+      ],
+      "configuration": {
+        "variants": "1s-rl0,1s-rl1,2s-rl0,2s-rl1",
+        "redis_threads": "1,4",
+        "blocks": 1,
+        "seconds": 2.0,
+        "keys": 32,
+        "connections": 4,
+        "server_cores": "48-55",
+        "load_cores": "56-63",
+        "port": 20400
+      },
+      "behaviour_comparisons": 96,
+      "behaviour_differences": 0,
+      "raw_observation_files_verified": false,
+      "all_raw_timestamps_and_counts_valid": null
+    }
+  ],
+  "behaviour_differences": [
+    {
+      "arm": "2s-rl0",
+      "workload": [
+        "SINTER",
+        16,
+        10
+      ],
+      "sample": 0,
+      "command": [
+        "SINTER",
+        "sv:000000000000",
+        "sw:000000000000"
+      ],
+      "wire_base64": "KjEwDQokNg0KbTAwMDA5DQokNg0KbTAwMDA4DQokNg0KbTAwMDA2DQokNg0KbTAwMDA1DQokNg0KbTAwMDA0DQokNg0KbTAwMDA3DQokNg0KbTAwMDAzDQokNg0KbTAwMDAyDQokNg0KbTAwMDAxDQokNg0KbTAwMDAwDQo=",
+      "bytes": 125,
+      "primary": true,
+      "equal": false,
+      "redis_wire_base64": "KjEwDQokNg0KbTAwMDAwDQokNg0KbTAwMDAxDQokNg0KbTAwMDAyDQokNg0KbTAwMDAzDQokNg0KbTAwMDA0DQokNg0KbTAwMDA1DQokNg0KbTAwMDA2DQokNg0KbTAwMDA3DQokNg0KbTAwMDA4DQokNg0KbTAwMDA5DQo=",
+      "note": "Raw byte difference; unordered collections may legally differ in order. No normalization.",
+      "review": "same SINTER members, different permitted order"
+    },
+    {
+      "arm": "2s-rl0",
+      "workload": [
+        "SINTER",
+        16,
+        10
+      ],
+      "sample": 1,
+      "command": [
+        "SINTER",
+        "sv:000000000000",
+        "sw:000000000000"
+      ],
+      "wire_base64": "KjEwDQokNg0KbTAwMDA5DQokNg0KbTAwMDA4DQokNg0KbTAwMDA2DQokNg0KbTAwMDA1DQokNg0KbTAwMDA0DQokNg0KbTAwMDA3DQokNg0KbTAwMDAzDQokNg0KbTAwMDAyDQokNg0KbTAwMDAxDQokNg0KbTAwMDAwDQo=",
+      "bytes": 125,
+      "primary": true,
+      "equal": false,
+      "redis_wire_base64": "KjEwDQokNg0KbTAwMDAwDQokNg0KbTAwMDAxDQokNg0KbTAwMDAyDQokNg0KbTAwMDAzDQokNg0KbTAwMDA0DQokNg0KbTAwMDA1DQokNg0KbTAwMDA2DQokNg0KbTAwMDA3DQokNg0KbTAwMDA4DQokNg0KbTAwMDA5DQo=",
+      "note": "Raw byte difference; unordered collections may legally differ in order. No normalization.",
+      "review": "same SINTER members, different permitted order"
+    },
+    {
+      "arm": "2s-rl0",
+      "workload": [
+        "SINTER",
+        16,
+        10
+      ],
+      "sample": 2,
+      "command": [
+        "SINTER",
+        "sv:000000000000",
+        "sw:000000000000"
+      ],
+      "wire_base64": "KjEwDQokNg0KbTAwMDA5DQokNg0KbTAwMDA4DQokNg0KbTAwMDA2DQokNg0KbTAwMDA1DQokNg0KbTAwMDA0DQokNg0KbTAwMDA3DQokNg0KbTAwMDAzDQokNg0KbTAwMDAyDQokNg0KbTAwMDAxDQokNg0KbTAwMDAwDQo=",
+      "bytes": 125,
+      "primary": true,
+      "equal": false,
+      "redis_wire_base64": "KjEwDQokNg0KbTAwMDAwDQokNg0KbTAwMDAxDQokNg0KbTAwMDAyDQokNg0KbTAwMDAzDQokNg0KbTAwMDA0DQokNg0KbTAwMDA1DQokNg0KbTAwMDA2DQokNg0KbTAwMDA3DQokNg0KbTAwMDA4DQokNg0KbTAwMDA5DQo=",
+      "note": "Raw byte difference; unordered collections may legally differ in order. No normalization.",
+      "review": "same SINTER members, different permitted order"
+    }
+  ],
+  "DQ": 0,
+  "DF": 0,
+  "gates_test": {
+    "status": "PASS",
+    "tests": 76,
+    "elapsed_seconds": 152.363
+  },
+  "not_run": {
+    "real_measurements": "Maintainer-owned quiet-box runs",
+    "tests/gate.sh iteration": "Maintainer-owned full gate"
+  },
+  "binaries": {
+    "candidate": {
+      "path": "/home/user/Projects/cx-surveytools/build/tomokv",
+      "sha256": "c0a3a3da15a3d3820135c583fac88e2c31c4a43d2e89c0912b26cb34b1ae267c"
+    },
+    "redis": {
+      "path": "/home/user/Projects/redis74/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+    },
+    "client": {
+      "path": "/home/user/Projects/cx-surveytools/build/survey-client",
+      "sha256": "cfcf50d277b2bc25e1d926f17949acbe4ac7206081c9f09c332b90e17facef04"
+    },
+    "memtier": {
+      "path": "/usr/bin/memtier_benchmark",
+      "sha256": "9b6ee614dae154c64b17a067a10236b3e6532f7ca52c43b547b87101556dd7d4"
+    }
+  },
+  "redis_version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746",
+  "selftests": {
+    "build/survey-client --selftest": {
+      "exit": 0,
+      "output": "survey-client selftest: PASS"
+    },
+    "python3 calib/survey-cmds.py --selftest": {
+      "exit": 0,
+      "output": "survey_cmds selftest: PASS"
+    },
+    "python3 calib/survey-latency.py --selftest": {
+      "exit": 0,
+      "output": "survey_latency selftest: PASS"
+    },
+    "python3 calib/survey-memory.py --selftest": {
+      "exit": 0,
+      "output": "survey_memory selftest: PASS"
+    },
+    "python3 calib/survey-persist.py --selftest": {
+      "exit": 0,
+      "output": "survey_persist selftest: PASS"
+    },
+    "python3 calib/survey-scale.py --selftest": {
+      "exit": 0,
+      "output": "survey_scale selftest: PASS"
+    }
+  },
+  "make_q_after": 0,
+  "files": {
+    "calib/survey-client.cc": "0d88f34da0df1917430cf59addb8df255f0c5f386a237df08a8bc93e4893ce97",
+    "calib/survey-cmds.py": "7e2727695b4d9d5ed769c4e8361c14c76fa08bc4ab3d3147be09cc7941a29f73",
+    "calib/survey-latency.py": "e8d2498f7ed394abb7d3c2dba3f1ad50e705dc7ae99b5b4e91b90630520ec350",
+    "calib/survey-memory.py": "c5dc9573f8410653998498f4046ecdf54599492a81b14012eff5c427cd0fde86",
+    "calib/survey-persist.py": "7ecdf6d9da18d17b0a0036c48770b6edc62cab8d1ba454c44a4a752c27f6348f",
+    "calib/survey-plan.md": "c0c3f38129d745bae8ae0c2f87df90e77a624da5109bfbda37f7bd2c519e5606",
+    "calib/survey-scale.py": "65af0654cfb04d239f5c061f25e51e1e5ebdc5559ab3b660ae6869968328c305",
+    "calib/survey.py": "29f86f78ca1030e4be9849e0eae43ca96c31e94888dbd0fa11c302a6354097d3"
+  }
+}

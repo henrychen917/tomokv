@@ -23,8 +23,8 @@ def calibration_capacity(rows):
     s.require(len(rows) >= 2 and all(r['ops_per_second'] > 0 for r in rows), 'missing calibration rung')
     s.require(not any(r['generator_busy'] for r in rows), 'calibration is generator limited; use more load workers')
     lower, upper = rows[-2:]
-    relative = abs(upper['ops_per_second'] / lower['ops_per_second'] - 1)
-    s.require(relative <= .05, 'Redis capacity has no plateau within 5%; increase --calibration-connections')
+    difference = abs(upper['ops_per_second'] - lower['ops_per_second'])
+    s.require(difference <= .02 * lower['ops_per_second'], 'Redis capacity has no plateau within 2%; increase --calibration-connections')
     return min(lower['ops_per_second'], upper['ops_per_second'])
 
 
