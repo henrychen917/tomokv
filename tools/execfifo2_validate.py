@@ -51,6 +51,7 @@ def main():
     OUT.mkdir(parents=True,exist_ok=True);DOCS.mkdir(parents=True,exist_ok=True)
     manifest=DOCS/"runs.json"
     rows=json.loads(manifest.read_text()) if manifest.exists() else []
+    failures=0
     for name in args.groups:
         tier,jobs,extra=GROUPS[name]
         env=dict(os.environ,LC_ALL="C",GATE_PROOF_NO_RATES="1",GATE_ONLY_JOBS=jobs,
@@ -67,7 +68,9 @@ def main():
         text=log.read_text();match=re.search(r"  artifacts: (.*)",text)
         row.update(exit_code=result.returncode,run_directory=match[1] if match else None)
         rows.append(row);manifest.write_text(json.dumps(rows,indent=2)+"\n")
+        failures+=result.returncode!=0
         print("DONE",name,result.returncode,text.splitlines()[-1] if text else "empty log",flush=True)
         # Preserve all failed rows and continue independent required groups.
+    return int(failures!=0)
 
-if __name__=="__main__":main()
+if __name__=="__main__":raise SystemExit(main())
