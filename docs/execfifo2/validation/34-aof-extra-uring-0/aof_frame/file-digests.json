@@ -1,0 +1,47 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 54,
+    "sha256": "f83df600570aaac0d008d129f8c039510516107eddd3beec85b9b76908662bf9"
+  },
+  {
+    "path": "gate-aof-frameorder-0.txt",
+    "bytes": 615,
+    "sha256": "662db6774a7d93f7ec25c3542bcc1a1a544f57852e0d1d484cc2b2fe8478b228"
+  },
+  {
+    "path": "gate-aof-frameorder-1.txt",
+    "bytes": 615,
+    "sha256": "eae3f446f5399c9fbd36bb46626587fc8772449261ff56d93c516c1ecfd980a6"
+  },
+  {
+    "path": "gate-srv-main.0FTa5h",
+    "bytes": 9868,
+    "sha256": "0ddafa4cdee1b4e05d9b59e2ca565c213ba7c1ed84c12039d05f748f0b47b075"
+  },
+  {
+    "path": "gate-srv-main.bNG6c7",
+    "bytes": 9864,
+    "sha256": "2fbcf6d3031aa68658944cf97b10133d6e7f06ba4d90ebf9ff074bfad2e4dfdc"
+  },
+  {
+    "path": "ledger",
+    "bytes": 138,
+    "sha256": "ff7eaa2646b9c55509fc5b61ada2665ed7475ad1becb57b02b7c76dad0366b0b"
+  },
+  {
+    "path": "output.log",
+    "bytes": 366,
+    "sha256": "3166c66caa4463d7f35d0b196034395c9d9eae9b1d5cba07b5a3ad2d7891aacc"
+  },
+  {
+    "path": "timings",
+    "bytes": 138,
+    "sha256": "ff7eaa2646b9c55509fc5b61ada2665ed7475ad1becb57b02b7c76dad0366b0b"
+  }
+]
