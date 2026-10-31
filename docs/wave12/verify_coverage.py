@@ -98,6 +98,23 @@ def main():
                 if len(fields) == 3 and fields[0] == 'ok':
                     labels.add(fields[2])
     remaining = [row for row in expected if row['label'] not in labels]
+    arm_smokes = []
+    for arm in ('PRE', 'PAD-A'):
+        path = DOC / f'jobs/landing-arm-{arm}-smoke.json'
+        row = dict(arm=arm, passed=False)
+        if path.exists():
+            receipt = json.loads(path.read_text())
+            expected_sha = hashlib.sha256((ROOT / 'build/wave12' / ('tomokv-' + arm)).read_bytes()).hexdigest()
+            directory = Path(receipt['artifacts']) / 'jobs/dbdefault'
+            done = list(map(int, (directory / 'done').read_text().split()))
+            result = json.loads((directory / 'dbdefault/results.json').read_text())
+            row.update(receipt=str(path.relative_to(ROOT)), binary_sha256=receipt['binary_sha256'],
+                       modes=result['results'])
+            row['passed'] = (receipt['exit'] == 0 and receipt['binary_sha256'] == expected_sha and
+                             receipt['binary_unchanged'] and done[0] == done[2] == 0 and
+                             {r['mode'] for r in result['results']} == {'1s', '2s'} and
+                             all(r['verdict'] == 'PASS' for r in result['results']))
+        arm_smokes.append(row)
     output = dict(binary_sha256=post, requirements=requirements,
                   required_geometries=len(requirements),
                   satisfied_geometries=sum(r['passed'] for r in requirements),
@@ -109,7 +126,9 @@ def main():
                   failed_attempts=[{k: v for k, v in a.items() if k != 'details'} | {
                       'exit': a['details'].get('exit'), 'failed': a['details'].get('failed')}
                       for a in attempts if not a['passed']],
-                  passed=not missing and all(r['passed'] for r in requirements),
+                  arm_boot_controls=arm_smokes,
+                  passed=not missing and all(r['passed'] for r in requirements) and
+                         all(r['passed'] for r in arm_smokes),
                   note='Whole-job matrix coverage, not a full iteration or performance gate. '
                        'Failed and superseded attempts remain in correctness-jobs.json. '
                        'Inline/rate-only rows are separately identified in the report.')

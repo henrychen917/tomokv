@@ -26,7 +26,8 @@ elif a.phase=='quiet':
     # GATE_PROOF_NO_RATES also suppresses stream's three release memory bounds.
     # These four feature jobs contain no throughput/load-generator job; restore
     # their normal release assertions in both engines before the quiet checks.
-    runs=[('footprints-'+engine,M['release_footprints_each_engine'],False,engine,{})
+    runs=[('arm-'+arm+'-smoke',['dbdefault'],False,'uring',{}) for arm in ('PRE','PAD-A')]
+    runs += [('footprints-'+engine,M['release_footprints_each_engine'],False,engine,{})
           for engine in ('uring','epoll')]
     for fused in (False,True):
         for engine in ('uring','epoll'):
@@ -40,16 +41,19 @@ else:
           for fused in (False,True) for engine in ('uring','epoll')]
 failed=False
 for name,jobs,fused,engine,extra in runs:
+    binary=ROOT/'build/tomokv'
+    if name.startswith('arm-') and name.endswith('-smoke'):
+        binary=ROOT/'build/wave12'/('tomokv-'+name.removeprefix('arm-').removesuffix('-smoke'))
     name=a.prefix+'-'+name
     receipt=DOC/'jobs'/(name+'.json')
     if receipt.exists():
         result=json.loads(receipt.read_text())
-        assert result['binary_sha256']==hashlib.sha256((ROOT/'build/wave12/tomokv-POST').read_bytes()).hexdigest(), 'new arm requires a new run prefix'
+        assert result['binary_sha256']==hashlib.sha256(binary.read_bytes()).hexdigest(), 'new arm requires a new run prefix'
         print('retained',name,result['exit'],flush=True)
         failed |= result['exit']!=0
         continue
     argv=[sys.executable,str(DOC/'run_jobs.py'),name,*dict.fromkeys(jobs),
-          '--binary','build/tomokv','--engine',engine,'--port','20020']
+          '--binary',str(binary),'--engine',engine,'--port','20020']
     if fused:argv+=['--fused']
     footprints=name.startswith(a.prefix+'-footprints-')
     if footprints:argv+=['--release-footprints']

@@ -26,7 +26,8 @@ def main():
         assert receipt['env']['GATE_DIFFER_NET_IO'] == engine
         run = Path(receipt['artifacts'])
         plan = fanout.load_plan(run / 'differ-plan.json')
-        assert plan['manifest']['permanent'] == [7, 19] and plan['repeats'] == 4
+        assert plan['manifest']['permanent'] == fanout.permanent_seeds()
+        assert {7, 19} <= set(plan['manifest']['permanent']) and plan['repeats'] == 4
         folds = {group: fanout.fold(plan, group, run) for group in ('split', 'armed')}
         files = [run / 'differ-plan.json']
         logs = []
