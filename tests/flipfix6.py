@@ -5,6 +5,7 @@ The EXEC partner is tests/flipfix5.py's pipelined MULTI INCR INCR EXEC sequence.
 Connections cover every IO, so converting an IO must encounter a session. PRE
 must refuse at the deadline and the unrelated PING must stall. POST must move
 session connections, preserve every reply/value, and keep all gaps below 1 s.
+Only the approved immediate S2/close refusals are accepted and counted exactly.
 """
 import argparse
 import contextlib
@@ -99,13 +100,14 @@ def witness(args, directory, engine, atomic, case):
         probe = stack.enter_context(contextlib.closing(s.connect(b.port, args.stall, io=0)))
         db = 7 if args.databases == 16 else 0
         clients = []
-        for io in range(6):
+        for ordinal in range(6 * args.clients_per_io):
+            io = ordinal % 6
             c = stack.enter_context(contextlib.closing(s.connect(b.port, args.stall, io=io)))
             c.must('SELECT', db)
             control.must('SELECT', db)
-            pair, owners = s.keys_for(control, f'flipfix6:{io}', False, 2)
+            pair, owners = s.keys_for(control, f'flipfix6:{ordinal}', False, 2)
             if case == 'p3':
-                pair[1] = s.same_owner(control, f'flipfix6:{io}:same', owners[0][1])
+                pair[1] = s.same_owner(control, f'flipfix6:{ordinal}:same', owners[0][1])
                 owners[1] = s.placement(control, pair[1])
             control.must('MSET', pair[0], 0, pair[1], 0)
             count = 0
@@ -126,7 +128,7 @@ def witness(args, directory, engine, atomic, case):
             try:
                 while not stop.is_set():
                     begin = time.monotonic()
-                    if case in ('exec', 'p3'):
+                    if case in ('exec', 'exec-close', 'p3'):
                         value = transaction(c, pair, pipeline=case != 'p3')
                         row['execs'] += 1
                         assert value == row['execs'], (value, row)
@@ -151,22 +153,41 @@ def witness(args, directory, engine, atomic, case):
                 result['errors'].append(traceback.format_exc())
                 stop.set()
 
+        def churn():
+            try:
+                while not stop.is_set():
+                    with contextlib.closing(s.connect(b.port, args.stall)) as c:
+                        assert c.must('WATCH', 'flipfix6:closing') == b'OK'
+                    result['closes'] = result.get('closes', 0) + 1
+            except Exception:
+                result['errors'].append(traceback.format_exc())
+                stop.set()
+
         threads = [threading.Thread(target=worker, args=client) for client in clients]
         threads.append(threading.Thread(target=ping))
+        if case == 'exec-close':
+            threads.append(threading.Thread(target=churn))
         for thread in threads:
             thread.start()
         try:
             assert ready.wait(args.stall), 'PING prober did not start'
             s.wait(lambda: all(row['ops'] for row in result['workers']), 'workers never started')
             until = time.monotonic() + args.seconds
+            live_io = 6
             while not stop.is_set() and (not result['flips'] or time.monotonic() < until):
-                target = 4 if len(result['flips']) % 2 == 0 else 6
+                target = 4 if live_io == 6 else 6
                 begin = time.monotonic()
                 reply = control.cmd('FLIP', target, 8 - target)
                 result['flips'].append(dict(seconds=time.monotonic() - begin,
                     reply=reply.message.decode() if isinstance(reply, RespError) else reply.decode()))
                 if isinstance(reply, RespError):
-                    break
+                    if args.expect == 'pre':
+                        break
+                    assert reply.message in (
+                        b'ERR FLIP refused: prepared but unpublished MULTI/WATCH state',
+                        b'ERR FLIP refused: a pinned connection closed'), reply
+                else:
+                    live_io = target
         finally:
             stop.set()
             for thread in threads:
@@ -175,6 +196,8 @@ def witness(args, directory, engine, atomic, case):
         after = s.stats(control)
         result['sessions_moved'] = after.get('flip_session_clients_transferred', 0) - before.get(
             'flip_session_clients_transferred', 0)
+        for counter in ('flip_refused_s2', 'flip_refused_close'):
+            result[counter] = after.get(counter, 0) - before.get(counter, 0)
         result['clients_moved'] = after['flip_clients_transferred'] - before['flip_clients_transferred']
         for c, pair, row in clients:
             row['io_after'] = s.io_thread(c)
@@ -188,8 +211,15 @@ def witness(args, directory, engine, atomic, case):
             assert 4.0 <= result['ping_max'] < args.stall, result
             assert all(row['max_gap'] >= 4.0 for row in result['workers']), result
         else:
-            assert all(r['reply'] == 'OK' and r['seconds'] < 1 for r in result['flips']), result
-            assert len(result['flips']) >= args.min_flips, result
+            assert all(r['seconds'] < 1 for r in result['flips']), result
+            successes = sum(r['reply'] == 'OK' for r in result['flips'])
+            assert successes >= args.min_flips, result
+            s2 = sum('prepared but unpublished' in r['reply'] for r in result['flips'])
+            closes = sum('a pinned connection closed' in r['reply'] for r in result['flips'])
+            assert successes + s2 + closes == len(result['flips']), result
+            assert s2 == result['flip_refused_s2'] and closes == result['flip_refused_close'], result
+            if case == 'exec-close':
+                assert closes > 0 and result.get('closes', 0) > 0, ('close refusal never armed', result)
             assert result['sessions_moved'] > 0, ('no session connection moved', result)
             assert result['ping_max'] < 1 and all(row['max_gap'] < 1 for row in result['workers']), result
     assert b.exit == dict(rc=0, forced=False), b.exit
@@ -203,10 +233,11 @@ def main():
     p.add_argument('--port', type=int, default=20300)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--expect', choices=['pre', 'post'], default='post')
-    p.add_argument('--cases', nargs='+', choices=['exec', 'p1', 'p2', 'p3', 'watch', 'semantics'], default=['exec'])
+    p.add_argument('--cases', nargs='+', choices=['exec', 'p1', 'p2', 'p3', 'watch', 'semantics', 'exec-close'], default=['exec'])
     p.add_argument('--engines', nargs='+', default=['uring', 'epoll'])
     p.add_argument('--atomics', nargs='+', type=int, default=[0, 1])
     p.add_argument('--databases', nargs='+', type=int, default=[1, 16])
+    p.add_argument('--clients-per-io', type=int, default=1)
     p.add_argument('--seconds', type=float, default=6)
     p.add_argument('--stall', type=float, default=10)
     p.add_argument('--min-flips', type=int, default=100)

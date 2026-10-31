@@ -769,6 +769,10 @@ public:
                barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
                multi_session_ == nullptr && nothing_to_write();
     }
+    // FLIP alone may carry durable session/WATCH state after the global drains.
+    // Definitions live beside MultiSession; LB and lifetime predicates stay unchanged.
+    bool flip_migration_protocol_idle() const;
+    bool flip_session_pending() const;
     bool flip_drain_idle() const {
         // Global dispatch is paused, but connections which remain on this IO may retain durable
         // owner-local modes (subscriptions, WATCH/MULTI session metadata, tracking). Only work

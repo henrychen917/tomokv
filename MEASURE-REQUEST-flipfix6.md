@@ -2,23 +2,25 @@
 
 ## flipfix6
 
-Branch `cx-flipfix6`, PRE `e32b04a445b056976abb308aa598e356fcbaae74`; resumed from
-`cbb7633ef`. No push. **Not ready to land.** The approved WATCH exception and
-bounded IoDrain cleanup were implemented and tested in a provisional draft.
-That draft passes 48/48 live cases, but two deterministic witnesses expose a
-further conflict with the preserved executor fence / frozen-owner contract.
-The draft is retained as a reviewable patch, **not applied to production source**:
-[session-handover-DRAFT.patch](docs/flipfix6/session-handover-DRAFT.patch).
-No completed POST or PAD-A is claimed.
+Branch `cx-flipfix6`, PRE `e32b04a445b056976abb308aa598e356fcbaae74`.
+Resumed from `fe0f82542` under resume addendum 2. No push.
 
-D18.1 and D18.2 remain approved. The resume addendum's durable WATCH-pin ruling
-is accepted and proved below. The additional decision concerns the earlier
-ExDrain admission/apply fence and close cleanup after its acknowledgement:
-[s2-exdrain-review.md](docs/flipfix6/s2-exdrain-review.md). The implementation
-stops at the brief's explicit boundary: "If a correct fix needs any of these to
-change, stop: write the evidence and the proposed change for the owner, and do
-not implement it." No executor-credit exception or close-scheduling change
-has been implemented.
+The conservative implementation is now applied. D18.1 carries the session and
+accepts exactly its installed WATCH aliases. S2 on **any** source refuses at
+IoDrain, leaving its state and original admission untouched. A pinned close
+refuses a reversible FLIP before preparing cleanup. If the ownership commit
+has already won, the existing pin holds cleanup until Idle; that edge cannot
+be rolled back. The refusal and commit edge share the existing error mutex.
+The active-close retry revisits the same idempotent cleanup before the unchanged
+zero-pin lifetime check, so deferral cannot leak a watched connection.
+
+The preserved executor readiness predicate has no credit discount. **D18.4
+(not implemented, owner decision after the freeze)** is the receipt alternative
+in [s2-exdrain-review.md](docs/flipfix6/s2-exdrain-review.md). The earlier draft and
+witnesses below remain historical evidence. Current validation: release build,
+fast core session/S2/close units, existing planned-close lifetime units, WATCH
+allocation rollback (db1/db16), and `make -q` PASS. Gate/sanitizer/live/counting
+proof and final POST/PAD-A arms are in progress; no landing claim yet.
 
 ### What the resume established
 

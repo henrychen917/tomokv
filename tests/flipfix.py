@@ -234,7 +234,9 @@ def disconnects(args, churn=False):
                 if not args.evidence:
                     assert elapsed < STALL_BOUND_S, \
                         f'FLIP held {elapsed:.2f}s by connections closing during it ({key})'
-                    allowed = OUT_OF_SCOPE_REFUSALS + ((b'ERR a FLIP is already in progress',)
+                    # D18 conservative close policy: a pinned close withdraws
+                    # precommit FLIP immediately; the ownership/lifetime assertions stay.
+                    allowed = OUT_OF_SCOPE_REFUSALS + (b'ERR FLIP refused: a pinned connection closed',) + ((b'ERR a FLIP is already in progress',)
                                                       if args.flip_auto else ())
                     assert reply == b'OK' or reply.message in allowed, \
                         f'FLIP refused because connections closed during it: {key}'

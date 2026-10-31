@@ -45,7 +45,7 @@ struct CoreConcurrencyTest {
         uint32_t io_id = Fused ? 7 : 0;
         Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16,
                 uint32_t databases = 1, uint32_t split_io = 6, bool read_local = false,
-                int32_t key_damping = -1)
+                int32_t key_damping = -1, unsigned atomic = 1)
             : loops(std::make_unique<ExLoopT<Fused>[]>(thread_count)) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
@@ -78,6 +78,7 @@ struct CoreConcurrencyTest {
             }
             require(server.placement_.reserve_runtime_roles(thread_count), "reserve placement roles");
             Config config;
+            config.atomic = atomic;
             config.shards = shard_count;
             config.databases = databases;
             config.read_local = read_local;
@@ -1054,6 +1055,7 @@ struct CoreConcurrencyTest {
 #include "flipreport_checks.inc"
 #include "flipfix_checks.inc"
 #include "flipfix5_checks.inc"
+#include "flipfix6_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1214,6 +1216,15 @@ int main(int argc, char** argv) {
     else if (row == "flipfix-plan-lifetime") T::flipfix_plan_lifetime();
     else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
     else if (row == "flipfix5") T::flipfix5_all();
+    else if (row == "flipfix6-watch") { T::flipfix6_watch(1); T::flipfix6_watch(16); }
+    else if (row == "flipfix6") {
+        for (auto db : {1u, 16u}) {
+            T::flipfix6_watch(db);
+            for (auto atomic : {0u, 1u}) for (bool converting : {false, true})
+                T::flipfix6_s2(db, atomic, converting);
+            for (bool converting : {false, true}) T::flipfix6_close_fence(db, converting);
+        }
+    }
     // Negative controls: the pre-flipfix5 live-epoch test must replay (FAIL) or abort.
     else if (row == "flipfix5-planted") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, false);
     else if (row == "flipfix5-planted-abort") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, true);

@@ -833,6 +833,7 @@ void watch_oom(Server& server) {
             auto* session = c.multi_session();
             saw_rollback |= session && session->watched.capacity() != 0;
             require(!session || session->watched.empty(), "failed WATCH did not leave a phantom session key");
+            require(c.flip_migration_protocol_idle(), "WATCH OOM leaves no phantom transfer pins");
             watch.op.clear_reply();
             require(multi_handle_io(server, c, watch.op, 0, state) == MultiIoAction::Dispatch,
                     "successful retry posts real WATCH work");
@@ -848,8 +849,14 @@ void watch_oom(Server& server) {
                     !namespaces[alias.ns], "one exact logical key, no duplicate namespace alias");
             namespaces[alias.ns] = true;
         }
+        require(!c.flip_migration_protocol_idle(), "prepared WATCH stays on source IO");
+        multi_dispatch_started(c, state);
         for (const auto shard_id : state->shards)
             require(execute_watch_phase(*state, server.shard(shard_id)), "retry registered owner watcher");
+        require(c.flip_migration_protocol_idle(), "all installed WATCH aliases exactly match session");
+        c.watch_ref();
+        require(!c.flip_migration_protocol_idle(), "transient WATCH pin still blocks transfer");
+        c.watch_unref();
         server.shard(sid(server, key)).watch_write_committed(slice(key));
         require(c.watch_dirty(), "foreign mutation dirties the successfully retried WATCH");
         for (const auto& alias : state->watched)
@@ -858,6 +865,7 @@ void watch_oom(Server& server) {
         require(c.safe_to_release(), "every alias releases its client reference");
         c.multi_session()->pending = nullptr;
         c.multi_session()->watched.clear();
+        require(c.flip_migration_protocol_idle(), "WATCH cleanup restores zero-alias readiness");
         destroy_multi_state(state);
         if (reached_success) break;
     }
@@ -950,6 +958,7 @@ int main(int argc, char** argv) {
     require(command_registry_init(false), "command registry");
     Config cfg; cfg.databases = 1;
     const std::string name = argv[1];
+    if (name == "watch_oom_db16") cfg.databases = 16;
     if (name.starts_with("plain_")) cfg.atomic = name.ends_with("_1") ? 1 : 0;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
     cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
@@ -973,7 +982,7 @@ int main(int argc, char** argv) {
     else if (name == "watch_cycle") watch_cycle(server);
     else if (name == "post_apply_probe") post_apply_probe(server);
     else if (name == "mset_arity") mset_arity(server);
-    else if (name == "watch_oom") watch_oom(server);
+    else if (name == "watch_oom" || name == "watch_oom_db16") watch_oom(server);
     else if (name == "stage_flag") stage_flag(server);
     else if (name == "closure" || name == "lua_conversion" || name == "lua_lines" ||
              name == "library_limit" || name == "instruction_limit") lua_case(server, name);

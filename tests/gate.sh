@@ -1176,9 +1176,9 @@ plan_jobs(){
   JOB_NAMES+=(blockfix2 blockfix_structure blockfix_registry blockfix_mkstream persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables debug-0 debug-1
               iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
+              atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
-              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 atomic_floor
+              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 flipfix6 atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair exec1s txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1530,6 +1530,48 @@ if unit_ready core-concurrency-unit; then
 else planted_ok=0; fi
 [ "$planted_ok" = 1 ] && ok "FLIP stale stage planted pre-fix controls fail" \
     || bad "FLIP stale stage planted pre-fix controls fail" "see $TMPDIR/gate-flipfix5-planted*.txt"
+}
+
+job_flipfix6_units(){
+# Two rows before the quick exit: real WATCH aliases, S2 on both source kinds,
+# close publication fence and cleanup resumption; then allocator rollback.
+row_begin "FLIP session handover S2 and close fences (ASAN+TSAN)"
+quiet_wait
+if unit_ready core-concurrency-unit && \
+    ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+    taskset -c "$CORES" ./build/core-concurrency-unit flipfix6 >"$TMPDIR/flipfix6.txt" 2>&1 && \
+    [ "$(grep -c '^ARMED flipfix6 ' "$TMPDIR/flipfix6.txt")" = 46 ] && \
+    tsan_unit "$CORE_TSAN" core-concurrency-tsan \
+        "PASS core concurrency flipfix6 (state assertions fired)" flipfix6; then
+  ok "FLIP session handover S2 and close fences (ASAN+TSAN)"
+else
+  bad "FLIP session handover S2 and close fences (ASAN+TSAN)" "see $TMPDIR/flipfix6.txt and TSAN log"
+fi
+row_begin "FLIP WATCH alias allocation rollback (db1/db16)"
+if unit_ready atomic-survivors-unit && \
+    taskset -c "$CORES" ./build/atomic-survivors-unit watch_oom >"$TMPDIR/watch-oom-db1.txt" 2>&1 && \
+    taskset -c "$CORES" ./build/atomic-survivors-unit watch_oom_db16 >"$TMPDIR/watch-oom-db16.txt" 2>&1; then
+  ok "FLIP WATCH alias allocation rollback (db1/db16)"
+else
+  bad "FLIP WATCH alias allocation rollback (db1/db16)" "see $TMPDIR/watch-oom-db*.txt"
+fi
+}
+
+job_flipfix6(){
+# One row before the quick exit. Each subcase/leg boots fresh at 6:2 / 16 shards.
+# Approved S2/close refusals must match their counters and return below one second;
+# all other FLIPs complete. Every transaction reply and final value is checked.
+row_begin "FLIP MULTI WATCH session storm (all legs)"
+if py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+    --cases exec p1 p2 p3 watch semantics exec-close --seconds 6 \
+    --output "$TMPDIR/flipfix6" >"$TMPDIR/flipfix6.log" 2>&1 && \
+    py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+    --cases exec exec-close --clients-per-io 8 --seconds 6 \
+    --output "$TMPDIR/flipfix6-scale" >"$TMPDIR/flipfix6-scale.log" 2>&1; then
+  ok "FLIP MULTI WATCH session storm (all legs)"
+else
+  bad "FLIP MULTI WATCH session storm (all legs)" "see $TMPDIR/flipfix6*.log"
+fi
 }
 
 job_flipfix5(){
@@ -5978,7 +6020,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync|witness_contracts) ;;
     flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
-    core_units|flipfix_units|flipfix5_units) echo 'production_units core_tsan_build';;
+    core_units|flipfix_units|flipfix5_units|flipfix6_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     compat2) echo 'release production_units redis_tcl';;
@@ -6092,6 +6134,8 @@ collect_job core_units
 collect_job flipfix_units
 # flipfix5: two serverless rows before the quick exit (+2 quick / +2 full); EXPECT is owner-owned.
 collect_job flipfix5_units
+# flipfix6: two serverless rows BEFORE quick exit; EXPECT is owner-owned.
+collect_job flipfix6_units
 
 collect_job wb_rule_units
 
@@ -6304,6 +6348,8 @@ collect_job flipctl
 collect_job flip_saturated
 # flipfix5: one live directed row before the quick exit (DQ=+1, DF=+1); EXPECT is owner-owned.
 collect_job flipfix5
+# flipfix6: one live row BEFORE quick exit; total DQ=+3, DF=+3.
+collect_job flipfix6
 
 collect_job atomic_floor
 

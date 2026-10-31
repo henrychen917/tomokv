@@ -185,6 +185,8 @@ struct MultiSession {
     MultiExecState* pending = nullptr;       // prepared, but not yet published to owner queues
 };
 
+#include "flip_session.inc"
+
 struct MultiOwnerRecordRefs {
     // `nodes` is also the pointer retained by every AtomicEntry installed on this executor. Writer
     // owners begin at one so cleanup cannot release the state's pre-count before the owner has run
@@ -2894,6 +2896,10 @@ uint32_t multi_owner_pass_entry(IoLoop& loop) {
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {
+    // A pinned close refuses a reversible FLIP before any cleanup is prepared.
+    // After commitment the same pin defers cleanup until Idle. Keep this cold:
+    // the ordinary command dispatch and close_client bodies gain no instruction.
+    if (loop.flip_close_pin_ && loop.flip_session_close_held()) return;
     // AT4.12: leave the per-IO script FIFO here. close_client calls this on EVERY non-dead entry,
     // before mark_dead; QUIT, CLIENT KILL of self and the parse-error/receive-limit arms mark the
     // connection closing first and reach close_client later from flush_ready, so a removal under
