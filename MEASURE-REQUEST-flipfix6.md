@@ -108,7 +108,8 @@ The directed gate run passed **18 rows, zero failures**, including all **72/72**
 fresh-boot live cases. Across the 64 storm cases there were **1,478,476 FLIP
 attempts**, **22,758 immediate close refusals**, and **zero S2 refusals**. The
 largest observed FLIP was **17.585 ms**, PING was **17.524 ms**, and command
-reply gap was **17.551 ms**. Every no-churn EXEC FLIP succeeded. All pairs,
+reply gap was **17.551 ms**. The longest close refusal was **3.122 ms**.
+Every no-churn EXEC FLIP succeeded. All pairs,
 reply counts, final values and session-move counters passed. These are
 correctness stall observations, not throughput results.
 
@@ -221,11 +222,21 @@ epoll, with FLIP disabled. Matched PRE/POST diagnosis reproduced the same timeou
 signature on unchanged PRE (1/8 debugger trials); POST passed 8/8 in that
 diagnosis. Four native repetitions of the exact gate job passed (PRE 2/2, POST 2/2), without a debugger. The failure is not dismissed or
 counted as green; see [the retained finding and PRE trace](docs/flipfix6/txnorder-aof-finding/README.md). Both fused debug/atomic/production supplements passed **55 rows each, zero failures**.
-The uring differential matrix and inventory folds passed **954 comparisons**
-(490 split/equivalence + 464 armed fused; standard seeds 7, 19, 20, 23, 21).
-The epoll differential matrix remains pending, followed by
-PAD-A negative control and final `python3 tests/gates_test.py`. These are not yet
-claimed as passes. Any unresolved failure or NOT RUN item will be explicit here.
+Both differential matrices and their strict inventory folds passed:
+**954 oracle comparisons per engine, 1,908 total** (490 split/equivalence + 464
+armed fused per engine). Each used the gate's permanent seeds 7, 19, 20, 23;
+the gate selected rotating seed 21 for uring and 22 for epoll. The read-local
+activation assertion is additional to these comparison counts.
+
+PAD-A reproduced the old refusal in **8/8 legs**, each in 5.0002-5.0008 seconds,
+with the unrelated PING also stalled for about five seconds. The strict POST
+row run against PRE exited **1 as required**, with a recorded 5.0002-second
+FLIP refusal and 5.0006-second PING. This is an expected negative-control failure,
+not a green POST row. The row now retains its partial witness when an early
+assertion rejects PRE; no assertion was relaxed. See
+[negative-controls.json](docs/flipfix6/negative-controls.json).
+The final `python3 tests/gates_test.py` and an additional native POST AOF gate
+retry are still pending. The original AOF failure remains explicitly failed.
 
 ### Delivered arms and maintainer measurement request
 

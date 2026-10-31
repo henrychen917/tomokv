@@ -183,6 +183,136 @@
       "GATE_DIFFER_ORACLE_CORES": "40-47"
     },
     "start": 1793451184.9694035,
-    "expected_exit": 0
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 2120.940861225128,
+    "passed": true,
+    "folds": [
+      {
+        "schema": 1,
+        "group": "split",
+        "parts": [
+          "split-0",
+          "split-1",
+          "equivalence"
+        ],
+        "start": 1793451185.8754086,
+        "end": 1793453305.4729817,
+        "seconds": 2119.597573041916,
+        "comparisons": 490,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "group": "armed",
+        "parts": [
+          "armed-0",
+          "armed-1"
+        ],
+        "start": 1793452239.692948,
+        "end": 1793453283.7707763,
+        "seconds": 1044.077828168869,
+        "comparisons": 464,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "name": "negative-PAD-A",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/flipfix6.py",
+      "--binary",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/PAD-A",
+      "--cores",
+      "32-39",
+      "--port",
+      "20300",
+      "--output",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/negative-PAD-A",
+      "--expect",
+      "pre",
+      "--cases",
+      "exec",
+      "--engines",
+      "uring",
+      "epoll",
+      "--atomics",
+      "0",
+      "1",
+      "--databases",
+      "1",
+      "16"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "start": 1793453306.0719628,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 40.42884659767151,
+    "passed": true
+  },
+  {
+    "name": "negative-PRE",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/flipfix6.py",
+      "--binary",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/PRE",
+      "--cores",
+      "32-39",
+      "--port",
+      "20300",
+      "--output",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/negative-PRE",
+      "--expect",
+      "post",
+      "--cases",
+      "exec",
+      "--engines",
+      "uring",
+      "--atomics",
+      "0",
+      "--databases",
+      "1"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "start": 1793453346.501155,
+    "expected_exit": 1,
+    "exit": 1,
+    "seconds": 5.075204610824585,
+    "passed": true,
+    "deadline_witness": true
+  },
+  {
+    "name": "gates-selftest",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_TEST_PORT": "20390"
+    },
+    "start": 1793453351.5770867,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 141.4852635860443,
+    "passed": true
   }
 ]
