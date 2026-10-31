@@ -121,6 +121,10 @@ and EXPECT_FULL are unchanged.
 
 Completed on the corrected, frozen POST:
 
+- All 40 directed persistence rows pass, covering both modes and both engines.
+  The existing `aoffix2 error` row passes 240 repetitions in each of those four
+  combinations: **960/960, zero failures**. `directed-verdict.json` binds the
+  ledgers and repetition counts to the delivered binary.
 - Tcl passing-subset job in both modes: 1,820 passing assertions per mode, including
   all three promotions. Its five existing setup errors per mode remain explicitly
   inventoried; no new skip or known-failure allowance was added.

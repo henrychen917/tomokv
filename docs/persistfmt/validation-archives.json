@@ -1,0 +1,8 @@
+[
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.Ver4C5",
+    "phase": "matrix-uring",
+    "archive": "docs/persistfmt/gate-run.Ver4C5.tar.gz",
+    "sha256": "9c4f6108bdaa7f0d5f04c7ab138addfcc214acea1f5b05f8fe3d7a27dec6137f"
+  }
+]

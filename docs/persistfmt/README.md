@@ -48,8 +48,9 @@ records that interruption. The delivered candidate repeats the complete matrix.
 
 `gates-test.log` is the first scheduler self-test attempt under compilation/trace
 contention; `gates-test-final.log` is the quiet 76/76 pass. PRE witnesses and the
-original 960-run S1 result are retained in the archived gate runs. Final validation
-repeats those S1 rows on the delivered POST bytes.
+original 960-run S1 result are retained in the archived gate runs.
+`directed-verdict.json` records all 40 directed rows and the repeated final
+960/960 S1 pass on the delivered POST bytes.
 
 `deleted-*.json`, archive manifests, and debug-compression receipts account for
 disk cleanup. Only completed-job data and superseded arms were removed. Fresh
