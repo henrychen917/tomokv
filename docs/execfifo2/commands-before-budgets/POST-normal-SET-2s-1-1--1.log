@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/commands-scopes/POST-normal-SET-2s-1-1--1.log
+SHA-256: e83d4d6aa55bdbdbffc3ff7d8d368a2c3af027563b39db06d3f7c6f1f89ed320
+Exit: 0
+2427	    }
+0x0000555555a437e8	2427	    }
+0x0000555555a437f1	2427	    }
+0x0000555555a437f7	2427	    }
+0x0000555555a437fb	2427	    }
+0x0000555555a437fc	2427	    }
+0x0000555555a437fe	2427	    }
+0x0000555555a43800	2427	    }
+0x0000555555a43802	2427	    }
+0x0000555555a43804	2427	    }
+0x0000555555a43805	2427	    }
+0x0000555555de3112 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:112
+112	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+ory");}
+[Inferior 1 (process 4101539) exited normally]
+COUNT 1680

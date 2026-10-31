@@ -62,7 +62,7 @@ def main():
                 assert c.cmd('EXEC') is None
                 script="return redis.call('INCR',KEYS[1])"
                 assert c.cmd('EVAL',script,1,'execfifo2:a')==3
-                library="#!lua name=execfifo2lib\nredis.register_function('execfifo2fn',function(keys,args) return redis.call('MGET',keys[1],keys[2]) end)"
+                library="#!lua name=execfifo2lib\nredis.register_function('execfifo2fn',function(keys,args) return {redis.call('GET',keys[1]),redis.call('GET',keys[2])} end)"
                 assert c.cmd('FUNCTION','LOAD',library)==b'execfifo2lib'
                 assert c.cmd('FCALL','execfifo2fn',2,'execfifo2:a','execfifo2:b')==[b'3',b'1']
                 info=c.cmd('INFO').decode();assert 'atomic_txn_order_violations:0\r\n' in info
