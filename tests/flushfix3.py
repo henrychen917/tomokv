@@ -27,7 +27,7 @@ def main():
     p.add_argument('--engines', nargs='+', default=['uring', 'epoll'])
     p.add_argument('--atomics', nargs='+', type=int, default=[0, 1])
     a = p.parse_args()
-    assert 20100 <= a.port <= 20199 and a.calls > 0 and a.deadline_ms > 0
+    assert 1024 <= a.port < 32768 and a.calls > 0 and a.deadline_ms > 0
     a.stall = 5
     os.environ['LC_ALL'] = 'C'
     a.output.mkdir(parents=True, exist_ok=True)

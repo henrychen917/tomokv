@@ -185,7 +185,9 @@ def main():
     p.add_argument('--fresh-attempts', type=int, default=1,
                    help='bounded fresh boots after a clean observation (PRE reproduction only)')
     args = p.parse_args()
-    assert 20100 <= args.port < 20199
+    # Gate slots may be allocated to another integration lane. Keep both the
+    # candidate and its adjacent oracle below the ephemeral-port boundary.
+    assert 1024 <= args.port < 32767
     assert 1 <= args.fresh_attempts <= 8
     assert args.fresh_attempts == 1 or not args.require_counters
     os.environ['LC_ALL'] = 'C'

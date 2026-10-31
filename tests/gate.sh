@@ -1444,13 +1444,13 @@ job_flushfix3_units(){
 }
 
 job_flushfix2(){
-  local case databases command mode label failed commands modes
-  for case in flush-pair flush-script flush-only namespace; do
+  local cell case databases command mode label
+  # Explicit finite declarations also feed gate_ledger_fixture's source census.
+  # Conditional shell assignments hid FLUSHDB and invented ASYNC labels there.
+  for cell in flush-pair:FLUSHALL:SYNC flush-script:FLUSHALL:SYNC flush-only:FLUSHALL:SYNC \
+      namespace:FLUSHALL:SYNC namespace:FLUSHALL:ASYNC namespace:FLUSHDB:SYNC namespace:FLUSHDB:ASYNC; do
+    IFS=: read -r case command mode <<< "$cell"
     for databases in 16 1; do
-      commands=FLUSHALL; modes=SYNC
-      if [ "$case" = namespace ]; then commands='FLUSHALL FLUSHDB'; modes='SYNC ASYNC'; fi
-      for command in $commands; do
-      for mode in $modes; do
       label="flushfix2 $case $command $mode (databases $databases)"
       row_begin "$label"
       py tests/flushfix2.py --case "$case" --databases "$databases" --command "$command" \
@@ -1460,8 +1460,6 @@ job_flushfix2(){
           --cores "$CORES" --port "$PORT" --output "$TMPDIR/$case-$databases-$command-$mode" \
           >"$TMPDIR/$case-$databases-$command-$mode.log" 2>&1 \
           && ok "$label" || bad "$label" "see $TMPDIR/$case-$databases-$command-$mode.log"
-      done
-      done
     done
   done
 }
