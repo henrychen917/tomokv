@@ -1,4 +1,4 @@
-Breakpoint 1 at 0x951b0: file ./src/cmd/txn_fifo.inc, line 54.
+Breakpoint 1 at 0x95760: file ./src/cmd/txn_fifo.inc, line 54.
 
 This GDB supports auto-downloading debuginfo from the following URLs:
   <https://debuginfod.ubuntu.com>
@@ -8,5 +8,5 @@ To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
 Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
 CONTROL FIRED
 FAIL: F1 older waiter FIFO-refuses W
-[Inferior 1 (process 1854120) exited with code 01]
+[Inferior 1 (process 3788091) exited with code 01]
 INFERIOR_EXIT 1

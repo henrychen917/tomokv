@@ -2523,5 +2523,280 @@
         "evidence": "docs/execfifo2/validation/21-differ-epoll/release"
       }
     ]
+  },
+  {
+    "group": "readlocal",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "rlcache splitlocal_units",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/readlocal-1793447855260880171.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.StwfS8",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.StwfS8/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/22-readlocal/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.StwfS8/jobs/release",
+        "evidence": "docs/execfifo2/validation/22-readlocal/release"
+      },
+      {
+        "name": "rlcache",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.StwfS8/jobs/rlcache",
+        "evidence": "docs/execfifo2/validation/22-readlocal/rlcache"
+      },
+      {
+        "name": "rldbg",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.StwfS8/jobs/rldbg",
+        "evidence": "docs/execfifo2/validation/22-readlocal/rldbg"
+      },
+      {
+        "name": "splitlocal_units",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.StwfS8/jobs/splitlocal_units",
+        "evidence": "docs/execfifo2/validation/22-readlocal/splitlocal_units"
+      }
+    ]
+  },
+  {
+    "group": "asan-uring-0",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-uring-0-1793447939058644518.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.j5Sr75",
+    "jobs_evidence": [
+      {
+        "name": "asan",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.j5Sr75/jobs/asan",
+        "evidence": "docs/execfifo2/validation/23-asan-uring-0/asan"
+      },
+      {
+        "name": "asan_batteries",
+        "returncode": 0,
+        "passed": 5,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.j5Sr75/jobs/asan_batteries",
+        "evidence": "docs/execfifo2/validation/23-asan-uring-0/asan_batteries"
+      }
+    ]
+  },
+  {
+    "group": "asan-uring-1",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-uring-1-1793448061024217587.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.ABHKHt",
+    "jobs_evidence": [
+      {
+        "name": "asan",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ABHKHt/jobs/asan",
+        "evidence": "docs/execfifo2/validation/24-asan-uring-1/asan"
+      },
+      {
+        "name": "asan_batteries",
+        "returncode": 0,
+        "passed": 5,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ABHKHt/jobs/asan_batteries",
+        "evidence": "docs/execfifo2/validation/24-asan-uring-1/asan_batteries"
+      }
+    ]
+  },
+  {
+    "group": "asan-epoll-0",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-epoll-0-1793448103495577523.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.V6srei",
+    "jobs_evidence": [
+      {
+        "name": "asan",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.V6srei/jobs/asan",
+        "evidence": "docs/execfifo2/validation/25-asan-epoll-0/asan"
+      },
+      {
+        "name": "asan_batteries",
+        "returncode": 0,
+        "passed": 5,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.V6srei/jobs/asan_batteries",
+        "evidence": "docs/execfifo2/validation/25-asan-epoll-0/asan_batteries"
+      }
+    ]
+  },
+  {
+    "group": "asan-epoll-1",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-epoll-1-1793448146060738717.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.mtDTX7",
+    "jobs_evidence": [
+      {
+        "name": "asan",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.mtDTX7/jobs/asan",
+        "evidence": "docs/execfifo2/validation/26-asan-epoll-1/asan"
+      },
+      {
+        "name": "asan_batteries",
+        "returncode": 0,
+        "passed": 5,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.mtDTX7/jobs/asan_batteries",
+        "evidence": "docs/execfifo2/validation/26-asan-epoll-1/asan_batteries"
+      }
+    ]
   }
 ]

@@ -1,0 +1,4 @@
+PASS splitlocal: FIFO/R7 forwarding, prebuild/discard, park policies
+R7 shadow production envelopes: current
+PASS negative control: old-forwarding rejected at flush_ready preserves SplitLocal and prebuild policy
+PASS negative control: old-park rejected at park/hot callback Fused policy mismatch

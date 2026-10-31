@@ -687,5 +687,166 @@
     "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/differ-epoll-1793446779696836735.log",
     "exit_code": 0,
     "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.WSxFnc"
+  },
+  {
+    "group": "readlocal",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "rlcache splitlocal_units",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/readlocal-1793447855260880171.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.StwfS8"
+  },
+  {
+    "group": "asan-uring-0",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-uring-0-1793447939058644518.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.j5Sr75"
+  },
+  {
+    "group": "asan-uring-1",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-uring-1-1793448061024217587.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.ABHKHt"
+  },
+  {
+    "group": "asan-epoll-0",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-epoll-0-1793448103495577523.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.V6srei"
+  },
+  {
+    "group": "asan-epoll-1",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "asan_batteries",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-epoll-1-1793448146060738717.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.mtDTX7"
   }
 ]

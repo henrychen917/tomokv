@@ -2,7 +2,7 @@
   {
     "case": "fifo-normal-1s",
     "binary": "/home/user/Projects/cx-execfifo2/build/txnorder-fifo-unit",
-    "sha256": "c8ec9df446981ee52a5448238c3d67c460bc9b01d1fe5a67218e94e065fd078d",
+    "sha256": "c89335fb3c244d4ff3e3ea7e43b0bffd0664ea9ba27e00a843a85f10e6a8b6bd",
     "command": [
       "taskset",
       "-c",
@@ -79,7 +79,7 @@
   {
     "case": "fifo-normal-2s",
     "binary": "/home/user/Projects/cx-execfifo2/build/txnorder-fifo-unit",
-    "sha256": "c8ec9df446981ee52a5448238c3d67c460bc9b01d1fe5a67218e94e065fd078d",
+    "sha256": "c89335fb3c244d4ff3e3ea7e43b0bffd0664ea9ba27e00a843a85f10e6a8b6bd",
     "command": [
       "taskset",
       "-c",
@@ -156,7 +156,7 @@
   {
     "case": "fifo-db0-1s",
     "binary": "/home/user/Projects/cx-execfifo2/build/txnorder-fifo-db0-unit",
-    "sha256": "5deb28b1e45614687ae3eab1f39c6470bee8cd5e9b2c202beddb543bdca23430",
+    "sha256": "65bd4d0ef0629571ec23a87b8e3dc51691b24eccc7d570b3f180456b3b1534b8",
     "command": [
       "taskset",
       "-c",
@@ -233,7 +233,7 @@
   {
     "case": "fifo-db0-2s",
     "binary": "/home/user/Projects/cx-execfifo2/build/txnorder-fifo-db0-unit",
-    "sha256": "5deb28b1e45614687ae3eab1f39c6470bee8cd5e9b2c202beddb543bdca23430",
+    "sha256": "65bd4d0ef0629571ec23a87b8e3dc51691b24eccc7d570b3f180456b3b1534b8",
     "command": [
       "taskset",
       "-c",
