@@ -1,0 +1,67 @@
+{
+  "base": "e32b04a445b056976abb308aa598e356fcbaae74",
+  "production_commit": "e1d632f94",
+  "source_unchanged_since_production_commit": true,
+  "source_sha256": {
+    "src/cmd/tracking.cc": "98b1c57b5afd4e84806f8f1b9bb28638fd4acd1be21722b764141a0b49bcda40",
+    "src/net/wb.h": "9f0e74f80d897a480f8d044a3f460fffb99257fc5872339f800e88f6b001587a",
+    "tests/trackorder.py": "c49b0f43b450ee9bffdd4e5d5a3aa039dd64e36ffd2e8991439213b397afdaa2",
+    "tests/gate.sh": "f70239741c2a7f5f441f254cbbc969f4dc582ce7dd10db03325f878bdca77eea"
+  },
+  "binary_sha256": {
+    "PRE": "414d439e4cb6c86bb963a08747b82b1f314566ce6107bdaa718a40e3d9389b46",
+    "POST": "8a8a8e98796570592b1e05ceb0bea98ceac8b9afbc1b4248092839bfdc1d5193",
+    "PAD-A": "380a1d0368acca59a636f6c9dd732881503276ab053ad1bc321e365c65d317fd"
+  },
+  "main_matches_POST": true,
+  "expect_counts_unchanged": {
+    "EXPECT_QUICK": 977,
+    "EXPECT_FULL": 994
+  },
+  "new_row_line": 6310,
+  "quick_branch_line": 6380,
+  "quick_exit_line": 6384,
+  "DQ": 1,
+  "DF": 1,
+  "owner_expected_counts": {
+    "EXPECT_QUICK": 978,
+    "EXPECT_FULL": 995
+  },
+  "instruction_cells": 80,
+  "min_positive_pre_scope_instructions": 818,
+  "zero_deltas": true,
+  "ports_20100_20199_listeners": "",
+  "live_owned_servers": [],
+  "build_bytes": 14111358976,
+  "build_GiB": 13.142,
+  "phases": {
+    "batteries-epoll": 0,
+    "matrix-PRE": 1,
+    "tcl-tracking": 0,
+    "supplementary": 0,
+    "differ-epoll": 0,
+    "matrix-PAD-A": 1,
+    "tcl-tracking-full-PRE": 1,
+    "batteries-uring": 0,
+    "differ-uring": 0,
+    "tcl-tracking-full": 1,
+    "matrix-POST": 0
+  },
+  "delivery_freshness_checks": {
+    "total": 62,
+    "failed": 0
+  },
+  "archive_sha256": {
+    "docs/trackorder/final/PAD-A-proof.tar.gz": "0c7ac7f4108655c7cacd70be79895ab32f73c5f6c1bd00f0923cf7750667c27e",
+    "docs/trackorder/final/POST-proof.tar.gz": "ffdd98dfe7604d5795aefd63c64ce30e0d56525f793081a1e0e393f9820d80ca",
+    "docs/trackorder/final/PRE-proof.tar.gz": "6e7e4a59a88ac65ba1e0d5e38c6aeffc391159a385385be98a3d568cc177957b",
+    "docs/trackorder/jobs/batteries-epoll-proof.tar.gz": "c815bfe2d6d29274907ac1fb143bb80090f1c6d2b984fb5b49068d3da1e6d332",
+    "docs/trackorder/jobs/batteries-uring-proof.tar.gz": "4de1d56b91d5feec68449bdd81a84844b8340ed31a09d550f1747d3c7419a5b5",
+    "docs/trackorder/jobs/differ-epoll-proof.tar.gz": "54eead0046ef281402d45f73ccee47e74d77a90a5b9c8a8de56b2df3dd6fbd0f",
+    "docs/trackorder/jobs/differ-uring-proof.tar.gz": "f5a2785c598da6a5394f09a84b68271273ddd576ed08e8d17a8fab0070b829da",
+    "docs/trackorder/jobs/supplementary-proof.tar.gz": "9bac7efa30c9b695430d2e175b1e7ddd12605180c398fd3ec2143a52e39589be",
+    "docs/trackorder/tcl/tcl-tracking-full-PRE-proof.tar.gz": "42852785a3fd089577658fc37f04e77bb8a4d4ed0a958b47333ba54cc17d89da",
+    "docs/trackorder/tcl/tcl-tracking-full-proof.tar.gz": "371ffd1b98ec19000793585721da3c853fe8af43d8a577a7f5af88a1868e753a",
+    "docs/trackorder/tcl/tcl-tracking-proof.tar.gz": "26a1f9a7fe6f4f35b49da3efda93a857b91ed892a4cfd353bd2fbe2a8ebf868c"
+  }
+}

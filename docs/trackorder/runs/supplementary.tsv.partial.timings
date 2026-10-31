@@ -1,0 +1,22 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.010000	storage unlinked regression
+ok	0.000000	storage randomkey regression
+ok	0.010000	storage rehash regression
+ok	0.010000	storage rollback regression
+ok	0.000000	storage snapshot-eviction regression
+ok	0.080000	storage flags regression
+ok	0.000000	storage aof-eviction regression
+ok	0.010000	storage intents regression
+ok	0.000000	storage imported-hash regression
+ok	0.010000	storage field-index-failure regression
+ok	0.000000	storage hash-bytes regression
+ok	0.010000	storage deadline-allocation-failure regression
+ok	0.000000	storage flush-prepared-capacity regression
+ok	33.490000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.470000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.490000	compat3 CC4.14 history vs Redis 7.4
+ok	33.590000	compat3 CC4.16 grammar vs Redis 7.4
+ok	33.760000	compat3 CC4.5 glob vs Redis 7.4
+ok	37.690000	compat3 CC4.17 flags vs Redis 7.4
+ok	16.040000	wave8b tracking-off EXEC scans and transitions
+ok	12.810000	Redis 7.4 infofix exact latency batch witness
