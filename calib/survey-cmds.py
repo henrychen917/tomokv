@@ -39,7 +39,7 @@ def main():
     args = p.parse_args()
     if args.selftest:
         return selftest()
-    return s.campaign(args, 'survey_cmds', cells)
+    return s.campaign(args, 'survey_cmds', cells, behaviour_cells=s.command_cells)
 
 
 if __name__ == '__main__':

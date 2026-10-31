@@ -103,7 +103,7 @@ static std::vector<Op> script(const std::string& path) {
 }
 // Every placeholder has the same width as the deterministic key. ss: is a stream.
 static std::string keywire(std::string s, u64 key) {
-    char digits[13]; snprintf(digits,sizeof digits,"%012llu",(unsigned long long)key);
+    char digits[13]; snprintf(digits,sizeof digits,"%012llu",(unsigned long long)(100000000000ull+key));
     for(const char* prefix:{"sv:","sw:","ss:","s0:","s1:","s2:","s3:","s4:","s5:","s6:","s7:"}) {
         std::string mark=std::string(prefix)+"000000000000"; size_t p=0;
         while((p=s.find(mark,p))!=std::string::npos) { s.replace(p+3,12,digits); p+=15; }
@@ -220,7 +220,7 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
                         if(op.primary){res.primary++;res.within+=done<=end;
                             u64 lag=pending.sent>pending.scheduled?pending.sent-pending.scheduled:0;
                             res.rtt.add(done-pending.sent);res.response.add(done-pending.scheduled);res.lag.add(lag);res.maxlag=std::max(res.maxlag,lag);
-                            if(raw){u64 row[]={c.id,pending.scheduled-start,pending.sent-start,done-start};raw.write((char*)row,sizeof row);need(bool(raw),"raw write");}
+                            if(raw.is_open()){u64 row[]={c.id,pending.scheduled-start,pending.sent-start,done-start};raw.write((char*)row,sizeof row);need(bool(raw),"raw write");}
                         }
                     }c.input.erase(0,p);
                 }
@@ -239,7 +239,7 @@ static void selftest(){
     Op op{true,"exact","",":1\r\n",{}};p=0;need(parse(op.expect,p,op.expected),"fixture");check(op,op.expected);
     auto bad=op.expected;bad.text="2";bool rejected=false;try{check(op,bad);}catch(...){rejected=true;}need(rejected,"bad reply accepted");
     for(u64 n:{0ull,1ull,1024ull,2048ull,1000000ull,100000000000ull})need(bucket(n)>=n&&bucket(n)-n<=std::max<u64>(1,n/1000),"hist precision");
-    need(keywire("sv:000000000000 sw:000000000000",42)=="sv:000000000042 sw:000000000042","key substitution");
+    need(keywire("sv:000000000000 sw:000000000000",42)=="sv:100000000042 sw:100000000042","key substitution");
     std::cout<<"survey-client selftest: PASS\n";
 }
 int main(int argc,char**argv){

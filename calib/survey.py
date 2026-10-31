@@ -25,11 +25,13 @@ import subprocess
 import sys
 import threading
 import time
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import flushmerit as fm
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'tests'))
+from abba_workloads import decode_histogram
 Invalid, require, encode, cpus = fm.Invalid, fm.require, fm.encode, fm.cpus
 KEY = 'sv:000000000000'
 OTHER = 'sw:000000000000'
@@ -69,6 +71,9 @@ def reply_wire(value):
 class Status:
     def __init__(self, value=b'OK'):
         self.value = value
+
+    def __str__(self):
+        return 'RESP simple string: ' + self.value.decode('ascii')
 
 
 class Resp(fm.Resp):
@@ -148,9 +153,7 @@ def workload(name, size=16, cardinality=100):
             cycle = [op(('SETRANGE', KEY, 0, 'x'), size)]
         else:
             # Eight distinct key namespaces, each with exactly the same population.
-            keys = [f'sv:{i:01d}' + '0' * 11 for i in range(8)]
-            # Native substitution applies to the suffix of sv/sw/ss. Use eight
-            # key arguments from namespaces; replacement below expands them.
+            # Eight namespaces make these eight distinct keys even at one-key smoke size.
             keys = [KEY.replace('sv:', f's{i}:') for i in range(8)]
             init = [op(('SET', k, v), Status(), primary=False) for k in keys]
             cycle = [op(('MGET', *keys), [v] * 8)] if name == 'MGET8' else [
@@ -240,8 +243,13 @@ def workload(name, size=16, cardinality=100):
         cycle = [op(('GEOADD', KEY, 121.5, 25.0, 'taipei'), 0)] if name == 'GEOADD' else [
             op(('GEOSEARCH', KEY, 'FROMMEMBER', 'taipei', 'BYRADIUS', 1, 'km'), ['taipei'])]
     require(cycle, f'unknown workload {name}')
+    # memtier fits independent single-key commands. The native driver handles
+    # coupled/refill cycles, explicit stream IDs, eight distinct key namespaces,
+    # and payloads exceeding Linux's per-argument limit. All offered-load cells
+    # use native so individual scheduled/sent/completed timestamps survive.
+    engine = 'memtier' if len(cycle) == 1 and name not in ('MGET8', 'MSET8', 'XRANGE', 'SINTER') and len(encode(*cycle[0]['command'])) < 120000 else 'native'
     return dict(name=name, shape=shape, size=size, cardinality=n, init=init, cycle=cycle,
-                multiplier=key_multiplier, engine='native', note=note,
+                multiplier=key_multiplier, engine=engine, note=note,
                 primary_per_cycle=sum(row['primary'] for row in cycle))
 
 
@@ -285,6 +293,7 @@ def parser(description, all_variants=False):
     p.add_argument('--candidate', type=Path, default=ROOT / 'build/tomokv')
     p.add_argument('--redis', type=Path, default=Path('/home/user/Projects/redis74/src/redis-server'))
     p.add_argument('--client', type=Path, default=ROOT / 'build/survey-client')
+    p.add_argument('--memtier', type=Path, default=Path(shutil.which('memtier_benchmark') or '/usr/bin/memtier_benchmark'))
     p.add_argument('--output', type=Path)
     p.add_argument('--server-cores', default='48-55')
     p.add_argument('--load-cores', default='56-63')
@@ -300,6 +309,7 @@ def parser(description, all_variants=False):
     p.add_argument('--ratio', help='default 3:1 split, using all server CPUs')
     p.add_argument('--shards', type=int, default=256)
     p.add_argument('--sidecar-samples', type=int, default=3, help='per workload, on a separate fresh boot')
+    p.add_argument('--disk-limit-gib', type=float, default=12, help='owned per-boot persistence data budget; abort if exceeded')
     return p
 
 
@@ -320,6 +330,8 @@ def configure(args):
     require(args.blocks > 0 and args.seconds > 0 and args.timeout > 0 and args.keys > 0 and args.connections > 0,
             'invalid duration/population/connections')
     require(args.workers >= 0 and args.sidecar_samples > 0, 'invalid workers/sidecar sample count')
+    require(args.workers <= len(load), 'native workers must not oversubscribe load CPUs')
+    require(0 < args.disk_limit_gib <= 12, 'persistence budget must be in (0,12] GiB')
     if args.ratio is None:
         require(len(server) % 4 == 0, 'automatic ratio requires server CPU count divisible by four')
         args.ratio = f'{len(server) * 3 // 4}:{len(server) // 4}'
@@ -328,7 +340,7 @@ def configure(args):
     select(args.variants, ('1s-rl0', '1s-rl1', '2s-rl0', '2s-rl1'))
     require(set(numbers(args.redis_threads)) <= {1, 4}, 'Redis io-threads must be 1 or 4')
     os.sched_setaffinity(0, load)
-    for attr in ('candidate', 'redis', 'client'):
+    for attr in ('candidate', 'redis', 'client', 'memtier'):
         path = getattr(args, attr).resolve()
         require(path.is_file() and os.access(path, os.X_OK), f'missing executable {path}; see survey-plan.md')
         setattr(args, attr, path)
@@ -336,7 +348,8 @@ def configure(args):
     require('v=7.4.' in version, 'reference is not Redis 7.4')
     args.output.mkdir(parents=True)
     save(args.output / 'manifest.json', dict(args=vars(args), redis_version=version,
-         binaries={k: dict(path=str(getattr(args, k)), sha256=fm.sha256(getattr(args, k))) for k in ('candidate', 'redis', 'client')},
+         binaries={k: dict(path=str(getattr(args, k)), sha256=fm.sha256(getattr(args, k))) for k in ('candidate', 'redis', 'client', 'memtier')},
+         memtier_version=subprocess.check_output([str(args.memtier), '--version'], text=True).strip(),
          source_sha=subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip(),
          kind='SMOKE_ONLY' if args.smoke else 'SURVEY', latency_unit='ns', histogram_significant_digits=3))
 
@@ -347,10 +360,10 @@ def server_argv(args, arm, folder, persistence='off'):
             '--bind', '127.0.0.1', '--port', str(args.port), '--dir', str(folder / 'data'),
             '--save', '', '--databases', '1', '--maxclients', '20064', '--appendonly',
             'yes' if persistence in ('everysec', 'always') else 'no', '--appendfsync',
-            persistence if persistence in ('everysec', 'always') else 'everysec']
+            persistence if persistence in ('everysec', 'always') else 'everysec',
+            '--auto-aof-rewrite-percentage', '0']
     if redis:
-        argv += ['--io-threads', arm.split('-')[-1], '--io-threads-do-reads', 'yes',
-                 '--auto-aof-rewrite-percentage', '0']
+        argv += ['--io-threads', arm.split('-')[-1], '--io-threads-do-reads', 'yes']
     else:
         mode, rl = arm.split('-')
         argv += ['--thread-mode', mode, '--read-local', rl[-1], '--shards', str(args.shards),
@@ -369,10 +382,25 @@ def server(args, arm, folder, persistence='off'):
     command = server_argv(args, arm, folder, persistence)
     save(folder / 'server-argv.json', command)
     conn = process = None
+    monitor_stop, disk_failure = threading.Event(), []
+    monitor = None
     try:
         with (folder / 'server.log').open('wb') as log:
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, cwd=folder,
                                        env=dict(os.environ, LC_ALL='C'), start_new_session=True)
+            def disk_watch():
+                while not monitor_stop.wait(.1):
+                    try:
+                        used = sum(path.stat().st_size for path in data.rglob('*') if path.is_file())
+                    except FileNotFoundError:
+                        continue  # rename during snapshot/AOF publication
+                    if used > args.disk_limit_gib * 1024 ** 3:
+                        disk_failure.append(f'owned persistence data exceeded {args.disk_limit_gib} GiB')
+                        process.terminate()
+                        return
+            if persistence != 'off':
+                monitor = threading.Thread(target=disk_watch, daemon=True)
+                monitor.start()
             deadline = time.monotonic() + 40
             while time.monotonic() < deadline:
                 require(process.poll() is None, f'server boot failed: {folder}/server.log')
@@ -402,8 +430,14 @@ def server(args, arm, folder, persistence='off'):
             require(conn.cmd('DBSIZE') == 0, 'fresh boot contains keys')
             save(folder / 'boot-info.json', boot)
             yield process, conn
+            require(not disk_failure, '; '.join(disk_failure))
             require(process.poll() is None, 'server exited during run')
     finally:
+        monitor_stop.set()
+        if monitor:
+            monitor.join(timeout=2)
+        if disk_failure:
+            save(folder / 'disk-budget-failure.json', disk_failure)
         if conn:
             conn.close()
         if process and process.poll() is None:
@@ -434,6 +468,14 @@ def calls(info, name):
 
 
 def accounting(before, after, counts):
+    counts = Counter(counts)
+    # Redis subdivides XGROUP by subcommand; TomoKV exposes the registered
+    # parent command. Aggregate only that documented INFO representation.
+    if 'thread_mode' in after:
+        mapped = Counter()
+        for name, n in counts.items():
+            mapped[name.split('|')[0]] += n
+        counts = mapped
     delta = {}
     for key in COUNTERS:
         require((key in before) == (key in after), f'disappearing INFO {key}')
@@ -500,12 +542,14 @@ def validate_client(document, operations, seconds, offered=None, max_lag_ms=20, 
     elapsed = max((row['finish_ns'] - document['epoch_ns']) / 1e9 for row in rows)
     require(elapsed > 0, 'invalid client interval')
     result = dict(completed=primary, cycles=cycles, commands=dict(counts), elapsed=elapsed,
+                  client_epoch_ns=document['epoch_ns'],
+                  engine='native',
                   ops_per_second=primary / elapsed, total_command_rate=sum(counts.values()) / elapsed,
                   worker_cpu_fraction=[row['cpu_seconds'] / elapsed for row in rows])
     if primary:
         result.update(latency=histogram(rows, 'rtt'), scheduled_latency=histogram(rows, 'response'),
                       schedule_lag=histogram(rows, 'lag'))
-        require(result['latency']['n'] == primary and result['scheduled_latency']['n'] == primary, 'missing latency observations')
+        require(all(result[key]['n'] == primary for key in ('latency', 'scheduled_latency', 'schedule_lag')), 'missing latency observations')
     if offered is not None:
         per_cycle = sum(op['primary'] for op in operations)
         expected = math.ceil(offered * seconds / per_cycle) * per_cycle
@@ -581,12 +625,113 @@ def native(args, conn, folder, operations, keys, connections, pipeline=1, second
 
 def seed(args, conn, folder, cell):
     w, keys = cell['workload'], cell['keys']
+    if w['name'] in ('XADD', 'XREADGROUP'):
+        require(keys >= cell['connections'] and keys % cell['connections'] == 0,
+                'stateful stream cells require disjoint per-connection key ranges: keys must be a multiple of connections')
     require(conn.cmd('DBSIZE') == 0, 'preload requires empty image')
     result = native(args, conn, folder / 'seed', w['init'], keys, min(32, keys), pipeline=8,
                     count=keys, seconds=max(args.timeout, 3600))
     require(conn.cmd('DBSIZE') == keys * w['multiplier'], 'wrong preload DBSIZE')
     save(folder / 'preload.json', dict(keys=keys, logical_keys=keys * w['multiplier'],
          shape=w['shape'], value_bytes=w['size'], cardinality=w['cardinality'], result=result))
+
+
+def memtier_command(operation):
+    parts = []
+    for value in operation['command']:
+        if value == KEY:
+            parts.append('__key__')
+        else:
+            value = value.decode('ascii') if isinstance(value, bytes) else str(value)
+            require(value and not any(ch.isspace() or ch in "'\"\\" for ch in value), 'unsafe memtier command argument')
+            parts.append(value)
+    return ' '.join(parts)
+
+
+def memtier_result(data, operation, connections, pipeline, seconds):
+    stats, name = data['ALL STATS'], command_name(operation['command'])
+    runtime, totals = stats['Runtime'], stats['Totals']
+    require(runtime['Interrupted'] in (False, 'false'), 'memtier interrupted')
+    require(runtime['Time unit'] == 'MILLISECONDS', 'unknown memtier runtime unit')
+    elapsed = runtime['Total duration'] / 1000
+    require(elapsed >= seconds and elapsed <= seconds + 30, 'short/excessive memtier interval')
+    require({'Connection Errors', 'Connection Errors/sec'} <= totals.keys(), 'memtier missing connection error counters')
+    for key in ('Errors', 'Errors/sec', 'Connection Errors', 'Connection Errors/sec'):
+        require(float(totals.get(key, 0)) == 0, f'memtier nonzero {key}')
+    candidates = [row for key, row in stats.items() if key.lower() in (name, name + 's')]
+    require(len(candidates) == 1, 'missing custom-command histogram')
+    row = candidates[0]
+    bins_us = decode_histogram(row['Percentile Latencies']['Histogram log format']['Compressed Histogram'])
+    completed = sum(bins_us.values())
+    require(completed > 0 and row['Count'] == totals['Count'], 'bad memtier command count')
+    # memtier's reported Count can omit its final finite in-flight batch. The
+    # drained HDR count must EXACTLY match INFO; the gate uses the same contract.
+    require(abs(row['Count'] - completed) <= connections * pipeline, 'memtier Count/HDR discrepancy exceeds outstanding work')
+    h = dict(n=completed, max=max(bins_us) * 1000, bins=[[us * 1000, n] for us, n in bins_us.items()])
+    latency = histogram([dict(h=h)], 'h')
+    latency['max_kind'] = 'HDR upper equivalent (memtier does not retain exact raw max)'
+    return dict(completed=completed, commands={name: completed}, elapsed=elapsed,
+                ops_per_second=completed / elapsed, total_command_rate=completed / elapsed,
+                latency=latency, generator_busy=False, generator_busy_basis='per-worker CPU sampled during memtier lifetime',
+                memtier_reported_count=row['Count'], memtier_count_hdr_bound=connections * pipeline,
+                engine='memtier --command', runtime=runtime)
+
+
+def memtier(args, conn, folder, cell):
+    folder.mkdir(parents=True)
+    seconds = cell.get('seconds', args.seconds)
+    require(seconds == int(seconds), 'memtier --test-time needs integer seconds')
+    operations = cell['workload']['cycle']
+    require(len(operations) == 1 and operations[0]['primary'], 'memtier requires one primary command')
+    connections = cell['connections']
+    limit = min(args.workers or len(cpus(args.load_cores)), connections)
+    threads = max(n for n in range(1, limit + 1) if connections % n == 0)
+    argv = ['taskset', '-c', args.load_cores, str(args.memtier), '--server=127.0.0.1', f'--port={args.port}',
+            '--protocol=redis', f'--threads={threads}', f'--clients={connections // threads}',
+            f'--pipeline={cell["pipeline"]}', f'--test-time={int(seconds)}', '--key-prefix=sv:',
+            '--key-minimum=100000000000', f'--key-maximum={100000000000 + cell["keys"] - 1}',
+            '--hide-histogram', f'--json-out-file={folder / "memtier.json"}',
+            '--command=' + memtier_command(operations[0]), '--command-key-pattern=R']
+    save(folder / 'client-argv.json', argv)
+    before = fm.info(conn)
+    save(folder / 'info-before.json', before)
+    process, cpu_samples = None, {}
+    started = time.monotonic()
+    try:
+        with (folder / 'client.log').open('wb') as log:
+            process = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)
+            while process.poll() is None:
+                now = time.monotonic()
+                require(now - started < seconds + args.timeout, 'memtier timed out')
+                for path in Path(f'/proc/{process.pid}/task').glob('*/stat'):
+                    try:
+                        fields = path.read_text().rsplit(')', 1)[1].split()
+                        ticks = int(fields[11]) + int(fields[12])
+                        cpu_samples.setdefault(path.parent.name, []).append((now, ticks))
+                    except FileNotFoundError:
+                        pass
+                time.sleep(.05)
+            require(process.returncode == 0, f'memtier failed: {folder}/client.log')
+        after = fm.info(conn)
+        save(folder / 'info-after.json', after)
+        result = memtier_result(json.loads((folder / 'memtier.json').read_text()), operations[0], connections, cell['pipeline'], seconds)
+        hz = os.sysconf('SC_CLK_TCK')
+        fractions = [(samples[-1][1] - samples[0][1]) / hz / (samples[-1][0] - samples[0][0])
+                     for samples in cpu_samples.values() if len(samples) >= 3 and samples[-1][0] - samples[0][0] >= seconds * .8]
+        require(len(fractions) >= threads, 'missing per-worker CPU samples')
+        result.update(worker_cpu_fraction=fractions, generator_busy=max(fractions) >= .95)
+        result['info_delta'] = accounting(before, after, result['commands'])
+        require(result['info_delta']['counters']['keyspace_misses'] == 0, 'memtier hit workload missed keys')
+        save(folder / 'result.json', result)
+        return result
+    finally:
+        if process and process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
 
 
 def paired_ratios(records):
@@ -603,7 +748,8 @@ def paired_ratios(records):
         spread = {a: (max(v) - min(v)) / means[a] * 100 for a, v in rates.items()}
         out.append(dict(cell=cell, pair=pair, block=block, tomo_over_redis=means['B'] / means['A'],
                         means=means, spread_percent=spread, stable=max(spread.values()) <= 2,
-                        generator_busy=any(r['generator_busy'] for r in rows)))
+                        generator_busy=any(r['generator_busy'] for r in rows),
+                        interpretable=max(spread.values()) <= 2 and not any(r['generator_busy'] for r in rows)))
     return out
 
 
@@ -649,6 +795,8 @@ def sidecar(args, cells):
 def run_throughput(args, cell, arm, folder):
     with server(args, arm, folder, cell.get('persistence', 'off')) as (_, conn):
         seed(args, conn, folder, cell)
+        if cell['workload']['engine'] == 'memtier':
+            return memtier(args, conn, folder / 'load', cell)
         return native(args, conn, folder / 'load', cell['workload']['cycle'], cell['keys'],
                       cell['connections'], cell['pipeline'], seconds=cell.get('seconds'))
 
@@ -659,7 +807,7 @@ def summary(tool, records, expected, smoke=False, error=None):
     return line, valid
 
 
-def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finish=None):
+def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finish=None, behaviour_cells=None):
     records, error, expected, owns_output = [], None, 0, False
     try:
         configure(args)
@@ -669,7 +817,7 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
         save(args.output / 'cells.json', selected)
         if prepare:
             prepare(args, selected)
-        behavior = sidecar(args, selected)
+        behavior = sidecar(args, behaviour_cells(args) if behaviour_cells else selected)
         save(args.output / 'behaviour.json', behavior)
         variants = select(args.variants, ('1s-rl0', '1s-rl1', '2s-rl0', '2s-rl1'))
         pairs = [(f'redis-{r}', v) for r in numbers(args.redis_threads) for v in variants]
@@ -746,4 +894,15 @@ def base_selftest():
     for cmd in ('MGET8', 'RPOP', 'SINTER', 'XREADGROUP', 'GEOSEARCH'):
         w = workload(cmd)
         assert w['cycle'] and w['init'] and w['primary_per_cycle'] > 0
-
+    assert memtier_command(workload('GET')['cycle'][0]) == 'GET __key__'
+    s = {'Runtime': {'Interrupted': False, 'Time unit': 'MILLISECONDS', 'Total duration': 1000},
+         'Totals': {'Count': 10, 'Connection Errors': 0, 'Connection Errors/sec': 0},
+         'Gets': {'Count': 10, 'Percentile Latencies': {'Histogram log format': {'Compressed Histogram': 'mock'}}}}
+    with patch(__name__ + '.decode_histogram', return_value={10: 10}):
+        result = memtier_result({'ALL STATS': s}, workload('GET')['cycle'][0], 1, 1, 1)
+        assert result['completed'] == 10 and result['latency']['p999'] == 10000
+        for location, key, value in (('Totals', 'Connection Errors', 1), ('Runtime', 'Interrupted', True),
+                                     ('Runtime', 'Total duration', 500), ('Gets', 'Count', 3)):
+            bad = copy.deepcopy(s)
+            bad[location][key] = value
+            rejects(lambda: memtier_result({'ALL STATS': bad}, workload('GET')['cycle'][0], 1, 1, 1))

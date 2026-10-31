@@ -10,10 +10,12 @@ import survey as s
 
 def cells(args):
     s.require(args.always_seconds > 0 and args.bgsave_interval > 0, 'invalid persistence duration')
+    modes = s.select(args.persistence, ('off', 'everysec', 'always', 'bgsave'))
+    s.require('off' in modes, '--persistence must include off as its baseline')
     return [dict(name=f'{cmd}-{mode}', workload=s.workload(cmd), keys=args.keys, connections=args.connections,
                  pipeline=32, persistence=mode, seconds=(2 if args.smoke else min(args.seconds, args.always_seconds))
                  if mode == 'always' else args.seconds)
-            for cmd in ('SET', 'MIX') for mode in s.select(args.persistence, ('off', 'everysec', 'always', 'bgsave'))]
+            for cmd in ('SET', 'MIX') for mode in modes]
 
 
 def bgsave_valid(events):
@@ -43,6 +45,7 @@ def run(args, cell, arm, folder):
                         time.sleep(.005)
                     event = dict(start=start, end=time.monotonic(), status=info['rdb_last_bgsave_status'],
                                  during_load=process.poll() is None, before=before, after=info)
+                    s.require(int(info['rdb_saves']) == int(before['rdb_saves']) + 1, 'BGSAVE did not increment completion counter')
                     events.append(event)
                     s.append(folder / 'bgsave-events.jsonl', event)
                     if process.poll() is not None:
@@ -57,8 +60,10 @@ def run(args, cell, arm, folder):
         if cell['persistence'] == 'bgsave':
             # A save started near the end may finish after load; retain it but
             # require at least two entirely witnessed within the active interval.
+            for event in events:
+                event['during_load'] = (event['during_load'] and event['start'] * 1e9 >= result['client_epoch_ns'] and
+                                        event['end'] * 1e9 <= result['client_epoch_ns'] + cell['seconds'] * 1e9)
             bgsave_valid([e for e in events if e['during_load']])
-            s.require(sum(e['during_load'] for e in events) >= 2, 'no live BGSAVE loop')
         if cell['persistence'] in ('everysec', 'always'):
             s.require(int(after['aof_enabled']) == 1 and after['aof_last_write_status'] == 'ok', 'AOF inactive or failed')
             s.require(int(after['aof_current_size']) > int(baseline['aof_current_size']), 'AOF did not grow during load')

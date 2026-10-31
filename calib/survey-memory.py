@@ -3,7 +3,7 @@
 import copy
 import sys
 import time
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import survey as s
 
@@ -33,7 +33,7 @@ def sample(conn, pid, expected):
     keys = conn.cmd('DBSIZE')
     s.require(keys == expected, f'memory population mismatch: {keys} != {expected}')
     used, rss = int(info['used_memory']), s.fm.rss(pid)
-    s.require(used > 0 and rss > 0, 'missing or zero memory counters')
+    s.require(used >= 0 and (expected == 0 or used > 0) and rss > 0, 'invalid memory counters')
     return dict(keys=keys, used_memory=used, rss_bytes=rss,
                 info_used_memory_rss=int(info['used_memory_rss']), info=info)
 
@@ -61,9 +61,8 @@ def run(args, cell, arm, folder):
         time.sleep(.05 if args.smoke else args.settle)
         half = per_key(sample(conn, process.pid, cell['keys'] // 2), empty)
         # Independent endpoints catch a DEL range or placeholder error.
-        s.require(conn.cmd('EXISTS', 'sv:000000000000') == 0, 'first half survived DEL')
-        s.require(conn.cmd('EXISTS', f'sv:{cell["keys"] - 1:012d}') == 1, 'surviving half was deleted')
-        s.accounting(empty['info'], half['info'], {}) if False else None
+        s.require(conn.cmd('EXISTS', 'sv:100000000000') == 0, 'first half survived DEL')
+        s.require(conn.cmd('EXISTS', f'sv:{100000000000 + cell["keys"] - 1:012d}') == 1, 'surviving half was deleted')
         for row in (loaded, half):
             s.require(int(row['info']['expired_keys']) == 0 and int(row['info']['evicted_keys']) == 0, 'memory image expired/evicted')
         return dict(empty=empty, loaded=loaded, after_half_del=half, deletion=deleted,
@@ -82,6 +81,11 @@ def selftest():
     conn = Mock()
     conn.cmd.side_effect = [b'used_memory:100\r\nused_memory_rss:200\r\n', 4]
     s.rejects(lambda: sample(conn, 0, 5))
+    conn.cmd.side_effect = [b'used_memory:0\r\nused_memory_rss:200\r\n', 0]
+    with patch.object(s.fm, 'rss', return_value=200):
+        assert sample(conn, 0, 0)['used_memory'] == 0  # TomoKV's empty payload accounting
+        conn.cmd.side_effect = [b'used_memory:0\r\nused_memory_rss:200\r\n', 5]
+        s.rejects(lambda: sample(conn, 0, 5))
     assert image('ttl16')['init'][0]['command'][-2:] == ['EX', 86400]
     assert len(image('hash10')['init'][0]['command']) == 22
     print('survey_memory selftest: PASS')
