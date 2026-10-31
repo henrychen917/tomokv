@@ -16,5 +16,11 @@
     "planned": 17,
     "sessions": 12,
     "s2": 0
+  },
+  "legacy-diag-v3": {
+    "refusals": 24,
+    "planned": 21,
+    "sessions": 8,
+    "s2": 0
   }
 }

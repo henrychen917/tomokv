@@ -45,6 +45,8 @@ def classify(directory, label):
                 failures.append(fields)
             elif line.startswith('FLIPFIX6 drain '):
                 fields = {key: int(value) for key, value in re.findall(r'(\w+)=(\d+)', line)}
+                if ' debt=' in line:
+                    fields['debt'] = list(map(int, line.split(' debt=')[1].split(',')))
                 fields['clauses'] = [name for bit, name in DRAIN_BITS.items() if fields['mask'] & (1 << bit)]
                 drains[fields['epoch']].append(fields)
         for failure in failures:
@@ -97,7 +99,7 @@ def classify(directory, label):
 
 
 summary = {}
-for name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2', 'legacy-pre', 'pre-smoke'):
+for name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2', 'legacy-diag-v3', 'legacy-pre', 'pre-smoke'):
     directory = BUILD / name
     if not (directory / 'results.json').exists():
         archived = OUT / f'{name}-diagnosis.json'
@@ -105,7 +107,7 @@ for name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2', 'legacy-p
             summary[name] = {k: v for k, v in json.loads(archived.read_text()).items() if k != 'rows'}
         continue
     (OUT / f'{name}-results.json').write_bytes((directory / 'results.json').read_bytes())
-    if name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2'):
+    if name in ('diagnosis', 'legacy-diagnostic', 'legacy-diagnostic-v2', 'legacy-diag-v3'):
         summary[name] = classify(directory, name)
 for name in ('pre-build.log', 'diag-build.log', 'diag-v2-build.log', 'gates-test.log',
              'gates-test-contended.log', 'gates-test-idle.log'):

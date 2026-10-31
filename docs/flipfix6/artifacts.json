@@ -27,7 +27,18 @@
       "sha256": "5df71b1071e602b22abb5060a2da236fa3ba449ee20ad78a65ec96974a96e5fb",
       "bytes": 224511120,
       "production_candidate": false,
-      "retained": true
+      "retained": false,
+      "removed_reason": "Superseded by v3; source generator, SHA and prior evidence retained."
+    },
+    {
+      "name": "diagnostic-v3",
+      "path": "build/flipfix6/diag-source/build/tomokv",
+      "source": "01cebeefa:tools/flipfix6_diag.py",
+      "sha256": "e0723fbc57407b3f0870f386a14111709dd7787c8de43268bdc85398059e2808",
+      "bytes": 224502240,
+      "production_candidate": false,
+      "retained": false,
+      "removed_reason": "Superseded by owner-cleanup diagnostic v4 after recording hash and all-leg results."
     }
   ],
   "post": null,

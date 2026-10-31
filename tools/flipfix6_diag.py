@@ -156,3 +156,45 @@ edit('src/core/server.h', '''                if (thread(tid).role() == Role::Ifi
                             (unsigned long long)flipfix6_diag_debt[tid][n].load(std::memory_order_relaxed));
                     std::fprintf(stderr, "\\n");
                 }''')
+
+# v4: owner-local cleanup receipts. Only atomic snapshots cross threads.
+edit('src/core/server.h', 'class Server {', '''inline std::atomic<uint64_t> flipfix6_diag_owner[kMaxThreads][8]{};
+class Server {''')
+edit('src/core/ex_loop.h', '''        const FlipStage stage = srv_->flip_stage();
+#ifdef TOMO_CORE_CONCURRENCY_TEST''', '''        const FlipStage stage = srv_->flip_stage();
+        flipfix6_diag_owner[self_->id()][0].fetch_add(1, std::memory_order_relaxed);
+        flipfix6_diag_owner[self_->id()][1].store((unsigned)stage, std::memory_order_relaxed);
+#ifdef TOMO_CORE_CONCURRENCY_TEST''')
+edit('src/core/ex_loop.h', '''        const uint64_t floor = srv_->atomic_read_floor();
+        uint32_t work = 0;''', '''        const uint64_t floor = srv_->atomic_read_floor();
+        auto& diag = flipfix6_diag_owner[self_->id()];
+        diag[2].fetch_add(1, std::memory_order_relaxed);
+        diag[3].store(cleanup_cutoff, std::memory_order_relaxed);
+        diag[4].store(floor, std::memory_order_relaxed);
+        uint64_t records = 0;
+        for (Shard* shard : shards) records += shard->store().atomic_pending_entries();
+        diag[5].store(records, std::memory_order_relaxed);
+        uint32_t work = 0;''')
+edit('src/core/ex_loop.h', '''            work += xshard_cleanup_shard_at(*shard, floor, cleanup_cutoff, budget - work);
+            if (work >= budget) break;''', '''            work += xshard_cleanup_shard_at(*shard, floor, cleanup_cutoff, budget - work);
+            if (work >= budget) break;''')
+edit('src/core/ex_loop.h', '''        return work;
+    }
+
+    uint32_t drain_releases(bool unmasked = false)''', '''        diag[6].fetch_add(work, std::memory_order_relaxed);
+        diag[7].store((unsigned)srv_->flip_stage(), std::memory_order_relaxed);
+        return work;
+    }
+
+    uint32_t drain_releases(bool unmasked = false)''')
+edit('src/core/server.h', '        flip_error_ = error;', '''
+        for (uint32_t tid = 0; tid < nthreads(); ++tid)
+            if (thread(tid).role() == Role::Ex) {
+                std::fprintf(stderr, "FLIPFIX6 owner epoch=%llu ex=%u cleanup=",
+                    (unsigned long long)flip_epoch(), tid);
+                for (unsigned n = 0; n < 8; ++n)
+                    std::fprintf(stderr, "%s%llu", n ? "," : "",
+                        (unsigned long long)flipfix6_diag_owner[tid][n].load(std::memory_order_relaxed));
+                std::fprintf(stderr, "\\n");
+            }
+        flip_error_ = error;''')
