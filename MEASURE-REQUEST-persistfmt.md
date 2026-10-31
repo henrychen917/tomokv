@@ -53,6 +53,16 @@ assertions move from skips to expected passes:
 - `FUNCTION - test debug reload different options`
 - `FUNCTION - test debug reload with nosave and noflush`
 
+The existing “test loading from rdb” assertions did not expose the lost-on-restart
+registry: they exercised a live DEBUG RELOAD while the old registry remained in
+memory. The new witnesses kill and restart the process after each persistence
+operation. Upstream legacy stream/AOF tests later in `stream-cgroups.tcl` remain
+blocked by its known `CONFIG SET appendonly` setup error; they are not falsely
+promoted. Their type-15/type-19 payload fixtures are exercised by the new gate
+interchange rows. `RESTORE fail with invalid payload size` also remains skipped
+because it uses unsupported `DEBUG SET-SKIP-CHECKSUM-VALIDATION`; the new row tests
+both invalid envelopes and checksum-valid malformed stream bodies directly.
+
 ### Format boundary and retained differences
 
 TomoKV snapshot files are **not Redis RDB files**. Their magic is `TOMOSNP\0`,
