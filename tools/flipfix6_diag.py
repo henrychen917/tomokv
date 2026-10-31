@@ -101,3 +101,58 @@ edit('src/core/server.h', '        flip_error_ = error;', '''        std::fprint
                         (unsigned long long)flipfix6_diag_drain_masks[tid].load(std::memory_order_acquire));
         flip_error_ = error;''')
 print(DEST)
+
+# v3: distinguish retired MVCC reclamation from a prepared-unpublished session. The
+# source IO snapshots only its own vectors and atomic state fields. The coordinator
+# prints every IO (including one which acknowledged at the deadline), so a late ack
+# cannot erase the last failing clause as it did in two v2 episodes.
+edit('src/cmd/multi.h', 'struct MultiSession;', '''struct MultiSession;
+void flipfix6_diag_deferred(const std::vector<MultiExecState*>&, uint64_t*);
+bool flipfix6_diag_pending(const Client&);''')
+edit('src/cmd/multi.inc', 'uint32_t multi_reap_deferred(std::vector<MultiExecState*>& deferred) {', '''
+bool flipfix6_diag_pending(const Client& c) {
+    return c.multi_session() && c.multi_session()->pending;
+}
+void flipfix6_diag_deferred(const std::vector<MultiExecState*>& states, uint64_t* out) {
+    out[0] = states.size();
+    for (const auto* s : states) {
+        out[1] += s->record_refs.load(std::memory_order_acquire);
+        out[2] += s->watch_refs.load(std::memory_order_acquire);
+        for (const auto& cmd : s->commands)
+            out[3] += cmd->scatter && !xshard_multi_child_records_done(*cmd->scatter);
+        out[4] += s->retired;
+        out[5] += s->published;
+        out[6] += s->kind == MultiStateKind::Execute;
+        out[7] += s->tasks_pending.load(std::memory_order_acquire);
+        out[8] += s->snapshot_registered;
+        out[9] += s->finalized.load(std::memory_order_acquire);
+        out[10] = std::max(out[10], s->decision.epoch.load(std::memory_order_acquire));
+    }
+}
+uint32_t multi_reap_deferred(std::vector<MultiExecState*>& deferred) {''')
+edit('src/core/server.h', 'class Server {', '''inline std::atomic<uint64_t> flipfix6_diag_debt[kMaxThreads][14]{};
+class Server {''')
+edit('src/core/io_loop.h',
+     '        flipfix6_diag_drain_masks[self_->id()].store(mask, std::memory_order_release);', '''
+        uint64_t debt[14]{};
+        flipfix6_diag_deferred(multi_deferred_, debt);
+        for (Client* c : self_->clients()) debt[11] += flipfix6_diag_pending(*c);
+        debt[12] = srv_->atomic_read_floor();
+        debt[13] = srv_->atomic_snapshot();
+        for (unsigned n = 0; n < 14; ++n)
+            flipfix6_diag_debt[self_->id()][n].store(debt[n], std::memory_order_relaxed);
+        flipfix6_diag_drain_masks[self_->id()].store(mask, std::memory_order_release);''')
+edit('src/core/server.h', '''                if (thread(tid).role() == Role::Ifid && !flip_acked(tid, FlipStage::IoDrain))
+                    std::fprintf(stderr, "FLIPFIX6 drain epoch=%llu io=%u mask=%llu\\n",
+                        (unsigned long long)flip_epoch(), tid,
+                        (unsigned long long)flipfix6_diag_drain_masks[tid].load(std::memory_order_acquire));''', '''
+                if (thread(tid).role() == Role::Ifid) {
+                    std::fprintf(stderr, "FLIPFIX6 drain epoch=%llu io=%u mask=%llu acked=%d debt=",
+                        (unsigned long long)flip_epoch(), tid,
+                        (unsigned long long)flipfix6_diag_drain_masks[tid].load(std::memory_order_acquire),
+                        flip_acked(tid, FlipStage::IoDrain));
+                    for (unsigned n = 0; n < 14; ++n)
+                        std::fprintf(stderr, "%s%llu", n ? "," : "",
+                            (unsigned long long)flipfix6_diag_debt[tid][n].load(std::memory_order_relaxed));
+                    std::fprintf(stderr, "\\n");
+                }''')
