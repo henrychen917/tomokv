@@ -1,0 +1,578 @@
+[
+  {
+    "group": "directed-before-budgets",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "txnorder_fifo,txnorder_chain,txnorder_index,txnorder_wound,txnorder2,txnorder_wake,exec1s,at412-owner"
+    },
+    "binary_sha256": "8b3e9de58ccc583c171bcc9ecd86fd56a19fecfe89eea9956b6c4a86490bbbc4",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/gate-directed.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr",
+    "jobs_evidence": [
+      {
+        "name": "at412-owner",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/at412-owner",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/at412-owner"
+      },
+      {
+        "name": "exec1s",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/exec1s",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/exec1s"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/release",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/release"
+      },
+      {
+        "name": "txnorder2",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/txnorder2",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/txnorder2"
+      },
+      {
+        "name": "txnorder_chain",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/txnorder_chain",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/txnorder_chain"
+      },
+      {
+        "name": "txnorder_fifo",
+        "returncode": 0,
+        "passed": 10,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/txnorder_fifo",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/txnorder_fifo"
+      },
+      {
+        "name": "txnorder_index",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/txnorder_index",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/txnorder_index"
+      },
+      {
+        "name": "txnorder_wake",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/txnorder_wake",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/txnorder_wake"
+      },
+      {
+        "name": "txnorder_wound",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr/jobs/txnorder_wound",
+        "evidence": "docs/execfifo2/validation/00-directed-before-budgets/txnorder_wound"
+      }
+    ]
+  },
+  {
+    "group": "directed",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "txnorder_fifo txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake exec1s at412-owner",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/directed-1793440359831796528.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN",
+    "jobs_evidence": [
+      {
+        "name": "at412-owner",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/at412-owner",
+        "evidence": "docs/execfifo2/validation/01-directed/at412-owner"
+      },
+      {
+        "name": "exec1s",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/exec1s",
+        "evidence": "docs/execfifo2/validation/01-directed/exec1s"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/01-directed/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/release",
+        "evidence": "docs/execfifo2/validation/01-directed/release"
+      },
+      {
+        "name": "txnorder2",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/txnorder2",
+        "evidence": "docs/execfifo2/validation/01-directed/txnorder2"
+      },
+      {
+        "name": "txnorder_chain",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/txnorder_chain",
+        "evidence": "docs/execfifo2/validation/01-directed/txnorder_chain"
+      },
+      {
+        "name": "txnorder_fifo",
+        "returncode": 0,
+        "passed": 10,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/txnorder_fifo",
+        "evidence": "docs/execfifo2/validation/01-directed/txnorder_fifo"
+      },
+      {
+        "name": "txnorder_index",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/txnorder_index",
+        "evidence": "docs/execfifo2/validation/01-directed/txnorder_index"
+      },
+      {
+        "name": "txnorder_wake",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/txnorder_wake",
+        "evidence": "docs/execfifo2/validation/01-directed/txnorder_wake"
+      },
+      {
+        "name": "txnorder_wound",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN/jobs/txnorder_wound",
+        "evidence": "docs/execfifo2/validation/01-directed/txnorder_wound"
+      }
+    ]
+  },
+  {
+    "group": "core",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "core_units flip_unit flipfix_units flipfix5_units splitlocal_units wait_units atomic_units",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/core-1793441123251612866.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg",
+    "jobs_evidence": [
+      {
+        "name": "atomic_units",
+        "returncode": 0,
+        "passed": 27,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/atomic_units",
+        "evidence": "docs/execfifo2/validation/02-core/atomic_units"
+      },
+      {
+        "name": "core_tsan_build",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/core_tsan_build",
+        "evidence": "docs/execfifo2/validation/02-core/core_tsan_build"
+      },
+      {
+        "name": "core_units",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/core_units",
+        "evidence": "docs/execfifo2/validation/02-core/core_units"
+      },
+      {
+        "name": "flip_unit",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/flip_unit",
+        "evidence": "docs/execfifo2/validation/02-core/flip_unit"
+      },
+      {
+        "name": "flipfix5_units",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/flipfix5_units",
+        "evidence": "docs/execfifo2/validation/02-core/flipfix5_units"
+      },
+      {
+        "name": "flipfix_units",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/flipfix_units",
+        "evidence": "docs/execfifo2/validation/02-core/flipfix_units"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/02-core/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/release",
+        "evidence": "docs/execfifo2/validation/02-core/release"
+      },
+      {
+        "name": "splitlocal_units",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/splitlocal_units",
+        "evidence": "docs/execfifo2/validation/02-core/splitlocal_units"
+      },
+      {
+        "name": "wait_units",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/wait_units",
+        "evidence": "docs/execfifo2/validation/02-core/wait_units"
+      },
+      {
+        "name": "waits_tsan_build",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg/jobs/waits_tsan_build",
+        "evidence": "docs/execfifo2/validation/02-core/waits_tsan_build"
+      }
+    ]
+  },
+  {
+    "group": "at412",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/at412-1793441185227492406.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3",
+    "jobs_evidence": [
+      {
+        "name": "at412-T1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T1",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T1"
+      },
+      {
+        "name": "at412-T10",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T10",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T10"
+      },
+      {
+        "name": "at412-T11a",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T11a",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T11a"
+      },
+      {
+        "name": "at412-T11b",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T11b",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T11b"
+      },
+      {
+        "name": "at412-T12",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T12",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T12"
+      },
+      {
+        "name": "at412-T13",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T13",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T13"
+      },
+      {
+        "name": "at412-T14",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T14",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T14"
+      },
+      {
+        "name": "at412-T15",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T15",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T15"
+      },
+      {
+        "name": "at412-T16",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T16",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T16"
+      },
+      {
+        "name": "at412-T2",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T2",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T2"
+      },
+      {
+        "name": "at412-T3",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T3",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T3"
+      },
+      {
+        "name": "at412-T4",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T4",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T4"
+      },
+      {
+        "name": "at412-T5",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T5",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T5"
+      },
+      {
+        "name": "at412-T6",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T6",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T6"
+      },
+      {
+        "name": "at412-T7",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T7",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T7"
+      },
+      {
+        "name": "at412-T8",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T8",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T8"
+      },
+      {
+        "name": "at412-T9",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/at412-T9",
+        "evidence": "docs/execfifo2/validation/03-at412/at412-T9"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3/jobs/release",
+        "evidence": "docs/execfifo2/validation/03-at412/release"
+      }
+    ]
+  },
+  {
+    "group": "scripts",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "scriptfix scriptfix2 lualibs",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/scripts-1793442145115946177.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4",
+    "jobs_evidence": [
+      {
+        "name": "lualibs",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4/jobs/lualibs",
+        "evidence": "docs/execfifo2/validation/04-scripts/lualibs"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4/jobs/release",
+        "evidence": "docs/execfifo2/validation/04-scripts/release"
+      },
+      {
+        "name": "scriptfix",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4/jobs/scriptfix",
+        "evidence": "docs/execfifo2/validation/04-scripts/scriptfix"
+      },
+      {
+        "name": "scriptfix2",
+        "returncode": 0,
+        "passed": 48,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4/jobs/scriptfix2",
+        "evidence": "docs/execfifo2/validation/04-scripts/scriptfix2"
+      }
+    ]
+  }
+]

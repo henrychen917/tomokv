@@ -1,0 +1,286 @@
+{
+  "mode": "1s",
+  "net_io": "epoll",
+  "databases": 1,
+  "atomic": 0,
+  "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "rows": [
+    {
+      "root": "FUNCTION-REGISTER-ARGS",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib2\nredis.register_function('f2', 'not a function')"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR second argument to redis.register_function must be a function\r\n",
+          "redis": "-ERR Error registering functions: ERR second argument to redis.register_function must be a function\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib2\nredis.register_function(nil, function() return 1 end)"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR first argument to redis.register_function must be a string\r\n",
+          "redis": "-ERR Error registering functions: ERR first argument to redis.register_function must be a string\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib2\nredis.register_function('test\u0000test', function() return 1 end)"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n",
+          "redis": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=lib3\nredis.register_function('', function() return 1 end)"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n",
+          "redis": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "#!lua name=lib4\nlocal lib = redis\nlib.register_function('f4', function() lib.register_function('f5', function() return 1 end) end)"
+          ],
+          "equal": true,
+          "target": "$4\r\nlib4\r\n",
+          "redis": "$4\r\nlib4\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "f4",
+            "0"
+          ],
+          "equal": true,
+          "target": "-ERR redis.register_function can only be called on FUNCTION LOAD command script: f4, on @user_function:3.\r\n",
+          "redis": "-ERR redis.register_function can only be called on FUNCTION LOAD command script: f4, on @user_function:3.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function{FUNCTION_NAME='named',CALLBACK=function() return 9 end,FLAGS={'no-writes'}}"
+          ],
+          "equal": true,
+          "target": "$5\r\nextra\r\n",
+          "redis": "$5\r\nextra\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall_ro",
+            "named",
+            0
+          ],
+          "equal": true,
+          "target": ":9\r\n",
+          "redis": ":9\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function()"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR wrong number of arguments to redis.register_function\r\n",
+          "redis": "-ERR Error registering functions: ERR wrong number of arguments to redis.register_function\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function(1)"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR calling redis.register_function with a single argument is only applicable to Lua table (representing named arguments).\r\n",
+          "redis": "-ERR Error registering functions: ERR calling redis.register_function with a single argument is only applicable to Lua table (representing named arguments).\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function({},function() end)"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR first argument to redis.register_function must be a string\r\n",
+          "redis": "-ERR Error registering functions: ERR first argument to redis.register_function must be a string\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function('f',{})"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR second argument to redis.register_function must be a function\r\n",
+          "redis": "-ERR Error registering functions: ERR second argument to redis.register_function must be a function\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function('',function() end)"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n",
+          "redis": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function('a-b',function() end)"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n",
+          "redis": "-ERR Error registering functions: ERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function{[1]='x'}"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR unknown argument given to redis.register_function\r\n",
+          "redis": "-ERR Error registering functions: ERR unknown argument given to redis.register_function\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function{function_name='f'}"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR redis.register_function must get a callback argument\r\n",
+          "redis": "-ERR Error registering functions: ERR redis.register_function must get a callback argument\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function{function_name='f',callback=1}"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR callback argument given to redis.register_function must be a function\r\n",
+          "redis": "-ERR Error registering functions: ERR callback argument given to redis.register_function must be a function\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function{function_name='f',callback=function() end,flags='no-writes'}"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR flags argument to redis.register_function must be a table representing function flags\r\n",
+          "redis": "-ERR Error registering functions: ERR flags argument to redis.register_function must be a table representing function flags\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nredis.register_function{function_name='f',callback=function() end,description={}}"
+          ],
+          "equal": true,
+          "target": "-ERR Error registering functions: ERR description argument given to redis.register_function must be a string\r\n",
+          "redis": "-ERR Error registering functions: ERR description argument given to redis.register_function must be a string\r\n"
+        }
+      ],
+      "differences": 0
+    }
+  ],
+  "target_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4/jobs/scriptfix2/FUNCTION-REGISTER-ARGS-1s-epoll-db1-a0/target",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "1",
+    "--net-io",
+    "epoll",
+    "--atomic",
+    "0",
+    "--flip-auto",
+    "0"
+  ],
+  "oracle_argv": [
+    "taskset",
+    "-c",
+    "24-31",
+    "/home/user/Projects/redis/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20104",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4/jobs/scriptfix2/FUNCTION-REGISTER-ARGS-1s-epoll-db1-a0/redis",
+    "--enable-debug-command",
+    "yes"
+  ]
+}

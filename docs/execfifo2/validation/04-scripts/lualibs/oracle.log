@@ -1,0 +1,491 @@
+2420163:C 31 Oct 2026 18:22:33.437 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2420163:C 31 Oct 2026 18:22:33.437 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2420163:C 31 Oct 2026 18:22:33.437 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2420163, just started
+2420163:C 31 Oct 2026 18:22:33.437 * Configuration loaded
+2420163:M 31 Oct 2026 18:22:33.438 * monotonic clock: POSIX clock_gettime
+2420163:M 31 Oct 2026 18:22:33.438 * Running mode=standalone, port=20101.
+2420163:M 31 Oct 2026 18:22:33.438 * Server initialized
+2420163:M 31 Oct 2026 18:22:33.438 * Ready to accept connections tcp
+2420163:M 31 Oct 2026 18:22:33.877 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:33.882 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.891 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:33.896 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.901 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:33.903 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.908 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:33.911 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.913 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:33.913 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.916 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:33.917 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.919 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:33.920 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.922 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:33.923 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.941 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:33.949 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:33.967 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:33.975 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.490 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:35.495 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.504 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:35.509 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.514 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:35.516 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.521 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:35.523 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.526 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:35.526 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.529 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:35.529 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.533 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:35.534 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.536 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:35.538 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.555 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:35.563 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:35.581 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:35.589 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.103 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:37.108 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.117 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:37.122 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.127 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:37.129 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.134 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:37.137 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.139 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:37.139 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.142 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:37.143 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.146 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:37.147 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.150 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:37.151 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.169 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:37.177 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:37.195 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:37.203 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.713 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:38.718 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.727 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:38.732 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.737 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:38.740 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.744 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:38.747 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.749 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:38.750 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.752 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:38.753 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.756 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:38.757 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.760 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:38.761 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.779 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:38.787 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:38.805 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:38.813 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.309 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:40.313 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.323 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:40.328 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.332 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:40.335 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.340 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:40.342 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.344 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:40.345 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.347 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:40.348 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.351 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:40.352 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.354 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:40.355 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.373 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:40.381 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:40.399 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:40.407 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.901 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:41.906 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.915 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:41.920 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.925 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:41.927 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.932 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:41.935 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.937 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:41.937 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.940 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:41.941 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.943 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:41.944 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.947 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:41.948 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.965 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:41.973 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:41.991 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:41.999 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.510 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:43.515 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.524 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:43.529 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.534 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:43.536 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.541 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:43.544 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.546 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:43.546 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.549 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:43.550 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.552 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:43.553 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.555 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:43.557 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.574 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:43.583 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:43.600 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:43.609 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.118 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:45.123 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.132 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:45.137 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.142 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:45.145 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.149 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:45.152 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.154 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:45.155 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.157 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:45.158 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.161 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:45.162 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.165 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:45.166 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.183 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:45.191 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:45.209 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:45.218 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.728 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:46.732 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.742 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:46.747 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.752 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:46.754 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.759 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:46.761 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.764 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:46.764 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.767 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:46.767 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.771 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:46.772 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.774 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:46.775 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.793 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:46.801 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:46.819 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:46.827 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.335 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:48.339 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.349 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:48.354 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.359 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:48.361 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.366 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:48.368 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.371 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:48.371 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.374 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:48.374 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.378 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:48.379 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.381 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:48.382 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.400 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:48.408 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:48.426 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:48.434 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.928 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:49.932 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.942 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:49.947 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.952 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:49.954 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.959 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:49.961 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.964 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:49.964 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.967 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:49.967 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.970 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:49.971 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.973 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:49.974 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:49.992 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:50.000 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:50.018 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:50.026 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.521 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:51.526 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.535 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:51.540 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.545 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:51.547 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.552 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:51.554 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.557 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:51.557 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.560 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:51.560 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.563 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:51.564 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.566 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:51.567 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.585 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:51.593 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:51.611 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:51.619 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.129 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:53.134 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.143 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:53.148 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.153 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:53.155 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.160 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:53.162 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.165 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:53.165 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.168 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:53.169 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.171 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:53.172 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.174 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:53.176 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.193 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:53.201 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:53.219 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:53.227 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.738 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:54.743 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.752 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:54.757 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.762 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:54.764 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.769 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:54.771 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.774 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:54.774 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.777 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:54.777 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.780 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:54.782 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.784 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:54.785 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.803 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:54.811 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:54.829 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:54.837 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.347 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:56.351 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.361 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:56.366 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.370 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:56.373 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.378 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:56.380 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.382 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:56.383 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.386 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:56.386 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.390 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:56.391 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.393 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:56.394 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.412 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:56.420 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:56.438 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:56.446 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:57.956 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:57.960 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:57.970 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:57.975 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:57.979 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:57.982 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:57.986 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:57.989 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:57.991 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:57.992 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:57.994 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:57.995 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:57.998 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:58.000 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:58.002 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:58.003 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:58.021 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:58.029 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:58.047 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:58.055 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.553 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:22:59.557 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.567 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:22:59.572 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.576 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:22:59.579 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.584 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:22:59.586 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.588 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:22:59.589 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.591 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:22:59.592 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.595 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:22:59.596 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.598 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:22:59.599 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.617 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:22:59.625 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:22:59.643 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:22:59.651 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.146 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:23:01.151 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.160 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:23:01.165 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.170 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:23:01.172 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.177 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:23:01.180 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.182 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:23:01.182 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.185 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:23:01.186 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.188 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:23:01.189 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.191 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:23:01.193 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.210 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:23:01.218 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:01.236 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:23:01.244 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.755 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:23:02.760 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.769 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:23:02.774 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.779 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:23:02.781 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.786 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:23:02.788 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.791 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:23:02.791 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.794 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:23:02.794 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.797 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:23:02.798 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.800 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:23:02.801 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.819 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:23:02.827 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:02.845 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:23:02.853 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.361 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:23:04.365 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.375 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:23:04.380 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.384 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:23:04.387 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.391 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:23:04.394 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.396 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:23:04.397 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.399 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:23:04.400 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.402 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:23:04.403 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.406 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:23:04.407 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.425 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:23:04.433 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:04.450 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:23:04.459 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:05.974 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:23:05.979 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:05.988 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:23:05.993 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:05.998 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:23:06.000 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:06.005 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:23:06.007 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:06.010 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:23:06.010 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:06.013 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:23:06.013 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:06.016 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:23:06.017 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:06.019 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:23:06.021 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:06.038 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:23:06.046 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:06.064 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:23:06.072 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.581 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:23:07.585 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.595 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:23:07.600 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.604 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:23:07.607 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.611 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:23:07.614 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.616 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:23:07.617 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.619 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:23:07.620 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.623 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:23:07.624 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.627 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:23:07.628 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.646 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:23:07.654 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:07.672 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:23:07.680 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.175 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:23:09.180 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.189 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:23:09.194 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.199 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:23:09.201 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.206 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:23:09.208 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.211 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:23:09.211 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.214 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:23:09.214 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.217 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:23:09.218 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.220 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:23:09.221 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.239 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:23:09.247 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:09.265 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:23:09.273 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.767 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e7b44f1c8f2966676600b12e421ee41e857fbdd1.
+2420163:M 31 Oct 2026 18:23:10.771 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.781 # Slow script detected: still in execution after 4 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_0.
+2420163:M 31 Oct 2026 18:23:10.786 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.791 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 767defb0cfc768342fede22448a23992ab2b601b.
+2420163:M 31 Oct 2026 18:23:10.793 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.798 # Slow script detected: still in execution after 2 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_1.
+2420163:M 31 Oct 2026 18:23:10.800 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.803 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6425936c3b3ab17bd10b32788a89cd83c5e7a9c1.
+2420163:M 31 Oct 2026 18:23:10.803 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.806 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_2.
+2420163:M 31 Oct 2026 18:23:10.806 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.809 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: e31933b82608a159c47f0d725ab928a758fcd3a2.
+2420163:M 31 Oct 2026 18:23:10.810 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.812 # Slow script detected: still in execution after 1 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_3.
+2420163:M 31 Oct 2026 18:23:10.813 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.831 # Slow script detected: still in execution after 7 milliseconds. You can try killing the script using the SCRIPT KILL command. Script name is: 6b383108aaea1f5c6378ed58b63149f5835d01d4.
+2420163:M 31 Oct 2026 18:23:10.839 * Lua script killed by user with SCRIPT KILL.
+2420163:M 31 Oct 2026 18:23:10.857 # Slow script detected: still in execution after 8 milliseconds. You can try killing the script using the FUNCTION KILL command. Script name is: lualibs_spin_4.
+2420163:M 31 Oct 2026 18:23:10.865 * Lua script killed by user with SCRIPT KILL.
+2420163:signal-handler (1793442191) Received SIGTERM scheduling shutdown...
+2420163:M 31 Oct 2026 18:23:12.043 * User requested shutdown...
+2420163:M 31 Oct 2026 18:23:12.043 # Redis is now ready to exit, bye bye...

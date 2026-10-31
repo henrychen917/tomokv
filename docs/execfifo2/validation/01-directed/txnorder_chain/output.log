@@ -1,0 +1,8 @@
+  row budget: 900s; median=0.04s; correctness-plan-fallback; txnorder chain local
+  txnorder chain local                                 ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; txnorder chain boundary
+  txnorder chain boundary                              ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; txnorder chain serve
+  txnorder chain serve                                 ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; txnorder chain hot
+  txnorder chain hot                                   ok

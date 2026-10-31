@@ -1,0 +1,4 @@
+ok	0.040000	txnorder chain local
+ok	0.030000	txnorder chain boundary
+ok	0.030000	txnorder chain serve
+ok	0.020000	txnorder chain hot

@@ -1,0 +1,2 @@
+wound-window namespace=db0 mode=1s read_done=1 pre_epoch=0 aborted=1 no_such_key=0 source_present=1 commit_accepted=1 final_epoch=1
+PASS: placement allocation failure reports OOM

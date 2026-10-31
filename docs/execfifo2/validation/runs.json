@@ -1,0 +1,144 @@
+[
+  {
+    "group": "directed-before-budgets",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "txnorder_fifo,txnorder_chain,txnorder_index,txnorder_wound,txnorder2,txnorder_wake,exec1s,at412-owner"
+    },
+    "binary_sha256": "8b3e9de58ccc583c171bcc9ecd86fd56a19fecfe89eea9956b6c4a86490bbbc4",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/gate-directed.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.O7zmqr"
+  },
+  {
+    "group": "directed",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "txnorder_fifo txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake exec1s at412-owner",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/directed-1793440359831796528.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.fGo0iN"
+  },
+  {
+    "group": "core",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "core_units flip_unit flipfix_units flipfix5_units splitlocal_units wait_units atomic_units",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/core-1793441123251612866.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.ft61Sg"
+  },
+  {
+    "group": "at412",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/at412-1793441185227492406.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.Z5Otb3"
+  },
+  {
+    "group": "scripts",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "scriptfix scriptfix2 lualibs",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/scripts-1793442145115946177.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.Qi0jr4"
+  }
+]

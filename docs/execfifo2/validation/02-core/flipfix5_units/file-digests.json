@@ -1,0 +1,62 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 59,
+    "sha256": "21d60b4118b09688733a2d792219b489ce6a700ae299a542c23295b67d5f8fb7"
+  },
+  {
+    "path": "gate-flipfix5-planted-abort.txt",
+    "bytes": 64,
+    "sha256": "93620f4f3d5109131b6466eb61b0cbad9f7fe953bc874c86eb1dce5d35ae04d6"
+  },
+  {
+    "path": "gate-flipfix5-planted-boundary.txt",
+    "bytes": 90,
+    "sha256": "60ba5e84847cd105f80543fe9cac79bef5d2a32cd47949482743cce4c1d8b2c9"
+  },
+  {
+    "path": "gate-flipfix5-planted-io.txt",
+    "bytes": 104,
+    "sha256": "a982bd1b2aff48313541901d95dfad42949064e6a0278e202636069076a4aa89"
+  },
+  {
+    "path": "gate-flipfix5-planted-late-token.txt",
+    "bytes": 107,
+    "sha256": "103f735a7c7d69e4b1012d2329825bd4cdb6926c073f544f60852a7000d146e3"
+  },
+  {
+    "path": "gate-flipfix5-planted.txt",
+    "bytes": 107,
+    "sha256": "103f735a7c7d69e4b1012d2329825bd4cdb6926c073f544f60852a7000d146e3"
+  },
+  {
+    "path": "gate-flipfix5.txt",
+    "bytes": 490,
+    "sha256": "d48b244417c1f2c9bcd8b9e156e02fb4125d491411f44c2eec701e42a8cd56cd"
+  },
+  {
+    "path": "ledger",
+    "bytes": 115,
+    "sha256": "3e2e0c8be1d65a893f29a68cc4c148f37ecff8422ab82ba2bf426629a3906d29"
+  },
+  {
+    "path": "output.log",
+    "bytes": 335,
+    "sha256": "de4c2c677a0247035cd7494301994493558e864cbb5882cf200e11d1260ecfc0"
+  },
+  {
+    "path": "timings",
+    "bytes": 115,
+    "sha256": "3e2e0c8be1d65a893f29a68cc4c148f37ecff8422ab82ba2bf426629a3906d29"
+  },
+  {
+    "path": "tsan-core-concurrency-tsan-flipfix5.log",
+    "bytes": 490,
+    "sha256": "d48b244417c1f2c9bcd8b9e156e02fb4125d491411f44c2eec701e42a8cd56cd"
+  }
+]
