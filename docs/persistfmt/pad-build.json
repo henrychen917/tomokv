@@ -1,11 +1,11 @@
 {
   "kind": "A: behavior twin",
-  "post_sha256": "97daf71dc0ade64921fb738e7b5a5d1327d59050efd0b3a0f7159f8b03402fb8",
-  "pad_sha256": "848ace71e4e8a48e76add7aff9380a93b0d9cf19da427abde2aa5fc85f11095e",
-  "post_text": 8775847,
-  "unpadded_text": 8741623,
-  "unreachable_padding": 34224,
-  "rodata_padding": 256,
+  "post_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+  "pad_sha256": "3fb52911e2d89f41384b259a494a3fa012742ff77285569fd86b90cea2e392c7",
+  "post_text": 8777543,
+  "unpadded_text": 8741655,
+  "unreachable_padding": 35888,
+  "rodata_padding": 320,
   "recipes": [
     [
       "g++",
@@ -51,7 +51,7 @@
       "--param",
       "inline-unit-growth=0",
       "--param",
-      "large-unit-insns=16630",
+      "large-unit-insns=16835",
       "-DTOMO_JEMALLOC",
       "-I.",
       "-c",
@@ -302,7 +302,7 @@
   ],
   "changed_sources": {
     "src/persist/aof.cc": "3c2931c39373bb92e73545b512151cdd7affc0d35959191248e7adca43b83344",
-    "src/snapshot/snapshot.cc": "e920dfc01f13d4f18ad2c8a171cc39c2c384e8f837d90d0979ea9220626c81c4",
+    "src/snapshot/snapshot.cc": "658bd9a96daaeec45e87f389dbb7041ea29d4763e52bbdcd91f85544abdef864",
     "src/cmd/serialize.cc": "16c231a1e0a6bdc20a9ec57fc502fb878ac0ff32062792fd0c31133df8fcec54",
     "src/cmd/functions.cc": "fc1e17e48537583d800a0eb3f47d5ee8c82dab25f366b2f326a89551cee9be68"
   }

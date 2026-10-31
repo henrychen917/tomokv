@@ -13,24 +13,24 @@
   },
   "POST": {
     "path": "build/persistfmt/POST/tomokv",
-    "sha256": "97daf71dc0ade64921fb738e7b5a5d1327d59050efd0b3a0f7159f8b03402fb8",
-    "bytes": 225513952,
+    "sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+    "bytes": 225543944,
     "assert_map_sha256": "7eacd9de6972415900ff4a8073110b91da9cb0dd2fcd00d5c60979c48bf9b73a",
     "sections": {
-      ".text": 8775847,
-      ".rodata": 638284,
+      ".text": 8777543,
+      ".rodata": 638348,
       ".data": 19321,
       ".bss": 1189256
     }
   },
   "PAD-A": {
     "path": "build/persistfmt/PAD-A/tomokv",
-    "sha256": "848ace71e4e8a48e76add7aff9380a93b0d9cf19da427abde2aa5fc85f11095e",
-    "bytes": 224771616,
+    "sha256": "3fb52911e2d89f41384b259a494a3fa012742ff77285569fd86b90cea2e392c7",
+    "bytes": 224788480,
     "assert_map_sha256": "7eacd9de6972415900ff4a8073110b91da9cb0dd2fcd00d5c60979c48bf9b73a",
     "sections": {
-      ".text": 8775847,
-      ".rodata": 638284,
+      ".text": 8777543,
+      ".rodata": 638348,
       ".data": 19321,
       ".bss": 1189256
     }

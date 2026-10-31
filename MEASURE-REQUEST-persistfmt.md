@@ -2,9 +2,9 @@
 
 Lane `cx-persistfmt`, based on `e32b04a445b056976abb308aa598e356fcbaae74`.
 No push. Correctness runs use CPUs 96–111, ports 20500–20599 and `LC_ALL=C`.
-This report is being completed. The first frozen candidate was superseded after a
-NOFLUSH/SWAPDB correctness finding; its arm manifest and instruction table below
-are historical until replaced by the corrected build's final receipts.
+This report is being completed while the corrected candidate's final validation
+runs. The arm manifest and FINAL5 instruction receipts below describe the corrected
+NOFLUSH/SWAPDB build, based on production-source commit `fd1d24ca6`.
 
 ### Changes and PRE witnesses
 
@@ -44,7 +44,12 @@ nodes for that case to pass.
 Function libraries are captured once at the snapshot cut as Redis FUNCTION2
 opcode/string records. They are compiled and installed during recovery, including
 the native AOF rewrite base. DEBUG RELOAD supports NOSAVE, NOFLUSH and MERGE and
-applies the corresponding library replacement rules. FUNCTION LIST comparisons
+applies the corresponding library replacement rules. Source review exposed an extra
+NOFLUSH/SWAPDB defect: restoring the saved physical namespace map would relocate
+retained keys. A directed oracle witness failed in all four TomoKV mode/engine
+legs. NOFLUSH now translates incoming records into the live namespace map and
+rebuckets them before owner dispatch. Retained live objects remain in place.
+The ordinary save/load loops do not run this administrative preparation. FUNCTION LIST comparisons
 canonicalize only outer library iteration order; code and library/function metadata
 remain exact. An empty library registry
 adds no serialized extension and allocates no library image.
@@ -114,7 +119,8 @@ Final correctness validation is still running. These are partial job-interface r
 never a full `iteration`, a throughput benchmark, or a push receipt. EXPECT_QUICK
 and EXPECT_FULL are unchanged.
 
-Already complete on the frozen POST bytes:
+Completed before the final namespace correction (these receipts are retained;
+the final matrix repeats affected jobs on corrected POST):
 
 - Tcl passing-subset job in both modes: 1,820 passing assertions per mode, including
   all three promotions. Its five existing setup errors per mode remain explicitly
@@ -146,12 +152,15 @@ are visible in the archived logs rather than counted as final passes.
 The instruction instrument is `tools/persistfmt_counts.py`: the existing bounded
 production command scope plus a snapshot save/load-loop fixture, under ptrace.
 It covers GET/SET/INCR/MGET/MSET at batch 1 and 32, 1s/2s, both namespaces, atomic
-0/1 (80 cells), with eight-key MGET/MSET. External shared-library instructions and fixture setup are excluded
-equally in both arms. The snapshot fixture covers both modes/namespaces at 1/32
+0/1 (80 cells), with eight-key MGET/MSET. The counter includes symbols naming the selected TomoKV namespace, including
+C++ templates parameterized by its types. External shared libraries, standalone
+STL/helper symbols outside that set, and fixture setup are excluded equally in
+both arms. The generated address ranges and raw trace sites are retained for
+scope auditing. The snapshot fixture covers both modes/namespaces at 1/32
 keys; marginal cost is `(count32 - count1) / 31`. It measures the per-key loop,
 excluding once-per-file header and function-registry work. No rates are inferred.
 
-Final production census (`counts/FINAL4`, full table `docs/persistfmt/instructions.tsv`):
+Final production census (`counts/FINAL5`, full table `docs/persistfmt/instructions.tsv`):
 
 | Command | Cells | POST − PRE instructions/op |
 |---|---:|---:|
@@ -203,12 +212,12 @@ the source changes, compile/link recipes and padding sizes.
 | Arm | Binary | SHA-256 |
 |---|---|---|
 | PRE | `build/persistfmt/PRE/tomokv` | `f804556e1b0dc0c06d9f3cb1c6d9dbb6430797d5043d154b4f139da3e09980fc` |
-| POST | `build/persistfmt/POST/tomokv` | `97daf71dc0ade64921fb738e7b5a5d1327d59050efd0b3a0f7159f8b03402fb8` |
-| PAD-A | `build/persistfmt/PAD-A/tomokv` | `848ace71e4e8a48e76add7aff9380a93b0d9cf19da427abde2aa5fc85f11095e` |
+| POST | `build/persistfmt/POST/tomokv` | `a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c` |
+| PAD-A | `build/persistfmt/PAD-A/tomokv` | `3fb52911e2d89f41384b259a494a3fa012742ff77285569fd86b90cea2e392c7` |
 
-PRE `.text` is 8,729,431 bytes; POST and PAD-A are 8,775,847 bytes (+46,416).
-POST/PAD-A `.rodata` are both 638,284 bytes; `.data` and `.bss` also match.
-PAD-A contains 34,224 unreachable text bytes and 256 read-only padding bytes.
+PRE `.text` is 8,729,431 bytes; POST and PAD-A are 8,777,543 bytes (+48,112).
+POST/PAD-A `.rodata` are both 638,348 bytes; `.data` and `.bss` also match.
+PAD-A contains 35,888 unreachable text bytes and 320 read-only padding bytes.
 Assertion-map sidecars accompany each binary.
 
 Run the 18 cells frozen in `docs/persistfmt/merit.cells.txt`: the unchanged 14
