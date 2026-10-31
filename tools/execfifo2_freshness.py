@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Query the complete gate production-unit inventory without rebuilding it."""
-import hashlib,json,os,re,shlex,subprocess
+import hashlib,json,os,re,shlex,subprocess,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def main():
@@ -22,7 +22,8 @@ def main():
         rows.append(dict(command=command,returncode=result.returncode,stdout=result.stdout,stderr=result.stderr))
     digest=hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest()
     assert digest==hashlib.sha256((ROOT/'build/execfifo2/POST').read_bytes()).hexdigest()
-    record=dict(production_sha256=digest,unit_targets=targets,queries=rows,
+    identities={str(path):hashlib.sha256((ROOT/path).read_bytes()).hexdigest() for path in map(Path,('Makefile','tests/gate.sh','tests/txnorder_fifo.cc','tests/txnorder_chain.cc','build/txnorder-fifo-unit','build/txnorder-fifo-db0-unit'))}
+    record=dict(recorded_ns=time.time_ns(),production_sha256=digest,unit_targets=targets,queries=rows,identities=identities,
                 phony='mdbqsbr-live-arms was built by job_production_units; both recursive all targets queried with identical flags',
                 passed=all(row['returncode']==0 for row in rows))
     (ROOT/'docs/execfifo2/freshness.json').write_text(json.dumps(record,indent=2)+'\n')

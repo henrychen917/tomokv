@@ -1,4 +1,5 @@
 {
+  "recorded_ns": 1793443706493258481,
   "production_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
   "unit_targets": [
     "build/expire-notify-unit",
@@ -673,6 +674,14 @@
       "stderr": ""
     }
   ],
+  "identities": {
+    "Makefile": "fdcb54bb20f902945f4397a949a843e092a9a048caf3191f768861579e01b3a9",
+    "tests/gate.sh": "edf86280993f8f8221e642a66b05ce0fe884cedb8e1e13417cc1da80fabadb63",
+    "tests/txnorder_fifo.cc": "d11333e46cebfe0c304722bed89857602dcb064443553deb5285289a33086061",
+    "tests/txnorder_chain.cc": "91ef2b76fccc4a480f7435902d66a8a072bf0bf6d10e9352fd63850a2eceb777",
+    "build/txnorder-fifo-unit": "c89335fb3c244d4ff3e3ea7e43b0bffd0664ea9ba27e00a843a85f10e6a8b6bd",
+    "build/txnorder-fifo-db0-unit": "65bd4d0ef0629571ec23a87b8e3dc51691b24eccc7d570b3f180456b3b1534b8"
+  },
   "phony": "mdbqsbr-live-arms was built by job_production_units; both recursive all targets queried with identical flags",
   "passed": true
 }
