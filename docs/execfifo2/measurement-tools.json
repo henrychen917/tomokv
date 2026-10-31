@@ -18,5 +18,9 @@
   {
     "path": "/home/user/Projects/redis/src/redis-server",
     "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  },
+  {
+    "path": "/home/user/Projects/cx-execfifo2/tools/execfifo2_storm.py",
+    "sha256": "e40050c23ab06e744f18bd2b787c580b306103671fbac6367ede6de8ba717ce2"
   }
 ]

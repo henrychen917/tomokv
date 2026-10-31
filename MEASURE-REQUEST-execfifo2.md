@@ -169,9 +169,20 @@ digest and Redis oracle digest are in `docs/execfifo2/measurement-tools.json`.
 3. `script-storm-merit.py --blocks 3 --secs 30`: the contended T6 script storm,
    with its standard load and placement. This judges the shared script/EXEC
    admission path rather than assuming the earlier at412 result carries over.
-4. Repeat the same EXEC cells/depths against Redis 7.4.10 with
-   `--reference /home/user/Projects/redis/src/redis-server --redis-io-threads 4`
-   (the harness enables `io-threads-do-reads yes`). The owner verdict is
+   Supply the same `--reference PRE --candidate POST` arm pair as exec-merit.
+4. Repeat the same EXEC cells/depths and script storm against Redis 7.4.10,
+   with four Redis IO threads (`io-threads-do-reads yes`). For exec-merit use
+   `--reference /home/user/Projects/redis/src/redis-server --redis-io-threads 4`;
+   for the depth sweep use `--binary` with that path. Redis has one placement,
+   which the depth harness labels `redis`; do not invent three Redis owners.
+   For the storm use `python3 tools/execfifo2_storm.py --reference
+   /home/user/Projects/redis/src/redis-server --candidate build/execfifo2/POST
+   --redis-io-threads 4 --blocks 3 --secs 30` plus output/CPU/port arguments.
+   This local adapter uses the unchanged shared client workload and exact data
+   checks, supplies two keys for Redis without `DEBUG SHARDS`, and labels
+   Tomo-only counters unavailable. Only its serverless ABBA dispatch self-test
+   was run here. Require every reference and candidate run to be valid.
+   The owner verdict is
    **POST hot-key EXEC at least equal to Redis 7.4 on the same workload**.
 5. The 14 generic ABBA cells:
    `h05,h06,p8g,p8s,d1g_l0,d1s_l0,d32s_l1,d8s_l1,d32g_l1,x9_32_l1,x9_32_l0,m8g_l0,v1g_l0,d128g_l0`,
