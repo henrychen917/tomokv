@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -52,20 +53,35 @@ def worker(slot, cases, binary):
                     failures = [e for e in observed['events'] if e['status'] in ('err', 'exception')]
                     # A test may occur twice (EVAL and FUNCTION). Every observed
                     # occurrence must pass and the full file must finish.
-                    passed = (bool(selected) and all(e['status'] == 'ok' for e in selected)
-                              and observed['complete'] and observed['exit_code'] == 0
-                              and not observed['error'] and observed['failed'] == 0)
+                    validation_error = None
+                    try:
+                        suite.validate_passing(observed, [expected] * len(selected),
+                                               spec.get('known_setup_errors', ()))
+                        passed = bool(selected) and all(e['status'] == 'ok' for e in selected)
+                    except ValueError as exc:
+                        validation_error = str(exc)
+                        passed = False
                     first = next((e['data'] for e in selected if e['status'] != 'ok'), None)
                     if not first:
                         first = observed['error'] or next((e['data'] for e in failures), None)
                     if not selected:
                         first = 'Selected assertion did not run. ' + (first or '')
+                    if passed:
+                        first = None
+                    elif not first:
+                        first = validation_error or 'Selected assertion occurrence count changed.'
                     row = dict(index=index, file=unit, test=name, mode=mode, attempt=attempt,
                         binary_sha256=digest, passed=passed, occurrences=len(selected),
                         selected=selected, first_failure=first, complete=observed['complete'],
                         exit_code=observed['exit_code'], error=observed['error'],
+                        validation_error=validation_error,
                         raw_result=str(output / unit / 'result.json'),
                         raw_sha256=suite.sha(output / unit / 'result.json'))
+                    data = output / unit / 'data'
+                    row['pruned_data'] = [dict(path=str(p.relative_to(data)), bytes=p.stat().st_size,
+                                               sha256=suite.sha(p))
+                                          for p in data.rglob('*') if p.is_file()]
+                    shutil.rmtree(data)
                     save(target, row)
                 results.append(row)
                 print(index, mode, attempt, 'PASS' if row['passed'] else 'SKIP', name, flush=True)

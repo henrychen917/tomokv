@@ -44,7 +44,7 @@ for name,jobs,fused,engine,extra in runs:
         failed |= result['exit']!=0
         continue
     argv=[sys.executable,str(DOC/'run_jobs.py'),name,*dict.fromkeys(jobs),
-          '--binary','build/wave12/tomokv-POST','--engine',engine,'--port','20020']
+          '--binary','build/tomokv','--engine',engine,'--port','20020']
     if fused:argv+=['--fused']
     if a.phase in ('quiet','bounds0'):argv+=['--single-slot']
     if a.asan_binary:argv+=['--asan-binary',str(a.asan_binary.resolve())]

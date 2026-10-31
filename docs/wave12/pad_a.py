@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """PAD-A (behaviour twin): PRE e32b04a44 behaviour linked to POST's .text origin and extent.
 
-Derived from docs/pubtrackfix/layout_pad.py. The composite also includes FLUSH's inert GroupAux fields; the
-PRE objects (build/wave12/pre-tree, built by instructions.py) are linked unchanged
-plus one padding object: an unreachable .text filler that makes .text start and end where
+Derived from docs/pubtrackfix/layout_pad.py. The composite includes FLUSH's inert GroupAux fields in two recompiled PRE
+scatter objects. The other PRE objects are unchanged. One padding object adds an unreachable .text filler that makes .text start and end where
 POST's does, and an unused .tbss block that gives the TLS segment POST's size (POST adds
 the 16-byte owner_memory_config_hook). No server, load generator or measurement.
 Limitation: individual function, TLS-variable and data-section addresses come from the
@@ -73,7 +72,7 @@ def main():
         list(pool.map(compile_one, replacements))
     for target, obj, _ in replacements:
         link[link.index(target)] = str(obj)
-    output = OUT / 'tomokv' 
+    output = OUT / 'tomokv'
     link[link.index('-o') + 1] = str(output)
     assembly, obj = OUT / 'padding.S', OUT / 'padding.o'
     link.insert(link.index('-o'), str(obj))
