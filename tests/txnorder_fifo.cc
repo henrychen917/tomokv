@@ -96,6 +96,15 @@ void exclusions(Server& server) {
     waiting.finish();
     EpisodeUnit placed(server); placed.claim(0, key, TxnClaimMode::Write);
     require(placed.place(0) && multi_plain_write_ready(sh, writer.op), "D-F3 unstarted claim is not FIFO");
+    placed.finish();
+    // D-F3 also applies when this very writer previously saw the EXEC waiting.
+    // FIFO refusal is a waiter-state predicate, not an arrival-to-commit order.
+    FifoUnit transitioning(server, now_ns() - 1, key);
+    require(!multi_plain_write_probe(sh, writer.op), "D-F3 transition first observes a real FIFO refusal");
+    require(transitioning.place(0), "D-F3 older waiter becomes a placed claim");
+    require(!(transitioning.exec->execution_noted[0] & 8u), "D-F3 claim is genuinely unstarted");
+    require(multi_plain_write_probe(sh, writer.op) && multi_plain_write_ready(sh, writer.op),
+            "D-F3 previously refused writer may pass the placed unstarted EXEC");
 }
 
 void defaults(Server& server) {

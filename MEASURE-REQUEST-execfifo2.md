@@ -36,7 +36,12 @@ both mixed arrival orders and a script younger than an existing writer mark.
 D-F1/2/3 remain **no/no/no**: whole-shard waiters do not FIFO-block keyed
 writers; kind-2 waiters (including escalated scripts) do not gain a new
 plain-writer FIFO predicate; unstarted placed EXEC claims are not FIFO
-waiters. Existing held/started/validation predicates still apply. FLUSH checks
+waiters. **This is an exception to an unconditional arrival-to-completion
+no-overtaking statement:** W can first be refused by a waiting EXEC, then pass
+after that EXEC places but before it starts on this shard. F4 explicitly
+checks that transition. The directed guarantee is that W cannot pass while
+the older EXEC remains a live waiter (or after its held claim has started).
+A stronger guarantee would require changing approved D-F3=no. Existing held/started/validation predicates still apply. FLUSH checks
 all relevant queues. EXEC children, blind atomic groups, script APPLY,
 blocking serves, WATCH/UNWATCH and committed dirtying retain their original
 non-FIFO predicates (R-F2). Script placement still obeys the shared claim

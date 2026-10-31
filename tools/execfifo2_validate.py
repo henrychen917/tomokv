@@ -19,7 +19,7 @@ BATTERIES="debug-0 debug-1 release_batteries atomic_batteries script_bounds"
 BROAD="feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order datafix2_watch atomfix5_watch blockfix2 blockfix_structure blockfix_registry blockfix_mkstream rlfix3_zc rlfix3_info readonly"
 CORE="core_units flip_unit flipfix_units flipfix5_units splitlocal_units wait_units atomic_units"
 FEATURES=" ".join("feature-cell-"+"-".join(map(str,cell)) for cell in itertools.product(("1s","2s"),(0,1),(0,1),(0,1),(0,1)))
-GROUPS={"directed":("quick",DIRECTED,{}),
+GROUPS={"fifo-contract":("quick","txnorder_fifo",{}),"directed":("quick",DIRECTED,{}),
         "fairness":("quick","execfair txnorder_fifo_live",{}),
         "at412":("quick"," ".join("at412-"+s for s in "T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16".split()),{}),
         "scripts":("quick","scriptfix scriptfix2 lualibs",{}),
