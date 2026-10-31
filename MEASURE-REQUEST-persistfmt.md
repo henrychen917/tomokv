@@ -107,9 +107,28 @@ Retained differences and additional findings:
 
 ### Validation and instruction counts
 
-Final correctness validation is still running. These are partial job-interface runs, never a full
-`iteration`, a throughput benchmark, or a push receipt. EXPECT_QUICK and EXPECT_FULL
-are unchanged.
+Final correctness validation is still running. These are partial job-interface runs,
+never a full `iteration`, a throughput benchmark, or a push receipt. EXPECT_QUICK
+and EXPECT_FULL are unchanged.
+
+Already complete on the frozen POST bytes:
+
+- Tcl passing-subset job in both modes: 1,820 passing assertions per mode, including
+  all three promotions. Its five existing setup errors per mode remain explicitly
+  inventoried; no new skip or known-failure allowance was added.
+- `python3 tests/gates_test.py`: 76/76 pass on the quiet rerun. The earlier attempt
+  under compilation/trace contention hit nine scheduler deadlines; both logs remain.
+- `make -k -j16 all` with all 51 main `job_production_units` targets, plus the
+  live-arm and supplemental cost/blockfix targets: pass. All 56 `make -q` checks
+  pass, including `all`; the inherently phony live-arm target is verified by its
+  successful build and inner builds. Receipts are `all-production-build.json` and
+  `freshness.json`. The main binary still matches frozen POST.
+
+The first debug-compression sweep changed some unit executable timestamps, leaving
+three aggregate readiness markers absent. This was an artifact-handling failure,
+not a green build receipt. Real make targets have since been rebuilt and checked;
+the affected AOF frame-order job is included in the later complete-job rerun.
+No readiness marker is manufactured.
 
 The instruction instrument is `tools/persistfmt_counts.py`: the existing bounded
 production command scope plus a snapshot save/load-loop fixture, under ptrace.
