@@ -33,13 +33,14 @@ GROUPS={"fifo-contract":("quick","txnorder_fifo",{}),"directed":("quick",DIRECTE
 for engine in ("uring","epoll"):
     env=dict(GATE_NET_IO=engine,GATE_PROOF_NET_IO=engine,GATE_DIFFER_NET_IO=engine)
     GROUPS["ownership-extra-"+engine]=("quick"," ".join(f"multidb-{mode}-{local}-{atomic}" for mode in ("1s","2s") for local in (0,1) for atomic in (0,1))+" "+" ".join(f"evict-{section}-{mode}-{atomic}" for section in ("lfu","lruclock") for mode in ("split","armed") for atomic in (0,1)),env)
-    GROUPS["aof-extra-"+engine]=("quick","aof-"+engine+" aof_frame aoforder",env)
+    GROUPS["atomic-controls-"+engine]=("quick","atomic_floor",env)
     GROUPS["readlocal-extra-"+engine]=("quick","bplus ring_unit filter_unit acl_recheck",env)
     GROUPS["notify-fused-"+engine]=("quick","notify",env|dict(GATE_TXN_FUSED="1"))
     GROUPS["txn-"+engine]=("quick",TXN,env)
     GROUPS["broad-"+engine]=("quick",BROAD,env)
     GROUPS["differ-"+engine]=("full","differ-split differ-armed",env)
     for fused in (0,1):
+        GROUPS[f"aof-extra-{engine}-{fused}"]=("quick","aof-"+engine+" aof_frame aoforder",env|dict(GATE_TXN_FUSED=str(fused)))
         GROUPS[f"asan-{engine}-{fused}"]=("full","asan_batteries",env|dict(GATE_TXN_FUSED=str(fused)))
         GROUPS[f"batteries-{engine}-{fused}"]=("quick",BATTERIES,env|dict(GATE_TXN_FUSED=str(fused)))
         GROUPS[f"scriptbounds-{engine}-{fused}-a0"]=("quick","script_bounds",env|dict(GATE_TXN_FUSED=str(fused),GATE_TXN_ATOMIC="0"))
