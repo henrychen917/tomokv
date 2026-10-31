@@ -23,6 +23,9 @@ class ThreadCtx;
 
 class SnapshotLoadPlan {
 public:
+    // Recovery teardown is cold. Keep its growing metadata cleanup out of the
+    // ordinary scatter dispatcher's register allocation and inline budget.
+    [[gnu::noinline]] ~SnapshotLoadPlan() = default;
     uint32_t routing_version = 1;
     DatabaseMap::Map database_map;
     uint32_t shard_count = 0;

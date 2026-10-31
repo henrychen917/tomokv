@@ -8,6 +8,7 @@ idle milliseconds; XINFO FULL checks the persisted absolute timestamps exactly.
 import argparse
 from contextlib import contextmanager
 import os
+import re
 from pathlib import Path
 import select
 import signal
@@ -100,6 +101,21 @@ def stream_interchange():
                 (ARGS.artifacts / (direction + '-' + key.replace(':', '-') + '.dump')).write_bytes(payload)
                 assert c.cmd('RESTORE', key, 0, payload) == b'OK'
                 assert state(c, key) == expected, direction
+    # Redis's own old-format fixtures exercise v1/v2 stream listpacks and LZF.
+    fixture = Path(ARGS.oracle_binary).resolve().parents[1] / 'tests/unit/type/stream-cgroups.tcl'
+    literals = re.findall(r'r RESTORE x 0 "((?:\\x[0-9A-Fa-f]{2})+)"', fixture.read_text())
+    payloads = [bytes.fromhex(x.replace('\\x', '')) for x in literals]
+    payloads = [x for x in payloads if x[0] in (15, 19)]
+    assert {p[0] for p in payloads} == {15, 19}
+    states = []
+    for oracle in (True, False):
+        with server(oracle, data=ARGS.artifacts / ('legacy-oracle' if oracle else 'legacy-target')) as (_, c):
+            rows = []
+            for payload in payloads:
+                assert c.cmd('RESTORE', 'legacy', 0, payload, 'REPLACE') == b'OK'
+                rows.append(state(c, 'legacy'))
+            states.append(rows)
+    assert states[0] == states[1], states
 
 
 def crc64(data):
@@ -143,7 +159,7 @@ def stream_options():
             assert c.cmd('RESTORE', 'copy', 60000, payload) == b'OK'
             assert 0 < c.cmd('PTTL', 'copy') <= 60000
             # Envelope errors and CRC-correct structural errors have distinct replies.
-            corrupt = [b'', payload[:-1], payload[:-1] + bytes([payload[-1] ^ 1]),
+            corrupt = [b'', envelope(b''), payload[:-1], payload[:-1] + bytes([payload[-1] ^ 1]),
                        envelope(payload[:-10], 13), envelope(bytes([21])),
                        envelope(bytes([21, 1, 0]))]
             for bad in corrupt:
@@ -162,8 +178,30 @@ def libraries(c):
     return sorted(c.cmd('FUNCTION', 'LIST', 'WITHCODE'), key=lambda x: pairs(x)[b'library_name'])
 
 
+def function_format_audit():
+    images = []
+    for oracle in (True, False):
+        with server(oracle, data=ARGS.artifacts / ('format-oracle' if oracle else 'format-target')) as (_, c):
+            c.cmd('FUNCTION', 'LOAD', SOURCES[0])
+            expected = libraries(c)
+            payload = c.cmd('FUNCTION', 'DUMP')
+            images.append(payload)
+            assert c.cmd('FUNCTION', 'FLUSH') == b'OK'
+            assert c.cmd('FUNCTION', 'RESTORE', payload) == b'OK'
+            assert libraries(c) == expected
+            h.emit('function_format_local', oracle=oracle, header=payload[:12], size=len(payload))
+    # This is an audit, not a promise of FUNCTION DUMP interoperability: that
+    # existing command's private envelope is outside the two persistence fixes.
+    for oracle, payload in ((True, images[1]), (False, images[0])):
+        with server(oracle, data=ARGS.artifacts / ('format-cross-oracle' if oracle else 'format-cross-target')) as (_, c):
+            h.emit('function_format_cross', oracle=oracle,
+                   reply=result(c, 'FUNCTION', 'RESTORE', payload))
+
+
 def functions():
     case = ARGS.case
+    if case == 'save':
+        function_format_audit()
     for oracle in (True, False):
         data = ARGS.artifacts / ('oracle' if oracle else 'target')
         opt = []

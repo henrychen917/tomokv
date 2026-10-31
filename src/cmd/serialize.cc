@@ -1194,7 +1194,7 @@ void reply_dump_payload_error(Op& op) {
 }
 
 bool verify_dump_payload(Op& op, Slice envelope, Slice& encoded) {
-    if (envelope.n < kDumpTrailerBytes + 1) {
+    if (envelope.n < kDumpTrailerBytes) {
         reply_dump_payload_error(op);
         return false;
     }

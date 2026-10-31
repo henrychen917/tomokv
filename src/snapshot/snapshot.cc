@@ -1159,7 +1159,9 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
 }
 
 template<bool Merge>
-static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
+// Keep the lookup/insert loop inlined in both cold recovery variants. Splitting
+// MERGE out must not make normal recovery pay an out-of-line find per key.
+[[gnu::flatten]] static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                        std::string& error) {
     const int64_t now = now_realtime_ms();
     const uint32_t sid = static_cast<uint32_t>(shard.id());
