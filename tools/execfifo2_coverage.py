@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Check completed selected-job groups and explicit live-leg inventories."""
-import hashlib,json
+import hashlib,json,re
 from pathlib import Path
 from execfifo2_validate import GROUPS
 ROOT=Path(__file__).resolve().parents[1]
@@ -28,6 +28,20 @@ if 'fifo-contract' in latest:
     expected=10*2*2*2*2
     summary['leg_inventories'].append(dict(job='txnorder_fifo',expected=expected,actual=len(legs),passed=len(legs)==expected and all('PASS' in file.read_text() and 'FAIL' not in file.read_text() for file in legs),source=str(run)))
 summary['passed']=not missing and not failed and all(r['passed_rows']>0 and r['failed_rows']==0 for r in summary['groups']) and all(r['passed'] for r in summary['leg_inventories'])
+allocation=dict(logs_with_banners=0,ports=set(),server_cpus=set(),outside_allocation=[])
+for row in rows:
+    for file in Path(row['run_directory']).rglob('*'):
+        if not file.is_file() or not (file.name.startswith('gate-srv-') or file.name=='server.log'):continue
+        text=file.read_text(errors='replace')
+        ports=set(map(int,re.findall(r'(?:listening on [^\s:]+:|port=)(\d+)',text)))
+        cpus=set(map(int,re.findall(r'\bthread t\d+:.*?\bcpu=(\d+)',text)))
+        allocation['logs_with_banners']+=bool(ports or cpus)
+        allocation['ports'].update(ports);allocation['server_cpus'].update(cpus)
+        if not ports<=set(range(20100,20200)) or not cpus<=set(range(32)):
+            allocation['outside_allocation'].append(str(file))
+allocation['ports']=sorted(allocation['ports']);allocation['server_cpus']=sorted(allocation['server_cpus'])
+summary['boot_allocation']=allocation
+summary['passed'] &= not allocation['outside_allocation']
 (OUT/'coverage.json').write_text(json.dumps(summary,indent=2)+'\n')
 print('required groups',len(GROUPS),'missing',missing,'failed',failed,'leg inventory',summary['leg_inventories'])
 assert summary['passed']
