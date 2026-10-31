@@ -3814,9 +3814,9 @@ bool command_config_routes_all_shards(Op& op, bool execution_boundary) {
              (g_server && storesize_field_census(*g_server)));
     if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
-        return op.argc() == 2 &&
-               (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||
-                eq_icase(op.arg(1), "borrowcount"));
+        return (op.argc() >= 2 && eq_icase(op.arg(1), "reload")) ||
+               (op.argc() == 2 && (eq_icase(op.arg(1), "loadaof") ||
+                                   eq_icase(op.arg(1), "borrowcount")));
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 

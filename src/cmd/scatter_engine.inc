@@ -1739,33 +1739,8 @@ template<bool ScriptOnly>
                 reply_debug_command_denied(op);
                 return ScatterPrepare::Error;
             }
-            ThreadCtx& writer = server.thread(owner_io);
-            Ring* writer_ring = writer.ring();
-            if (!writer_ring) {
-                reply_err(op.sink(), "ERR snapshot command has no IO owner");
+            if (!prepare_debug_reload(server, op, owner_io, reload_plan))
                 return ScatterPrepare::Error;
-            }
-            std::string error;
-            const SnapshotManager::StartResult saved = server.snapshot().start(
-                server, writer, *writer_ring, true, error);
-            if (saved == SnapshotManager::StartResult::Busy) {
-                reply_err(op.sink(), "ERR Background save already in progress");
-                return ScatterPrepare::Error;
-            }
-            if (saved == SnapshotManager::StartResult::Failed) {
-                std::string message = "ERR ";
-                message += error.empty() ? "snapshot failed" : error;
-                reply_err(op.sink(), message.c_str());
-                return ScatterPrepare::Error;
-            }
-            const std::string path = server.snapshot().dir() + "/" +
-                                     server.snapshot().dbfilename();
-            reload_plan = snapshot_read_plan(path.c_str(), server.nshards(), error);
-            if (!reload_plan) {
-                reply_err(op.sink(),
-                          "ERR Error trying to load the snapshot dump, check server logs.");
-                return ScatterPrepare::Error;
-            }
         } else if (kind == Kind::DebugLoadAof) {
             if (!prepare_debug_loadaof(server, op, owner_io, origin_client,
                                        aof_reload_base, aof_reload_increments))
@@ -3430,8 +3405,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             case Kind::DebugReload: {
                 if (!shard.watch_all_write_ready(state.multi_parent)) return ScatterTaskResult::Defer;
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
-                if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
-                shard.store().clear();
+                if (state.reload_plan && state.reload_plan->flush) {
+                    if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
+                    shard.store().clear();
+                }
                 std::string error;
                 if (!state.reload_plan ||
                     !snapshot_load_shard(*state.reload_plan, *state.server, shard, error)) {

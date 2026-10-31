@@ -32,6 +32,7 @@
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../snapshot/format.h"
+#include "serialize.h"
 
 extern "C" {
 #include "../../third_party/lua/lua.h"
@@ -1137,6 +1138,39 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
+    try {
+        std::vector<LibraryDef> libraries;
+        uint64_t stamp = 0;
+        if (!g_functions.snapshot(libraries, stamp)) throw std::bad_alloc();
+        std::vector<std::string> sources;
+        sources.reserve(libraries.size());
+        for (auto& library : libraries) sources.push_back(std::move(library.code));
+        if (encode_function_records(sources, image)) return true;
+        error = "function library image too large";
+    } catch (const std::bad_alloc&) { error = "out of memory saving functions"; }
+    return false;
+}
+
+bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& error) {
+    try {
+        std::vector<std::string> sources;
+        if (!decode_function_records(image, sources)) { error = "invalid FUNCTION2 records"; return false; }
+        std::vector<LibraryDef> incoming;
+        incoming.reserve(sources.size());
+        for (const auto& code : sources) {
+            LibraryDef library;
+            if (!compile_library(Slice(code.data(), code.size()), library, error)) return false;
+            incoming.push_back(std::move(library));
+        }
+        if (sources.empty()) {
+            if (flush) g_functions.flush();
+            return true;
+        }
+        return g_functions.replace_all(std::move(incoming), flush, replace, error) == AddResult::Ok;
+    } catch (const std::bad_alloc&) { error = "out of memory loading functions"; return false; }
+}
 
 FunctionStats function_stats() {
     FunctionStats stats;
