@@ -26,8 +26,9 @@ written (the SET entered its channel while X was inside the busy drain), and eve
 the list. Shard 0 carries 6000 padding keys and the settle directly precedes step 1, so the
 old allkeys-lru limit rarely evicts the list first. A trial whose window did not open is
 re-armed on fresh state, at most three attempts; the assertion is never relaxed and a trial
-that never opens its window fails the leg. The Redis oracle runs the same wire sequence
-without geometry (its allkeys-lru limit may evict the list; that is not asserted there).
+that never opens its window fails the leg. Candidate legs: 1s/2s x uring/epoll x atomic 0/1 x read-local
+0/1 x databases 1/16, plus the fused shadow scheduler (--reorder 1) for every 1s product.
+The Redis oracle runs the same wire sequence without geometry (its allkeys-lru limit may evict the list; that is not asserted there).
 No rates or latencies are asserted.
 """
 import argparse
@@ -389,14 +390,23 @@ def run_target(args, label, argv, oracle):
     return result
 
 
-def candidate_argv(args, mode, engine, atomic, read_local, databases, data):
+def candidate_argv(args, mode, engine, atomic, read_local, databases, reorder, data):
     argv = [str(Path(args.binary).resolve()), '--port', str(args.port), '--bind', '127.0.0.1',
             '--shards', '16', '--save', '', '--appendonly', 'no', '--enable-debug-command', 'yes',
             '--dir', str(data), '--net-io', engine, '--atomic', str(atomic),
             '--read-local', str(read_local), '--databases', str(databases),
-            '--key-lb', '0', '--client-lb', '0']
+            '--key-lb', '0', '--client-lb', '0', '--reorder', str(reorder)]
     argv += ['--ratio', args.ratio] if mode == '2s' else ['--thread-mode', '1s']
     return argv
+
+
+def geometries(args):
+    """Every requested product; --reorder 1 (the fused shadow scheduler) only in 1s."""
+    for mode, engine, atomic, read_local, databases, reorder in itertools.product(
+            args.modes, args.engines, args.atomics, args.read_locals, args.databases, args.reorders):
+        if reorder and mode != '1s':
+            continue
+        yield mode, engine, atomic, read_local, databases, reorder
 
 
 def main():
@@ -412,6 +422,7 @@ def main():
     p.add_argument('--atomics', nargs='+', type=int, default=[0, 1])
     p.add_argument('--read-locals', nargs='+', type=int, default=[0, 1])
     p.add_argument('--databases', nargs='+', type=int, default=[1, 16])
+    p.add_argument('--reorders', nargs='+', type=int, default=[0, 1])
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--expect-fail', action='store_true',
                    help='control mode: succeed only if the oracle passes and every candidate leg '
@@ -425,12 +436,12 @@ def main():
         argv = [str(Path(args.oracle).resolve()), '--port', str(args.port), '--bind', '127.0.0.1',
                 '--save', '', '--appendonly', 'no', '--dir', str(data)]
         results.append(run_target(args, 'oracle', argv, True))
-    for mode, engine, atomic, read_local, databases in itertools.product(
-            args.modes, args.engines, args.atomics, args.read_locals, args.databases):
-        label = f'{mode}-{engine}-atomic{atomic}-rl{read_local}-db{databases}'
+    for mode, engine, atomic, read_local, databases, reorder in geometries(args):
+        label = f'{mode}-{engine}-atomic{atomic}-rl{read_local}-db{databases}' + \
+            ('-reorder1' if reorder else '')
         data = args.output / label / 'data'
         data.mkdir(parents=True, exist_ok=True)
-        argv = candidate_argv(args, mode, engine, atomic, read_local, databases, data)
+        argv = candidate_argv(args, mode, engine, atomic, read_local, databases, reorder, data)
         results.append(run_target(args, label, argv, False))
     summary = dict(binary=str(Path(args.binary).resolve()), oracle=args.oracle, trials=args.trials,
                    cases=CASES, results=[{k: v for k, v in r.items() if k != 'trials'} | dict(
