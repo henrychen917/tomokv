@@ -1238,7 +1238,10 @@
       "fresh_tests": [
         "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
       ],
-      "isolated_tests": {}
+      "isolated_tests": {
+        "SLOWLOG - commands with too many arguments are trimmed": "The retained zero-capacity assertion leaves slowlog-max-len=0; skipped capacity-restoring predecessors do not run. Require this unchanged assertion on a fresh server.",
+        "SLOWLOG - too long arguments are trimmed": "The retained zero-capacity assertion leaves slowlog-max-len=0; skipped capacity-restoring predecessors do not run. Require this unchanged assertion on a fresh server."
+      }
     },
     "unit/sort": {
       "extra_args": [],
