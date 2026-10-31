@@ -4,9 +4,9 @@ import os, argparse, concurrent.futures, json, re, shlex, subprocess
 from pathlib import Path
 from lbstall_artifacts import Elf, HOT
 ROOT=Path(__file__).resolve().parents[1]
-ARM=os.environ.get('EXECFIFO_ARM','B'); SOURCE=ROOT/'build/execfifo'/(ARM+'-source')
-OUT=ROOT/'docs/execfifo'/('budgets-'+ARM); OUT.mkdir(parents=True,exist_ok=True)
-BUILD=ROOT/'build/execfifo'/('budgets-'+ARM); BUILD.mkdir(parents=True,exist_ok=True)
+ARM=os.environ.get('EXECFIFO_ARM','POST'); SOURCE=ROOT if ARM=='POST' else ROOT/'build/execfifo2'/(ARM+'-source')
+OUT=ROOT/'docs/execfifo2'/('budgets-'+ARM); OUT.mkdir(parents=True,exist_ok=True)
+BUILD=ROOT/'build/execfifo2'/('budgets-'+ARM); BUILD.mkdir(parents=True,exist_ok=True)
 UNITS=[prefix+suffix for prefix in ['src/','db0/src/'] for suffix in ['cmd/xshard.o','main.o','core/genthread.o','core/rl2s.o','core/reorder.o']]
 def recipes(root):
     text=subprocess.check_output(['make','-n','-W','Makefile','all'],cwd=root,text=True).replace('\\\n',' ')
@@ -16,7 +16,7 @@ def recipes(root):
             cmd=shlex.split(line)
             if '-c' in cmd: result[cmd[cmd.index('-o')+1].removeprefix('build/')]=cmd
     return result
-PRE=ROOT/'build/execfifo/pre-source'
+PRE=ROOT/'build/execfifo2/pre-source'
 COMMANDS={'pre':recipes(PRE),'post':recipes(SOURCE)}
 def run(item):
     arm,unit,value=item; label=arm+'-'+unit.replace('/','_')+'-'+str(value)
@@ -25,7 +25,7 @@ def run(item):
     oldbudget=int(next(x.split('=')[1] for x in cmd if x.startswith('large-unit-insns=')))
     if value is not None:cmd=[f'large-unit-insns={value}' if x.startswith('large-unit-insns=') else x for x in cmd]
     cmd[cmd.index('-o')+1]=str(output)
-    cmd=['taskset','-c','96-111',*cmd,'-g0',f'-fdump-ipa-inline={dump}']
+    cmd=['taskset','-c','0-31',*cmd,'-g0',f'-fdump-ipa-inline={dump}']
     receipt=OUT/(label+'.json')
     if receipt.exists():return json.loads(receipt.read_text())
     with (BUILD/(label+'.log')).open('w') as f:

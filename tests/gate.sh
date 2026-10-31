@@ -3231,10 +3231,10 @@ job_txnorder_fifo_live(){
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/fifo-*"
 }
 
-# C1: two directed rows, before quick exit; DQ=DF=+2.
+# C1: four directed rows, before quick exit; DQ=DF=+4.
 job_txnorder_chain(){
   local case_name label passed unit mode
-  for case_name in local boundary; do
+  for case_name in local boundary serve hot; do
     label="txnorder chain $case_name"
     row_begin "$label"; passed=1
     for unit in txnorder-chain-unit txnorder-chain-db0-unit; do

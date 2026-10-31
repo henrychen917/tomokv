@@ -1,0 +1,16 @@
+[
+  {
+    "arm": "PRE",
+    "source_commit": "e32b04a445b056976abb308aa598e356fcbaae74",
+    "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/PRE",
+    "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
+    "bytes": 224567720
+  },
+  {
+    "arm": "POST-B",
+    "source_commit": "e0f0e0ff5",
+    "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST-B",
+    "sha256": "f45b5089e6132897df60e2c824868c8a35e1a37214cca941d6e114d77a1c11da",
+    "bytes": 224391152
+  }
+]
