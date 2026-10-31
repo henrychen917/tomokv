@@ -50,7 +50,22 @@ WATCH registry and lifetime audit:
 * `Client::safe_to_release()` must continue requiring zero references. Allowing
   movement with known durable pins would not permit destruction with those pins.
 
-Conclusion: the session-field portion of candidate c' is sound in principle
-after the existing drain, excluding S2. The stipulated unchanged
-`watched_refs_ == 0` clause is incompatible with moving an active WATCH. The
-proposed exception is documented in the root report and is not implemented.
+The original audit found that the stipulated `watched_refs_ == 0` clause was
+incompatible with moving an active WATCH. The resume addendum approves an exact
+physical-alias exception. The retained draft implements and tests it; production
+source is restored while the additional executor-fence decision is pending.
+
+Resume audit of the new readers in `session-handover-DRAFT.patch`:
+
+| Reader | IO assumption |
+|---|---|
+| `Client::flip_session_pending()` | Reads only the Client-owned pending pointer on the current IO; does not dereference or move its IO-bound attempt. |
+| `Client::flip_migration_protocol_idle()` | Reads pending and physical watched-alias count on the current IO, then the existing connection drain predicate. No stored IO identity. |
+| Transfer accounting in `finish_client_transfer` | Captures whether the session exists before publishing the ownership move; no session dereference after publication. |
+| S2 preflight/drop in ClientPrepare | Reads pending on the source IO and retains it there. Insufficient alone: the earlier global ExDrain credits block entry to this stage. |
+
+The new deterministic witnesses narrow the original conclusion: session state
+is transferable only when the earlier ExDrain and close scheduling obligations
+are also met. See [s2-exdrain-review.md](s2-exdrain-review.md). Close can abandon
+an unpublished attempt or publish WATCH-removal tasks after the safe point;
+its lifetime must be reconciled with the proposed exact admission/apply receipt.

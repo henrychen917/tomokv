@@ -33,6 +33,64 @@ def transaction(c, pair, pipeline=True):
     return value[0]
 
 
+def semantics(args, directory, engine, atomic):
+    rows = []
+    with s.Boot(args, directory, '2s', engine, atomic, False) as b:
+        with contextlib.closing(s.connect(b.port, args.stall, io=0)) as control:
+            db = 7 if args.databases == 16 else 0
+            control.must('SELECT', db)
+            for case in ('watch-clean', 'watch-dirty', 'queue', 'queue-error', 'discard', 'reset'):
+                with contextlib.closing(s.connect(b.port, args.stall, io=5)) as c:
+                    c.must('SELECT', db)
+                    pair, _ = s.keys_for(control, 'flipfix6:semantics:' + case, False, 2)
+                    control.must('MSET', pair[0], 0, pair[1], 0)
+                    if case.startswith('watch') or case in ('discard', 'reset'):
+                        assert c.must('WATCH', pair[0], pair[0]) == b'OK'
+                        assert c.must('WATCH', pair[0]) == b'OK'
+                    if not case.startswith('watch'):
+                        assert c.must('MULTI') == b'OK'
+                        assert c.must('INCR', pair[0]) == b'QUEUED'
+                    if case == 'queue-error':
+                        reply = c.cmd('INCR', pair[0], 'extra')
+                        assert isinstance(reply, RespError) and b'wrong number' in reply.message, reply
+                    before = s.stats(control)
+                    begin = time.monotonic()
+                    assert control.must('FLIP', 1, 7) == b'OK'
+                    elapsed = time.monotonic() - begin
+                    assert elapsed < 1, (case, elapsed)
+                    moved = s.stats(control)['flip_session_clients_transferred'] - before[
+                        'flip_session_clients_transferred']
+                    assert moved == 1, (case, 'session did not move exactly once', moved)
+                    if case.startswith('watch'):
+                        if case == 'watch-dirty':
+                            assert control.must('INCR', pair[0]) == 1
+                        assert c.must('MULTI') == b'OK'
+                        assert c.must('INCR', pair[1]) == b'QUEUED'
+                        reply = c.must('EXEC')
+                        assert reply == (None if case == 'watch-dirty' else [1]), (case, reply)
+                    elif case == 'queue':
+                        assert c.must('INCR', pair[1]) == b'QUEUED'
+                        assert c.must('EXEC') == [1, 1]
+                        assert control.must('MGET', *pair) == [b'1', b'1']
+                    elif case == 'queue-error':
+                        reply = c.cmd('EXEC')
+                        assert isinstance(reply, RespError) and reply.message.startswith(b'EXECABORT'), reply
+                        assert control.must('MGET', *pair) == [b'0', b'0']
+                    else:
+                        assert c.must(case.upper()) == (b'RESET' if case == 'reset' else b'OK')
+                        c.must('SELECT', db)
+                        assert control.must('MGET', *pair) == [b'0', b'0']
+                        assert control.must('INCR', pair[0]) == 1
+                        assert c.must('MULTI') == b'OK'
+                        assert c.must('INCR', pair[1]) == b'QUEUED'
+                        assert c.must('EXEC') == [1], 'cleanup left a WATCH registration'
+                    assert s.io_thread(c) == 0
+                    rows.append(dict(case=case, session_moves=moved, flip_seconds=elapsed))
+                assert control.must('FLIP', 6, 2) == b'OK'
+    assert b.exit == dict(rc=0, forced=False), b.exit
+    return rows
+
+
 def witness(args, directory, engine, atomic, case):
     result = dict(case=case, flips=[], pings=0, ping_max=0, errors=[], workers=[])
     with s.Boot(args, directory, '2s', engine, atomic, False) as b, contextlib.ExitStack() as stack:
@@ -145,7 +203,7 @@ def main():
     p.add_argument('--port', type=int, default=20300)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--expect', choices=['pre', 'post'], default='post')
-    p.add_argument('--cases', nargs='+', choices=['exec', 'p1', 'p2', 'p3', 'watch'], default=['exec'])
+    p.add_argument('--cases', nargs='+', choices=['exec', 'p1', 'p2', 'p3', 'watch', 'semantics'], default=['exec'])
     p.add_argument('--engines', nargs='+', default=['uring', 'epoll'])
     p.add_argument('--atomics', nargs='+', type=int, default=[0, 1])
     p.add_argument('--databases', nargs='+', type=int, default=[1, 16])
@@ -167,15 +225,17 @@ def main():
                     one.databases = db
                     record = dict(leg=leg)
                     try:
-                        record['result'] = witness(one, directory, engine, atomic, case)
+                        record['result'] = (semantics(one, directory, engine, atomic)
+                            if case == 'semantics' else witness(one, directory, engine, atomic, case))
                         record['pass'] = True
                     except Exception:
                         record.update(error=traceback.format_exc(), **{'pass': False})
                     rows.append(record)
                     (args.output / 'results.json').write_text(json.dumps(rows, indent=2) + '\n')
+                    result = record.get('result', {})
                     print(json.dumps(dict(leg=leg, **{'pass': record['pass']},
-                        flips=len(record.get('result', {}).get('flips', [])),
-                        ping_max=record.get('result', {}).get('ping_max'),
+                        flips=len(result.get('flips', [])) if isinstance(result, dict) else len(result),
+                        ping_max=result.get('ping_max') if isinstance(result, dict) else None,
                         error=record.get('error'))), flush=True)
     return int(any(not row['pass'] for row in rows))
 
