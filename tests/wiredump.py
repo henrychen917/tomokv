@@ -239,8 +239,9 @@ def boot_pair(args):
             ("target", ["taskset", "-c", args.cores, args.target_bin,
                         "--port", str(args.target_port), "--bind", args.host,
                         "--databases", "1", "--shards", "16", "--thread-mode", args.mode,
-                        "--net-io", args.engine, "--ratio", args.ratio, "--save", "",
-                        "--appendonly", "no", "--dir", args.target_dir, "--atomic", str(args.atomic)]),
+                        "--net-io", args.engine, "--save", "", "--appendonly", "no",
+                        "--dir", args.target_dir, "--atomic", str(args.atomic)] +
+                       (["--ratio", args.ratio] if args.mode == "2s" else [])),
             ("oracle", ["taskset", "-c", args.cores, args.oracle_bin,
                         "--port", str(args.oracle_port), "--bind", args.host,
                         "--dir", args.oracle_dir,

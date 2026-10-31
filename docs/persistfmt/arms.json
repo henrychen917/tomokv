@@ -1,0 +1,35 @@
+{
+  "PRE": {
+    "path": "build/persistfmt/PRE/tomokv",
+    "sha256": "f804556e1b0dc0c06d9f3cb1c6d9dbb6430797d5043d154b4f139da3e09980fc",
+    "bytes": 224567696,
+    "sections": {
+      ".text": 8729431,
+      ".rodata": 637900,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  },
+  "POST": {
+    "path": "build/persistfmt/POST/tomokv",
+    "sha256": "251e1788b0aa511e3e57e1cb9be042c87669407bce87fb4243d44258339d6e62",
+    "bytes": 236435376,
+    "sections": {
+      ".text": 9860071,
+      ".rodata": 646348,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  },
+  "PAD-A": {
+    "path": "build/persistfmt/PAD-A/tomokv",
+    "sha256": "1f72ad089a0c9c2cb0db7f20a8189d3f8b9ec46cbf76336efe0d6bc328bf9685",
+    "bytes": 235685160,
+    "sections": {
+      ".text": 9860071,
+      ".rodata": 646092,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  }
+}

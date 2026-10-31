@@ -1159,9 +1159,7 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
 }
 
 template<bool Merge>
-// Keep the lookup/insert loop inlined in both cold recovery variants. Splitting
-// MERGE out must not make normal recovery pay an out-of-line find per key.
-[[gnu::flatten]] static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
+static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                        std::string& error) {
     const int64_t now = now_realtime_ms();
     const uint32_t sid = static_cast<uint32_t>(shard.id());
@@ -1230,8 +1228,10 @@ template<bool Merge>
 
 bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                          std::string& error) {
-    return plan.merge ? load_shard<true>(plan, server, shard, error)
-                      : load_shard<false>(plan, server, shard, error);
+    // MERGE is an explicit DEBUG option. Preserve the ordinary loader's inline
+    // budget without expanding every store helper into both recovery loops.
+    if (plan.merge) [[unlikely]] return load_shard<true>(plan, server, shard, error);
+    return load_shard<false>(plan, server, shard, error);
 }
 
 bool prepare_debug_reload(Server& server, Op& op, uint32_t owner_io,

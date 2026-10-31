@@ -34,9 +34,9 @@ def sha(path):
         return hashlib.file_digest(f, 'sha256').hexdigest()
 
 
-def text_size(binary):
+def section_size(binary, section='.text'):
     output = subprocess.check_output(['readelf', '-SW', str(binary)], text=True)
-    return int(re.search(r'\]\s+\.text\s+PROGBITS\s+\S+\s+\S+\s+(\S+)', output)[1], 16)
+    return int(re.search(r'\]\s+' + re.escape(section) + r'\s+PROGBITS\s+\S+\s+\S+\s+(\S+)', output)[1], 16)
 
 
 def main():
@@ -97,22 +97,27 @@ def main():
     link[link.index('-o') + 1] = str(binary)
     subprocess.run(link, cwd=ROOT, check=True)
     post = ROOT / 'build/persistfmt/POST/tomokv'
-    wanted, unpadded = text_size(post), text_size(binary)
+    wanted, unpadded = section_size(post), section_size(binary)
     assert wanted >= unpadded, (wanted, unpadded)
     padding = wanted - unpadded
+    rodata_padding = section_size(post, '.rodata') - section_size(binary, '.rodata')
+    assert rodata_padding >= 0, rodata_padding
     assembly = DEST / 'padding.S'
     assembly.write_text('.section .text\n.globl persistfmt_unreachable_padding\n'
                         '.type persistfmt_unreachable_padding,@function\n'
                         'persistfmt_unreachable_padding:\n'
                         f'.fill {padding},1,0x90\n'
                         '.size persistfmt_unreachable_padding,.-persistfmt_unreachable_padding\n'
+                        f'.section .rodata\n.fill {rodata_padding},1,0\n'
                         '.section .note.GNU-stack,"",@progbits\n')
     subprocess.run(['gcc', '-c', str(assembly), '-o', str(DEST / 'padding.o')], check=True)
     link += [str(DEST / 'padding.o')]
     subprocess.run(link, cwd=ROOT, check=True)
-    assert text_size(binary) == wanted
+    assert section_size(binary) == wanted
+    assert section_size(binary, '.rodata') == section_size(post, '.rodata')
     report = dict(kind='A: behavior twin', post_sha256=sha(post), pad_sha256=sha(binary),
                   post_text=wanted, unpadded_text=unpadded, unreachable_padding=padding,
+                  rodata_padding=rodata_padding,
                   recipes=recipes, link=link,
                   changed_sources={str(p.relative_to(source)): sha(p)
                                    for p in source.rglob('*.cc')

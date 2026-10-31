@@ -162,9 +162,10 @@ def stream_options():
             corrupt = [b'', envelope(b''), payload[:-1], payload[:-1] + bytes([payload[-1] ^ 1]),
                        envelope(payload[:-10], 13), envelope(bytes([21])),
                        envelope(bytes([21, 1, 0]))]
+            before_bad_restore = state(c, 'copy')
             for bad in corrupt:
                 rows.append(result(c, 'RESTORE', 'copy', 0, bad, 'REPLACE'))
-                assert c.cmd('TYPE', 'copy') == b'stream'
+                assert state(c, 'copy') == before_bad_restore
             h.emit('restore_transcript', oracle=oracle, replies=rows)
             transcripts.append(rows)
     assert transcripts[0] == transcripts[1], transcripts
