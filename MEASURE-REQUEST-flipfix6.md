@@ -210,16 +210,20 @@ retaining ownership/lifetime/quota checks. The BLPOP-held IoDrain signal test in
 `tests/flipfix.py` is unchanged.
 
 Completed: `make all`; all `job_production_units` targets; 58 `make -q` checks
-([freshness.json](docs/flipfix6/freshness.json)); initial sanitizer core/FLIP rows;
+([freshness-final.json](docs/flipfix6/freshness-final.json)); initial sanitizer core/FLIP rows;
 command/control counts. The expanded WATCH-S2 sanitizer selection passed 54/54 assertions in each sanitizer.
 The broad uring/default-engine selection passed **333 rows, zero failures**
 (`gate-regression-uring.ledger`), including every requested family. The epoll
 supplement completed **236 rows passed / 1 failed**: `txnorder-fused-1` timed
 out in its fresh AOF row d and then hit the worker-shutdown timeout. Its normal
 rows a/b/c passed. This boot is fused, read-local 1, atomic 1, databases 16,
-epoll, with FLIP disabled. Matched PRE/POST diagnosis is pending; the failure
-is not dismissed or counted as green. Both fused debug/atomic/production supplements passed **55 rows each, zero failures**.
-Both differential engines remain in progress/pending, followed by
+epoll, with FLIP disabled. Matched PRE/POST diagnosis reproduced the same timeout and shutdown-abort
+signature on unchanged PRE (1/8 debugger trials); POST passed 8/8 in that
+diagnosis. Four native repetitions of the exact gate job passed (PRE 2/2, POST 2/2), without a debugger. The failure is not dismissed or
+counted as green; see [the retained finding and PRE trace](docs/flipfix6/txnorder-aof-finding/README.md). Both fused debug/atomic/production supplements passed **55 rows each, zero failures**.
+The uring differential matrix and inventory folds passed **954 comparisons**
+(490 split/equivalence + 464 armed fused; standard seeds 7, 19, 20, 23, 21).
+The epoll differential matrix remains pending, followed by
 PAD-A negative control and final `python3 tests/gates_test.py`. These are not yet
 claimed as passes. Any unresolved failure or NOT RUN item will be explicit here.
 
