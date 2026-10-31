@@ -3506,5 +3506,563 @@
         "evidence": "docs/execfifo2/validation/35-aof-extra-uring-1/release"
       }
     ]
+  },
+  {
+    "group": "ownership-extra-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/ownership-extra-epoll-1793449841137246861.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc",
+    "jobs_evidence": [
+      {
+        "name": "evict-lfu-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lfu-armed-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lfu-armed-0"
+      },
+      {
+        "name": "evict-lfu-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lfu-armed-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lfu-armed-1"
+      },
+      {
+        "name": "evict-lfu-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lfu-split-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lfu-split-0"
+      },
+      {
+        "name": "evict-lfu-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lfu-split-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lfu-split-1"
+      },
+      {
+        "name": "evict-lruclock-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lruclock-armed-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lruclock-armed-0"
+      },
+      {
+        "name": "evict-lruclock-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lruclock-armed-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lruclock-armed-1"
+      },
+      {
+        "name": "evict-lruclock-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lruclock-split-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lruclock-split-0"
+      },
+      {
+        "name": "evict-lruclock-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/evict-lruclock-split-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/evict-lruclock-split-1"
+      },
+      {
+        "name": "multidb-1s-0-0",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-1s-0-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-1s-0-0"
+      },
+      {
+        "name": "multidb-1s-0-1",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-1s-0-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-1s-0-1"
+      },
+      {
+        "name": "multidb-1s-1-0",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-1s-1-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-1s-1-0"
+      },
+      {
+        "name": "multidb-1s-1-1",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-1s-1-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-1s-1-1"
+      },
+      {
+        "name": "multidb-2s-0-0",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-2s-0-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-2s-0-0"
+      },
+      {
+        "name": "multidb-2s-0-1",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-2s-0-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-2s-0-1"
+      },
+      {
+        "name": "multidb-2s-1-0",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-2s-1-0",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-2s-1-0"
+      },
+      {
+        "name": "multidb-2s-1-1",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/multidb-2s-1-1",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/multidb-2s-1-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Wjiqoc/jobs/release",
+        "evidence": "docs/execfifo2/validation/36-ownership-extra-epoll/release"
+      }
+    ]
+  },
+  {
+    "group": "atomic-controls-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "atomic_floor",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/atomic-controls-epoll-1793450393663664692.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.67dos0",
+    "jobs_evidence": [
+      {
+        "name": "atomic_floor",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.67dos0/jobs/atomic_floor",
+        "evidence": "docs/execfifo2/validation/37-atomic-controls-epoll/atomic_floor"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.67dos0/jobs/release",
+        "evidence": "docs/execfifo2/validation/37-atomic-controls-epoll/release"
+      }
+    ]
+  },
+  {
+    "group": "readlocal-extra-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "bplus ring_unit filter_unit acl_recheck",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/readlocal-extra-epoll-1793450397109500109.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.5hR6tt",
+    "jobs_evidence": [
+      {
+        "name": "acl_recheck",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.5hR6tt/jobs/acl_recheck",
+        "evidence": "docs/execfifo2/validation/38-readlocal-extra-epoll/acl_recheck"
+      },
+      {
+        "name": "bplus",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.5hR6tt/jobs/bplus",
+        "evidence": "docs/execfifo2/validation/38-readlocal-extra-epoll/bplus"
+      },
+      {
+        "name": "filter_unit",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.5hR6tt/jobs/filter_unit",
+        "evidence": "docs/execfifo2/validation/38-readlocal-extra-epoll/filter_unit"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.5hR6tt/jobs/release",
+        "evidence": "docs/execfifo2/validation/38-readlocal-extra-epoll/release"
+      },
+      {
+        "name": "ring_unit",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.5hR6tt/jobs/ring_unit",
+        "evidence": "docs/execfifo2/validation/38-readlocal-extra-epoll/ring_unit"
+      }
+    ]
+  },
+  {
+    "group": "notify-fused-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "notify",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/notify-fused-epoll-1793450415914954897.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.zwdPaE",
+    "jobs_evidence": [
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.zwdPaE/jobs/notify",
+        "evidence": "docs/execfifo2/validation/39-notify-fused-epoll/notify"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.zwdPaE/jobs/release",
+        "evidence": "docs/execfifo2/validation/39-notify-fused-epoll/release"
+      }
+    ]
+  },
+  {
+    "group": "aof-extra-epoll-0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "aof-epoll aof_frame aoforder",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/aof-extra-epoll-0-1793450471621089480.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.C4ImAD",
+    "jobs_evidence": [
+      {
+        "name": "aof-epoll",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.C4ImAD/jobs/aof-epoll",
+        "evidence": "docs/execfifo2/validation/40-aof-extra-epoll-0/aof-epoll"
+      },
+      {
+        "name": "aof_frame",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.C4ImAD/jobs/aof_frame",
+        "evidence": "docs/execfifo2/validation/40-aof-extra-epoll-0/aof_frame"
+      },
+      {
+        "name": "aoforder",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.C4ImAD/jobs/aoforder",
+        "evidence": "docs/execfifo2/validation/40-aof-extra-epoll-0/aoforder"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.C4ImAD/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/40-aof-extra-epoll-0/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.C4ImAD/jobs/release",
+        "evidence": "docs/execfifo2/validation/40-aof-extra-epoll-0/release"
+      }
+    ]
+  },
+  {
+    "group": "aof-extra-epoll-1",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "aof-epoll aof_frame aoforder",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/aof-extra-epoll-1-1793450534908822540.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.dSHRuX",
+    "jobs_evidence": [
+      {
+        "name": "aof-epoll",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.dSHRuX/jobs/aof-epoll",
+        "evidence": "docs/execfifo2/validation/41-aof-extra-epoll-1/aof-epoll"
+      },
+      {
+        "name": "aof_frame",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.dSHRuX/jobs/aof_frame",
+        "evidence": "docs/execfifo2/validation/41-aof-extra-epoll-1/aof_frame"
+      },
+      {
+        "name": "aoforder",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.dSHRuX/jobs/aoforder",
+        "evidence": "docs/execfifo2/validation/41-aof-extra-epoll-1/aoforder"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.dSHRuX/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/41-aof-extra-epoll-1/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.dSHRuX/jobs/release",
+        "evidence": "docs/execfifo2/validation/41-aof-extra-epoll-1/release"
+      }
+    ]
+  },
+  {
+    "group": "fairness",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "execfair txnorder_fifo_live",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/fairness-1793450599082897723.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.hin6a0",
+    "jobs_evidence": [
+      {
+        "name": "execfair",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.hin6a0/jobs/execfair",
+        "evidence": "docs/execfifo2/validation/42-fairness/execfair"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.hin6a0/jobs/release",
+        "evidence": "docs/execfifo2/validation/42-fairness/release"
+      },
+      {
+        "name": "txnorder_fifo_live",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.hin6a0/jobs/txnorder_fifo_live",
+        "evidence": "docs/execfifo2/validation/42-fairness/txnorder_fifo_live"
+      }
+    ]
   }
 ]

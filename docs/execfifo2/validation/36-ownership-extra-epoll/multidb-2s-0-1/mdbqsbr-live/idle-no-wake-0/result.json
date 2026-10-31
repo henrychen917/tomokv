@@ -1,0 +1,43 @@
+{
+  "case": "idle",
+  "arm": "no-wake",
+  "mode": "2s",
+  "read_local": 0,
+  "atomic": 1,
+  "grace_seconds": 0.9,
+  "shutdown_seconds": 2.7,
+  "participants": {
+    "380576": "t6",
+    "380577": "t7",
+    "380578": "t0",
+    "380579": "t1",
+    "380580": "t2",
+    "380581": "t3",
+    "380582": "t4",
+    "380583": "t5"
+  },
+  "parked": {
+    "380576": "io_cqring_wait",
+    "380577": "io_cqring_wait",
+    "380578": "io_cqring_wait",
+    "380579": "io_cqring_wait",
+    "380580": "io_cqring_wait",
+    "380581": "io_cqring_wait",
+    "380582": "io_cqring_wait",
+    "380583": "io_cqring_wait"
+  },
+  "expected_timeout": true,
+  "timeout_at_swap": 0,
+  "parked_at_timeout": {
+    "380576": "io_cqring_wait",
+    "380577": "io_cqring_wait",
+    "380579": "io_cqring_wait",
+    "380580": "io_cqring_wait",
+    "380581": "io_cqring_wait",
+    "380582": "io_cqring_wait",
+    "380583": "io_cqring_wait"
+  },
+  "reply_seconds": [],
+  "load_batches": 0,
+  "shutdown_elapsed_seconds": 0.0031519513577222824
+}
