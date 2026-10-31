@@ -1,0 +1,445 @@
+{
+  "file": "unit/scan",
+  "mode": "1s",
+  "passed": 25,
+  "failed": 0,
+  "skipped": 1,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 4.274566580541432,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/scan/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/scan",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/scan/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3938282",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN basic in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN basic",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN basic in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN basic",
+      "milliseconds": "78"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN COUNT in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN COUNT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN COUNT in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN COUNT",
+      "milliseconds": "88"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN MATCH in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN MATCH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN MATCH in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN MATCH",
+      "milliseconds": "44"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN TYPE in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN TYPE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN TYPE in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN TYPE",
+      "milliseconds": "47"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN unknown type in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN unknown type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN unknown type in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN unknown type",
+      "milliseconds": "30"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN with expired keys in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN with expired keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN with expired keys in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN with expired keys",
+      "milliseconds": "33"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN with expired keys with TYPE filter in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN with expired keys with TYPE filter",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN with expired keys with TYPE filter in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN with expired keys with TYPE filter",
+      "milliseconds": "33"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with encoding intset in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with encoding intset",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with encoding intset in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with encoding intset",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with encoding listpack in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with encoding listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with encoding listpack in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with encoding listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with encoding hashtable in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with encoding hashtable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with encoding hashtable in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with encoding hashtable",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with encoding listpack in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with encoding listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with encoding listpack in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with encoding listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with large value listpack in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with large value listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with large value listpack in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with large value listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with encoding hashtable in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with encoding hashtable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with encoding hashtable in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with encoding hashtable",
+      "milliseconds": "58"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with large value hashtable in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with large value hashtable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with large value hashtable in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with large value hashtable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN with encoding listpack in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN with encoding listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN with encoding listpack in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN with encoding listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN with encoding skiplist in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN with encoding skiplist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN with encoding skiplist in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN with encoding skiplist",
+      "milliseconds": "56"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN guarantees check under write load in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN guarantees check under write load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN guarantees check under write load in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN guarantees check under write load",
+      "milliseconds": "44"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with integer encoded object (issue #1345) in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with integer encoded object (issue #1345)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with integer encoded object (issue #1345) in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with integer encoded object (issue #1345)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with PATTERN in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with PATTERN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SSCAN with PATTERN in tests/unit/scan.tcl",
+      "data": "{standalone} SSCAN with PATTERN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with PATTERN in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with PATTERN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with PATTERN in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with PATTERN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with NOVALUES in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with NOVALUES",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} HSCAN with NOVALUES in tests/unit/scan.tcl",
+      "data": "{standalone} HSCAN with NOVALUES",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN with PATTERN in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN with PATTERN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN with PATTERN in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN with PATTERN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN scores: regression test for issue #2175 in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN scores: regression test for issue #2175",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} ZSCAN scores: regression test for issue #2175 in tests/unit/scan.tcl",
+      "data": "{standalone} ZSCAN scores: regression test for issue #2175",
+      "milliseconds": "14"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN regression test for issue #4906 in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN regression test for issue #4906",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN regression test for issue #4906 in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN regression test for issue #4906",
+      "milliseconds": "3622"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN MATCH pattern implies cluster slot in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN MATCH pattern implies cluster slot",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scan.tcl",
+      "test": "{standalone} SCAN MATCH pattern implies cluster slot in tests/unit/scan.tcl",
+      "data": "{standalone} SCAN MATCH pattern implies cluster slot",
+      "milliseconds": "13"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scan.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/scan.tcl",
+      "test": "",
+      "data": "unit/scan",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/scan.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

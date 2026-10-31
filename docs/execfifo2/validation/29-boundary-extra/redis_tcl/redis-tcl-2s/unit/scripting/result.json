@@ -1,0 +1,2736 @@
+{
+  "file": "unit/scripting",
+  "mode": "2s",
+  "passed": 130,
+  "failed": 2,
+  "skipped": 116,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "seconds": 52.51888016611338,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/scripting/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/scripting",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/scripting/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3895546",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Does Lua interpreter replies to our requests? in tests/unit/scripting.tcl",
+      "data": "EVAL - Does Lua interpreter replies to our requests?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Does Lua interpreter replies to our requests? in tests/unit/scripting.tcl",
+      "data": "EVAL - Does Lua interpreter replies to our requests?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return _G in tests/unit/scripting.tcl",
+      "data": "EVAL - Return _G",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return _G in tests/unit/scripting.tcl",
+      "data": "EVAL - Return _G",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that raise error in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that raise error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that raise error in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that raise error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that call redis in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that call redis",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that call redis in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that call redis",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua integer -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua integer -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua integer -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua integer -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua string -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua string -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua string -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua string -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua true boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua true boolean -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua true boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua true boolean -> Redis protocol type conversion",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua false boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua false boolean -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua false boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua false boolean -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua status code reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua status code reply -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua status code reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua status code reply -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua error reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua error reply -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua error reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua error reply -> Redis protocol type conversion",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua table -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua table -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua table -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua table -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Are the KEYS and ARGV arrays populated correctly? in tests/unit/scripting.tcl",
+      "data": "EVAL - Are the KEYS and ARGV arrays populated correctly?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Are the KEYS and ARGV arrays populated correctly? in tests/unit/scripting.tcl",
+      "data": "EVAL - Are the KEYS and ARGV arrays populated correctly?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - is Lua able to call Redis API? in tests/unit/scripting.tcl",
+      "data": "EVAL - is Lua able to call Redis API?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - is Lua able to call Redis API? in tests/unit/scripting.tcl",
+      "data": "EVAL - is Lua able to call Redis API?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis integer -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Lua number -> Redis integer conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis bulk -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis multi bulk -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis status reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis error reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Redis nil bulk reply -> Lua type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Redis nil bulk reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Redis nil bulk reply -> Lua type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Redis nil bulk reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Is the Lua client using the currently selected DB?: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - SELECT inside Lua should not affect the caller: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on blpop command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on brpop command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on brpoplpush command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on blmove command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on bzpopmin command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on bzpopmax command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on wait",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on waitaof",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREAD with BLOCK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREADGROUP with BLOCK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts can run non-deterministic commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - No arguments to redis.call/pcall is considered an error in tests/unit/scripting.tcl",
+      "data": "EVAL - No arguments to redis.call/pcall is considered an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - No arguments to redis.call/pcall is considered an error in tests/unit/scripting.tcl",
+      "data": "EVAL - No arguments to redis.call/pcall is considered an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Test table unpack with invalid indexes in tests/unit/scripting.tcl",
+      "data": "EVAL - Test table unpack with invalid indexes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Test table unpack with invalid indexes in tests/unit/scripting.tcl",
+      "data": "EVAL - Test table unpack with invalid indexes",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON numeric decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON numeric decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON numeric decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON numeric decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON string decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON string decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON string decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON string decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON smoke test in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON smoke test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON smoke test in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON smoke test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack double? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack double?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack double? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack double?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack negative int64? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack negative int64?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack negative int64? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack negative int64?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - cmsgpack pack/unpack smoke test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack and unpack circular references? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack and unpack circular references?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack and unpack circular references? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack and unpack circular references?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Numerical sanity check from bitop in tests/unit/scripting.tcl",
+      "data": "EVAL - Numerical sanity check from bitop",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Numerical sanity check from bitop in tests/unit/scripting.tcl",
+      "data": "EVAL - Numerical sanity check from bitop",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Verify minimal bitop functionality in tests/unit/scripting.tcl",
+      "data": "EVAL - Verify minimal bitop functionality",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Verify minimal bitop functionality in tests/unit/scripting.tcl",
+      "data": "EVAL - Verify minimal bitop functionality",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Able to parse trailing comments in tests/unit/scripting.tcl",
+      "data": "EVAL - Able to parse trailing comments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Able to parse trailing comments in tests/unit/scripting.tcl",
+      "data": "EVAL - Able to parse trailing comments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL_RO - Successful case",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL_RO - Cannot run write commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "redis.sha1hex() implementation in tests/unit/scripting.tcl",
+      "data": "redis.sha1hex() implementation",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "redis.sha1hex() implementation in tests/unit/scripting.tcl",
+      "data": "redis.sha1hex() implementation",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Measures elapsed time os.clock()",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Prohibit dangerous lua methods in sandbox in tests/unit/scripting.tcl",
+      "data": "Prohibit dangerous lua methods in sandbox",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Prohibit dangerous lua methods in sandbox in tests/unit/scripting.tcl",
+      "data": "Prohibit dangerous lua methods in sandbox",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify execution of prohibit dangerous Lua methods will fail in tests/unit/scripting.tcl",
+      "data": "Verify execution of prohibit dangerous Lua methods will fail",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify execution of prohibit dangerous Lua methods will fail in tests/unit/scripting.tcl",
+      "data": "Verify execution of prohibit dangerous Lua methods will fail",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
+      "data": "Globals protection reading an undeclared global variable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
+      "data": "Globals protection reading an undeclared global variable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
+      "data": "Globals protection setting an undeclared global*",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
+      "data": "Globals protection setting an undeclared global*",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "lua bit.tohex bug in tests/unit/scripting.tcl",
+      "data": "lua bit.tohex bug",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "lua bit.tohex bug in tests/unit/scripting.tcl",
+      "data": "lua bit.tohex bug",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Test an example script DECR_IF_GT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL does not leak in the Lua stack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Call Redis command with many args from Lua (issue #1764)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Number conversion precision test (issue #1118) in tests/unit/scripting.tcl",
+      "data": "Number conversion precision test (issue #1118)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Number conversion precision test (issue #1118) in tests/unit/scripting.tcl",
+      "data": "Number conversion precision test (issue #1118)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "String containing number precision test (regression of issue #1118)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify negative arg count is error instead of crash (issue #1842) in tests/unit/scripting.tcl",
+      "data": "Verify negative arg count is error instead of crash (issue #1842)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify negative arg count is error instead of crash (issue #1842) in tests/unit/scripting.tcl",
+      "data": "Verify negative arg count is error instead of crash (issue #1842)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Scripts can handle commands with incorrect arity in tests/unit/scripting.tcl",
+      "data": "Scripts can handle commands with incorrect arity",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Scripts can handle commands with incorrect arity in tests/unit/scripting.tcl",
+      "data": "Scripts can handle commands with incorrect arity",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Correct handling of reused argv (issue #1939)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Functions in the Redis namespace are able to report errors in tests/unit/scripting.tcl",
+      "data": "Functions in the Redis namespace are able to report errors",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Functions in the Redis namespace are able to report errors in tests/unit/scripting.tcl",
+      "data": "Functions in the Redis namespace are able to report errors",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "CLUSTER RESET can not be invoke from within a script",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Script with RESP3 map",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script return recursive object in tests/unit/scripting.tcl",
+      "data": "Script return recursive object",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script return recursive object in tests/unit/scripting.tcl",
+      "data": "Script return recursive object",
+      "milliseconds": "53"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script check unpack with massive arguments in tests/unit/scripting.tcl",
+      "data": "Script check unpack with massive arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script check unpack with massive arguments in tests/unit/scripting.tcl",
+      "data": "Script check unpack with massive arguments",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script read key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script read key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script read key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script read key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script del key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script del key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script del key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script del key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Script ACL check",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Binary code loading failed in tests/unit/scripting.tcl",
+      "data": "Binary code loading failed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Binary code loading failed in tests/unit/scripting.tcl",
+      "data": "Binary code loading failed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 1 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 1 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 2 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 2 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 2",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 3 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 3 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 4 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 4",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 4 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 4",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on redis table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on redis table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on redis table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on redis table",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on json table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on json table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on json table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on json table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on cmsgpack table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on cmsgpack table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on bit table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on bit table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on bit table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on bit table",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on basic types metatable in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on basic types metatable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on basic types metatable in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on basic types metatable",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test loadfile are not available in tests/unit/scripting.tcl",
+      "data": "Test loadfile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test loadfile are not available in tests/unit/scripting.tcl",
+      "data": "Test loadfile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test dofile are not available in tests/unit/scripting.tcl",
+      "data": "Test dofile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test dofile are not available in tests/unit/scripting.tcl",
+      "data": "Test dofile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test print are not available in tests/unit/scripting.tcl",
+      "data": "Test print are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test print are not available in tests/unit/scripting.tcl",
+      "data": "Test print are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout read-only scripts can be killed by SCRIPT KILL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout script does not cause a false dead client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout script link is still usable after Lua returns",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout scripts and unblocked command: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout scripts that modified data can't be killed by SCRIPT KILL: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SHUTDOWN NOSAVE can kill a timedout script anyway: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "n subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-disable-deny-scripts 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Test script flush will not leak memory - script:0",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify Lua performs GC correctly after script loading in tests/unit/scripting.tcl",
+      "data": "Verify Lua performs GC correctly after script loading",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify Lua performs GC correctly after script loading in tests/unit/scripting.tcl",
+      "data": "Verify Lua performs GC correctly after script loading",
+      "milliseconds": "50754"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Script - disallow write on OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Does Lua interpreter replies to our requests? in tests/unit/scripting.tcl",
+      "data": "EVAL - Does Lua interpreter replies to our requests?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Does Lua interpreter replies to our requests? in tests/unit/scripting.tcl",
+      "data": "EVAL - Does Lua interpreter replies to our requests?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return _G in tests/unit/scripting.tcl",
+      "data": "EVAL - Return _G",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return _G in tests/unit/scripting.tcl",
+      "data": "EVAL - Return _G",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that raise error in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that raise error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that raise error in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that raise error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that call redis in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that call redis",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Return table with a metatable that call redis in tests/unit/scripting.tcl",
+      "data": "EVAL - Return table with a metatable that call redis",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua integer -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua integer -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua integer -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua integer -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua string -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua string -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua string -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua string -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua true boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua true boolean -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua true boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua true boolean -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua false boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua false boolean -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua false boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua false boolean -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua status code reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua status code reply -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua status code reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua status code reply -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua error reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua error reply -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua error reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua error reply -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua table -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua table -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Lua table -> Redis protocol type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Lua table -> Redis protocol type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Are the KEYS and ARGV arrays populated correctly? in tests/unit/scripting.tcl",
+      "data": "EVAL - Are the KEYS and ARGV arrays populated correctly?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Are the KEYS and ARGV arrays populated correctly? in tests/unit/scripting.tcl",
+      "data": "EVAL - Are the KEYS and ARGV arrays populated correctly?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - is Lua able to call Redis API? in tests/unit/scripting.tcl",
+      "data": "EVAL - is Lua able to call Redis API?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - is Lua able to call Redis API? in tests/unit/scripting.tcl",
+      "data": "EVAL - is Lua able to call Redis API?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Can we call a SHA1 if already defined? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Can we call a SHA1 if already defined?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Can we call a SHA1 if already defined? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Can we call a SHA1 if already defined?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA_RO - Can we call a SHA1 if already defined? in tests/unit/scripting.tcl",
+      "data": "EVALSHA_RO - Can we call a SHA1 if already defined?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA_RO - Can we call a SHA1 if already defined? in tests/unit/scripting.tcl",
+      "data": "EVALSHA_RO - Can we call a SHA1 if already defined?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Can we call a SHA1 in uppercase? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Can we call a SHA1 in uppercase?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Can we call a SHA1 in uppercase? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Can we call a SHA1 in uppercase?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Do we get an error on invalid SHA1? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Do we get an error on invalid SHA1?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Do we get an error on invalid SHA1? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Do we get an error on invalid SHA1?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Do we get an error on non defined SHA1? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Do we get an error on non defined SHA1?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVALSHA - Do we get an error on non defined SHA1? in tests/unit/scripting.tcl",
+      "data": "EVALSHA - Do we get an error on non defined SHA1?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis integer -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Lua number -> Redis integer conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis bulk -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis multi bulk -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis status reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Redis error reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Redis nil bulk reply -> Lua type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Redis nil bulk reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Redis nil bulk reply -> Lua type conversion in tests/unit/scripting.tcl",
+      "data": "EVAL - Redis nil bulk reply -> Lua type conversion",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Is the Lua client using the currently selected DB?: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - SELECT inside Lua should not affect the caller: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on blpop command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on brpop command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on brpoplpush command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on blmove command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on bzpopmin command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on bzpopmax command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on wait",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on waitaof",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREAD with BLOCK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREADGROUP with BLOCK option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - Scripts can run non-deterministic commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - No arguments to redis.call/pcall is considered an error in tests/unit/scripting.tcl",
+      "data": "EVAL - No arguments to redis.call/pcall is considered an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - No arguments to redis.call/pcall is considered an error in tests/unit/scripting.tcl",
+      "data": "EVAL - No arguments to redis.call/pcall is considered an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl",
+      "data": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Test table unpack with invalid indexes in tests/unit/scripting.tcl",
+      "data": "EVAL - Test table unpack with invalid indexes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Test table unpack with invalid indexes in tests/unit/scripting.tcl",
+      "data": "EVAL - Test table unpack with invalid indexes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON numeric decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON numeric decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON numeric decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON numeric decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON string decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON string decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON string decoding in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON string decoding",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON smoke test in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON smoke test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - JSON smoke test in tests/unit/scripting.tcl",
+      "data": "EVAL - JSON smoke test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack double? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack double?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack double? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack double?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack negative int64? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack negative int64?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack negative int64? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack negative int64?",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL - cmsgpack pack/unpack smoke test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack and unpack circular references? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack and unpack circular references?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - cmsgpack can pack and unpack circular references? in tests/unit/scripting.tcl",
+      "data": "EVAL - cmsgpack can pack and unpack circular references?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Numerical sanity check from bitop in tests/unit/scripting.tcl",
+      "data": "EVAL - Numerical sanity check from bitop",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Numerical sanity check from bitop in tests/unit/scripting.tcl",
+      "data": "EVAL - Numerical sanity check from bitop",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Verify minimal bitop functionality in tests/unit/scripting.tcl",
+      "data": "EVAL - Verify minimal bitop functionality",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Verify minimal bitop functionality in tests/unit/scripting.tcl",
+      "data": "EVAL - Verify minimal bitop functionality",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Able to parse trailing comments in tests/unit/scripting.tcl",
+      "data": "EVAL - Able to parse trailing comments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - Able to parse trailing comments in tests/unit/scripting.tcl",
+      "data": "EVAL - Able to parse trailing comments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL_RO - Successful case",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL_RO - Cannot run write commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SCRIPTING FLUSH - is able to clear the scripts cache?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SCRIPTING FLUSH ASYNC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "SCRIPT EXISTS - can detect already defined scripts? in tests/unit/scripting.tcl",
+      "data": "SCRIPT EXISTS - can detect already defined scripts?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "SCRIPT EXISTS - can detect already defined scripts? in tests/unit/scripting.tcl",
+      "data": "SCRIPT EXISTS - can detect already defined scripts?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "SCRIPT LOAD - is able to register scripts in the scripting cache in tests/unit/scripting.tcl",
+      "data": "SCRIPT LOAD - is able to register scripts in the scripting cache",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "SCRIPT LOAD - is able to register scripts in the scripting cache in tests/unit/scripting.tcl",
+      "data": "SCRIPT LOAD - is able to register scripts in the scripting cache",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SORT is normally not alpha re-ordered for the scripting engine",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SORT BY <constant> output gets ordered for scripting",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SORT BY <constant> with GET gets ordered for scripting",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "redis.sha1hex() implementation in tests/unit/scripting.tcl",
+      "data": "redis.sha1hex() implementation",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "redis.sha1hex() implementation in tests/unit/scripting.tcl",
+      "data": "redis.sha1hex() implementation",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Measures elapsed time os.clock()",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Prohibit dangerous lua methods in sandbox in tests/unit/scripting.tcl",
+      "data": "Prohibit dangerous lua methods in sandbox",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Prohibit dangerous lua methods in sandbox in tests/unit/scripting.tcl",
+      "data": "Prohibit dangerous lua methods in sandbox",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify execution of prohibit dangerous Lua methods will fail in tests/unit/scripting.tcl",
+      "data": "Verify execution of prohibit dangerous Lua methods will fail",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify execution of prohibit dangerous Lua methods will fail in tests/unit/scripting.tcl",
+      "data": "Verify execution of prohibit dangerous Lua methods will fail",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
+      "data": "Globals protection reading an undeclared global variable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
+      "data": "Globals protection reading an undeclared global variable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
+      "data": "Globals protection setting an undeclared global*",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
+      "data": "Globals protection setting an undeclared global*",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "lua bit.tohex bug in tests/unit/scripting.tcl",
+      "data": "lua bit.tohex bug",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "lua bit.tohex bug in tests/unit/scripting.tcl",
+      "data": "lua bit.tohex bug",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Test an example script DECR_IF_GT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "random numbers are random now in tests/unit/scripting.tcl",
+      "data": "random numbers are random now",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "random numbers are random now in tests/unit/scripting.tcl",
+      "data": "random numbers are random now",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Scripting engine PRNG can be seeded correctly in tests/unit/scripting.tcl",
+      "data": "Scripting engine PRNG can be seeded correctly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Scripting engine PRNG can be seeded correctly in tests/unit/scripting.tcl",
+      "data": "Scripting engine PRNG can be seeded correctly",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EVAL does not leak in the Lua stack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SPOP: We can call scripts rewriting client->argv from Lua",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "MGET: mget shouldn't be propagated in Lua",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "EXPIRE: We can call scripts rewriting client->argv from Lua",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "INCRBYFLOAT: We can call scripts expanding client->argv from Lua",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Call Redis command with many args from Lua (issue #1764)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Number conversion precision test (issue #1118) in tests/unit/scripting.tcl",
+      "data": "Number conversion precision test (issue #1118)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Number conversion precision test (issue #1118) in tests/unit/scripting.tcl",
+      "data": "Number conversion precision test (issue #1118)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "String containing number precision test (regression of issue #1118)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify negative arg count is error instead of crash (issue #1842) in tests/unit/scripting.tcl",
+      "data": "Verify negative arg count is error instead of crash (issue #1842)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify negative arg count is error instead of crash (issue #1842) in tests/unit/scripting.tcl",
+      "data": "Verify negative arg count is error instead of crash (issue #1842)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Scripts can handle commands with incorrect arity in tests/unit/scripting.tcl",
+      "data": "Scripts can handle commands with incorrect arity",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Scripts can handle commands with incorrect arity in tests/unit/scripting.tcl",
+      "data": "Scripts can handle commands with incorrect arity",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Correct handling of reused argv (issue #1939)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Functions in the Redis namespace are able to report errors in tests/unit/scripting.tcl",
+      "data": "Functions in the Redis namespace are able to report errors",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Functions in the Redis namespace are able to report errors in tests/unit/scripting.tcl",
+      "data": "Functions in the Redis namespace are able to report errors",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "CLUSTER RESET can not be invoke from within a script",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Script with RESP3 map",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script return recursive object in tests/unit/scripting.tcl",
+      "data": "Script return recursive object",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script return recursive object in tests/unit/scripting.tcl",
+      "data": "Script return recursive object",
+      "milliseconds": "52"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script check unpack with massive arguments in tests/unit/scripting.tcl",
+      "data": "Script check unpack with massive arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script check unpack with massive arguments in tests/unit/scripting.tcl",
+      "data": "Script check unpack with massive arguments",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script read key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script read key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script read key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script read key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script del key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script del key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Script del key with expiration set in tests/unit/scripting.tcl",
+      "data": "Script del key with expiration set",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Script ACL check",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Binary code loading failed in tests/unit/scripting.tcl",
+      "data": "Binary code loading failed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Binary code loading failed in tests/unit/scripting.tcl",
+      "data": "Binary code loading failed",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 1 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 1 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 2 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 2 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 3 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 3 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 3",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 4 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 4",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick global protection 4 in tests/unit/scripting.tcl",
+      "data": "Try trick global protection 4",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on redis table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on redis table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on redis table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on redis table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on json table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on json table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on json table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on json table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on cmsgpack table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on cmsgpack table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on bit table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on bit table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on bit table in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on bit table",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on basic types metatable in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on basic types metatable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Try trick readonly table on basic types metatable in tests/unit/scripting.tcl",
+      "data": "Try trick readonly table on basic types metatable",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test loadfile are not available in tests/unit/scripting.tcl",
+      "data": "Test loadfile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test loadfile are not available in tests/unit/scripting.tcl",
+      "data": "Test loadfile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test dofile are not available in tests/unit/scripting.tcl",
+      "data": "Test dofile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test dofile are not available in tests/unit/scripting.tcl",
+      "data": "Test dofile are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test print are not available in tests/unit/scripting.tcl",
+      "data": "Test print are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Test print are not available in tests/unit/scripting.tcl",
+      "data": "Test print are not available",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout read-only scripts can be killed by SCRIPT KILL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout script does not cause a false dead client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout script link is still usable after Lua returns",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout scripts and unblocked command: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Timedout scripts that modified data can't be killed by SCRIPT KILL: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "SHUTDOWN NOSAVE can kill a timedout script anyway: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "n subcommand or wrong number of arguments for 'debug' command\nERR unknown subcommand or wrong number of arguments for 'debug' command\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r debug set-disable-deny-scripts 1\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 2 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Test script flush will not leak memory - script:1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify Lua performs GC correctly after script loading in tests/unit/scripting.tcl",
+      "data": "Verify Lua performs GC correctly after script loading",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Verify Lua performs GC correctly after script loading in tests/unit/scripting.tcl",
+      "data": "Verify Lua performs GC correctly after script loading",
+      "milliseconds": "1405"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Shebang support for lua engine in tests/unit/scripting.tcl",
+      "data": "Shebang support for lua engine",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Shebang support for lua engine in tests/unit/scripting.tcl",
+      "data": "Shebang support for lua engine",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Unknown shebang option in tests/unit/scripting.tcl",
+      "data": "Unknown shebang option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Unknown shebang option in tests/unit/scripting.tcl",
+      "data": "Unknown shebang option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Unknown shebang flag in tests/unit/scripting.tcl",
+      "data": "Unknown shebang flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "Unknown shebang flag in tests/unit/scripting.tcl",
+      "data": "Unknown shebang flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "allow-oom shebang flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "no-writes shebang flag in tests/unit/scripting.tcl",
+      "data": "no-writes shebang flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "no-writes shebang flag in tests/unit/scripting.tcl",
+      "data": "no-writes shebang flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "not enough good replicas",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "not enough good replicas state change during long script: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "allow-stale shebang flag: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "reject script do not cause a Lua stack leak",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Consistent eval error reporting",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "LUA redis.error_reply API",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "LUA redis.error_reply API with empty string",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA redis.error_reply API with CRLF injection attempt in tests/unit/scripting.tcl",
+      "data": "LUA redis.error_reply API with CRLF injection attempt",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA redis.error_reply API with CRLF injection attempt in tests/unit/scripting.tcl",
+      "data": "LUA redis.error_reply API with CRLF injection attempt",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA redis.status_reply API in tests/unit/scripting.tcl",
+      "data": "LUA redis.status_reply API",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA redis.status_reply API in tests/unit/scripting.tcl",
+      "data": "LUA redis.status_reply API",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA test pcall in tests/unit/scripting.tcl",
+      "data": "LUA test pcall",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA test pcall in tests/unit/scripting.tcl",
+      "data": "LUA test pcall",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA test pcall with error in tests/unit/scripting.tcl",
+      "data": "LUA test pcall with error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "LUA test pcall with error in tests/unit/scripting.tcl",
+      "data": "LUA test pcall with error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "LUA test pcall with non string/integer arg",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "LUA test trim string as expected",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - explicit error() call handling in tests/unit/scripting.tcl",
+      "data": "EVAL - explicit error() call handling",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/scripting.tcl",
+      "test": "EVAL - explicit error() call handling in tests/unit/scripting.tcl",
+      "data": "EVAL - explicit error() call handling",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "unit/scripting",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/scripting.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

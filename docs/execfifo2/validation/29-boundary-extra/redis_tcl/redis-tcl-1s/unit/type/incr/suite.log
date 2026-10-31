@@ -1,0 +1,45 @@
+Starting test server at port 20104
+[ready]: 3950816
+[1;37;49mTesting unit/type/incr[0m
+[[0;32;49mok[0m]: INCR against non existing key (0 ms)
+[[0;32;49mok[0m]: INCR against key created by incr itself (0 ms)
+[[0;32;49mok[0m]: DECR against key created by incr (0 ms)
+[[0;32;49mok[0m]: DECR against key is not exist and incr (0 ms)
+[[0;32;49mok[0m]: INCR against key originally set with SET (0 ms)
+[[0;32;49mok[0m]: INCR over 32bit value (0 ms)
+[[0;32;49mok[0m]: INCRBY over 32bit value with over 32bit increment (0 ms)
+[[0;32;49mok[0m]: INCR fails against key with spaces (left) (0 ms)
+[[0;32;49mok[0m]: INCR fails against key with spaces (right) (0 ms)
+[[0;32;49mok[0m]: INCR fails against key with spaces (both) (0 ms)
+[[0;32;49mok[0m]: DECRBY negation overflow (0 ms)
+[[0;32;49mok[0m]: INCR fails against a key holding a list (0 ms)
+[[0;32;49mok[0m]: DECRBY over 32bit value with over 32bit increment, negative res (0 ms)
+[[0;32;49mok[0m]: DECRBY against key is not exist (0 ms)
+[[0;33;49mskip[0m]: INCR uses shared objects in the 0-9999 range
+[[0;33;49mskip[0m]: INCR can modify objects in-place
+[[0;32;49mok[0m]: INCRBYFLOAT against non existing key (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT against key originally set with SET (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT over 32bit value (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT over 32bit value with over 32bit increment (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT fails against key with spaces (left) (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT fails against key with spaces (right) (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT fails against key with spaces (both) (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT fails against a key holding a list (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT does not allow NaN or Infinity (0 ms)
+[[0;32;49mok[0m]: INCRBYFLOAT decrement (0 ms)
+[[0;32;49mok[0m]: string to double with null terminator (1 ms)
+[[0;32;49mok[0m]: No negative zero (0 ms)
+[[0;32;49mok[0m]: INCRBY INCRBYFLOAT DECRBY against unhappy path (1 ms)
+[[0;32;49mok[0m]: incr operation should update encoding from raw to int (0 ms)
+[[0;32;49mok[0m]: decr operation should update encoding from raw to int (1 ms)
+[[0;32;49mok[0m]: incrby operation should update encoding from raw to int (0 ms)
+[[0;32;49mok[0m]: decrby operation should update encoding from raw to int (1 ms)
+[1/1 [0;33;49mdone[0m]: unit/type/incr (0 seconds)
+
+                   The End
+
+Execution time of different units:
+  0 seconds - unit/type/incr
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

@@ -848,5 +848,92 @@
     "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/asan-epoll-1-1793448146060738717.log",
     "exit_code": 0,
     "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.mtDTX7"
+  },
+  {
+    "group": "fifo-contract",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "txnorder_fifo",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/fifo-contract-1793448305549980308.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.ObTrO4"
+  },
+  {
+    "group": "script-blocking-extra",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "compat3 streamfix snapfix_bgsave_script snapfix_bgsave_exec",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/script-blocking-extra-1793448312298645982.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.hNlTi7"
+  },
+  {
+    "group": "boundary-extra",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "compat2 aclfix bugs5",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/boundary-extra-1793448619466043911.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs"
   }
 ]

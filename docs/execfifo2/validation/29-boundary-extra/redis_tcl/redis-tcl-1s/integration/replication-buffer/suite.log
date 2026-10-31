@@ -1,0 +1,18 @@
+Starting test server at port 20104
+[ready]: 3919738
+[1;37;49mTesting integration/replication-buffer[0m
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;32;49mok[0m]: Partial resynchronization is successful even client-output-buffer-limit is less than repl-backlog-size (0 ms)
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;32;49mok[0m]: Replica client-output-buffer size is limited to backlog_limit/16 when no replication data is pending (0 ms)
+[1/1 [0;33;49mdone[0m]: integration/replication-buffer (0 seconds)
+
+                   The End
+
+Execution time of different units:
+  0 seconds - integration/replication-buffer
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

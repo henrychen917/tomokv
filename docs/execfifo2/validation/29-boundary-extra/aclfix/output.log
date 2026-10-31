@@ -1,0 +1,24 @@
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix sort (1s)
+  aclfix sort (1s)                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix streams-name (1s)
+  aclfix streams-name (1s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix save-load (1s)
+  aclfix save-load (1s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix capacity (1s)
+  aclfix capacity (1s)                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix wake-pop (1s)
+  aclfix wake-pop (1s)                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix wake-scatter (1s)
+  aclfix wake-scatter (1s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix sort (2s)
+  aclfix sort (2s)                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix streams-name (2s)
+  aclfix streams-name (2s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix save-load (2s)
+  aclfix save-load (2s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix capacity (2s)
+  aclfix capacity (2s)                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix wake-pop (2s)
+  aclfix wake-pop (2s)                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; aclfix wake-scatter (2s)
+  aclfix wake-scatter (2s)                             ok

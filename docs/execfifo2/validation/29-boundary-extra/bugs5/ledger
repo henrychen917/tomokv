@@ -1,0 +1,3 @@
+ok	44.370000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.730000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	27.110000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)

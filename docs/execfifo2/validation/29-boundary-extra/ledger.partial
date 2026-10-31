@@ -1,0 +1,22 @@
+PARTIAL	0	GATE_ONLY_JOBS=compat2 aclfix bugs5; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	220.650000	Redis 7.4.10 Tcl passing subset (2s)
+ok	224.290000	Redis 7.4.10 Tcl passing subset (1s)
+ok	44.370000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.730000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	27.110000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+ok	1.840000	compat2 autharity
+ok	6.820000	compat2 expire_notify
+ok	1.770000	compat2 ktls_lifetime
+ok	0.070000	aclfix sort (1s)
+ok	0.070000	aclfix streams-name (1s)
+ok	0.070000	aclfix save-load (1s)
+ok	2.050000	aclfix capacity (1s)
+ok	0.080000	aclfix wake-pop (1s)
+ok	0.080000	aclfix wake-scatter (1s)
+ok	0.070000	aclfix sort (2s)
+ok	0.070000	aclfix streams-name (2s)
+ok	0.070000	aclfix save-load (2s)
+ok	1.910000	aclfix capacity (2s)
+ok	0.080000	aclfix wake-pop (2s)
+ok	0.080000	aclfix wake-scatter (2s)

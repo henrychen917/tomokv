@@ -1,0 +1,12 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder_fifo; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.080000	txnorder FIFO F1
+ok	0.070000	txnorder FIFO F2
+ok	0.070000	txnorder FIFO F3
+ok	0.070000	txnorder FIFO F4
+ok	0.080000	txnorder FIFO F5
+ok	0.160000	txnorder FIFO F6
+ok	0.100000	txnorder FIFO F7
+ok	0.070000	txnorder FIFO F8
+ok	0.070000	txnorder FIFO F9
+ok	0.070000	txnorder FIFO F10
