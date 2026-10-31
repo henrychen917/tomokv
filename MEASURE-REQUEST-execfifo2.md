@@ -24,6 +24,9 @@ probes preserve the stamp; only the final execution gate removes its marks.
 A younger unit cannot place ahead of that stamp. The retiring EXEC promotes an
 eligible writer to the front of the deferred queue, where the writer still
 rechecks its complete key set and connection order. This is the D1 amendment.
+The plain-writer set includes write-capable same-shard EVAL/FCALL (all declared
+keys), local same-shard multi-key writes, and non-group, non-child, non-script
+cross-shard writes under atomic=0. Read-only operations do not enter this gate.
 
 EXEC and escalated scripts use the same `TxnKeyQueue::head`, comparator
 `(age_ns, age_io, age_seq)`, monotonic clock and IO sequence. A script draws that
@@ -41,7 +44,8 @@ no-overtaking statement:** W can first be refused by a waiting EXEC, then pass
 after that EXEC places but before it starts on this shard. F4 explicitly
 checks that transition. The directed guarantee is that W cannot pass while
 the older EXEC remains a live waiter (or after its held claim has started).
-A stronger guarantee would require changing approved D-F3=no. Existing held/started/validation predicates still apply. FLUSH checks
+A stronger guarantee would require changing approved D-F3=no. Existing
+held/started/validation predicates still apply. FLUSH checks
 all relevant queues. EXEC children, blind atomic groups, script APPLY,
 blocking serves, WATCH/UNWATCH and committed dirtying retain their original
 non-FIFO predicates (R-F2). Script placement still obeys the shared claim

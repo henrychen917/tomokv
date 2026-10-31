@@ -26,11 +26,14 @@ GROUPS={"fifo-contract":("quick","txnorder_fifo",{}),"directed":("quick",DIRECTE
         "core":("quick",CORE,{}),
         "headline":("quick"," ".join(prefix+"-"+mode+"-"+engine for prefix in ("multifix","climonfix4") for mode in ("1s","2s") for engine in ("uring","epoll"))+" pubtrackfix climonfix atomfix5_accounting moverfix exbatch_units exbatch_live wb_rule_units wbland_units",{}),
         "script-blocking-extra":("quick","compat3 streamfix snapfix_bgsave_script snapfix_bgsave_exec",{}),
+        "boundary-extra":("quick","compat2 aclfix bugs5",{}),
         "readlocal":("full","rlcache splitlocal_units",{}),
         "features":("quick",FEATURES+" feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto",{}),
         "flip":("quick","flipctl flip fliplisten flipfix5",{})}
 for engine in ("uring","epoll"):
     env=dict(GATE_NET_IO=engine,GATE_PROOF_NET_IO=engine,GATE_DIFFER_NET_IO=engine)
+    GROUPS["ownership-extra-"+engine]=("quick"," ".join(f"multidb-{mode}-{local}-{atomic}" for mode in ("1s","2s") for local in (0,1) for atomic in (0,1))+" "+" ".join(f"evict-{section}-{mode}-{atomic}" for section in ("lfu","lruclock") for mode in ("split","armed") for atomic in (0,1)),env)
+    GROUPS["aof-extra-"+engine]=("quick","aof-"+engine+" aof_frame aoforder",env)
     GROUPS["readlocal-extra-"+engine]=("quick","bplus ring_unit filter_unit acl_recheck",env)
     GROUPS["notify-fused-"+engine]=("quick","notify",env|dict(GATE_TXN_FUSED="1"))
     GROUPS["txn-"+engine]=("quick",TXN,env)
