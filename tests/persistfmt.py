@@ -76,7 +76,21 @@ def populate(c):
         assert c.cmd('XDEL', key, '2-0', '5-0') == 2
     assert c.cmd('XTRIM', 's:trim', 'MINID', '=', '4-0') == 2
     assert c.cmd('XTRIM', 's:empty', 'MAXLEN', '=', 0) == 6
-    return keys
+    # Cross Redis listpack/node boundaries with live and deleted records left in
+    # later nodes. Assert the oracle actually opened that representation window.
+    for n in range(1, 129):
+        assert c.cmd('XADD', 's:nodes', f'{n}-0', 'field', 'v' * 160,
+                     'number', n) == f'{n}-0'.encode()
+    assert c.cmd('XDEL', 's:nodes', '20-0', '65-0', '119-0') == 3
+    assert c.cmd('XTRIM', 's:nodes', 'MINID', '=', '40-0') == 38
+    if h.ARGS.oracle:
+        assert pairs(c.cmd('XINFO', 'STREAM', 's:nodes'))[b'radix-tree-keys'] > 1
+    # A sequence can decrease when milliseconds increase. Large deltas are
+    # signed listpack bit patterns, while stream IDs themselves are unsigned.
+    for identifier in ('1-8', '2-0', '9223372036854775808-2',
+                       '18446744073709551615-18446744073709551614'):
+        assert c.cmd('XADD', 's:deltas', identifier, 'f', 'v') == identifier.encode()
+    return keys + ['s:nodes', 's:deltas']
 
 
 def stream_roundtrip():

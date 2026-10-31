@@ -1,0 +1,47 @@
+[
+  {
+    "job": "climonfix",
+    "source": "tests/gate.sh",
+    "line": 1597
+  },
+  {
+    "job": "persistfix_units",
+    "source": "tests/gate.sh",
+    "line": 1705
+  },
+  {
+    "job": "at412",
+    "source": "tests/gate.sh",
+    "line": 3370
+  },
+  {
+    "job": "blockfix_registry",
+    "source": "tests/gate.sh",
+    "line": 4084
+  },
+  {
+    "job": "blockfix_structure",
+    "source": "tests/gate.sh",
+    "line": 4167
+  },
+  {
+    "job": "blockfix_mkstream",
+    "source": "tests/gate.sh",
+    "line": 4173
+  },
+  {
+    "job": "serverfix_waitaof",
+    "source": "tests/gate.sh",
+    "line": 3633
+  },
+  {
+    "job": "infofix_compat",
+    "source": "tests/gate.sh",
+    "line": 5590
+  },
+  {
+    "job": "notify",
+    "source": "tests/gate.sh",
+    "line": 4671
+  }
+]

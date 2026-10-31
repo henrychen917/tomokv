@@ -36,7 +36,9 @@ XPENDING idle milliseconds; persisted absolute times are compared exactly.
 Streams use the existing REPLACE/ABSTTL/TTL/IDLETIME/FREQ command path. Envelope
 failures return `ERR DUMP payload version or checksum are wrong`; CRC-valid bad
 bodies return `ERR Bad data format`. The ten-byte, empty-body envelope boundary
-now follows Redis too. Legacy Redis 5/7 stream fixtures run against both servers.
+now follows Redis too. Legacy Redis 5/7 stream fixtures, multiple listpack nodes, and signed ID-delta
+boundaries run against both servers. The oracle must actually create multiple
+nodes for that case to pass.
 
 Function libraries are captured once at the snapshot cut as Redis FUNCTION2
 opcode/string records. They are compiled and installed during recovery, including
