@@ -219,7 +219,7 @@ def functions():
         function_format_audit()
     for oracle in (True, False):
         data = ARGS.artifacts / ('oracle' if oracle else 'target')
-        opt = []
+        opt = ['--databases', '16'] if case == 'reload' else []
         if case.startswith('aof-'):
             opt = ['--appendonly', 'yes', '--appendfsync', 'always',
                    '--aof-use-rdb-preamble', case[4:], '--auto-aof-rewrite-percentage', '0']
@@ -254,6 +254,18 @@ def functions():
                 assert libraries(c) == expected
                 assert result(c, 'DEBUG', 'RELOAD', 'NOFLUSH')[0] == 'error'
                 assert c.cmd('DEBUG', 'RELOAD', 'NOSAVE', 'NOFLUSH', 'MERGE') == b'OK'
+                # A saved physical namespace map must not relocate keys retained
+                # by NOFLUSH when SWAPDB has changed the live logical mapping.
+                assert c.cmd('SELECT', 1) == b'OK'
+                assert c.cmd('SET', 'retained-after-swap', 'live') == b'OK'
+                assert c.cmd('SELECT', 0) == b'OK'
+                assert c.cmd('SWAPDB', 0, 1) == b'OK'
+                assert c.cmd('DEBUG', 'RELOAD', 'NOSAVE', 'NOFLUSH', 'MERGE') == b'OK'
+                assert c.cmd('GET', 'retained-after-swap') == b'live'
+                assert c.cmd('GET', 'sentinel') == b'saved'
+                assert c.cmd('SELECT', 1) == b'OK'
+                assert c.cmd('GET', 'sentinel') == b'saved'
+                assert c.cmd('SELECT', 0) == b'OK'
             elif case.startswith('aof-'):
                 assert c.cmd('BGREWRITEAOF') == b'Background append only file rewriting started'
                 h.wait_rewrite(c, 'aof_rewrites')
