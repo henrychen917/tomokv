@@ -1,0 +1,2126 @@
+{
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "group": "ex3",
+  "source_sha256": "d5be1a73087935ab3ce5212547000fb28616b689746fae38fd62620ad71e6847",
+  "inventory": {
+    "3": 171,
+    "30": 20,
+    "6": 6,
+    "1": 2
+  },
+  "patches": [
+    {
+      "address": 206165,
+      "offset": 206165,
+      "target": 206179,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db0L26multi_execute_task_trackedERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 209195,
+      "offset": 209195,
+      "target": 209209,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db0L26multi_execute_task_trackedERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 281094,
+      "offset": 281094,
+      "target": 281109,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 281259,
+      "offset": 281259,
+      "target": 281274,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 281747,
+      "offset": 281747,
+      "target": 281993,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 281856,
+      "offset": 281856,
+      "target": 281871,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 284347,
+      "offset": 284347,
+      "target": 284362,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 284512,
+      "offset": 284512,
+      "target": 284527,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 285004,
+      "offset": 285004,
+      "target": 285250,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 285113,
+      "offset": 285113,
+      "target": 285128,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 288490,
+      "offset": 288490,
+      "target": 288505,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 288655,
+      "offset": 288655,
+      "target": 288670,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 289143,
+      "offset": 289143,
+      "target": 289389,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 289252,
+      "offset": 289252,
+      "target": 289267,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 291743,
+      "offset": 291743,
+      "target": 291758,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 291908,
+      "offset": 291908,
+      "target": 291923,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 292400,
+      "offset": 292400,
+      "target": 292646,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 292509,
+      "offset": 292509,
+      "target": 292524,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 318192,
+      "offset": 318192,
+      "target": 318206,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 318812,
+      "offset": 318812,
+      "target": 319054,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ed000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 318921,
+      "offset": 318921,
+      "target": 318935,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 321418,
+      "offset": 321418,
+      "target": 321433,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 322048,
+      "offset": 322048,
+      "target": 322294,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 322157,
+      "offset": 322157,
+      "target": 322172,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 326453,
+      "offset": 326453,
+      "target": 326467,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 327007,
+      "offset": 327007,
+      "target": 327238,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9e2000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 327116,
+      "offset": 327116,
+      "target": 327130,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 331358,
+      "offset": 331358,
+      "target": 331372,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 331978,
+      "offset": 331978,
+      "target": 332220,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ed000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 332087,
+      "offset": 332087,
+      "target": 332101,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 334584,
+      "offset": 334584,
+      "target": 334599,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 335214,
+      "offset": 335214,
+      "target": 335460,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 335323,
+      "offset": 335323,
+      "target": 335338,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 360942,
+      "offset": 360942,
+      "target": 360956,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomoL26multi_execute_task_trackedERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 364010,
+      "offset": 364010,
+      "target": 364024,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomoL26multi_execute_task_trackedERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 436688,
+      "offset": 436688,
+      "target": 436703,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 436853,
+      "offset": 436853,
+      "target": 436868,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 437342,
+      "offset": 437342,
+      "target": 437588,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 437451,
+      "offset": 437451,
+      "target": 437466,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 439943,
+      "offset": 439943,
+      "target": 439958,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 440108,
+      "offset": 440108,
+      "target": 440123,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 440601,
+      "offset": 440601,
+      "target": 440847,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 440710,
+      "offset": 440710,
+      "target": 440725,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 444086,
+      "offset": 444086,
+      "target": 444101,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 444251,
+      "offset": 444251,
+      "target": 444266,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 444740,
+      "offset": 444740,
+      "target": 444986,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 444849,
+      "offset": 444849,
+      "target": 444864,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 447341,
+      "offset": 447341,
+      "target": 447356,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 447506,
+      "offset": 447506,
+      "target": 447521,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 447999,
+      "offset": 447999,
+      "target": 448245,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 448108,
+      "offset": 448108,
+      "target": 448123,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE13execute_timedILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 474222,
+      "offset": 474222,
+      "target": 474236,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 474843,
+      "offset": 474843,
+      "target": 475085,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ed000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 474952,
+      "offset": 474952,
+      "target": 474966,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 477450,
+      "offset": 477450,
+      "target": 477465,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 478081,
+      "offset": 478081,
+      "target": 478327,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 478190,
+      "offset": 478190,
+      "target": 478205,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 482485,
+      "offset": 482485,
+      "target": 482499,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 483040,
+      "offset": 483040,
+      "target": 483271,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9e2000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 483149,
+      "offset": 483149,
+      "target": 483163,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 487392,
+      "offset": 487392,
+      "target": 487406,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 488013,
+      "offset": 488013,
+      "target": 488255,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ed000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 488122,
+      "offset": 488122,
+      "target": 488136,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e909000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 490620,
+      "offset": 490620,
+      "target": 490635,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 491251,
+      "offset": 491251,
+      "target": 491497,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f1000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 491360,
+      "offset": 491360,
+      "target": 491375,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90a000000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 538720,
+      "offset": 538720,
+      "target": 538736,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90b000000",
+      "functions": [
+        "_ZN12_GLOBAL__N_17watchesERKN8tomo_db05ShardE"
+      ]
+    },
+    {
+      "address": 655940,
+      "offset": 655940,
+      "target": 656016,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e947000000",
+      "functions": [
+        "_ZN8tomo_db019notify_flat_enabledEPvj"
+      ]
+    },
+    {
+      "address": 716401,
+      "offset": 716401,
+      "target": 716512,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e96a000000",
+      "functions": [
+        "_ZN8tomo_db018WatchMutationScopeC1ERNS_5ShardEPKvPSt6atomicImEPS5_IbEPS5_IjEPNS_6ClientE",
+        "_ZN8tomo_db018WatchMutationScopeC2ERNS_5ShardEPKvPSt6atomicImEPS5_IbEPS5_IjEPNS_6ClientE"
+      ]
+    },
+    {
+      "address": 750781,
+      "offset": 750781,
+      "target": 751072,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e91e010000",
+      "functions": [
+        "_ZN8tomo_db05Shard19watch_database_swapEhhhhPSt6vectorISt4pairIPNS_6ClientEmESaIS5_EE"
+      ]
+    },
+    {
+      "address": 751652,
+      "offset": 751652,
+      "target": 751696,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e927000000",
+      "functions": [
+        "_ZN8tomo_db05Shard19watch_database_swapEhh"
+      ]
+    },
+    {
+      "address": 860729,
+      "offset": 860729,
+      "target": 860480,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e902ffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard19watch_writer_unmarkENS_5SliceEPKvb"
+      ]
+    },
+    {
+      "address": 861325,
+      "offset": 861325,
+      "target": 861353,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e917000000",
+      "functions": [
+        "_ZN8tomo_db05Shard19watch_writer_forgetEPKv"
+      ]
+    },
+    {
+      "address": 861982,
+      "offset": 861982,
+      "target": 861992,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e905000000",
+      "functions": [
+        "_ZN8tomo_db05Shard24watch_append_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS_14TxnReservationEPNS_9TxnWaiterE"
+      ]
+    },
+    {
+      "address": 865644,
+      "offset": 865644,
+      "target": 865597,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9ccffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard26watch_finalize_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 865722,
+      "offset": 865722,
+      "target": 866240,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e901020000",
+      "functions": [
+        "_ZN8tomo_db05Shard26watch_fifo_all_write_readyEPKv"
+      ]
+    },
+    {
+      "address": 866831,
+      "offset": 866831,
+      "target": 866576,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9fcfeffff",
+      "functions": [
+        "_ZN8tomo_db05Shard20watch_key_ready_implILb0EEEbRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPKvbm.isra.0"
+      ]
+    },
+    {
+      "address": 866942,
+      "offset": 866942,
+      "target": 866960,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90d000000",
+      "functions": [
+        "_ZN8tomo_db05Shard22watch_fifo_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 867294,
+      "offset": 867294,
+      "target": 867360,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93d000000",
+      "functions": [
+        "_ZN8tomo_db023multi_plain_write_readyERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 871342,
+      "offset": 871342,
+      "target": 871408,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93d000000",
+      "functions": [
+        "_ZN8tomo_db023multi_plain_write_probeERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 874633,
+      "offset": 874633,
+      "target": 874976,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e952010000",
+      "functions": [
+        "_ZN8tomo_db05Shard21watch_all_write_readyEPKv"
+      ]
+    },
+    {
+      "address": 875294,
+      "offset": 875294,
+      "target": 875312,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90d000000",
+      "functions": [
+        "_ZN8tomo_db05Shard23watch_group_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 875726,
+      "offset": 875726,
+      "target": 875744,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90d000000",
+      "functions": [
+        "_ZN8tomo_db05Shard17watch_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 884134,
+      "offset": 884134,
+      "target": 884027,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 884245,
+      "offset": 884245,
+      "target": 884592,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e956010000",
+      "functions": [
+        "_ZN8tomo_db05Shard21watch_physical_deleteENS_5SliceEb"
+      ]
+    },
+    {
+      "address": 884779,
+      "offset": 884779,
+      "target": 885104,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e940010000",
+      "functions": [
+        "_ZN8tomo_db05Shard21watch_write_committedENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 885255,
+      "offset": 885255,
+      "target": 885376,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e974000000",
+      "functions": [
+        "_ZN8tomo_db021watch_record_modifiedERNS_5ShardENS_5SliceE"
+      ]
+    },
+    {
+      "address": 893127,
+      "offset": 893127,
+      "target": 892864,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9f4feffff",
+      "functions": [
+        "_ZN8tomo_db05Shard12watch_removeENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 895996,
+      "offset": 895996,
+      "target": 895776,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e91fffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 903792,
+      "offset": 903792,
+      "target": 904848,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e91b040000",
+      "functions": [
+        "_ZN8tomo_db024xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE"
+      ]
+    },
+    {
+      "address": 994834,
+      "offset": 994834,
+      "target": 995600,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9f9020000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0"
+      ]
+    },
+    {
+      "address": 1000664,
+      "offset": 1000664,
+      "target": 1001383,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ca020000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_121execute_cross_commandERNS_6ServerERNS_14MultiExecStateERNS_12MultiCommandERNS_5ShardEjj"
+      ]
+    },
+    {
+      "address": 1001677,
+      "offset": 1001677,
+      "target": 1003316,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e962060000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_121execute_cross_commandERNS_6ServerERNS_14MultiExecStateERNS_12MultiCommandERNS_5ShardEjj"
+      ]
+    },
+    {
+      "address": 1008573,
+      "offset": 1008573,
+      "target": 1009169,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e94f020000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_120execute_atomic_applyERKNS_4TaskERNS_5ShardERNS_2OpEj.isra.0"
+      ]
+    },
+    {
+      "address": 1008595,
+      "offset": 1008595,
+      "target": 1009496,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e980030000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_120execute_atomic_applyERKNS_4TaskERNS_5ShardERNS_2OpEj.isra.0"
+      ]
+    },
+    {
+      "address": 1026144,
+      "offset": 1026144,
+      "target": 1026976,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93b030000",
+      "functions": [
+        "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 1026288,
+      "offset": 1026288,
+      "target": 1026864,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93b020000",
+      "functions": [
+        "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 1041124,
+      "offset": 1041124,
+      "target": 1041824,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9b7020000",
+      "functions": [
+        "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 1041466,
+      "offset": 1041466,
+      "target": 1043208,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c9060000",
+      "functions": [
+        "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 1052930,
+      "offset": 1052930,
+      "target": 1054901,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ae070000",
+      "functions": [
+        "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 1053247,
+      "offset": 1053247,
+      "target": 1055080,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e924070000",
+      "functions": [
+        "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 1091396,
+      "offset": 1091396,
+      "target": 1091419,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e912000000",
+      "functions": [
+        "_ZN8tomo_db05Shard19refresh_has_watchesEv"
+      ]
+    },
+    {
+      "address": 1236888,
+      "offset": 1236888,
+      "target": 1236544,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9a3feffff",
+      "functions": [
+        "_ZN8tomo_db05Shard20watch_key_ready_implILb1EEEbRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPKvbm"
+      ]
+    },
+    {
+      "address": 2455017,
+      "offset": 2455017,
+      "target": 2456528,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9e2050000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_114redis_dispatchEP9lua_Stateb"
+      ]
+    },
+    {
+      "address": 3295582,
+      "offset": 3295582,
+      "target": 3297168,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92d060000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3296680,
+      "offset": 3296680,
+      "target": 3298253,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e920060000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3297552,
+      "offset": 3297552,
+      "target": 3298410,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e955030000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3297770,
+      "offset": 3297770,
+      "target": 3298096,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3306834,
+      "offset": 3306834,
+      "target": 3308320,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c9050000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3307928,
+      "offset": 3307928,
+      "target": 3309389,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9b0050000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3308688,
+      "offset": 3308688,
+      "target": 3309546,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e955030000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3308906,
+      "offset": 3308906,
+      "target": 3309232,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3326526,
+      "offset": 3326526,
+      "target": 3328112,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92d060000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3327624,
+      "offset": 3327624,
+      "target": 3329197,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e920060000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3328496,
+      "offset": 3328496,
+      "target": 3329354,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e955030000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3328714,
+      "offset": 3328714,
+      "target": 3329040,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3333330,
+      "offset": 3333330,
+      "target": 3334816,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c9050000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3334424,
+      "offset": 3334424,
+      "target": 3335885,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9b0050000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3335184,
+      "offset": 3335184,
+      "target": 3336042,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e955030000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3335402,
+      "offset": 3335402,
+      "target": 3335728,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 4358984,
+      "offset": 4358984,
+      "target": 4359040,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN8tomo_db07ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN8tomo_db07ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 4359112,
+      "offset": 4359112,
+      "target": 4359168,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 4359240,
+      "offset": 4359240,
+      "target": 4359296,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 4360072,
+      "offset": 4360072,
+      "target": 4360128,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 4360200,
+      "offset": 4360200,
+      "target": 4360256,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN8tomo_db07ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 4365604,
+      "offset": 4365604,
+      "target": 4367088,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c7050000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 4366711,
+      "offset": 4366711,
+      "target": 4368193,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c5050000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 4367448,
+      "offset": 4367448,
+      "target": 4368626,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e995040000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 4367712,
+      "offset": 4367712,
+      "target": 4368096,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e97b010000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 4439812,
+      "offset": 4439812,
+      "target": 4439888,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e947000000",
+      "functions": [
+        "_ZN4tomo19notify_flat_enabledEPvj"
+      ]
+    },
+    {
+      "address": 4499617,
+      "offset": 4499617,
+      "target": 4499728,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e96a000000",
+      "functions": [
+        "_ZN4tomo18WatchMutationScopeC1ERNS_5ShardEPKvPSt6atomicImEPS5_IbEPS5_IjEPNS_6ClientE",
+        "_ZN4tomo18WatchMutationScopeC2ERNS_5ShardEPKvPSt6atomicImEPS5_IbEPS5_IjEPNS_6ClientE"
+      ]
+    },
+    {
+      "address": 4536445,
+      "offset": 4536445,
+      "target": 4536768,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93e010000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_database_swapEhhhhPSt6vectorISt4pairIPNS_6ClientEmESaIS5_EE"
+      ]
+    },
+    {
+      "address": 4537364,
+      "offset": 4537364,
+      "target": 4537440,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e947000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_database_swapEhh"
+      ]
+    },
+    {
+      "address": 4645161,
+      "offset": 4645161,
+      "target": 4644912,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e902ffffff",
+      "functions": [
+        "_ZN4tomo5Shard19watch_writer_unmarkENS_5SliceEPKvb"
+      ]
+    },
+    {
+      "address": 4645757,
+      "offset": 4645757,
+      "target": 4645785,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e917000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_writer_forgetEPKv"
+      ]
+    },
+    {
+      "address": 4646414,
+      "offset": 4646414,
+      "target": 4646424,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e905000000",
+      "functions": [
+        "_ZN4tomo5Shard24watch_append_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS_14TxnReservationEPNS_9TxnWaiterE"
+      ]
+    },
+    {
+      "address": 4650092,
+      "offset": 4650092,
+      "target": 4650045,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9ccffffff",
+      "functions": [
+        "_ZN4tomo5Shard26watch_finalize_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 4650170,
+      "offset": 4650170,
+      "target": 4650688,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e901020000",
+      "functions": [
+        "_ZN4tomo5Shard26watch_fifo_all_write_readyEPKv"
+      ]
+    },
+    {
+      "address": 4651279,
+      "offset": 4651279,
+      "target": 4651024,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9fcfeffff",
+      "functions": [
+        "_ZN4tomo5Shard20watch_key_ready_implILb0EEEbRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPKvbm.isra.0"
+      ]
+    },
+    {
+      "address": 4651390,
+      "offset": 4651390,
+      "target": 4651408,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90d000000",
+      "functions": [
+        "_ZN4tomo5Shard22watch_fifo_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 4651742,
+      "offset": 4651742,
+      "target": 4651808,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93d000000",
+      "functions": [
+        "_ZN4tomo23multi_plain_write_readyERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 4655790,
+      "offset": 4655790,
+      "target": 4655856,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93d000000",
+      "functions": [
+        "_ZN4tomo23multi_plain_write_probeERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 4659081,
+      "offset": 4659081,
+      "target": 4659424,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e952010000",
+      "functions": [
+        "_ZN4tomo5Shard21watch_all_write_readyEPKv"
+      ]
+    },
+    {
+      "address": 4659742,
+      "offset": 4659742,
+      "target": 4659760,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90d000000",
+      "functions": [
+        "_ZN4tomo5Shard23watch_group_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 4660174,
+      "offset": 4660174,
+      "target": 4660192,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90d000000",
+      "functions": [
+        "_ZN4tomo5Shard17watch_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 4667558,
+      "offset": 4667558,
+      "target": 4667451,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN4tomo5Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 4667678,
+      "offset": 4667678,
+      "target": 4668016,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e94d010000",
+      "functions": [
+        "_ZN4tomo5Shard21watch_physical_deleteENS_5SliceEb"
+      ]
+    },
+    {
+      "address": 4668207,
+      "offset": 4668207,
+      "target": 4668560,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e95c010000",
+      "functions": [
+        "_ZN4tomo5Shard21watch_write_committedENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 4668695,
+      "offset": 4668695,
+      "target": 4668816,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e974000000",
+      "functions": [
+        "_ZN4tomo21watch_record_modifiedERNS_5ShardENS_5SliceE"
+      ]
+    },
+    {
+      "address": 4676551,
+      "offset": 4676551,
+      "target": 4676288,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9f4feffff",
+      "functions": [
+        "_ZN4tomo5Shard12watch_removeENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 4679481,
+      "offset": 4679481,
+      "target": 4679264,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e922ffffff",
+      "functions": [
+        "_ZN4tomo5Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 4685408,
+      "offset": 4685408,
+      "target": 4686480,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92b040000",
+      "functions": [
+        "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE"
+      ]
+    },
+    {
+      "address": 4775955,
+      "offset": 4775955,
+      "target": 4776688,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9d8020000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0"
+      ]
+    },
+    {
+      "address": 4781016,
+      "offset": 4781016,
+      "target": 4781735,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ca020000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_121execute_cross_commandERNS_6ServerERNS_14MultiExecStateERNS_12MultiCommandERNS_5ShardEjj"
+      ]
+    },
+    {
+      "address": 4782029,
+      "offset": 4782029,
+      "target": 4783716,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e992060000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_121execute_cross_commandERNS_6ServerERNS_14MultiExecStateERNS_12MultiCommandERNS_5ShardEjj"
+      ]
+    },
+    {
+      "address": 4788777,
+      "offset": 4788777,
+      "target": 4789322,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e91c020000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_120execute_atomic_applyERKNS_4TaskERNS_5ShardERNS_2OpEj.isra.0"
+      ]
+    },
+    {
+      "address": 4788799,
+      "offset": 4788799,
+      "target": 4789628,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e938030000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_120execute_atomic_applyERKNS_4TaskERNS_5ShardERNS_2OpEj.isra.0"
+      ]
+    },
+    {
+      "address": 4806168,
+      "offset": 4806168,
+      "target": 4806919,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9ea020000",
+      "functions": [
+        "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 4806299,
+      "offset": 4806299,
+      "target": 4806818,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e902020000",
+      "functions": [
+        "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 4818915,
+      "offset": 4818915,
+      "target": 4819498,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e942020000",
+      "functions": [
+        "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 4819240,
+      "offset": 4819240,
+      "target": 4820469,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c8040000",
+      "functions": [
+        "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 4831280,
+      "offset": 4831280,
+      "target": 4833488,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e99b080000",
+      "functions": [
+        "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 4831624,
+      "offset": 4831624,
+      "target": 4833685,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e908080000",
+      "functions": [
+        "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE"
+      ]
+    },
+    {
+      "address": 4882324,
+      "offset": 4882324,
+      "target": 4882347,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e912000000",
+      "functions": [
+        "_ZN4tomo5Shard19refresh_has_watchesEv"
+      ]
+    },
+    {
+      "address": 5023512,
+      "offset": 5023512,
+      "target": 5023168,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9a3feffff",
+      "functions": [
+        "_ZN4tomo5Shard20watch_key_ready_implILb1EEEbRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPKvbm"
+      ]
+    },
+    {
+      "address": 6314949,
+      "offset": 6314949,
+      "target": 6317297,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e927090000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_114redis_dispatchEP9lua_Stateb"
+      ]
+    },
+    {
+      "address": 7131774,
+      "offset": 7131774,
+      "target": 7133360,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92d060000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7132872,
+      "offset": 7132872,
+      "target": 7134445,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e920060000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7133744,
+      "offset": 7133744,
+      "target": 7134603,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e956030000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7133962,
+      "offset": 7133962,
+      "target": 7134288,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7143026,
+      "offset": 7143026,
+      "target": 7144512,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c9050000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7144120,
+      "offset": 7144120,
+      "target": 7145581,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9b0050000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7144880,
+      "offset": 7144880,
+      "target": 7145739,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e956030000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7145098,
+      "offset": 7145098,
+      "target": 7145424,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7162718,
+      "offset": 7162718,
+      "target": 7164304,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92d060000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7163816,
+      "offset": 7163816,
+      "target": 7165389,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e920060000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7164688,
+      "offset": 7164688,
+      "target": 7165547,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e956030000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7164906,
+      "offset": 7164906,
+      "target": 7165232,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7169522,
+      "offset": 7169522,
+      "target": 7171008,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9c9050000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7170616,
+      "offset": 7170616,
+      "target": 7172077,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9b0050000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7171376,
+      "offset": 7171376,
+      "target": 7172235,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e956030000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 7171594,
+      "offset": 7171594,
+      "target": 7171920,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e941010000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb1ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 8192248,
+      "offset": 8192248,
+      "target": 8192304,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN4tomo7ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN4tomo7ExLoopTILb0EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 8192376,
+      "offset": 8192376,
+      "target": 8192432,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb0EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 8192504,
+      "offset": 8192504,
+      "target": 8192560,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb0EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 8193336,
+      "offset": 8193336,
+      "target": 8193392,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb0ELb1EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 8193464,
+      "offset": 8193464,
+      "target": 8193520,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e933000000",
+      "functions": [
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskEENKUlvE1_clEv",
+        "_ZZN4tomo7ExLoopTILb1EE15execute_latencyILb1ELb1EEEbRKNS_4TaskEENKUlvE_clEv"
+      ]
+    },
+    {
+      "address": 8198868,
+      "offset": 8198868,
+      "target": 8200320,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9a7050000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 8199943,
+      "offset": 8199943,
+      "target": 8201329,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e965050000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 8200680,
+      "offset": 8200680,
+      "target": 8201745,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e924040000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 8200928,
+      "offset": 8200928,
+      "target": 8201232,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92b010000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    }
+  ]
+}
