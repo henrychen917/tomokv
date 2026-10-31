@@ -161,7 +161,7 @@ digest and Redis oracle digest are in `docs/execfifo2/measurement-tools.json`.
 
 1. `exec-merit.py --cells all --blocks 3 --secs 20 --threads 16 --conns 64`:
    all eight cells, 1s/2s × atomic 0/1 × hot/uncontended, pipeline 4. Retain
-   the four plain INCR clients' individual progress, rate and share in each
+   the four plain INCR clients' combined completions, rate and share in each
    hot cell as well as EXEC rate, cycles/op, instructions/op and IPC.
 2. `exec-depth-sweep.py --mode 1s` and `--mode 2s`, each with `--blocks 3
    --secs 10 --atomic 0 --placements cross,same-owner,same-shard --depths
