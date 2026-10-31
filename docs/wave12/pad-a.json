@@ -1,0 +1,355 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE e32b04a44 with inert POST GroupAux fields and unused TLS padding",
+  "matched": "POST GroupAux member layout; POST .text origin and total size; POST .tbss total size",
+  "private_layout": {
+    "file": "src/cmd/scatter_engine.inc",
+    "additions": [
+      "AtomicEntry* flush_range = nullptr",
+      "bool flush_changed = false"
+    ]
+  },
+  "compile": [
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=153728",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-wave12/build/wave12/pad-a/src_cmd_xshard.o"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=152544",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-wave12/build/wave12/pad-a/db0_src_cmd_xshard.o"
+    ]
+  ],
+  "limitation": "Individual function, TLS-variable and data-section addresses come from the PRE link; they are not matched to POST one by one.",
+  "link": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/main.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/net/tls.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pad-a/db0_src_cmd_xshard.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/persist/aof.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/genthread.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/reorder.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/cmd/eviction.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/db0/src/core/version.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/main.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/net/tls.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pad-a/src_cmd_xshard.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/persist/aof.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/genthread.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/reorder.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/cmd/eviction.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/third_party/lua/helpers/lua_cjson.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/third_party/lua/helpers/lua_cmsgpack.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/third_party/lua/helpers/lua_bit.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/third_party/lua/helpers/lua_struct.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/third_party/lua/helpers/strbuf.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/third_party/lua/helpers/fpconv.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pre-source/build/src/core/version.o",
+    "/home/user/Projects/cx-wave12/build/wave12/pad-a/padding.o",
+    "-o",
+    "/home/user/Projects/cx-wave12/build/wave12/pad-a/tomokv",
+    "-Wl,--wrap=main",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm",
+    "-Wl,--section-start=.text=0x2cab0"
+  ],
+  "padding_text_bytes": 121040,
+  "padding_tbss_bytes": 32,
+  "pre_text": {
+    "address": 182960,
+    "size": 8729431
+  },
+  "post_text": {
+    "address": 182960,
+    "size": 8850599
+  },
+  "pad_text": {
+    "address": 182960,
+    "size": 8850599
+  },
+  "pre_tbss": {
+    "address": 10416816,
+    "size": 704
+  },
+  "post_tbss": {
+    "address": 10547872,
+    "size": 736
+  },
+  "pad_tbss": {
+    "address": 10539696,
+    "size": 736
+  },
+  "sections": {
+    "PRE": {
+      ".text": {
+        "address": 182960,
+        "size": 8729431
+      },
+      ".rodata": {
+        "address": 8912896,
+        "size": 637900
+      },
+      ".eh_frame": {
+        "address": 9643808,
+        "size": 620608
+      },
+      ".gcc_except_table": {
+        "address": 10264416,
+        "size": 148516
+      },
+      ".tdata": {
+        "address": 10416432,
+        "size": 384
+      },
+      ".tbss": {
+        "address": 10416816,
+        "size": 704
+      },
+      ".init_array": {
+        "address": 10416816,
+        "size": 776
+      },
+      ".data": {
+        "address": 10506240,
+        "size": 19321
+      },
+      ".bss": {
+        "address": 10525568,
+        "size": 1189256
+      }
+    },
+    "POST": {
+      ".text": {
+        "address": 182960,
+        "size": 8850599
+      },
+      ".rodata": {
+        "address": 9035776,
+        "size": 638116
+      },
+      ".eh_frame": {
+        "address": 9768016,
+        "size": 628128
+      },
+      ".gcc_except_table": {
+        "address": 10396144,
+        "size": 149804
+      },
+      ".tdata": {
+        "address": 10547488,
+        "size": 384
+      },
+      ".tbss": {
+        "address": 10547872,
+        "size": 736
+      },
+      ".init_array": {
+        "address": 10547872,
+        "size": 792
+      },
+      ".data": {
+        "address": 10637312,
+        "size": 19321
+      },
+      ".bss": {
+        "address": 10656640,
+        "size": 1189384
+      }
+    },
+    "PAD-A": {
+      ".text": {
+        "address": 182960,
+        "size": 8850599
+      },
+      ".rodata": {
+        "address": 9035776,
+        "size": 637900
+      },
+      ".eh_frame": {
+        "address": 9766688,
+        "size": 620608
+      },
+      ".gcc_except_table": {
+        "address": 10387296,
+        "size": 148516
+      },
+      ".tdata": {
+        "address": 10539312,
+        "size": 384
+      },
+      ".tbss": {
+        "address": 10539696,
+        "size": 736
+      },
+      ".init_array": {
+        "address": 10539696,
+        "size": 776
+      },
+      ".data": {
+        "address": 10629120,
+        "size": 19321
+      },
+      ".bss": {
+        "address": 10648448,
+        "size": 1189256
+      }
+    }
+  },
+  "inputs_sha256": "33acff93aa199f5e9cfeb7be9504f5fa6e2863f53cf12d32a7209cabd91f913e",
+  "arms": {
+    "PRE": {
+      "path": "build/wave12/tomokv-PRE",
+      "sha256": "02796cdccee7fd16ffaa0dff2633b0d5c30ecdf3c59d404b5a2bb6135a764e48"
+    },
+    "POST": {
+      "path": "build/wave12/tomokv-POST",
+      "sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4"
+    },
+    "PAD-A": {
+      "path": "build/wave12/pad-a/tomokv",
+      "sha256": "aee862288a87c0ea45eeb3f2b9ef5c367b0366fb3c88bc2849669583499fd647"
+    }
+  }
+}

@@ -19,7 +19,20 @@ import redis_tcl as suite
 
 def save(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2) + '\n')
+    data = (json.dumps(value, indent=2) + '\n').encode()
+    if path.parent.name.isdigit() or path.name == 'summary.json':
+        with gzip.GzipFile(filename=str(path)+'.gz', mode='wb', mtime=0) as stream:
+            stream.write(data)
+        path.unlink(missing_ok=True)
+    else:
+        path.write_bytes(data)
+
+
+def read(path):
+    if path.exists():
+        return json.loads(path.read_text())
+    with gzip.open(str(path)+'.gz', 'rt') as stream:
+        return json.load(stream)
 
 
 def worker(slot, cases, binary):
@@ -37,8 +50,8 @@ def worker(slot, cases, binary):
         for mode in ('1s', '2s'):
             for attempt in range(1, 4):
                 target = DOC / f'{index:03d}' / f'{mode}-{attempt}.json'
-                if target.exists():
-                    row = json.loads(target.read_text())
+                if target.exists() or Path(str(target)+'.gz').exists():
+                    row = read(target)
                     assert row['binary_sha256'] == digest
                 else:
                     output = BUILD / f'{index:03d}' / f'{mode}-{attempt}'
@@ -114,7 +127,7 @@ def main():
         roots.setdefault((row['file'], row['test']), set()).add(row['root'])
     summary = []
     for index, unit, name, spec in cases:
-        rows = [json.loads((DOC / f'{index:03d}' / f'{mode}-{attempt}.json').read_text())
+        rows = [read(DOC / f'{index:03d}' / f'{mode}-{attempt}.json')
                 for mode in ('1s', '2s') for attempt in range(1, 4)]
         passed = all(r['passed'] for r in rows) and len({r['occurrences'] for r in rows}) == 1
         summary.append(dict(index=index, file=unit, test=name, roots=sorted(roots.get((unit, name), {'UNCLASSIFIED'})),

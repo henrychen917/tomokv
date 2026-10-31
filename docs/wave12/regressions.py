@@ -31,6 +31,8 @@ def main():
     targets=sys.argv[1:] or ['CLIENT-LIST-CMD-NAME']
     binary=ROOT/'build/wave12/tomokv-POST'
     post_sha=sha(binary)
+    manifest_sha=sha(ROOT/'tests/redis_tcl_passing.json')
+    runner_sha=sha(ROOT/'tests/redis_tcl.py')
     subprocess.run(['make','-q','all'],cwd=ROOT,check=True)
     assert post_sha==sha(ROOT/'build/tomokv')
     recipe=subprocess.check_output(['make','-n','-W','build/src/main.o','all'],cwd=ROOT,text=True)
@@ -40,7 +42,9 @@ def main():
     results=json.loads(record_path.read_text()) if record_path.exists() else []
     BUILD.mkdir(parents=True,exist_ok=True)
     for root in targets:
-        if any(r['root']==root and r['post_sha256']==post_sha and r['verified'] for r in results):continue
+        if any(r['root']==root and r['post_sha256']==post_sha and r['verified'] and
+               r.get('manifest_sha256')==manifest_sha and r.get('runner_sha256')==runner_sha
+               for r in results):continue
         unit,before,after=changes[root]
         dest=BUILD/root;dest.mkdir(exist_ok=True)
         source=dest/'source'
@@ -52,7 +56,8 @@ def main():
         if root=='PAUSE-BLOCKED-COUNT':
             changed=changed.replace('srv_->blocking_client_unparked();','/* paired count removal */')
         path.write_text(changed)
-        row=dict(root=root,post_sha256=post_sha,source='src/cmd/'+unit,before=before,after=after,
+        row=dict(root=root,post_sha256=post_sha,runner_sha256=runner_sha,
+                 source='src/cmd/'+unit,before=before,after=after,
                  source_before_sha256=hashlib.sha256(original.encode()).hexdigest(),source_after_sha256=sha(path),compile=[])
         link=list(template);commands=[]
         for ns in ('normal','db0'):
@@ -71,7 +76,8 @@ def main():
         with (dest/'link.log').open('w') as stream:subprocess.run(link,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT,check=True)
         row.update(binary_sha256=sha(mutant),link=link)
         shutil.rmtree(source)
-        name='negative-'+root.lower()
+        attempt=1+sum(r['root']==root for r in results)
+        name='negative-'+root.lower()+('' if attempt==1 else '-'+str(attempt))
         command=['python3',str(DOC/'run_jobs.py'),name,'redis_tcl','--binary',str(mutant),
                  '--single-slot','--port','20080']
         with (dest/'gate.log').open('w') as stream:
@@ -80,7 +86,7 @@ def main():
         run=Path(receipt['artifacts']);unit_name,witness=witnesses[root]
         row.update(exit=rc,modes={},verified=rc==1,
                    manifest='tests/redis_tcl_passing.json',
-                   manifest_sha256=sha(ROOT/'tests/redis_tcl_passing.json'),
+                   manifest_sha256=manifest_sha,
                    manifest_scope='complete merged manifest, both modes')
         for mode in ('1s','2s'):
             result_path=run/'jobs/redis_tcl'/('redis-tcl-'+mode)/unit_name/'result.json'

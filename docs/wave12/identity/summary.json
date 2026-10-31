@@ -1,0 +1,1210 @@
+{
+  "function_groups": 10279,
+  "unchanged": 9292,
+  "changed": 987,
+  "lane_equal": 828,
+  "residual": 159,
+  "hot_groups": 1328,
+  "hot_headline": 1061,
+  "hot_lane": 211,
+  "command_hot_groups": 88,
+  "command_hot_headline": 54,
+  "command_hot_lane": 22,
+  "hot_residual": [
+    {
+      "name": "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        1126
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        947
+      ],
+      "post_sizes": [
+        945
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::command_key_args(tomo::MultiQueuedCommand const&, std::vector<unsigned int, std::allocator<unsigned int> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2095
+      ],
+      "post_sizes": [
+        2095
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10358
+      ],
+      "post_sizes": [
+        10358
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1471
+      ],
+      "post_sizes": [
+        1841
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12903
+      ],
+      "post_sizes": [
+        12996
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19438
+      ],
+      "post_sizes": [
+        19438
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "maxmemrace"
+      ],
+      "reason": "maxmemrace changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19808
+      ],
+      "post_sizes": [
+        19797
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19931
+      ],
+      "post_sizes": [
+        20073
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12939
+      ],
+      "post_sizes": [
+        13258
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20016,
+        20491
+      ],
+      "post_sizes": [
+        19936,
+        20491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        291,
+        279
+      ],
+      "post_sizes": [
+        291,
+        279
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        19858
+      ],
+      "post_sizes": [
+        19984
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1861
+      ],
+      "post_sizes": [
+        1861
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10008
+      ],
+      "post_sizes": [
+        9856
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9295
+      ],
+      "post_sizes": [
+        9725
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        953
+      ],
+      "post_sizes": [
+        970
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        21069
+      ],
+      "post_sizes": [
+        21274
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1731
+      ],
+      "post_sizes": [
+        1753
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1794
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        963
+      ],
+      "post_sizes": [
+        961
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::command_key_args(tomo_db0::MultiQueuedCommand const&, std::vector<unsigned int, std::allocator<unsigned int> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2095
+      ],
+      "post_sizes": [
+        2388
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::destroy_multi_state(tomo_db0::MultiExecState*) [clone .part.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        407
+      ],
+      "post_sizes": [
+        599
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::execute_flush(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        649
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        11455
+      ],
+      "post_sizes": [
+        11040
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::prepare_local_write_keys(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::MultiCommand&, tomo_db0::Shard&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1439
+      ],
+      "post_sizes": [
+        1805
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        776,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        756,
+        749,
+        776,
+        776,
+        749,
+        776,
+        776,
+        776
+      ],
+      "post_sizes": [
+        776,
+        797,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        749,
+        776,
+        776,
+        749,
+        776,
+        776,
+        776,
+        781
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "trackorder"
+      ],
+      "reason": "Composition of flushfix3, trackorder; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21025
+      ],
+      "post_sizes": [
+        21089
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        281
+      ],
+      "post_sizes": [
+        281
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21572
+      ],
+      "post_sizes": [
+        21908
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10516,
+        12501,
+        10439,
+        12320
+      ],
+      "post_sizes": [
+        10516,
+        12510,
+        10562,
+        12320
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21198,
+        20488
+      ],
+      "post_sizes": [
+        21313,
+        20488
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21442
+      ],
+      "post_sizes": [
+        21502
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        2275
+      ],
+      "post_sizes": [
+        2280
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::Server::atomic_read_floor() const",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        91
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2977
+      ],
+      "post_sizes": [
+        3105
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9058
+      ],
+      "post_sizes": [
+        9744
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::multi_handle_io(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::MultiExecState*&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9255
+      ],
+      "post_sizes": [
+        9908
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::multi_handle_io(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::MultiExecState*&) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        949
+      ],
+      "post_sizes": [
+        975
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3457
+      ],
+      "post_sizes": [
+        3767
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "maxmemrace"
+      ],
+      "reason": "maxmemrace changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::watch_execute_handler(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        130
+      ],
+      "post_sizes": [
+        282
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        22920
+      ],
+      "post_sizes": [
+        23170
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        473
+      ],
+      "post_sizes": [
+        547
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1731
+      ],
+      "post_sizes": [
+        1753
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1794
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12761
+      ],
+      "post_sizes": [
+        12885
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12761
+      ],
+      "post_sizes": [
+        13102
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1606,
+        410,
+        306,
+        306,
+        306,
+        1606,
+        618,
+        306,
+        410,
+        306,
+        826,
+        1290,
+        810,
+        810,
+        410,
+        746,
+        1606,
+        1111,
+        810,
+        1606,
+        1606
+      ],
+      "post_sizes": [
+        1606,
+        410,
+        306,
+        306,
+        306,
+        1606,
+        602,
+        306,
+        410,
+        306,
+        826,
+        1287,
+        810,
+        810,
+        410,
+        746,
+        1606,
+        1255,
+        810,
+        1606,
+        1606,
+        810
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3",
+        "maxmemrace"
+      ],
+      "reason": "Composition of flushfix3, maxmemrace; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]",
+      "hot": true,
+      "counted_command_scope": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1606,
+        410,
+        306,
+        306,
+        306,
+        1606,
+        618,
+        306,
+        410,
+        306,
+        826,
+        810,
+        810,
+        538,
+        410,
+        810,
+        1606,
+        1606,
+        810,
+        1606,
+        1606
+      ],
+      "post_sizes": [
+        1606,
+        634,
+        306,
+        306,
+        306,
+        1606,
+        682,
+        306,
+        474,
+        306,
+        826,
+        810,
+        810,
+        602,
+        410,
+        810,
+        1606,
+        1606,
+        810,
+        1606,
+        1606,
+        810
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        16299
+      ],
+      "post_sizes": [
+        16372
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17436
+      ],
+      "post_sizes": [
+        17436
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        16136
+      ],
+      "post_sizes": [
+        16054
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "counted_command_scope": false,
+      "command_hot": true,
+      "equal": false,
+      "headline_sizes": [
+        17476
+      ],
+      "post_sizes": [
+        17232
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "flushfix3"
+      ],
+      "reason": "flushfix3 changes this body; merged compiler propagation differs from isolated POST."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-e32b04a44",
+      "sha256": "93f866e4803cf97b0664899c21e5c4255fca84fcddff27e19c46f9be45e15149"
+    },
+    "flushfix3": {
+      "path": "/home/user/Projects/bins/flushfix3-post-a9469f15",
+      "sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a"
+    },
+    "baseline_flushfix3": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-e2b237926",
+      "sha256": "a6077774d6bbb800a1752e014d27c81cf2d2fa334d76ebd72d38ff7dd82bf7db"
+    },
+    "trackorder": {
+      "path": "/home/user/Projects/bins/trackorder-post-8a8a8e98",
+      "sha256": "8a8a8e98796570592b1e05ceb0bea98ceac8b9afbc1b4248092839bfdc1d5193"
+    },
+    "maxmemrace": {
+      "path": "/home/user/Projects/bins/maxmemrace-post-a3cb3cc9",
+      "sha256": "a3cb3cc9ca5973af492b577f7647633c4835dd3a6ff3e0b35fd6e6fd78b10faa"
+    }
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-wave12/build/tomokv",
+    "sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4"
+  }
+}
