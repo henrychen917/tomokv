@@ -1,0 +1,50 @@
+[
+  {
+    "path": "docs/wave12/initial-identity/all-bodies.json.gz",
+    "bytes": 211254,
+    "sha256": "cf5d922a0e18e71eeb3c665e4a0411fa415e64ae1dd8b226a5ce905488b973ed",
+    "archive": "docs/wave12/initial-identity/all-bodies.json.gz.gz"
+  },
+  {
+    "path": "docs/wave12/initial-identity/changed-bodies.json",
+    "bytes": 511604,
+    "sha256": "995a8e810e332323bf89669107b4e0dbac3cec0d72964493273312f53677401a",
+    "archive": "docs/wave12/initial-identity/changed-bodies.json.gz"
+  },
+  {
+    "path": "docs/wave12/initial-identity/changed-bodies.md",
+    "bytes": 227152,
+    "sha256": "6fb8575a89a682b6dc24cccb9aa710680afb7c2fa4f2286b236d36ce8e5fd47d",
+    "archive": "docs/wave12/initial-identity/changed-bodies.md.gz"
+  },
+  {
+    "path": "docs/wave12/initial-identity/summary.json",
+    "bytes": 17289,
+    "sha256": "04aad5ae55574312e5da19236c05e509a9064f6a0d5b560107a990e609d67dd3",
+    "archive": "docs/wave12/initial-identity/summary.json.gz"
+  },
+  {
+    "path": "build/wave12/pad-a/db0_src_cmd_xshard.o",
+    "bytes": 28386648,
+    "sha256": "4bd4c479fa2016147c35a99a942c94cf1d78f5c3918aecc2a160d1c1f6952958",
+    "reason": "superseded PAD build object or duplicate of retained final arm"
+  },
+  {
+    "path": "build/wave12/pad-a/padding.o",
+    "bytes": 121968,
+    "sha256": "10d3953873a0c4b2d3043285d637c071581dc6511604b33e5be788e3bddd205e",
+    "reason": "superseded PAD build object or duplicate of retained final arm"
+  },
+  {
+    "path": "build/wave12/pad-a/src_cmd_xshard.o",
+    "bytes": 28204536,
+    "sha256": "ecdd72e321f5218808f9a554509670bb307e6e0125719de4f46a9e9a49540300",
+    "reason": "superseded PAD build object or duplicate of retained final arm"
+  },
+  {
+    "path": "build/wave12/pad-a/tomokv",
+    "bytes": 224690896,
+    "sha256": "aee862288a87c0ea45eeb3f2b9ef5c367b0366fb3c88bc2849669583499fd647",
+    "reason": "superseded PAD build object or duplicate of retained final arm"
+  }
+]

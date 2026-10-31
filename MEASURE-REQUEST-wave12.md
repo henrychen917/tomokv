@@ -187,6 +187,45 @@ assertions, unknown setup errors, incomplete runs and timeouts. No assertion
 was deleted and no tolerance widened.
 [Initial failures and directed controls](docs/wave12/tcl-sequence-findings.json).
 
+The final harness was also tested with the planted CLIENT-LIST-CMD-NAME
+regression through the complete Tcl gate job in both modes. Both jobs failed;
+only `unit/introspection` failed, including the intended CLIENT LIST command
+name assertion. All other manifest files passed. The mutated source and binary
+were confined to a throwaway build and removed after recording their hashes.
+[Both negative-control attempts](docs/wave12/isolated-regressions.json).
+
+### Correctness receipts completed so far
+
+The primary campaign has passed all 14 FLUSH rows: 112 target legs and 14 Redis
+oracle legs. Every target leg also passed the directed cached-EVALSHA / retained
+range / CONFIG interaction, with positive range-read, post-version, script
+conflict, slow-collapse and chunk-cache-hit counters and final script result
+`[1,1]`. Failed arming would exhaust bounded fresh attempts and fail the row.
+
+Tracking order passed **20,736 target cases** (24 geometries × 864) against
+864 Redis 7.4 oracle cases. This includes FLUSHALL/FLUSHDB, default/SYNC/ASYNC,
+RESP3, RESP2 REDIRECT, RESP3 REDIRECT, pipelining, own/other connection,
+NOLOOP and tracking modes. Complete per-stream bytes match the oracle;
+independent REDIRECT streams are not assigned an artificial total order.
+
+The maxmemory row passed all **48 target geometries** and the oracle, three
+trials per case. Every target witnessed its required open window. No failed
+OOM/admit/evict assertion was observed.
+
+`make all` and all production-unit builds/freshness queries passed: 64 checks,
+including the 55 production-unit targets/arms, the two mdbqsbr live arms,
+blockfix cost binding, blockfix2 and both namespaces of flushfix2/3. The complete
+commands and `make -q` results are in
+[production-units.json](docs/wave12/production-units.json).
+
+The remaining whole-job matrix and final isolated reruns are still in progress.
+The initial Tcl promotion run failed on the two manifest interactions above.
+The next run passed all 1,875 required occurrences in 2s; 1s hit the unchanged
+upstream Lua GC watchdog while other correctness stress jobs were active.
+The first Python harness run likewise hit its unchanged one-slot watchdog
+during concurrent compilation. These attempts are retained; quiet full-job
+reruns, with unchanged deadlines, are required before reporting completion.
+
 ### Maintainer measurement request — NOT RUN here
 
 Use the frozen arms above and the gate's existing matched-offered-load
