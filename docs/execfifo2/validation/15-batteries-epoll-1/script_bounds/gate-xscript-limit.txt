@@ -1,0 +1,5 @@
+  ok   WATCH ignores script ARGV on the same owner owner=8 reply=[None]
+  ok   WATCH detector fires for the script's declared key owner=8 reply=None
+  ok   staging budget negative control succeeds below the cap 2
+  ok   staging budget fires before RUN and preserves values reply=RespError('ERR cross-shard script staging limit exceeded') aborts=+1
+XSCRIPT limit directed battery passed

@@ -1,0 +1,7 @@
+  ok   WATCH ignores script ARGV on the same owner owner=13 reply=[None]
+  ok   WATCH detector fires for the script's declared key owner=13 reply=None
+  ok   zero control: unheld activations are never window-refused refusals=+0 bad=[]
+  ok   cut-slot FIFO queues and never refuses
+  ok   every FIFO waiter receives its snapshot reply ok=33 busy=0 other=[]
+  ok   a refused activation reserves nothing and leaks nothing armed=132 released=132
+XSCRIPT window directed battery passed

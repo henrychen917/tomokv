@@ -1,0 +1,8 @@
+  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s
+  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s
+  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s
+  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s
+  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s
+  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s
+  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s
+LBSIGNALS: 47 checks ok (thread-mode 1s, 7 skipped: depth is time-gated, not iteration-weighted, ex busy advanced under load, ex depth sampled, sampled queue delay fired, sampled queue delay EWMA valid, sampled oldest-entry age fired, no backpressure at this load)
