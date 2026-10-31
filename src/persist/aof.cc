@@ -1255,7 +1255,6 @@ void AofManager::fail(const char* message, int error) {
     last_write_errno_.compare_exchange_strong(unset, error > 0 ? error : EIO,
                                               std::memory_order_relaxed);
     failed_.store(true, std::memory_order_release);
-    recording_.store(false, std::memory_order_release);
     std::fprintf(stderr, "AOF error: %s\n", message ? message : "AOF failure");
     if (fsync_policy() == AppendFsyncPolicy::Always) {
         std::fprintf(stderr, "Can't recover from AOF write error when the AOF fsync policy "
@@ -1265,6 +1264,7 @@ void AofManager::fail(const char* message, int error) {
         // not run graceful-save/destruction paths over concurrently live owners.
         ::_exit(1);
     }
+    recording_.store(false, std::memory_order_release);
 }
 
 bool AofManager::write_header_normal() {
