@@ -145,6 +145,34 @@ PRE: `build/flipfix6/PRE`, SHA-256
 POST and PAD-A do not exist: production implementation is paused as above.
 There is no throughput claim.
 
+### Verification status
+
+| Requested proof | Status |
+|---|---|
+| `make -j16 all` on e32b04a44; `make -q all` freshness | PASS; freshness exit 0; layout assertions compiled |
+| Unchanged flipfix5 EXEC partner, all eight 2s legs | RUN on PRE and diagnostic PRE; refusals and all clean exits retained above |
+| Directed EXEC/P1/P2/P3/active-WATCH + unrelated PING, all eight legs | 40/40 confirmed PRE failures using `--expect pre`; exact reply/value accounting retained |
+| `python3 tests/gates_test.py` | PASS, 76 tests on the idle rerun. First run overlapped this lane's correctness servers and failed five scheduler fixtures at their unchanged 45 s timeout; both logs retained |
+| Python syntax checks for new witness/diagnostic/archive tools | PASS |
+| New `flipfix6` live gate row and ASAN/UBSAN/TSAN core fixture units | NOT RUN / not registered: production implementation paused on the preserved WATCH clause |
+| Every FLIP gate job: `flip`, `fliplisten`, `flipctl`, `flip_unit`, `flipfix_units`, `flipfix5`, `flipfix5_units`, `core_units` | NOT RUN through the job interface: no candidate implementation; the standalone EXEC-partner run is not substituted for these jobs |
+| LB: `lb_stationary`, `lbplanner_units`, `moverfix` | NOT RUN: no candidate implementation |
+| txnorder: `txnorder`, `txnorder2`, `txnorder_index`, `txnorder_wake`, `txnorder_wound`, `txn_group_fused/split` | NOT RUN: no candidate implementation |
+| `multifix`, `blockmulti`, `execfair`, `multirace`, debug batteries | NOT RUN: no candidate implementation |
+| `atomfix5_watch`, `datafix2_watch`, `atomics`, `multidb`, `snapfix_bgsave_exec` | NOT RUN: no candidate implementation |
+| `tls`, `netfix_tls`; BLPOP-held IoDrain row | NOT RUN: no candidate implementation; existing test and production behaviour untouched |
+| Redis 7.4 oracle; standard differential seeds on both engines | NOT RUN: no candidate implementation |
+| Every `job_production_units` target + freshness | NOT RUN: production change paused; only `make all` / its freshness completed |
+| POST storm, moved-session/S2 counters, semantic-after-move cases, forced S2 policies | NOT RUN / not implemented because the extra ruling is pending |
+| Main-command/MULTI instruction scopes; ClientPrepare counts | NOT RUN: no POST exists for comparison; no zero-instruction measurement claim |
+| Performance benchmarks, load generators, full iteration gate | NOT RUN: explicitly reserved for maintainer |
+
+The implementation pause follows the brief's instruction to stop and provide
+evidence/proposal if a correct fix requires changing a preserved rule. It is not
+a request to reapprove D18.1 or D18.2. The additional question concerns only the
+durable WATCH-reference clause. All pending proof remains required if that
+exception is approved and implementation resumes.
+
 After the additional ruling and implementation, the maintainer's request remains
 the 14 generic cells plus 2s GET/SET p1/p32 null cells, and FLIP episode latency
 for PRE/POST/PAD-A with/without session clients (PRE refusal durations).
