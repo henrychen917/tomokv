@@ -19,6 +19,11 @@ BUILD_ONLY = {
                      'without a consuming job. Its only consumer is the reserved inline '
                      'client-lb load-generator check. make all/freshness is recorded separately.',
 }
+STREAM_MEMORY_BOUNDS = (
+    'sustained exact trim reaches a memory plateau',
+    'one-entry memory floor tracks ~140B design (well below 4.4KiB)',
+    'growth across the embedded->macro boundary stays amortized-linear',
+)
 
 
 def main():
@@ -36,12 +41,22 @@ def main():
         receipt = json.loads((ROOT / run['receipt']).read_text())
         assert receipt['binary_unchanged'] and receipt['source_tree_unchanged'], run['name']
         for job in run['jobs']:
+            passed = job.get('exit') == 0 and job.get('failed') == 0
+            memory_lines = []
+            if run['name'].startswith('landing-footprints-') and job['name'] in matrix['release_footprints_each_engine']:
+                atomic = job['name'].rsplit('-', 1)[1]
+                prefix = 'gate-fusedarmed-stream-' if 'armed' in job['name'] else 'gate-stream-'
+                path = Path(job['artifact']) / (prefix + atomic + '.txt')
+                lines = path.read_text().splitlines() if path.exists() else []
+                memory_lines = [line for line in lines if any(name in line for name in STREAM_MEMORY_BOUNDS)]
+                passed &= all(sum(line.startswith('  ok   ' + name) for line in memory_lines) == 1
+                              for name in STREAM_MEMORY_BOUNDS)
             attempts.append(dict(run=run['name'], job=job['name'],
                                  mode='1s' if run['env']['GATE_TXN_FUSED'] == '1' else '2s',
                                  engine=run['env']['GATE_NET_IO'],
                                  atomic=run['env'].get('GATE_TXN_ATOMIC', '1'),
                                  release_footprints=run['env'].get('GATE_PROOF_NO_RATES') == '0',
-                                 passed=job.get('exit') == 0 and job.get('failed') == 0,
+                                 passed=passed, release_memory_bounds=memory_lines,
                                  details=job))
 
     requirements = []
@@ -123,6 +138,9 @@ def main():
                   unselected_build_prerequisite=BUILD_ONLY,
                   declared_labels=len(expected), witnessed_declared_labels=len(expected) - len(remaining),
                   unwitnessed_declared_labels=remaining,
+                  release_stream_memory_bounds=[dict(run=a['run'], job=a['job'], engine=a['engine'],
+                      passed=a['passed'], assertions=a['release_memory_bounds'])
+                      for a in attempts if a['release_memory_bounds']],
                   failed_attempts=[{k: v for k, v in a.items() if k != 'details'} | {
                       'exit': a['details'].get('exit'), 'failed': a['details'].get('failed')}
                       for a in attempts if not a['passed']],
@@ -134,7 +152,8 @@ def main():
                        'Inline/rate-only rows are separately identified in the report.')
     (DOC / 'correctness-coverage.json').write_text(json.dumps(output, indent=2) + '\n')
     print(json.dumps({k: v for k, v in output.items() if k not in
-                      ('requirements', 'unwitnessed_declared_labels', 'failed_attempts')}, indent=2))
+                      ('requirements', 'unwitnessed_declared_labels', 'failed_attempts',
+                       'arm_boot_controls', 'release_stream_memory_bounds')}, indent=2))
     if not args.partial:
         assert output['passed'], 'missing required job or geometry; inspect correctness-coverage.json'
 
