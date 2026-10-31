@@ -187,6 +187,12 @@ public:
     }
     void set_blocking_dirty() { blocking_dirty_.store(true, std::memory_order_release); }
     bool take_blocking_dirty() { return blocking_dirty_.exchange(false, std::memory_order_acquire); }
+    // Owner-local H3 notes move with the physical shard. Existing padding;
+    // neither registry offsets nor the Shard stride changes.
+    enum : uint8_t { TxnServeNote = 1, TxnWatchNote = 2, TxnBlindNote = 4 };
+    void note_txn_boundary(uint8_t kind) { reserved_route_[0] |= kind; }
+    uint8_t txn_boundary_notes() const { return reserved_route_[0]; }
+    void clear_txn_boundary_notes(uint8_t kinds = 7) { reserved_route_[0] &= ~kinds; }
     void*& blocking_registry_slot() { return blocking_registry_; }
     void blocking_waiter_added() { blocking_waiters_.fetch_add(1, std::memory_order_relaxed); }
     void blocking_waiter_removed() { blocking_waiters_.fetch_sub(1, std::memory_order_relaxed); }

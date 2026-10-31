@@ -188,6 +188,9 @@ void multi_abandon_unpublished(MultiExecState* state);
 
 // Low-bit tagging reuses Task::scatter without changing the 32-byte queue item.
 bool multi_task_tagged(const Task& task);
+bool multi_task_markless(const Task& task);
+bool multi_task_continuation(const Task& task);
+bool txn_task_markless(const Task& task);
 // Does `group_epoch` belong to this fragment's OWN logical unit? The transaction's plain per-key
 // installs publish through its own epoch word; every cross-shard command lowered inside the same
 // EXEC keeps its own ScatterState and publishes through that one. A caller asking "is there an

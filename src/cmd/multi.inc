@@ -882,6 +882,8 @@ void add_state_shard(MultiExecState& state, int32_t sid) {
 }
 void allocate_participant_state(MultiExecState& state, uint32_t count) {
     state.owner_retries = std::make_unique<MultiOwnerRetryNode[]>(count);
+    for (uint32_t slot = 0; slot < count; ++slot)
+        state.owner_retries[slot].markless = state.kind != MultiStateKind::Execute;
     state.shard_cursors.assign(count, 0);
     state.watch_shard_done.assign(count, 0);
     if (state.kind == MultiStateKind::Execute)
@@ -1899,6 +1901,14 @@ void assemble_cross_reply(MultiCommand& command) {
     }
 }
 
+// C1 only schedules owner-local continuations. X1–X5 participant hints remain intact.
+void multi_local_runnable(MultiExecState& state, int32_t current,
+                          const MultiRetryPromoter* promoter) {
+    if (!promoter) return;
+    for (int32_t sid : state.shards)
+        if (sid != current) promoter->promote(promoter->context, state.owner_retries[state.slot(sid)]);
+}
+
 __attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& state, Shard& shard,
                          const MultiRetryPromoter* promoter = nullptr) {
     if (state.watch_shard_done[state.slot(static_cast<uint32_t>(shard.id()))]) return true;
@@ -1912,7 +1922,8 @@ __attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& s
             if (txn_blind_scan(shard, state.claims[state.slot(shard.id())], &state) != TxnBlind::Clear)
                 return false;
             noted |= 4u;
-            state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);
+            if (state.watch_arrived.fetch_add(1, std::memory_order_acq_rel) + 1 == state.shards.size())
+                multi_local_runnable(state, shard.id(), promoter);
             multi_ring_participants(state);
         }
         if (state.shards.size() != 1 &&
@@ -1940,7 +1951,10 @@ __attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& s
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
             const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
-            if (!shard.watch_add(key, state.client, state.watch_generation, watched.db)) return false;
+            if (!shard.watch_add(key, state.client, state.watch_generation, watched.db)) {
+                shard.note_txn_boundary(Shard::TxnWatchNote);
+                return false;
+            }
         }
     } else if (state.kind == MultiStateKind::Execute &&
                !state.decision.aborted.load(std::memory_order_acquire)) {
@@ -1966,12 +1980,15 @@ __attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& s
             // still unpublished.  Keep UNWATCH/DISCARD/close behind that decision so removing the
             // last watcher also releases the reservation's state-lifetime pin.
             if (!shard.watch_write_ready(
-                    Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns)))
+                    Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns))) {
+                shard.note_txn_boundary(Shard::TxnWatchNote);
                 return false;
+            }
             shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
                                state.client, state.watch_generation);
         }
     }
+    if (state.kind != MultiStateKind::Execute) shard.clear_txn_boundary_notes(Shard::TxnWatchNote);
     state.watch_shard_done[state.slot(static_cast<uint32_t>(shard.id()))] = 1;
     if (state.watch_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
         if (state.kind == MultiStateKind::Execute &&
@@ -1995,6 +2012,7 @@ __attribute__((always_inline)) inline bool execute_watch_phase(MultiExecState& s
         }
         state.watch_phase_done.store(true, std::memory_order_release);
         multi_ring_participants(state);
+        multi_local_runnable(state, shard.id(), promoter);
     }
     return true;
 }
@@ -2038,21 +2056,21 @@ __attribute__((always_inline)) inline void finalize_reservations(MultiExecState&
     state.final_shard_done[state.slot(static_cast<uint32_t>(shard.id()))] = 1;
 }
 
-__attribute__((always_inline)) inline void finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage, uint32_t owner_thread_id) {
-    if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
+__attribute__((always_inline)) inline bool finish_command(MultiExecState& state, MultiCommand& command, uint32_t stage, uint32_t owner_thread_id) {
+    if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return false;
     if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
                        command.kind == MultiCommandKind::DebugSleep)) {
         command.pending.store(static_cast<uint32_t>(command.participants.size()),
                               std::memory_order_relaxed);
         command.stage.store(1, std::memory_order_release);
-        return;
+        return true;
     }
     if (command.kind == MultiCommandKind::Msetnx && stage == 0 &&
         !command.condition_failed.load(std::memory_order_acquire)) {
         command.pending.store(static_cast<uint32_t>(command.participants.size()),
                               std::memory_order_relaxed);
         command.stage.store(1, std::memory_order_release);
-        return;
+        return true;
     }
     if (command.kind != MultiCommandKind::Local &&
         command.kind != MultiCommandKind::Scan &&
@@ -2063,6 +2081,7 @@ __attribute__((always_inline)) inline void finish_command(MultiExecState& state,
     if (command.kind != MultiCommandKind::IoLocal)
         multi_slowlog_finish(state, command, owner_thread_id);
     command.finished.store(true, std::memory_order_release);
+    return true;
 }
 
 // The tracked instantiation retains active-slice nesting. The ordinary EXEC
@@ -3036,6 +3055,25 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
     return ok;
 }
 
+bool multi_task_markless(const Task& task) {
+    const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
+    return reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag)->kind != MultiStateKind::Execute;
+}
+bool multi_task_continuation(const Task& task) {
+    const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
+    const auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
+    return state.kind != MultiStateKind::Execute || state.watch_shard_done[state.slot(task.shard)] ||
+           state.decision.aborted.load(std::memory_order_acquire);
+}
+bool txn_task_markless(const Task& task) {
+    if (multi_task_tagged(task)) return multi_task_markless(task);
+    if (!task.scatter) return false;
+    const auto& state = *task.scatter;
+    return !state.multi_child &&
+        ((state.atomic_group && !state.group_attempt()) ||
+         state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof);
+}
+
 MultiOwnerRetryNode& multi_owner_retry_node(const Task& task) {
     const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
     auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
@@ -3788,6 +3826,8 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
         if (!key_ready) ready = false;
     }
     if (!ready) {
+        if (state.atomic_group && !state.multi_child && !state.group_attempt())
+            shard.note_txn_boundary(Shard::TxnBlindNote);
         if (!state.atomic_group) txn_writer_episode(shard, op, [&](auto&& fn) {
             if (!group.count) fn(Slice{}, true);
             for (uint32_t i = 0; i < group.count; ++i)
@@ -3808,6 +3848,8 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
         state.aborted.store(true, std::memory_order_release);
         return true;
     }
+    if (state.atomic_group && !state.multi_child && !state.group_attempt())
+        shard.clear_txn_boundary_notes(Shard::TxnBlindNote);
     bool stamped = false;
     if (!state.atomic_group && !group.count) stamped |= shard.watch_writer_unmark({}, &op, true);
     for (uint32_t i = 0; i < group.count; ++i) {

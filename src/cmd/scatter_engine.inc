@@ -3428,7 +3428,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::DebugReload: {
-                if (!shard.watch_all_write_ready(state.multi_parent)) return ScatterTaskResult::Defer;
+                if (!shard.watch_all_write_ready(state.multi_parent)) {
+                    if (!state.multi_child) shard.note_txn_boundary(Shard::TxnBlindNote);
+                    return ScatterTaskResult::Defer;
+                }
+                if (!state.multi_child) shard.clear_txn_boundary_notes(Shard::TxnBlindNote);
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
@@ -3441,7 +3445,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::DebugLoadAof: {
-                if (!shard.watch_all_write_ready(state.multi_parent)) return ScatterTaskResult::Defer;
+                if (!shard.watch_all_write_ready(state.multi_parent)) {
+                    if (!state.multi_child) shard.note_txn_boundary(Shard::TxnBlindNote);
+                    return ScatterTaskResult::Defer;
+                }
+                if (!state.multi_child) shard.clear_txn_boundary_notes(Shard::TxnBlindNote);
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
