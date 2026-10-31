@@ -16,7 +16,7 @@ DOCS=ROOT/"docs/execfifo2/validation"
 DIRECTED="txnorder_fifo txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake exec1s at412-owner"
 TXN="txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1"
 BATTERIES="debug-0 debug-1 release_batteries atomic_batteries script_bounds"
-BROAD="feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order datafix2_watch atomfix5_watch blockfix2 blockfix_registry blockfix_mkstream rlfix3_zc rlfix3_info readonly"
+BROAD="feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order datafix2_watch atomfix5_watch blockfix2 blockfix_structure blockfix_registry blockfix_mkstream rlfix3_zc rlfix3_info readonly"
 CORE="core_units flip_unit flipfix_units flipfix5_units splitlocal_units wait_units atomic_units"
 FEATURES=" ".join("feature-cell-"+"-".join(map(str,cell)) for cell in itertools.product(("1s","2s"),(0,1),(0,1),(0,1),(0,1)))
 GROUPS={"directed":("quick",DIRECTED,{}),
@@ -24,6 +24,8 @@ GROUPS={"directed":("quick",DIRECTED,{}),
         "at412":("quick"," ".join("at412-"+s for s in "T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16".split()),{}),
         "scripts":("quick","scriptfix scriptfix2 lualibs",{}),
         "core":("quick",CORE,{}),
+        "headline":("quick"," ".join(prefix+"-"+mode+"-"+engine for prefix in ("multifix","climonfix4") for mode in ("1s","2s") for engine in ("uring","epoll"))+" pubtrackfix climonfix atomfix5_accounting moverfix exbatch_units exbatch_live wb_rule_units wbland_units",{}),
+        "readlocal":("full","rlcache splitlocal_units",{}),
         "features":("quick",FEATURES+" feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto",{}),
         "flip":("quick","flipctl flip fliplisten flipfix5",{})}
 for engine in ("uring","epoll"):
@@ -32,6 +34,7 @@ for engine in ("uring","epoll"):
     GROUPS["broad-"+engine]=("quick",BROAD,env)
     GROUPS["differ-"+engine]=("full","differ-split differ-armed",env)
     for fused in (0,1):
+        GROUPS[f"asan-{engine}-{fused}"]=("full","asan_batteries",env|dict(GATE_TXN_FUSED=str(fused)))
         GROUPS[f"batteries-{engine}-{fused}"]=("quick",BATTERIES,env|dict(GATE_TXN_FUSED=str(fused)))
         GROUPS[f"scriptbounds-{engine}-{fused}-a0"]=("quick","script_bounds",env|dict(GATE_TXN_FUSED=str(fused),GATE_TXN_ATOMIC="0"))
 
