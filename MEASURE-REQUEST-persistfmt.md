@@ -132,6 +132,16 @@ not a green build receipt. Real make targets have since been rebuilt and checked
 the affected AOF frame-order job is included in the later complete-job rerun.
 No readiness marker is manufactured.
 
+Earlier candidate runs are retained separately from final validation. Four AOF
+byte-model rows initially failed because the test assumed an 80-byte header; it
+now reads the declared header length and still compares shard bytes. The new
+library restart rows independently compare FUNCTION LIST WITHCODE. Two directed
+fused wire-value rows initially failed because that harness passed `--ratio` to a
+1s boot; fixing the boot grammar produced a complete 40-row pass. One intermediate
+fused Tcl BRPOPLPUSH/WATCH assertion failed; the final complete Tcl job passed in
+both modes without changing that assertion or adding an allowance. These attempts
+are visible in the archived logs rather than counted as final passes.
+
 The instruction instrument is `tools/persistfmt_counts.py`: the existing bounded
 production command scope plus a snapshot save/load-loop fixture, under ptrace.
 It covers GET/SET/INCR/MGET/MSET at batch 1 and 32, 1s/2s, both namespaces, atomic
