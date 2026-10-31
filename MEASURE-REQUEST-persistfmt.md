@@ -43,7 +43,9 @@ nodes for that case to pass.
 Function libraries are captured once at the snapshot cut as Redis FUNCTION2
 opcode/string records. They are compiled and installed during recovery, including
 the native AOF rewrite base. DEBUG RELOAD supports NOSAVE, NOFLUSH and MERGE and
-applies the corresponding library replacement rules. An empty library registry
+applies the corresponding library replacement rules. FUNCTION LIST comparisons
+canonicalize only outer library iteration order; code and library/function metadata
+remain exact. An empty library registry
 adds no serialized extension and allocates no library image.
 
 The obsolete stream-refusal assertions in dumprestore, streamgroups and wiredump

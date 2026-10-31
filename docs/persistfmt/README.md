@@ -50,4 +50,7 @@ compression sweep changed executable mtimes and invalidated three aggregate
 readiness checks (wb-rule, wbland, persistfix). `freshness-initial.json` records
 that artifact problem. The extra gate phases rebuild the real targets and rerun
 the affected AOF framing job; no readiness marker is manufactured. Further
-cleanup removes completed data only and does not rewrite unit executables.
+control-binary debug compression uses `--preserve-dates`, restores the exact
+nanosecond timestamp, and verifies a hash of every allocated ELF section before
+and after. `control-debug-compression.json` records those checks. Data cleanup
+removes completed-job data only.
