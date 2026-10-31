@@ -236,6 +236,29 @@ The first Python harness run likewise hit its unchanged one-slot watchdog
 during concurrent compilation. These attempts are retained; quiet full-job
 reruns, with unchanged deadlines, are required before reporting completion.
 
+### Checks reserved for the maintainer — NOT RUN
+
+The performance-only `flip_saturated` and `efficiency` jobs were not run. Their
+public rows are FLIP under saturated load and its coupled shutdown check,
+expire-index growth, borrow-registry growth and cross-shard dispatch scaling.
+The atomic MGET/MSET throughput floor and inline tailgen client-LB outstanding
+bound were also not run. These seven public rows require the performance work
+or load generators reserved for the maintainer; they remain in the 999/1016
+landing declaration and label fixture.
+
+The `atomic_floor` job's tripwire and 400-roll program-order checks run with its
+existing correctness-only switch. Atomic RYOW rate assertions and XMOVE
+size-ratio timing assertions remain NOT RUN under that switch. Stream's three
+release memory bounds receive additional complete feature-job runs with the
+normal release assertions enabled; those jobs invoke no throughput benchmark.
+
+An explicit attempt to select `tailgen_build` alone was rejected by
+`gate_subset.sh`: it is a build-only prerequisite whose only consumer is the
+reserved inline load-generator check. The rejection receipt is retained.
+The full `tests/gate.sh iteration`, wave null, fixed-anchor race, EXEC/script
+merit, FLUSH latency merit and writer-wait instruments are NOT RUN here because
+the task reserves them for the maintainer.
+
 ### Maintainer measurement request — NOT RUN here
 
 Use the frozen arms above and the gate's existing matched-offered-load
