@@ -277,6 +277,11 @@ public:
     bool watch_write_ready(Slice key, const void* token = nullptr);
     bool watch_group_write_ready(Slice key, const void* token = nullptr);
     bool watch_key_ready(const std::string& key, const void* token, bool all_units);
+    template <bool Fifo>
+    bool watch_key_ready_impl(const std::string& key, const void* token, bool all_units,
+                              uint64_t stamp = UINT64_MAX);
+    bool watch_fifo_write_ready(Slice key, const void* token);
+    bool watch_fifo_all_write_ready(const void* token);
     bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
                           WatchReservation unit, const struct MultiRetryPromoter* promoter = nullptr);
     void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token,
@@ -287,7 +292,7 @@ public:
     uint64_t watch_writer_stamp(Slice key, const void* token, bool whole = false) const;
     void watch_writer_forget(const void* token);
     void watch_writer_check(Slice key, bool whole, uint64_t stamp);
-    void watch_writer_unmark(Slice key, const void* token, bool whole = false);
+    bool watch_writer_unmark(Slice key, const void* token, bool whole = false);
     bool watch_txn_write_ready(Slice key, MultiExecState& state);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,

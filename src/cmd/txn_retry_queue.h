@@ -1,5 +1,6 @@
 #pragma once
 #include "../core/thread.h"
+#include "../net/conn.h"
 #include <atomic>
 #include "../base/tomo_assert.h"
 namespace tomo {
@@ -54,4 +55,17 @@ struct TxnRetryQueues {
 };
 static_assert(sizeof(TxnRetryQueues) == sizeof(std::deque<Task>));
 static_assert(alignof(TxnRetryQueues) == alignof(std::deque<Task>));
+// The pointer is compared only while the queue owns the task/ROB lifetime.
+// Foreign-owner promotion naturally misses; forwarding still checks the gate.
+inline bool txn_promote_deferred_writer(std::deque<Task>& tasks, const void* token, int32_t sid) {
+    for (auto it = tasks.begin(); it != tasks.end(); ++it) {
+        if (!it->client) continue;
+        auto& op = it->client->rob().at(it->op_id);
+        if (&op != token || (it->shard >= 0 ? it->shard : op.shard) != sid) continue;
+        if (it == tasks.begin()) return false;
+        std::rotate(tasks.begin(), it, it + 1);
+        return true;
+    }
+    return false;
+}
 } // namespace tomo

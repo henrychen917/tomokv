@@ -532,6 +532,10 @@ row_begin(){
     # Only timeout negative controls override the production full-matrix budget.
     ROW_TIMEOUT=${GATE_ABBA_ROW_BUDGET_S:-43200}; ROW_BASIS=abba-full-matrix-not-history
   fi
+  if [ "$ROW_ID" = 'txnorder FIFO live fairness' ]; then
+    # Sixteen 60-second legs plus bounded boot/shutdown per leg.
+    ROW_TIMEOUT=1440; ROW_BASIS=fifo-16-legs-60s-plus-30s-setup-each
+  fi
   if [ "$ROW_ID" = 'tailgen client-lb outstanding bound' ]; then
     ROW_TIMEOUT=90; ROW_BASIS=tailgen-populate-3s-warmup-20s-window
   fi
@@ -1180,7 +1184,7 @@ plan_jobs(){
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
               efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
-              execfair exec1s txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
+              execfair exec1s txnorder_fifo txnorder_fifo_live txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -3192,6 +3196,39 @@ job_execfair(){
     shutdown_clean || passed=0
   done; done; done
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/execfair-*"
+}
+
+# FIFO: ten directed rows and one live row, all before the quick exit.
+job_txnorder_fifo(){
+  local case_name label passed mode atomic engine unit log
+  for case_name in F1 F2 F3 F4 F5 F6 F7 F8 F9 F10; do
+    label="txnorder FIFO $case_name"
+    row_begin "$label"
+    passed=1
+    for unit in txnorder-fifo-unit txnorder-fifo-db0-unit; do
+      if ! unit_ready "$unit"; then passed=0; continue; fi
+      for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
+        log="$TMPDIR/$case_name-$unit-$mode-$atomic-$engine.log"
+        taskset -c "$CORES" "./build/$unit" "$case_name" "$mode" "$atomic" "$engine" >"$log" 2>&1 || passed=0
+      done; done; done
+    done
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-*"
+  done
+}
+job_txnorder_fifo_live(){
+  local label="txnorder FIFO live fairness" passed=1 mode atomic engine databases boot_fn log
+  row_begin "$label"
+  for databases in 1 16; do for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    log="$TMPDIR/fifo-$databases-$mode-$atomic-$engine"
+    if "$boot_fn" "$CANDIDATE_BINARY" --databases "$databases" --atomic "$atomic" --net-io "$engine" \
+        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
+      py tests/execfair.py 127.0.0.1 "$PORT" --fifo --seconds 60 --clients 64 \
+          --output "$log.json" >"$log.log" 2>&1 || passed=0
+    else passed=0; fi
+    stop; shutdown_clean || passed=0
+  done; done; done; done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/fifo-*"
 }
 
 # execindex: two aggregate rows collected before the quick-tier exit, DQ=DF=+2.
@@ -5882,14 +5919,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/exec1s-unit build/exec1s-word-tsan build/at412-owner build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wound-unit build/txnorder-wound-db0-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/exec1s-unit build/exec1s-word-tsan build/at412-owner build/txnorder-fifo-unit build/txnorder-fifo-db0-unit build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wound-unit build/txnorder-wound-db0-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/gaterows5-units build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in gaterows5-units expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit exec1s-unit exec1s-word-tsan at412-owner txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wound-unit txnorder-wound-db0-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in gaterows5-units expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit exec1s-unit exec1s-word-tsan at412-owner txnorder-fifo-unit txnorder-fifo-db0-unit txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wound-unit txnorder-wound-db0-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -5985,7 +6022,7 @@ job_dependencies(){
     tls|blockfix_registry|slotless|blockfix2) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|fused-*|txn_group_*|exec1s|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|at412-owner|aof_frame|aoforder|moverfix) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|exec1s|txnorder_fifo|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|at412-owner|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement|reorder_bounds|rob_portable) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -6242,6 +6279,8 @@ for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
 collect_job execfair
 collect_job exec1s
+collect_job txnorder_fifo
+collect_job txnorder_fifo_live
 collect_job txnorder_index
 collect_job txnorder_wound
 collect_job txnorder2

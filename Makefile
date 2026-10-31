@@ -781,6 +781,12 @@ build/txnorder-index-unit: tests/txnorder_index_unit.cc tests/txnorder_linear_or
 build/txnorder-index-db0-unit: tests/txnorder_index_unit.cc tests/txnorder_linear_oracle.inc $(TXNORDER_UNIT_DEPS) $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_TXN_ORACLE -DTOMO_TXNORDER_DEBUG -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+# FIFO directed owner turns, in both physical namespaces.
+build/txnorder-fifo-unit: tests/txnorder_fifo.cc tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/txnorder-fifo-db0-unit: tests/txnorder_fifo.cc tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
 # Inspect real record/header allocation arenas on pinned owner threads, including abort cleanup
 # and quiesced shard handoff. JE=1 is required; no server or io_uring instance is started.
 build/owner-arena-unit: tests/owner_arena_unit.cc tests/at_recycle_checks.inc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) $(wildcard src/core/*.inc) Makefile

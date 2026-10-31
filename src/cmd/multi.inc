@@ -3290,9 +3290,9 @@ bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t
     return true;
 }
 
-void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
+bool Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
-    if (found == watch_reservations_.end()) return;
+    if (found == watch_reservations_.end()) return false;
     auto& list = found->second.marks;
     const auto removed = std::erase_if(list, [&](const auto& r) {
         TOMO_TXN_REGISTRY_VISIT();
@@ -3304,6 +3304,7 @@ void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
     (void)removed;
 #endif
     if (found->second.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+    return removed != 0;
 }
 
 // Allocation failure must not leave a partial episode. This fallback does not
@@ -3333,10 +3334,10 @@ void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
             TOMO_TXN_REGISTRY_VISIT();
             if (!r.unit_kind || !r.blocking || !txn_reservation_live(r)) continue;
             const auto unit = txn_unit_view(r);
-            if (unit.age_ns <= stamp ||
-                unit.phase->load(std::memory_order_acquire) != TxnPhase::Placing) continue;
-            if (r.entry_kind == 0 || (r.unit_kind == 2 &&
-                (static_cast<const ScatterState*>(r.token)->group_attempt()->arrived[id()] & 4u)))
+            if (unit.age_ns <= stamp) continue;
+            if (r.entry_kind == 1 || (unit.phase->load(std::memory_order_acquire) == TxnPhase::Placing &&
+                (r.entry_kind == 0 || (r.unit_kind == 2 &&
+                (static_cast<const ScatterState*>(r.token)->group_attempt()->arrived[id()] & 4u)))))
                 server_->note_txn(server_->worker_of_shard(id()), TxnCounter::OrderViolations);
         }
     };
@@ -3510,7 +3511,9 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
     return true;
 }
 
-bool Shard::watch_key_ready(const std::string& owned, const void* token, bool all_units) {
+template <bool Fifo>
+bool Shard::watch_key_ready_impl(const std::string& owned, const void* token, bool all_units,
+                                uint64_t stamp) {
     const auto found = watch_reservations_.find(owned);
     if (found == watch_reservations_.end()) return true;
     auto& queue = found->second;
@@ -3520,6 +3523,18 @@ bool Shard::watch_key_ready(const std::string& owned, const void* token, bool al
         watch_reservations_.erase(found);
         refresh_has_watches();
         return true;
+    }
+    if constexpr (Fifo) {
+        while (queue.ehead && !txn_reservation_live(queue.ehead->entry))
+            txn_unlink_waiter(*queue.ehead);
+        if (queue.ehead) {
+            for (const auto& mark : queue.marks)
+                if (mark.token == token) { stamp = mark.writer_generation; break; }
+            if (txn_unit_view(queue.ehead->entry).age_ns <= stamp) {
+                server_->note_txn(server_->worker_of_shard(id()), TxnCounter::FifoWaits);
+                return false;
+            }
+        }
     }
     // Waiters and writer marks cannot falsify unit execution. Preserve the
     // exact validation/all-units/started predicate and OrderViolations caller.
@@ -3536,6 +3551,10 @@ bool Shard::watch_key_ready(const std::string& owned, const void* token, bool al
         }
     }
     return true;
+}
+
+bool Shard::watch_key_ready(const std::string& owned, const void* token, bool all_units) {
+    return watch_key_ready_impl<false>(owned, token, all_units);
 }
 
 bool Shard::watch_write_ready(Slice key, const void* token) {
@@ -3723,13 +3742,14 @@ template <typename Each>
 void txn_writer_episode(Shard& shard, Op& op, Each&& each) {
     try {
         uint64_t stamp = 0;
-        bool first = true;
+        unsigned key_count = 0;
         each([&](Slice key, bool whole) {
-            if (first) { stamp = shard.watch_writer_stamp(key, &op, whole); first = false; }
+            if (!key_count++) stamp = shard.watch_writer_stamp(key, &op, whole);
         });
+        const bool single_existing = stamp && key_count == 1;
         if (!stamp) stamp = now_ns();
         bool complete = true;
-        each([&](Slice key, bool whole) {
+        if (!single_existing) each([&](Slice key, bool whole) {
             complete &= shard.watch_writer_mark(key, &op, whole, stamp);
         });
         if (!complete) { shard.watch_writer_forget(&op); return; }
@@ -3740,23 +3760,7 @@ void txn_writer_episode(Shard& shard, Op& op, Each&& each) {
 }
 }
 
-bool multi_plain_write_ready(Shard& shard, Op& op) {
-    if (!shard.has_watches()) return true;
-    bool ready = true;
-    for_each_plain_write_key(op, [&](uint64_t, Slice key) {
-        ready &= shard.watch_write_ready(key);
-    });
-    if (ready) {
-        for_each_plain_write_key(op, [&](uint64_t, Slice key) { shard.watch_writer_unmark(key, &op); });
-        return true;
-    }
-    txn_writer_episode(shard, op, [&](auto&& fn) {
-        for_each_plain_write_key(op, [&](uint64_t, Slice key) { fn(key, false); });
-    });
-    op.mark_atomic_hazard();
-    shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
-    return false;
-}
+#include "txn_fifo.inc"
 
 
 namespace {
@@ -3765,6 +3769,7 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
     auto& group = *group_for(state, shard.id());
     const void* token = state.multi_parent ? state.multi_parent
         : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
+    const bool fifo = !state.atomic_group && !state.multi_child && state.kind != Kind::Script;
     bool ready = true;
     if (state.group_attempt()) {
         // Placement arbitrates these groups, including MSETNX before its first
@@ -3773,12 +3778,13 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
             return state.aborted.load(std::memory_order_acquire);
     }
     if (!group.count && !state.group_attempt()) {
-        ready = shard.watch_all_write_ready(token);
+        ready = fifo ? shard.watch_fifo_all_write_ready(&op) : shard.watch_all_write_ready(token);
     }
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
-        const bool key_ready = state.atomic_group && !state.multi_child
-            ? shard.watch_group_write_ready(key, token) : shard.watch_write_ready(key, token);
+        const bool key_ready = fifo ? shard.watch_fifo_write_ready(key, &op)
+            : state.atomic_group && !state.multi_child
+                ? shard.watch_group_write_ready(key, token) : shard.watch_write_ready(key, token);
         if (!key_ready) ready = false;
     }
     if (!ready) {
@@ -3802,12 +3808,14 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
         state.aborted.store(true, std::memory_order_release);
         return true;
     }
-    if (!state.atomic_group && !group.count) shard.watch_writer_unmark({}, &op, true);
+    bool stamped = false;
+    if (!state.atomic_group && !group.count) stamped |= shard.watch_writer_unmark({}, &op, true);
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
-        if (!state.atomic_group) shard.watch_writer_unmark(key, &op);
-
+        if (!state.atomic_group) stamped |= shard.watch_writer_unmark(key, &op);
     }
+    if (fifo && stamped) state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                               TxnCounter::FifoPasses);
     return true;
 }
 }

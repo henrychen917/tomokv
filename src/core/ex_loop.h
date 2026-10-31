@@ -2531,7 +2531,10 @@ private:
     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
         const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
-        const MultiRetryPromoter promoter{this, promote};
+        const MultiRetryPromoter promoter{this, promote,
+            [](void* loop, const void* token, int32_t sid) {
+                static_cast<ExLoopT*>(loop)->promote_deferred_writer(token, sid);
+            }};
 #ifdef TOMO_EXEC1S_DEBUG
         Exec1sVisitScope visits(self_->id());
 #endif
@@ -2545,6 +2548,10 @@ private:
     }
     __attribute__((noinline)) void queue_multi_retry(const Task& task) {
         multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
+    }
+    void promote_deferred_writer(const void* token, int32_t sid) {
+        if (txn_promote_deferred_writer(atomic_deferred_, token, sid))
+            srv_->note_txn(self_->id(), TxnCounter::WriterPromotions);
     }
     void promote_multi_retry(MultiOwnerRetryNode& node) {
         multi_retries_.promote(node);
