@@ -87,10 +87,18 @@ collected at `tests/gate.sh:6299–6301`, before the quick exit at line 6423.
 
 ### Verification status
 
-Verification is in progress. Completed-run identities and any failed attempts
-will be retained under `docs/execfifo2/`. This is a selected-job proof, never a
-full iteration receipt. The full iteration and all performance cells are
-**NOT RUN** by this lane.
+**42/42 selected-job groups passed**, with 1,375 passing public row executions
+and zero failures on the frozen POST image. Repeated release/mode/engine rows
+are included; this is never a full iteration receipt. The [verification record](docs/execfifo2/verification.md)
+links every ledger, command, image identity and leg inventory. FIFO passed
+160/160 directed legs, C1 16/16, and sustained writer progress 16/16 full
+60-second legs. AT4.12 passed all 423 live/oracle legs; both standard Redis
+differential matrices passed 938 suite legs plus mode equivalence.
+
+All production targets were built; final `make -q` checks passed 60/60.
+The five frozen image hashes match, all locked structure sizes compile,
+`build/` is about 27 GiB, and no listener remains on ports 20100–20199.
+The full iteration and all performance cells are **NOT RUN** by this lane.
 
 The selected-job runner uses the gate's two slots: server CPUs 0–15, protocol
 client CPUs 16–31, eight server threads per slot, 16 shards and ratio 6:2

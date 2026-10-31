@@ -1,0 +1,80 @@
+{
+  "recorded_ns": 1793451687284251746,
+  "artifacts": [
+    {
+      "arm": "PRE",
+      "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/PRE",
+      "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
+      "bytes": 224567720,
+      "passed": true
+    },
+    {
+      "arm": "POST-B",
+      "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST-B",
+      "sha256": "f45b5089e6132897df60e2c824868c8a35e1a37214cca941d6e114d77a1c11da",
+      "bytes": 224391152,
+      "passed": true
+    },
+    {
+      "arm": "POST",
+      "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST",
+      "sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+      "bytes": 225416448,
+      "passed": true
+    },
+    {
+      "arm": "POST-layout",
+      "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST-layout",
+      "sha256": "02dec207ab3d5fef1aa257e353966f7d8572b477ed4f30817eca9bafb58b0998",
+      "bytes": 435860632,
+      "passed": true
+    },
+    {
+      "arm": "PAD-A",
+      "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/PAD-A",
+      "sha256": "07df961f35b194562de4e27e8b3a2be467ef9d250d448330f8e8d5494976b432",
+      "bytes": 435860632,
+      "passed": true
+    }
+  ],
+  "production_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+  "source_unchanged_since": "6cb177b21096dcf509662ef290baf36b3ab7955e",
+  "source_matches_frozen": true,
+  "freshness_identities": [
+    {
+      "path": "Makefile",
+      "expected": "fdcb54bb20f902945f4397a949a843e092a9a048caf3191f768861579e01b3a9",
+      "actual": "fdcb54bb20f902945f4397a949a843e092a9a048caf3191f768861579e01b3a9"
+    },
+    {
+      "path": "tests/gate.sh",
+      "expected": "edf86280993f8f8221e642a66b05ce0fe884cedb8e1e13417cc1da80fabadb63",
+      "actual": "edf86280993f8f8221e642a66b05ce0fe884cedb8e1e13417cc1da80fabadb63"
+    },
+    {
+      "path": "tests/txnorder_fifo.cc",
+      "expected": "d11333e46cebfe0c304722bed89857602dcb064443553deb5285289a33086061",
+      "actual": "d11333e46cebfe0c304722bed89857602dcb064443553deb5285289a33086061"
+    },
+    {
+      "path": "tests/txnorder_chain.cc",
+      "expected": "91ef2b76fccc4a480f7435902d66a8a072bf0bf6d10e9352fd63850a2eceb777",
+      "actual": "91ef2b76fccc4a480f7435902d66a8a072bf0bf6d10e9352fd63850a2eceb777"
+    },
+    {
+      "path": "build/txnorder-fifo-unit",
+      "expected": "c89335fb3c244d4ff3e3ea7e43b0bffd0664ea9ba27e00a843a85f10e6a8b6bd",
+      "actual": "c89335fb3c244d4ff3e3ea7e43b0bffd0664ea9ba27e00a843a85f10e6a8b6bd"
+    },
+    {
+      "path": "build/txnorder-fifo-db0-unit",
+      "expected": "65bd4d0ef0629571ec23a87b8e3dc51691b24eccc7d570b3f180456b3b1534b8",
+      "actual": "65bd4d0ef0629571ec23a87b8e3dc51691b24eccc7d570b3f180456b3b1534b8"
+    }
+  ],
+  "make_q_checks": 60,
+  "make_q_passed": true,
+  "lane_listeners": [],
+  "build_bytes": 28425889407,
+  "passed": true
+}
