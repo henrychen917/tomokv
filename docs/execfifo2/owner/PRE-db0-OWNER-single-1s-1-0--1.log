@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/owner-scopes/PRE-db0-OWNER-single-1s-1-0--1.log
+SHA-256: 897976e6488dcf0fab9765631223c20a13e9251546de70a2b92b27072934a975
+Exit: 0
+0x0000555555ddc04a	91	        for(unsigned tid=0;tid<8;++tid)if(!tasks[tid].empty()){
+0x0000555555ddc051	91	        for(unsigned tid=0;tid<8;++tid)if(!tasks[tid].empty()){
+0x0000555555ddc054	91	        for(unsigned tid=0;tid<8;++tid)if(!tasks[tid].empty()){
+0x0000555555ddc056	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc059	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc061	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc06c	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+293	      load(memory_order __m = memory_order_seq_cst) const noexcept
+0x0000555555ddc078 in std::atomic<tomo_db0::OpState>::load (__m=std::memory_order::seq_cst, this=0x7ffff6358360) at /usr/include/c++/13/atomic:297
+297		__atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0x0000555555ddc07b	297		__atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0x0000555555ddc082 in tomo_db0::CoreConcurrencyTest::run<true> (cross=<optimized out>, cross@entry=false, children=<optimized out>, children@entry=1, atomic=atomic@entry=false) at /home/user/Projects/cx-execfifo2/tests/execfifo2_owner_scope.cc:95
+95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc084	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddc980	99	        scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/execfifo2_owner_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 893917) exited normally]
+COUNT 9637

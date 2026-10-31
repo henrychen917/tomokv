@@ -88,7 +88,11 @@ full iteration receipt. The full iteration and all performance cells are
 batches 1 and 32, both modes and both namespaces, including both MSET atomic
 paths. Raw counts, linked-image identities and the bounded compiler-budget
 derivation are in `docs/execfifo2/instructions.md` and `commands/`. Uncontended
-EXEC attribution is in progress; no speed inference is made from these counts.
+EXEC counts cover 1/2/4 children on single and cross-shard paths. The direct
+INCR scope adds 68–301 instructions; the actual owner-turn two-key MSET scope
+adds 245–1824. All 96 comparisons have exact per-function attribution in
+`docs/execfifo2/attribution.json`. These include explicit compiler spillover;
+no speed inference is made from instruction counts.
 
 ### Falsification controls
 

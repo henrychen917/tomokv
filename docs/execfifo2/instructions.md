@@ -4,8 +4,9 @@ Production images: PRE `735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc
 POST `ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a`.
 All probes preserve production object/COMDAT order, append the fixture last,
 and call linked production functions. Every build receipt binds the probe SHA
-and production SHA. GDB single-steps named Tomo routines; library callees and
-fixture glue are excluded and inventoried, and clocks are deterministic.
+and production SHA. GDB single-steps functions whose demangled names contain the selected Tomo
+namespace, including standard-library specializations naming Tomo types. Other
+library callees and fixture glue are excluded and inventoried; clocks are deterministic.
 These are instruction counts, not cycles, throughput or latency measurements.
 Full step logs are deleted after their SHA-256, count and completion tail are saved.
 
@@ -55,7 +56,7 @@ Initial counts and the trial remain in `commands-before-budgets/` and
 
 ## Uncontended EXEC
 
-Counts and function-by-function attribution are being completed for two scopes:
+The completed counts and function-by-function attribution cover two scopes:
 `exec/` uses the existing INCR fixture from MULTI queueing through execution,
 retirement and reaping; it calls the executor routine directly without an owner
 promoter, so its cross-shard one-child case degenerates to one shard.
@@ -64,3 +65,66 @@ and retry-service entrypoints. Its two-key MSET children genuinely span one or
 two owners even with one child. It includes C1 boundary/drain work and validates
 exact replies and final values, with retirement outside the measured scope.
 Both cover 1/2/4 children, both modes/namespaces and atomic 0/1.
+
+### Dispatch through retirement: INCR children
+
+Atomic 0 and 1 produce identical counts in every paired cell below. Each triple
+is for **1 / 2 / 4 children**; counts are per complete fixture EXEC.
+
+| Namespace | Mode | Placement | PRE | POST | Delta |
+| --- | --- | --- | --- | --- | --- |
+| normal | 1s | single shard | 12102 / 16447 / 25097 | 12198 / 16568 / 25268 | 96 / 121 / 171 |
+| normal | 1s | cross | 12102 / 21370 / 39759 | 12198 / 21544 / 40060 | 96 / 174 / 301 |
+| normal | 2s | single shard | 12057 / 16387 / 25007 | 12153 / 16508 / 25178 | 96 / 121 / 171 |
+| normal | 2s | cross | 12057 / 21220 / 39261 | 12153 / 21394 / 39562 | 96 / 174 / 301 |
+| db0 | 1s | single shard | 10904 / 14971 / 23058 | 10972 / 15057 / 23180 | 68 / 86 / 122 |
+| db0 | 1s | cross | 10904 / 19674 / 37054 | 10972 / 19809 / 37296 | 68 / 135 / 242 |
+| db0 | 2s | single shard | 10859 / 14911 / 22968 | 10927 / 14997 / 23090 | 68 / 86 / 122 |
+| db0 | 2s | cross | 10859 / 19524 / 36556 | 10927 / 19659 / 36798 | 68 / 135 / 242 |
+
+### Production owner turn: two-key MSET children
+
+Atomic 0 and 1 produce identical counts in every paired cell below. Each triple
+is for **1 / 2 / 4 children**; counts are per complete fixture EXEC.
+
+| Namespace | Mode | Placement | PRE | POST | Delta |
+| --- | --- | --- | --- | --- | --- |
+| normal | 1s | single shard | 10047 / 15484 / 26358 | 10320 / 15805 / 26775 | 273 / 321 / 417 |
+| normal | 1s | cross | 13744 / 19883 / 32161 | 14740 / 21094 / 33802 | 996 / 1211 / 1641 |
+| normal | 2s | single shard | 10626 / 16048 / 26892 | 10941 / 16411 / 27351 | 315 / 363 / 459 |
+| normal | 2s | cross | 14767 / 20838 / 32980 | 15868 / 22180 / 34804 | 1101 / 1342 / 1824 |
+| db0 | 1s | single shard | 9637 / 14844 / 25258 | 9882 / 15112 / 25572 | 245 / 268 / 314 |
+| db0 | 1s | cross | 12806 / 18623 / 30257 | 13786 / 19805 / 31843 | 980 / 1182 / 1586 |
+| db0 | 2s | single shard | 9898 / 15090 / 25474 | 10185 / 15400 / 25830 | 287 / 310 / 356 |
+| db0 | 2s | cross | 13184 / 18933 / 30431 | 14268 / 20245 / 32199 | 1084 / 1312 / 1768 |
+
+### Attribution and limits
+
+`attribution.json` accounts for **every changed function in all 96 EXEC
+comparisons**, with category totals that must sum exactly to each observed
+PRE/POST delta. `exec/comparison.json` and `owner/comparison.json` retain the
+unclassified per-function differences as well. There is no unaccounted residual.
+
+- C1 adds participant-node initialization, event promotion, owner dispatch
+  callbacks, ready-queue service, and H3 boundary checks. The owner scope
+  exposes the cost omitted by the direct routine scope: **+245 to +1824**
+  instructions per EXEC here, versus **+68 to +301** in the direct scope.
+- B adds the plain-writer hand-off check to completion and enlarges embedded
+  waiter links. The ordinary non-FIFO readiness body is renamed to a template
+  specialization and costs two fewer instructions per call in these traces;
+  its old and new symbol counts must be combined.
+- Claim/key construction shifts code between `txn_add_claim` and
+  `database_owned_key`; the paired totals record the actual change. The
+  enlarged retry node also changes destruction code by one instruction.
+- Normal-namespace `FlatStore::snapshot_prepare_write` and `atomic_collapse`
+  show residual compiler/COMDAT changes despite unchanged source. They are
+  reported explicitly, not attributed to FIFO semantics or hidden inside the
+  zero-cost ordinary-command claim.
+
+For example, the normal 2s cross-owner four-child MSET EXEC adds 1824:
+H3 boundary 735, runnable drain 420, retry queue 140, local event promotion 294,
+owner dispatch 110, EXEC state machine 51, FIFO completion 58, readiness -32,
+and unchanged-store codegen 48. This deterministic fixture visits owners in a
+fixed sequence; it is an instruction accounting schedule, not a timing model
+of concurrent owners. C1's contended/depth merit and the generic null still
+require the maintainer's matched-load measurements.
