@@ -1,9 +1,9 @@
 {
   "selected": {
-    "normal": 16630,
+    "normal": 16835,
     "db0": 15956
   },
-  "derivation": "PRE budget + IPA size delta; normal adds the first tested 128-insn neighbour. db0 per-key slope is PRE-identical; two wrapper instructions per shard remain fixed overhead.",
+  "derivation": "PRE budget + measured IPA size delta + normal 128-insn neighbour. NOFLUSH remapping adds 205 to normal IPA size and budget; its first derived budget retains the prior passing loop counts. db0 unchanged.",
   "files": {
     "build/persistfmt/budgets/PRE-db0.cc.085i.inline": {
       "sha256": "721f023278bbd76b748f6ad62efa2471833dceb06e2b42caac9bc8e450125664",

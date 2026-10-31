@@ -2,8 +2,11 @@
 
 The lane report is [MEASURE-REQUEST-persistfmt.md](../../MEASURE-REQUEST-persistfmt.md).
 `arms.json` / `arms.sha256` bind the three delivered binaries. The final instruction
-receipts are **`counts/PRE` versus `counts/FINAL4`**, summarized without dropped
-cells in `instructions.tsv` and checked by `count-verdict.json`.
+receipts initially used **`counts/PRE` versus `counts/FINAL4`**. That census passed,
+but source review then found a NOFLUSH/SWAPDB correctness defect in the candidate.
+The candidate is being replaced; its old instruction table and arm manifest are
+superseded until the corrected build is frozen. `counts/REMAP` is an intermediate
+rejected census (normal load +3 instructions/key), not the final verdict.
 
 Earlier census directories are retained as rejected/superseded experiments:
 
@@ -13,7 +16,8 @@ Earlier census directories are retained as rejected/superseded experiments:
 | FINAL | Outlined teardown in both namespaces; normal MGET/MSET regressions |
 | FINAL2 | Counts pass, but broad loader flattening adds excessive text; discarded |
 | FINAL3 | Smaller loader, but omitted budget adjustment makes production load cost regress |
-| FINAL4 | Final production Makefile and source; all 80 command cells and both snapshot per-key slopes pass |
+| FINAL4 | Counts pass; superseded after the NOFLUSH/SWAPDB correctness finding |
+| REMAP | Corrected namespace merge; normal loader compiler regression, not accepted |
 | TRIAL, outline, tuned-budget | Bounded dispatcher/compiler experiments, not delivered arms |
 | loader2-* | Loader experiments under default compiler budgets, not production receipts |
 | budget-* | Bounded trials with explicit production-style compiler budgets |

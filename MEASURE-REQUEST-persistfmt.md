@@ -2,8 +2,9 @@
 
 Lane `cx-persistfmt`, based on `e32b04a445b056976abb308aa598e356fcbaae74`.
 No push. Correctness runs use CPUs 96–111, ports 20500–20599 and `LC_ALL=C`.
-This report is being completed while final validation runs; the final verdict and
-arm manifest below must be read together with the recorded validation results.
+This report is being completed. The first frozen candidate was superseded after a
+NOFLUSH/SWAPDB correctness finding; its arm manifest and instruction table below
+are historical until replaced by the corrected build's final receipts.
 
 ### Changes and PRE witnesses
 

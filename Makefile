@@ -221,11 +221,12 @@ $(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-gr
 # wave1b: savefix's capture cancellation grows both units by 130; scans 14584-14760 / 14457-14620:
 # FlatStore::insert stays PRE and every changed body is savefix's at 14718 (= 14720); db0 fewest at 14562.
 # txnfix2: preserve PRE's ordinary store bodies after the cold unit-intent cleanup addition.
-# persistfmt: cold FUNCTION2 metadata and MERGE add 1167/1200 IPA instructions.
+# persistfmt: cold FUNCTION2 metadata and MERGE add 1372/1200 IPA instructions.
+# NOFLUSH namespace rebasing adds 205 of the normal-unit instructions.
 # The normal unit needs one 128-insn neighbour step beyond that delta to retain
 # its load-loop register allocation. Serverless PRE/POST counts and the bounded
 # compile-only trials are recorded in docs/persistfmt/snapshot-ipa.json and counts/.
-$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16630
+$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=16835
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=15956
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
