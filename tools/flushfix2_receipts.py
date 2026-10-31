@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Retain compact, hashed correctness receipts before pruning build artifacts."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT/'docs/flushfix2'
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def ref(path):
+    return dict(path=str(path.relative_to(ROOT)), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+
+
+def directed(root, expected):
+    rows = []
+    for path in sorted(root.glob('*/results.json')):
+        for result in read(path):
+            row = {k:result[k] for k in ('case', 'leg', 'databases', 'command', 'flush_mode', 'pass')}
+            row['result_file'] = ref(path)
+            folder = path.parent/result['leg']
+            observations = sorted(folder.rglob('observations.json'))
+            row['attempts'] = []
+            for observation in observations:
+                data = read(observation)
+                row['attempts'].append(ref(observation) | {k:data.get(k) for k in
+                    ('cycles', 'observations', 'torn', 'controls', 'control_final', 'errors')})
+            falsifier = folder/'falsifiers.json'
+            if falsifier.exists():
+                row['falsifiers'] = read(falsifier)
+                row['falsifier_file'] = ref(falsifier)
+            if not result['pass']:
+                row['error'] = result['error']
+            rows.append(row)
+    assert len(rows) == expected, (root, len(rows), expected)
+    return rows
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--directed', type=Path)
+    p.add_argument('--siblings', action='store_true')
+    p.add_argument('--pad', action='store_true')
+    p.add_argument('--pad-root', type=Path, default=ROOT/'build/flushfix2/pad-a-v2-proof')
+    p.add_argument('--persistence-label')
+    a = p.parse_args()
+    if a.directed:
+        rows = directed(a.directed.resolve()/'jobs/flushfix2', 126)
+        assert all(r['pass'] for r in rows)
+        for r in rows:
+            if r['leg'].startswith('redis-'):
+                continue
+            fired = r['falsifiers'][-1]
+            assert all(fired[k] > 0 for k in ('atomic_flush_units', 'atomic_flush_range_reads',
+                'atomic_flush_post_versions', 'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses'))
+            assert fired['script_reply'] == [1, 1]
+        (OUT/'post-final-witnesses.json').write_text(json.dumps(rows, indent=2)+'\n')
+        pre = read(OUT/'pre-final-witnesses.json')
+        targets = [r for r in rows if not r['leg'].startswith('redis-')]
+        keys = ('case', 'command', 'flush_mode', 'databases')
+        groups = sorted({tuple(r[k] for k in keys) for r in targets})
+        lines = ['# Directed FLUSH proof', '',
+            'Each row aggregates eight target legs; JSON receipts retain every leg and fresh-state attempt. Counts are correctness observations, not throughput measurements.', '',
+            '| Case | Command | Option | DBs | PRE tears / observations | POST tears / observations | POST fired legs |',
+            '|---|---|---|---:|---:|---:|---:|']
+        for group in groups:
+            sums = []
+            for arm in (pre, targets):
+                legs = [r for r in arm if not r['leg'].startswith('redis-') and
+                        tuple(r[k] for k in keys) == group]
+                assert len(legs) == 8
+                sums.append([sum(a[name] for r in legs for a in r['attempts'])
+                             for name in ('torn', 'observations')])
+            lines.append('| ' + ' | '.join(map(str, group)) +
+                         f' | {sums[0][0]} / {sums[0][1]} | {sums[1][0]} / {sums[1][1]} | 8 |')
+        (OUT/'directed-table.md').write_text('\n'.join(lines)+'\n')
+    if a.pad:
+        rows = directed(a.pad_root.resolve(), 16)
+        assert all(not r['pass'] and any(x['torn'] for x in r['attempts']) for r in rows)
+        assert all(not x['errors'] for r in rows for x in r['attempts'])
+        (OUT/'pad-a-witnesses.json').write_text(json.dumps(rows, indent=2)+'\n')
+    if a.siblings:
+        inventories = []
+        for folder in sorted((ROOT/'build/flushfix2/siblings').iterdir()):
+            if not folder.is_dir():
+                continue
+            for path in sorted(folder.rglob('results.json')):
+                row = dict(run=folder.name, file=ref(path), results=read(path), details=[])
+                for detail in sorted(path.parent.rglob('*.json')):
+                    if detail.name not in ('siblings.json', 'reload-witness.json', 'server.exit.json', 'pipeline-lane.json'):
+                        continue
+                    row['details'].append(ref(detail) | dict(value=read(detail)))
+                inventories.append(row)
+        (OUT/'sibling-receipts.json').write_text(json.dumps(inventories, indent=2)+'\n')
+        persistence = []
+        labels = [a.persistence_label] if a.persistence_label else ['final-rdb-generations', 'final-aof-all-shards']
+        for label in labels:
+            for path in sorted((ROOT/'build/flushfix2/siblings'/label).glob('*/results.json')):
+                if not path.parent.name.startswith(('live-bgsave-', 'bgsave-straddle-', 'aof-restart-')):
+                    continue
+                results = read(path)
+                assert len(results) == 9 and all(r['pass'] for r in results), path
+                target = [r for r in results if not r['leg'].startswith('redis-')]
+                oracle = [r for r in results if r['leg'].startswith('redis-')]
+                images = [ref(p) for p in sorted(path.parent.rglob('captured-*.rdb'))]
+                checked = sum(r['value']['snapshots_checked'] for r in results)
+                assert len(images) == checked, (path, len(images), checked)
+                persistence.append(dict(run=label, case=path.parent.name, file=ref(path),
+                    target_legs=len(target), oracle_legs=len(oracle),
+                    target_images=sum(r['value']['snapshots_checked'] for r in target),
+                    oracle_images=sum(r['value']['snapshots_checked'] for r in oracle),
+                    oracle_cancelled=sum(r['value']['cancelled_saves'] for r in oracle),
+                    target_sentinels=[r['value']['aof_sentinels'] for r in target],
+                    target_namespaces=[r['value']['aof_namespaces'] for r in target],
+                    images=images))
+        (OUT/'persistence-final.json').write_text(json.dumps(persistence, indent=2)+'\n')
+
+
+if __name__ == '__main__':
+    main()

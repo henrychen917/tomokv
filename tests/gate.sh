@@ -1163,7 +1163,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
+  JOB_NAMES+=(flushfix3 flushfix3_units flushfix2 flushfix2_units flipctl witness_contracts reorder_bounds rob_portable slotless wb_mixed inline_quoted)
   for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
@@ -1366,7 +1366,7 @@ store_build(){
       "$PWD/build/store-regression${variant:+-$variant}" \
       "$PWD/build/gate-cache/store${variant:+-$variant}-objects" \
       "$flags" '-Wl,--gc-sections' \
-      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/hexpread.cc src/cmd/storesize.cc
+      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/hexpread.cc src/cmd/storesize.cc src/store/flush.cc
 }
 
 job_release(){
@@ -1407,12 +1407,78 @@ fi
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cache/obj-asan" \
     "-std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I." \
     "-luring -pthread -lssl -lcrypto" \
-    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-asan-build.txt \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc src/store/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-asan-build.txt \
     && ok "ASAN build" || bad "ASAN build" "see $TMPDIR/gate-asan-build.txt"
 }
 
 # readability-a0: one row collected before quick exit (DQ=+1, DF=+1).
 # EXPECT constants remain maintainer-owned.
+job_flushfix3(){
+  local databases label
+  for databases in 16 1; do
+    label="flushfix3 idle FLUSH deadlines all eight legs (databases $databases)"
+    row_begin "$label"
+    py tests/flushfix3.py --binary "$CANDIDATE_BINARY" --databases "$databases" \
+        --cores "$CORES" --port "$PORT" --output "$TMPDIR/db$databases" \
+        >"$TMPDIR/db$databases.log" 2>&1 \
+        && ok "$label" || bad "$label" "see $TMPDIR/db$databases.log"
+  done
+}
+
+job_flushfix3_units(){
+  local target namespace
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/flushfix3.mk -j"$BUILD_JOBS" \
+      build/flushfix3-unit build/flushfix3-db0-unit >"$TMPDIR/build.log" 2>&1
+  for target in flushfix3-unit flushfix3-db0-unit; do
+    namespace=normal; [ "$target" != flushfix3-db0-unit ] || namespace=db0
+    row_begin "$target linear collapse, collisions, OOM and saturated ranges"
+    make -f Makefile -f tools/flushfix3.mk -q "build/$target" && \
+        taskset -c "$CORES" "build/$target" >"$TMPDIR/$target.log" 2>&1 \
+        && pausable taskset -c "$BUILD_CORES" python3 tools/flushfix3_work_reference.py \
+            --namespace "$namespace" --output "$TMPDIR/reference-$namespace" \
+            >"$TMPDIR/reference-$namespace.log" 2>&1 \
+        && ok "$target linear collapse, collisions, OOM and saturated ranges" \
+        || bad "$target linear collapse, collisions, OOM and saturated ranges" \
+            "see $TMPDIR/build.log and $TMPDIR/$target.log"
+  done
+}
+
+job_flushfix2(){
+  local case databases command mode label failed commands modes
+  for case in flush-pair flush-script flush-only namespace; do
+    for databases in 16 1; do
+      commands=FLUSHALL; modes=SYNC
+      if [ "$case" = namespace ]; then commands='FLUSHALL FLUSHDB'; modes='SYNC ASYNC'; fi
+      for command in $commands; do
+      for mode in $modes; do
+      label="flushfix2 $case $command $mode (databases $databases)"
+      row_begin "$label"
+      py tests/flushfix2.py --case "$case" --databases "$databases" --command "$command" \
+          --flush-mode "$mode" --fresh-attempts "${GATE_FLUSHFIX2_FRESH_ATTEMPTS:-1}" \
+          --require-counters "${GATE_FLUSHFIX2_REQUIRE_COUNTERS:-1}" \
+          --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+          --cores "$CORES" --port "$PORT" --output "$TMPDIR/$case-$databases-$command-$mode" \
+          >"$TMPDIR/$case-$databases-$command-$mode.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/$case-$databases-$command-$mode.log"
+      done
+      done
+    done
+  done
+}
+
+job_flushfix2_units(){
+  local target
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/flushfix2.mk -j"$BUILD_JOBS" \
+      build/flushfix2-unit build/flushfix2-db0-unit >"$TMPDIR/build.log" 2>&1
+  for target in flushfix2-unit flushfix2-db0-unit; do
+    row_begin "$target ranges and rollback"
+    make -f Makefile -f tools/flushfix2.mk -q "build/$target" && \
+        taskset -c "$CORES" "build/$target" >"$TMPDIR/$target.log" 2>&1 \
+        && ok "$target ranges and rollback" \
+        || bad "$target ranges and rollback" "see $TMPDIR/build.log and $TMPDIR/$target.log"
+  done
+}
+
 job_source_identity(){
   local label="production source identity + stable assertion ids"
   row_begin "$label"
@@ -3419,6 +3485,7 @@ job_scriptfix(){
       row_begin "$label"
       if py tests/scriptfix.py "$case" --binary "$CANDIDATE_BINARY" \
           --port "$PORT" --cores "$CORES" --mode "$mode" \
+          --atomic "${GATE_TXN_ATOMIC:-0}" --net-io "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" \
           --output "$TMPDIR/scriptfix" >"$TMPDIR/scriptfix-$case-$mode.log" 2>&1; then
         ok "$label"
       else
@@ -5123,7 +5190,7 @@ job_aof_frame(){
 for AOF_FRAME_ATOMIC in 0 1; do
 AOF_FRAME_DIR=$(mktemp -d "$TMPDIR/gate-aof-frameorder-atomic${AOF_FRAME_ATOMIC}.XXXXXX")
 txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_FRAME_ATOMIC" --appendonly yes \
-    --appendfsync no --net-io epoll --auto-aof-rewrite-percentage 0 \
+    --appendfsync no --net-io "${GATE_PROOF_NET_IO:-epoll}" --auto-aof-rewrite-percentage 0 \
     --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
     --enable-debug-command yes --dir "$AOF_FRAME_DIR" \
     || bad "AOF frame-order purpose boot (atomic $AOF_FRAME_ATOMIC)"
@@ -5132,7 +5199,7 @@ unit_ready persistfix-units \
     && taskset -c "$CORES" ./build/persistfix-unit frameorder \
     >$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
     && py tests/aof_frame_order_test.py >>$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
-    && py tests/aof_frame_order.py 127.0.0.1 $PORT "$AOF_FRAME_DIR/appendonlydir" \
+    && py tests/aof_frame_order.py 127.0.0.1 $PORT "$AOF_FRAME_DIR/appendonlydir" --engine "${GATE_PROOF_NET_IO:-epoll}" \
     >>$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
     && ok "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
     || bad "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
@@ -5157,7 +5224,7 @@ for AOFORDER_CASE in single crossing rewrite; do
       for AOFORDER_POLICY in everysec always; do
         py tests/aoforder.py --case "$AOFORDER_CASE" --binary "$AOFORDER_BIN" \
           --mode "$AOFORDER_MODE" --databases "$AOFORDER_DB" --policy "$AOFORDER_POLICY" \
-          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --engine "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" \
           --artifacts "$TMPDIR/aoforder-$AOFORDER_CASE-$AOFORDER_MODE-$AOFORDER_DB-$AOFORDER_POLICY" \
           >"$TMPDIR/aoforder-$AOFORDER_CASE-$AOFORDER_MODE-$AOFORDER_DB-$AOFORDER_POLICY.log" 2>&1 \
           || AOFORDER_OK=0
@@ -5169,7 +5236,7 @@ for AOFORDER_CASE in single crossing rewrite; do
       for AOFORDER_OPERATION in MSETNX DEL UNLINK RENAME LMPOP; do
         py tests/aoforder.py --case single --operation "$AOFORDER_OPERATION" \
           --binary "$CANDIDATE_BINARY" --mode "$AOFORDER_MODE" --policy always \
-          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --engine "${GATE_PROOF_NET_IO:-${GATE_NET_IO:-uring}}" \
           --artifacts "$TMPDIR/aoforder-operation-$AOFORDER_MODE-$AOFORDER_OPERATION" \
           >"$TMPDIR/aoforder-operation-$AOFORDER_MODE-$AOFORDER_OPERATION.log" 2>&1 \
           || AOFORDER_OK=0
@@ -5715,7 +5782,7 @@ row_begin "read-local ownership-invariant build"
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $RLDBG "$PWD/build/gate-cache/obj-rlcachedbg" \
     "-std=c++20 -O2 -g -march=native -pthread -DTOMO_JEMALLOC -DTOMO_RL_CACHE_DEBUG -I." \
     "-ljemalloc -luring -pthread -lssl -lcrypto -lm" \
-    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-rlcachedbg-build.txt \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc src/store/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-rlcachedbg-build.txt \
     && ok "read-local ownership-invariant build" \
     || bad "read-local ownership-invariant build" "see $TMPDIR/gate-rlcachedbg-build.txt"
 }
@@ -5786,7 +5853,7 @@ job_core_tsan_build(){
   # Match the core unit's Makefile dependencies: reorder's fused boot selector
   # references run_fused_server in genthread.cc even in this serverless binary.
   local source sources=()
-  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c; do
+  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc src/store/*.cc third_party/lua/helpers/*.c; do
     # Match Makefile's SERVER_ONLY_SRC exclusion; this binary has its own main.
     [ "$source" = src/core/version.cc ] || sources+=("$source")
   done
@@ -6051,6 +6118,10 @@ collect_job release
 collect_job asan
 collect_job config_unit
 collect_job source_identity
+collect_job flushfix3
+collect_job flushfix3_units
+collect_job flushfix2
+collect_job flushfix2_units
 # iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
 # iofix3: restore WB4.1 before quick exit (DQ=+1, DF=+1).
 collect_job iofix-deferred

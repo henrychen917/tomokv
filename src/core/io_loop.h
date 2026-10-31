@@ -518,6 +518,7 @@ private:
     friend void acl_broadcast_user_change(IoLoop&, uint32_t, const AclPerm*, bool);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
     friend uint32_t multi_owner_pass_entry(IoLoop&);
+    friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
     template <bool IofusedPrivateQueue>
     friend uint32_t multi_owner_pass_entry_impl(IoLoop&);
     friend uint32_t multi_owner_reap_entry(IoLoop&);

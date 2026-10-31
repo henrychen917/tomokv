@@ -364,6 +364,8 @@ uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
 }
 }
 
+namespace { void flush_cancel_group_record(AtomicEntry& entry); }
+
 void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
     if (MultiDecision* decision = multi_record_decision(entry)) {
         if (self && self->multi_parent == decision->owner) return;
@@ -382,8 +384,7 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
     if (!entry.group || entry.group == self) return;
     ScatterState& script = *entry.group;
     if (script.group_attempt()) {
-        const uint32_t shard = script.keys[script.key_order[entry.begin]].shard;
-        if (!self) txn_group_cancel(script, shard);
+        if (!self) flush_cancel_group_record(entry);
         return;
     }
     if (script.kind != Kind::Script) return;

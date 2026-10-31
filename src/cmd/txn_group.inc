@@ -114,6 +114,8 @@ bool txn_group_arrive(ScatterState& state, Shard& shard, Op& op) {
                     ? TxnClaimMode::Read : TxnClaimMode::Write;
                 txn_add_claim(claims, op.arg(key.arg), mode);
             }
+            if (state.kind == Kind::Flush)
+                txn_add_claim(claims, {}, TxnClaimMode::Write, true);
             if (state.kind == Kind::Sort && state.sort_options.deref)
                 txn_add_claim(claims, {}, TxnClaimMode::Read, true);
             if (claims.size() > kTxnClaimsPerShard) attempt->retire_claims[shard.id()] = claims;
@@ -306,6 +308,8 @@ template <bool IofusedPrivateQueue>
 ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
                                    const Task& task, Op& op) {
     ScatterState& state = *task.scatter;
+    if (state.kind == Kind::Flush)
+        return flush_complete(server, self, ring, task, op);
     if (state.kind == Kind::Script) {
         if (state.script_phase == ScriptPhase::Apply && !state.script_resume_post &&
             !complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
@@ -467,6 +471,10 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     Client& client = *previous.commit_client;
     Op& op = client.rob().at(previous.commit_op_id);
     auto again = [&] { multi_enqueue_node(server, self.id(), attempt.retry); };
+    if (previous.kind == Kind::Flush && previous.phase == 2) {
+        if (!flush_redispatch<IofusedPrivateQueue>(server, self, ring, previous)) again();
+        return;
+    }
     if (client.closing() || client.dead()) {
         previous.final_reply = FinalReply::Internal;
         op.state.store(OpState::Done, std::memory_order_release);
@@ -492,7 +500,7 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     ScatterState* next = dispatch.state;
     if (next->group_attempt() || next->snapshot_registered || !next->atomic_group) std::abort();
     if (!txn_group_prepare(*next, server, self.id()) ||
-        ((next->atomic_write || next->atomic_direct) && !aof_prepare_scatter_group(*next))) {
+        ((next->atomic_write || next->atomic_direct || next->kind == Kind::Flush) && !aof_prepare_scatter_group(*next))) {
         xshard_abandon_unpublished(next, pool, self.id());
         attempt.retry_after_ns = now_ns() + kTxnRetryBackoffMax;
         again();

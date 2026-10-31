@@ -2937,6 +2937,14 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_owner_overlaps() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
+        const auto& f = atomic_flush_counters;
+        body += "atomic_flush_units:" + std::to_string(f.units.load()) + "\r\n";
+        body += "atomic_flush_range_reads:" + std::to_string(f.range_reads.load()) + "\r\n";
+        body += "atomic_flush_post_versions:" + std::to_string(f.post_versions.load()) + "\r\n";
+        body += "atomic_flush_script_conflicts:" + std::to_string(f.script_conflicts.load()) + "\r\n";
+        body += "atomic_flush_collapses:" + std::to_string(f.collapses.load()) + "\r\n";
+        body += "atomic_flush_slow_collapses:" + std::to_string(f.slow_collapses.load()) + "\r\n";
+        body += "atomic_flush_slow_work:" + std::to_string(f.slow_work.load()) + "\r\n";
         appendf(body, "script_waiters_peak:%llu\r\n", static_cast<unsigned long long>(
             g_server ? g_server->script_waiters_peak() : 0));
         appendf(body, "script_stage_watch_tasks:%llu\r\n", static_cast<unsigned long long>(

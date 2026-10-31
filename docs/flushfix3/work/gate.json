@@ -1,0 +1,86 @@
+{
+  "log": {
+    "path": "build/flushfix3/work-first.log",
+    "sha256": "932b51814ed99978253318d70108070f93944ccd1cdbef06c204fce39683d432"
+  },
+  "root": "build/gate-run.kqaYgP",
+  "jobs": [
+    {
+      "name": "release",
+      "done": [
+        "0",
+        "1",
+        "0"
+      ],
+      "ledger": {
+        "path": "build/gate-run.kqaYgP/jobs/release/ledger",
+        "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+      },
+      "rows": [
+        {
+          "job": "release",
+          "label": "release build (+footprint locks)",
+          "verdict": "ok",
+          "seconds": 0.0
+        }
+      ]
+    },
+    {
+      "name": "flushfix3_units",
+      "done": [
+        "0",
+        "2",
+        "0"
+      ],
+      "ledger": {
+        "path": "build/gate-run.kqaYgP/jobs/flushfix3_units/ledger",
+        "sha256": "6886cf9af576ebcd39c70c29f620ec5f085c5235fd9754ff0df12d52760eea89"
+      },
+      "rows": [
+        {
+          "job": "flushfix3_units",
+          "label": "flushfix3-unit linear collapse, collisions, OOM and saturated ranges",
+          "verdict": "ok",
+          "seconds": 10.76
+        },
+        {
+          "job": "flushfix3_units",
+          "label": "flushfix3-db0-unit linear collapse, collisions, OOM and saturated ranges",
+          "verdict": "ok",
+          "seconds": 10.83
+        }
+      ]
+    },
+    {
+      "name": "flushfix2_units",
+      "done": [
+        "0",
+        "2",
+        "0"
+      ],
+      "ledger": {
+        "path": "build/gate-run.kqaYgP/jobs/flushfix2_units/ledger",
+        "sha256": "4f8a8345f962ba11636854ae6a32dd425f9d36843a742e746b50a35db79e30d4"
+      },
+      "rows": [
+        {
+          "job": "flushfix2_units",
+          "label": "flushfix2-unit ranges and rollback",
+          "verdict": "ok",
+          "seconds": 0.04
+        },
+        {
+          "job": "flushfix2_units",
+          "label": "flushfix2-db0-unit ranges and rollback",
+          "verdict": "ok",
+          "seconds": 0.04
+        }
+      ]
+    }
+  ],
+  "omitted_unfinished_jobs": [],
+  "scored_rows": 5,
+  "verdicts": {
+    "ok": 5
+  }
+}

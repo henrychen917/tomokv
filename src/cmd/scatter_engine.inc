@@ -17,8 +17,9 @@ enum class Kind : uint8_t {
     Bitop, Pfmerge,
     Lmpop, Zmpop, Zrangestore, Sort,
     Geosearchstore, Georadius, Georadiusbymember,
-    Script,
+    Script, Flush,
 };
+static_assert(static_cast<unsigned>(Kind::Flush) == static_cast<unsigned>(Kind::Script) + 1);
 
 // Place: an escalated attempt's first wave (AT4.12 TO-B placement, then the read at UINT64_MAX).
 enum class ScriptPhase : uint8_t { None, Pin, Read, Run, Validate, Apply, Unpin, Place };
@@ -90,6 +91,8 @@ struct GroupAux {
     std::vector<DatabaseKey> flush_keys;
     std::vector<std::string> keys_result;
     bool flush_keys_built = false;
+    AtomicEntry* flush_range = nullptr;
+    bool flush_changed = false;
     std::unique_ptr<DatabaseStatsTable> database_stats;
 };
 
@@ -286,7 +289,7 @@ bool is_atomic_pop_kind(Kind kind) {
 }
 
 template <typename T>
-size_t carve_size(size_t& offset, uint32_t count) {
+[[gnu::always_inline]] inline size_t carve_size(size_t& offset, uint32_t count) {
     if (!count) return offset;
     const size_t align = alignof(T);
     offset = (offset + align - 1) & ~(align - 1);
@@ -743,6 +746,10 @@ ResultHeap* ensure_result(ScatterState& state) {
     if (!state.result) state.result = new (std::nothrow) ResultHeap;
     return state.result;
 }
+
+[[gnu::cold, gnu::noinline]] ScatterTaskResult execute_flush(const Task&, Shard&, Op&);
+[[gnu::cold, gnu::noinline]] void flush_after_decision(Server&, ThreadCtx&, Ring&, ScatterState&);
+[[gnu::cold, gnu::noinline]] void flush_aof_emit(ScatterState&, Shard&, Op&);
 
 bool aof_prepare_scatter_group(ScatterState& state) {
     if (!state.atomic_group || !state.server || !state.server->aof().recording()) return true;
@@ -1641,7 +1648,7 @@ template<bool ScriptOnly>
                              command_config_routes_all_shards(op, force_atomic)));
     Kind kind;
     if constexpr (ScriptOnly) kind = Kind::Script;
-    else if (all_shards)
+    else if (__builtin_expect(all_shards, false)) {
         kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :
                op.cmd_name().eq_icase("info") ? Kind::DatabaseInfo :
                op.cmd_name().eq_icase("swapdb") ? Kind::Swapdb :
@@ -1651,7 +1658,9 @@ template<bool ScriptOnly>
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
                    ? Kind::DebugLoadAof :
                op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
-    else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
+        if (kind == Kind::AllShards && xshard_flush_command(op))
+            return xshard_prepare_flush(server, op, pool, owner_io, origin_conn_id, dispatch, force_atomic);
+    } else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
     if (kind == Kind::Swapdb && origin_client) {
@@ -2292,6 +2301,10 @@ int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index) {
     return index < dispatch.state->nsub ? dispatch.state->groups[index].shard : -1;
 }
 
+// Cold range routing must not add executed alignment padding to normal fan-out.
+#if !TOMO_SINGLE_DATABASE
+__attribute__((optimize("align-jumps=1,align-loops=1")))
+#endif
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               uint32_t owner_io, uint64_t origin_conn_id,
                               ScatterDispatch& dispatch, bool force_atomic,
@@ -2362,6 +2375,7 @@ bool xshard_is_local(const Op& op) { return op.local_xshard(); }
 
 void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& context) {
     ScatterState& state = *task.scatter;
+    if (state.kind == Kind::Flush) { flush_aof_emit(state, shard, op); return; }
     if (!xshard_owner_mutation_phase(state, op)) return;
     if (state.atomic_group) {
         if (!state.aof_group) return;
@@ -2844,7 +2858,11 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             // into xshard_execute) PRE-identical; see script_group_read.
             return script_group_read(state, shard, op);
         case ScriptPhase::Apply:
+            break;
         case ScriptPhase::None:
+            // FLUSH reuses this existing cold escape without adding a kind
+            // test to ordinary execution or to a live script phase.
+            if (state.kind == Kind::Flush) return execute_flush(task, shard, op);
             break;
     }
     return ScatterTaskResult::Complete;
@@ -2914,7 +2932,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     // unconditional on the cross-shard path: two stores in, two out, and single-shard commands
     // never reach this function at all.
     PinnedNowMs now_cut(shard, state.now_cut_ms);
-    if (state.kind == Kind::Script &&
+    // Reuse the existing script escape for the appended cold kind. Ordinary
+    // kinds still execute one discriminator before their original owner path.
+    if (__builtin_expect(state.kind >= Kind::Script, false) &&
         (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);
     ShardGroup& group = *group_for(state, shard.id());
@@ -4297,13 +4317,24 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                 aof_commit_scatter_group(*state, self, ring, ticket);
             else {
                 if (state->group_attempt() &&
-                    state->epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch) {
+                    state->epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch &&
+                    state->kind != Kind::Flush) {
                     txn_group_retry(server, self, ring,
                         Task{client, state->commit_op_id, state->commit_shard, state});
                     state = next;
                     continue;
                 }
                 aof_abort_scatter_group(*state);
+            }
+            // Reuse MSET's existing reply-kind branch: ordinary atomic MSET
+            // does not execute an extra FLUSH discriminator at commit.
+            if (state->kind == Kind::Mset && !state->aborted.load(std::memory_order_acquire)) {
+                reply_ok(op.sink());
+                op.zc_shard = Op::kScatterReplyMarker;
+            } else if (state->kind == Kind::Flush) {
+                flush_after_decision(server, self, ring, *state);
+                state = next;
+                continue;
             }
             // Atomic MSET/DEL publish in phase one as well: replacement of a
             // stream must reprobe its group readers at the commit decision.
@@ -4312,15 +4343,6 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
             if (op.spec->flags & CmdFlags::NotifySelected)
                 notify_xshard_finished(server.shard(state->commit_shard), op, *state);
             server.atomic_apply_close(self.id(), state->apply_open);
-
-            // Successful atomic MSET already has its final result. Publish that result with
-            // Done instead of advertising an opaque gather that forces WB to serve at once.
-            // Keep the arena attached: IO still owns group retirement and all lifetime pins.
-            // Errors and gathers retain their ordinary assembly/unknown-size marker.
-            if (state->kind == Kind::Mset && !state->aborted.load(std::memory_order_acquire)) {
-                reply_ok(op.sink());
-                op.zc_shard = Op::kScatterReplyMarker;
-            }
 
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.

@@ -45,6 +45,9 @@ struct AtomicEntry {
     // key. The flag consumes header padding; AtomicEntry's locked size stays unchanged.
     bool copied_group_keys = false;
     uint8_t key_ns = 0;
+    bool namespace_range = false;
+    bool range_all = false;
+    uint16_t range_padding = 0; // merge tail initialization into the existing store
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -143,10 +146,11 @@ struct AtomicPendingState {
     // Owner-task-only: an install span has physical candidates but is not linked yet. Eviction
     // cannot resolve their ownership until publication. Uses existing padding; offsets stay put.
     bool group_installing = false;
-    // Modulo count in the remaining alignment hole. The zero fast exit also
-    // requires live < 256, so wrapping can never hide a grouped record.
+    // Wave 10's modulo grouped-record count retains its byte and fused update.
     uint8_t group_records = 0;
-    uint8_t group_padding = 0; // Keep construction one four-byte header clear.
+    // FLUSH-only count, saturated at 255. A saturated release recounts before
+    // publishing a smaller value, so arbitrarily many live ranges cannot wrap.
+    uint8_t ranges = 0;
     uint64_t cleanup_fast = 0;
     uint64_t cleanup_slow = 0;
     size_t cached_entry_bytes = 0;
@@ -171,6 +175,23 @@ static_assert(offsetof(AtomicPendingState, group_records) ==
               offsetof(AtomicPendingState, read_local_extended) + 2);
 
 static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
+static_assert(offsetof(AtomicPendingState, ranges) == 1319);
+
+// Only range-record paths touch these process-cold witnesses. Separate image
+// namespaces keep the ordinary store and thread layouts unchanged.
+struct AtomicFlushCounters {
+    std::atomic<uint64_t> units{0}, range_reads{0}, post_versions{0};
+    std::atomic<uint64_t> script_conflicts{0}, collapses{0}, slow_collapses{0};
+    std::atomic<uint64_t> slow_work{0};
+};
+inline AtomicFlushCounters atomic_flush_counters;
+// Keep the new cold clock caller outside the scatter translation unit: it
+// must not change inlining of the existing ordinary-command expiry cut.
+int64_t atomic_flush_now_ms();
+[[gnu::cold, gnu::noinline]] bool atomic_flush_covers(const AtomicEntry&, Slice);
+inline bool atomic_range_covers(const AtomicEntry& entry, Slice key) {
+    return entry.namespace_range && (entry.range_all || entry.key_ns == key.ns);
+}
 
 struct AtomicResolved {
     KvObj* value = nullptr;

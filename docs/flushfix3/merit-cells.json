@@ -1,0 +1,11 @@
+{
+  "source": "tests/wbland_merit_cells.txt",
+  "generic_sha256": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
+  "requested_sha256": "6e8c83e58ed4c2364d482b9396e42ab1cd14fd82787d0c1bf094ff8d5495c98e",
+  "extra": [
+    "h53",
+    "h54",
+    "h21",
+    "h22"
+  ]
+}
