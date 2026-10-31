@@ -3489,6 +3489,11 @@ XDS_PORT=$PORT XDS_CPUS=$CORES XDS_BIN="$CANDIDATE_BINARY" bash tests/xshard_dis
 
 job_persistfmt(){
   local mode engine case label
+  local scheduled=${GATE_PERSISTFMT_SCHEDULED:-$PWD/build/persistfmt/scheduled/tomokv}
+  if [ -z "${GATE_PERSISTFMT_SCHEDULED:-}" ]; then
+    taskset -c "$BUILD_CORES" make -f Makefile -f tools/persistfmt.mk -j"$BUILD_JOBS" \
+        build/persistfmt/scheduled/tomokv >"$TMPDIR/persistfmt-schedule-build.log" 2>&1 || return 1
+  fi
   for mode in 1s 2s; do for engine in epoll uring; do
     for case in stream-roundtrip stream-interchange stream-options save bgsave shutdown reload aof-yes aof-no aof-failure; do
       label="persistfmt $case ($mode, $engine)"
@@ -3496,6 +3501,7 @@ job_persistfmt(){
       py tests/persistfmt.py "$case" --binary "$CANDIDATE_BINARY" \
           --oracle-binary "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
           --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" \
+          --scheduled-binary "$scheduled" \
           --artifacts "$TMPDIR/persistfmt-$case-$mode-$engine" \
           >"$TMPDIR/persistfmt-$case-$mode-$engine.log" 2>&1 \
           && ok "$label" || bad "$label" "see $TMPDIR/persistfmt-$case-$mode-$engine.log"

@@ -221,11 +221,16 @@ def aof_failure():
     # Reuse the exact existing RLIMIT_FSIZE fault. Fill stderr's pipe after boot
     # to hold fail() at its first diagnostic: PRE has already cleared recording_.
     # A connection on another IO thread must remain gated throughout that window.
+    ARGS.binary = ARGS.scheduled_binary.resolve()
+    h.ARGS.binary = ARGS.binary
+    schedule = ARGS.artifacts / 'armed'
+    os.environ['TOMO_PERSISTFMT_SCHEDULE'] = str(schedule)
     rfd, wfd = os.pipe()
     try:
         with server(extra=h.aof('always'), fsize=128 * 1024, stderr_fd=wfd) as (s, _):
             c = h.off_writer(s)
             assert c.cmd('SET', 'before', 'ok') == b'OK'
+            schedule.touch()
             os.set_blocking(wfd, False)
             try:
                 while True:
@@ -244,6 +249,9 @@ def aof_failure():
                     assert time.monotonic() < deadline, 'fail() logging window never opened'
                     time.sleep(.005)
                 h.emit('failure_window_armed', threads=[str(p.parent) for p in blocked])
+                # Wake this IO owner after recording_ changed. Otherwise an idle
+                # epoll owner can sleep through the held failure window entirely.
+                c.send('PING')
                 readable, _, _ = select.select([c.s], [], [], .5)
                 assert not readable, f'failed write acknowledged: {c.read()!r}'
             finally:
@@ -272,6 +280,7 @@ if __name__ == '__main__':
                                        'aof-failure', 'aof-repeat'])
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--oracle-binary', type=Path, required=True)
+    parser.add_argument('--scheduled-binary', type=Path)
     parser.add_argument('--cores', required=True)
     parser.add_argument('--port', type=int, required=True)
     parser.add_argument('--ratio', default='6:2')
