@@ -8,6 +8,7 @@ modes and namespaces. Snapshot per-key cost is the (32-1)/31 marginal count.
 """
 import argparse
 import concurrent.futures
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -25,10 +26,12 @@ def main():
     p.add_argument('arm')
     p.add_argument('--source', type=Path, default=ROOT)
     p.add_argument('--objects', type=Path, default=ROOT / 'build')
+    p.add_argument('--server-binary', type=Path)
     p.add_argument('--only', default='GET,SET,INCR,MGET,MSET,SNAPSHOT-SAVE,SNAPSHOT-LOAD')
     p.add_argument('--no-build', action='store_true')
     args = p.parse_args()
     source, objects = args.source.resolve(), args.objects.resolve()
+    server = (args.server_binary or objects / 'tomokv').resolve()
     counts.BUILD.mkdir(parents=True, exist_ok=True)
     if not (counts.BUILD / 'trace').exists():
         subprocess.run(['g++', '-std=c++20', '-O2', '-g', 'tools/scriptfix3_trace.cc',
@@ -47,6 +50,11 @@ def main():
         binary = counts.BUILD / 'scopes' / (args.arm + '-' + namespace) / 'probe'
         if not args.no_build:
             binary = counts.build(args.arm, source, objects, namespace, fixture)
+            record = counts.DOC / args.arm / (namespace + '-build.json')
+            build = json.loads(record.read_text())
+            build['server_sha256'] = counts.sha(server)
+            build['server_binary'] = str(server)
+            counts.save(record, build)
         prepared = counts.prepare(binary, objects, namespace, 'complete')
         cases = [(c, m, b, a) for c in args.only.split(',') for m in ('1s', '2s')
                  for b in (1, 32) for a in ((0,) if c.startswith('SNAPSHOT-') else (0, 1))]
@@ -54,7 +62,7 @@ def main():
             rows += list(pool.map(lambda case: counts.trace(prepared, args.arm, namespace,
                                                             'complete', *case), cases))
     counts.save(counts.DOC / args.arm / 'counts.json', dict(rows=rows,
-        server_sha256=counts.sha(objects / 'tomokv'), tracer_sha256=counts.sha(counts.BUILD / 'trace')))
+        server_sha256=counts.sha(server), tracer_sha256=counts.sha(counts.BUILD / 'trace')))
 
 
 if __name__ == '__main__':

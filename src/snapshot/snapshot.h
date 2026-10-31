@@ -23,9 +23,12 @@ class ThreadCtx;
 
 class SnapshotLoadPlan {
 public:
-    // Recovery teardown is cold. Keep its growing metadata cleanup out of the
-    // ordinary scatter dispatcher's register allocation and inline budget.
+    // The db0 dispatch unit needs cold metadata cleanup out of line to preserve
+    // its ordinary-path register allocation. The normal unit retains inlining;
+    // both choices are checked by the command-scope PRE/POST census.
+#if defined(TOMO_SINGLE_DATABASE) && TOMO_SINGLE_DATABASE
     [[gnu::noinline]] ~SnapshotLoadPlan() = default;
+#endif
     uint32_t routing_version = 1;
     DatabaseMap::Map database_map;
     uint32_t shard_count = 0;

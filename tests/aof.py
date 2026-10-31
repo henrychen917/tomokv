@@ -441,7 +441,11 @@ def committed_group_tickets(data):
     if len(data) < 80 or data[:8] != b"TOMOAOF\0":
         raise AssertionError("invalid AOF increment header")
     tickets = set()
-    pos = 80
+    # The native header can carry the DB mapping and FUNCTION2 records. This
+    # model compares shard record bytes; library persistence has directed rows.
+    pos = get_u32(12)
+    if (pos != 80 and pos < 336) or pos > len(data) - 32:
+        raise AssertionError("invalid snapshot metadata length")
     while pos < len(data):
         if len(data) - pos < 40 or data[pos:pos + 4] != b"AFRM":
             raise AssertionError("invalid AOF frame while scanning script records")
