@@ -20,7 +20,7 @@ for ordinal,row in enumerate(json.loads((OUT/'runs.json').read_text())):
             if not file.is_file():continue
             relative=file.relative_to(job)
             # Exclude datasets, binaries, pid files and temporary timeout markers.
-            if file.suffix not in ('.txt','.log','.json','.tsv') and file.name not in ('done','ledger','timings'):continue
+            if file.suffix not in ('.txt','.log','.json','.tsv') and file.name not in ('done','ledger','timings') and not file.name.startswith('gate-srv-'):continue
             data=file.read_bytes()
             digests.append(dict(path=str(relative),bytes=len(data),sha256=hashlib.sha256(data).hexdigest()))
             # Large build/server traces remain digest-bound on disk; preserve
