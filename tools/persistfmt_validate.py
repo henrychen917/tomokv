@@ -58,9 +58,13 @@ def main():
     assert set(os.sched_getaffinity(0)) <= set(range(96, 112))
     parser = argparse.ArgumentParser()
     parser.add_argument('--extra', action='store_true')
+    parser.add_argument('--repair-sidecar', action='store_true')
     args = parser.parse_args()
-    phases = EXTRA_PHASES if args.extra else PHASES
-    receipt = DOC / ('validation-extra.json' if args.extra else 'validation.json')
+    assert not (args.extra and args.repair_sidecar)
+    phases = ([('repair-sidecar', 'uring', '0', 'blockfix_registry')]
+              if args.repair_sidecar else EXTRA_PHASES if args.extra else PHASES)
+    receipt = DOC / ('validation-repair.json' if args.repair_sidecar else
+                     'validation-extra.json' if args.extra else 'validation.json')
     binary = ROOT / 'build/persistfmt/POST/tomokv'
     digest = sha(binary)
     records = []

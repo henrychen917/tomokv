@@ -133,6 +133,10 @@ Completed on the corrected, frozen POST:
   `differ-verdict.json` retains the gate's seed manifests and all leg counts.
   The only declared suite skips are `sort` in the armed geometry; its split 6:2
   cases run and pass on both engines.
+- The complete AT412 scripting/function jobs pass all 423 Python legs and eight
+  owner-unit invocations. `atomic-verdict.json` enumerates every leg. The existing
+  T14 `XS-OOM-1` allowance still records an EVAL/EVALSHA OOM error-suffix difference
+  in 16 TomoKV legs; this lane changes neither that error path nor its allowance.
 - `python3 tests/gates_test.py`: 76/76 pass on the quiet rerun. The earlier attempt
   under compilation/trace contention hit nine scheduler deadlines; both logs remain.
 - `make -k -j16 all` with all 51 main `job_production_units` targets, plus the
@@ -169,6 +173,14 @@ The increment parser is restored to its fixed 80-byte header, and only the
 snapshot model reads the declared metadata length. Both complete AOF jobs are
 included in the later rerun, with all their mode/atomic legs. This changes no
 production bytes and removes no assertion.
+
+The first supplemental `blockfix_registry` run passed all 24 compatibility legs
+but failed its cost-binding check: the frozen POST directory lacked the already
+built `blockfix-cost` helper and its adjacent SHA file. The matching helper is
+now packaged beside POST, with both binaries verified against the production
+build's binding. `post-gate-sidecars.json` records that copy. The complete job,
+including its instruction check and all compatibility legs, is queued for rerun
+through `tools/persistfmt_validate.py --repair-sidecar`.
 
 The instruction instrument is `tools/persistfmt_counts.py`: the existing bounded
 production command scope plus a snapshot save/load-loop fixture, under ptrace.
@@ -255,3 +267,6 @@ streams or function libraries, same shard/mode/engine geometry and save director
 storage. Retain per-key time and total time, separating the fixed per-file work.
 No throughput or BGSAVE timing claim is made by this lane. The maintainer owns
 these measurements and the merge.
+
+**NOT RUN by this lane:** the 18 performance cells, BGSAVE timing measurements,
+and full `tests/gate.sh iteration`, as required by the runtime authorization.
