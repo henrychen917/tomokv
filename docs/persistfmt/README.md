@@ -26,7 +26,7 @@ Earlier census directories are retained as rejected/superseded experiments:
 The initial concurrent loader trial shared a temporary ranges filename and is
 invalid. Its count files were deleted; `loader-trials.json` records the reason.
 The corrected loader2 trials used a separate real directory for each executable.
-The final PRE/FINAL4 instruments always use distinct directories per arm and
+The final PRE/FINAL5 instruments always use distinct directories per arm and
 namespace. No invalid trial contributes to the final verdict.
 
 `snapshot-ipa.json` records compiler-estimated unit growth; `snapshot-budgets.json`
@@ -34,13 +34,17 @@ records the selected budgets and hashes of discarded compile trials.
 `layouts.json` reads the locked types and persistence/Server layout from all three
 frozen binaries. `pad-build.json` records the build-only behavior twin.
 
-Correctness receipts are `validation.json`, `validated-*.log` and the named gate
+Correctness receipts are `validation.json`, `validation-extra.json`,
+`validated-*.log` and the named gate
 archives in `validation-archives.json`. `tools/persistfmt_validate.py` invokes
 whole jobs through the real gate interface and preserves all later phases after
 a failure. No performance phase, full iteration, load generator or throughput
 claim is included. Earlier `post-*` and `final-directed*` logs are intermediate
-receipts; their failures/retries remain visible. The intentionally aborted
-`final-matrix-uring` run stopped during rebuilding and is not a correctness result.
+receipts; their failures/retries remain visible. One early matrix was stopped
+during rebuilding. The FINAL4 matrix was stopped after the NOFLUSH/SWAPDB defect
+was found; its Tcl and uring differential jobs had passed, but its incomplete
+overall ledger is not a final correctness result. `final4-validation-abort.json`
+records that interruption. The delivered candidate repeats the complete matrix.
 
 `gates-test.log` is the first scheduler self-test attempt under compilation/trace
 contention; `gates-test-final.log` is the quiet 76/76 pass. PRE witnesses and the

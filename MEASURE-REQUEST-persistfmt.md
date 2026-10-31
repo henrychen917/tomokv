@@ -119,8 +119,7 @@ Final correctness validation is still running. These are partial job-interface r
 never a full `iteration`, a throughput benchmark, or a push receipt. EXPECT_QUICK
 and EXPECT_FULL are unchanged.
 
-Completed before the final namespace correction (these receipts are retained;
-the final matrix repeats affected jobs on corrected POST):
+Completed on the corrected, frozen POST:
 
 - Tcl passing-subset job in both modes: 1,820 passing assertions per mode, including
   all three promotions. Its five existing setup errors per mode remain explicitly
@@ -132,6 +131,10 @@ the final matrix repeats affected jobs on corrected POST):
   pass, including `all`; the inherently phony live-arm target is verified by its
   successful build and inner builds. Receipts are `all-production-build.json` and
   `freshness.json`. The main binary still matches frozen POST.
+
+The scheduler self-test covers unchanged gate code and was completed before the
+last C++ namespace correction. The Tcl and build receipts above were repeated
+after that correction and name the delivered POST hash.
 
 The first debug-compression sweep changed some unit executable timestamps, leaving
 three aggregate readiness markers absent. This was an artifact-handling failure,

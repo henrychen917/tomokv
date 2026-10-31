@@ -1,7 +1,7 @@
 [
   {
     "mode": "1s",
-    "binary_sha256": "97daf71dc0ade64921fb738e7b5a5d1327d59050efd0b3a0f7159f8b03402fb8",
+    "binary_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
     "files": 37,
     "files_summary": [
       {
@@ -398,11 +398,34 @@
         "error": null,
         "setup_errors": []
       }
+    ],
+    "promoted_assertions": [
+      {
+        "status": "ok",
+        "file": "tests/unit/functions.tcl",
+        "test": "FUNCTION - test debug reload different options in tests/unit/functions.tcl",
+        "data": "FUNCTION - test debug reload different options",
+        "milliseconds": "1"
+      },
+      {
+        "status": "ok",
+        "file": "tests/unit/functions.tcl",
+        "test": "FUNCTION - test debug reload with nosave and noflush in tests/unit/functions.tcl",
+        "data": "FUNCTION - test debug reload with nosave and noflush",
+        "milliseconds": "1"
+      },
+      {
+        "status": "ok",
+        "file": "tests/unit/type/stream-cgroups.tcl",
+        "test": "Consumer seen-time and active-time in tests/unit/type/stream-cgroups.tcl",
+        "data": "Consumer seen-time and active-time",
+        "milliseconds": "202"
+      }
     ]
   },
   {
     "mode": "2s",
-    "binary_sha256": "97daf71dc0ade64921fb738e7b5a5d1327d59050efd0b3a0f7159f8b03402fb8",
+    "binary_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
     "files": 37,
     "files_summary": [
       {
@@ -798,6 +821,29 @@
         "exit_code": 0,
         "error": null,
         "setup_errors": []
+      }
+    ],
+    "promoted_assertions": [
+      {
+        "status": "ok",
+        "file": "tests/unit/functions.tcl",
+        "test": "FUNCTION - test debug reload different options in tests/unit/functions.tcl",
+        "data": "FUNCTION - test debug reload different options",
+        "milliseconds": "1"
+      },
+      {
+        "status": "ok",
+        "file": "tests/unit/functions.tcl",
+        "test": "FUNCTION - test debug reload with nosave and noflush in tests/unit/functions.tcl",
+        "data": "FUNCTION - test debug reload with nosave and noflush",
+        "milliseconds": "2"
+      },
+      {
+        "status": "ok",
+        "file": "tests/unit/type/stream-cgroups.tcl",
+        "test": "Consumer seen-time and active-time in tests/unit/type/stream-cgroups.tcl",
+        "data": "Consumer seen-time and active-time",
+        "milliseconds": "202"
       }
     ]
   }

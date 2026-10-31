@@ -631,5 +631,6 @@
     }
   ],
   "live_arms_note": "mdbqsbr-live-arms is a phony builder; successful job marker and build log attest its two arms.",
-  "binary_sha256": "97daf71dc0ade64921fb738e7b5a5d1327d59050efd0b3a0f7159f8b03402fb8"
+  "binary_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+  "source_commit": "fd1d24ca6"
 }
