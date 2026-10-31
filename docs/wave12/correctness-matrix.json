@@ -299,6 +299,7 @@
     "all ABBA/NIC/storm/EXEC/flushmerit load generators",
     "tailgen client-lb outstanding bound (inline row, no whole-job selector; open-loop load generator)",
     "atomic RYOW rate assertions (GATE_PROOF_NO_RATES=1 in selected partial jobs only)",
+    "xmove release size-ratio timing assertions (value/ownership assertions remain active)",
     "wave12 wave-null / fixed-anchor race / contended script / writer-wait / FLUSH latency merit"
   ],
   "script_bounds_atomic0_each_mode_engine": [
