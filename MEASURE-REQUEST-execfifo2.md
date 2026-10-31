@@ -82,6 +82,14 @@ will be retained under `docs/execfifo2/`. This is a selected-job proof, never a
 full iteration receipt. The full iteration and all performance cells are
 **NOT RUN** by this lane.
 
+### Instruction counts
+
+**48/48 ordinary command cells are exactly PRE = POST:** GET/SET/INCR/MGET/MSET,
+batches 1 and 32, both modes and both namespaces, including both MSET atomic
+paths. Raw counts, linked-image identities and the bounded compiler-budget
+derivation are in `docs/execfifo2/instructions.md` and `commands/`. Uncontended
+EXEC attribution is in progress; no speed inference is made from these counts.
+
 ### Falsification controls
 
 All **12/12** process-local GDB controls detected the intended break, in both
