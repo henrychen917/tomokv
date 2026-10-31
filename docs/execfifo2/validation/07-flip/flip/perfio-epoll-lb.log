@@ -1,0 +1,9 @@
+{"affinity": [24, 25, 26, 27, 28, 29, 30, 31], "argv": ["taskset", "-c", "8-15", "/home/user/Projects/cx-execfifo2/build/tomokv", "--bind", "127.0.0.1", "--port", "20103", "--dir", "/home/user/Projects/cx-execfifo2/build/gate-run.yrePv1/jobs/flip/perfio-epoll-lb/epoll-lb", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--databases", "1", "--thread-mode", "2s", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--client-lb", "1", "--ratio", "6:2"], "event": "boot"}
+{"duplicates": 0, "event": "epoll", "phase": "lb-initial", "registrations": 97, "stale": 0}
+{"commands": 3841, "event": "events", "events": 3841, "per_command": 1.0, "phase": "lb-initial"}
+{"after": 1, "attempts": 90, "before": 0, "client_id": 4, "destination_io": 4, "event": "lb-witness", "source_io": 3, "trigger": "DEBUG CLIENT-LB"}
+{"duplicates": 0, "event": "epoll", "phase": "lb-moved", "registrations": 97, "stale": 0}
+{"actual_ep": [24], "actual_io": 4, "client_id": 4, "destination_ep": 24, "destination_io": 4, "event": "lb-destination", "inode": 1646881548, "source_ep": 16, "source_io": 3}
+{"commands": 3841, "event": "events", "events": 3841, "per_command": 1.0, "phase": "lb-moved"}
+{"event": "stop", "pid": 2564452, "rc": 0}
+{"case": "epoll-lb", "elapsed_s": 1.0651108073070645, "result": "PASS"}

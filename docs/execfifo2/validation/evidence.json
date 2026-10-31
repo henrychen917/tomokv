@@ -1068,5 +1068,482 @@
         "evidence": "docs/execfifo2/validation/06-features/release"
       }
     ]
+  },
+  {
+    "group": "flip",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "flipctl flip fliplisten flipfix5",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/flip-1793442765582485133.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.yrePv1",
+    "jobs_evidence": [
+      {
+        "name": "flip",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.yrePv1/jobs/flip",
+        "evidence": "docs/execfifo2/validation/07-flip/flip"
+      },
+      {
+        "name": "flipctl",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.yrePv1/jobs/flipctl",
+        "evidence": "docs/execfifo2/validation/07-flip/flipctl"
+      },
+      {
+        "name": "flipfix5",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.yrePv1/jobs/flipfix5",
+        "evidence": "docs/execfifo2/validation/07-flip/flipfix5"
+      },
+      {
+        "name": "fliplisten",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.yrePv1/jobs/fliplisten",
+        "evidence": "docs/execfifo2/validation/07-flip/fliplisten"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.yrePv1/jobs/release",
+        "evidence": "docs/execfifo2/validation/07-flip/release"
+      }
+    ]
+  },
+  {
+    "group": "txn-uring",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/txn-uring-1793442976930351045.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.lkrK6C",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.lkrK6C/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/08-txn-uring/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.lkrK6C/jobs/release",
+        "evidence": "docs/execfifo2/validation/08-txn-uring/release"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.lkrK6C/jobs/txnorder-fused-0",
+        "evidence": "docs/execfifo2/validation/08-txn-uring/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.lkrK6C/jobs/txnorder-fused-1",
+        "evidence": "docs/execfifo2/validation/08-txn-uring/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.lkrK6C/jobs/txnorder-split-0",
+        "evidence": "docs/execfifo2/validation/08-txn-uring/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.lkrK6C/jobs/txnorder-split-1",
+        "evidence": "docs/execfifo2/validation/08-txn-uring/txnorder-split-1"
+      }
+    ]
+  },
+  {
+    "group": "txn-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/txn-epoll-1793443079267379994.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.RhH3KQ",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.RhH3KQ/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/09-txn-epoll/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.RhH3KQ/jobs/release",
+        "evidence": "docs/execfifo2/validation/09-txn-epoll/release"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.RhH3KQ/jobs/txnorder-fused-0",
+        "evidence": "docs/execfifo2/validation/09-txn-epoll/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.RhH3KQ/jobs/txnorder-fused-1",
+        "evidence": "docs/execfifo2/validation/09-txn-epoll/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.RhH3KQ/jobs/txnorder-split-0",
+        "evidence": "docs/execfifo2/validation/09-txn-epoll/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.RhH3KQ/jobs/txnorder-split-1",
+        "evidence": "docs/execfifo2/validation/09-txn-epoll/txnorder-split-1"
+      }
+    ]
+  },
+  {
+    "group": "broad-uring",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "0-15",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "16-31",
+      "--load-smt",
+      "",
+      "--ports",
+      "20100-20199"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order datafix2_watch atomfix5_watch blockfix2 blockfix_structure blockfix_registry blockfix_mkstream rlfix3_zc rlfix3_info readonly",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring"
+    },
+    "binary_sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "log": "/home/user/Projects/cx-execfifo2/build/execfifo2/validation/broad-uring-1793443180938281787.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO",
+    "jobs_evidence": [
+      {
+        "name": "atomfix5_watch",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/atomfix5_watch",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/atomfix5_watch"
+      },
+      {
+        "name": "blockfix2",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/blockfix2",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/blockfix2"
+      },
+      {
+        "name": "blockfix_mkstream",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/blockfix_mkstream",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/blockfix_mkstream"
+      },
+      {
+        "name": "blockfix_registry",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/blockfix_registry",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/blockfix_registry"
+      },
+      {
+        "name": "blockfix_structure",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/blockfix_structure",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/blockfix_structure"
+      },
+      {
+        "name": "datafix2_watch",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/datafix2_watch",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/datafix2_watch"
+      },
+      {
+        "name": "feature-armed-0",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/feature-armed-0",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/feature-armed-0"
+      },
+      {
+        "name": "feature-armed-1",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/feature-armed-1",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/feature-armed-1"
+      },
+      {
+        "name": "feature-split-0",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/feature-split-0",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/feature-split-0"
+      },
+      {
+        "name": "feature-split-1",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/feature-split-1",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/feature-split-1"
+      },
+      {
+        "name": "fused-0",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/fused-0",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/fused-0"
+      },
+      {
+        "name": "fused-1",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/fused-1",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/fused-1"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/notify",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/notify_aof",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/notify_order",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/notifycompat",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/notifycompat"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/production_units",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/production_units"
+      },
+      {
+        "name": "readonly",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/readonly",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/readonly"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/release",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/release"
+      },
+      {
+        "name": "rlfix3_info",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/rlfix3_info",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/rlfix3_info"
+      },
+      {
+        "name": "rlfix3_zc",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/rlfix3_zc",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/rlfix3_zc"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/trackfix_accounting",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/trackfix_order",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/tracking_redirect",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/tracking_redirect"
+      },
+      {
+        "name": "txn_group_fused",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/txn_group_fused",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/txn_group_fused"
+      },
+      {
+        "name": "txn_group_split",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/txn_group_split",
+        "evidence": "docs/execfifo2/validation/10-broad-uring/txn_group_split"
+      }
+    ]
   }
 ]
