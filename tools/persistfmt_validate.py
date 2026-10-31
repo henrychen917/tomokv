@@ -5,6 +5,7 @@ The first phase includes all persistence/script families and the standard
 differential inventory. The second covers ordinary epoll boots. The last two
 exercise jobs whose optional fused boot is selected by GATE_TXN_FUSED.
 """
+import argparse
 import hashlib
 import json
 import os
@@ -32,6 +33,22 @@ PHASES = [
 ]
 
 
+# These families own additional shutdown, scripting and stream assertions outside
+# the main feature/persistence jobs. Keep complete jobs, including all inner legs.
+EXTRA = ('climonfix persistfix_units aof_frame serverfix_waitaof infofix_compat-loadaof '
+         'blockfix_registry blockfix_structure blockfix_mkstream notify ' +
+         ' '.join(f'climonfix4-{m}-{e}' for m in ('1s', '2s') for e in ('uring', 'epoll')) + ' ' +
+         ' '.join('at412-' + c for c in
+                  ('T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11a','T11b',
+                   'T12','T13','T14','T15','T16','owner')))
+EXTRA_PHASES = [
+    ('extra-uring', 'uring', '0', EXTRA),
+    ('extra-epoll', 'epoll', '0', 'climonfix notify'),
+    ('extra-fused-uring', 'uring', '1', 'script_bounds notify aof_frame notify_aof'),
+    ('extra-fused-epoll', 'epoll', '1', 'script_bounds notify aof_frame notify_aof'),
+]
+
+
 def sha(path):
     with path.open('rb') as f:
         return hashlib.file_digest(f, 'sha256').hexdigest()
@@ -39,12 +56,18 @@ def sha(path):
 
 def main():
     assert set(os.sched_getaffinity(0)) <= set(range(96, 112))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--extra', action='store_true')
+    args = parser.parse_args()
+    phases = EXTRA_PHASES if args.extra else PHASES
+    receipt = DOC / ('validation-extra.json' if args.extra else 'validation.json')
     binary = ROOT / 'build/persistfmt/POST/tomokv'
     digest = sha(binary)
     records = []
-    for name, engine, fused, jobs in PHASES:
+    for name, engine, fused, jobs in phases:
         env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
                    GATE_ONLY_JOBS=jobs, GATE_NET_IO=engine, GATE_DIFFER_NET_IO=engine,
+                   GATE_SHUTDOWN_NET_IO=engine,
                    GATE_TXN_FUSED=fused, GATE_PROOF_NO_RATES='1', GATE_PERSISTFMT_REPEATS='240')
         argv = ['bash', 'tests/gate.sh', 'full', '--server-cores', '96-103',
                 '--load-cores', '104-111', '--ports', '20500-20599',
@@ -59,11 +82,11 @@ def main():
         ledger = (run / 'ledger.partial').read_text() if run and (run / 'ledger.partial').exists() else ''
         record = dict(phase=name, argv=argv, env={k: env[k] for k in
                       ('LC_ALL', 'REDIS74_ROOT', 'GATE_ONLY_JOBS', 'GATE_NET_IO',
-                       'GATE_DIFFER_NET_IO', 'GATE_TXN_FUSED', 'GATE_PROOF_NO_RATES',
+                       'GATE_DIFFER_NET_IO', 'GATE_SHUTDOWN_NET_IO', 'GATE_TXN_FUSED', 'GATE_PROOF_NO_RATES',
                        'GATE_PERSISTFMT_REPEATS')}, binary_sha256=digest,
                       returncode=result.returncode, run_dir=str(run), ledger=ledger)
         records.append(record)
-        (DOC / 'validation.json').write_text(json.dumps(records, indent=2) + '\n')
+        receipt.write_text(json.dumps(records, indent=2) + '\n')
         print('DONE', name, result.returncode, flush=True)
     # Preserve all legs even if a preceding job/phase failed.
     raise SystemExit(int(any(r['returncode'] for r in records)))

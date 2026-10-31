@@ -334,5 +334,19 @@
     "after_bytes": 229075392,
     "before_sha256": "cc8b986ee3fd446d0846f418a73d5056d4d3f546925691946d673de39f1212c6",
     "after_sha256": "a8c3a2f21a14206ab221016c8aa3d3dae180780104f046e43f3526e86a62991d"
+  },
+  {
+    "path": "build/blockfix2-db0-unit",
+    "before_bytes": 209348992,
+    "after_bytes": 88947112,
+    "before_sha256": "d6cfd40f28614e7e59bbe484fe584c502b721ba0f9f8c81c12683098d5e73b7f",
+    "after_sha256": "83a6ec221e6d7ceca83369515aeee105ed5745cacbcff28c0183f902633cb927"
+  },
+  {
+    "path": "build/blockfix2-unit",
+    "before_bytes": 107658952,
+    "after_bytes": 45815304,
+    "before_sha256": "a503a4f4d2841d55b86e0f4b6d373fa7e83f479b8e2cc9d66b97640a275c97c3",
+    "after_sha256": "0724c7c8b86aaac179021c13113a62a405c1704fa2029076074b0bb06c239ade"
   }
 ]

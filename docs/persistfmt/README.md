@@ -45,4 +45,9 @@ repeats those S1 rows on the delivered POST bytes.
 `deleted-*.json`, archive manifests, and debug-compression receipts account for
 disk cleanup. Only completed-job data and superseded arms were removed. Fresh
 unit executables may have compressed debug sections; their code sections are
-unchanged. Delivered PRE/POST/PAD-A binaries are not debug-rewritten.
+unchanged. Delivered PRE/POST/PAD-A binaries are not debug-rewritten. The first
+compression sweep changed executable mtimes and invalidated three aggregate
+readiness checks (wb-rule, wbland, persistfix). `freshness-initial.json` records
+that artifact problem. The extra gate phases rebuild the real targets and rerun
+the affected AOF framing job; no readiness marker is manufactured. Further
+cleanup removes completed data only and does not rewrite unit executables.
