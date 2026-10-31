@@ -236,17 +236,21 @@ def boot_pair(args):
     processes = []
     try:
         for label, command in (
-            ("target", ["taskset", "-c", "112-115", args.target_bin,
+            ("target", ["taskset", "-c", args.cores, args.target_bin,
                         "--port", str(args.target_port), "--bind", args.host,
-                        "--databases", "1", "--shards", "2", "--no-pin", "--atomic", str(args.atomic)]),
-            ("oracle", ["taskset", "-c", "116-119", args.oracle_bin,
+                        "--databases", "1", "--shards", "16", "--thread-mode", args.mode,
+                        "--net-io", args.engine, "--ratio", args.ratio, "--save", "",
+                        "--appendonly", "no", "--dir", args.target_dir, "--atomic", str(args.atomic)]),
+            ("oracle", ["taskset", "-c", args.cores, args.oracle_bin,
                         "--port", str(args.oracle_port), "--bind", args.host,
+                        "--dir", args.oracle_dir,
                         "--protected-mode", "no", "--save", "", "--appendonly", "no"]),
         ):
             log = tempfile.NamedTemporaryFile(prefix="wiredump-%s-" % label,
                                               suffix=".log", delete=False)
             logs.append(log)
-            process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
+            process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT,
+                                       env=dict(os.environ, LC_ALL='C'))
             processes.append(process)
             wait_ready(args.host, args.target_port if label == "target" else args.oracle_port,
                        process, label, log.name)
@@ -365,8 +369,11 @@ def run(args):
 
         target.cmd("DEL", "stream-cut")
         expect(target.cmd("XADD", "stream-cut", "1-0", "f", "v"), b"1-0", "stream seed")
-        expect_error(target.cmd("DUMP", "stream-cut"), b"ERR object could not be serialized",
-                     "stream DUMP scope cut")
+        stream_payload = target.cmd("DUMP", "stream-cut")
+        expect(oracle.cmd("RESTORE", "stream-cut", 0, stream_payload, "REPLACE"), b"OK",
+               "Redis restores TomoKV stream")
+        expect(oracle.cmd("XRANGE", "stream-cut", "-", "+"),
+               target.cmd("XRANGE", "stream-cut", "-", "+"), "stream interchange")
 
         rng = random.Random(0xD00F74)
         rejected = 0
@@ -399,11 +406,17 @@ def main():
     parser.add_argument("--target-bin", default="build/tomokv")
     parser.add_argument("--oracle-bin",
                         default="/tmp/claude-1000/redis74/src/redis-server")
+    parser.add_argument("--cores", default="0-7")
+    parser.add_argument("--mode", choices=("1s", "2s"), default="2s")
+    parser.add_argument("--engine", choices=("epoll", "uring"), default="uring")
+    parser.add_argument("--ratio", default="6:2")
     args = parser.parse_args()
 
     processes, logs = [], []
     try:
         if args.boot:
+            args.target_dir = tempfile.mkdtemp(prefix="wiredump-target-")
+            args.oracle_dir = tempfile.mkdtemp(prefix="wiredump-oracle-")
             processes, logs = boot_pair(args)
         run(args)
     finally:

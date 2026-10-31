@@ -3497,7 +3497,7 @@ job_persistfmt(){
   for mode in 1s 2s; do for engine in epoll uring; do
     # Native AOF has always required a snapshot preamble. The unsupported no
     # format is documented in MEASURE-REQUEST-persistfmt.md, not a passing row.
-    for case in stream-roundtrip stream-interchange stream-options save bgsave shutdown reload aof-yes aof-failure; do
+    for case in stream-roundtrip stream-interchange stream-options wire-values save bgsave shutdown reload aof-yes aof-failure; do
       label="persistfmt $case ($mode, $engine)"
       row_begin "$label"
       py tests/persistfmt.py "$case" --binary "$CANDIDATE_BINARY" \

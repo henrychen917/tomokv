@@ -11,6 +11,8 @@ import os
 from pathlib import Path
 import select
 import signal
+import subprocess
+import sys
 import time
 
 import aoffix2 as h
@@ -275,7 +277,7 @@ def aof_failure():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('case', choices=['stream-roundtrip', 'stream-interchange', 'stream-options',
+    parser.add_argument('case', choices=['stream-roundtrip', 'stream-interchange', 'stream-options', 'wire-values',
                                        'save', 'bgsave', 'shutdown', 'reload', 'aof-yes', 'aof-no',
                                        'aof-failure', 'aof-repeat'])
     parser.add_argument('--binary', type=Path, required=True)
@@ -297,6 +299,13 @@ if __name__ == '__main__':
     h.ARGS = ARGS
     if ARGS.case.startswith('stream-'):
         globals()[ARGS.case.replace('-', '_')]()
+    elif ARGS.case == 'wire-values':
+        for atomic in (0, 1):
+            subprocess.run([sys.executable, 'tests/wiredump.py', '127.0.0.1', str(ARGS.port),
+                '--oracle-port', str(ARGS.port + 1), '--atomic', str(atomic), '--boot',
+                '--target-bin', str(ARGS.binary), '--oracle-bin', str(ARGS.oracle_binary),
+                '--cores', ARGS.cores, '--mode', ARGS.mode, '--engine', ARGS.engine,
+                '--ratio', ARGS.ratio], check=True)
     elif ARGS.case == 'aof-failure':
         aof_failure()
     elif ARGS.case == 'aof-repeat':
