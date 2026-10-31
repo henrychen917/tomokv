@@ -40,6 +40,7 @@ def main():
                                  mode='1s' if run['env']['GATE_TXN_FUSED'] == '1' else '2s',
                                  engine=run['env']['GATE_NET_IO'],
                                  atomic=run['env'].get('GATE_TXN_ATOMIC', '1'),
+                                 release_footprints=run['env'].get('GATE_PROOF_NO_RATES') == '0',
                                  passed=job.get('exit') == 0 and job.get('failed') == 0,
                                  details=job))
 
@@ -62,12 +63,14 @@ def main():
     for job in matrix['each_mode_engine']:
         for mode in ('1s', '2s'):
             for engine in ('uring', 'epoll'):
-                require(job, mode=mode, engine=engine)
+                require(job, mode=mode, engine=engine,
+                        **({'atomic': '1'} if job == 'script_bounds' else {}))
     for mode in ('1s', '2s'):
         for engine in ('uring', 'epoll'):
             require('script_bounds', mode=mode, engine=engine, atomic='0')
-            require('script_bounds', mode=mode, engine=engine, atomic='1')
     for engine in ('uring', 'epoll'):
+        for job in matrix['release_footprints_each_engine']:
+            require(job, engine=engine, release_footprints=True)
         for job in ('differ-split-0', 'differ-split-1', 'differ-armed-0',
                     'differ-armed-1', 'differ-equivalence'):
             require(job, engine=engine)

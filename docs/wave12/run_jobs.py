@@ -13,7 +13,11 @@ p.add_argument('--server-start', type=int, choices=(64,72,80,88))
 p.add_argument('--asan-binary', type=Path)
 p.add_argument('--load-cores')
 p.add_argument('--manifest', type=Path)
+p.add_argument('--release-footprints', action='store_true',
+               help='Enable stream memory bounds only in the four feature correctness jobs')
 a=p.parse_args()
+if a.release_footprints:
+    assert set(a.jobs) <= {'feature-split-0','feature-split-1','feature-armed-0','feature-armed-1'}
 def tree_digest(paths):
     names=subprocess.check_output(['git','ls-files','-z','--',*paths],cwd=ROOT).split(b'\0')
     digest=hashlib.sha256()
@@ -42,7 +46,8 @@ binary=(ROOT/a.binary).resolve()
 env=dict(os.environ,LANG='C',LC_ALL='C',REDIS74_ROOT='/home/user/Projects/redis',
     GATE_ONLY_JOBS=' '.join(a.jobs),GATE_NET_IO=a.engine,GATE_PROOF_NET_IO=a.engine,
     GATE_ZC_NET_IO=a.engine,GATE_SHUTDOWN_NET_IO=a.engine,GATE_DIFFER_NET_IO=a.engine,
-    GATE_TXN_FUSED=str(int(a.fused)),GATE_TEST_PORT='20098',GATE_PROOF_NO_RATES='1',
+    GATE_TXN_FUSED=str(int(a.fused)),GATE_TEST_PORT='20098',
+    GATE_PROOF_NO_RATES='0' if a.release_footprints else '1',
     GATE_LEDGER=str(output/(a.name+'.tsv')))
 
 if a.manifest is not None:

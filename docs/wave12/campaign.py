@@ -23,6 +23,11 @@ elif a.phase=='secondary':
         runs.append((f"secondary-{'1s' if fused else '2s'}-{engine}",
                      [j for j in jobs if j not in quiet],fused,engine,{}))
 elif a.phase=='quiet':
+    # GATE_PROOF_NO_RATES also suppresses stream's three release memory bounds.
+    # These four feature jobs contain no throughput/load-generator job; restore
+    # their normal release assertions in both engines before the quiet checks.
+    runs=[('footprints-'+engine,M['release_footprints_each_engine'],False,engine,{})
+          for engine in ('uring','epoll')]
     for fused in (False,True):
         for engine in ('uring','epoll'):
             jobs=['atomic_batteries']
@@ -46,7 +51,9 @@ for name,jobs,fused,engine,extra in runs:
     argv=[sys.executable,str(DOC/'run_jobs.py'),name,*dict.fromkeys(jobs),
           '--binary','build/tomokv','--engine',engine,'--port','20020']
     if fused:argv+=['--fused']
-    if a.phase in ('quiet','bounds0'):argv+=['--single-slot']
+    footprints=name.startswith(a.prefix+'-footprints-')
+    if footprints:argv+=['--release-footprints']
+    if a.phase in ('quiet','bounds0') and not footprints:argv+=['--single-slot']
     if a.asan_binary:argv+=['--asan-binary',str(a.asan_binary.resolve())]
     print('running',name,len(jobs),'jobs',flush=True)
     result=subprocess.run(argv,cwd=ROOT,env=dict(os.environ,**extra))

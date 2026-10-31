@@ -304,6 +304,12 @@
   "script_bounds_atomic0_each_mode_engine": [
     "script_bounds"
   ],
+  "release_footprints_each_engine": [
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1"
+  ],
   "idle_last": [
     "flushfix3"
   ]
