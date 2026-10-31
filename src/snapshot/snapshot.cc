@@ -1234,6 +1234,61 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
     return load_shard<false>(plan, server, shard, error);
 }
 
+// NOFLUSH retains live objects in their physical namespaces. Rebase only the
+// incoming image when SWAPDB has changed the logical-to-physical map since SAVE;
+// publishing the saved map would otherwise relocate those retained live keys.
+// This administrative preparation never runs in the ordinary save/load loops.
+[[gnu::cold, gnu::noinline]]
+static bool remap_reload_namespaces(SnapshotLoadPlan& plan, Server& server,
+                                    std::string& error) {
+    if constexpr (kSingleDatabase) return true;
+    const DatabaseMap::Map current = server.databases().capture();
+    if (plan.database_map == static_cast<const DatabaseMap::Payload&>(current)) return true;
+    std::array<uint8_t, 256> logical{};
+    for (unsigned i = 0; i < logical.size(); ++i) logical[plan.database_map[i]] = i;
+    try {
+        std::vector<std::vector<uint8_t>> sections(plan.shard_count);
+        const bool legacy = legacy_routing(plan.routing_version, plan.shard_count);
+        for (uint32_t source = 0; source < plan.shard_count; ++source) {
+            const auto& section = plan.sections[source];
+            size_t pos = 0;
+            while (pos < section.size()) {
+                if (section.size() - pos < kRecordHeaderBytes) {
+                    error = "truncated record"; return false;
+                }
+                const uint8_t* h = section.data() + pos;
+                const uint32_t key_len = snapshot_get_u32(h + 8);
+                const uint64_t payload_len = snapshot_get_u64(h + 16);
+                if (snapshot_get_u32(h) != kRecordTag || payload_len > UINT32_MAX ||
+                    uint64_t(key_len) + payload_len > section.size() - pos - kRecordHeaderBytes ||
+                    h[6] >= server.cfg().databases || logical[h[6]] >= server.cfg().databases) {
+                    error = "invalid record lengths or namespace"; return false;
+                }
+                const char* bytes = reinterpret_cast<const char*>(h + kRecordHeaderBytes);
+                const uint64_t old_hash = FlatStore::hash_key(Slice(bytes, key_len, h[6]));
+                if ((legacy ? legacy_shard(old_hash, plan.shard_count)
+                            : server.router().shard_of(old_hash)) != source) {
+                    error = "snapshot key is in the wrong shard section"; return false;
+                }
+                const uint8_t physical = current[logical[h[6]]];
+                const uint64_t hash = FlatStore::hash_key(Slice(bytes, key_len, physical));
+                auto& destination = sections[server.router().shard_of(hash)];
+                const size_t offset = destination.size();
+                const size_t length = kRecordHeaderBytes + size_t(key_len) + size_t(payload_len);
+                destination.insert(destination.end(), h, h + length);
+                destination[offset + 6] = physical;
+                pos += length;
+            }
+        }
+        plan.sections = std::move(sections);
+        plan.database_map = current;
+        plan.routing_version = persistence_routing_version(plan.shard_count);
+        return true;
+    } catch (const std::bad_alloc&) {
+        error = "out of memory remapping snapshot namespaces"; return false;
+    }
+}
+
 bool prepare_debug_reload(Server& server, Op& op, uint32_t owner_io,
                           std::unique_ptr<SnapshotLoadPlan>& plan) {
     bool save = true, flush = true, merge = false;
@@ -1260,7 +1315,7 @@ bool prepare_debug_reload(Server& server, Op& op, uint32_t owner_io,
     }
     const std::string path = server.snapshot().dir() + "/" + server.snapshot().dbfilename();
     plan = snapshot_read_plan(path.c_str(), server.nshards(), error);
-    if (plan && function_snapshot_load(
+    if (plan && (flush || remap_reload_namespaces(*plan, server, error)) && function_snapshot_load(
             Slice(reinterpret_cast<const char*>(plan->functions.data()), plan->functions.size()),
             flush, merge, error)) {
         plan->flush = flush; plan->merge = merge; plan->functions_loaded = true;
