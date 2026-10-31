@@ -1,10 +1,10 @@
 {
   "kind": "A: behavior twin",
-  "post_sha256": "7c8bbe4fd24a7ffd0ed4606827f16ca11456dbcc8056a6d6bc2ccf2caa36b9fc",
-  "pad_sha256": "bfdf11b237cb57afdf03d4ca7691c5cbf9afd26c25e7ad5aabb8a4ecdb3da338",
-  "post_text": 8773687,
-  "unpadded_text": 8739287,
-  "unreachable_padding": 34400,
+  "post_sha256": "97daf71dc0ade64921fb738e7b5a5d1327d59050efd0b3a0f7159f8b03402fb8",
+  "pad_sha256": "848ace71e4e8a48e76add7aff9380a93b0d9cf19da427abde2aa5fc85f11095e",
+  "post_text": 8775847,
+  "unpadded_text": 8741623,
+  "unreachable_padding": 34224,
   "rodata_padding": 256,
   "recipes": [
     [
@@ -51,7 +51,7 @@
       "--param",
       "inline-unit-growth=0",
       "--param",
-      "large-unit-insns=15335",
+      "large-unit-insns=16630",
       "-DTOMO_JEMALLOC",
       "-I.",
       "-c",
@@ -127,7 +127,7 @@
       "--param",
       "inline-unit-growth=0",
       "--param",
-      "large-unit-insns=14756",
+      "large-unit-insns=15956",
       "-DTOMO_JEMALLOC",
       "-DTOMO_SINGLE_DATABASE=1",
       "-Dtomo=tomo_db0",
