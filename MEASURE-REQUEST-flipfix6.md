@@ -200,7 +200,7 @@ Every correctness run uses the gate job interface and its own declared geometry;
 no full iteration, performance benchmark or load-generator merit run is started.
 
 The new jobs add two serverless rows at `collect_job flipfix6_units` and one live
-row at `collect_job flipfix6`, all **before** the quick-tier exit. **DQ=+3, DF=+3**.
+row at `collect_job flipfix6`, at lines **6138 / 6352**, both **before** the quick-tier exit at line **6412**. **DQ=+3, DF=+3**.
 `EXPECT_QUICK=977` / `EXPECT_FULL=994` are untouched; the owner update is **980 / 997**.
 The existing planned-close test now asserts the approved prompt refusal while
 retaining ownership/lifetime/quota checks. The BLPOP-held IoDrain signal test in
@@ -252,5 +252,8 @@ correctness jobs. The correctness stall limits above are not a merit measurement
 Disk: superseded S2 arm binaries/source were removed after SHA/count retention;
 non-delivery unit debug sections were compressed with every allocated section
 verified unchanged (`debug-compression.json`). PRE/POST/PAD-A were not compressed.
-Further source/log cleanup follows the final evidence archive; target is under
-about 20 GiB in `build/`.
+The first directed run is archived in `gate-session-evidence.tar.gz`. Raw log
+SHA-256s and counts are in `gate-session-archive.json`; repetitive per-tenure
+timing lines/arrays were retired after recording their counts. Boot arguments,
+exit records, control evidence and derived shutdown summaries remain. Further
+cleanup follows the remaining proofs; target is under about 20 GiB in `build/`.
