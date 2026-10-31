@@ -10,5 +10,17 @@
     "phase": "matrix-epoll",
     "archive": "docs/persistfmt/gate-run.Oty9Qh.tar.gz",
     "sha256": "7ba979906849ae26031c778753bcf8e225b3226f20b62e8057ba5e2e3b48d52c"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.yApXCL",
+    "phase": "fused-uring",
+    "archive": "docs/persistfmt/gate-run.yApXCL.tar.gz",
+    "sha256": "a397b80362a13e130c54552932a041f8f8e58e4d9d984069e69a98f0fbc17031"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.H9UIb0",
+    "phase": "fused-epoll",
+    "archive": "docs/persistfmt/gate-run.H9UIb0.tar.gz",
+    "sha256": "0b51a90a5ec39f721031d602091df103f8843da8ab092e76bb4dd2d6e5011ed0"
   }
 ]
