@@ -1,0 +1,12 @@
+atomic boundary entry=0
+  errors               ok
+  conditions           ok
+  reads                ok
+  write-interactions   ok
+  immediate-delete     ok
+  lazy-expiry          ok
+  active-expiry        ok
+  representations      ok
+  value-transport      ok
+hexpire: 207 checks (floor 206), 0 failures -> PASS
+atomic boundary restored=0
