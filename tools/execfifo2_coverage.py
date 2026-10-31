@@ -27,6 +27,19 @@ if 'fifo-contract' in latest:
     legs=list(run.glob('F*-txnorder-fifo-*.log'))
     expected=10*2*2*2*2
     summary['leg_inventories'].append(dict(job='txnorder_fifo',expected=expected,actual=len(legs),passed=len(legs)==expected and all('PASS' in file.read_text() and 'FAIL' not in file.read_text() for file in legs),source=str(run)))
+for engine in ('uring','epoll'):
+    if 'differ-'+engine not in latest:continue
+    run=Path(latest['differ-'+engine]['run_directory'])
+    plan=json.loads((run/'differ-plan.json').read_text())
+    for mode in ('split','armed'):
+        for atomic in (0,1):
+            file=run/'jobs'/f'differ-{mode}-{atomic}'/'differ/legs.tsv'
+            legs=[line.split('\t') for line in file.read_text().splitlines()]
+            expected={(suite,str(atomic),str(seed),'0') for suite in plan['suites'] for seed in plan['manifest']['seeds'] if mode!='armed' or suite!='sort'}
+            if atomic:
+                expected.update(('multi','1','19',str(repeat)) for repeat in range(1,plan['repeats']+1))
+            observed={tuple(leg[:4]) for leg in legs}
+            summary['leg_inventories'].append(dict(job=f'differ-{engine}-{mode}-{atomic}',expected=len(expected),actual=len(legs),seeds=plan['manifest']['seeds'],passed=observed==expected and len(legs)==len(expected) and all(leg[4]=='0' for leg in legs),source=str(file)))
 summary['passed']=not missing and not failed and all(r['passed_rows']>0 and r['failed_rows']==0 for r in summary['groups']) and all(r['passed'] for r in summary['leg_inventories'])
 allocation=dict(logs_with_banners=0,ports=set(),server_cpus=set(),outside_allocation=[])
 for row in rows:
