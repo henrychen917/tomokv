@@ -1,0 +1,65 @@
+{
+ "reason": "keep build/ under about 15G after the proof; every item is regenerable (gate prerequisites rebuild on the next gate run; probes and the PRE tree via docs/maxmemrace/instructions.py) and its evidence is recorded in docs/maxmemrace",
+ "removed": [
+  {
+   "path": "build/gate-run.CIlQ13",
+   "bytes": 1659817016
+  },
+  {
+   "path": "build/gate-run.9rNKLm",
+   "bytes": 1893579511
+  },
+  {
+   "path": "build/maxmemrace/pre-tree",
+   "bytes": 882304685,
+   "tomokv_sha256": "5ddfb25b705eb08584a84fc8bb01d9ee743df745b0d67d9dd377608748db8004"
+  },
+  {
+   "path": "build/maxmemrace/counts/pre-normal",
+   "bytes": 268428672,
+   "probe_sha256": "c19a96bc2a75b0f67b577f0930cc7973f999ed9736d1c7a270692b1d0307beb1"
+  },
+  {
+   "path": "build/maxmemrace/counts/pre-db0",
+   "bytes": 268551656,
+   "probe_sha256": "d6cf9d87799ef2a01c04d022b2b8028c4052324734ff78ddca6ef064ed97e026"
+  },
+  {
+   "path": "build/maxmemrace/counts/post-normal",
+   "bytes": 268516344,
+   "probe_sha256": "e63901513ff5e85d596f25ae443d4322b435278ffc2cb4a59b9caae0cb91a890"
+  },
+  {
+   "path": "build/maxmemrace/counts/post-db0",
+   "bytes": 268639264,
+   "probe_sha256": "03617321aea4d8dc594b30a621f53961a91b36c96bc499b0c6df53063150699a"
+  },
+  {
+   "path": "build/mdbqsbr2-park",
+   "bytes": 876011737,
+   "tomokv_sha256": "be7d2bc7c0da999e219d56710dd3ad3e16c17afadaf8d27e23ae5bf370a84a6b"
+  },
+  {
+   "path": "build/mdbqsbr2-no-wake",
+   "bytes": 876009129,
+   "tomokv_sha256": "bae3f6116b252b7b93321d0e22a7e5b9e718f61c3e50139fe5103c02ee89e6ac"
+  },
+  {
+   "path": "build/racefix-climon-objects",
+   "bytes": 876215753,
+   "tomokv_sha256": "e8d709d7b6292568ada7be9e0622f1b9279c91b08bad4bca65c5b7623fa500c3"
+  },
+  {
+   "path": "build/mdbqsbr-asan",
+   "bytes": 927074048
+  },
+  {
+   "path": "build/lbplanner-controls",
+   "bytes": 1059861264
+  },
+  {
+   "path": "build/wb-rule-controls",
+   "bytes": 1540529259
+  }
+ ]
+}
