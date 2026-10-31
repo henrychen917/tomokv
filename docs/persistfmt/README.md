@@ -35,6 +35,7 @@ records the selected budgets and hashes of discarded compile trials.
 frozen binaries. `pad-build.json` records the build-only behavior twin.
 
 Correctness receipts are `validation.json`, `validation-extra.json`,
+`validation-repair.json`,
 `validated-*.log` and the named gate
 archives in `validation-archives.json`. `tools/persistfmt_validate.py` invokes
 whole jobs through the real gate interface and preserves all later phases after
@@ -45,6 +46,14 @@ during rebuilding. The FINAL4 matrix was stopped after the NOFLUSH/SWAPDB defect
 was found; its Tcl and uring differential jobs had passed, but its incomplete
 overall ledger is not a final correctness result. `final4-validation-abort.json`
 records that interruption. The delivered candidate repeats the complete matrix.
+
+`validation-verdict.json` and `job-matrix.tsv` consolidate the final 142 job
+executions. Thirteen historical failed rows remain visible: twelve from a
+misplaced AOF test-parser edit and one from a missing helper beside the frozen
+candidate. Complete AOF and registry job reruns pass with no assertions removed.
+`post-gate-sidecars.json` binds the copied registry cost helper to POST.
+`atomic-verdict.json` lists all 423 AT412 Python legs and eight owner-unit calls,
+including the existing T14 OOM-suffix allowance. No failed job remains unresolved.
 
 `gates-test.log` is the first scheduler self-test attempt under compilation/trace
 contention; `gates-test-final.log` is the quiet 76/76 pass. PRE witnesses and the
@@ -62,5 +71,8 @@ that artifact problem. The extra gate phases rebuild the real targets and rerun
 the affected AOF framing job; no readiness marker is manufactured. Further
 control-binary debug compression uses `--preserve-dates`, restores the exact
 nanosecond timestamp, and verifies a hash of every allocated ELF section before
-and after. `control-debug-compression.json` records those checks. Data cleanup
-removes completed-job data only.
+and after. `control-debug-compression.json` and `debug-compression-final5.json`
+record those checks. Data cleanup removes completed-job data only.
+`remaining-gate-archives.json` accounts for the last historical run directories;
+`final-integrity.json` verifies arm/oracle hashes, unchanged EXPECT constants,
+11.47 GiB build storage, and no remaining lane servers.

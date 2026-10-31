@@ -1,0 +1,34 @@
+[
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.FX0ZX3",
+    "archive": "docs/persistfmt/gate-run.FX0ZX3.tar.gz",
+    "sha256": "b81bd4628f5a407b05f66233bd1a58172ffa4aa91989327df56766a7d71db09c",
+    "classification": "historical NOFLUSH witness after correction, before final budget",
+    "jobs": [
+      {
+        "job": "persistfmt",
+        "done": "0\t40\t0"
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0"
+      }
+    ]
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.onZQRj",
+    "archive": "docs/persistfmt/gate-run.onZQRj.tar.gz",
+    "sha256": "9fb55fa77fc7a74079a72d7414e31d8e5c92fe34ce4aaef41acd929ba895195e",
+    "classification": "historical aborted production build; not final validation",
+    "jobs": [
+      {
+        "job": "production_units",
+        "done": "1\t0\t2"
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0"
+      }
+    ]
+  }
+]

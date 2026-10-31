@@ -2,9 +2,9 @@
 
 Lane `cx-persistfmt`, based on `e32b04a445b056976abb308aa598e356fcbaae74`.
 No push. Correctness runs use CPUs 96–111, ports 20500–20599 and `LC_ALL=C`.
-This report is being completed while the corrected candidate's final validation
-runs. The arm manifest and FINAL5 instruction receipts below describe the corrected
-NOFLUSH/SWAPDB build, based on production-source commit `fd1d24ca6`.
+The delivered arms and FINAL5 instruction receipts describe production-source
+commit `fd1d24ca6`, including the NOFLUSH/SWAPDB correction. Later commits repair
+validation artifacts and record results; the production bytes remain frozen.
 
 ### Changes and PRE witnesses
 
@@ -115,9 +115,29 @@ Retained differences and additional findings:
 
 ### Validation and instruction counts
 
-Final correctness validation is still running. These are partial job-interface runs,
-never a full `iteration`, a throughput benchmark, or a push receipt. EXPECT_QUICK
-and EXPECT_FULL are unchanged.
+All supported requested correctness jobs have successful final runs. The nine
+partial gate invocations execute 142 jobs, including prerequisites and repeated
+mode/engine coverage. `validation-verdict.json` binds the results to POST;
+`job-matrix.tsv` lists every job. These are partial job-interface runs, never a
+full `iteration`, a throughput benchmark, or a push receipt. EXPECT_QUICK and
+EXPECT_FULL are unchanged.
+
+| Partial gate phase | Passing rows | Failed rows | Disposition |
+|---|---:|---:|---|
+| matrix-uring | 488 | 12 | AOF harness error; both complete jobs pass in later reruns |
+| matrix-epoll | 218 | 0 | Pass |
+| fused-uring | 184 | 0 | Pass, including both complete AOF jobs |
+| fused-epoll | 44 | 0 | Pass |
+| extra-uring | 175 | 1 | Missing cost-helper package; complete registry job passes later |
+| extra-epoll | 14 | 0 | Pass |
+| extra-fused-uring | 12 | 0 | Pass |
+| extra-fused-epoll | 12 | 0 | Pass |
+| repair-sidecar | 2 | 0 | Pass, including instruction check and 24 compatibility legs |
+
+The historical 13 failed rows remain in their original ledgers. Complete-job
+reruns resolve all of them; no unresolved failed job remains. Repeated row
+executions in this table do not change DQ/DF. The ordinary/fused AOF reruns total
+216/216 passing public rows across both engines.
 
 Completed on the corrected, frozen POST:
 
@@ -149,6 +169,10 @@ The scheduler self-test covers unchanged gate code and was completed before the
 last C++ namespace correction. The Tcl and build receipts above were repeated
 after that correction and name the delivered POST hash.
 
+Final integrity checks confirm all arm/oracle hashes, unchanged EXPECT constants,
+and unchanged production source after `fd1d24ca6`. Cleanup leaves `build/` at
+11.47 GiB with no lane servers running. `final-integrity.json` records the checks.
+
 The first debug-compression sweep changed some unit executable timestamps, leaving
 three aggregate readiness markers absent. This was an artifact-handling failure,
 not a green build receipt. Real make targets have since been rebuilt and checked;
@@ -179,8 +203,8 @@ but failed its cost-binding check: the frozen POST directory lacked the already
 built `blockfix-cost` helper and its adjacent SHA file. The matching helper is
 now packaged beside POST, with both binaries verified against the production
 build's binding. `post-gate-sidecars.json` records that copy. The complete job,
-including its instruction check and all compatibility legs, is queued for rerun
-through `tools/persistfmt_validate.py --repair-sidecar`.
+including its instruction check and all 24 compatibility legs, passes through
+`tools/persistfmt_validate.py --repair-sidecar`.
 
 The instruction instrument is `tools/persistfmt_counts.py`: the existing bounded
 production command scope plus a snapshot save/load-loop fixture, under ptrace.

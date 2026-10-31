@@ -22,5 +22,35 @@
     "phase": "fused-epoll",
     "archive": "docs/persistfmt/gate-run.H9UIb0.tar.gz",
     "sha256": "0b51a90a5ec39f721031d602091df103f8843da8ab092e76bb4dd2d6e5011ed0"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.yL6S8o",
+    "phase": "extra-uring",
+    "archive": "docs/persistfmt/gate-run.yL6S8o.tar.gz",
+    "sha256": "7c01d9cd0aa1a354b06e52fdb846d2f98981b21e006feb14bfd11073ab9f293c"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.aLMlhT",
+    "phase": "extra-epoll",
+    "archive": "docs/persistfmt/gate-run.aLMlhT.tar.gz",
+    "sha256": "38b641c1f2b2991d82975f8127a675fa4483f43050f162f97599bde6479bd0f6"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.bIvt6D",
+    "phase": "extra-fused-uring",
+    "archive": "docs/persistfmt/gate-run.bIvt6D.tar.gz",
+    "sha256": "be37283f9d19668923c34b5d6e8d5cb3662a270dc4fba9f676376d83fb6e4c67"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.KHmqp5",
+    "phase": "extra-fused-epoll",
+    "archive": "docs/persistfmt/gate-run.KHmqp5.tar.gz",
+    "sha256": "f9a94600f88e8126420315ba79b0d2aea305244f2c6143a9255dc1e426edf2c4"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.dpzCra",
+    "archive": "docs/persistfmt/gate-run.dpzCra.tar.gz",
+    "sha256": "e4b8a653835341f4b9d32fbb61cabd0da60594511ab148d013d098aedb0525ed",
+    "phase": "repair-sidecar"
   }
 ]
