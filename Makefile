@@ -201,7 +201,7 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31388 / db0 31787).
 # at412: the new INFO fields / DEBUG hooks grow this unit; 32853 keeps cmd_reset and every other
 # handler outside cmd_info/cmd_debug_impl PRE-identical (tools/at412_budget.py, docs/at412/budgets2).
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33583
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33750
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
@@ -389,7 +389,7 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131391
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164680
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164705
 # Protofix late-listener bounds, subject to wave9 compile-only re-derivation.
 $(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=46749
 $(BUILD_ROOT)/db0/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=46517
