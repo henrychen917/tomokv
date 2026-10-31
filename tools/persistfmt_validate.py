@@ -35,7 +35,7 @@ PHASES = [
 
 # These families own additional shutdown, scripting and stream assertions outside
 # the main feature/persistence jobs. Keep complete jobs, including all inner legs.
-EXTRA = ('climonfix persistfix_units aof_frame serverfix_waitaof infofix_compat-loadaof '
+EXTRA = ('climonfix persistfix_units aof-epoll aof-uring aof_frame serverfix_waitaof infofix_compat-loadaof '
          'blockfix_registry blockfix_structure blockfix_mkstream notify ' +
          ' '.join(f'climonfix4-{m}-{e}' for m in ('1s', '2s') for e in ('uring', 'epoll')) + ' ' +
          ' '.join('at412-' + c for c in

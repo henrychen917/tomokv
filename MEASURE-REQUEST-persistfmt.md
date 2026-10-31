@@ -152,6 +152,15 @@ fused Tcl BRPOPLPUSH/WATCH assertion failed; the final complete Tcl job passed i
 both modes without changing that assertion or adding an allowance. These attempts
 are visible in the archived logs rather than counted as final passes.
 
+The first final-POST AOF run exposed a misplaced test edit: the variable snapshot
+header offset had been put in the AOF increment parser, where its helper was
+undefined, while the snapshot model still used 80 bytes. This caused twelve
+public failures across the two engines (including dependent restart/model rows).
+The increment parser is restored to its fixed 80-byte header, and only the
+snapshot model reads the declared metadata length. Both complete AOF jobs are
+included in the later rerun, with all their mode/atomic legs. This changes no
+production bytes and removes no assertion.
+
 The instruction instrument is `tools/persistfmt_counts.py`: the existing bounded
 production command scope plus a snapshot save/load-loop fixture, under ptrace.
 It covers GET/SET/INCR/MGET/MSET at batch 1 and 32, 1s/2s, both namespaces, atomic
