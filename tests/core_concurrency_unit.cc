@@ -1221,7 +1221,7 @@ int main(int argc, char** argv) {
         for (auto db : {1u, 16u}) {
             T::flipfix6_watch(db);
             for (auto atomic : {0u, 1u}) for (bool converting : {false, true})
-                T::flipfix6_s2(db, atomic, converting);
+                for (bool watch_pending : {false, true}) T::flipfix6_s2(db, atomic, converting, watch_pending);
             for (bool converting : {false, true}) T::flipfix6_close_fence(db, converting);
         }
     }

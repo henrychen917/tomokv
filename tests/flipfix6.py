@@ -87,7 +87,18 @@ def semantics(args, directory, engine, atomic):
                         assert c.must('EXEC') == [1], 'cleanup left a WATCH registration'
                     assert s.io_thread(c) == 0
                     rows.append(dict(case=case, session_moves=moved, flip_seconds=elapsed))
-                assert control.must('FLIP', 6, 2) == b'OK'
+                # The case's socket just closed: the approved precommit close
+                # refusal may win. Retry on fresh episodes, bounded, never skip.
+                for attempt in range(64):
+                    begin = time.monotonic()
+                    reply = control.cmd('FLIP', 6, 2)
+                    assert time.monotonic() - begin < 1
+                    if reply == b'OK':
+                        break
+                    assert isinstance(reply, RespError) and reply.message == (
+                        b'ERR FLIP refused: a pinned connection closed'), reply
+                else:
+                    raise AssertionError('restore FLIP never completed after close')
     assert b.exit == dict(rc=0, forced=False), b.exit
     return rows
 

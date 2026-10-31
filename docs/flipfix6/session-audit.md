@@ -69,3 +69,31 @@ is transferable only when the earlier ExDrain and close scheduling obligations
 are also met. See [s2-exdrain-review.md](s2-exdrain-review.md). Close can abandon
 an unpublished attempt or publish WATCH-removal tasks after the safe point;
 its lifetime must be reconciled with the proposed exact admission/apply receipt.
+
+## Conservative implementation (resume addendum 2)
+
+The earlier draft's ClientPrepare S2 skip is not present in the candidate.
+`IoLoop::flip_session_drain_refused` scans only its own clients during an owed
+IoDrain pass. A non-null `session->pending` refuses the episode before ExDrain,
+regardless of the source's planned role. No attempt, age, credit, queued argv,
+WATCH alias or owner identity is changed by this scan.
+
+`Client::flip_migration_protocol_idle` is the distinct, out-of-line FLIP
+predicate. It rejects pending attempts and requires exact physical alias/pin
+equality plus the original drain predicate. The LB predicate and
+`safe_to_release` are unchanged. The public transfer preflight, request and
+finish recheck all select FLIP readiness via `hold_for_commit`.
+
+`IoLoop::flip_session_close_held` uses the existing source pin, records the
+reversible close refusal once, and defers `multi_close_entry` until Idle. The
+active-close retry (`closing_client_ready`, in both IO engine bodies) revisits
+the same idempotent cleanup before the original zero-pin lifetime test. This
+is necessary for a durable WATCH close: waiting for zero pins before revisiting
+cleanup would otherwise leak it. No new steady-state command or EXEC hook was
+added. There is no stored destination or forwarded attempt in any helper.
+
+The close-refusal decision and ClientPrepare -> ClientCommit edge use the
+existing `flip_error_mu_`. A precommit close wins the lock and causes rollback;
+after commitment, the existing pin defers cleanup until the bounded completion
+reaches Idle. Existing listener handover operations keep their order. No
+executor quiesce readiness, mask, re-mask or transaction mechanism changes.

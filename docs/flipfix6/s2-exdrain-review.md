@@ -1,5 +1,11 @@
 # S2 meets the preserved executor admission fence
 
+**D18.4 (not implemented, owner decision after the freeze).** Resume addendum 2
+selects immediate refusal of S2 on every source at IoDrain. The receipt proposal
+below is retained as historical evidence and an optional future design; no
+executor-credit discount is implemented. Pinned closes now withdraw a reversible
+FLIP and defer cleanup behind the existing pin until Idle.
+
 The original design puts S2 handling in ClientPrepare. A PRE-compatible,
 serverless fixture now proves that a prepared unpublished EXEC cannot reach
 that stage. Eight cases passed: both namespaces, atomic 0/1, surviving and

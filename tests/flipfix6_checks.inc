@@ -120,7 +120,7 @@
         std::printf("ARMED flipfix6 pins db%u: WATCH repeat UNWATCH DISCARD EXEC success/nil/abort RESET/close\n", databases);
     }
 
-    static void flipfix6_s2(unsigned databases, unsigned atomic, bool converting) {
+    static void flipfix6_s2(unsigned databases, unsigned atomic, bool converting, bool watch_pending) {
         Fixture f(false, 8, 16, databases, 6, false, -1, atomic);
         command_bind_server(&f.server);
         std::string acl_error;
@@ -144,13 +144,18 @@
             require(multi_handle_io(f.server, client, op, source, state) == want, "S2 prepare");
             return state;
         };
-        prepare({Slice("MULTI")}, MultiIoAction::LocalDone);
-        prepare({Slice("INCR"), slice(left)}, MultiIoAction::LocalDone);
-        prepare({Slice("INCR"), slice(right)}, MultiIoAction::LocalDone);
-        auto* pending = prepare({Slice("EXEC")}, MultiIoAction::Dispatch);
+        MultiExecState* pending;
+        if (watch_pending) pending = prepare({Slice("WATCH"), slice(left)}, MultiIoAction::Dispatch);
+        else {
+            prepare({Slice("MULTI")}, MultiIoAction::LocalDone);
+            prepare({Slice("INCR"), slice(left)}, MultiIoAction::LocalDone);
+            prepare({Slice("INCR"), slice(right)}, MultiIoAction::LocalDone);
+            pending = prepare({Slice("EXEC")}, MultiIoAction::Dispatch);
+        }
+        const unsigned credits = watch_pending ? 0 : 1;
         require(pending && client.flip_session_pending() && f.io.flip_io_drained(), "S2 armed before publication");
-        require(f.server.atomic_inflight() == 1 && f.server.atomic_apply_inflight() == 1,
-                "S2 retains admission/apply credits");
+        require(f.server.atomic_inflight() == credits && f.server.atomic_apply_inflight() == credits,
+                "S2 original admission/apply credits");
         f.io.flip_stage_snapshot_ = FlipStage::IoDrain;
         f.io.flip_control_pass<false>();
         require(!f.server.flip_acked(source, FlipStage::IoDrain) && f.server.flip_failed(error),
@@ -160,20 +165,26 @@
         f.io.flip_control_pass<false>();
         require(f.server.flip_refused_s2() == 1, "one S2 counter increment per episode");
         for (auto tid : f.server.placement().ex_threads())
-            require(!f.loops[tid].flip_quiesced() && f.server.thread(tid).ex_inbound_quiesced(),
+            require(f.loops[tid].flip_quiesced() == watch_pending && f.server.thread(tid).ex_inbound_quiesced(),
                     "executor fence unchanged; no S2 work published");
-        require(prepare({Slice("EXEC")}, MultiIoAction::Dispatch) == pending &&
-                client.ifid_thread() == source && f.server.atomic_inflight() == 1 &&
-                f.server.atomic_apply_inflight() == 1, "refusal left pending and original admission untouched");
+        auto* same = watch_pending ? prepare({Slice("WATCH"), slice(left)}, MultiIoAction::Dispatch)
+                                   : prepare({Slice("EXEC")}, MultiIoAction::Dispatch);
+        require(same == pending && client.ifid_thread() == source && f.server.atomic_inflight() == credits &&
+                f.server.atomic_apply_inflight() == credits, "refusal left pending and original admission untouched");
         f.server.flip_refuse_active();
-        require(flipfix6_command(f, client, {Slice("EXEC")}) == "*2\r\n:1\r\n:1\r\n",
-                "same S2 resumes on original IO and replies exactly once after rollback");
+        if (watch_pending) {
+            require(flipfix6_command(f, client, {Slice("WATCH"), slice(left)}) == "+OK\r\n",
+                    "same WATCH S2 resumes and replies exactly once after rollback");
+            flipfix6_pins(client, databases);
+            require(flipfix6_command(f, client, {Slice("UNWATCH")}) == "+OK\r\n", "resumed S2 cleans all aliases");
+        } else require(flipfix6_command(f, client, {Slice("EXEC")}) == "*2\r\n:1\r\n:1\r\n",
+                       "same EXEC S2 resumes and replies exactly once after rollback");
         require(!client.flip_session_pending() && f.server.atomic_inflight() == 0 &&
                 f.server.atomic_apply_inflight() == 0, "S2 retires all original credits");
         f.io.self_->remove_client(&client); f.io.self_->release_wb_slot(client.wb_slot());
         f.server.client_released(); acl_shutdown(); command_bind_server(nullptr);
-        std::printf("ARMED flipfix6 S2 db%u atomic%u %s: refused at IoDrain, same state resumed\n",
-                    databases, atomic, converting ? "converting" : "surviving");
+        std::printf("ARMED flipfix6 S2 db%u atomic%u %s %s: refused at IoDrain, same state resumed\n",
+                    databases, atomic, converting ? "converting" : "surviving", watch_pending ? "WATCH" : "EXEC");
     }
 
     static void flipfix6_close_fence(unsigned databases, bool converting) {

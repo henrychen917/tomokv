@@ -1540,7 +1540,7 @@ quiet_wait
 if unit_ready core-concurrency-unit && \
     ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
     taskset -c "$CORES" ./build/core-concurrency-unit flipfix6 >"$TMPDIR/flipfix6.txt" 2>&1 && \
-    [ "$(grep -c '^ARMED flipfix6 ' "$TMPDIR/flipfix6.txt")" = 46 ] && \
+    [ "$(grep -c '^ARMED flipfix6 ' "$TMPDIR/flipfix6.txt")" = 54 ] && \
     tsan_unit "$CORE_TSAN" core-concurrency-tsan \
         "PASS core concurrency flipfix6 (state assertions fired)" flipfix6; then
   ok "FLIP session handover S2 and close fences (ASAN+TSAN)"

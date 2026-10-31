@@ -61,7 +61,7 @@ struct CoreConcurrencyTest {
    std::string error; need(acl_initialize(server,cfg,error));
    IoLoop ownerio;ownerio.srv_=&server;ownerio.self_=&server.thread(io);
    std::vector<std::string> replies;
-   auto run=[&](std::initializer_list<Slice> args){
+   auto run=[&](std::initializer_list<Slice> args) __attribute__((always_inline)) {
     auto* op=client.rob().template acquire<false>();need(op);
     for(auto arg:args)need(op->push_arg(arg));
     op->spec=command_lookup(op->arg(0));need(op->spec);op->state.store(OpState::Issued);
@@ -103,7 +103,7 @@ struct CoreConcurrencyTest {
     multi_owner_reap_entry(ownerio);
    }
    need(ownerio.multi_deferred_.empty());acl_shutdown();
-  }elseif(command=="EVAL"||command=="EVAL-ADMIT"){
+  }else if(command=="EVAL"||command=="EVAL-ADMIT"){
    need(n==1); ScatterArenaPool pool; Ring ring;
    const std::string code="return {redis.call('GET',KEYS[1]),redis.call('SET',KEYS[2],ARGV[1])}";
    const std::string updated(64,'w');
