@@ -12,7 +12,6 @@ ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / 'docs/wave12'
 PERFORMANCE = {
     'flip_saturated': 'NOT RUN: memtier throughput workload is reserved for the maintainer.',
-    'atomic_floor': 'NOT RUN: throughput-floor workload is reserved for the maintainer.',
     'efficiency': 'NOT RUN: performance comparison is reserved for the maintainer.',
 }
 BUILD_ONLY = {

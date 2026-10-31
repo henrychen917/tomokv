@@ -3,7 +3,8 @@
     "path": "docs/wave12/initial-identity/all-bodies.json.gz",
     "bytes": 211254,
     "sha256": "cf5d922a0e18e71eeb3c665e4a0411fa415e64ae1dd8b226a5ce905488b973ed",
-    "archive": "docs/wave12/initial-identity/all-bodies.json.gz.gz"
+    "archive": "docs/wave12/initial-identity/all-bodies.json.gz",
+    "note": "Existing gzip retained without double compression."
   },
   {
     "path": "docs/wave12/initial-identity/changed-bodies.json",

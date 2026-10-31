@@ -26,7 +26,7 @@ elif a.phase=='quiet':
     for fused in (False,True):
         for engine in ('uring','epoll'):
             jobs=['atomic_batteries']
-            if not fused and engine=='uring':jobs+=['perfio_stream']
+            if not fused and engine=='uring':jobs+=['perfio_stream','atomic_floor']
             runs.append((f"quiet-{'1s' if fused else '2s'}-{engine}",jobs,fused,engine,{}))
 elif a.phase=='differ':
     runs=[('differ-'+engine,M['differ_each_engine'],False,engine,{}) for engine in ('uring','epoll')]

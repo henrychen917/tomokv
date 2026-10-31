@@ -248,7 +248,8 @@
     "respcompat",
     "flip",
     "fliplisten",
-    "flipctl"
+    "flipctl",
+    "atomic_floor"
   ],
   "differ_each_engine": [
     "differ-split",
@@ -292,7 +293,7 @@
   ],
   "not_run_performance": [
     "flip_saturated (memtier)",
-    "atomic_floor (throughput floor)",
+    "atomic_floor throughput row only (GATE_PROOF_NO_RATES=1 retains tripwire and pipeorder correctness rows)",
     "efficiency (perf)",
     "full tests/gate.sh iteration",
     "all ABBA/NIC/storm/EXEC/flushmerit load generators",
