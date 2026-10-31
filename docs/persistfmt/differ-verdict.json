@@ -1,0 +1,133 @@
+[
+  {
+    "phase": "matrix-uring",
+    "engine": "uring",
+    "binary_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.Ver4C5",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 24,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "history": "/home/user/Projects/cx-persistfmt/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        24
+      ]
+    },
+    "legs": [
+      {
+        "job": "differ-split-0",
+        "unique_suite_seed_cases": 235,
+        "executions_including_declared_repeats": 235,
+        "done": "0\t1\t0",
+        "ledger": "ok\t531.990000\tRedis 7.4 differential part (split, atomic 0)\n",
+        "declared_skips": []
+      },
+      {
+        "job": "differ-split-1",
+        "unique_suite_seed_cases": 235,
+        "executions_including_declared_repeats": 239,
+        "done": "0\t1\t0",
+        "ledger": "ok\t532.420000\tRedis 7.4 differential part (split, atomic 1)\n",
+        "declared_skips": []
+      },
+      {
+        "job": "differ-armed-0",
+        "unique_suite_seed_cases": 230,
+        "executions_including_declared_repeats": 230,
+        "done": "0\t1\t0",
+        "ledger": "ok\t528.590000\tRedis 7.4 differential part (armed fused, atomic 0)\n",
+        "declared_skips": [
+          "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=0 seed=24)                             SKIP (suite requires the split 6:2 geometry)"
+        ]
+      },
+      {
+        "job": "differ-armed-1",
+        "unique_suite_seed_cases": 230,
+        "executions_including_declared_repeats": 234,
+        "done": "0\t1\t0",
+        "ledger": "ok\t528.680000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+        "declared_skips": [
+          "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+          "differ sort (atomic=1 seed=24)                             SKIP (suite requires the split 6:2 geometry)"
+        ]
+      }
+    ],
+    "equivalence": {
+      "done": "0\t1\t0",
+      "ledger": "ok\t21.420000\tmode equivalence part (all execution modes and knobs)\n",
+      "output": "  row budget: 900s; median=21.45s; correctness-plan-fallback; mode equivalence part (all execution modes and knobs)\nDIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor\nDIFFER geometry: split (--ratio 6:2 --net-io uring)\nDIFFER matrix: atomic={} seeds={7 19 20 23 24} legs=0 logs=/home/user/Projects/cx-persistfmt/build/gate-run.Ver4C5/jobs/differ-equivalence/differ\n  mode equivalence: all execution/knob combinations          ok (exact replies and mechanism witnesses)\nDIFFER GATE: pass=1 fail=0 runtime=0m22s\n  mode equivalence part (all execution modes and knobs) ok\n"
+    }
+  }
+]
