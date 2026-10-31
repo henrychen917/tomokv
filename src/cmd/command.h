@@ -339,6 +339,15 @@ class ThreadCtx;
 struct Op;
 struct PubSubEvent;
 void reply_maxmemory_oom(Op& op);  // defined in t_string.cc, tomo:: linkage
+// CONFIG SET of maxmemory, maxmemory-policy or maxmemory-samples runs one fragment on every
+// shard owner. The executor running on this thread binds itself here for its whole tenure; each
+// fragment calls it, so the owner's stores and admission/eviction state hold the committed values
+// before that fragment completes, and therefore before the barrier's +OK. Cold: CONFIG only.
+struct OwnerMemoryConfigHook {
+    void* owner = nullptr;
+    void (*apply)(void*) = nullptr;
+};
+inline constinit thread_local OwnerMemoryConfigHook owner_memory_config_hook{};
 // Lets the connection-local admin commands read published per-shard counters.
 void command_bind_server(Server* s);
 

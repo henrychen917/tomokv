@@ -1143,7 +1143,7 @@ plan_jobs(){
   # Correctness traffic is modest and stays on each slot's two or more physical load cores.
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
-  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix)
+  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
     JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
@@ -5614,6 +5614,19 @@ job_pubtrackfix(){
   done
 }
 
+# maxmemrace: one directed row; the oracle plus every mode, engine, atomic setting, read-local
+# setting and database runtime. Holds the shard-0 owner inside one drain while CONFIG SET
+# maxmemory completes, then requires the +OK connection's next SET to see the new limit.
+job_maxmemrace(){
+  local label="maxmemrace CONFIG SET maxmemory reaches every owner before +OK"
+  row_begin "$label"
+  py tests/maxmemrace.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --port "$PORT" --ratio "$GATE_RATIO" \
+      --output "$TMPDIR/maxmemrace" >"$TMPDIR/maxmemrace.log" 2>&1 \
+    && ok "$label" || bad "$label" "see $TMPDIR/maxmemrace.log"
+}
+
 # infofix: each directed row owns both modes/engines and both database runtimes.
 job_infofix_latency(){
   local passed=1 mode tracking batch label="Redis 7.4 infofix exact latency batch witness"
@@ -6372,6 +6385,8 @@ collect_job snapfix2_tables
 collect_job notify
 # pubtrackfix: DQ=DF=+4 here, before quick exit; EXPECT remains owner-owned.
 collect_job pubtrackfix
+# maxmemrace: DQ=DF=+1 here, before quick exit; EXPECT remains owner-owned.
+collect_job maxmemrace
 # trackfix CC4.4: one row before the quick exit; EXPECT remains maintainer-owned.
 collect_job trackfix_order
 collect_job trackfix_accounting

@@ -1677,6 +1677,72 @@ static constexpr SubcommandArity kConfigSubcommands[] = {
     {"help",      2,  2},
 };
 
+using ConfigUpdates = std::vector<std::pair<ConfigValue*, std::string>>;
+
+// maxmemory, maxmemory-policy and maxmemory-samples decide admission and eviction on every shard
+// owner. CONFIG SET publishes them exactly once and then has every owner apply them inside its own
+// fragment, so the barrier's +OK follows each owner's switch (ExLoopT::apply_memory_config).
+bool config_memory_parameter(const ConfigValue& item) {
+    return !std::strcmp(item.name, "maxmemory") || !std::strcmp(item.name, "maxmemory-policy") ||
+           !std::strcmp(item.name, "maxmemory-samples");
+}
+
+// Every fragment of one CONFIG SET carries that command's public Op. Under g_config_mu the first
+// fragment to arrive, on whichever owner, claims the single publication; any later fragment then
+// finds it committed. The last fragment forgets the Op before the reply can retire and reuse it.
+// A handler invoked without a scatter is its own only fragment.
+struct MemoryPublicationClaim {
+    const Op* op;
+    uint32_t fragments;
+};
+std::vector<MemoryPublicationClaim> g_memory_publication_claims;  // guarded by g_config_mu
+
+bool config_claim_memory_publication(const Op& op) {
+    const uint32_t fragments = g_server && op.has_scatter_state() ? g_server->nshards() : 1;
+    for (auto it = g_memory_publication_claims.begin();
+         it != g_memory_publication_claims.end(); ++it) {
+        if (it->op != &op) continue;
+        if (++it->fragments >= fragments) g_memory_publication_claims.erase(it);
+        return false;
+    }
+    if (fragments > 1) {
+        // Unrecorded on allocation failure: later fragments republish this Op's same values.
+        try { g_memory_publication_claims.push_back({&op, 1}); }
+        catch (const std::bad_alloc&) {}
+    }
+    return true;
+}
+
+// The claiming fragment, still under g_config_mu: table entries and live values together, in the
+// order claims are made, so CONFIG GET and the owners always agree on the last CONFIG SET.
+void config_publish_memory(Shard& sh, ConfigUpdates& updates) {
+    // Shard 0 refuses an unusable locale before its table writes; never publish ahead of that.
+    for (const auto& update : updates)
+        if (!std::strcmp(update.first->name, "locale-collate") &&
+            !sort_locale_valid(update.second.c_str())) return;
+    for (auto& update : updates)
+        if (config_memory_parameter(*update.first)) update.first->value = update.second;
+    if (!g_server) return;
+    // This thread owns sh, so this is its own mailbox. Only the claim publishes these three
+    // values, under the lock held here, so the committed copy is the right base for the rest.
+    LiveConfigSnapshot desired = g_server->live_config_snapshot(g_server->worker_of_shard(sh.id()));
+    bool set_memory = false, set_policy = false, set_samples = false;
+    for (const auto& update : updates) {
+        const Slice text(update.second.data(), static_cast<uint32_t>(update.second.size()));
+        if (!std::strcmp(update.first->name, "maxmemory")) {
+            parse_u64(text, desired.maxmemory); set_memory = true;
+        } else if (!std::strcmp(update.first->name, "maxmemory-policy")) {
+            parse_maxmemory_policy(text.sv(), desired.policy); set_policy = true;
+        } else if (!std::strcmp(update.first->name, "maxmemory-samples")) {
+            uint64_t samples = 0;
+            parse_u64(text, samples);
+            desired.samples = static_cast<uint32_t>(samples); set_samples = true;
+        }
+    }
+    g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples,
+                                   set_memory, set_policy, set_samples);
+}
+
 void cmd_config(Shard& sh, Op& op) {
     if (!command_validate_subcommand(op, "CONFIG", kConfigSubcommands,
                                      sizeof(kConfigSubcommands) /
@@ -1714,11 +1780,15 @@ void cmd_config(Shard& sh, Op& op) {
     }
     if (eq_icase(op.arg(1), "SET")) {
         uint64_t latency_enable_start = 0;
-        std::vector<std::pair<ConfigValue*, std::string>> updates;
+        ConfigUpdates updates;
+        bool memory_update = false;
         {
             std::lock_guard<std::mutex> lock(g_config_mu);
             // IO validated before fan-out, so failure here can only mean internal table corruption.
             if (!collect_config_updates(op, updates)) return;
+            for (const auto& update : updates) memory_update |= config_memory_parameter(*update.first);
+            if (memory_update && config_claim_memory_publication(op))
+                config_publish_memory(sh, updates);
             if (sh.id() == 0) {
                 // Redis samples an enabling CONFIG SET itself. Record this
                 // transition on shard 0; other fragments exclude this command
@@ -1733,7 +1803,8 @@ void cmd_config(Shard& sh, Op& op) {
                         reply_err(op.sink(), "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name");
                         return;
                     }
-                    update.first->value = update.second;
+                    // The maxmemory family's entries belong to its single publication above.
+                    if (!config_memory_parameter(*update.first)) update.first->value = update.second;
                     if (!std::strcmp(update.first->name, "client-output-buffer-limit")) {
                         ClientOutputBufferLimits parsed;
                         const ClientOutputBufferLimits defaults;
@@ -1744,6 +1815,15 @@ void cmd_config(Shard& sh, Op& op) {
                     }
                 }
             }
+        }
+
+        // This owner switches every store it holds, and its admission/eviction caches, to the
+        // committed maxmemory family now. This CONFIG SET's claim was published under g_config_mu
+        // by this fragment or by one that took the lock earlier, so the committed values are at
+        // least its own. The +OK waits for all fragments, so it cannot precede any owner's switch.
+        if (memory_update) {
+            const OwnerMemoryConfigHook hook = owner_memory_config_hook;
+            if (hook.apply) hook.apply(hook.owner);
         }
 
         // CONFIG is already a barrier over every shard owner. Apply the notification sink on
@@ -1765,8 +1845,9 @@ void cmd_config(Shard& sh, Op& op) {
                                (save_armed ? NOTIFY_SAVE : 0u));
         }
 
-        // Eviction config is process-global (committed mailbox copies read each pass); publish
-        // it once from shard 0's task rather than per shard.
+        // The remaining process-global knobs (committed mailbox copies read each pass) are
+        // published once from shard 0's task rather than per shard. The maxmemory family is not:
+        // its single publication and per-owner switch are above.
         if (sh.id() == 0 && g_server) {
             for (const auto& update : updates) {
                 if (!std::strcmp(update.first->name, "save")) {
@@ -1793,25 +1874,6 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_client_query_buffer_limit(value);
                 }
             }
-            LiveConfigSnapshot desired =
-                g_server->live_config_snapshot(g_server->worker_of_shard(sh.id()));
-            bool set_memory = false, set_policy = false, set_samples = false;
-            for (const auto& update : updates) {
-                const Slice text(update.second.data(),
-                                 static_cast<uint32_t>(update.second.size()));
-                if (!std::strcmp(update.first->name, "maxmemory")) {
-                    parse_u64(text, desired.maxmemory); set_memory = true;
-                } else if (!std::strcmp(update.first->name, "maxmemory-policy")) {
-                    parse_maxmemory_policy(text.sv(), desired.policy); set_policy = true;
-                } else if (!std::strcmp(update.first->name, "maxmemory-samples")) {
-                    uint64_t samples = 0;
-                    parse_u64(text, samples);
-                    desired.samples = static_cast<uint32_t>(samples); set_samples = true;
-                }
-            }
-            if (set_memory || set_policy || set_samples)
-                g_server->set_maxmemory_config(desired.maxmemory, desired.policy, desired.samples,
-                                               set_memory, set_policy, set_samples);
             uint32_t auto_percentage = g_server->aof().auto_rewrite_percentage();
             uint64_t auto_min_size = g_server->aof().auto_rewrite_min_size();
             bool set_auto_rewrite = false;

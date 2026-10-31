@@ -588,6 +588,7 @@ public:
     uint32_t split_read_local_pass();
 
     void run() {
+        const MemoryConfigBinding memory_config_binding(this);
         if constexpr (Fused) {
             // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
             // was drained before role conversion; owner commands use no local-read captures.
@@ -1699,6 +1700,51 @@ private:
         debug_fanout_defer_us_ = snapshot.debug_fanout_defer_us;
         live_config_version_ = snapshot.version;
     }
+
+    // CONFIG SET maxmemory/-policy/-samples: called by this owner's own CONFIG fragment, after the
+    // CONFIG's single publication (see cmd_config). refresh_live_config() alone would apply the new
+    // limit only at this owner's next pass entry, and the barrier could reply +OK while this pass
+    // still admitted, refused or evicted under the old one. Applies exactly the maxmemory part of
+    // that refresh, from the latest committed copy, to every store this owner holds and to its
+    // owner-local caches, so later fragments of any order converge on the last publication.
+    // live_config_version_ is untouched: the next pass entry still performs its full refresh.
+    [[gnu::cold, gnu::noinline]] void apply_memory_config() {
+        const LiveConfigSnapshot snapshot = srv_->live_config_snapshot(self_->id());
+        const bool enabled = snapshot.maxmemory != 0;
+        const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
+        for (Shard* sh : self_->shards())
+            sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+        maxmemory_enabled_ = enabled;
+        foreign_touch_policy_ =
+            !enabled                                    ? kForeignTouchNone
+            : maxmemory_policy_is_lru(snapshot.policy)  ? kForeignTouchLru
+            : maxmemory_policy_is_lfu(snapshot.policy)  ? kForeignTouchLfu
+                                                        : kForeignTouchNone;
+        // The pass entry computes this clock only while enabled; later tasks of this pass stamp it.
+        if (enabled)
+            cached_lru_clock_ = static_cast<uint8_t>(
+                (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
+        // A fused thread parses with this executor's read-local promise; keep it with the owner.
+        if constexpr (Fused)
+            if (read_local_enabled())
+                set_read_local_point_writes_precise(
+                    !enabled || snapshot.policy == MaxmemoryPolicy::NoEviction);
+    }
+
+    // Binds this executor as the thread's CONFIG maxmemory hook for one loop tenure.
+    class MemoryConfigBinding {
+    public:
+        explicit MemoryConfigBinding(ExLoopT* loop) : previous_(owner_memory_config_hook) {
+            owner_memory_config_hook = OwnerMemoryConfigHook{
+                loop, [](void* owner) { static_cast<ExLoopT*>(owner)->apply_memory_config(); }};
+        }
+        ~MemoryConfigBinding() { owner_memory_config_hook = previous_; }
+        MemoryConfigBinding(const MemoryConfigBinding&) = delete;
+        MemoryConfigBinding& operator=(const MemoryConfigBinding&) = delete;
+
+    private:
+        OwnerMemoryConfigHook previous_;
+    };
 
     // The pending flag is a HINT, and a hint must never be the only looker: a shard whose binding
     // went stale (any ownership move a future path forgets to rebind) would strand its events

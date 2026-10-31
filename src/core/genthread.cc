@@ -61,6 +61,8 @@ void IoLoop::run_fused() {
         }
     };
     // Fused owner-batch prefetch is independent of the ordinary IO loop.
+    // This thread's owner turns run CONFIG fragments; they apply maxmemory through this binding.
+    const FusedExLoop::MemoryConfigBinding memory_config_binding(fused_executor_);
     run();
 }
 
