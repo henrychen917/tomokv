@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check whole-job receipts against the requested geometry matrix, not run totals."""
 import argparse
+from collections import Counter
 import hashlib
 import json
 from pathlib import Path
@@ -24,6 +25,12 @@ STREAM_MEMORY_BOUNDS = (
     'one-entry memory floor tracks ~140B design (well below 4.4KiB)',
     'growth across the embedded->macro boundary stays amortized-linear',
 )
+RESERVED_LABELS = {
+    'expire-index growth bound', 'borrow-registry growth bound',
+    'cross-shard dispatch scaling', 'FLIP applies under saturated load',
+    'flip battery shutdown invariants', 'atomic MGET/MSET floor (N/s >= 120k)',
+    'tailgen client-lb outstanding bound',
+}
 
 
 def main():
@@ -99,20 +106,38 @@ def main():
     missing = sorted(registry - completed - PERFORMANCE.keys() - BUILD_ONLY.keys())
     assert not (completed & PERFORMANCE.keys()), 'unexpected performance job execution'
     expected = json.loads((DOC / 'row-inventory.json').read_text())['post']['rows']
-    labels = {row['label'] for a in attempts if a['passed']
-              for row in a['details'].get('rows', []) if row['status'] == 'ok'}
-    # Collector-generated labels (notably the two differential aggregates) do
-    # not live in child job ledgers; retain the final partial ledger as well.
-    for run in inventory['runs']:
-        if not run['name'].startswith('landing-') or run['binary_sha256'] != post or run['exit']:
-            continue
-        ledger = DOC / 'jobs' / (run['name'] + '.tsv.partial')
-        if ledger.exists():
-            for line in ledger.read_text().splitlines():
-                fields = line.split('\t', 2)
-                if len(fields) == 3 and fields[0] == 'ok':
-                    labels.add(fields[2])
-    remaining = [row for row in expected if row['label'] not in labels]
+    expected_counts = Counter(row['label'] for row in expected)
+    # Select one complete passing invocation per registered job. Extra geometry
+    # repeats cannot fill a missing duplicate declaration in another job.
+    canonical_jobs = {}
+    for attempt in attempts:
+        if attempt['passed']:
+            canonical_jobs.setdefault(attempt['job'], attempt)
+    counts = Counter(row['label'] for a in canonical_jobs.values()
+                     for row in a['details'].get('rows', []) if row['status'] == 'ok')
+    ledger_rows = sum(min(counts[label], count) for label, count in expected_counts.items())
+    folded_labels = []
+    # GATE_ONLY_JOBS emits the five private children and omits the two public
+    # folds. capture_differ uses gate.sh's own strict fold, including journals,
+    # mode-equivalence witnesses and mandatory MULTI repeats, on both engines.
+    folded = DOC / 'differential-proof.json'
+    if folded.exists():
+        proofs = json.loads(folded.read_text())
+        assert {p['engine'] for p in proofs} == {'uring', 'epoll'} and len(proofs) == 2
+        assert all(p['passed'] and p['binary_sha256'] == post and
+                   all(f['complete'] for f in p['folds'].values()) for p in proofs)
+        for label in ('Redis 7.4 differential matrix',
+                      'Redis 7.4 differential matrix (armed fused + read-local)'):
+            counts[label] = max(counts[label], 1)
+            folded_labels.append(dict(label=label, proof=str(folded.relative_to(ROOT))))
+    missing_counts = expected_counts - counts
+    pending = missing_counts.copy()
+    remaining = []
+    for row in expected:
+        if pending[row['label']]:
+            remaining.append(row)
+            pending[row['label']] -= 1
+    row_multiset_passed = missing_counts == Counter({label: 1 for label in RESERVED_LABELS})
     arm_smokes = []
     for arm in ('PRE', 'PAD-A'):
         path = DOC / f'jobs/landing-arm-{arm}-smoke.json'
@@ -137,6 +162,12 @@ def main():
                   missing_required_registry_jobs=missing, not_run_performance=PERFORMANCE,
                   unselected_build_prerequisite=BUILD_ONLY,
                   declared_labels=len(expected), witnessed_declared_labels=len(expected) - len(remaining),
+                  source_rows_witnessed_by_job_ledgers=ledger_rows,
+                  public_differential_folds=folded_labels,
+                  declared_row_multiset_passed=row_multiset_passed,
+                  duplicate_declarations=[dict(label=label, required=count, witnessed=counts[label])
+                                          for label, count in sorted(expected_counts.items()) if count > 1],
+                  canonical_job_receipts={name: a['run'] for name, a in sorted(canonical_jobs.items())},
                   unwitnessed_declared_labels=remaining,
                   release_stream_memory_bounds=[dict(run=a['run'], job=a['job'], engine=a['engine'],
                       passed=a['passed'], assertions=a['release_memory_bounds'])
@@ -146,7 +177,7 @@ def main():
                       for a in attempts if not a['passed']],
                   arm_boot_controls=arm_smokes,
                   passed=not missing and all(r['passed'] for r in requirements) and
-                         all(r['passed'] for r in arm_smokes),
+                         all(r['passed'] for r in arm_smokes) and row_multiset_passed,
                   note='Whole-job matrix coverage, not a full iteration or performance gate. '
                        'Failed and superseded attempts remain in correctness-jobs.json. '
                        'Inline/rate-only rows are separately identified in the report.')
