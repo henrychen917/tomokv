@@ -4,7 +4,8 @@
 
 Branch `cx-flipfix6`, PRE `e32b04a445b056976abb308aa598e356fcbaae74`.
 Resumed from `fe0f82542`; implementation commit `44f561020`, additional proof
-commit `139b498d3`. No push. **Implementation complete; extended proof in progress.**
+commit `139b498d3`. No push. **Implementation and requested correctness runs
+complete. One baseline-reproduced AOF failure remains in the broader gate evidence.**
 D18.1 and the conservative D18.2 policy in resume addendum 2 are implemented.
 No further owner decision is requested. D18.4 is not implemented.
 
@@ -128,8 +129,8 @@ Per-leg EXEC storm refusal counts (S2 is zero in every cell):
 
 The live storm did not naturally enter S2. Its refusal and unchanged-state
 resumption are proved by the 16 deliberately prepared core cases, including
-WATCH as well as EXEC. The expanded **54/54-assertion** ASAN/UBSAN and TSAN runs both passed;
-the first gate run also passed the earlier 46-assertion selection. Both WATCH
+WATCH as well as EXEC. The expanded ASAN/UBSAN and TSAN runs both passed **54/54 armed cases**;
+the first gate run also passed the earlier 46-case selection. Both WATCH
 allocation-failure sweeps passed again. Logs are in `docs/flipfix6/unit-expanded/`.
 Per-case counters and timings are in [live-summary.json](docs/flipfix6/live-summary.json);
 the full episode records are retained in the two compressed live-result files.
@@ -211,17 +212,22 @@ retaining ownership/lifetime/quota checks. The BLPOP-held IoDrain signal test in
 `tests/flipfix.py` is unchanged.
 
 Completed: `make all`; all `job_production_units` targets; 58 `make -q` checks
-([freshness-final.json](docs/flipfix6/freshness-final.json)); initial sanitizer core/FLIP rows;
-command/control counts. The expanded WATCH-S2 sanitizer selection passed 54/54 assertions in each sanitizer.
+([delivery-verification.json](docs/flipfix6/delivery-verification.json)); initial sanitizer core/FLIP rows;
+command/control counts. The expanded WATCH-S2 selection passed all 54 armed
+cases in each sanitizer.
 The broad uring/default-engine selection passed **333 rows, zero failures**
-(`gate-regression-uring.ledger`), including every requested family. The epoll
+(`gate-regression-uring.ledger`). Together with the directed selection, it
+covers every requested regression family. The epoll
 supplement completed **236 rows passed / 1 failed**: `txnorder-fused-1` timed
 out in its fresh AOF row d and then hit the worker-shutdown timeout. Its normal
 rows a/b/c passed. This boot is fused, read-local 1, atomic 1, databases 16,
-epoll, with FLIP disabled. Matched PRE/POST diagnosis reproduced the same timeout and shutdown-abort
-signature on unchanged PRE (1/8 debugger trials); POST passed 8/8 in that
-diagnosis. Four native repetitions of the exact gate job passed (PRE 2/2, POST 2/2), without a debugger. The failure is not dismissed or
-counted as green; see [the retained finding and PRE trace](docs/flipfix6/txnorder-aof-finding/README.md). Both fused debug/atomic/production supplements passed **55 rows each, zero failures**.
+epoll, with FLIP disabled. Matched PRE/POST diagnosis reproduced the same timeout
+and shutdown-abort signature on unchanged PRE (1/8 debugger trials); POST passed
+8/8 in that diagnosis. Five native repetitions of the exact gate job passed
+(PRE 2/2, POST 3/3), without a debugger. The failure remains recorded as failed;
+see [the retained finding and PRE trace](docs/flipfix6/txnorder-aof-finding/README.md).
+Both fused debug/atomic/production supplements passed **55 rows each, zero failures**.
+
 Both differential matrices and their strict inventory folds passed:
 **954 oracle comparisons per engine, 1,908 total** (490 split/equivalence + 464
 armed fused per engine). Each used the gate's permanent seeds 7, 19, 20, 23;
@@ -235,8 +241,13 @@ FLIP refusal and 5.0006-second PING. This is an expected negative-control failur
 not a green POST row. The row now retains its partial witness when an early
 assertion rejects PRE; no assertion was relaxed. See
 [negative-controls.json](docs/flipfix6/negative-controls.json).
-The final `python3 tests/gates_test.py` and an additional native POST AOF gate
-retry are still pending. The original AOF failure remains explicitly failed.
+`python3 tests/gates_test.py` passed **76/76 tests** (the embedded identity
+self-test also passed 14/14). The original AOF row remains explicitly failed;
+the proof is not a blanket-green gate claim.
+[proof-inventory.json](docs/flipfix6/proof-inventory.json) maps every requested
+family to its archived job exits and row counts. Final delivery verification
+rechecked all three arm hashes, release identity, all 58 freshness checks and the
+unchanged gate expectation constants.
 
 ### Delivered arms and maintainer measurement request
 
@@ -286,5 +297,8 @@ verified unchanged (`debug-compression.json`). PRE/POST/PAD-A were not compresse
 The first directed run is archived in `gate-session-evidence.tar.gz`. Raw log
 SHA-256s and counts are in `gate-session-archive.json`; repetitive per-tenure
 timing lines/arrays were retired after recording their counts. Boot arguments,
-exit records, control evidence and derived shutdown summaries remain. Further
-cleanup follows the remaining proofs; target is under about 20 GiB in `build/`.
+exit records, control evidence and derived shutdown summaries remain. Final
+cleanup is complete: all completed run directories and 52 superseded runner
+logs were retired after archiving their hashes and counts. `build/` occupies
+about **13.5 GiB**. No lane-owned executable remains running and ports
+20300-20399 are free.

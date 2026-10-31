@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "20300-20399",
+    "--candidate-binary",
+    "/home/user/Projects/cx-flipfix6/build/flipfix6/POST"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "txnorder-fused-1",
+    "GATE_NET_IO": "epoll"
+  },
+  "exit": 0
+}

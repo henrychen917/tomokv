@@ -1,5 +1,5 @@
 {
-  "scope": "All requested gate families and both differential matrices completed; gate self-tests and final native AOF retry remain pending.",
+  "scope": "All requested correctness runs completed. The original epoll txnorder-fused-1 AOF row remains failed; the same failure class reproduced on unchanged PRE. Performance/full-iteration merit runs remain maintainer-owned.",
   "required_jobs": [
     "atomfix5_watch",
     "atomic_batteries",
@@ -741,6 +741,28 @@
           "failed": 0
         }
       }
+    },
+    {
+      "name": "gate-txnorder-recheck-post",
+      "manifest": "docs/flipfix6/gate-txnorder-recheck-post-archive.json",
+      "archive_sha256": "6d2e73c6a03cc54d27cad02b7f09ecb427adac0fbba6dbcce10d927761eb4ea7",
+      "jobs": {
+        "production_units": {
+          "exit": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "txnorder-fused-1": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        },
+        "release": {
+          "exit": 0,
+          "passed": 1,
+          "failed": 0
+        }
+      }
     }
   ],
   "differential_comparisons": {
@@ -751,5 +773,18 @@
     "pad_a_expected_deadline_legs": 8,
     "strict_pre_expected_exit": 1,
     "strict_pre_deadline_witness": true
-  }
+  },
+  "gate_selftest": {
+    "exit": 0,
+    "tests": 76,
+    "seconds": 141.376,
+    "log": "docs/flipfix6/gates-selftest.log"
+  },
+  "native_aof_retries": {
+    "pre_passed": 2,
+    "pre_trials": 2,
+    "post_passed": 3,
+    "post_trials": 3
+  },
+  "retained_failed_gate_rows": 1
 }

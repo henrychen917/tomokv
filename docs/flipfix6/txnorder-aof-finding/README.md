@@ -33,9 +33,9 @@ abort has no thread trace, so exact cycle identity is not claimed. The same
 failure class demonstrably exists on PRE, in a mode where FLIP is unavailable.
 No transaction, persistence or reclamation change is made by this lane to address it.
 
-Four native repetitions of the exact gate job then passed: PRE 2/2 and POST
-2/2, without a debugger. The full job also reruns ordinary rows a/b/c and armed
+Five native repetitions of the exact gate job then passed: PRE 2/2 and POST
+3/3, without a debugger. The full job also reruns ordinary rows a/b/c and armed
 validation before its fresh AOF row d. Commands, exit codes and durations are
-in `../txnorder-native-recheck.json`; the four ledgers and evidence archives are
-retained alongside it. These passing retries do not turn the original failed
+in `../txnorder-native-recheck.json` and `../gate-txnorder-recheck-post.json`;
+the five ledgers and evidence archives are retained alongside them. These passing retries do not turn the original failed
 row green.
