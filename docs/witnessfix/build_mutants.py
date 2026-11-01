@@ -26,6 +26,12 @@ assert mpop.count('ERR numkeys should be greater than 0') == 1
 arms.append(('mpop-error-suffix', 'src/cmd/xshard.cc', '#include "xshard_commands.inc"',
              mpop.replace('ERR numkeys should be greater than 0',
                           'ERR numkeys planted unrelated suffix')))
+arms.append(('geo-count-order', 'src/cmd/geo.cc',
+             'if (options.count && options.order == GeoOrder::None && !options.any)\n        options.order = GeoOrder::Asc;',
+             '// planted defect: COUNT no longer supplies implicit nearest-first order'))
+arms.append(('geo-order-reversed', 'src/cmd/geo.cc',
+             'return options.order == GeoOrder::Desc ? a.distance_m > b.distance_m',
+             'return options.order == GeoOrder::Asc ? a.distance_m > b.distance_m'))
 selected = set(sys.argv[1:]) or {name for name, *_ in arms}
 assert selected <= {name for name, *_ in arms}, selected
 for name,source,old,new in arms:
