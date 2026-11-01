@@ -1,0 +1,6 @@
+  row budget: 900s; median=51.38s; correctness-plan-fallback; bugs5 scancompact (both modes, both engines, atomic 0/1)
+  bugs5 scancompact (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=33.78s; correctness-plan-fallback; bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+  bugs5 slowlog_identity (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=27.38s; correctness-plan-fallback; bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+  bugs5 read_local_lfu (both modes, both engines, atomic 0/1) ok

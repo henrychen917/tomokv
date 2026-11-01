@@ -211,6 +211,15 @@
     "failures": []
   },
   {
+    "name": "release-observers",
+    "exit": 0,
+    "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.R1hgSF",
+    "passed": 16,
+    "failed": 0,
+    "failures": []
+  },
+  {
     "name": "release-units",
     "exit": 0,
     "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",

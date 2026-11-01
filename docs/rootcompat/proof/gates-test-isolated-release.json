@@ -1,0 +1,17 @@
+{
+  "name": "gates-test-isolated-release",
+  "command": [
+    "taskset",
+    "-c",
+    "56-63",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "GATE_TEST_PORT": "20390",
+    "GATE_CORES": "56-63"
+  },
+  "exit": 0,
+  "seconds": 217.936
+}
