@@ -26,6 +26,8 @@ from _lib import Conn, RespError, encode
 from _client_wait import wait_client_state
 
 
+from known_difference import expect
+
 DENIED = RespError(b"NOPERM No permissions to access a key")
 CASES = ("sort", "streams-name", "save-load", "capacity", "wake-pop", "wake-scatter")
 
@@ -244,10 +246,11 @@ def capacity_case(admin, port, args):
         for i in range(count):
             check(admin.read(), b"OK", f"fill slot {base+i}")
         assert time.monotonic() < deadline, f"capacity setup exceeded {args.capacity_seconds} seconds"
-    expected = b"OK" if args.oracle else RespError(b"ERR out of memory")
-    check(admin.cmd("ACL", "SETUSER", "overflow1", "on"), expected, "first full-slot creation")
-    check(admin.cmd("ACL", "SETUSER", "overflow2", "on"), expected, "second full-slot creation")
-    print("live-slot boundary: two exact", repr(expected), "replies", flush=True)
+    for name in ("overflow1", "overflow2"):
+        expect(admin.cmd("ACL", "SETUSER", name, "on"), b"OK",
+               root="CC4.24 ACL-LIVE-USER-CAP (65535)",
+               known=RespError(b"ERR out of memory"))
+    print("live-slot boundary: both Redis expectations checked (named cap difference above)", flush=True)
     for base in range(0, 65533, 256):
         names = [f"cap:{i}" for i in range(base, min(65533, base + 256))]
         check(admin.cmd("ACL", "DELUSER", *names), len(names), "free full-slot users")

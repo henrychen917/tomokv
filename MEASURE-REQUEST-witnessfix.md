@@ -98,3 +98,9 @@ retire-time NOPERM is explicitly ACL-REVOKED-TIMEOUT, a known difference listed
 in the audit, rather than a compatible pass. The whole-frame ECHO fence still
 rejects two replies, including the historical coded-null plus NOPERM defect.
 DQ=DF=0. Woken/permitted arms retain exact replies.
+
+### Compat 4.2 — ACL capacity
+
+Overflow creations now expect Redis OK. The documented 65,535-user limit is
+explicitly CC4.24 / ACL-LIVE-USER-CAP. Churn/reuse, stale handles and clean
+shutdown remain strict regression assertions. DQ=DF=0.
