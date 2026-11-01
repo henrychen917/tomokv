@@ -901,7 +901,6 @@
         "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
         "PUBLISH/PSUBSCRIBE basics in tests/unit/pubsub.tcl",
         "PUBLISH/PSUBSCRIBE with two clients in tests/unit/pubsub.tcl",
-        "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
         "PUBLISH/SUBSCRIBE basics in tests/unit/pubsub.tcl",
         "PUBLISH/SUBSCRIBE with two clients in tests/unit/pubsub.tcl",
         "PUNSUBSCRIBE and UNSUBSCRIBE should always reply in tests/unit/pubsub.tcl",
@@ -933,7 +932,8 @@
         "subscribe succeeds with small channel but fails with large channel due to OOM": "failed on TomoKV 2s in the survey",
         "subscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
         "subscribe with large channel name fails due to OOM": "failed on TomoKV 2s in the survey",
-        "unsubscribe inside multi, and publish to self": "failed on TomoKV 2s in the survey"
+        "unsubscribe inside multi, and publish to self": "failed on TomoKV 2s in the survey",
+        "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments": "PUBSUB-DISCONNECT-LAG (D14): intermittent cross-owner disconnect lag observed on PRE and POST; no retry and no compatible-pass claim."
       }
     },
     "unit/quit": {
@@ -1228,11 +1228,11 @@
       "skip_tests": {
         "SLOWLOG - Certain commands are omitted that contain sensitive information": "failed on TomoKV 2s in the survey",
         "SLOWLOG - Some commands can redact sensitive fields": "failed on TomoKV 2s in the survey",
-        "SLOWLOG - GET optional argument to limit output len works": "failed on TomoKV 2s in the survey",
-        "SLOWLOG - can clean older entries": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
-        "SLOWLOG - get all slow logs": "failed on TomoKV 2s in the survey",
-        "SLOWLOG - logged entry sanity check": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
-        "SLOWLOG - max entries is correctly handled": "failed on TomoKV 2s in the survey",
+        "SLOWLOG - GET optional argument to limit output len works": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+        "SLOWLOG - can clean older entries": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+        "SLOWLOG - get all slow logs": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+        "SLOWLOG - logged entry sanity check": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
+        "SLOWLOG - max entries is correctly handled": "SLOWLOG-MAXLEN-PER-THREAD: global ring was removed at integration (e98831c81); per-thread ring remains a documented difference.",
         "SLOWLOG - Rewritten commands are logged as their original command": "SLOWLOG-EXEC-BLOCKED-ORDER (D11): EXEC retirement ordering can log its waking BLPOP before queued SLOWLOG RESET erases it. Real execution-order defect; no retry."
       },
       "fresh_tests": [

@@ -128,3 +128,11 @@ difference; different errors fail. An eventual compatible implementation is
 accepted and cleaned up. Oracle allocations above 4 GiB: NOT RUN (the known
 architectural difference is named, not presented as oracle-verified parity).
 DQ=DF=0.
+
+### Compat 4.3 — remaining integration demotions
+
+Named PUBSUB-DISCONNECT-LAG (D14) replaces the intermittently promoted
+UNSUBSCRIBE/PUBLISH assertion. The existing SLOWLOG capacity skips now identify
+SLOWLOG-MAXLEN-PER-THREAD; the Redis CLI MIGRATE skip already names D17d.
+The three withdrawn climonfix4 promotions remain withdrawn. No retry remains.
+DQ=DF=0; one fewer required Tcl assertion per mode.
