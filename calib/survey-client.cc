@@ -6,6 +6,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/resource.h>
+#include <sys/prctl.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sched.h>
@@ -115,16 +116,19 @@ static std::string keywire(std::string s, u64 key) {
 static u64 bucket(u64 n) { int shift=std::max(0,int(std::bit_width(n))-11); return (n>>shift<<shift)|((u64(1)<<shift)-1); }
 struct Hist { std::map<u64,u64> bins; u64 max=0,n=0; void add(u64 x){bins[bucket(x)]++;max=std::max(max,x);n++;} };
 struct Pending { size_t op; u64 scheduled,sent,key; };
+struct SendStamp { u64 byte; Pending* pending; };
 struct Conn {
     int fd=-1; u64 id=0,cycle=0,seedkey=0,completed=0;
     std::string input,output; size_t offset=0; std::deque<Pending> pending;
+    u64 queued=0,written=0; bool write_wait=false;
+    std::deque<SendStamp> unsent;
     ~Conn(){if(fd>=0)close(fd);}
 };
 struct Options {
     int port=0,connections=0,threads=0,pipeline=1; u64 keys=0,count=0;
     double seconds=0,rate=0,timeout=60; std::string script,out,raw,ready,go; std::vector<int> cpus;
 };
-struct Result {
+struct alignas(64) Result {
     u64 completed=0,primary=0,cycles=0,finish=0,within=0,scheduled=0,maxlag=0;
     double cpu=0; Hist rtt,response,lag; std::vector<u64> perop; std::string error;
 };
@@ -140,12 +144,45 @@ static void histjson(std::ostream& f,const Hist& h){
     f<<"{\"n\":"<<h.n<<",\"max\":"<<h.max<<",\"bins\":[";bool first=true;
     for(auto [edge,count]:h.bins){if(!first)f<<",";first=false;f<<"["<<edge<<","<<count<<"]";}f<<"]}";
 }
+static u64 deadline(const Conn& c,const Options& o,u64 start,u64 primary_ops) {
+    return start+u64((c.cycle*o.connections+c.id)*double(primary_ops)*1e9/o.rate);
+}
+static void enqueue(Conn& c,const std::vector<Op>& ops,u64 scheduled,u64 key,Result& res) {
+    for(size_t j=0;j<ops.size();j++) {
+        std::string request=keywire(ops[j].request,key);
+        c.pending.push_back({j,scheduled,0,key});
+        c.unsent.push_back({c.queued,&c.pending.back()});
+        c.queued+=request.size();c.output+=request;res.scheduled+=ops[j].primary;
+    }
+    c.cycle++;
+}
+static void flush(Conn& c,int ep) {
+    while(c.offset<c.output.size()) {
+        u64 attempted=ns();
+        ssize_t w=send(c.fd,c.output.data()+c.offset,c.output.size()-c.offset,MSG_NOSIGNAL);
+        if(w<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;
+        if(w<0&&errno==EINTR)continue;
+        need(w>0,"send failed");c.offset+=w;c.written+=w;
+        // Stamp only commands whose first byte was accepted, including partial
+        // sends. An EAGAIN/EPOLLOUT wait is send lag, not an early 'sent' sample.
+        while(!c.unsent.empty()&&c.unsent.front().byte<c.written) {
+            c.unsent.front().pending->sent=attempted;c.unsent.pop_front();
+        }
+    }
+    bool blocked=c.offset<c.output.size();
+    if(!blocked){c.output.clear();c.offset=0;}
+    if(blocked!=c.write_wait) {
+        epoll_event e{};e.events=EPOLLIN|(blocked?uint32_t(EPOLLOUT):0);e.data.ptr=&c;
+        need(epoll_ctl(ep,EPOLL_CTL_MOD,c.fd,&e)==0,"epoll mod");c.write_wait=blocked;
+    }
+}
 static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barrier<>& ready,
                    std::atomic<u64>& epoch,std::atomic<bool>& abort,Result& res) {
     int ep=-1; bool joined=false;
     try {
         cpu_set_t cpu;CPU_ZERO(&cpu);CPU_SET(o.cpus[wid%o.cpus.size()],&cpu);
         need(sched_setaffinity(0,sizeof cpu,&cpu)==0,"worker pinning");
+        need(prctl(PR_SET_TIMERSLACK,1ul)==0,"timer slack");
         ep=epoll_create1(0);need(ep>=0,"epoll_create");
         std::vector<std::unique_ptr<Conn>> clients;
         for(int i=wid;i<o.connections;i+=o.threads){
@@ -158,51 +195,52 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
         joined=true; ready.arrive_and_wait();
         while(!epoch.load()&&!abort.load()) std::this_thread::sleep_for(std::chrono::milliseconds(1));
         if(abort.load())throw std::runtime_error("peer worker failed");
-        u64 start=epoch.load(),end=start+u64(o.seconds*1e9);double cpu0=threadcpu();
+        u64 start=epoch.load(),end=start+u64(o.seconds*1e9);
+        std::this_thread::sleep_until(Clock::time_point(std::chrono::nanoseconds(start)));
+        double cpu0=threadcpu();
         u64 primary_ops=std::count_if(ops.begin(),ops.end(),[](const Op& x){return x.primary;});
         u64 target=o.rate?u64(std::ceil(o.rate*o.seconds/primary_ops)):0;
         std::vector<epoll_event> events(std::max(1,int(clients.size())));
+        size_t next=0;
         while(!abort.load()) {
             u64 now=ns();need(now<=end+u64(o.timeout*1e9),"client drain timeout");bool live=false;
+            u64 wake=now+1000000;
+            if(o.rate) {
+                // Connection IDs interleave workers. Within one worker they are
+                // already in deadline order, even when connections % threads != 0.
+                // Bound catch-up work so a backlog cannot starve socket progress.
+                for(int batch=0;batch<64;batch++) {
+                    Conn& c=*clients[next];
+                    if(c.cycle*o.connections+c.id>=target)break;
+                    u64 scheduled=deadline(c,o,start,primary_ops);now=ns();
+                    if(now<scheduled)break;
+                    enqueue(c,ops,scheduled,(c.id+(c.cycle)*o.connections)%o.keys,res);
+                    flush(c,ep);next=(next+1)%clients.size();
+                }
+                const Conn& c=*clients[next];
+                if(c.cycle*o.connections+c.id<target){live=true;wake=std::min(wake,deadline(c,o,start,primary_ops));}
+            }
             for(auto& ptr:clients){Conn& c=*ptr;
                 if(!c.pending.empty()||c.offset<c.output.size()){live=true;continue;}
-                c.output.clear();c.offset=0;
+                if(o.rate)continue;
                 for(int batch=0;batch<o.pipeline;batch++) {
-                    u64 global=c.cycle*o.connections+c.id;
-                    u64 scheduled=o.rate?start+u64(global*double(primary_ops)*1e9/o.rate):now;
-                    bool more=o.count?c.seedkey<o.count:(o.rate?global<target:now<end);
+                    bool more=o.count?c.seedkey<o.count:now<end;
                     if(!more)break;
-                    live=true;if(now<start || (o.rate&&now<scheduled))break;
+                    live=true;
                     u64 key=o.count?c.seedkey:(c.id+c.cycle*o.connections)%o.keys;
-                    for(size_t j=0;j<ops.size();j++) {
-                        c.output+=keywire(ops[j].request,key);
-                        c.pending.push_back({j,scheduled,now,key});res.scheduled+=ops[j].primary;
-                    }
-                    c.cycle++;c.seedkey+=o.connections;
-                    if(o.rate)break; // pacing emits each due cycle separately, never batches deadlines
+                    enqueue(c,ops,now,key,res);c.seedkey+=o.connections;
                 }
-                if(!c.output.empty()) {
-                    // Timestamp immediately before the first send attempt. EPOLLOUT waits are included.
-                    for(auto& p:c.pending)p.sent=ns();
-                    epoll_event e{};e.events=EPOLLIN|EPOLLOUT;e.data.ptr=&c;
-                    need(epoll_ctl(ep,EPOLL_CTL_MOD,c.fd,&e)==0,"epoll mod");
-                }
+                if(!c.output.empty())flush(c,ep);
             }
             if(!live)break;
-            int n=epoll_wait(ep,events.data(),events.size(),o.rate?0:1);
+            now=ns();u64 wait=wake>now?wake-now:0;
+            timespec timeout{time_t(wait/1000000000),long(wait%1000000000)};
+            int n=epoll_pwait2(ep,events.data(),events.size(),&timeout,nullptr);
             need(n>=0||errno==EINTR,"epoll wait");
             for(int i=0;i<n;i++){
                 auto& c=*static_cast<Conn*>(events[i].data.ptr);
                 need(!(events[i].events&(EPOLLERR|EPOLLHUP)),"socket closed/error");
-                if(events[i].events&EPOLLOUT){
-                    while(c.offset<c.output.size()){
-                        ssize_t w=send(c.fd,c.output.data()+c.offset,c.output.size()-c.offset,MSG_NOSIGNAL);
-                        if(w<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;
-                        if(w<0&&errno==EINTR)continue;
-                        need(w>0,"send failed");c.offset+=w;
-                    }
-                    if(c.offset==c.output.size()){epoll_event e{};e.events=EPOLLIN;e.data.ptr=&c;need(epoll_ctl(ep,EPOLL_CTL_MOD,c.fd,&e)==0,"epoll mod read");}
-                }
+                if(events[i].events&EPOLLOUT)flush(c,ep);
                 if(events[i].events&EPOLLIN){
                     char buf[65536];for(;;){ssize_t got=recv(c.fd,buf,sizeof buf,0);
                         if(got<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;
@@ -211,6 +249,7 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
                     }
                     size_t p=0;for(;;){size_t old=p;Reply reply;if(!parse(c.input,p,reply)){p=old;break;}
                         need(!c.pending.empty(),"unsolicited reply");auto pending=c.pending.front();c.pending.pop_front();
+                        need(pending.sent>0,"reply before send");
                         const auto& op=ops[pending.op];
                         if(op.expect.find("ss:000000000000")!=std::string::npos) {
                             Op concrete=op;concrete.expect=keywire(op.expect,pending.key);
@@ -225,10 +264,9 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
                     }c.input.erase(0,p);
                 }
             }
-            if(now<start)std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         need(!abort.load(),"peer worker failed");
-        for(auto& c:clients){need(c->pending.empty()&&c->input.empty()&&c->offset==c->output.size(),"undrained connection");need(c->completed>0,"inactive connection");res.cycles+=c->cycle;}
+        for(auto& c:clients){need(c->pending.empty()&&c->input.empty()&&c->unsent.empty()&&c->offset==c->output.size(),"undrained connection");need(c->completed>0,"inactive connection");res.cycles+=c->cycle;}
         res.finish=ns();res.cpu=threadcpu()-cpu0;
     }catch(const std::exception& e){res.error=e.what();abort=true;if(!joined)ready.arrive_and_drop();}
     if(ep>=0)close(ep);
@@ -240,6 +278,40 @@ static void selftest(){
     auto bad=op.expected;bad.text="2";bool rejected=false;try{check(op,bad);}catch(...){rejected=true;}need(rejected,"bad reply accepted");
     for(u64 n:{0ull,1ull,1024ull,2048ull,1000000ull,100000000000ull})need(bucket(n)>=n&&bucket(n)-n<=std::max<u64>(1,n/1000),"hist precision");
     need(keywire("sv:000000000000 sw:000000000000",42)=="sv:100000000042 sw:100000000042","key substitution");
+    // Uneven worker/connection division must cover every global deadline once.
+    Options o;o.connections=512;o.threads=80;o.rate=100000;
+    std::vector<int> seen(1500);
+    for(int wid=0;wid<o.threads;wid++) {
+        std::vector<std::unique_ptr<Conn>> clients;
+        for(int id=wid;id<o.connections;id+=o.threads){auto c=std::make_unique<Conn>();c->id=id;clients.push_back(std::move(c));}
+        size_t next=0;u64 last=0;
+        for(;;) {
+            Conn& c=*clients[next];u64 global=c.cycle*o.connections+c.id;
+            if(global>=seen.size())break;
+            u64 due=deadline(c,o,1,1);need(due>=last,"deadline order");last=due;
+            seen[global]++;c.cycle++;next=(next+1)%clients.size();
+        }
+    }
+    need(std::all_of(seen.begin(),seen.end(),[](int n){return n==1;}),"lost/duplicated deadline");
+    // Withhold replies and force EAGAIN: subsequent cycles must still enqueue,
+    // and their send timestamps must remain unset until bytes actually move.
+    int sockets[2];need(socketpair(AF_UNIX,SOCK_STREAM|SOCK_NONBLOCK,0,sockets)==0,"test socketpair");
+    Conn c,peer;c.fd=sockets[0];peer.fd=sockets[1];int small=4096;
+    need(setsockopt(c.fd,SOL_SOCKET,SO_SNDBUF,&small,sizeof small)==0,"test send buffer");
+    int ep=epoll_create1(0);need(ep>=0,"test epoll");epoll_event event{};event.events=EPOLLIN;event.data.ptr=&c;
+    need(epoll_ctl(ep,EPOLL_CTL_ADD,c.fd,&event)==0,"test epoll add");
+    Result res;Op large=op;large.request.assign(65536,'x');
+    enqueue(c,{large},ns(),0,res);flush(c,ep);
+    need(c.write_wait&&c.pending.front().sent>0,"partial send witness");
+    enqueue(c,{large},ns(),1,res);flush(c,ep);
+    need(c.cycle==2&&c.pending.size()==2&&c.pending.back().sent==0,"EAGAIN/send gating");
+    u64 resumed=ns();char buf[65536];
+    for(int tries=0;c.write_wait&&tries<1000;tries++) {
+        while(recv(peer.fd,buf,sizeof buf,0)>0){}
+        flush(c,ep);
+    }
+    need(!c.write_wait&&c.unsent.empty()&&c.pending.back().sent>=resumed,"delayed send stamp");
+    close(ep);
     std::cout<<"survey-client selftest: PASS\n";
 }
 int main(int argc,char**argv){
