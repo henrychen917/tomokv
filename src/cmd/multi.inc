@@ -2764,6 +2764,15 @@ bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state) {
     Client& client = *state.client;
     while (state.io_cursor < state.commands.size()) {
         auto& command = *state.commands[state.io_cursor++];
+        if (command.kind == MultiCommandKind::Ping) {
+            // Ownerless PING replies were prepared before the IO effects.
+            // RESP2 observes subscription changes at this child position.
+            if (client.subscriber_mode() && !command.op->resp3()) {
+                command.op->clear_reply();
+                loop.pubsub_reply_ping(*command.op);
+            }
+            continue;
+        }
         if (command.kind != MultiCommandKind::IoLocal || command.io_effect_done) continue;
         Op& child = *command.op;
         const auto verb = command.queued.verb;
