@@ -54,7 +54,8 @@ def main():
         assert receipt['binary_unchanged'] and receipt['source_tree_unchanged'], run['name']
         for job in run['jobs']:
             gate_verdict_passed = job.get('exit') == 0 and job.get('failed') == 0
-            passed = gate_verdict_passed
+            stable_harness = receipt.get('tests_tools_unchanged', False)
+            passed = gate_verdict_passed and stable_harness
             locale_nonconforming = (run['name'] == 'landing-primary'
                                     and job['name'].startswith('datafix1_'))
             # The initial helper overrode LC_ALL=C. Preserve its raw outcomes,
@@ -77,6 +78,7 @@ def main():
                                  release_footprints=run['env'].get('GATE_PROOF_NO_RATES') == '0',
                                  passed=passed, release_memory_bounds=memory_lines,
                                  gate_verdict_passed=gate_verdict_passed,
+                                 stable_harness=stable_harness,
                                  locale_nonconforming=locale_nonconforming,
                                  details=job))
 

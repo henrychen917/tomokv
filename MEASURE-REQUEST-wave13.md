@@ -168,25 +168,30 @@ following registry row could not find its candidate-specific cost checksum.
 All six blockfix2 live rows and all 24 registry live legs passed, but neither
 whole job is credited from that attempt. Ten matching production companions
 and the checksum binding are now staged with hashes in
-`docs/wave13/candidate-companions.json`; both complete jobs await rerun.
+`docs/wave13/candidate-companions.json`; both complete jobs passed their rerun
+(9 rows, zero failures), recorded in `jobs/landing-blockfix-companions.json`.
 `docs/wave13/job-issues.json` preserves the failures and their causes.
 
-One added PS4.4 check failed to arm: fused/epoll FLUSHALL hit the exact
-168-byte increment limit but never opened the held diagnostic window. SET and
-the other three mode/engine cases passed; the whole persistfmt job is not
-credited. The injected writer wait can hold a fused owner still needed for
-FLUSH completion. A prepared harness patch records the writer and receipt-gate
-threads and permits at most eight fresh-state attempts only for that witnessed
-unarmed state. It retains the four-second arming bound, blocked-writer witness,
-no-reply assertions and fatal exit requirement. Full-job reruns and a removed
-pause-hook negative control are pending; no production change is proposed.
+The added PS4.4 window check exposed scheduling-fixture deadlocks in fused
+FLUSH and concurrent stderr reporters. Every failed attempt is retained. The
+final scheduling twin delays writer IO without blocking owner progress until
+the receipt gate is reached, then uses the original after-failure-check pause
+and real RLIMIT_FSIZE failure. Trace files identify every failure logger, so
+an actual logger must block in pipe_write before the socket assertions run.
+At most eight fresh-state attempts are allowed for witnessed latch setup
+failures; no missing window is accepted. The four-second arming bound, no-reply
+assertions and fatal exit 1 are unchanged. Both complete persistence jobs now
+pass (45 rows), including all twelve SET/FLUSHALL/FLUSHDB windows. Three fresh
+rearms were needed in fused epoll. The removed-pause-hook control is pending.
+No production change was needed.
 
 The initial seven datafix1 jobs returned passing verdicts but their shared
 helper forced `LC_ALL=en_US.UTF-8` for 120 target/oracle boots. These outcomes
 **do not satisfy the requested C boot environment**;
 `docs/wave13/locale-pin-exception.json` records them without crediting coverage.
-Six locale-independent jobs will be rerun after pinning their helper to C and
-checking the owned server process environment. The seventh, `datafix1_locale`,
+All six locale-independent jobs passed their complete reruns after pinning the
+helper to C; `/proc/PID/environ` verified all 96 target/oracle boots
+(`docs/wave13/locale-C-reruns.json`). The seventh, `datafix1_locale`,
 deliberately requires a non-C inherited default to differ from C. Its assertion
 is retained: **NOT RUN under the required C environment**, because that
 precondition conflicts with the task constraint.
