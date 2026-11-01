@@ -39,8 +39,11 @@ def main():
             exits.append(run('landing-footprints-' + engine,
                              MATRIX['release_footprints_each_engine'],
                              '--engine', engine, '--release-footprints'))
+            # These four jobs name their engine explicitly. Their missing fused
+            # legs need one invocation each, independent of GATE_NET_IO.
+            named_engine_jobs = MATRIX['each_mode'] if engine == 'uring' else []
             exits.append(run('landing-fused-' + engine,
-                             sorted(set(MATRIX['each_mode'] + MATRIX['each_mode_engine'])),
+                             sorted(set(named_engine_jobs + MATRIX['each_mode_engine'])),
                              '--engine', engine, '--fused'))
             for fused in (False, True):
                 exits.append(run('landing-script0-' + engine + '-' + str(int(fused)), ['script_bounds'],
