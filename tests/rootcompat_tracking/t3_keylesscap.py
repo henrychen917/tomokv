@@ -59,8 +59,17 @@ def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chun
                 assert all(r == "OK" for r in rs), rs[:3]
             t_set = time.monotonic()
             if mode != "bcast":
+                if mode == "exec":
+                    chunk = 500
                 for i in range(0, n, chunk):
-                    rs = trk.pipeline([("GET", k) for k in keys[i:i + chunk]], timeout=60)
+                    commands = [("GET", k) for k in keys[i:i + chunk]]
+                    if mode == "exec":
+                        framed = trk.pipeline([("MULTI",), *commands, ("EXEC",)], timeout=60)
+                        assert framed[0] == "OK" and framed[1:-1] == ["QUEUED"] * len(commands), framed[:3]
+                        rs = framed[-1]
+                        assert isinstance(rs, list) and len(rs) == len(commands), rs
+                    else:
+                        rs = trk.pipeline(commands, timeout=60)
                     if any(r is None for r in rs) and time.monotonic() - first_set >= ttl_ms / 1000:
                         raise EnrollmentExpired(
                             f"initial enrolment reached expired keys at batch {i // chunk}; "

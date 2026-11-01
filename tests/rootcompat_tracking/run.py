@@ -51,7 +51,9 @@ def main():
                                 else:
                                     # SCAN exercises all geometries. One large MGET independently
                                     # exercises the read-local-off owner path (R2's second witness).
-                                    for trigger in ('scan', 'mget'):
+                                    for exercise in ('scan', 'mget', 'exec-scan'):
+                                        trigger = 'scan' if exercise == 'exec-scan' else exercise
+                                        enrol = 'exec' if exercise == 'exec-scan' else 'default'
                                         if trigger == 'mget' and read_local:
                                             continue
                                         # Each call owns a fresh server. Re-arm only an expired
@@ -59,12 +61,12 @@ def main():
                                         # Retain every miss and fail if all three arms miss.
                                         for arming in range(3):
                                             try:
-                                                t3_keylesscap.run(label + '-' + trigger if not oracle else label,
+                                                t3_keylesscap.run(label + '-' + exercise if not oracle else label,
                                                     a.port, 1, 100000, 4000, trigger, out,
-                                                    mget_chunk=100000)
+                                                    mode=enrol, mget_chunk=100000)
                                                 break
                                             except t3_keylesscap.EnrollmentExpired as exc:
-                                                receipt = dict(geometry=label, trigger=trigger,
+                                                receipt = dict(geometry=label, trigger=exercise,
                                                                arming=arming + 1, bound=3, error=str(exc))
                                                 with out.with_suffix('.arming.jsonl').open('a') as f:
                                                     f.write(json.dumps(receipt) + '\n')
