@@ -3,6 +3,20 @@
 Base: `e32b04a44`; FIFO: `2461efbbb` (execfifo2). Work uses CPUs 96–111,
 ports 20600–20699, and `LC_ALL=C`. No throughput workload is authorized here.
 
+| Plain-write stage | PRE → FIFO difference | No transaction state |
+| --- | --- | --- |
+| `IoLoop::parse_and_dispatch`, fused (`genthread.o`) | Larger unit changes GCC's inlining choices; RESP length helper is outlined. | Added stack/TLS accesses, measured below and removed by POST. |
+| Split parser (`main.o`) | Multi-database unit also outlines `Client::nothing_to_write`. | One additional existing-header load and one stack load/store per batch, removed by POST. Db0 split is unchanged. |
+| `xshard_task_should_defer`, `atomics_glue.inc` | `multi_plain_write_ready` becomes the mark-preserving `multi_plain_write_probe`. | The existing `shard.has_watches()` guard short-circuits before either call. |
+| `ExLoopT::execute` via `ex_execute.inc` | C1 service calls are added inside tagged-unit handling; final plain gate uses the FIFO predicate. | Plain tasks do not enter tagged-unit handling. The final gate retains the existing Shard+8 guard. |
+| SET / INCR handlers in `t_string.cc` | No source change. | Same lookup, mutation and reply path. Armed read-local SET still uses immutable replacement and its existing retire sink. |
+| Owner retry servicing | C1 ready-list draining is added behind the existing retry population check. | Same empty-count access and return as PRE. No ready-link or boundary-byte access. |
+
+WATCH registration without a reservation still returns at the missing key-queue
+lookup before the FIFO head load. Active held claims, waiters and writer episodes
+are the separately listed slow path below; the finite no-EXEC fixture does not
+claim their work is absent.
+
 The source audit does **not** support an unconditional FIFO waiter lookup on
 SET/INCR. `ex_execute.inc` already tests `Shard::has_watches()` before calling
 `multi_plain_write_ready`. The dispatch probe in `atomics_glue.inc` has the

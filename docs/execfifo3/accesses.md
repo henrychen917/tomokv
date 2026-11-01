@@ -41,7 +41,7 @@ memory operands**, excluding implicit call/return and push/pop stack accesses.
 | --- | ---: | ---: | --- |
 | Fused SET, read-local 0 or 1 | 160 stack + 64 TLS | 480 stack | One additional traced stack line; stack is private to this thread. TLS loads address `FS+0x28`, the stack-canary word on the first TLS line; initialized by the runtime, never written by EXEC bookkeeping. |
 | Fused INCR / GET | 160 stack + 64 TLS | 384 stack | Same private stack/TLS explanation; no extra Shard/owner/Client access. |
-| Multi-database split parser, GET/SET/INCR | 1 stack + 1 Client header | 1 stack | No additional unique object line. The Client load is in the existing first 64-byte header (`nothing_to_write`, `fill_` at +40); IO owns this byte, while existing IO/owner communication also uses the header. |
+| Multi-database split parser, GET/SET/INCR | 1 stack + 1 Client header | 1 stack | No additional unique object line. The Client load is in the existing first 64-byte header (`nothing_to_write`, `fill_` at +40); the connection's IO writes this header during parsing, sending and retirement. FIFO bookkeeping adds no store there. |
 | Owner SET/INCR, including armed read-local replacement | 0 | 0 | Existing Shard+8 read short-circuits; no queue/counter access. |
 
 The TLS attribution is dynamic, not inferred from an unclassified address:

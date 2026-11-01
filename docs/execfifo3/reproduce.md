@@ -1,0 +1,70 @@
+# Reproducing the execfifo3 proof
+
+Use this worktree, CPUs 96–111 and ports 20600–20699. Every live runner sets
+`LC_ALL=C`. The commands below are correctness/finite fixtures; none starts a
+throughput benchmark. Do not overlap builds, traces or perf with the timing
+sensitive harness self-tests or sustained fairness matrix.
+
+The frozen images and their hashes are in `arms.json` and `SHA256SUMS`.
+Production code is the three-value Makefile change at `4248cfd40`; later commits
+contain evidence and tooling. The release candidate is `build/execfifo3/POST`.
+`POST-final` in fixture filenames denotes that same final production link.
+
+The runnable linked probes are retained. Recount their complete owner and
+parser scopes with:
+
+```sh
+taskset -c 96-111 python3 tools/execfifo3_scope.py --kind commands --arms PRE,POST-final --trace-only --fresh --workers 8
+taskset -c 96-111 python3 tools/execfifo3_scope.py --kind memory --arms PRE,FIFO,POST-final --trace-only --fresh --commands GET,SET,INCR,PARSE-GET,PARSE-SET,PARSE-INCR --batches 32 --workers 6
+taskset -c 96-111 python3 tools/execfifo3_input_scope.py
+taskset -c 96-111 python3 tools/execfifo3_perf.py --arms PRE,FIFO,POST-final
+taskset -c 96-111 python3 tools/execfifo3_perf_summary.py
+```
+
+The trace counts named production Tomo routines in the linked image, including
+their inline code, and excludes fixture glue and external library callees.
+Memory counts are explicit x86 operands, not implicit stack accesses of calls,
+returns, push or pop. Object-line identities use actual allocation alignment.
+The TLS diagnostic also classifies the parser's read buffer and `FS` region.
+Each trace verifies the probe digest and exact fixture replies. Perf counts
+the complete process, including setup and external libraries; it uses no rates.
+
+Capstone 5.0.9 is installed locally in `build/execfifo3/python` for GDB's Python
+interpreter. The probes use production objects first in link order, with only
+the executable entry renamed; the fixture follows them so its COMDAT definitions
+do not supersede production. Exact compile/link commands and production/probe
+hashes are in the `*-build.json` receipts.
+
+To rebuild probes after cleanup, first rebuild the retained PRE/FIFO source
+archives with `taskset -c 96-111 make -C build/execfifo3/pre-source -j16 all`
+and the corresponding `fifo-source` command, then run the scope driver without
+`--trace-only`. Intermediate objects and generated symbol-range files were
+deleted after proof completion to respect the disk budget; their hashes are
+retained in `intermediate-cleanup.json`. Regenerating frozen release/PAD images
+with `tools/execfifo3_artifacts.py` likewise requires the PRE objects and a fresh
+main `make all`; it changes receipts and must not be confused with the existing
+frozen images.
+
+The live driver imports all 42 unchanged groups from `execfifo2_validate.py`.
+For example:
+
+```sh
+taskset -c 96-111 python3 tools/execfifo3_validate.py fifo-contract directed fairness at412 txn-uring txn-epoll differ-uring differ-epoll
+taskset -c 96-111 env LC_ALL=C GATE_TEST_PORT=20699 python3 tests/gates_test.py
+taskset -c 96-111 python3 tools/execfifo3_negative.py
+taskset -c 96-111 python3 tools/execfifo3_control_smoke.py
+taskset -c 96-111 python3 tools/execfifo3_freshness.py
+```
+
+`validation/runs.json` records the full group list actually run, exact gate job
+filters, allocation, environment, executable digest and result of every attempt.
+The coverage checker requires all 42 groups and their full FIFO/C1/fairness,
+AT4.12 and differential leg inventories. The proof recorder archives completed
+job ledgers and result logs. The negative controls modify only a stopped GDB
+inferior and require the intended assertion and exit 1; no broken binary or
+source is published.
+
+`GATE_PROOF_NO_RATES=1` leaves the quantitative atomic floor, atomic RYOW rates
+and stream/xmove rate checks to the maintainer while retaining correctness
+checks. `flip_saturated`, generic ABBA cells, EXEC/depth/script-storm merit,
+load generators and the full iteration are not part of this runtime proof.
