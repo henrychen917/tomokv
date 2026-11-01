@@ -1,0 +1,36 @@
+{
+  "binary_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+  "run_dir": "build/gate-run.Ver4C5",
+  "directed_rows": 40,
+  "directed_ledger": "ok\t0.370000\tpersistfmt stream-roundtrip (1s, epoll)\nok\t0.960000\tpersistfmt stream-interchange (1s, epoll)\nok\t0.550000\tpersistfmt stream-options (1s, epoll)\nok\t0.380000\tpersistfmt wire-values (1s, epoll)\nok\t1.180000\tpersistfmt save (1s, epoll)\nok\t0.650000\tpersistfmt bgsave (1s, epoll)\nok\t0.590000\tpersistfmt shutdown (1s, epoll)\nok\t0.580000\tpersistfmt reload (1s, epoll)\nok\t0.700000\tpersistfmt aof-yes (1s, epoll)\nok\t0.670000\tpersistfmt aof-failure (1s, epoll)\nok\t0.370000\tpersistfmt stream-roundtrip (1s, uring)\nok\t0.970000\tpersistfmt stream-interchange (1s, uring)\nok\t0.550000\tpersistfmt stream-options (1s, uring)\nok\t0.380000\tpersistfmt wire-values (1s, uring)\nok\t1.210000\tpersistfmt save (1s, uring)\nok\t0.720000\tpersistfmt bgsave (1s, uring)\nok\t0.600000\tpersistfmt shutdown (1s, uring)\nok\t0.650000\tpersistfmt reload (1s, uring)\nok\t0.700000\tpersistfmt aof-yes (1s, uring)\nok\t0.720000\tpersistfmt aof-failure (1s, uring)\nok\t0.360000\tpersistfmt stream-roundtrip (2s, epoll)\nok\t0.970000\tpersistfmt stream-interchange (2s, epoll)\nok\t0.540000\tpersistfmt stream-options (2s, epoll)\nok\t0.390000\tpersistfmt wire-values (2s, epoll)\nok\t1.180000\tpersistfmt save (2s, epoll)\nok\t0.650000\tpersistfmt bgsave (2s, epoll)\nok\t0.580000\tpersistfmt shutdown (2s, epoll)\nok\t0.580000\tpersistfmt reload (2s, epoll)\nok\t0.710000\tpersistfmt aof-yes (2s, epoll)\nok\t0.670000\tpersistfmt aof-failure (2s, epoll)\nok\t0.420000\tpersistfmt stream-roundtrip (2s, uring)\nok\t0.970000\tpersistfmt stream-interchange (2s, uring)\nok\t0.540000\tpersistfmt stream-options (2s, uring)\nok\t0.380000\tpersistfmt wire-values (2s, uring)\nok\t1.220000\tpersistfmt save (2s, uring)\nok\t0.720000\tpersistfmt bgsave (2s, uring)\nok\t0.590000\tpersistfmt shutdown (2s, uring)\nok\t0.650000\tpersistfmt reload (2s, uring)\nok\t0.740000\tpersistfmt aof-yes (2s, uring)\nok\t0.720000\tpersistfmt aof-failure (2s, uring)\n",
+  "repeated_rows": 4,
+  "repeated_ledger": "ok\t28.730000\tpersistfmt repeated aoffix2 error (1s, epoll)\nok\t29.150000\tpersistfmt repeated aoffix2 error (1s, uring)\nok\t28.860000\tpersistfmt repeated aoffix2 error (2s, epoll)\nok\t29.200000\tpersistfmt repeated aoffix2 error (2s, uring)\n",
+  "repetitions": [
+    {
+      "log": "build/gate-run.Ver4C5/jobs/persistfmt_aof_error/persistfmt-repeat-1s-epoll.log",
+      "event": "repeated_error_row",
+      "passed": 240,
+      "failures": 0
+    },
+    {
+      "log": "build/gate-run.Ver4C5/jobs/persistfmt_aof_error/persistfmt-repeat-1s-uring.log",
+      "event": "repeated_error_row",
+      "passed": 240,
+      "failures": 0
+    },
+    {
+      "log": "build/gate-run.Ver4C5/jobs/persistfmt_aof_error/persistfmt-repeat-2s-epoll.log",
+      "event": "repeated_error_row",
+      "passed": 240,
+      "failures": 0
+    },
+    {
+      "log": "build/gate-run.Ver4C5/jobs/persistfmt_aof_error/persistfmt-repeat-2s-uring.log",
+      "event": "repeated_error_row",
+      "passed": 240,
+      "failures": 0
+    }
+  ],
+  "total_repetitions": 960,
+  "total_failures": 0
+}

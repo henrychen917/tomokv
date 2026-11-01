@@ -1,0 +1,8 @@
+START matrix-uring
+DONE matrix-uring 1
+START matrix-epoll
+DONE matrix-epoll 0
+START fused-uring
+DONE fused-uring 0
+START fused-epoll
+DONE fused-epoll 0

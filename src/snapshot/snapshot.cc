@@ -19,6 +19,8 @@
 #include "../net/uring.h"
 #include "../persist/aof.h"
 #include "../store/flatstore.h"
+#include "../cmd/scripting.h"
+#include "../net/resp.h"
 
 namespace tomo {
 namespace {
@@ -468,6 +470,22 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         std::this_thread::yield();
     }
     if (phase() == Phase::Freeze) {
+        // Libraries are process-wide and protected by their registry mutex. Take
+        // one immutable source image at the cut, never one image per shard/key.
+        function_metadata_.clear();
+        std::vector<uint8_t> functions;
+        if (!function_snapshot_save(functions, error)) {
+            fail(next_epoch, error.c_str());
+        } else if (!functions.empty()) {
+            try {
+                if (functions.size() > UINT32_MAX - kFileHeaderBytes - DatabaseMap::kPayloadBytes)
+                    throw std::bad_alloc();
+                function_metadata_.assign(database_map_.begin(), database_map_.end());
+                function_metadata_.insert(function_metadata_.end(), functions.begin(), functions.end());
+            } catch (const std::bad_alloc&) { fail(next_epoch, "out of memory saving functions"); }
+        }
+    }
+    if (phase() == Phase::Freeze) {
         // All owners are frozen and the atomic-group drain is complete, so this is the stable
         // commit watermark that defines the snapshot cut.  Keep it latched after the save ends so
         // INFO can report this exact cut rather than a live watermark that continues to advance.
@@ -636,7 +654,8 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
 
 bool SnapshotManager::write_header_normal() {
     uint8_t h[kFileHeaderBytes + DatabaseMap::kPayloadBytes] = {};
-    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0);
+    const uint32_t header_bytes = kFileHeaderBytes + (function_metadata_.empty()
+        ? (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0) : function_metadata_.size());
     std::memcpy(h, kFileMagic, sizeof(kFileMagic));
     snapshot_put_u32(h + 8, persistence_routing_version(nshards_));
     snapshot_put_u32(h + 12, header_bytes);
@@ -652,7 +671,11 @@ bool SnapshotManager::write_header_normal() {
         std::memcpy(h + kFileHeaderBytes, database_map_.data(), DatabaseMap::kPayloadBytes);
         snapshot_put_u64(h + 72, snapshot_checksum(database_map_.data(), DatabaseMap::kPayloadBytes));
     }
-    if (!write_all(fd_, h, header_bytes)) return false;
+    if (!function_metadata_.empty()) {
+        snapshot_put_u64(h + 72, snapshot_checksum(function_metadata_.data(), function_metadata_.size()));
+        if (!write_all(fd_, h, kFileHeaderBytes) ||
+            !write_all(fd_, function_metadata_.data(), function_metadata_.size())) return false;
+    } else if (!write_all(fd_, h, header_bytes)) return false;
     file_offset_ = header_bytes;
     header_complete_ = true;
     return true;
@@ -703,7 +726,8 @@ bool SnapshotManager::write_frame_normal(const SnapshotChunk& chunk) {
 bool SnapshotManager::submit_header_uring(Ring& ring) {
     auto* request = new (std::nothrow) SnapshotIoRequest();
     if (!request) return false;
-    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0);
+    const uint32_t header_bytes = kFileHeaderBytes + (function_metadata_.empty()
+        ? (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0) : function_metadata_.size());
     request->role = SnapshotIoHeader;
     request->epoch = epoch();
     request->fd = fd_;
@@ -727,6 +751,13 @@ bool SnapshotManager::submit_header_uring(Ring& ring) {
     request->remaining = header_bytes;
     request->vectors[0] = {request->header.data(), header_bytes};
     request->vector_count = 1;
+    if (!function_metadata_.empty()) {
+        snapshot_put_u64(request->header.data() + 72,
+                         snapshot_checksum(function_metadata_.data(), function_metadata_.size()));
+        request->vectors[0].iov_len = kFileHeaderBytes;
+        request->vectors[1] = {function_metadata_.data(), function_metadata_.size()};
+        request->vector_count = 2;
+    }
     if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
     file_offset_ = header_bytes;
     io_inflight_++;
@@ -1042,7 +1073,7 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
         std::memcmp(file.data(), kFileMagic, sizeof(kFileMagic)) != 0 ||
         (snapshot_get_u32(file.data() + 8) != 1 && snapshot_get_u32(file.data() + 8) != 2) ||
         (snapshot_get_u32(file.data() + 12) != kFileHeaderBytes &&
-         snapshot_get_u32(file.data() + 12) != kFileHeaderBytes + DatabaseMap::kPayloadBytes) ||
+         snapshot_get_u32(file.data() + 12) < kFileHeaderBytes + DatabaseMap::kPayloadBytes) ||
         snapshot_get_u64(file.data() + 64) != snapshot_checksum(file.data(), 64)) {
         error = "invalid snapshot header";
         return nullptr;
@@ -1072,7 +1103,7 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     if (header_bytes > file.size() - kFooterBytes) { error = "truncated database mapping"; return nullptr; }
     if (header_bytes != kFileHeaderBytes) {
         const uint8_t* map = file.data() + kFileHeaderBytes;
-        if (snapshot_get_u64(file.data() + 72) != snapshot_checksum(map, DatabaseMap::kPayloadBytes)) {
+        if (snapshot_get_u64(file.data() + 72) != snapshot_checksum(map, header_bytes - kFileHeaderBytes)) {
             error = "invalid database mapping checksum"; return nullptr;
         }
         bool seen[DatabaseMap::kPayloadBytes]{};
@@ -1080,6 +1111,8 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
             if (seen[map[i]]) { error = "invalid database mapping"; return nullptr; }
             seen[map[i]] = true; plan->database_map[i] = map[i];
         }
+        plan->functions.assign(file.begin() + kFileHeaderBytes + DatabaseMap::kPayloadBytes,
+                               file.begin() + header_bytes);
     }
     size_t pos = header_bytes;
     uint64_t frames = 0;
@@ -1126,13 +1159,17 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     return plan;
 }
 
-bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
-                         std::string& error) {
+template<bool Merge>
+static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
+                       std::string& error) {
     const int64_t now = now_realtime_ms();
     const uint32_t sid = static_cast<uint32_t>(shard.id());
     if (sid == 0 && !server.databases().restore(plan.database_map.data())) {
         error = "could not restore snapshot database mapping"; return false;
     }
+    if (sid == 0 && !plan.functions_loaded &&
+        !function_snapshot_load(Slice(reinterpret_cast<const char*>(plan.functions.data()),
+                                      plan.functions.size()), plan.flush, plan.merge, error)) return false;
     shard.set_cached_now_ms(now);
     const RecoverySections sources(plan.routing_version, plan.shard_count, shard);
     for (uint32_t source = sources.first; source < sources.end; ++source) {
@@ -1168,7 +1205,9 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
                 return false;
             }
             if (destination != sid) continue;
-            if (shard.store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
+            if constexpr (!Merge) {
+                if (shard.store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
+            }
             KvObj* object = nullptr;
             const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type_raw)).load(
                 key, encoding, expire, payload, shard.type_limits(), object);
@@ -1186,6 +1225,105 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
     }
     shard.publish_size();
     return true;
+}
+
+bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
+                         std::string& error) {
+    // MERGE is an explicit DEBUG option. Preserve the ordinary loader's inline
+    // budget without expanding every store helper into both recovery loops.
+    if (plan.merge) [[unlikely]] return load_shard<true>(plan, server, shard, error);
+    return load_shard<false>(plan, server, shard, error);
+}
+
+// NOFLUSH retains live objects in their physical namespaces. Rebase only the
+// incoming image when SWAPDB has changed the logical-to-physical map since SAVE;
+// publishing the saved map would otherwise relocate those retained live keys.
+// This administrative preparation never runs in the ordinary save/load loops.
+[[gnu::cold, gnu::noinline]]
+static bool remap_reload_namespaces(SnapshotLoadPlan& plan, Server& server,
+                                    std::string& error) {
+    if constexpr (kSingleDatabase) return true;
+    const DatabaseMap::Map current = server.databases().capture();
+    if (plan.database_map == static_cast<const DatabaseMap::Payload&>(current)) return true;
+    std::array<uint8_t, 256> logical{};
+    for (unsigned i = 0; i < logical.size(); ++i) logical[plan.database_map[i]] = i;
+    try {
+        std::vector<std::vector<uint8_t>> sections(plan.shard_count);
+        const bool legacy = legacy_routing(plan.routing_version, plan.shard_count);
+        for (uint32_t source = 0; source < plan.shard_count; ++source) {
+            const auto& section = plan.sections[source];
+            size_t pos = 0;
+            while (pos < section.size()) {
+                if (section.size() - pos < kRecordHeaderBytes) {
+                    error = "truncated record"; return false;
+                }
+                const uint8_t* h = section.data() + pos;
+                const uint32_t key_len = snapshot_get_u32(h + 8);
+                const uint64_t payload_len = snapshot_get_u64(h + 16);
+                if (snapshot_get_u32(h) != kRecordTag || payload_len > UINT32_MAX ||
+                    uint64_t(key_len) + payload_len > section.size() - pos - kRecordHeaderBytes ||
+                    h[6] >= server.cfg().databases || logical[h[6]] >= server.cfg().databases) {
+                    error = "invalid record lengths or namespace"; return false;
+                }
+                const char* bytes = reinterpret_cast<const char*>(h + kRecordHeaderBytes);
+                const uint64_t old_hash = FlatStore::hash_key(Slice(bytes, key_len, h[6]));
+                if ((legacy ? legacy_shard(old_hash, plan.shard_count)
+                            : server.router().shard_of(old_hash)) != source) {
+                    error = "snapshot key is in the wrong shard section"; return false;
+                }
+                const uint8_t physical = current[logical[h[6]]];
+                const uint64_t hash = FlatStore::hash_key(Slice(bytes, key_len, physical));
+                auto& destination = sections[server.router().shard_of(hash)];
+                const size_t offset = destination.size();
+                const size_t length = kRecordHeaderBytes + size_t(key_len) + size_t(payload_len);
+                destination.insert(destination.end(), h, h + length);
+                destination[offset + 6] = physical;
+                pos += length;
+            }
+        }
+        plan.sections = std::move(sections);
+        plan.database_map = current;
+        plan.routing_version = persistence_routing_version(plan.shard_count);
+        return true;
+    } catch (const std::bad_alloc&) {
+        error = "out of memory remapping snapshot namespaces"; return false;
+    }
+}
+
+bool prepare_debug_reload(Server& server, Op& op, uint32_t owner_io,
+                          std::unique_ptr<SnapshotLoadPlan>& plan) {
+    bool save = true, flush = true, merge = false;
+    for (uint32_t i = 2; i < op.argc(); ++i) {
+        if (op.arg(i).eq_icase("nosave")) save = false;
+        else if (op.arg(i).eq_icase("noflush")) flush = false;
+        else if (op.arg(i).eq_icase("merge")) merge = true;
+        else {
+            reply_err(op.sink(), "ERR DEBUG RELOAD only supports the MERGE, NOFLUSH and NOSAVE options.");
+            return false;
+        }
+    }
+    ThreadCtx& writer = server.thread(owner_io);
+    Ring* ring = writer.ring();
+    if (!ring) { reply_err(op.sink(), "ERR snapshot command has no IO owner"); return false; }
+    std::string error;
+    if (save) {
+        const auto saved = server.snapshot().start(server, writer, *ring, true, error);
+        if (saved != SnapshotManager::StartResult::Started) {
+            reply_err(op.sink(), saved == SnapshotManager::StartResult::Busy
+                ? "ERR Background save already in progress" : "ERR snapshot failed");
+            return false;
+        }
+    }
+    const std::string path = server.snapshot().dir() + "/" + server.snapshot().dbfilename();
+    plan = snapshot_read_plan(path.c_str(), server.nshards(), error);
+    if (plan && (flush || remap_reload_namespaces(*plan, server, error)) && function_snapshot_load(
+            Slice(reinterpret_cast<const char*>(plan->functions.data()), plan->functions.size()),
+            flush, merge, error)) {
+        plan->flush = flush; plan->merge = merge; plan->functions_loaded = true;
+        return true;
+    }
+    reply_err(op.sink(), "ERR Error trying to load the RDB dump, check server logs.");
+    return false;
 }
 
 bool snapshot_load_owned(const SnapshotLoadPlan& plan, Server& server, ThreadCtx& owner,

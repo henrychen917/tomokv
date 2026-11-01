@@ -1178,7 +1178,7 @@ plan_jobs(){
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units flipfix5_units flipfix6_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat crlffix boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 streamfix datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix scriptfix2 lualibs
-              efficiency dump_restore auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect trackorder notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 flipfix6 atomic_floor
+              efficiency dump_restore persistfmt persistfmt_aof_error auth authfix latencyfix_grammar latencyfix_shape latencyfix_off wave8b_off serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect trackorder notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated flipfix5 flipfix6 atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair exec1s txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -3592,6 +3592,45 @@ row_begin "cross-shard dispatch scaling"
 XDS_PORT=$PORT XDS_CPUS=$CORES XDS_BIN="$CANDIDATE_BINARY" bash tests/xshard_dispatch_scale.sh \
     >$TMPDIR/gate-xds.txt 2>&1 \
     && ok "cross-shard dispatch scaling" || bad "cross-shard dispatch scaling" "see $TMPDIR/gate-xds.txt"
+}
+
+job_persistfmt(){
+  local mode engine case label
+  local scheduled=${GATE_PERSISTFMT_SCHEDULED:-$PWD/build/persistfmt/scheduled/tomokv}
+  if [ -z "${GATE_PERSISTFMT_SCHEDULED:-}" ]; then
+    taskset -c "$BUILD_CORES" make -f Makefile -f tools/persistfmt.mk -j"$BUILD_JOBS" \
+        build/persistfmt/scheduled/tomokv >"$TMPDIR/persistfmt-schedule-build.log" 2>&1 || return 1
+  fi
+  for mode in 1s 2s; do for engine in epoll uring; do
+    # Native AOF has always required a snapshot preamble. The unsupported no
+    # format is documented in MEASURE-REQUEST-persistfmt.md, not a passing row.
+    for case in stream-roundtrip stream-interchange stream-options wire-values save bgsave shutdown reload aof-yes aof-failure; do
+      label="persistfmt $case ($mode, $engine)"
+      row_begin "$label"
+      py tests/persistfmt.py "$case" --binary "$CANDIDATE_BINARY" \
+          --oracle-binary "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
+          --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" \
+          --scheduled-binary "$scheduled" \
+          --artifacts "$TMPDIR/persistfmt-$case-$mode-$engine" \
+          >"$TMPDIR/persistfmt-$case-$mode-$engine.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/persistfmt-$case-$mode-$engine.log"
+    done
+  done; done
+}
+
+job_persistfmt_aof_error(){
+  local mode engine label
+  for mode in 1s 2s; do for engine in epoll uring; do
+    label="persistfmt repeated aoffix2 error ($mode, $engine)"
+    row_begin "$label"
+    py tests/persistfmt.py aof-repeat --binary "$CANDIDATE_BINARY" \
+        --oracle-binary "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
+        --ratio "$GATE_RATIO" --mode "$mode" --engine "$engine" \
+        --repeats "${GATE_PERSISTFMT_REPEATS:-1}" \
+        --artifacts "$TMPDIR/persistfmt-repeat-$mode-$engine" \
+        >"$TMPDIR/persistfmt-repeat-$mode-$engine.log" 2>&1 \
+        && ok "$label" || bad "$label" "see $TMPDIR/persistfmt-repeat-$mode-$engine.log"
+  done; done
 }
 
 job_dump_restore(){
@@ -6396,6 +6435,8 @@ for AT412_CASE in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 o
 collect_job efficiency
 
 collect_job dump_restore
+collect_job persistfmt
+collect_job persistfmt_aof_error
 
 collect_job auth
 collect_job authfix

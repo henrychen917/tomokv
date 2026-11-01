@@ -1,0 +1,4 @@
+/home/user/Projects/cx-persistfmt/build/persistfmt/counts/trace /home/user/Projects/cx-persistfmt/build/persistfmt/counts/scopes/REMAP-normal/probe /home/user/Projects/cx-persistfmt/build/persistfmt/counts/scopes/REMAP-normal/complete.ranges 88eb20 88eb30 000000000002bb20 SNAPSHOT-LOAD 1s 1 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production snapshot loop
+COUNT 1011

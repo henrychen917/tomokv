@@ -1,0 +1,31 @@
+{
+  "arm": "budget-18600",
+  "namespace": "normal",
+  "domain": "complete",
+  "command": "SNAPSHOT-LOAD",
+  "mode": "1s",
+  "batch": 1,
+  "atomic": 0,
+  "probe_sha256": "9355496095623e049c7e33d6bc60b6018a2ddef25d70441bb04d4b25aba00bcb",
+  "tracer_sha256": "36f1cfd2fb3e9ac62c3960956a3e205ac819c4825906ac3f80abb3435d62013e",
+  "total": 1003,
+  "functions": {
+    "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]": 4,
+    "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 25,
+    "tomo::kvobj_size(tomo::KvObj const*)": 37,
+    "tomo::FlatStore::hash_key(tomo::Slice)": 71,
+    "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)": 96,
+    "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)": 49,
+    "tomo::kvobj_new_string(tomo::Slice, tomo::Slice, long, bool, bool) [clone .isra.0]": 136,
+    "tomo::(anonymous namespace)::string_snapshot_load(tomo::Slice, unsigned char, long, tomo::Slice, tomo::TypeLimits const&, tomo::KvObj*&)": 39,
+    "tomo::snapshot_type_hooks(tomo::Type)": 27,
+    "bool tomo::load_shard<false>(tomo::SnapshotLoadPlan const&, tomo::Server&, tomo::Shard&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)": 343,
+    "tomo::snapshot_load_shard(tomo::SnapshotLoadPlan const&, tomo::Server&, tomo::Shard&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)": 4,
+    "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 32,
+    "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 24,
+    "tomo::FlatStore::publish_database_counts() const": 85,
+    "tomo::Shard::publish_size()": 31
+  },
+  "clock_calls": 1,
+  "excluded_calls": 4
+}

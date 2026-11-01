@@ -1,0 +1,20 @@
+{
+  "PRE": {
+    "binary_sha256": "f804556e1b0dc0c06d9f3cb1c6d9dbb6430797d5043d154b4f139da3e09980fc",
+    "stdout": "tomo::Op 336\ntomo::Client 1984\ntomo::ThreadCtx 1408\ntomo::Shard 1440\ntomo::FlatStore 944\ntomo::Rob<64> 192\ntomo::AtomicEntry 144\ntomo::Config 624\ntomo::Server 141760\ntomo::SnapshotManager 792\ntomo::SnapshotLoadPlan 336\ntomo::Server::aof_ offset 66552\ntomo::Server::snapshot_ offset 67528\ntomo::Server::flipctl_ offset 68320\ntomo::Server::shard_owner_ offset 70072\ntomo::Server::flip_stage_ offset 71136\ntomo_db0::Op 336\ntomo_db0::Client 1984\ntomo_db0::ThreadCtx 1408\ntomo_db0::Shard 1440\ntomo_db0::FlatStore 944\ntomo_db0::Rob<64> 192\ntomo_db0::AtomicEntry 144\ntomo_db0::Config 624\ntomo_db0::Server 141376\ntomo_db0::SnapshotManager 528\ntomo_db0::SnapshotLoadPlan 336\ntomo_db0::Server::aof_ offset 66432\ntomo_db0::Server::snapshot_ offset 67408\ntomo_db0::Server::flipctl_ offset 67936\ntomo_db0::Server::shard_owner_ offset 69688\ntomo_db0::Server::flip_stage_ offset 70752\n",
+    "stderr": "",
+    "returncode": 0
+  },
+  "POST": {
+    "binary_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+    "stdout": "tomo::Op 336\ntomo::Client 1984\ntomo::ThreadCtx 1408\ntomo::Shard 1440\ntomo::FlatStore 944\ntomo::Rob<64> 192\ntomo::AtomicEntry 144\ntomo::Config 624\ntomo::Server 141760\ntomo::SnapshotManager 816\ntomo::SnapshotLoadPlan 368\ntomo::Server::aof_ offset 66552\ntomo::Server::snapshot_ offset 67528\ntomo::Server::flipctl_ offset 68344\ntomo::Server::shard_owner_ offset 70096\ntomo::Server::flip_stage_ offset 71160\ntomo_db0::Op 336\ntomo_db0::Client 1984\ntomo_db0::ThreadCtx 1408\ntomo_db0::Shard 1440\ntomo_db0::FlatStore 944\ntomo_db0::Rob<64> 192\ntomo_db0::AtomicEntry 144\ntomo_db0::Config 624\ntomo_db0::Server 141376\ntomo_db0::SnapshotManager 552\ntomo_db0::SnapshotLoadPlan 368\ntomo_db0::Server::aof_ offset 66432\ntomo_db0::Server::snapshot_ offset 67408\ntomo_db0::Server::flipctl_ offset 67960\ntomo_db0::Server::shard_owner_ offset 69712\ntomo_db0::Server::flip_stage_ offset 70776\n",
+    "stderr": "",
+    "returncode": 0
+  },
+  "PAD-A": {
+    "binary_sha256": "3fb52911e2d89f41384b259a494a3fa012742ff77285569fd86b90cea2e392c7",
+    "stdout": "tomo::Op 336\ntomo::Client 1984\ntomo::ThreadCtx 1408\ntomo::Shard 1440\ntomo::FlatStore 944\ntomo::Rob<64> 192\ntomo::AtomicEntry 144\ntomo::Config 624\ntomo::Server 141760\ntomo::SnapshotManager 816\ntomo::SnapshotLoadPlan 368\ntomo::Server::aof_ offset 66552\ntomo::Server::snapshot_ offset 67528\ntomo::Server::flipctl_ offset 68344\ntomo::Server::shard_owner_ offset 70096\ntomo::Server::flip_stage_ offset 71160\ntomo_db0::Op 336\ntomo_db0::Client 1984\ntomo_db0::ThreadCtx 1408\ntomo_db0::Shard 1440\ntomo_db0::FlatStore 944\ntomo_db0::Rob<64> 192\ntomo_db0::AtomicEntry 144\ntomo_db0::Config 624\ntomo_db0::Server 141376\ntomo_db0::SnapshotManager 552\ntomo_db0::SnapshotLoadPlan 368\ntomo_db0::Server::aof_ offset 66432\ntomo_db0::Server::snapshot_ offset 67408\ntomo_db0::Server::flipctl_ offset 67960\ntomo_db0::Server::shard_owner_ offset 69712\ntomo_db0::Server::flip_stage_ offset 70776\n",
+    "stderr": "",
+    "returncode": 0
+  }
+}

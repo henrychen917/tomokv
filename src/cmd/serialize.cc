@@ -22,7 +22,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <map>
 #include <new>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -45,10 +47,13 @@ enum : uint8_t {
     // Decode-only Redis encodings: RESTORE must accept real Redis DUMP payloads even though this
     // encoder deliberately emits only the plain collection forms above. Do not remove as unused.
     kRdbSetIntset = 11,
+    kRdbStream = 15,
     kRdbHashListpack = 16,
     kRdbZsetListpack = 17,
     kRdbListQuicklist2 = 18,
+    kRdbStream2 = 19,
     kRdbSetListpack = 20,
+    kRdbStream3 = 21,
     // Redis 7.4 hash-field-expiry value types, established from live DUMP payloads. Metadata hashes
     // carry an expiry delta before each ordinary field/value pair; listpackex hashes carry
     // field/value/absolute-expiry triplets inside the listpack.
@@ -360,14 +365,16 @@ bool native_string(Reader& native, Slice& value) {
     return true;
 }
 
+bool encode_stream(Reader& native, std::vector<uint8_t>& out);
+
 bool encode_rdb_value(const KvObj& object, std::vector<uint8_t>& out) {
     const Type type = static_cast<Type>(object.type);
-    if (type == Type::Stream) return false;
 
     std::vector<uint8_t> native_payload;
     uint8_t native_encoding = 0;
     if (!snapshot_image(object, native_payload, native_encoding)) return false;
     Reader native(native_payload.data(), native_payload.size());
+    if (type == Type::Stream) return encode_stream(native, out);
 
     if (type == Type::String) {
         out.push_back(kRdbString);
@@ -582,6 +589,277 @@ bool parse_decimal_u64(const std::string& input, uint64_t& value) {
     return parsed.ec == std::errc{} && parsed.ptr == input.data() + input.size();
 }
 
+// Redis stream listpacks use a big-endian master ID, signed integer deltas,
+// and a trailing element count per entry. The native stream image retains the
+// logical records and tombstones, not Redis's radix tree or listpack boundaries.
+using DumpStreamId = std::pair<uint64_t, uint64_t>;
+
+void append_stream_id(std::vector<uint8_t>& out, DumpStreamId id) {
+    for (uint64_t part : {id.first, id.second})
+        for (int shift = 56; shift >= 0; shift -= 8)
+            out.push_back(static_cast<uint8_t>(part >> shift));
+}
+
+bool read_stream_id(Reader& in, DumpStreamId& id) {
+    return in.be64(id.first) && in.be64(id.second);
+}
+
+void lp_backlen(std::vector<uint8_t>& out, size_t length) {
+    const size_t bytes = listpack_backlen_size(length);
+    for (size_t i = 0; i < bytes; ++i)
+        out.push_back(static_cast<uint8_t>(((length >> ((bytes - i - 1) * 7)) & 127) |
+                                          (i ? 128 : 0)));
+}
+
+void lp_integer(std::vector<uint8_t>& out, uint64_t bits) {
+    if (bits < 128) { out.push_back(static_cast<uint8_t>(bits)); out.push_back(1); }
+    else { out.push_back(0xf4); append_u64(out, bits); out.push_back(9); }
+}
+
+void lp_string(std::vector<uint8_t>& out, Slice value) {
+    out.push_back(0xf0);
+    append_u32(out, value.n);
+    append_bytes(out, reinterpret_cast<const uint8_t*>(value.p), value.n);
+    lp_backlen(out, size_t(value.n) + 5);
+}
+
+struct DumpPending {
+    std::string consumer;
+    uint64_t delivery = 0, count = 0;
+    bool assigned = false;
+};
+
+bool encode_stream(Reader& native, std::vector<uint8_t>& out) {
+    uint32_t version = 0, records = 0;
+    uint64_t base_ms = 0, base_seq = 0, last_ms = 0, last_seq = 0;
+    uint64_t deleted_ms = 0, deleted_seq = 0, added = 0;
+    if (!native.le32(version) || version != 2 || !native.le64(base_ms) ||
+        !native.le64(base_seq) || !native.le64(last_ms) || !native.le64(last_seq) ||
+        !native.le64(deleted_ms) || !native.le64(deleted_seq) || !native.le64(added) ||
+        !native.le32(records) || records > native.remaining() / 21) return false;
+    out.push_back(kRdbStream3);
+    append_rdb_length(out, records);
+    uint64_t length = 0;
+    DumpStreamId first{};
+    for (uint32_t i = 0; i < records; ++i) {
+        DumpStreamId id;
+        uint8_t deleted = 0;
+        uint32_t fields = 0;
+        if (!native.le64(id.first) || !native.le64(id.second) || !native.byte(deleted) ||
+            !native.le32(fields) || !fields || fields > native.remaining() / 8) return false;
+        std::vector<Slice> names(fields), values(fields);
+        for (uint32_t n = 0; n < fields; ++n)
+            if (!native_string(native, names[n]) || !native_string(native, values[n])) return false;
+        if (!deleted && length++ == 0) first = id;
+        std::vector<uint8_t> lp(6, 0);
+        lp_integer(lp, !deleted); lp_integer(lp, !!deleted); lp_integer(lp, fields);
+        for (Slice name : names) lp_string(lp, name);
+        lp_integer(lp, 0); // master terminator
+        lp_integer(lp, 2 | !!deleted); // SAMEFIELDS, optional DELETED
+        lp_integer(lp, 0); lp_integer(lp, 0);
+        for (Slice value : values) lp_string(lp, value);
+        lp_integer(lp, fields + uint64_t{3});
+        lp.push_back(255);
+        if (lp.size() > UINT32_MAX) return false;
+        snapshot_put_u32(lp.data(), static_cast<uint32_t>(lp.size()));
+        const uint64_t elements = 8 + uint64_t{2} * fields;
+        const uint16_t count = static_cast<uint16_t>(std::min(elements, uint64_t{65535}));
+        lp[4] = count; lp[5] = count >> 8;
+        append_rdb_length(out, 16); append_stream_id(out, id);
+        append_rdb_string(out, lp.data(), lp.size());
+    }
+    for (uint64_t value : {length, last_ms, last_seq, first.first, first.second,
+                           deleted_ms, deleted_seq, added}) append_rdb_length(out, value);
+    uint32_t groups = 0;
+    if (!native.le32(groups) || groups > native.remaining() / 36) return false;
+    append_rdb_length(out, groups);
+    for (uint32_t g = 0; g < groups; ++g) {
+        Slice name;
+        uint64_t ms = 0, seq = 0, read = 0;
+        uint32_t consumers = 0, pending_count = 0;
+        if (!native_string(native, name) || !native.le64(ms) || !native.le64(seq) ||
+            !native.le64(read) || !native.le32(consumers) ||
+            consumers > native.remaining() / 20) return false;
+        append_rdb_string(out, name);
+        for (uint64_t value : {ms, seq, read}) append_rdb_length(out, value);
+        struct Consumer { Slice name; uint64_t seen, active; std::vector<DumpStreamId> pel; };
+        std::vector<Consumer> clients(consumers);
+        std::map<std::string, size_t> by_name;
+        for (size_t c = 0; c < clients.size(); ++c) {
+            auto& client = clients[c];
+            if (!native_string(native, client.name) || !native.le64(client.seen) ||
+                !native.le64(client.active) ||
+                !by_name.emplace(std::string(client.name.p, client.name.n), c).second) return false;
+        }
+        if (!native.le32(pending_count) || pending_count > native.remaining() / 36) return false;
+        append_rdb_length(out, pending_count);
+        for (uint32_t p = 0; p < pending_count; ++p) {
+            DumpStreamId id;
+            Slice consumer;
+            uint64_t delivery = 0, deliveries = 0;
+            if (!native.le64(id.first) || !native.le64(id.second) ||
+                !native_string(native, consumer) || !native.le64(delivery) ||
+                !native.le64(deliveries)) return false;
+            const auto found = by_name.find(std::string(consumer.p, consumer.n));
+            if (found == by_name.end()) return false;
+            clients[found->second].pel.push_back(id);
+            append_stream_id(out, id); append_u64(out, delivery); append_rdb_length(out, deliveries);
+        }
+        append_rdb_length(out, consumers);
+        for (const auto& client : clients) {
+            append_rdb_string(out, client.name);
+            append_u64(out, client.seen); append_u64(out, client.active);
+            append_rdb_length(out, client.pel.size());
+            for (auto id : client.pel) append_stream_id(out, id);
+        }
+    }
+    return native.empty();
+}
+
+bool lp_signed(const std::string& value, uint64_t& bits) {
+    int64_t integer = 0;
+    const auto parsed = std::from_chars(value.data(), value.data() + value.size(), integer);
+    if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size()) return false;
+    bits = static_cast<uint64_t>(integer);
+    return true;
+}
+
+bool decode_stream(Reader& body, uint8_t type, std::vector<uint8_t>& out) {
+    uint64_t nodes = 0, live = 0;
+    uint32_t records = 0;
+    DumpStreamId previous{}, first{}, base{}, last{}, deleted{};
+    out.resize(64, 0);
+    snapshot_put_u32(out.data(), 2);
+    if (!read_plain_length(body, nodes) || nodes > body.remaining() / 2) return false;
+    std::set<DumpStreamId> masters;
+    for (uint64_t n = 0; n < nodes; ++n) {
+        std::string key, blob;
+        std::vector<std::string> elements;
+        DumpStreamId master;
+        if (!read_rdb_string(body, key) || key.size() != 16 ||
+            !read_rdb_string(body, blob) || !decode_listpack(blob, elements)) return false;
+        Reader id_reader(Slice(key.data(), key.size()));
+        if (!read_stream_id(id_reader, master) || !masters.insert(master).second ||
+            elements.size() < 4) return false;
+        size_t at = 0;
+        auto integer = [&](uint64_t& value) {
+            return at < elements.size() && lp_signed(elements[at++], value);
+        };
+        uint64_t count = 0, tombstones = 0, master_fields = 0, zero = 0;
+        if (!integer(count) || !integer(tombstones) || !integer(master_fields) ||
+            master_fields > elements.size() - at) return false;
+        const size_t names = at;
+        at += master_fields;
+        if (!integer(zero) || zero != 0 || count > elements.size() ||
+            tombstones > elements.size() || count + tombstones == 0) return false;
+        uint64_t observed = 0, removed = 0;
+        while (at < elements.size()) {
+            const size_t start = at;
+            uint64_t flags = 0, ms = 0, seq = 0, fields = master_fields;
+            if (!integer(flags) || flags > 3 || !integer(ms) || !integer(seq) ||
+                (!(flags & 2) && !integer(fields)) || !fields || fields > UINT32_MAX ||
+                fields > (elements.size() - at) / ((flags & 2) ? 1 : 2)) return false;
+            // Redis deltas are signed bit patterns with unsigned modular addition;
+            // a later millisecond may legitimately have a smaller sequence part.
+            DumpStreamId id{master.first + ms, master.second + seq};
+            if (id == DumpStreamId{} || (records && id <= previous) || records == UINT32_MAX)
+                return false;
+            if (!records) base = id;
+            previous = id; ++records;
+            const bool dead = flags & 1;
+            if (dead) ++removed;
+            else { if (!live) first = id; ++live; ++observed; }
+            append_u64(out, id.first); append_u64(out, id.second);
+            out.push_back(dead); append_u32(out, fields);
+            for (uint64_t f = 0; f < fields; ++f) {
+                const std::string& name = (flags & 2) ? elements[names + f] : elements[at++];
+                if (!append_native_string(out, name) ||
+                    !append_native_string(out, elements[at++])) return false;
+            }
+            const size_t expected = at - start;
+            uint64_t back = 0;
+            if (!integer(back) || back != expected) return false;
+        }
+        if (observed != count || removed != tombstones) return false;
+    }
+    uint64_t length = 0, added = 0;
+    if (!read_plain_length(body, length) || !read_plain_length(body, last.first) ||
+        !read_plain_length(body, last.second) || length != live) return false;
+    added = length;
+    if (type >= kRdbStream2) {
+        DumpStreamId announced;
+        if (!read_plain_length(body, announced.first) || !read_plain_length(body, announced.second) ||
+            !read_plain_length(body, deleted.first) || !read_plain_length(body, deleted.second) ||
+            !read_plain_length(body, added) || announced != first || added < length) return false;
+    }
+    if ((records && previous > last) || deleted > last) return false;
+    const uint64_t metadata[] = {base.first, base.second, last.first, last.second,
+                                  deleted.first, deleted.second, added};
+    for (size_t i = 0; i < 7; ++i) snapshot_put_u64(out.data() + 4 + 8 * i, metadata[i]);
+    snapshot_put_u32(out.data() + 60, records);
+    uint64_t groups = 0;
+    if (!read_plain_length(body, groups) || groups > UINT32_MAX || groups > body.remaining() / 5)
+        return false;
+    append_u32(out, groups);
+    std::set<std::string> group_names;
+    for (uint64_t g = 0; g < groups; ++g) {
+        std::string name;
+        DumpStreamId id;
+        uint64_t read = UINT64_MAX, pending_count = 0, consumers = 0;
+        if (!read_rdb_string(body, name) || !group_names.insert(name).second ||
+            !read_plain_length(body, id.first) || !read_plain_length(body, id.second)) return false;
+        if (type >= kRdbStream2) {
+            if (!read_plain_length(body, read)) return false;
+        } else {
+            if (!added) read = 0;
+            else if ((!length && id <= last) || id == last) read = added;
+            else if (id <= first && id < last) read = added - length + (id == first);
+        }
+        if (!append_native_string(out, name)) return false;
+        append_u64(out, id.first); append_u64(out, id.second); append_u64(out, read);
+        if (!read_plain_length(body, pending_count) || pending_count > UINT32_MAX ||
+            pending_count > body.remaining() / 25) return false;
+        std::map<DumpStreamId, DumpPending> pel;
+        for (uint64_t p = 0; p < pending_count; ++p) {
+            DumpStreamId pid;
+            DumpPending pending;
+            if (!read_stream_id(body, pid) || !body.le64(pending.delivery) ||
+                !read_plain_length(body, pending.count) || !pel.emplace(pid, pending).second)
+                return false;
+        }
+        if (!read_plain_length(body, consumers) || consumers > UINT32_MAX ||
+            consumers > body.remaining() / (type >= kRdbStream3 ? 18 : 10)) return false;
+        append_u32(out, consumers);
+        std::set<std::string> consumer_names;
+        for (uint64_t c = 0; c < consumers; ++c) {
+            uint64_t seen = 0, active = 0, pending = 0;
+            if (!read_rdb_string(body, name) || !consumer_names.insert(name).second ||
+                !body.le64(seen)) return false;
+            active = seen;
+            if (type >= kRdbStream3 && !body.le64(active)) return false;
+            if (!read_plain_length(body, pending) || pending > body.remaining() / 16 ||
+                !append_native_string(out, name)) return false;
+            append_u64(out, seen); append_u64(out, active);
+            for (uint64_t p = 0; p < pending; ++p) {
+                DumpStreamId pid;
+                if (!read_stream_id(body, pid)) return false;
+                auto entry = pel.find(pid);
+                if (entry == pel.end() || entry->second.assigned) return false;
+                entry->second.consumer = name;
+                entry->second.assigned = true;
+            }
+        }
+        append_u32(out, pending_count);
+        for (const auto& [pid, pending] : pel) {
+            if (!pending.assigned) return false;
+            append_u64(out, pid.first); append_u64(out, pid.second);
+            if (!append_native_string(out, pending.consumer)) return false;
+            append_u64(out, pending.delivery); append_u64(out, pending.count);
+        }
+    }
+    return body.empty() && out.size() <= UINT32_MAX;
+}
+
 bool decode_hash_listpack_ex(Reader& body, std::vector<uint8_t>& out) {
     uint64_t minimum = 0;
     std::string blob;
@@ -758,6 +1036,11 @@ bool decode_rdb_value(Slice encoded, DecodedValue& decoded) {
     Reader body(encoded);
     uint8_t rdb_type = 0;
     if (!body.byte(rdb_type)) return false;
+    if (rdb_type == kRdbStream || rdb_type == kRdbStream2 || rdb_type == kRdbStream3) {
+        decoded.type = Type::Stream;
+        decoded.encoding = 2;
+        return decode_stream(body, rdb_type, decoded.payload);
+    }
     if (rdb_type == kRdbString) {
         std::string value;
         if (!read_rdb_string(body, value) || !body.empty()) return false;
@@ -911,7 +1194,7 @@ void reply_dump_payload_error(Op& op) {
 }
 
 bool verify_dump_payload(Op& op, Slice envelope, Slice& encoded) {
-    if (envelope.n < kDumpTrailerBytes + 1) {
+    if (envelope.n < kDumpTrailerBytes) {
         reply_dump_payload_error(op);
         return false;
     }
@@ -934,10 +1217,6 @@ void cmd_dump_impl(Shard& shard, Op& op) {
     // Protocol-selected null: reply_nil is the RESP2-only spelling and left DUMP answering "$-1"
     // on a RESP3 connection where every other miss answers "_".
     if (!object) { reply_null(op.sink(), op.resp3()); return; }
-    if (static_cast<Type>(object->type) == Type::Stream) {
-        reply_err(op.sink(), "ERR object could not be serialized");
-        return;
-    }
     try {
         std::vector<uint8_t> payload;
         if (!encode_rdb_value(*object, payload) ||
@@ -1040,6 +1319,27 @@ void cmd_dump_notify_body(Shard& shard, Op& op) { cmd_dump_impl<true>(shard, op)
 void cmd_restore_notify_body(Shard& shard, Op& op) { cmd_restore_impl<true>(shard, op); }
 
 }  // namespace
+
+bool encode_function_records(const std::vector<std::string>& sources, std::vector<uint8_t>& out) {
+    out.clear();
+    for (const auto& code : sources) {
+        out.push_back(245); // RDB_OPCODE_FUNCTION2, Redis 7.4
+        if (!append_rdb_string(out, reinterpret_cast<const uint8_t*>(code.data()), code.size()))
+            return false;
+    }
+    return out.size() <= UINT32_MAX;
+}
+
+bool decode_function_records(Slice payload, std::vector<std::string>& sources) {
+    Reader in(payload);
+    while (!in.empty()) {
+        uint8_t opcode = 0;
+        std::string code;
+        if (!in.byte(opcode) || opcode != 245 || !read_rdb_string(in, code)) return false;
+        sources.push_back(std::move(code));
+    }
+    return true;
+}
 
 void cmd_dump(Shard& shard, Op& op) { cmd_dump_impl<false>(shard, op); }
 

@@ -1,0 +1,1153 @@
+{
+  "binary_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+  "status": "All supported requested correctness jobs passed after complete-job reruns",
+  "phases": [
+    {
+      "phase": "matrix-uring",
+      "returncode": 1,
+      "ok": 488,
+      "FAIL": 12
+    },
+    {
+      "phase": "matrix-epoll",
+      "returncode": 0,
+      "ok": 218,
+      "FAIL": 0
+    },
+    {
+      "phase": "fused-uring",
+      "returncode": 0,
+      "ok": 184,
+      "FAIL": 0
+    },
+    {
+      "phase": "fused-epoll",
+      "returncode": 0,
+      "ok": 44,
+      "FAIL": 0
+    },
+    {
+      "phase": "extra-uring",
+      "returncode": 1,
+      "ok": 175,
+      "FAIL": 1
+    },
+    {
+      "phase": "extra-epoll",
+      "returncode": 0,
+      "ok": 14,
+      "FAIL": 0
+    },
+    {
+      "phase": "extra-fused-uring",
+      "returncode": 0,
+      "ok": 12,
+      "FAIL": 0
+    },
+    {
+      "phase": "extra-fused-epoll",
+      "returncode": 0,
+      "ok": 12,
+      "FAIL": 0
+    },
+    {
+      "phase": "repair-sidecar",
+      "returncode": 0,
+      "ok": 2,
+      "FAIL": 0
+    }
+  ],
+  "jobs": [
+    {
+      "phase": "matrix-uring",
+      "job": "aof-epoll",
+      "returncode": 0,
+      "passed": 48,
+      "failed": 6,
+      "resolved_by": {
+        "phase": "extra-uring",
+        "job": "aof-epoll"
+      }
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "aof-uring",
+      "returncode": 0,
+      "passed": 48,
+      "failed": 6,
+      "resolved_by": {
+        "phase": "extra-uring",
+        "job": "aof-uring"
+      }
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "aof_frame",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "aoforder",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "compat3",
+      "returncode": 0,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "debug-0",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "debug-1",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "differ-armed-0",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "differ-armed-1",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "differ-equivalence",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "differ-split-0",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "differ-split-1",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "dump_restore",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "feature-armed-0",
+      "returncode": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "feature-armed-1",
+      "returncode": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "feature-split-0",
+      "returncode": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "feature-split-1",
+      "returncode": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "fused-0",
+      "returncode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "fused-1",
+      "returncode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "lualibs",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-1s-0-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-1s-0-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-1s-1-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-1s-1-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-2s-0-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-2s-0-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-2s-1-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "multidb-2s-1-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "notify_aof",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "persistfix2_commands",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "persistfix2_errors",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "persistfix2_lastsave",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "persistfix2_shutdown",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "persistfmt",
+      "returncode": 0,
+      "passed": 40,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "persistfmt_aof_error",
+      "returncode": 0,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "redis_tcl",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "release_batteries",
+      "returncode": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "script_bounds",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "scriptfix",
+      "returncode": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "scriptfix2",
+      "returncode": 0,
+      "passed": 48,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "snapfix2_tables",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "snapfix_bgsave_exec",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "snapfix_bgsave_script",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "snapfix_shutdown",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "snapshot-epoll",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "snapshot-uring",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "streamfix",
+      "returncode": 0,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "debug-0",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "debug-1",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "differ-armed-0",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "differ-armed-1",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "differ-equivalence",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "differ-split-0",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "differ-split-1",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "feature-armed-0",
+      "returncode": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "feature-armed-1",
+      "returncode": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "feature-split-0",
+      "returncode": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "feature-split-1",
+      "returncode": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "fused-0",
+      "returncode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "fused-1",
+      "returncode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-1s-0-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-1s-0-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-1s-1-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-1s-1-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-2s-0-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-2s-0-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-2s-1-0",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "multidb-2s-1-1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "matrix-epoll",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "aof-epoll",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "aof-uring",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "debug-0",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "debug-1",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "dump_restore",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "release_batteries",
+      "returncode": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "snapshot-epoll",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "fused-uring",
+      "job": "snapshot-uring",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "fused-epoll",
+      "job": "debug-0",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "fused-epoll",
+      "job": "debug-1",
+      "returncode": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": "fused-epoll",
+      "job": "dump_restore",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "phase": "fused-epoll",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "fused-epoll",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "fused-epoll",
+      "job": "release_batteries",
+      "returncode": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "aof-epoll",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "aof-uring",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "aof_frame",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T1",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T10",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T11a",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T11b",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T12",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T13",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T14",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T15",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T16",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T2",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T3",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T4",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T5",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T6",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T7",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T8",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-T9",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "at412-owner",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "blockfix_mkstream",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "blockfix_registry",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 1,
+      "resolved_by": {
+        "phase": "repair-sidecar",
+        "job": "blockfix_registry"
+      }
+    },
+    {
+      "phase": "extra-uring",
+      "job": "blockfix_structure",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "climonfix",
+      "returncode": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "climonfix4-1s-epoll",
+      "returncode": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "climonfix4-1s-uring",
+      "returncode": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "climonfix4-2s-epoll",
+      "returncode": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "climonfix4-2s-uring",
+      "returncode": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "infofix_compat-loadaof",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "notify",
+      "returncode": 0,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "persistfix_units",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-uring",
+      "job": "serverfix_waitaof",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-epoll",
+      "job": "climonfix",
+      "returncode": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "phase": "extra-epoll",
+      "job": "notify",
+      "returncode": 0,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "phase": "extra-epoll",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "extra-epoll",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-uring",
+      "job": "aof_frame",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-uring",
+      "job": "notify",
+      "returncode": 0,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-uring",
+      "job": "notify_aof",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-uring",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-uring",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-uring",
+      "job": "script_bounds",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-epoll",
+      "job": "aof_frame",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-epoll",
+      "job": "notify",
+      "returncode": 0,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-epoll",
+      "job": "notify_aof",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-epoll",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-epoll",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "extra-fused-epoll",
+      "job": "script_bounds",
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "phase": "repair-sidecar",
+      "job": "blockfix_registry",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "phase": "repair-sidecar",
+      "job": "production_units",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "phase": "repair-sidecar",
+      "job": "release",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "historical_failed_jobs": [
+    {
+      "phase": "matrix-uring",
+      "job": "aof-epoll",
+      "returncode": 0,
+      "passed": 48,
+      "failed": 6,
+      "resolved_by": {
+        "phase": "extra-uring",
+        "job": "aof-epoll"
+      }
+    },
+    {
+      "phase": "matrix-uring",
+      "job": "aof-uring",
+      "returncode": 0,
+      "passed": 48,
+      "failed": 6,
+      "resolved_by": {
+        "phase": "extra-uring",
+        "job": "aof-uring"
+      }
+    },
+    {
+      "phase": "extra-uring",
+      "job": "blockfix_registry",
+      "returncode": 0,
+      "passed": 0,
+      "failed": 1,
+      "resolved_by": {
+        "phase": "repair-sidecar",
+        "job": "blockfix_registry"
+      }
+    }
+  ],
+  "unresolved_failed_jobs": [],
+  "aof_reruns": [
+    {
+      "phase": "fused-uring",
+      "job": "aof-epoll",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0,
+      "txn_fused": "1",
+      "ledger": "ok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 0)\nok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (epoll, atomic 0)\nok\t0.030000\tAOF native snapshot streams byte-exact\nok\t0.000000\tAOF replay fired (records=N skipped=N)\nok\t0.080000\tconfiguration reduction + actual geometry (epoll, atomic 1)\nok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (epoll, atomic 1)\nok\t0.040000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.070000\tAOF directed group interruption fired\nok\t0.050000\tAOF atomic-group recovery + writer order\nok\t0.030000\tAOF group shutdown invariants\nok\t0.030000\tAOF always sync + reply gate fired\nok\t0.030000\tAOF always recovery after quiescent SIGKILL\nok\t0.850000\tAOF in-window kill recovery (2s, epoll)\nok\t2.120000\tAOF in-window term recovery (2s, epoll)\nok\t0.920000\tAOF in-window kill recovery (1s, epoll)\nok\t1.960000\tAOF in-window term recovery (1s, epoll)\nok\t1.800000\tshutdown cancels AOF rewrite capture (1s, atomic 0, epoll)\nok\t1.830000\tshutdown cancels AOF rewrite capture (1s, atomic 1, epoll)\nok\t2.000000\tshutdown cancels AOF rewrite capture (2s, atomic 0, epoll)\nok\t2.040000\tshutdown cancels AOF rewrite capture (2s, atomic 1, epoll)\nok\t1.300000\tAOF everysec write gate + idle sync fired\nok\t0.030000\tAOF everysec durability window + tail warning\nok\t0.020000\tAOF no-sync bypassed sync + reply gate\nok\t5.110000\tAOF rewrite atomic/stage/corruption matrix\nok\t5.710000\tAOF rewrite triggers + observability matrix\nok\t0.010000\tAOF-off negative-control seed landed\nok\t0.010000\tAOF-off negative control lost data\nok\t0.410000\taoffix2 snapshot (1s, epoll)\nok\t1.380000\taoffix2 filename (1s, epoll)\nok\t0.170000\taoffix2 error (1s, epoll)\nok\t0.540000\taoffix2 tickets (1s, epoll)\nok\t0.540000\taoffix2 exec_tickets (1s, epoll)\nok\t0.520000\taoffix2 resurrection (1s, epoll)\nok\t0.400000\taoffix2 rewrite_fail2 (1s, epoll)\nok\t0.290000\taoffix2 manifest_missing (1s, epoll)\nok\t0.270000\taoffix2 off-writer acknowledgement everysec (1s, epoll)\nok\t0.270000\taoffix2 off-writer acknowledgement always (1s, epoll)\nok\t0.400000\taoffix2 snapshot (2s, epoll)\nok\t1.480000\taoffix2 filename (2s, epoll)\nok\t0.170000\taoffix2 error (2s, epoll)\nok\t0.520000\taoffix2 tickets (2s, epoll)\nok\t0.520000\taoffix2 exec_tickets (2s, epoll)\nok\t0.520000\taoffix2 resurrection (2s, epoll)\nok\t0.410000\taoffix2 rewrite_fail2 (2s, epoll)\nok\t0.290000\taoffix2 manifest_missing (2s, epoll)\nok\t0.270000\taoffix2 off-writer acknowledgement everysec (2s, epoll)\nok\t0.260000\taoffix2 off-writer acknowledgement always (2s, epoll)\nok\t0.330000\taoffix2 large (1s, epoll)\nok\t0.190000\taoffix2 large_placed (1s, epoll)\n"
+    },
+    {
+      "phase": "fused-uring",
+      "job": "aof-uring",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0,
+      "txn_fused": "1",
+      "ledger": "ok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 0)\nok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)\nok\t0.050000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (uring, atomic 0)\nok\t0.030000\tAOF native snapshot streams byte-exact\nok\t0.000000\tAOF replay fired (records=N skipped=N)\nok\t0.080000\tconfiguration reduction + actual geometry (uring, atomic 1)\nok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)\nok\t0.050000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (uring, atomic 1)\nok\t0.040000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.270000\tAOF directed group interruption fired\nok\t0.050000\tAOF atomic-group recovery + writer order\nok\t0.020000\tAOF group shutdown invariants\nok\t0.030000\tAOF always sync + reply gate fired\nok\t0.030000\tAOF always recovery after quiescent SIGKILL\nok\t0.830000\tAOF in-window kill recovery (2s, uring)\nok\t1.930000\tAOF in-window term recovery (2s, uring)\nok\t0.830000\tAOF in-window kill recovery (1s, uring)\nok\t2.830000\tAOF in-window term recovery (1s, uring)\nok\t1.800000\tshutdown cancels AOF rewrite capture (1s, atomic 0, uring)\nok\t1.840000\tshutdown cancels AOF rewrite capture (1s, atomic 1, uring)\nok\t1.940000\tshutdown cancels AOF rewrite capture (2s, atomic 0, uring)\nok\t1.990000\tshutdown cancels AOF rewrite capture (2s, atomic 1, uring)\nok\t1.300000\tAOF everysec write gate + idle sync fired\nok\t0.030000\tAOF everysec durability window + tail warning\nok\t0.030000\tAOF no-sync bypassed sync + reply gate\nok\t5.150000\tAOF rewrite atomic/stage/corruption matrix\nok\t5.570000\tAOF rewrite triggers + observability matrix\nok\t0.000000\tAOF-off negative-control seed landed\nok\t0.010000\tAOF-off negative control lost data\nok\t0.410000\taoffix2 snapshot (1s, uring)\nok\t1.430000\taoffix2 filename (1s, uring)\nok\t0.170000\taoffix2 error (1s, uring)\nok\t0.520000\taoffix2 tickets (1s, uring)\nok\t0.530000\taoffix2 exec_tickets (1s, uring)\nok\t0.520000\taoffix2 resurrection (1s, uring)\nok\t0.410000\taoffix2 rewrite_fail2 (1s, uring)\nok\t0.290000\taoffix2 manifest_missing (1s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement everysec (1s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement always (1s, uring)\nok\t0.410000\taoffix2 snapshot (2s, uring)\nok\t1.480000\taoffix2 filename (2s, uring)\nok\t0.170000\taoffix2 error (2s, uring)\nok\t0.540000\taoffix2 tickets (2s, uring)\nok\t0.530000\taoffix2 exec_tickets (2s, uring)\nok\t0.520000\taoffix2 resurrection (2s, uring)\nok\t0.410000\taoffix2 rewrite_fail2 (2s, uring)\nok\t0.300000\taoffix2 manifest_missing (2s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement everysec (2s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement always (2s, uring)\nok\t0.330000\taoffix2 large (1s, uring)\nok\t0.200000\taoffix2 large_placed (1s, uring)\n"
+    },
+    {
+      "phase": "extra-uring",
+      "job": "aof-epoll",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0,
+      "txn_fused": "0",
+      "ledger": "ok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 0)\nok\t0.440000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.050000\tAOF process-restart script replay (epoll, atomic 0)\nok\t0.040000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 1)\nok\t0.430000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.050000\tAOF process-restart script replay (epoll, atomic 1)\nok\t0.040000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.050000\tAOF directed group interruption fired\nok\t0.050000\tAOF atomic-group recovery + writer order\nok\t0.020000\tAOF group shutdown invariants\nok\t0.030000\tAOF always sync + reply gate fired\nok\t0.020000\tAOF always recovery after quiescent SIGKILL\nok\t0.830000\tAOF in-window kill recovery (2s, epoll)\nok\t2.060000\tAOF in-window term recovery (2s, epoll)\nok\t0.830000\tAOF in-window kill recovery (1s, epoll)\nok\t1.970000\tAOF in-window term recovery (1s, epoll)\nok\t1.790000\tshutdown cancels AOF rewrite capture (1s, atomic 0, epoll)\nok\t1.820000\tshutdown cancels AOF rewrite capture (1s, atomic 1, epoll)\nok\t1.880000\tshutdown cancels AOF rewrite capture (2s, atomic 0, epoll)\nok\t1.990000\tshutdown cancels AOF rewrite capture (2s, atomic 1, epoll)\nok\t1.300000\tAOF everysec write gate + idle sync fired\nok\t0.030000\tAOF everysec durability window + tail warning\nok\t0.030000\tAOF no-sync bypassed sync + reply gate\nok\t5.180000\tAOF rewrite atomic/stage/corruption matrix\nok\t6.090000\tAOF rewrite triggers + observability matrix\nok\t0.000000\tAOF-off negative-control seed landed\nok\t0.000000\tAOF-off negative control lost data\nok\t0.400000\taoffix2 snapshot (1s, epoll)\nok\t1.500000\taoffix2 filename (1s, epoll)\nok\t0.160000\taoffix2 error (1s, epoll)\nok\t0.530000\taoffix2 tickets (1s, epoll)\nok\t0.530000\taoffix2 exec_tickets (1s, epoll)\nok\t0.520000\taoffix2 resurrection (1s, epoll)\nok\t0.410000\taoffix2 rewrite_fail2 (1s, epoll)\nok\t0.300000\taoffix2 manifest_missing (1s, epoll)\nok\t0.260000\taoffix2 off-writer acknowledgement everysec (1s, epoll)\nok\t0.270000\taoffix2 off-writer acknowledgement always (1s, epoll)\nok\t0.400000\taoffix2 snapshot (2s, epoll)\nok\t1.480000\taoffix2 filename (2s, epoll)\nok\t0.170000\taoffix2 error (2s, epoll)\nok\t0.530000\taoffix2 tickets (2s, epoll)\nok\t0.520000\taoffix2 exec_tickets (2s, epoll)\nok\t0.520000\taoffix2 resurrection (2s, epoll)\nok\t0.410000\taoffix2 rewrite_fail2 (2s, epoll)\nok\t0.300000\taoffix2 manifest_missing (2s, epoll)\nok\t0.260000\taoffix2 off-writer acknowledgement everysec (2s, epoll)\nok\t0.270000\taoffix2 off-writer acknowledgement always (2s, epoll)\nok\t0.350000\taoffix2 large (1s, epoll)\nok\t0.200000\taoffix2 large_placed (1s, epoll)\n"
+    },
+    {
+      "phase": "extra-uring",
+      "job": "aof-uring",
+      "returncode": 0,
+      "passed": 54,
+      "failed": 0,
+      "txn_fused": "0",
+      "ledger": "ok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 0)\nok\t0.430000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.050000\tAOF process-restart script replay (uring, atomic 0)\nok\t0.030000\tAOF native snapshot streams byte-exact\nok\t0.000000\tAOF replay fired (records=N skipped=N)\nok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 1)\nok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (uring, atomic 1)\nok\t0.030000\tAOF native snapshot streams byte-exact\nok\t0.000000\tAOF replay fired (records=N skipped=N)\nok\t0.050000\tAOF directed group interruption fired\nok\t0.050000\tAOF atomic-group recovery + writer order\nok\t0.020000\tAOF group shutdown invariants\nok\t0.030000\tAOF always sync + reply gate fired\nok\t0.030000\tAOF always recovery after quiescent SIGKILL\nok\t0.840000\tAOF in-window kill recovery (2s, uring)\nok\t2.280000\tAOF in-window term recovery (2s, uring)\nok\t0.870000\tAOF in-window kill recovery (1s, uring)\nok\t2.620000\tAOF in-window term recovery (1s, uring)\nok\t1.810000\tshutdown cancels AOF rewrite capture (1s, atomic 0, uring)\nok\t1.830000\tshutdown cancels AOF rewrite capture (1s, atomic 1, uring)\nok\t1.940000\tshutdown cancels AOF rewrite capture (2s, atomic 0, uring)\nok\t1.980000\tshutdown cancels AOF rewrite capture (2s, atomic 1, uring)\nok\t1.300000\tAOF everysec write gate + idle sync fired\nok\t0.030000\tAOF everysec durability window + tail warning\nok\t0.030000\tAOF no-sync bypassed sync + reply gate\nok\t5.140000\tAOF rewrite atomic/stage/corruption matrix\nok\t5.440000\tAOF rewrite triggers + observability matrix\nok\t0.000000\tAOF-off negative-control seed landed\nok\t0.000000\tAOF-off negative control lost data\nok\t0.410000\taoffix2 snapshot (1s, uring)\nok\t1.470000\taoffix2 filename (1s, uring)\nok\t0.170000\taoffix2 error (1s, uring)\nok\t0.520000\taoffix2 tickets (1s, uring)\nok\t0.530000\taoffix2 exec_tickets (1s, uring)\nok\t0.520000\taoffix2 resurrection (1s, uring)\nok\t0.400000\taoffix2 rewrite_fail2 (1s, uring)\nok\t0.290000\taoffix2 manifest_missing (1s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement everysec (1s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement always (1s, uring)\nok\t0.410000\taoffix2 snapshot (2s, uring)\nok\t1.450000\taoffix2 filename (2s, uring)\nok\t0.170000\taoffix2 error (2s, uring)\nok\t0.520000\taoffix2 tickets (2s, uring)\nok\t0.520000\taoffix2 exec_tickets (2s, uring)\nok\t0.520000\taoffix2 resurrection (2s, uring)\nok\t0.400000\taoffix2 rewrite_fail2 (2s, uring)\nok\t0.290000\taoffix2 manifest_missing (2s, uring)\nok\t0.260000\taoffix2 off-writer acknowledgement everysec (2s, uring)\nok\t0.260000\taoffix2 off-writer acknowledgement always (2s, uring)\nok\t0.330000\taoffix2 large (1s, uring)\nok\t0.190000\taoffix2 large_placed (1s, uring)\n"
+    }
+  ],
+  "registry_rerun": {
+    "phase": "repair-sidecar",
+    "job": "blockfix_registry",
+    "returncode": 0,
+    "passed": 1,
+    "failed": 0,
+    "compatibility_legs": 24,
+    "cost_binding": "/home/user/Projects/cx-persistfmt/build/persistfmt/POST/tomokv: OK\n/home/user/Projects/cx-persistfmt/build/persistfmt/POST/blockfix-cost: OK\n",
+    "instructions": "blocked_keys,LPUSH_instructions,XADD_instructions,BLPOP_registration_instructions\n1,2129.27,4426.11,1266.72\n100,1994.16,4453.09,1299.48\n10000,2146.09,4451.44,1259.69\n",
+    "instruction_log": ""
+  }
+}

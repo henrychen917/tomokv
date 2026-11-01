@@ -116,7 +116,8 @@ class Client:
 class Server:
     count = 0
 
-    def __init__(self, extra=(), data=None, single=False, fsize=None, defaults=False):
+    def __init__(self, extra=(), data=None, single=False, fsize=None, defaults=False,
+                 stderr_fd=None):
         Server.count += 1
         self.data = data or ARGS.artifacts / 'data'
         self.data.mkdir(parents=True, exist_ok=True)
@@ -146,7 +147,9 @@ class Server:
 
         env = dict(os.environ)
         env.pop('TOMO_AOF_ACK_WINDOW', None)
-        self.p = subprocess.Popen(argv, stdout=self.log, stderr=subprocess.STDOUT,
+        env['LC_ALL'] = 'C'
+        self.p = subprocess.Popen(argv, stdout=self.log,
+                                  stderr=subprocess.STDOUT if stderr_fd is None else stderr_fd,
                                   preexec_fn=limits, env=env)
         emit('spawn', pid=self.p.pid, argv=argv, fsize=fsize, load=load())
         self.ready = False

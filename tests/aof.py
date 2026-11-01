@@ -583,7 +583,11 @@ def snapshot_model():
     shards = get_u32(16)
     sections = [bytearray() for _ in range(shards)]
     sequence = [0] * shards
-    pos = 80
+    # The snapshot header can carry the DB mapping and FUNCTION2 records. This
+    # model compares shard record bytes; library persistence has directed rows.
+    pos = get_u32(12)
+    if (pos != 80 and pos < 336) or pos > len(data) - 32:
+        raise AssertionError("invalid snapshot metadata length")
     frames = 0
     while pos + 32 <= len(data) and get_u32(pos) == 0x4D415246:  # FRAM
         sid, seq, length = get_u32(pos + 4), get_u32(pos + 8), get_u32(pos + 16)

@@ -1,0 +1,38 @@
+{
+  "PRE": {
+    "path": "build/persistfmt/PRE/tomokv",
+    "sha256": "f804556e1b0dc0c06d9f3cb1c6d9dbb6430797d5043d154b4f139da3e09980fc",
+    "bytes": 224567696,
+    "assert_map_sha256": "7eacd9de6972415900ff4a8073110b91da9cb0dd2fcd00d5c60979c48bf9b73a",
+    "sections": {
+      ".text": 8729431,
+      ".rodata": 637900,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  },
+  "POST": {
+    "path": "build/persistfmt/POST/tomokv",
+    "sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+    "bytes": 225543944,
+    "assert_map_sha256": "7eacd9de6972415900ff4a8073110b91da9cb0dd2fcd00d5c60979c48bf9b73a",
+    "sections": {
+      ".text": 8777543,
+      ".rodata": 638348,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  },
+  "PAD-A": {
+    "path": "build/persistfmt/PAD-A/tomokv",
+    "sha256": "3fb52911e2d89f41384b259a494a3fa012742ff77285569fd86b90cea2e392c7",
+    "bytes": 224788480,
+    "assert_map_sha256": "7eacd9de6972415900ff4a8073110b91da9cb0dd2fcd00d5c60979c48bf9b73a",
+    "sections": {
+      ".text": 8777543,
+      ".rodata": 638348,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  }
+}
