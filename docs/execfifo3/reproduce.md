@@ -37,12 +37,14 @@ taskset -c 96-111 python3 tools/execfifo3_input_scope.py
 taskset -c 96-111 python3 tools/execfifo3_perf.py --arms PRE,FIFO,POST-final
 taskset -c 96-111 python3 tools/execfifo3_perf_summary.py
 taskset -c 96-111 python3 tools/execfifo3_probe_archive.py --kind memory
+taskset -c 96-111 python3 tools/execfifo3_scope_consistency.py
 ```
 
 The trace counts named production Tomo routines in the linked image, including
 their inline code, and excludes fixture glue and external library callees.
 Memory counts are explicit x86 operands, not implicit stack accesses of calls,
-returns, push or pop. Object-line identities use actual allocation alignment.
+returns, push or pop; prefetch hints are also excluded. Object-line identities
+use actual allocation alignment. These counts do not model hardware cache fills.
 The TLS diagnostic also classifies the parser's read buffer and `FS` region.
 Each trace verifies the probe digest and exact fixture replies. Perf counts
 the complete process, including setup and external libraries; it uses no rates.

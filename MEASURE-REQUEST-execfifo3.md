@@ -49,6 +49,9 @@ Final evidence so far:
   atomic 1 and fused read-local 0/1. An additional address trace confirms the TLS reads are
   removed. These finite fixtures have no WATCH/EXEC state; the source audit also
   states the active-reservation slow path rather than claiming it is free.
+  [Per-function counts and excluded-callee call counts](docs/execfifo3/scope-consistency.json)
+  also match PRE across all 84 comparisons. The extended traces have identical
+  classified and unclassified access counts and no additional traced stack lines.
 * **378/378 perf counter runs** pass with all events running at 100%, including
   one- and two-owner fixtures on CPUs 96/104. [All block counts and medians](docs/execfifo3/perf/README.md)
   are retained. This is not a zero-regression verdict: for example the full

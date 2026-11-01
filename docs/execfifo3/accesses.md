@@ -36,6 +36,8 @@ participating threads; the queue links themselves have one owner writer.
 The added ordinary-path accesses are compiler generated. Counts below are per
 batch of 32, FIFO minus PRE; POST minus PRE is zero. These are **explicit x86
 memory operands**, excluding implicit call/return and push/pop stack accesses.
+They also exclude prefetch hints and external library callees; perf covers the
+complete process separately.
 
 | Path | Added loads | Added stores | Lines and other writers |
 | --- | ---: | ---: | --- |
