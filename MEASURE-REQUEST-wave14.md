@@ -74,16 +74,29 @@ satisfied**. Invalidations are batched before events; same-shard Lua captures
 wake events under the producer's notification context; deferred EXEC/staged
 wakes omit pop events; slowlog may record BLPOP before the producer.
 
-Controls used the frozen headline and the separate blockfix4/rootcompat POSTs,
-with ordinary read enrolment because the headline lacks EXEC enrolment. They
-reproduce these publication/slowlog differences before integration. The merged
-sequence is the composition of those lane behaviours, not an additional merge
-regression. This is the pre-existing D11 publication/retirement problem; it is
-not promoted, tolerated as a Redis pass, or silently hidden in a new green row.
-The red directed receipts are retained under `docs/wave14/jobs/order-*`.
-The final frozen POST repeats the failure across all sixteen declared
-mode/engine/namespace/atomic legs in `jobs/wake-order-final.json`; its Redis
-control is retained in the same archive.
+Controls use the frozen headline and all five production lane POSTs,
+with ordinary read enrolment because the headline lacks EXEC enrolment. After
+the initial one-geometry check, all seven arms ran all sixteen geometries:
+144 command/placement cases each. The merged event/invalidation sequence equals
+rootcompat in **144/144** samples, and its reply equals blockfix4 in **144/144**.
+Every arm still fails Redis's event/invalidation sequence in all 144 cases.
+This supports attribution to the pre-existing publication problem for those
+sampled schedules; it is not a proof over every concurrent schedule.
+
+**Slowlog attribution remains incomplete:** 6/144 merged sequences do not
+exactly match any of the six sampled controls (the initial three-control
+comparison had 21 unmatched cases). Relative waiter retirement
+varies across samples, and these controls do not establish whether every
+unmatched ordering is inherited or introduced by composition. No ordering fix
+or Redis pass is claimed. `order-all-lanes-comparison.json` includes every arm's
+exact sequence and all unmatched cases; `jobs/order-matched-all-*.json` binds
+the complete controls. The earlier single-geometry red receipts remain too.
+
+The final EXEC-enrolled diagnostic also runs all sixteen geometries:
+**144/144 replies pass, 0/144 event/invalidation sequences pass, and 68/144
+slowlog sequences pass** against Redis. `jobs/wake-order-final.json` retains
+that separate fixture and its oracle. These red diagnostics are not promoted,
+tolerated as Redis passes, or hidden in a green gate row.
 
 ### Initial command census and budget criterion
 
@@ -299,7 +312,7 @@ The first stricter cap attempt used the obsolete drop counter and was stopped
 as a fixture failure; the repaired predicate observes the null invalidation
 emitted by the fixed overflow branch. That failed receipt is retained.
 
-The uring full Tcl manifest passes in both modes. Final named-skip probes
+The full Tcl manifest passes in both modes on both uring and epoll. Final named-skip probes
 retain their red diagnostic results; all three lane promotions pass 3/3 in
 each mode. `MONITOR log blocked command only once`, for example, is PFP in
 final split-mode probes, confirming why its earlier six-pass sample did not
@@ -323,3 +336,9 @@ blockfix-cost and both blockfix2 units. `make -q all` and all four target-group
 freshness checks returned zero; `production-freshness.json` records the exact
 lists. Matching native companions are bound beside the frozen POST with their
 hashes in `companions.json`; the release bytes remain unchanged.
+
+The complete uring differential inventory passes: **954 comparisons**, with
+permanent seeds 7/19/20/23 and rotating seed 21, all four seed-19 MULTI
+replays in each atomic-1 lifetime, and every equivalence cell. The gate's strict
+fold validates 490 split/equivalence and 464 armed comparisons. This is the
+selected-job proof, not a full-gate wall-time or landing receipt.

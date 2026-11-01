@@ -1,0 +1,310 @@
+{
+  "label": "order-matched-all-blockfix4",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.B5G3zW",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/order-matched-all-blockfix4.tar.gz",
+  "archive_sha256": "19b3e35fc1204420ac387a20d8ea8ca38bca261c7f718ccaeaf1ca4c87c86a0b",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 109,
+      "sha256": "82c31d4edb88f18694f598da19da7df25d547452250d7d1ffc2b929caa5ba4b4"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "a372f3995b59c0c4f4f162c1897ea5be1cecd841ec478f8d970773cb67987801"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/wave14_order/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/wave14_order/family.tsv",
+      "size": 57,
+      "sha256": "130ff531548d69bed9e8fbd8629cb29fc781907142e7332456ba348539096a8f"
+    },
+    {
+      "path": "jobs/wave14_order/ledger",
+      "size": 57,
+      "sha256": "34f4ba08445614459c33b474ffcf37c18ed2ea198077839e3c164e13658a4aea"
+    },
+    {
+      "path": "jobs/wave14_order/output.log",
+      "size": 246,
+      "sha256": "e761c2703f360f6a08946da8f3ea7c1af1479c57e78cdfa741c3b197ad369fef"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db1-a0/server/argv.json",
+      "size": 694,
+      "sha256": "368de0853806b95feb3c36847fd669ead8588b6edf25bd3cd34e5092eee143ff"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db1-a0/server/server.log",
+      "size": 10810,
+      "sha256": "d79a2da4c3111c1a92ac175dc795730920a03eb3e5d3160102cddaf610196df3"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db1-a1/server/argv.json",
+      "size": 694,
+      "sha256": "79d5e1ebe5a211418a97815c0dc94b0fda1f9f6e641ffe88809fd870154a1562"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db1-a1/server/server.log",
+      "size": 10808,
+      "sha256": "3db5d7d3431aa6382913f14d3210ad8fefb9e9e2f9d8af0cccb82ca675716fc0"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db16-a0/server/argv.json",
+      "size": 696,
+      "sha256": "bb8f8931592165647f91e56e55cebf12b6ad19f7c7df1a3cb21df9aa795135b9"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db16-a0/server/server.log",
+      "size": 10802,
+      "sha256": "11b6f7b79d24ba33ae48f7dab0c3a2eef6096addb34f3bf0f6ce7fcc890b1b7a"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db16-a1/server/argv.json",
+      "size": 696,
+      "sha256": "da683f15ee32e1dbc9bee3127845574dec4539a2a2df0a344caed5c0a415561d"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-epoll-db16-a1/server/server.log",
+      "size": 10811,
+      "sha256": "965ae5a3fc78212b313f7e43db980ce72d1914c657f31f313a21148268c9f4fc"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db1-a0/server/argv.json",
+      "size": 694,
+      "sha256": "d5598c4966f3d24ae517ac5b70532cb65967c6bdd8a7aa3d06b7d115d0529123"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db1-a0/server/server.log",
+      "size": 10768,
+      "sha256": "96785ea49e9b0f44a4ed946e97fa298e8742c7f440c5f489429aac17a187979c"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db1-a1/server/argv.json",
+      "size": 694,
+      "sha256": "54c1143aaa0ac422520b116c54975bc03320996ace5276e46df4f3e83623e52a"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db1-a1/server/server.log",
+      "size": 10759,
+      "sha256": "26c5dd2f2c1449b35a411e1c603ae24e600dec34aa54ae9c775ac601ffbce096"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db16-a0/server/argv.json",
+      "size": 696,
+      "sha256": "30f5a943a6a62634f189480215b8d9587a1873b5081b888bef12440848560a97"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db16-a0/server/server.log",
+      "size": 10774,
+      "sha256": "551cc8bddaf292f727faaed04f48eb1ac914b9dc441ddf251f5823c1f9abfbc0"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db16-a1/server/argv.json",
+      "size": 696,
+      "sha256": "3241599fb80cbe5dc9a0944032c98790af79b4d6ff7479cce2353d4aa55a9a51"
+    },
+    {
+      "path": "jobs/wave14_order/proof/1s-uring-db16-a1/server/server.log",
+      "size": 10771,
+      "sha256": "97870d4134e6d91e20828d3081eb2b6e8f5bf54c0f1df92f3a758de9547496c7"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db1-a0/server/argv.json",
+      "size": 712,
+      "sha256": "75353e2e45cbdef2c41fdb4aa124193729d461f4933a6d73329a3c9229209582"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db1-a0/server/server.log",
+      "size": 9887,
+      "sha256": "1f7861bd1b1d1594ecec8a507e08c1d50ed5450454331f7bc0c8859a54c05bf4"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db1-a1/server/argv.json",
+      "size": 712,
+      "sha256": "96858a1ddcde775fa1874a32bd3b43fd591876987a7998c2df9d4a602bd692ee"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db1-a1/server/server.log",
+      "size": 9882,
+      "sha256": "a1afe1969016ff1f8793c78848c9e4503d126ca8b381037cb22eb68bd856b6f4"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db16-a0/server/argv.json",
+      "size": 714,
+      "sha256": "8fbdbbb95671807025230dbabe5bd12dcbaab2d3b38b7c48ac5430ff964951dc"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db16-a0/server/server.log",
+      "size": 9889,
+      "sha256": "e6a540f7db9213c27e224ab9cd8a1368552314e6dceb9c04abc01c67c9d065fa"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db16-a1/server/argv.json",
+      "size": 714,
+      "sha256": "97627039685fbd2ca444509cbb8f4259369ca1873abfcffe114a4b3b81c6919c"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db16-a1/server/server.log",
+      "size": 9888,
+      "sha256": "11b21204cda5a0c59a477203db1289260cd2b530f0c352f2711a4b87223528bb"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db1-a0/server/argv.json",
+      "size": 712,
+      "sha256": "904ff40c40ac6c878a54c42f430bed428ee7449a39f13a46978d5f6c6322f534"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db1-a0/server/server.log",
+      "size": 9842,
+      "sha256": "4fcd8a838a0b897ad127a86d265978b66c6be6a8c346de42ebb288039171dc6c"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db1-a1/server/argv.json",
+      "size": 712,
+      "sha256": "37242caf794a1b0f0bc14a3c11ed11802c85fb645b267094f51de61d101d5bda"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db1-a1/server/server.log",
+      "size": 9843,
+      "sha256": "424bf99d95328c3e34924155b54ed0df5b29e444d83e911c6e639ca5baf93f1b"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db16-a0/server/argv.json",
+      "size": 714,
+      "sha256": "fe9edab75a1820125834d756b478d3d807485888427e00662a892f4482ac72fa"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db16-a0/server/server.log",
+      "size": 9846,
+      "sha256": "575f3e87a28af854e72705076384e3930794585b13150c3a1a8954030889d171"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db16-a1/server/argv.json",
+      "size": 714,
+      "sha256": "dc86a5b852d7efa7f2e577a34e04d59d4d61af8351363f1f81b52c2a75dc33b1"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-uring-db16-a1/server/server.log",
+      "size": 9839,
+      "sha256": "628c11a79ea1640430a46e5ffa063ba4b55820252e8e3b44f49d32c5ea744d85"
+    },
+    {
+      "path": "jobs/wave14_order/proof/oracle-normal-db16-a1/server/argv.json",
+      "size": 538,
+      "sha256": "2baa4f1718db76ea59452633953a04d0d41a55342a3e9467c5f36d3e0a32e62b"
+    },
+    {
+      "path": "jobs/wave14_order/proof/oracle-normal-db16-a1/server/server.log",
+      "size": 1127,
+      "sha256": "dd986e91f589d80ef05c7a2526eec452e6f1c477bfb9fc85e0414d1a16ee6077"
+    },
+    {
+      "path": "jobs/wave14_order/proof/results.json",
+      "size": 139971,
+      "sha256": "7f0362b6ba6e2c980758e2a27ef76192091855f25ea453b52462723864e426a2"
+    },
+    {
+      "path": "jobs/wave14_order/proof.log",
+      "size": 122786,
+      "sha256": "9cf74bcf20c3bde3939942f6613008d77e41430ab2834f7f8231ecd83d6de56d"
+    },
+    {
+      "path": "jobs/wave14_order/timings",
+      "size": 57,
+      "sha256": "34f4ba08445614459c33b474ffcf37c18ed2ea198077839e3c164e13658a4aea"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "3c16299d8384fbce0eb835b30d370883a82a361d3d153aa9c0606b7d00ed4125"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1184,
+      "sha256": "de48837f7115a3d62e76bc5145a51c219552192a2aa26de05811a45d4e73d87e"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 38826,
+      "sha256": "96792a1c820d0cac6c0fee63004d532aeda5b0599ca38e1554602c50774c40c3"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "wave14_order",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "40.150000",
+          "label": "wave14 script EXEC wake publication order"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/bins/blockfix4-post-cb7a70bb"
+  ],
+  "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+  "exit_code": 1,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.B5G3zW",
+  "engine": "uring",
+  "fused": false
+}
