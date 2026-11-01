@@ -150,3 +150,10 @@ INFO CPU must advance across eight acknowledged bounded Lua computations, not
 merely format six zeros. Target git/build IDs must not be zero placeholders.
 The standalone printver format check remains a format check; replication offset
 semantics remain a separate gap, not implied by INFO field presence. DQ=DF=0.
+
+### Compat 4.1 — CD4.9 local WATCH/SMOVE
+
+Added ordinary and EXEC SMOVE no-op destination checks on a pair proved by
+DEBUG geometry to share a shard. Require one successful move, consumed source,
+unchanged destination and an un-aborted destination WATCH. The key discovery
+fails if no such pair is found; it prints the shard and one armed hit. DQ=DF=0.
