@@ -39,12 +39,15 @@ def main():
                             out = run.path / (label + '.jsonl')
                             try:
                                 if a.case == 'xsnotify':
-                                    t1_xsnotify.run(label, a.port, 3, out)
-                                    result = json.loads(out.read_text())
-                                    for shape, row in result['shapes'].items():
-                                        run.check(label + shape + ' armed', row['hits'], 3)
-                                        run.check(label + shape + ' ordered events', row['events_ok'], 3)
-                                        run.check(label + shape + ' invalidations', row['inval_ok'], 3)
+                                    for force in ([False] if oracle else [False, True]):
+                                        target = out.with_suffix('.forced.jsonl') if force else out
+                                        t1_xsnotify.run(label, a.port, 3, target, force=force)
+                                        result = json.loads(target.read_text())
+                                        for shape, row in result['shapes'].items():
+                                            key = label + shape + (' escalated' if force else ' staged')
+                                            run.check(key + ' armed', row['hits'], 3)
+                                            run.check(key + ' ordered events', row['events_ok'], 3)
+                                            run.check(key + ' invalidations', row['inval_ok'], 3)
                                 else:
                                     # SCAN exercises all geometries. One large MGET independently
                                     # exercises the read-local-off owner path (R2's second witness).

@@ -1190,6 +1190,8 @@ plan_jobs(){
   done
   JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof)
   for section in proc password replication sort-acl redact errorstats xsnotify tracking hscan setpast; do JOB_NAMES+=("rootcompat-$section"); done
+  # Diagnostic witnesses for documented residuals; no complete-gate row.
+  if [ "${GATE_PARTIAL:-0}" = 1 ]; then JOB_NAMES+=(rootcompat-stringlimit rootcompat-hx3); fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){

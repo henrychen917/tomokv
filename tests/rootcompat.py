@@ -96,6 +96,17 @@ def errorstats(c, run, label):
     assert c.cmd('CONFIG', 'RESETSTAT') == b'OK'
     run.check(label + ' reset total', fields(c, 'STATS').get(b'total_error_replies'), b'0')
     run.check(label + ' reset prefixes', fields(c, 'ERRORSTATS'), {})
+    for script in ("return redis.error_reply('CUSTOM message')",
+                   "return redis.error_reply('')",
+                   "return redis.pcall('GET', 'wrongtype')",
+                   "return redis.call('GET', 'wrongtype')"):
+        c.cmd('CONFIG', 'RESETSTAT')
+        reply = c.cmd('EVAL', script, 1, 'wrongtype')
+        assert isinstance(reply, dict), reply
+        actual = (fields(c, 'STATS').get(b'total_error_replies'), fields(c, 'ERRORSTATS'))
+        if run.oracle:
+            run.reference[script] = actual
+        run.check(label + ' Lua error counting ' + script, actual, run.reference[script])
 
 
 def hscan(c, run, label):
@@ -186,9 +197,80 @@ def setpast(c, run, label):
         sub.close()
 
 
+def stringlimit(c, run, label):
+    limit = 1024 * 1024
+    assert c.cmd('CONFIG', 'SET', 'proto-max-bulk-len', limit) == b'OK'
+    probes = [('SETRANGE', 'small', limit, 'x'),
+              ('SETRANGE', 'small', 9223372036854775807, 'x'),
+              ('SETBIT', 'small', limit * 8, 1)]
+    for args in probes:
+        reply = c.cmd(*args)
+        if run.oracle:
+            run.reference[str(args)] = reply
+        run.check(label + ' configured limit ' + str(args), reply, run.reference[str(args)])
+    assert c.cmd('CONFIG', 'SET', 'proto-max-bulk-len', 5 * 1024**3) == b'OK'
+    # Finite allocation witness, not a load test. Redis owns at most one 4-GiB
+    # value at a time; inspect only its length and last byte, then free it.
+    for command in ('SETRANGE', 'SETBIT'):
+        c.cmd('DEL', 'large')
+        args = (command, 'large', 2**32, 'x') if command == 'SETRANGE' else (
+            command, 'large', 2**35, 1)
+        c.sock.settimeout(30)
+        reply = c.cmd(*args)
+        if run.oracle:
+            run.reference[command] = reply
+        run.check(label + ' above 32-bit representation ' + command, reply, run.reference[command])
+        if command == 'SETRANGE':
+            reply = c.cmd('APPEND', 'large', 'y')
+            if run.oracle:
+                run.reference['APPEND'] = reply
+            run.check(label + ' above 32-bit representation APPEND', reply, run.reference['APPEND'])
+        c.cmd('DEL', 'large')
+
+
+def hx3(c, run, label):
+    from rootcompat_tracking.resp import Conn, encode
+    assert c.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', 0) == b'OK'
+    a, b, key = 'held:a', 'held:b', 'unrelated'
+    if not run.oracle:
+        names = [f'hx3:{i}' for i in range(1024)]
+        rows = c.cmd('DEBUG', 'SHARDS', *names)
+        a = names[0]
+        b = next(k for k, geo in zip(names, rows) if geo[1] != rows[0][1])
+        key = next(k for k, geo in zip(names[1:], rows[1:]) if geo[0] == rows[0][0])
+    sub = Conn(run.args.port)
+    sub.send('SUBSCRIBE', '__keyevent@0__:expired')
+    assert sub.read()[0] == b'subscribe'
+    assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'Ex') == b'OK'
+    with run.server.client() as group:
+        held = False
+        try:
+            assert c.cmd('SET', key, 'live', 'PX', 2000) == b'OK'
+            until = time.monotonic() + 2.05
+            if not run.oracle:
+                assert c.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', 1) == b'OK'
+                held = True
+                group.sock.sendall(encode('MSET', a, 1, b, 1))
+                deadline = time.monotonic() + 1
+                while int(fields(c, 'STATS')[b'atomic_pending_entries']) < 2:
+                    assert time.monotonic() < deadline, 'hold never installed both entries'
+                    time.sleep(.005)
+                assert not select.select([group.sock], [], [], 0)[0], 'hold already replied'
+            assert c.cmd('GET', key) == b'live', 'pre-deadline arming failed'
+            time.sleep(max(0, until - time.monotonic()))
+            assert c.cmd('GET', key) is None
+            run.check(label + ' unrelated expired event', sub.read_frames_until_quiet(.1, 1),
+                      [[b'message', b'__keyevent@0__:expired', key.encode()]])
+        finally:
+            if held:
+                c.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', 0)
+                group.read()
+            sub.close()
+
+
 CASES = {'proc': proc, 'password': password, 'replication': replication,
          'sort-acl': sort_acl, 'redact': redact, 'errorstats': errorstats,
-         'hscan': hscan, 'setpast': setpast}
+         'hscan': hscan, 'setpast': setpast, 'stringlimit': stringlimit, 'hx3': hx3}
 
 
 def main():
@@ -215,7 +297,7 @@ def main():
                     extra = ['--databases', str(databases), '--enable-debug-command', 'yes']
                     if not oracle:
                         extra += ['--net-io', engine]
-                        if a.case == 'hscan':
+                        if a.case in ('hscan', 'hx3'):
                             extra += ['--atomic', '1', '--key-lb', '0', '--client-lb', '0']
                     conf = None
                     if a.case == 'password':

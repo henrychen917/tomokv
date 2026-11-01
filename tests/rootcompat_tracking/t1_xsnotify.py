@@ -56,7 +56,7 @@ def stat(c, field):
     return int(info_dict(c).get(field, "0"))
 
 
-def run(geom, port, attempts, out):
+def run(geom, port, attempts, out, force=False):
     is_redis = geom == "redis"
     srv = Server(geom, port, tag="t1")
     srv.start()
@@ -64,6 +64,8 @@ def run(geom, port, attempts, out):
            "argv": " ".join(a if a else "''" for a in srv.argv), "shapes": {}}
     try:
         admin = srv.conn(name="admin")
+        if force and not is_redis:
+            assert admin.call('DEBUG', 'SCRIPT-ESCALATE-FORCE', 1) == 'OK'
         assert admin.call("CONFIG", "SET", "notify-keyspace-events", "KEA") == "OK"
         res["notify_config"] = b2s(admin.call("CONFIG", "GET", "notify-keyspace-events"))
         shapes = pick_keys(admin, is_redis)
@@ -92,6 +94,7 @@ def run(geom, port, attempts, out):
                 trk.pushes.clear()
                 before_geo = None if is_redis else shards_of(admin, [k1, k2])
                 act0 = 0 if is_redis else stat(admin, "script_crossshard_activations")
+                esc0 = 0 if is_redis else stat(admin, 'script_escalations')
                 val = "v%d" % i
                 r = w.call("EVAL", SCRIPT, "2", k1, k2, val)
                 # collect up to 1 s, stop early once everything expected arrived
@@ -116,6 +119,7 @@ def run(geom, port, attempts, out):
                         break
                 after_geo = None if is_redis else shards_of(admin, [k1, k2])
                 act1 = 0 if is_redis else stat(admin, "script_crossshard_activations")
+                esc1 = 0 if is_redis else stat(admin, 'script_escalations')
                 got = w.call("MGET", k1, k2)
                 assert r == 1 and b2s(got) == [val, val], (r, got)
                 if is_redis:
@@ -128,6 +132,8 @@ def run(geom, port, attempts, out):
                 else:
                     hit = (before_geo[0][1] == before_geo[1][1] and before_geo[0][0] != before_geo[1][0]
                            and after_geo[0][1] == after_geo[1][1])
+                if force and shape != 'same_shard' and not is_redis:
+                    hit = hit and esc1 > esc0
                 have_ev = {(c, m) for c, m in events}
                 flat = {x for iv in invals if iv for x in iv}
                 want_ev = {("__keyspace@0__:%s" % k1, "set"), ("__keyspace@0__:%s" % k2, "set"),
@@ -146,7 +152,8 @@ def run(geom, port, attempts, out):
                 if len(st["examples"]) < 3 and (not ev_ok or not inv_ok or i == 0):
                     st["examples"].append({"attempt": i, "events": events, "invalidations": invals,
                                            "geo_before": before_geo, "geo_after": after_geo,
-                                           "crossshard_activations_delta": act1 - act0})
+                                           "crossshard_activations_delta": act1 - act0,
+                                           "escalations_delta": esc1 - esc0})
             res["shapes"][shape] = st
         res["info_tail"] = {} if is_redis else {
             k: v for k, v in info_dict(admin).items()
