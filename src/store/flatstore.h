@@ -991,6 +991,16 @@ public:
     // Re-arms type-specific attention for an imported image, including atomic COPY/RENAME APPLY.
     // The type guard keeps hash-field machinery behind the hash-only branch.
     void note_loaded_object(uint64_t h, const KvObj* o) {
+        // Imported images (COPY/RESTORE/*STORE/RENAME) create collections
+        // without going through their native push handlers. Signal here, at
+        // installation, so wake coverage follows the type rather than a list
+        // of commands. Native pushes already signal behind their waiter gate.
+        if (static_cast<Type>(o->type) == Type::List ||
+            static_cast<Type>(o->type) == Type::Zset ||
+            static_cast<Type>(o->type) == Type::Stream) {
+            if (blocking_key_created) blocking_key_created(this, o->key());
+            return;
+        }
         if (static_cast<Type>(o->type) != Type::Hash) return;
         if (static_cast<Enc>(o->enc) == Enc::Compact) return;
         if (static_cast<const HashVal*>(o->external_ptr())->ttls) note_field_ttl(h);

@@ -2,3 +2,16 @@ GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load),
   artifacts: /home/user/Projects/cx-blockfix4/build/gate-run.EQiMoZ
 PARTIAL jobs (including prerequisites): release blockfix4
 PARTIAL jobs (including prerequisites): release blockfix4
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 scripts (all modes, read-local and atomic)
+  blockfix4 scripts (all modes, read-local and atomic) FAIL (see /home/user/Projects/cx-blockfix4/build/gate-run.EQiMoZ/jobs/blockfix4/scripts.log)
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 moves (all modes, read-local and atomic)
+  blockfix4 moves (all modes, read-local and atomic)   FAIL (see /home/user/Projects/cx-blockfix4/build/gate-run.EQiMoZ/jobs/blockfix4/moves.log)
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 creators (all modes, read-local and atomic)
+  blockfix4 creators (all modes, read-local and atomic) FAIL (see /home/user/Projects/cx-blockfix4/build/gate-run.EQiMoZ/jobs/blockfix4/creators.log)
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 removed (all modes, read-local and atomic)
+  blockfix4 removed (all modes, read-local and atomic) FAIL (see /home/user/Projects/cx-blockfix4/build/gate-run.EQiMoZ/jobs/blockfix4/removed.log)
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 mpop (all modes, read-local and atomic)
+  blockfix4 mpop (all modes, read-local and atomic)    FAIL (see /home/user/Projects/cx-blockfix4/build/gate-run.EQiMoZ/jobs/blockfix4/mpop.log)
+GATE(PARTIAL): 1 ok, 5 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-blockfix4/docs/blockfix4/pre-uring.partial

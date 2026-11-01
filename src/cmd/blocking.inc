@@ -1361,16 +1361,19 @@ void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t
     registry->publish(shard, hash, Slice(key, key_len, ns), now, *blocking_tls_self, *blocking_tls_ring);
 }
 
-void blocking_stream_removed(const void* store, Slice) {
+void blocking_key_created(const void* store, Slice) {
     if (!blocking_tls_self) return;
-    // This runs before the table replacement completes. Reprobe only from the
-    // next owner turn, never recursively from object retirement. Staging stores
-    // are deliberately absent from this list; atomic publication handles them.
+    // Signal readiness; serving here would observe a partially applied command.
+    // Private staging stores are absent; their commit signals the real shards.
     for (Shard* shard : blocking_tls_self->shards())
         if (&shard->store() == store && shard->has_blocking_waiters()) {
             shard->set_blocking_dirty();
             return;
         }
+}
+
+void blocking_stream_removed(const void* store, Slice key) {
+    blocking_key_created(store, key);
 }
 
 void blocking_publish_list_op(Shard& shard, Op& op) {
@@ -1409,29 +1412,7 @@ void blocking_plain_mutation_published(Shard& shard, Op& op) {
         blocking_script_publication_finished(blocking_tls_defer_plain);
         return;
     }
-    const char* name = op.spec->name;
-    if (!std::strcmp(name, "LPUSH") || !std::strcmp(name, "RPUSH") ||
-        !std::strcmp(name, "LPUSHX") || !std::strcmp(name, "RPUSHX") ||
-        !std::strcmp(name, "ZADD") || !std::strcmp(name, "ZINCRBY") ||
-        !std::strcmp(name, "XADD") || !std::strcmp(name, "SET") ||
-        !std::strcmp(name, "DEL") || !std::strcmp(name, "UNLINK"))
-        blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
-    else if (!std::strcmp(name, "LMOVE") || !std::strcmp(name, "RPOPLPUSH") ||
-             !std::strcmp(name, "RENAME") || !std::strcmp(name, "RENAMENX")) {
-        const Slice destination = op.arg(2);
-        blocking_publish_key(shard, FlatStore::hash_key(destination),
-                             destination.p, destination.n, destination.ns);
-        blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
-    } else if (!std::strcmp(name, "SORT")) {
-        SortOptions options;
-        if (parse_sort_options(op, options) && options.store) {
-            const Slice key = op.arg(options.store_arg);
-            blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
-        }
-    } else if (!std::strcmp(name, "XGROUP")) {
-        const Slice key = op.arg(2);
-        blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
-    }
+    blocking_cleanup_published(shard);
 }
 
 void blocking_cleanup_published(Shard& shard) {
@@ -1475,20 +1456,8 @@ void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
 void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op) {
     if (!task.scatter || !shard.has_blocking_waiters()) return;
     ScatterState& state = *task.scatter;
-    const bool deletion = !state.atomic_apply && state.phase == 1 &&
-        (state.kind == Kind::Del || state.kind == Kind::Unlink);
-    if (state.atomic_group || (!deletion && (state.phase != 2 ||
-        !(state.kind == Kind::Lmove || state.kind == Kind::Rpoplpush ||
-          state.kind == Kind::Rename || state.kind == Kind::Renamenx ||
-          state.kind == Kind::Sort)))) return;
-    ShardGroup* group = group_for(state, shard.id());
-    if (!group) return;
-    for (uint32_t i = 0; i < group->count; i++) {
-        const uint32_t pos = state.key_order[group->begin + i];
-        const KeyRef& key = state.keys[pos];
-        const Slice slice = op.arg(key.arg);
-        blocking_publish_key(shard, key.hash, slice.p, slice.n, slice.ns);
-    }
+    (void)op;
+    if (!state.atomic_group) blocking_cleanup_published(shard);
 }
 
 bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,

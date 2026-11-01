@@ -1101,6 +1101,7 @@ inline size_t kvobj_capacity(const KvObj* o) { return good_size(kvobj_request_si
 // Store-only fixtures do not link the command registry. The optional callback
 // is consulted exclusively for logical retirement of an external stream.
 void blocking_stream_removed(const void* store, Slice key) __attribute__((weak));
+void blocking_key_created(const void* store, Slice key) __attribute__((weak));
 template <bool Retiring = false>
 inline size_t kvobj_external_bytes(const KvObj* o, const void* store = nullptr) {
     if (static_cast<Enc>(o->enc) != Enc::Extern) return 0;
