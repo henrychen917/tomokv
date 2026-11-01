@@ -1006,6 +1006,7 @@ job_body(){
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
+    rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
     multidb-*) job_multidb "$name";;
@@ -1188,6 +1189,7 @@ plan_jobs(){
     done; done; done; done
   done
   JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof)
+  for section in proc password replication sort-acl redact errorstats; do JOB_NAMES+=("rootcompat-$section"); done
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){
@@ -5639,6 +5641,20 @@ job_infofix_latency(){
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/build.log and latency.log"
 }
 
+job_rootcompat(){
+  local case=$1 label="rootcompat $1 vs Redis 7.4"
+  row_begin "$label"
+  mkdir -p "$PWD/build/rootcompat"
+  if [ "$case" = proc ]; then
+    taskset -c "$BUILD_CORES" cc -shared -fPIC tests/rootcompat_proc_fault.c -ldl \
+      -o build/rootcompat/proc-fault.so || { bad "$label" "fault shim build failed"; return; }
+  fi
+  py tests/rootcompat.py --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/rootcompat.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/rootcompat.log and proof"
+}
+
 job_infofix_compat(){
   local case=${1#infofix_compat-} label
   label="Redis 7.4 infofix $case (both modes/engines/runtimes)"
@@ -6319,6 +6335,8 @@ collect_job rlfix3_zc
 # Five rows above the quick-tier exit: DQ=+5, DF=+5; EXPECT is owner-owned.
 collect_job infofix_latency
 for CASE in missing docs loadaof; do collect_job "infofix_compat-$CASE"; done
+# rootcompat directed rows, before quick exit; EXPECT remains maintainer-owned.
+for CASE in proc password replication sort-acl redact errorstats; do collect_job "rootcompat-$CASE"; done
 collect_job rlfix3_info
 
 collect_job acl_recheck
