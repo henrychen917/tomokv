@@ -82,3 +82,11 @@ invalid start ID for the interval`. The battery now records those expectations.
 The existing empty-array result is a named known difference under
 XRANGE-EXCLUSIVE-SENTINEL / XPENDING; any other result fails. The ECHO/PING framing
 fence remains strict. DQ=DF=0; the exclusion is not evidence of compatibility.
+
+### Compat 4.1/4.3 — guarded XGROUP promotion
+
+Returned the XGROUP DESTROY/NOGROUP accounting assertion to a named skip with
+INFO-ERRORSTATS / INFO-CMDSTAT-FIELDS (D17a/D17b) and
+BLOCK-STREAM-REMOVED-NO-UNBLOCK. Rootcompat must remove the generic accounting
+guard before it is promoted again. This lane does not assume an unmerged fix.
+DQ=DF=0; one fewer required Tcl assertion per mode, one explicit known skip.
