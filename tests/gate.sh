@@ -64,6 +64,11 @@ set -u
 # Locale-specific batteries (CD4.6) explicitly override their child environment.
 export LC_ALL=C
 cd "$(dirname "$0")/.."
+# The observation campaign remains outside landing counts and performance tiers.
+if [ "${1:-}" = lottery ]; then
+  shift
+  exec tests/lottery_nightly.sh "$@"
+fi
 GATE_SELF_TEST=0
 for gate_arg in "$@"; do
   case "$gate_arg" in
