@@ -1,0 +1,11 @@
+--- POST/src/cmd/blocking.inc
++++ no-wake/blocking.inc
+@@ -486,7 +486,7 @@
+         Server& server = *state.server;
+         Client* client = state.client;
+         state.phase.store(BlockingPhase::MoveRequested, std::memory_order_release);
+-        blocking_notify_sender(server, self, ring, client);
++        (void)server; (void)client;
+     }
+ }
+ 

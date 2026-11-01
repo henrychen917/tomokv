@@ -4,7 +4,10 @@
 
 Base: `7d2f8a2051961a1942735fb6dc9b507d778e09d1`; branch `cx-witnessfix`.
 Test-side changes only. Correctness commands use CPUs 80-95, ports 20500-20599,
-and `LC_ALL=C` for server boots. No performance measurements or full iteration.
+and `LC_ALL=C` for server boots. No full iteration was run. The initial lottery
+adapter unexpectedly invoked memtier in its saturated-FLIP row despite the
+correctness-only setting; those attempts are explicitly excluded below and the
+adapter now rejects that action. No rate result is accepted as performance evidence.
 Receipts are recorded under `docs/witnessfix/`; temporary controls live in `build/`.
 
 ### V1 — ACLKEYS3 last-owner-task wake
@@ -16,7 +19,8 @@ notification after the last owner task leaves; missing arming is a failure.
 Control builders/runners now accept the lane CPU allocation instead of forcing
 the maintainer's CPUs.
 
-Proof receipts: pending the baseline build and the no-wake/no-hold controls.
+Baseline: 88/88 unit schedules passed through the gate. The no-wake/no-hold
+controls fail all 16 selected mode/database/atomic legs; see aclkeys-controls.json.
 This is a serverless schedule, not a claim that a live listener hit the race.
 
 DQ=+1, DF=+1: `collect_job aclkeys_wake` is before the quick-tier exit.
@@ -28,14 +32,16 @@ Removed all assertions/diagnostics based on `script_group_occ_giveups` and
 `script_crossshard_window_refusals` from at412, wave8, mode_equivalence, differ
 and xscript. Their existing exact replies, conservation and live wait/retry
 counter checks remain the evidence. No new production counter is needed to
-detect a refused reply. DQ=DF=0. Live and PRE receipts pending.
+detect a refused reply. DQ=DF=0. Exact replies remain asserted; the final validation inventory identifies
+which containing jobs were run. No dead counter is credited as a negative control.
 
 ### V4 / TM4.1 — debug battery atomic drift
 
 Before every `job_debug` battery, restore `atomic` and require `CONFIG GET`
 to return the requested value. A failed restore fails that battery without
 mislabeling its configuration. `*-atomic.txt` records each live assertion.
-DQ=DF=0. Both split atomic settings and the explicit fused posture need runs.
+DQ=DF=0. The no-restore test copy fails all four mode/atomic live flag checks;
+restoration passes all four. Full split and armed-fused jobs are listed below.
 
 ### V14 — lottery campaign
 
@@ -47,8 +53,29 @@ locale. The normal gate counts remain unchanged (DQ=DF=0).
 
 Campaign command: `LC_ALL=C LOTTERY_CPUS=80-95 LOTTERY_JOBS=16 taskset -c 80-95
 tests/gate.sh lottery --server-cpus 80-87 --client-cpus 88-95 --port 20590
---output build/witnessfix/lottery`. Results pending; no hit is inferred from
-an attempted command or an empty trace.
+--output build/witnessfix/lottery`. The initial default-cap attempt was stopped
+after row 122 passed, row 126 errored, and row 128 recorded zero hits after its
+600-second cap. It is not a completed campaign.
+
+The complete bounded sweep used the same gate interface with `--cap 30
+--attempt-timeout 180 --output build/witnessfix/lottery-bounded`, retaining the
+20-hit requirement: **6 PASS, 49 INSUFFICIENT, 1 FAIL, 2 ERROR** over 58 rows.
+The PASS IDs are 122, 149, 183, 206, 232 and 267. Row 310 (atomic-0 xmove) failed
+its obsolete same-edge detector despite W6 trace hits; its replacement is
+described under TM4.1. Rows 515/516 errored at the obsolete differential-driver
+adapter. The adapter now uses the matrix's focused-driver interface; separate
+follow-up receipts retain those runs. No attempted command or empty trace is
+counted as a hit. The sweep used the intermediate test versions whose SHA256
+is printed in each battery log, against baseline production code plus the
+existing observation-only lottery instrumentation.
+
+Scope exception: the old saturated-FLIP adapter (row 368) invoked memtier in
+five bounded-sweep attempts (four hit, verdict INSUFFICIENT), despite
+GATE_PROOF_NO_RATES=1. Those invocations should not have occurred under this
+task's exclusion of load generators. The adapter now refuses that row in
+correctness-only mode. Its rate/latency output is excluded from all claims.
+NOT RUN: a completed 20-hit final-tree campaign; most bounded rows have not met
+their required sample count. The missing hits remain red/unresolved.
 
 ### V17 — Tcl retries and root names
 
@@ -142,7 +169,8 @@ DQ=DF=0; one fewer required Tcl assertion per mode.
 The dispatch-children row now also enables latency tracking in RESP2/RESP3,
 executes exactly 32 GETs and requires their call count and nonempty cumulative
 buckets. An empty histogram stub cannot pass. The default/off probes remain.
-DQ=DF=0; PRE and current receipts pending.
+DQ=DF=0. Baseline dispatch_children passes all four mode/engine legs; an
+always-empty production histogram mutant fails all four at the new assertion.
 
 ### Compat 4.1 — INFO placeholders
 
@@ -240,8 +268,9 @@ proof is made for this remaining difference.
 The existing moverfix job now attempts its previously omitted EXEC battery in
 every mode/engine/database leg, alongside the donor controls. Exact delivery,
 no duplicate or missing members and post-drain state are required; no blind
-counter substitutes for those checks. DQ=DF=0. Baseline validation is pending;
-a reproduced D2/EXEC loss will be reported rather than excused as timing.
+counter substitutes for those checks. DQ=DF=0. Baseline passed all eight mode/engine/database legs. The available
+woundfix PRE also passes the added EXEC sub-battery, despite other mover rows
+failing; that PRE is not a negative control for this addition.
 
 ### V11 — both list-push namespace publishers
 
@@ -252,7 +281,7 @@ requires exactly one publisher hit per push, and checks resulting list content.
 It complements the live SWAPDB/XADD consumer test; it does not claim a live mover
 wake or a particular thread interleaving. The helper is shared by both thread
 modes; namespaces require the db16 image. Separate planted namespace-zero controls
-are being checked for each call site. DQ=+1, DF=+1: list_namespace is collected
+fail at the corresponding new/existing publisher. The baseline unit passes. DQ=+1, DF=+1: list_namespace is collected
 before the quick-tier exit. A separate test Makefile fragment owns this target; the production Makefile is unchanged.
 
 TM4.1 follow-up: restoring atomic 0 exposed xmove's obsolete witness. The current

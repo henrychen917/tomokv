@@ -1,0 +1,34 @@
+{
+  "attempts": 5,
+  "bound_assumption": "independent, stationary witnessed attempts; per row",
+  "bound_fixed_k": false,
+  "errors": 0,
+  "estimated_attempts_for_k": 25.0,
+  "estimated_seconds_for_k": 180.90030388906598,
+  "failures": 0,
+  "hit_failures": 0,
+  "hit_rate": 0.8,
+  "hits": 4,
+  "incomplete": 0,
+  "mean_attempt_seconds": 7.236012155562639,
+  "row": {
+    "family": "flip saturated",
+    "id": "368",
+    "job": "flip_saturated",
+    "name": "FLIP applies under saturated load",
+    "observable": "witness",
+    "primitives": [
+      "W11"
+    ],
+    "requires": [
+      "W11"
+    ]
+  },
+  "seconds": 36.180060777813196,
+  "target_hits": 20,
+  "upper_95": 0.527129195498412,
+  "verdict": "INSUFFICIENT",
+  "witness_attempts": {
+    "W11": 4
+  }
+}

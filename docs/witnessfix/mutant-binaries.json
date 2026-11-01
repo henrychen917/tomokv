@@ -1,0 +1,31 @@
+[
+  {
+    "arm": "histogram-empty",
+    "sha256": "671d03470189087817de092948f7bd4156988890bb236dd85fac2ccf1dd600e3"
+  },
+  {
+    "arm": "cpu-zero",
+    "sha256": "b02e99ee37bcfab98193444e1f2d456ed6b3b73f4c7d6f06a176afaed4c1d4ba"
+  },
+  {
+    "arm": "config-error",
+    "sha256": "3650d25b867f39d5f50f18f99b787e54f5ef9ca5ae23665d211ac3229556740c"
+  },
+  {
+    "arm": "flip-freeze",
+    "sha256": "9f6fce6c2ba9719b4d50f364eb0dac2b11514fb427cc3454f454249f79aaff6a"
+  },
+  {
+    "arm": "list-new-namespace",
+    "sha256": "d47ba2f0ac0bb995790385e49bbed180d52e13600dd79decb35d533bee440573"
+  },
+  {
+    "arm": "list-existing-namespace",
+    "sha256": "62a77b0c7d325dc7b774fc8999f5ace530c1b8e3b038517f6454484bb2798563"
+  },
+  {
+    "arm": "exec-private-view",
+    "sha256": "486503f3d082a4021cf8ac3bd2b841b57bd9ebb207494feb0c60264620dd055c",
+    "verdict": "non-discriminating; all EXEC arms still pass; excluded from proof"
+  }
+]

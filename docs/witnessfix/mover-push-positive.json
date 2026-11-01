@@ -1,0 +1,30 @@
+[
+  {
+    "binary": "build/moverfix-unit",
+    "mode": "1s",
+    "exit": 0,
+    "stdout": "HIT LMOVE both probes before claims count=1 left=0 to_left=0\nHIT LMOVE both probes before claims count=2 left=0 to_left=0\nHIT LMOVE both probes before claims count=1 left=0 to_left=1\nHIT LMOVE both probes before claims count=2 left=0 to_left=1\nHIT LMOVE both probes before claims count=1 left=1 to_left=0\nHIT LMOVE both probes before claims count=2 left=1 to_left=0\nHIT LMOVE both probes before claims count=1 left=1 to_left=1\nHIT LMOVE both probes before claims count=2 left=1 to_left=1\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=1\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=1\nPASS moverfix deterministic claims\n",
+    "sha256": "4c70e9532a1d58b8561f8d9eb5413cee9e8c39950f52456e0aadf3c2a7cfd220"
+  },
+  {
+    "binary": "build/moverfix-unit",
+    "mode": "2s",
+    "exit": 0,
+    "stdout": "HIT LMOVE both probes before claims count=1 left=0 to_left=0\nHIT LMOVE both probes before claims count=2 left=0 to_left=0\nHIT LMOVE both probes before claims count=1 left=0 to_left=1\nHIT LMOVE both probes before claims count=2 left=0 to_left=1\nHIT LMOVE both probes before claims count=1 left=1 to_left=0\nHIT LMOVE both probes before claims count=2 left=1 to_left=0\nHIT LMOVE both probes before claims count=1 left=1 to_left=1\nHIT LMOVE both probes before claims count=2 left=1 to_left=1\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=1\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=1\nPASS moverfix deterministic claims\n",
+    "sha256": "4c70e9532a1d58b8561f8d9eb5413cee9e8c39950f52456e0aadf3c2a7cfd220"
+  },
+  {
+    "binary": "build/moverfix-db0-unit",
+    "mode": "1s",
+    "exit": 0,
+    "stdout": "HIT LMOVE both probes before claims count=1 left=0 to_left=0\nHIT LMOVE both probes before claims count=2 left=0 to_left=0\nHIT LMOVE both probes before claims count=1 left=0 to_left=1\nHIT LMOVE both probes before claims count=2 left=0 to_left=1\nHIT LMOVE both probes before claims count=1 left=1 to_left=0\nHIT LMOVE both probes before claims count=2 left=1 to_left=0\nHIT LMOVE both probes before claims count=1 left=1 to_left=1\nHIT LMOVE both probes before claims count=2 left=1 to_left=1\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=1\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=1\nPASS moverfix deterministic claims\n",
+    "sha256": "16bd9c9e0eb638be546a7ebf664208a3a973ffde00c731cdc0c03dc40541019c"
+  },
+  {
+    "binary": "build/moverfix-db0-unit",
+    "mode": "2s",
+    "exit": 0,
+    "stdout": "HIT LMOVE both probes before claims count=1 left=0 to_left=0\nHIT LMOVE both probes before claims count=2 left=0 to_left=0\nHIT LMOVE both probes before claims count=1 left=0 to_left=1\nHIT LMOVE both probes before claims count=2 left=0 to_left=1\nHIT LMOVE both probes before claims count=1 left=1 to_left=0\nHIT LMOVE both probes before claims count=2 left=1 to_left=0\nHIT LMOVE both probes before claims count=1 left=1 to_left=1\nHIT LMOVE both probes before claims count=2 left=1 to_left=1\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=0 push_left=1\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=0\nHIT probe/push/claim=1 probes=2 from_left=1 push_left=1\nPASS moverfix deterministic claims\n",
+    "sha256": "16bd9c9e0eb638be546a7ebf664208a3a973ffde00c731cdc0c03dc40541019c"
+  }
+]
