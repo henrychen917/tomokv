@@ -316,3 +316,13 @@ added. NOT RUN: a shipped-binary TO-W3 window proof. Do not promote the live
 successes to evidence of that race.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V13 — AOF crossing proof binary identity
+
+UNREPAIRED: F3's scheduled crossing arm still uses a hook-patched copy. That
+can prove the state-machine ordering under the forced schedule, but cannot be
+reported as a witnessed crossing in the shipped binary. No candidate-side
+crossing observable was added and no new AOF crossing run was performed here.
+NOT RUN: a candidate-binary crossing negative control.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
