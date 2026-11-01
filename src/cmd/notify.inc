@@ -1,19 +1,9 @@
 // notify.inc -- out-of-line keyspace-notification recording and publication.
 // Textually included by xshard.cc after the scatter, blocking, and MULTI state definitions.
 
-namespace tomo {
+#include "notify_batch.h"
 
-struct NotifyRecordImpl {
-    uint32_t order = 0;
-    uint32_t sequence = 0;
-    // Widened from uint8_t for NOTIFY_TRACKING (bit 20). The record is heap batch state, not Op
-    // storage; no footprint lock covers it.
-    uint32_t routes = 0;
-    NotifyEventId event = NotifyEventId::Set;
-    uint8_t db = 0;
-    bool physical = false;  // lazy deletion survives speculative abort/retry
-    Slice key;
-};
+namespace tomo {
 
 namespace {
 
@@ -214,6 +204,8 @@ std::string notify_keyevent_channel(NotifyEventId event, uint8_t db) {
     return channel;
 }
 
+} // namespace
+
 bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
                              NotifyEventId event_id, Slice key,
                              std::string& channel, std::string& message) {
@@ -229,16 +221,9 @@ bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
     return true;
 }
 
-struct NotifyExpiryCompletion {
-    std::vector<std::shared_ptr<std::atomic<bool>>> waiters;
-    ~NotifyExpiryCompletion() {
-        for (const auto& waiter : waiters) waiter->store(true, std::memory_order_release);
-    }
-};
-
 std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
         Server& server, std::unique_ptr<PubSubNotificationChain> chain,
-        std::shared_ptr<NotifyExpiryCompletion> expiry_completion = {}) {
+        std::shared_ptr<NotifyExpiryCompletion> expiry_completion) {
     const uint64_t count = chain ? chain->items.size() : 0;
     if (!count || !server.pubsub_notification_reserve(count, kNotifyInflightCap)) return {};
     PubSubNotificationChain* raw = chain.release();
@@ -249,23 +234,6 @@ std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
             server.pubsub_notification_retire(count);
         });
 }
-
-}  // namespace
-
-struct NotifyBatch {
-    uint64_t tracking_stamp = 0;
-    std::mutex mutex;
-    NotifyRecordImpl inline_records[8];
-    uint32_t inline_size = 0;
-    uint32_t total = 0;
-    uint32_t next_sequence = 0;
-    uint32_t physical = 0;
-    std::vector<NotifyRecordImpl> spill;
-    std::deque<std::string> owned_keys;
-    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;
-    // Only scripts with MONITOR armed populate this cold, existing carrier.
-    std::vector<MonitorScriptLine> monitor_lines;
-};
 
 namespace {
 
@@ -368,14 +336,23 @@ void notify_flat_store_emit(const FlatStore* store, uint32_t cls,
     }
 }
 
+namespace {
+// Subscription children take effect after data commit. Preserve their events
+// even when the transaction will install the server's very first subscriber.
+[[gnu::noinline]] bool notify_multi_subscriber(const Shard& shard) {
+    const Op* carrier = shard.notify_carrier();
+    return carrier && carrier->has_multi_state() &&
+        static_cast<const MultiExecState*>(carrier->multi_state())->has_subscription;
+}
+}
+
 bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
                         NotifyEventId event, Slice key) {
     (void)cls;
     Server* server = shard.server();
     if (!server) return false;
-    // Tracking invalidation has no pub/sub subscriber to require. When only the pub/sub routes
-    // are armed the original early-out is unchanged.
-    if (!server->pubsub_any_subscribers() && !(routes & NOTIFY_TRACKING)) return false;
+    if (!(routes & NOTIFY_TRACKING) && !server->pubsub_any_subscribers() &&
+        !notify_multi_subscriber(shard)) return false;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch = notify_get_or_create_batch(*carrier);
@@ -419,7 +396,8 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
                               : notify_key_arg_order(shard, source, key)) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
-    if (!server->pubsub_any_subscribers())
+    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) &&
+        !server->pubsub_any_subscribers() && !notify_multi_subscriber(shard))
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
     record.db = key.ns == source.physical_db ? source.db : source.target_db;
@@ -447,9 +425,8 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
     (void)cls;
     Server* server = shard.server();
     if (!server) return NotifyPhysicalResult::Nothing;
-    // Tracking invalidation has no pub/sub subscriber to require. When only the pub/sub routes
-    // are armed the original early-out is unchanged.
-    if (!server->pubsub_any_subscribers() && !(routes & NOTIFY_TRACKING)) return NotifyPhysicalResult::Nothing;
+    if (!(routes & NOTIFY_TRACKING) && !server->pubsub_any_subscribers() &&
+        !notify_multi_subscriber(shard)) return NotifyPhysicalResult::Nothing;
     Op* carrier = shard.notify_carrier();
     if (!carrier) carrier = &source;
     NotifyBatch* batch;
@@ -483,7 +460,8 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
     record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
-    if (!server->pubsub_any_subscribers())
+    if ((routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) &&
+        !server->pubsub_any_subscribers() && !notify_multi_subscriber(shard))
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
     record.physical = true;
@@ -622,7 +600,8 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
     Server* server = shard.server();
     if (!server) return false;
     // Tracking invalidation needs the expiry/eviction observers even with nobody subscribed.
-    return server->pubsub_any_subscribers() || (routes & NOTIFY_TRACKING) != 0;
+    return (routes & NOTIFY_TRACKING) != 0 || server->pubsub_any_subscribers() ||
+        notify_multi_subscriber(shard);
 }
 
 // The flat lookup receives the actual argv Slice, including its identity and namespace.
@@ -888,54 +867,6 @@ uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t orde
     return before && !after ? batch->tracking_stamp : 0;
 }
 
-// Only the committed EXEC subscription phase calls this helper. Owners have
-// joined, so the batch is immutable except for these IO-owned route bits.
-// Keep tracking records and their certificates for ordinary EXEC retirement.
-[[gnu::noinline]] std::shared_ptr<PubSubNotificationChain> notify_multi_before(
-        Server& server, NotifyBatch* batch, uint32_t order) {
-    if (!batch) return {};
-    constexpr uint32_t routes = NOTIFY_KEYSPACE | NOTIFY_KEYEVENT;
-    const auto selected = [order](const NotifyRecordImpl& record) {
-        return record.order < order && (record.routes & routes);
-    };
-    std::shared_ptr<PubSubNotificationChain> chain;
-    try {
-        std::vector<NotifyRecordImpl*> records;
-        for (uint32_t i = 0; i < batch->inline_size; ++i)
-            if (selected(batch->inline_records[i])) records.push_back(&batch->inline_records[i]);
-        for (auto& record : batch->spill)
-            if (selected(record)) records.push_back(&record);
-        if (records.empty()) return {};
-        std::stable_sort(records.begin(), records.end(), [](const auto* lhs, const auto* rhs) {
-            return lhs->order < rhs->order ||
-                (lhs->order == rhs->order && lhs->sequence < rhs->sequence);
-        });
-        auto building = std::make_unique<PubSubNotificationChain>();
-        building->items.reserve(records.size() * 2);
-        for (const auto* record : records) {
-            for (uint8_t route = 0; route < 2; ++route) {
-                std::string channel, message;
-                if (!notify_make_publication(record->db, record->routes, route,
-                        record->event, record->key, channel, message)) continue;
-                building->items.push_back(
-                    PubSubNotificationItem{std::move(channel), std::move(message)});
-            }
-        }
-        chain = notify_reserve_chain(server, std::move(building), batch->expiry_completion);
-    } catch (const std::bad_alloc&) {
-        // Match normal notification retirement's bounded best-effort policy.
-    }
-    uint32_t count = 0;
-    const auto consume = [&](NotifyRecordImpl& record) {
-        if (!selected(record)) return;
-        record.routes &= ~routes;
-        ++count;
-    };
-    for (uint32_t i = 0; i < batch->inline_size; ++i) consume(batch->inline_records[i]);
-    for (auto& record : batch->spill) consume(record);
-    if (!chain) server.notify_event_dropped(count);
-    return chain;
-}
 
 NotifyBatch* notify_take_batch(Op& op) {
     // Some asynchronous committers publish Done outside the ordinary owner epilogue.
