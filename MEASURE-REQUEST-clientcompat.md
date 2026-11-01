@@ -184,74 +184,102 @@ the sealed server SHA-256s; retained build recipes reproduce the probes.
 
 ### Correctness validation
 
-**Final correctness refresh in progress after the disconnect correction.**
-The subscription/PING and subscription/keyspace witnesses first failed on all
-32 preceding candidate geometries, while Redis passed. Their fixes pass all
-32 geometries. The final disconnect witness also failed in all 32 geometries
-on `1076280569`, with every pending-EXEC window certified; Redis passed. The
-corrected `694fae5c73` witness passes all 32 geometries and both protocols:
-all 64 pending-EXEC windows opened on attempt zero, with zero subscriptions
-remaining after each disconnect. `make all`, all 51 production-unit targets,
-and the additional declared build variants passed. The isolated harness
-passed 83/83 tests in 145.378 seconds. The broad selected-job campaign is
-running on the sealed final binary. The 160/128 instruction census is complete
-with zero ordinary increases.
+**Complete on the sealed final POST binary.** The final selected-job verdict
+covers **150 requested jobs plus four prerequisites: 154 distinct jobs,
+566 passing rows, zero failing rows**. This combines the complete broad run
+(147 jobs, 551 rows), the directed witness/unit/tracking-order jobs, and the
+complete replacement PAUSE job described below. It remains a selected-job
+receipt; the full iteration gate was not run.
 
-One final-SHA PAUSE matrix reported an early FUNCTION LIST reply in one
-2s epoll geometry. That original row did not record elapsed time, so its
-180 ms pause window was uncertified; no root cause is attributed. The failure
-is retained in `validation/pause-window-before.json`. The revised witness
-keeps the 180 ms pause and 35 ms observation, certifies completion within
-150 ms of arming, and requires an observed window within 12 fresh attempts.
-The complete replacement POST job passed all 32 geometries / 1,536 candidate
-observations, all on attempt zero (maximum 35.235 ms). Redis passed all 48
-observations. PRE failed all 32 geometries at WRITE-mode XGROUP HELP being
-incorrectly postponed. `pause-window-{POST,PRE}.json` retains the certificates;
-PAD-A is being checked with the same witness. The other four POST witness
-matrices passed all 128 geometries. The full tracking-order product passed
-20,736 candidate cases plus 864 oracle cases in 290.39 seconds. Both Tcl modes
-passed all 78 file runs and all six promotion events on this final binary.
+`docs/clientcompat/validation/final-verdict.json` checks every requested job,
+archive hash, binary binding and declared product. Gate rows and inner test
+cases use separate units below; these products overlap the selected-job total.
 
-Older broad, Tcl, differential, tracking-order and PAD receipts are retained
-as superseded evidence and are not claimed for the final SHA above. Final
-delivery requires all 150 requested jobs plus prerequisites, every declared
-leg, both differential engines, both Tcl modes, all five POST/PAD witness
-matrices, 83 harness tests, and all 55 freshness checks on the sealed final
-artifacts. No throughput measurement is part of this campaign.
+| Product | Final result |
+|---|---|
+| Five POST witnesses | 160/160 candidate geometries; all five Redis oracle legs pass |
+| Full tracking-order product | 24 × 864 = 20,736 candidate cases; 864 oracle cases; 290.39 s within the unchanged 900 s deadline |
+| AT4.12 | All 423 declared mode/engine/atomic/script-form legs and eight owner controls pass |
+| Redis Tcl subset | 78 file runs, 37 distinct files per mode, zero manifest errors; all six promoted assertion events present |
+| Differential suites | 954 comparison legs on io_uring and 954 on epoll; 1,908 total, zero differences |
+| Gate harness | 83/83 tests in isolation, 145.378 s |
+| Builds | `make all`, all 51 `job_production_units` targets and the declared additional variants pass; 55 successful build records |
+| Freshness and binding | All 55 `make -q` checks pass; all three arm hashes and the adjacent unit binding verify |
 
-Earlier failures are retained, not counted as passing evidence:
+Each differential engine completed split atomic 0/1 (235/239 comparisons),
+armed atomic 0/1 (230/234), and the 16-case equivalence product. Fixed seeds
+were 7, 19, 20 and 23; the gate selected rotating seed 26 for io_uring and 27
+for epoll. The verifier checks all 36 server boot headers per engine,
+including both servers in every equivalence cell. `final-checks.json` retains
+the final freshness/source bindings and the successful verifier result.
 
-* Four legacy assertions in the initial split/armed feature jobs expected
-  UNPAUSE to bypass ALL and SSUBSCRIBE to fail at queue time. `climon2.py` now
-  proves WRITE unpause and ALL postponement; `pubsub.py` checks QUEUED followed
-  by the exact DENY BLOCKING EXEC error and no actual subscription. Complete
-  replacement jobs passed 34/34 split and 35/35 armed rows before the final
-  rebuild. AT15's refusal check was also replaced by admission controls and
-  its exact RESP2 assertion is reused by the oracle-judged multi-controls job.
-* The first full tracking-order run reached 6 × 864 passing candidate cases
-  before the unchanged 900-second deadline. Idle owners and the waiting IO
-  could each park for 50 ms per TRACKING ON. The final cold owner wake and
-  pending-ack 1 ms polling change fixes that delay; the complete final job
-  passed on the preceding candidate and is included in the final rerun. No test
-  deadline was increased.
-* One blockfix2 job could not find its unit binaries beside the sealed POST.
-  The final artifact directory now links the freshly built unit executables
-  and the verified blockfix hash binding. Its replacement is in the final
-  broader selection.
-* Two earlier harness runs each hit the existing 45-second one-slot scheduler
-  deadline during concurrent correctness traffic; PRE reproduced that same
-  failure. The preceding unchanged self-test passed in isolation. One draft Tcl
-  1s run failed a no-acknowledgement unsubscribe assertion and hit the script
-  GC timeout during compilation. PRE reproduced unsubscribe/PUNSUBSCRIBE
-  races in 6/20 bounded mode/trial legs, including the same assertion. Both
-  preceding Tcl modes passed unchanged. `pre-pubsub-control.json` retains the trials.
+PAD-A remains a negative control. Every oracle leg passes; every PAD job
+fails on the intended compatibility behavior:
 
-The superseded broad ledgers retain the four legacy assertion failures, the
-tracking-order timeout and the missing-unit failure. The final verdict keeps
-that history separate from the complete replacement-job receipts. Draft Tcl,
-harness, instruction-census and retired-arm evidence is archived under
-`docs/clientcompat/validation/` and `history/`; no assertion was weakened to
-obtain a pass.
+| PAD-A witness | Failed candidate geometries / 32 |
+|---|---:|
+| PAUSE | 32 |
+| Immediate disconnected-client count | 24 |
+| MULTI tracking | 32 |
+| MULTI ACL/subscription controls | 32 |
+| Tracking enable race | 15 |
+
+All 15 enable-race failures are missing invalidations after the acknowledged
+ON during the directed occupied-owner schedule, not unrelated test errors.
+`validation/pad-enable-reasons.json` retains each failure. Canonical POST/PAD
+frames, oracle assertions, geometry lists and hashes are under `witnesses/`.
+
+**One earlier PAUSE observation remains unclassified.** On the final SHA,
+one geometry (`2s-epoll-db16-a0-r1`) reported an early FUNCTION LIST reply
+under ALL. That original row did not record elapsed time, so its 180 ms pause
+window was uncertified. No timing-fluke or server-root-cause explanation is
+claimed. The failed row is retained in `validation/pause-window-before.json`.
+
+The replacement witness keeps the 180 ms pause and 35 ms observation,
+certifies completion within 150 ms of arming, and requires an observed window
+within 12 fresh attempts. It preserves the original control connection on the
+first attempt. A wrong classification within a certified window fails
+immediately; failure to open any window also fails. The complete replacement
+POST job passed all 32 geometries and 1,536 candidate observations, all on
+attempt zero (maximum 35.235 ms); Redis passed all 48 observations. Both PRE
+and PAD-A failed all 32 geometries at WRITE-mode XGROUP HELP being incorrectly
+postponed. `pause-window-{POST,PRE,PAD-A}.json` retains the certificates. This
+is a bounded non-reproduction of the earlier isolated observation.
+
+Earlier failures and corrections remain visible:
+
+* Four initial feature-battery assertions expected UNPAUSE to bypass ALL and
+  SSUBSCRIBE to fail at queue time. The tests now assert the Redis behavior:
+  WRITE unpause, ALL postponement, QUEUED followed by the exact DENY BLOCKING
+  EXEC child error, and no actual subscription. All four complete replacement
+  feature jobs pass (34/35 rows per split/armed variant). AT15's refusal check
+  was replaced by admission controls and its exact RESP2 assertion is reused
+  by the oracle-judged multi-controls witness.
+* The first full tracking-order attempt reached 6 × 864 passing cases before
+  the 900-second deadline. The cold owner wake and 1 ms pending-ack polling
+  correction removes the repeated idle waits. The final full product passes;
+  no test deadline was increased.
+* An earlier blockfix2 job could not find unit binaries beside the sealed
+  POST. The final directory links the freshly built units and verified hash
+  binding; the complete replacement job passes all seven rows.
+* Directed subscription/PING, subscription/keyspace, and disconnect cases
+  exposed additional 68d-5 ordering defects before their fixes. The canonical
+  disconnect negative failed all 32 geometries with certified pending-EXEC
+  windows and 89–127 orphan subscriptions. The final witness passes both
+  protocols in all 32 geometries, with every window opened and zero orphans.
+* Draft harness/Tcl runs had scheduler-deadline and unsubscribe timing failures
+  also reproduced on PRE. Their records remain archived. The final unchanged
+  harness passed in isolation, and both final Tcl modes passed. The Tcl
+  unsubscribe PRE control reproduced failures in 6/20 bounded mode/trial legs.
+
+The verifier retains **12 superseded failed gate rows**, including the
+uncertified PAUSE observation, separately from the winning receipts. Two
+additional differential failure entries came from an intentional cancellation
+when correcting subscription/PING. Superseded broad runs and rejected compiler
+trials are archived under `history/`; they are not final-SHA passing evidence.
+No assertion or deadline was relaxed to obtain a pass. The final verifier's
+historical-status correction only recognizes that the gate can record a
+failed row while its shell wrapper exits zero.
 
 Tcl promotions: old ALL-pause precedence; CLIENT KILL SKIPME's immediate INFO
 count; unsubscribe-inside-MULTI/publish-self. The transaction response-order
@@ -268,9 +296,10 @@ the quick-tier branch at line 6481 (exit at 6485):
 **NOT RUN:** full `tests/gate.sh iteration`, ABBA/performance tiers,
 `flip_saturated`, the inline tailgen workload, and release-only stream/xmove
 rate/size-ratio assertions and the atomic RYOW rate comparison omitted by
-`GATE_PROOF_NO_RATES=1`. Those start performance
-benchmarks/load generators reserved to the maintainer by this task. They are
-not included in the partial correctness verdict.
+`GATE_PROOF_NO_RATES=1`. Those start performance benchmarks/load generators
+reserved to the maintainer by this task. They are excluded from the selected
+correctness verdict. All requested correctness jobs and their declared legs
+have complete final receipts.
 
 ### Maintainer measurement request
 
@@ -291,3 +320,5 @@ Superseded arms/probes were deleted after retaining SHA-256s and counts.
 `retired-artifacts.json`, `retired-probes.json`, `history/archives.json` and
 `unit-debug-trim.json` record cleanup; debug trimming preserves allocated
 section bytes, addresses and sizes. The three delivered arm files are kept.
+Final `build/` usage is 9.8 GiB. All lane test processes have stopped and no
+listener remains on ports 20400–20499; see `validation/final-process-cleanup.json`.
