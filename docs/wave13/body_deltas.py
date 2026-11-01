@@ -11,7 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT/'tools'))
 import wave13
-from wave13_normalize import install
+from wave12_normalize import install
 identity = wave13.references()
 install(identity.audit)
 DOC = ROOT/'docs/wave13/identity'

@@ -1,0 +1,4413 @@
+{
+  "scope": "Serverless production command activation and completion. Native namespace instructions; Lua companion includes executable VM instructions. Fixture, shared-library bodies, network, io_uring syscalls and idle scheduler work are outside this census. No rates, cycles/op or IPC were measured.",
+  "attribution": "Every nonzero delta is decomposed exactly into executed-function instruction counts. Function movement/inlining can move instructions between bodies without changing totals. See the linked-body inventory for source/lane versus compiler changes.",
+  "inputs": {
+    "pre": {
+      "path": "docs/wave13/instructions/pre/all-complete-counts.json",
+      "sha256": "f03caca5821dc830a9c2e674840b4794cbc69e96e3a1bb80842e46252d8cdcec",
+      "server_sha256": "589be7469cdadcac827fa88588001e71342244e48e37aae9ca91098509272d79"
+    },
+    "post": {
+      "path": "docs/wave13/instructions/final-post/all-complete-counts.json",
+      "sha256": "e6842a77f401b7f609e36f10526cd4af59766406b3be9a53bc8cc1747e700918",
+      "server_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee"
+    },
+    "pre_lua": {
+      "path": "docs/wave13/instructions/pre-gc/scripts-lua-counts.json",
+      "sha256": "28f990af37d084138069f674ee66d5d18f4b5a3aec7cc9a8f7a90ea08f000f34",
+      "server_sha256": "589be7469cdadcac827fa88588001e71342244e48e37aae9ca91098509272d79"
+    },
+    "post_lua": {
+      "path": "docs/wave13/instructions/final-gc/scripts-lua-counts.json",
+      "sha256": "5b861a0a5ca187d71d040be23e971fe580133c3ba5b80dae38092b5f975ae335",
+      "server_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee"
+    }
+  },
+  "comparisons": {
+    "headline_native": [
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8915,
+        "post": 8916,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8915,
+        "post": 8916,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 9454,
+        "post": 9455,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 9454,
+        "post": 9455,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 6342,
+        "post": 6343,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 6342,
+        "post": 6343,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 6881,
+        "post": 6882,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 6881,
+        "post": 6882,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 35173,
+        "post": 35174,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 35171,
+        "post": 35172,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 35187,
+        "post": 35188,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 35185,
+        "post": 35186,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 24158,
+        "post": 24159,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 24156,
+        "post": 24157,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 24180,
+        "post": 24181,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 24178,
+        "post": 24179,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8766,
+        "post": 8767,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8766,
+        "post": 8767,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 9305,
+        "post": 9306,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 9305,
+        "post": 9306,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 6193,
+        "post": 6194,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 6193,
+        "post": 6194,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 6732,
+        "post": 6733,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 6732,
+        "post": 6733,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 35088,
+        "post": 35089,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 35086,
+        "post": 35087,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 35102,
+        "post": 35103,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 35100,
+        "post": 35101,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 24073,
+        "post": 24074,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 24071,
+        "post": 24072,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 24095,
+        "post": 24096,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 24093,
+        "post": 24094,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8547,
+        "post": 8549,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8547,
+        "post": 8549,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 9086,
+        "post": 9088,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 9086,
+        "post": 9088,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 5893,
+        "post": 5895,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 5893,
+        "post": 5895,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 6432,
+        "post": 6434,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 6432,
+        "post": 6434,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 34939,
+        "post": 34941,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 34937,
+        "post": 34939,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 34953,
+        "post": 34955,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 34951,
+        "post": 34953,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 23839,
+        "post": 23841,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 23837,
+        "post": 23839,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 23861,
+        "post": 23863,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 23859,
+        "post": 23861,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 936,
+        "post": 936,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 936,
+        "post": 936,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 18482,
+        "post": 18482,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 18482,
+        "post": 18482,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1556,
+        "post": 1556,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1556,
+        "post": 1556,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 18327,
+        "post": 18327,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 18327,
+        "post": 18327,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1060,
+        "post": 1060,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1060,
+        "post": 1060,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 22450,
+        "post": 22450,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 22450,
+        "post": 22450,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1680,
+        "post": 1680,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1680,
+        "post": 1680,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 22295,
+        "post": 22295,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 22295,
+        "post": 22295,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1511,
+        "post": 1511,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1511,
+        "post": 1511,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 37411,
+        "post": 37411,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 37411,
+        "post": 37411,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 2131,
+        "post": 2131,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 2131,
+        "post": 2131,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 37256,
+        "post": 37256,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 37256,
+        "post": 37256,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 10147,
+        "post": 10147,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 10171,
+        "post": 10167,
+        "delta": -4,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -4
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 323526,
+        "post": 323526,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 324294,
+        "post": 324166,
+        "delta": -128,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -128
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 10147,
+        "post": 10147,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 10171,
+        "post": 10167,
+        "delta": -4,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -4
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 323526,
+        "post": 323526,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 324294,
+        "post": 324166,
+        "delta": -128,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": -128
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 10680,
+        "post": 10682,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 16947,
+        "post": 16947,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 341605,
+        "post": 341669,
+        "delta": 64,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 64
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 960766,
+        "post": 960766,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 10498,
+        "post": 10500,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 16615,
+        "post": 16615,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 335781,
+        "post": 335845,
+        "delta": 64,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 64
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 950142,
+        "post": 950142,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 23290,
+        "post": 23291,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 23290,
+        "post": 23291,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28605,
+        "post": 28605,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28605,
+        "post": 28605,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39138,
+        "post": 39136,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39138,
+        "post": 39136,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 23245,
+        "post": 23246,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 23245,
+        "post": 23246,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 28545,
+        "post": 28545,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 28545,
+        "post": 28545,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 39048,
+        "post": 39046,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 39048,
+        "post": 39046,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 23290,
+        "post": 23291,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 23290,
+        "post": 23291,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 33515,
+        "post": 33515,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 33515,
+        "post": 33515,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 53767,
+        "post": 53765,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 53767,
+        "post": 53765,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 23245,
+        "post": 23246,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 23245,
+        "post": 23246,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 33365,
+        "post": 33365,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 33365,
+        "post": 33365,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 53269,
+        "post": 53267,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 53269,
+        "post": 53267,
+        "delta": -2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "READLOCAL-GET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 2433,
+        "post": 2433,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "READLOCAL-GET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 49236,
+        "post": 49236,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-empty",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 200975,
+        "post": 200976,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-empty",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 200975,
+        "post": 200976,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-empty",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 200605,
+        "post": 200606,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-empty",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 200605,
+        "post": 200606,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-small",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 201807,
+        "post": 201808,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-small",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 201807,
+        "post": 201808,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-small",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 201437,
+        "post": 201438,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FLUSHALL-small",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 201437,
+        "post": 201438,
+        "delta": 1,
+        "function_deltas": {
+          "bool tomo::(anonymous namespace)::flush_redispatch<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8149,
+        "post": 8150,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8149,
+        "post": 8150,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8370,
+        "post": 8371,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8370,
+        "post": 8371,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 5802,
+        "post": 5803,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 5802,
+        "post": 5803,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 6023,
+        "post": 6024,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 6023,
+        "post": 6024,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 32093,
+        "post": 32098,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 32091,
+        "post": 32096,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 32111,
+        "post": 32112,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 32109,
+        "post": 32110,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21491,
+        "post": 21496,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21489,
+        "post": 21494,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21517,
+        "post": 21518,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21515,
+        "post": 21516,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8010,
+        "post": 8011,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8010,
+        "post": 8011,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8231,
+        "post": 8232,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8231,
+        "post": 8232,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 5663,
+        "post": 5664,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 5663,
+        "post": 5664,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 5884,
+        "post": 5885,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 5884,
+        "post": 5885,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 32013,
+        "post": 32018,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 32011,
+        "post": 32016,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 32031,
+        "post": 32032,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 32029,
+        "post": 32030,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21411,
+        "post": 21416,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21409,
+        "post": 21414,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21437,
+        "post": 21438,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21435,
+        "post": 21436,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 7873,
+        "post": 7875,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 7873,
+        "post": 7875,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 8094,
+        "post": 8096,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 8094,
+        "post": 8096,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 5454,
+        "post": 5456,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 5454,
+        "post": 5456,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 5675,
+        "post": 5677,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 5675,
+        "post": 5677,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 31946,
+        "post": 31952,
+        "delta": 6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 31944,
+        "post": 31950,
+        "delta": 6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 31964,
+        "post": 31966,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 31962,
+        "post": 31964,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21268,
+        "post": 21274,
+        "delta": 6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21266,
+        "post": 21272,
+        "delta": 6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21294,
+        "post": 21296,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21292,
+        "post": 21294,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 783,
+        "post": 783,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 783,
+        "post": 783,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 17585,
+        "post": 17585,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 17585,
+        "post": 17585,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1016,
+        "post": 1016,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1016,
+        "post": 1016,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 17043,
+        "post": 17043,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "GET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 17043,
+        "post": 17043,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 926,
+        "post": 926,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 926,
+        "post": 926,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 22161,
+        "post": 22161,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 22161,
+        "post": 22161,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1159,
+        "post": 1159,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1159,
+        "post": 1159,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 21619,
+        "post": 21619,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "SET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 21619,
+        "post": 21619,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1269,
+        "post": 1269,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1269,
+        "post": 1269,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 33666,
+        "post": 33666,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 33666,
+        "post": 33666,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 1502,
+        "post": 1502,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 1502,
+        "post": 1502,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 33124,
+        "post": 33124,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "INCR",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 33124,
+        "post": 33124,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 9964,
+        "post": 9961,
+        "delta": -3,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -3
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 9990,
+        "post": 9981,
+        "delta": -9,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -9
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 317670,
+        "post": 317574,
+        "delta": -96,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -96
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 318502,
+        "post": 318214,
+        "delta": -288,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -288
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 9964,
+        "post": 9961,
+        "delta": -3,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -3
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 9990,
+        "post": 9981,
+        "delta": -9,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -9
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 317670,
+        "post": 317574,
+        "delta": -96,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -96
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MGET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 318502,
+        "post": 318214,
+        "delta": -288,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -288
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 10748,
+        "post": 10747,
+        "delta": -1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 16306,
+        "post": 16295,
+        "delta": -11,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -11
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 343781,
+        "post": 343749,
+        "delta": -32,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -32
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 897102,
+        "post": 896750,
+        "delta": -352,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -352
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 10566,
+        "post": 10565,
+        "delta": -1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 15974,
+        "post": 15963,
+        "delta": -11,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -11
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 0,
+        "pre": 337957,
+        "post": 337925,
+        "delta": -32,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -32
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "MSET",
+        "mode": "2s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 886478,
+        "post": 886126,
+        "delta": -352,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": -352
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 22025,
+        "post": 22025,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 22025,
+        "post": 22025,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 26990,
+        "post": 26988,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 26990,
+        "post": 26988,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 36812,
+        "post": 36806,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 36812,
+        "post": 36806,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21979,
+        "post": 21979,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21979,
+        "post": 21979,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 26928,
+        "post": 26926,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 26928,
+        "post": 26926,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 36718,
+        "post": 36712,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-same",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 36718,
+        "post": 36712,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 22025,
+        "post": 22025,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 22025,
+        "post": 22025,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 31707,
+        "post": 31705,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 31707,
+        "post": 31705,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 50824,
+        "post": 50818,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "1s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 50824,
+        "post": 50818,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 21979,
+        "post": 21979,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 21979,
+        "post": 21979,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 0,
+        "pre": 31555,
+        "post": 31553,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 2,
+        "atomic": 1,
+        "pre": 31555,
+        "post": 31553,
+        "delta": -2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -2
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 0,
+        "pre": 50322,
+        "post": 50316,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EXEC-cross",
+        "mode": "2s",
+        "batch": 4,
+        "atomic": 1,
+        "pre": 50322,
+        "post": 50316,
+        "delta": -6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)": -6
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "READLOCAL-GET",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 2345,
+        "post": 2345,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "READLOCAL-GET",
+        "mode": "1s",
+        "batch": 32,
+        "atomic": 1,
+        "pre": 45954,
+        "post": 45954,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-empty",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 167677,
+        "post": 167677,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-empty",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 167677,
+        "post": 167677,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-empty",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 167307,
+        "post": 167307,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-empty",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 167307,
+        "post": 167307,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-small",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 168237,
+        "post": 168237,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-small",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 168237,
+        "post": 168237,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-small",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 167867,
+        "post": 167867,
+        "delta": 0,
+        "function_deltas": {}
+      },
+      {
+        "namespace": "db0",
+        "command": "FLUSHALL-small",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 167867,
+        "post": 167867,
+        "delta": 0,
+        "function_deltas": {}
+      }
+    ],
+    "headline_lua": [
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14201,
+        "post": 14207,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14201,
+        "post": 14202,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14745,
+        "post": 14741,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14740,
+        "post": 14746,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12071,
+        "post": 12072,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12071,
+        "post": 12077,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12610,
+        "post": 12611,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12615,
+        "post": 12616,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 40732,
+        "post": 40733,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 40730,
+        "post": 40731,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 40741,
+        "post": 40742,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 40744,
+        "post": 40740,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 30029,
+        "post": 30030,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 30032,
+        "post": 30028,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 30056,
+        "post": 30052,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 30054,
+        "post": 30050,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14020,
+        "post": 14021,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14020,
+        "post": 14021,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14564,
+        "post": 14565,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14559,
+        "post": 14560,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 11890,
+        "post": 11896,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 11895,
+        "post": 11896,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12429,
+        "post": 12430,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12434,
+        "post": 12430,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 40631,
+        "post": 40627,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 40629,
+        "post": 40625,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 40645,
+        "post": 40646,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 40638,
+        "post": 40644,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 29933,
+        "post": 29934,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 29931,
+        "post": 29927,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 29955,
+        "post": 29956,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 29953,
+        "post": 29954,
+        "delta": 1,
+        "function_deltas": {
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14672,
+        "post": 14662,
+        "delta": -10,
+        "function_deltas": {
+          "luaH_get": -12,
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14660,
+        "post": 14662,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 15199,
+        "post": 15201,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 15199,
+        "post": 15206,
+        "delta": 7,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12312,
+        "post": 12314,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12312,
+        "post": 12314,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12851,
+        "post": 12853,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12863,
+        "post": 12853,
+        "delta": -10,
+        "function_deltas": {
+          "luaH_get": -12,
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 41326,
+        "post": 41340,
+        "delta": 14,
+        "function_deltas": {
+          "luaH_get": 12,
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 41324,
+        "post": 41326,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 41340,
+        "post": 41342,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 41338,
+        "post": 41340,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 30418,
+        "post": 30408,
+        "delta": -10,
+        "function_deltas": {
+          "luaH_get": -12,
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 30404,
+        "post": 30418,
+        "delta": 14,
+        "function_deltas": {
+          "luaH_get": 12,
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 30428,
+        "post": 30430,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "normal",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 30426,
+        "post": 30428,
+        "delta": 2,
+        "function_deltas": {
+          "tomo::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14800,
+        "post": 14796,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14800,
+        "post": 14796,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 15021,
+        "post": 15017,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 15016,
+        "post": 15017,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12936,
+        "post": 12932,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12931,
+        "post": 12932,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 13152,
+        "post": 13158,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 13157,
+        "post": 13158,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 39007,
+        "post": 39012,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 39005,
+        "post": 39010,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 39025,
+        "post": 39031,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 39028,
+        "post": 39024,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 28767,
+        "post": 28767,
+        "delta": 0,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 28760,
+        "post": 28765,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 28788,
+        "post": 28789,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVAL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 28791,
+        "post": 28792,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14624,
+        "post": 14630,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14629,
+        "post": 14625,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14850,
+        "post": 14846,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14850,
+        "post": 14846,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12760,
+        "post": 12766,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12765,
+        "post": 12766,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12981,
+        "post": 12987,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12986,
+        "post": 12982,
+        "delta": -4,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 38916,
+        "post": 38916,
+        "delta": 0,
+        "function_deltas": {
+          "luaH_get": -5,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 38914,
+        "post": 38919,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 38934,
+        "post": 38935,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 38927,
+        "post": 38933,
+        "delta": 6,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 28666,
+        "post": 28671,
+        "delta": 5,
+        "function_deltas": {
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 28664,
+        "post": 28674,
+        "delta": 10,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 28697,
+        "post": 28698,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "EVALSHA-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 28690,
+        "post": 28691,
+        "delta": 1,
+        "function_deltas": {
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 14895,
+        "post": 14897,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 14895,
+        "post": 14897,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 15128,
+        "post": 15118,
+        "delta": -10,
+        "function_deltas": {
+          "luaH_get": -12,
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 15116,
+        "post": 15118,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12768,
+        "post": 12770,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12768,
+        "post": 12770,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 12989,
+        "post": 12991,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-single-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 12989,
+        "post": 12996,
+        "delta": 7,
+        "function_deltas": {
+          "luaH_get": 5,
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 39242,
+        "post": 39248,
+        "delta": 6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 39240,
+        "post": 39258,
+        "delta": 18,
+        "function_deltas": {
+          "luaH_get": 12,
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 39260,
+        "post": 39262,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 39258,
+        "post": 39260,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 28730,
+        "post": 28736,
+        "delta": 6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "1s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 28728,
+        "post": 28734,
+        "delta": 6,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)": 4,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 0,
+        "pre": 28756,
+        "post": 28758,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      },
+      {
+        "namespace": "db0",
+        "command": "FCALL-cross-header",
+        "mode": "2s",
+        "batch": 1,
+        "atomic": 1,
+        "pre": 28754,
+        "post": 28756,
+        "delta": 2,
+        "function_deltas": {
+          "tomo_db0::(anonymous namespace)::function_thread_sync(lua_State*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]": 1,
+          "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1
+        }
+      }
+    ]
+  }
+}

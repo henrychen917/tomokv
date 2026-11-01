@@ -60,7 +60,8 @@ def trace(prepared,label,namespace,domain,command,mode,batch,atomic):
     target=DOC/label/domain/('-'.join(map(str,(namespace,command,mode,batch,atomic)))+'.json')
     if target.exists():
         old=json.loads(target.read_text())
-        if old['probe_sha256']==digest and old.get('tracer_sha256')==sha(BUILD/'trace'):return old
+        if (old['probe_sha256']==digest and old.get('tracer_sha256')==sha(BUILD/'trace')
+                and Path(str(target)+'.sites.gz').exists()):return old
     run=subprocess.run(argv+[command,mode,str(batch),str(atomic),'-1'],text=True,capture_output=True,timeout=600)
     if run.returncode:raise RuntimeError(str(target)+' '+run.stderr+run.stdout[-1000:])
     record=json.loads(next(l[6:] for l in run.stdout.splitlines() if l.startswith('TRACE=')))
