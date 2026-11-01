@@ -28,6 +28,10 @@ def stat(c, field):
     return int(info_dict(c).get(field, "0"))
 
 
+class EnrollmentExpired(AssertionError):
+    """The finite TTL elapsed before every initial read could enrol its key."""
+
+
 def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chunk=50000,
         reap_wait_s=30.0):
     is_redis = geom == "redis"
@@ -49,6 +53,7 @@ def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chun
             assert w.call("DEBUG", "SET-ACTIVE-EXPIRE", "0") == "OK"
             keys = ["%s:%d" % (prefix, i) for i in range(n)]
             chunk = 5000
+            first_set = time.monotonic()
             for i in range(0, n, chunk):
                 rs = w.pipeline([("SET", k, "v", "PX", str(ttl_ms)) for k in keys[i:i + chunk]], timeout=60)
                 assert all(r == "OK" for r in rs), rs[:3]
@@ -56,6 +61,10 @@ def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chun
             if mode != "bcast":
                 for i in range(0, n, chunk):
                     rs = trk.pipeline([("GET", k) for k in keys[i:i + chunk]], timeout=60)
+                    if any(r is None for r in rs) and time.monotonic() - first_set >= ttl_ms / 1000:
+                        raise EnrollmentExpired(
+                            f"initial enrolment reached expired keys at batch {i // chunk}; "
+                            f"elapsed={time.monotonic() - first_set:.3f}s ttl={ttl_ms}ms")
                     assert all(r == b"v" for r in rs), [r for r in rs if r != b"v"][:3]
             enrol_done = time.monotonic() - t_set
             trk.poll_pushes(0.05)

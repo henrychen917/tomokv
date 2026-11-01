@@ -54,9 +54,23 @@ def main():
                                     for trigger in ('scan', 'mget'):
                                         if trigger == 'mget' and read_local:
                                             continue
-                                        t3_keylesscap.run(label + '-' + trigger if not oracle else label,
-                                            a.port, 1, 100000, 4000, trigger, out,
-                                            mget_chunk=100000)
+                                        # Each call owns a fresh server. Re-arm only an expired
+                                        # initial enrolment; an armed loss is always a failure.
+                                        # Retain every miss and fail if all three arms miss.
+                                        for arming in range(3):
+                                            try:
+                                                t3_keylesscap.run(label + '-' + trigger if not oracle else label,
+                                                    a.port, 1, 100000, 4000, trigger, out,
+                                                    mget_chunk=100000)
+                                                break
+                                            except t3_keylesscap.EnrollmentExpired as exc:
+                                                receipt = dict(geometry=label, trigger=trigger,
+                                                               arming=arming + 1, bound=3, error=str(exc))
+                                                with out.with_suffix('.arming.jsonl').open('a') as f:
+                                                    f.write(json.dumps(receipt) + '\n')
+                                                print('tracking arming miss', json.dumps(receipt), flush=True)
+                                                if arming == 2:
+                                                    raise
                                     for result in map(json.loads, out.read_text().splitlines()):
                                         for row in result['attempts']:
                                             run.check(label + result['trigger'] + ' live enrolment',
