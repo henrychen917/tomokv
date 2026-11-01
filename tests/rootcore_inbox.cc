@@ -2,6 +2,7 @@
 // observation only; posting and masked drains are the production methods.
 #include "src/core/thread.h"
 #include <barrier>
+#include <cassert>
 #include <thread>
 #include <cstdio>
 #include <cstdlib>
@@ -18,7 +19,8 @@ static void pin(unsigned index) {
     if (sched_setaffinity(0,sizeof(one),&one)) std::abort();
 }
 int main(int argc,char** argv) {
-    if(argc!=2) return 2;
+    if(argc!=2 && argc!=3) return 2;
+    const bool assert_pass = argc==3 && std::string(argv[2])=="assert-pass";
     const std::string kind=argv[1];
     const bool transfer=kind=="transfer", client=kind=="client";
     auto owner=std::make_unique<ThreadCtx>();
@@ -61,7 +63,15 @@ int main(int argc,char** argv) {
         unsigned n=drain();
         first_misses+=n==0;
         turn.arrive_and_wait(); // Observe only after the entire producer pass.
-        if(!n && !mask.any()) ++losses;
+        const bool stranded = !n && !mask.any();
+        if(stranded) ++losses;
+        // The diagnostic producer-pass assertion uses this synchronized cut:
+        // a concurrent pop would otherwise make queue/mask observations racy.
+        if (assert_pass && stranded) {
+            std::fprintf(stderr, "%s producer-pass assertion attempt=%u hits=%u\n",
+                         kind.c_str(), i+1, losses);
+            assert(!stranded);
+        }
         mask.set(0);
         n+=drain();
         if(n!=1) std::abort();

@@ -4,6 +4,7 @@ import argparse
 import os
 from pathlib import Path
 import shutil
+import resource
 import subprocess
 
 p=argparse.ArgumentParser()
@@ -27,8 +28,11 @@ binary=a.output/'inbox'
 subprocess.run(['g++','-std=c++20','-O2','-g','-march=native','-pthread',
                 '-I'+str(source),'-I.','tests/rootcore_inbox.cc','-o',str(binary),
                 '-luring'],check=True)
+resource.setrlimit(resource.RLIMIT_CORE, (0,0))
 failed=False
 for kind in a.kinds.split(','):
     result=subprocess.run([str(binary),kind],check=False)
     failed|=result.returncode!=0
+    assertion=subprocess.run([str(binary),kind,'assert-pass'],check=False)
+    failed|=assertion.returncode!=0
 raise SystemExit(int(failed))

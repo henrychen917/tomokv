@@ -162,7 +162,7 @@
     "-lm",
     "/home/user/Projects/cx-rootcore/build/rootcore/counts/scopes/POST-normal/probe.o"
   ],
-  "probe_sha256": "0a27cca8b7f82ff2486d298ea76ac4694b9c45bf6ceb0b2ba9f6eab5868313ab",
-  "server_sha256": "47889609f563832ea1fa2f33f9893b25986e646dd8ba6eac884df11f3d2255c5",
+  "probe_sha256": "5c69a219c67d19a02be43cb52d7facac0cbadab5c2f29b4b3e7895d9eed2d3f0",
+  "server_sha256": "c9b173b64222d38963cfffc85949c6be49e6f6d86aa8f1893793b35ab72ec780",
   "fixture_sha256": "684154a5f3c5368046af13db6694c97079349c3dd7470eb23d36c37454c7c974"
 }

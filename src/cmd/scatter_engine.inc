@@ -871,6 +871,11 @@ uint32_t key_count_for(const XshardKeyPlan& keys, bool snapshot_writes_only = fa
 }
 
 bool has_values(Kind kind, bool atomic_write) {
+    // Keep the kind check ahead of the atomic-write spill in the db0 image.
+    // Cold AOF receipt plumbing otherwise makes GCC test atomic_write for an
+    // ordinary MSET too (+2 executed instructions in the rootcore census).
+    if constexpr (kSingleDatabase)
+        return kind == Kind::Mget || (__builtin_expect(kind == Kind::Msetnx, false) && !atomic_write);
     return kind == Kind::Mget || (kind == Kind::Msetnx && !atomic_write);
 }
 bool has_status(Kind kind, bool atomic_write) {

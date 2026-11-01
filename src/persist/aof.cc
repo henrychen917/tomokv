@@ -3460,9 +3460,8 @@ bool aof_record_local_op(Shard& shard, Op& op, AofOwnerContext& context) {
                                           : static_cast<uint32_t>(op.spec->last_key);
     uint32_t step = static_cast<uint32_t>(op.spec->key_step);
     if (op.spec->flags & CmdFlags::ScriptRoute) {
-        // A notification batch uses the local op's zc marker too. The immutable
-        // command metadata still identifies the script after that attachment;
-        // route its effects through the same grouped writer as the local path.
+        // Script metadata also covers callers without a local routing marker.
+        // Preserve the same grouped journal contract at this entry point.
         xshard_aof_emit_local(shard, op, context);
         return !shard.server() || !shard.server()->aof().failed();
     }
