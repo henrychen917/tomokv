@@ -7,6 +7,6 @@
   "completed_uncollected_job": "multifix-2s-epoll (collected by shutdown)",
   "completed_uncollected_rows": 6,
   "no_performance_work": true,
-  "final_completed_rows": 56,
+  "final_completed_rows": 50,
   "final_failed_rows": 0
 }
