@@ -57,9 +57,12 @@ is added. `docs/wave13/tcl-manifest-reconcile.json` records the union.
   no reply before/after the fatal exit. These are subchecks, not new public rows.
   The same restart rows now require a real tracked-key invalidation from
   FLUSHALL and no invalidation from FUNCTION FLUSH, fenced by a subscriber PING.
-- The new error-site inventory is `docs/crlffix/wave13-added-sites.json`; all
-  public errors still reach central reply builders. Internal snapshot/compiler
-  strings reach existing persistence diagnostics, not raw RESP line writes.
+- The error audit records all 17 new/moved literal lines, including multiline
+  branches, in `docs/crlffix/wave13-added-sites.json`. The companion
+  `wave13-error-flow.json` traces their sinks and dynamic compiler/decoder error
+  propagation. Public errors reach central reply builders; internal
+  snapshot/compiler strings reach existing persistence diagnostics. No new raw
+  RESP error writer is present.
 - An early serverless development check failed because it incorrectly expected
   an EXEC containing FLUSH to execute; the existing headline explicitly refuses
   this at queue time. The check now requires that error and tests the ensuing
