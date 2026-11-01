@@ -1,0 +1,29 @@
+[
+  {
+    "schema": 1,
+    "group": "split",
+    "parts": [
+      "split-0",
+      "split-1",
+      "equivalence"
+    ],
+    "start": 1793451185.8754086,
+    "end": 1793453305.4729817,
+    "seconds": 2119.597573041916,
+    "comparisons": 490,
+    "complete": true
+  },
+  {
+    "schema": 1,
+    "group": "armed",
+    "parts": [
+      "armed-0",
+      "armed-1"
+    ],
+    "start": 1793452239.692948,
+    "end": 1793453283.7707763,
+    "seconds": 1044.077828168869,
+    "comparisons": 464,
+    "complete": true
+  }
+]

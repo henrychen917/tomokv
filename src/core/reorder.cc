@@ -1260,7 +1260,7 @@ uint32_t IoLoop::r7_flush_ready() {
         // terminates.
         if (idx >= active_.size() || active_.at(idx) != c) continue;
         if (done && !c->closing()) { c->set_in_active(false); active_.erase_at(idx); }
-        else if (c->closing() && !tls_output && c->safe_to_release()) {
+        else if (c->closing() && !tls_output && closing_client_ready(c)) {
             // Both teardown fences need other workers to finish their current passes.
             // Defer in place: close_client's erase+reinsert retry would revisit this client
             // forever while this pass holds its own DatabaseWorkScope/ClientWorkScope,

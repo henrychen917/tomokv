@@ -1,0 +1,734 @@
+{
+  "source": "build/flipfix6/txnorder-recheck",
+  "jobs": {},
+  "files": [
+    {
+      "path": "01-POST/battery.log",
+      "bytes": 885,
+      "sha256": "431d57e6b35b83a8baccdbd05e3fee548723ae32aa991b3c9a9d8e2311861aff",
+      "archived": true,
+      "archive_member": "01-POST/battery.log"
+    },
+    {
+      "path": "01-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "70c7fc379e40b67c61bd2fcb2052e1bb811468146091740bac148f8bf96aef8a",
+      "archived": true,
+      "archive_member": "01-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "01-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 9688831,
+      "sha256": "7ebe23e8e2b15a8e61baa85996e4bd425524cefd8536e22cc20ed251263149bf",
+      "archived": true,
+      "archive_member": "01-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "01-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 215,
+      "sha256": "6eb8be0215b7dfa677a763ee04e8cd46edce1c4a6495b9b256373c29d72154e5",
+      "archived": true,
+      "archive_member": "01-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "01-POST/server-gdb.log",
+      "bytes": 11405,
+      "sha256": "f677c5214bda9ace4b6acc6fd29b32bd770565301ebe3a51b11eae71acdc50ce",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "01-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "01-PRE/battery.log",
+      "bytes": 884,
+      "sha256": "40a9c77d04bee4f3704f1bdaac9c8b16bf3aad4747253db032eb18a15b114654",
+      "archived": true,
+      "archive_member": "01-PRE/battery.log"
+    },
+    {
+      "path": "01-PRE/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "6eac252465ffce3e44d3ad3588413238a1fdd2a6a6b116254a6f6c2466029084",
+      "archived": true,
+      "archive_member": "01-PRE/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "01-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 11758306,
+      "sha256": "91271e9b2315c26d974e998514fd3b570dfcc1e50af79d3f54061b663da9b1e0",
+      "archived": true,
+      "archive_member": "01-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "01-PRE/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 226,
+      "sha256": "a927068d8495ca15a45dbf1c9dfd2dcb34584040dde68c2719e4abbcc1c6baed",
+      "archived": true,
+      "archive_member": "01-PRE/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "01-PRE/server-gdb.log",
+      "bytes": 11430,
+      "sha256": "1dee5ab4b20cbfc34474bcb9e50b50487bc5652fa54fa430533993761ab2c21d",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "01-PRE/server-gdb.log.summary"
+    },
+    {
+      "path": "02-POST/battery.log",
+      "bytes": 884,
+      "sha256": "f4c5993823f383e2480c7d8cebf26246bc1d89ef7fb450a7528d387b29d795cc",
+      "archived": true,
+      "archive_member": "02-POST/battery.log"
+    },
+    {
+      "path": "02-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "9fefd6fd952d52c720052d3e5c7edf14cb053dd5580902ae486e7f888f5affd4",
+      "archived": true,
+      "archive_member": "02-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "02-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 9731795,
+      "sha256": "08057555ce0216ef04e75eee3130bd9e40ef6827d0253a53ec4a6415af1d46c4",
+      "archived": true,
+      "archive_member": "02-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "02-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 226,
+      "sha256": "c9587cb7b0042001ca95de585872d4f516a9c5f1a51024af987f9a18354e3b8b",
+      "archived": true,
+      "archive_member": "02-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "02-POST/server-gdb.log",
+      "bytes": 11432,
+      "sha256": "8b6d435daeb8d84541283ac8c28d96345a2868cde39484eaa9462d1d76855186",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "02-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "02-PRE/battery.log",
+      "bytes": 884,
+      "sha256": "28696cd203c8435c3463704535acdd908abbd0b001a8f3cbfc4a6d93881b3b14",
+      "archived": true,
+      "archive_member": "02-PRE/battery.log"
+    },
+    {
+      "path": "02-PRE/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "ea7343c5da3d8c3150ac68075d833b4eab874c529980d712f822e54296c6b996",
+      "archived": true,
+      "archive_member": "02-PRE/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "02-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 10356035,
+      "sha256": "bb575d5f0131e5240a115885ed81eaa3370eedabf1a104ffbd6b17898eff6445",
+      "archived": true,
+      "archive_member": "02-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "02-PRE/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 223,
+      "sha256": "7e1eea6bc344556fb5123c69edd7d7999342a7329e9b90e6c8f16524a31d7dd9",
+      "archived": true,
+      "archive_member": "02-PRE/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "02-PRE/server-gdb.log",
+      "bytes": 11430,
+      "sha256": "cb11044f45ba90be10d94e4abc7f3c8b0683663580e07450e610c61b02aabd58",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "02-PRE/server-gdb.log.summary"
+    },
+    {
+      "path": "03-POST/battery.log",
+      "bytes": 884,
+      "sha256": "ecd85ee30e8cff7ac154ed14b665da4a80fdba28f91a1df98692bdb70f9d7042",
+      "archived": true,
+      "archive_member": "03-POST/battery.log"
+    },
+    {
+      "path": "03-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "5215f604886a6119fb0fb9b10de43b070b8ba62b94b9e843fa38d0188f9c9bce",
+      "archived": true,
+      "archive_member": "03-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "03-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 10896623,
+      "sha256": "e481171bb9883fbdd5ea014e27ad9c2f85f16d007ca1435bd7d3d3d5f86f78cf",
+      "archived": true,
+      "archive_member": "03-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "03-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 222,
+      "sha256": "53a2204b2edb65c7e9e7659d8b7680bda218371e8b8d28ae82a8660fada83e06",
+      "archived": true,
+      "archive_member": "03-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "03-POST/server-gdb.log",
+      "bytes": 11420,
+      "sha256": "769da40e11252e47d6b9afce1db39f0662a7104ed8c4ea1e186d8bdb22995884",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "03-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "03-PRE/battery.log",
+      "bytes": 885,
+      "sha256": "1ae1bc6e75771061fbb3674482ebad4ef95c95ccf7071568687b832b77a3ebd1",
+      "archived": true,
+      "archive_member": "03-PRE/battery.log"
+    },
+    {
+      "path": "03-PRE/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "aff6bce76a9c853b76348c664ab5cf8f64160318d3179a42b54cf44953a4133d",
+      "archived": true,
+      "archive_member": "03-PRE/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "03-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 9064221,
+      "sha256": "722335ef278abe3551e7b890b4f7772ead5d2cf513b28f03b6a46921c09cfb61",
+      "archived": true,
+      "archive_member": "03-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "03-PRE/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 219,
+      "sha256": "8b183e3541681a2707178c956f85231a6997789574a4c5baf44f8155d1409163",
+      "archived": true,
+      "archive_member": "03-PRE/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "03-PRE/server-gdb.log",
+      "bytes": 11386,
+      "sha256": "5df52d104b465412d292a3d987d9eb35c1808c932c89325436b80160284d92a4",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "03-PRE/server-gdb.log.summary"
+    },
+    {
+      "path": "04-POST/battery.log",
+      "bytes": 883,
+      "sha256": "83ece37741e6159020beda6d4b828f4d8806c8b042494962b4078491ebd8cb88",
+      "archived": true,
+      "archive_member": "04-POST/battery.log"
+    },
+    {
+      "path": "04-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "6598cf8ca3baeaa8268d9388beb41e775eaf6a10956e9cba6e4582ae303e04d8",
+      "archived": true,
+      "archive_member": "04-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "04-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 8623831,
+      "sha256": "530d57400223e0ad2e35611dcc1f6eab47272278bc5c1e80681ee927d5c96a6c",
+      "archived": true,
+      "archive_member": "04-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "04-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 223,
+      "sha256": "f1391d50d25b92312ccdee8f58b88eb9b659424f75982a02772b63ed17f8f15d",
+      "archived": true,
+      "archive_member": "04-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "04-POST/server-gdb.log",
+      "bytes": 11426,
+      "sha256": "5c3ba8205db652d8c16ea232b9632a77dca13272785971f6dbfda679cd7f223d",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "04-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "04-PRE/battery.log",
+      "bytes": 33,
+      "sha256": "ca3541e6a6e1301156dc443291792e3d7af596b26d6a3671b913cbcc94368022",
+      "archived": true,
+      "archive_member": "04-PRE/battery.log"
+    },
+    {
+      "path": "04-PRE/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 122563,
+      "sha256": "7ae2935f29fd84affcac5de5a539d7e31d8f5c42b1fff1802cd7d94d23cadc34",
+      "archived": true,
+      "archive_member": "04-PRE/data/appendonlydir/appendonly.aof.1.incr.tomo"
+    },
+    {
+      "path": "04-PRE/server-gdb.log",
+      "bytes": 24631,
+      "sha256": "37f2d6d542f16d8cd43c3bb75499d164a03a9660b997d5594374a9f254cb4cfd",
+      "archived": true,
+      "archive_member": "04-PRE/server-gdb.log"
+    },
+    {
+      "path": "05-POST/battery.log",
+      "bytes": 883,
+      "sha256": "034d23a3431c8513fce6c56f5934187165f26f5c46c205577ebf3d8e1dd101e7",
+      "archived": true,
+      "archive_member": "05-POST/battery.log"
+    },
+    {
+      "path": "05-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "ffd65f0df35fed2f70d8e10f5d070bd5e3260ddebd1e031d93bcfa20649388c9",
+      "archived": true,
+      "archive_member": "05-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "05-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 9857821,
+      "sha256": "d07b52737e099e9cf3c0d4f876a9dafbb55afc97492acfd03e2cb5b1122344b5",
+      "archived": true,
+      "archive_member": "05-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "05-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 226,
+      "sha256": "13dd4aec476ec959d40da09725b3f16e88a3ed970b409bffe9689ea1643730d2",
+      "archived": true,
+      "archive_member": "05-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "05-POST/server-gdb.log",
+      "bytes": 11405,
+      "sha256": "18979bc71970dbee8a3f396967536664cf099a81095f93db135760583943755b",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "05-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "05-PRE/battery.log",
+      "bytes": 884,
+      "sha256": "08aa56db5d4f962a32274095c9c8d44f5a2f992c27f1d90d5d5e23267ce30d9c",
+      "archived": true,
+      "archive_member": "05-PRE/battery.log"
+    },
+    {
+      "path": "05-PRE/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "24ea59bb408a07d32e5a2e65bf2d15169ed80dfcc3368518754036f6bf7a82ba",
+      "archived": true,
+      "archive_member": "05-PRE/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "05-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 10905196,
+      "sha256": "22368fe183209a7f79ad7cfdc6314eca952942174fe32a447f8b7f7c911c47bd",
+      "archived": true,
+      "archive_member": "05-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "05-PRE/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 222,
+      "sha256": "26f5fe2919ab10ba712f0f48a076a0bfb9c9f13ff9ccccb58c721523f9052eb4",
+      "archived": true,
+      "archive_member": "05-PRE/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "05-PRE/server-gdb.log",
+      "bytes": 11421,
+      "sha256": "44ffcbaa974fed7b71dbc179e46159e493b198aed6b5f8a83cbe69a1b6714d09",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "05-PRE/server-gdb.log.summary"
+    },
+    {
+      "path": "06-POST/battery.log",
+      "bytes": 883,
+      "sha256": "fcc73f245b74b91714f6f228964ecfb6d69f9f58ddb6815d10fe9aa3078718c1",
+      "archived": true,
+      "archive_member": "06-POST/battery.log"
+    },
+    {
+      "path": "06-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "3fd8448263e6ae67450acc4a432f944fe9cc9535f18d5cc9e7270c2ee4389c38",
+      "archived": true,
+      "archive_member": "06-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "06-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 12439211,
+      "sha256": "54619a2384003491a96a0723245e5cc174dd53fbd9de98f4c9b8923bc6cc0a34",
+      "archived": true,
+      "archive_member": "06-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "06-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 226,
+      "sha256": "0a224be87ed209ccca267725cdb608ad8f635e3e2d8102a6c0f0eaa6ce5c0608",
+      "archived": true,
+      "archive_member": "06-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "06-POST/server-gdb.log",
+      "bytes": 11434,
+      "sha256": "8d51e376d9688fdf84b10dde442238f7489cb837b7b491576112bf9b2d5e76cd",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "06-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "06-PRE/battery.log",
+      "bytes": 883,
+      "sha256": "2498b034edf9330cdf7242abccf49672649cbeb14159c1a5f7a475135e43464e",
+      "archived": true,
+      "archive_member": "06-PRE/battery.log"
+    },
+    {
+      "path": "06-PRE/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "673bb483a3f3e36bf813581f16f10b2421e33b9fd7a33cfa0b76cfca2b6a65c6",
+      "archived": true,
+      "archive_member": "06-PRE/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "06-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 11729225,
+      "sha256": "b847056640c5ae04fe83e5dc55cf8056a18fa2ad513728e4f5a3bdfe0fa1a792",
+      "archived": true,
+      "archive_member": "06-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "06-PRE/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 226,
+      "sha256": "3c0a8139c280aaa5a6bb146c3a0a561110741f025ce2159cdbe3812b150f6a29",
+      "archived": true,
+      "archive_member": "06-PRE/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "06-PRE/server-gdb.log",
+      "bytes": 11436,
+      "sha256": "78eae1c77f1287585da55328a1f8c69b044d30437197a01944b7e87fb9b4dd65",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "06-PRE/server-gdb.log.summary"
+    },
+    {
+      "path": "07-POST/battery.log",
+      "bytes": 883,
+      "sha256": "82fba5e60828e9880c45bed1fe2935e7d398c2507708cf71b21eb0ba5f75c28a",
+      "archived": true,
+      "archive_member": "07-POST/battery.log"
+    },
+    {
+      "path": "07-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "c736fb37043c71fe3b8ae88945aae0e90c3527b39d260097370a28a5dbb87ad2",
+      "archived": true,
+      "archive_member": "07-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "07-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 11280400,
+      "sha256": "b37af216fd6f6576d60926d33655cac906c09752458d9077a3d65fe1b7ae1d14",
+      "archived": true,
+      "archive_member": "07-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "07-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 226,
+      "sha256": "0487c7a3c4b5a0df8f3ddceacb4fbf9c80244c00255a0b6865ffeb7dab94ca39",
+      "archived": true,
+      "archive_member": "07-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "07-POST/server-gdb.log",
+      "bytes": 11431,
+      "sha256": "93102719778b697d0b52258762e25d6945d96e92190dd74f0dcf52ed3306f7c4",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "07-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "07-PRE/battery.log",
+      "bytes": 884,
+      "sha256": "c43996ee936fefaeac3431293efbb22fccfe6164116fd25aa4a2ef12c3c9582e",
+      "archived": true,
+      "archive_member": "07-PRE/battery.log"
+    },
+    {
+      "path": "07-PRE/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "45586aa5a5d5657ac1e02fd55247533542d995c48a405cea069ec5d0e039a0c6",
+      "archived": true,
+      "archive_member": "07-PRE/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "07-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 11840234,
+      "sha256": "d4a74ab2729743422b3408b0146f99d1f4a3f1ad672d07dff3e120b610611058",
+      "archived": true,
+      "archive_member": "07-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "07-PRE/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 222,
+      "sha256": "dbd56bcbeacd53a28ccf4ac523d814342314c10466a224fa4efc4100bbb504a9",
+      "archived": true,
+      "archive_member": "07-PRE/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "07-PRE/server-gdb.log",
+      "bytes": 11424,
+      "sha256": "3f73a0e277a5df17646097b7a3a54847a8ac4970fb700b56611c55812634348e",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "07-PRE/server-gdb.log.summary"
+    },
+    {
+      "path": "08-POST/battery.log",
+      "bytes": 884,
+      "sha256": "a1bd7273c189c9f7aabbc272a191c014838b35a6295694eb08820ddd12098c26",
+      "archived": true,
+      "archive_member": "08-POST/battery.log"
+    },
+    {
+      "path": "08-POST/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "3b363f8059f002049a49a1f8c92f64beb5f2cbb29148763269e503a066801c6a",
+      "archived": true,
+      "archive_member": "08-POST/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "08-POST/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 11014165,
+      "sha256": "3d51c6d986259570c0465a5d9f2219ab5210acc6067f2f6c03727770f84232c6",
+      "archived": true,
+      "archive_member": "08-POST/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "08-POST/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 227,
+      "sha256": "a7a68d19cf304dad57b623722c6dff1ee1ec311fbb41829a9089f8b2b7855dfe",
+      "archived": true,
+      "archive_member": "08-POST/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "08-POST/server-gdb.log",
+      "bytes": 11417,
+      "sha256": "06bd281eff05a182c7234abee2615b101727a1c083c5a73131fb7e705a733702",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "08-POST/server-gdb.log.summary"
+    },
+    {
+      "path": "08-PRE/battery.log",
+      "bytes": 883,
+      "sha256": "00463312d15c39860850727355e265ebc72d31f98a31bc14f81b89174e1314fa",
+      "archived": true,
+      "archive_member": "08-PRE/battery.log"
+    },
+    {
+      "path": "08-PRE/data/appendonlydir/appendonly.aof.3.base.tomo",
+      "bytes": 906,
+      "sha256": "9e29d2a21df80afcf4412956c4e6545e47cf2df6655b65ef76070e5405e39f48",
+      "archived": true,
+      "archive_member": "08-PRE/data/appendonlydir/appendonly.aof.3.base.tomo"
+    },
+    {
+      "path": "08-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo",
+      "bytes": 12937083,
+      "sha256": "e8d5549a59c729132c1aa705996b06ada0069eb15d9fd8f0cad5654d5e3c2f07",
+      "archived": true,
+      "archive_member": "08-PRE/data/appendonlydir/appendonly.aof.3.incr.tomo"
+    },
+    {
+      "path": "08-PRE/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 223,
+      "sha256": "593dabfc1795349cfdd40bf72fa8486fa86c5f92a5c1fb29df2ba7ec76898189",
+      "archived": true,
+      "archive_member": "08-PRE/data/appendonlydir/appendonly.aof.manifest"
+    },
+    {
+      "path": "08-PRE/server-gdb.log",
+      "bytes": 11438,
+      "sha256": "3ab0bbc1c64b0e37f05e450a407d54aa353b7f9a1c4c9c7419d0dfae603d7f68",
+      "archived": "derived",
+      "source_lines": 50,
+      "omitted_io_tenure_lines": 8,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1
+      },
+      "archive_member": "08-PRE/server-gdb.log.summary"
+    }
+  ],
+  "archive": "docs/flipfix6/txnorder-recheck-evidence.tar.gz",
+  "archive_sha256": "2e7fa4e0a9ed9607375ac726e82ff9cf43797adbb19943e4b2b486cc0ce74386"
+}

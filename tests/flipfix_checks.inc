@@ -53,29 +53,36 @@
                     total += f.server.flip_client_quota(tid);
             return total;
         }
-        // ClientPrepare on the converting source, then let the held closes finish and reap.
+        // D18 conservative close policy: keep the same ownership/lifetime
+        // proof, but now withdraw the FLIP before dropping or detaching anything.
         void prepare_and_finish(const char* label) {
             f.server.flip_set_stage(FlipStage::ClientPrepare);
-            for (int pass = 0; pass < 64 &&
-                     !f.server.flip_acked(converting, FlipStage::ClientPrepare); pass++)
-                (void)source.flip_control_pass<false>();
-            require(f.server.flip_acked(converting, FlipStage::ClientPrepare),
-                    "converting IO acknowledged ClientPrepare without its closed connections");
+            (void)source.flip_control_pass<false>();
+            std::string error;
+            require(f.server.flip_failed(error) &&
+                        error == "ERR FLIP refused: a pinned connection closed" &&
+                        f.server.flip_refused_close() == 1,
+                    "pinned close refuses exactly once before commitment");
+            require(!f.server.flip_acked(converting, FlipStage::ClientPrepare),
+                    "refused source does not acknowledge preflight");
             require(f.server.thread(converting).client_count() == clients.size() &&
                         f.server.live_clients() == clients.size(),
-                    "closes stayed held before removal through ClientPrepare");
-            require(surviving_quota() == 0,
-                    "every planned connection that closed was dropped from its destination quota");
+                    "closes stayed owned and allocated through refusal");
+            require(surviving_quota() == clients.size(),
+                    "refusal did not mutate the planned quotas");
+            f.server.flip_set_stage(FlipStage::Rollback);
+            (void)source.flip_control_pass<false>();
+            require(f.server.flip_acked(converting, FlipStage::Rollback), "source rollback acknowledged");
+            for (Client* client : clients) source.close_client(client);
+            require(f.server.live_clients() == clients.size(), "closes remain pinned through rollback");
+            f.server.flip_refuse_active();
             for (Client* client : clients) source.close_client(client);
             for (Client* client : clients)
-                require(client->dead(), "a converting IO finishes its dropped closes after ClientPrepare");
-            require(f.server.thread(converting).client_count() == 0 &&
-                        f.server.live_clients() == 0,
-                    "dropped connections leave the converting IO before ClientInstall");
-            source.reap_dead();
-            source.reap_dead();
-            f.server.flip_refuse_active(); // state-only fixture never commits ownership
-            std::printf("ARMED %s: %zu planned connections closed during FLIP 5 3, dropped and reaped\n",
+                require(client->dead(), "original IO finishes its closes after rollback");
+            require(f.server.thread(converting).client_count() == 0 && f.server.live_clients() == 0,
+                    "normal close conserves ownership and live counts");
+            source.reap_dead(); source.reap_dead();
+            std::printf("ARMED %s: %zu planned connections closed during FLIP 5 3, refused and reaped\n",
                         label, clients.size());
             std::fflush(stdout);
         }

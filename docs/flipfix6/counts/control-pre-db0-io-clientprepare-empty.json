@@ -1,0 +1,42 @@
+{
+  "probe": "control",
+  "arm": "pre",
+  "namespace": "db0",
+  "argv": [
+    "io-clientprepare-empty"
+  ],
+  "steps": 2439,
+  "clock_calls": 0,
+  "excluded_calls": 22,
+  "total": 2432,
+  "functions": {
+    "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, std::deque<tomo_db0::WbEngine::DeferredOob, std::allocator<tomo_db0::WbEngine::DeferredOob> > >, std::allocator<std::pair<tomo_db0::Client* const, std::deque<tomo_db0::WbEngine::DeferredOob, std::allocator<tomo_db0::WbEngine::DeferredOob> > > >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) const [clone .isra.0]": 24,
+    "bool tomo_db0::IoLoop::finish_client_transfer<false>(tomo_db0::Client*) [clone .isra.0]": 76,
+    "tomo_db0::Client::nothing_to_write() const": 108,
+    "tomo_db0::Server::flip_ack(unsigned int, tomo_db0::FlipStage)": 9,
+    "tomo_db0::Server::flip_stage_owed(unsigned int, tomo_db0::FlipStage) const": 18,
+    "tomo_db0::IoLoop::reserve_client_transfer_state(unsigned int)": 51,
+    "tomo_db0::IoLoop::flip_drop_closing_planned(unsigned int, bool)": 41,
+    "tomo_db0::IoLoop::flip_reflag_inbound()": 137,
+    "std::__detail::_Rehash_base<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::ClientForwardRoute>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::ClientForwardRoute> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, std::integral_constant<bool, true> >::reserve(unsigned long)": 59,
+    "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::IoLoop::ClientWorkFence>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::IoLoop::ClientWorkFence> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)": 39,
+    "tomo_db0::IoLoop::client_executor_quiesced(tomo_db0::Client*) const": 609,
+    "tomo_db0::IoLoop::client_transfer_ready(tomo_db0::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const": 357,
+    "tomo_db0::IoLoop::flip_candidate_clients_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const": 101,
+    "bool tomo_db0::IoLoop::request_client_transfer_impl<false>(tomo_db0::Client*, unsigned int, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)": 119,
+    "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()": 229,
+    "tomo_db0::script_window_forget(tomo_db0::Server&, unsigned int, tomo_db0::Client&)": 11,
+    "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::(anonymous namespace)::ClientMeta>, std::allocator<std::pair<unsigned long const, tomo_db0::(anonymous namespace)::ClientMeta> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_remove_bucket_begin(unsigned long, std::__detail::_Hash_node<std::pair<unsigned long const, tomo_db0::(anonymous namespace)::ClientMeta>, false>*, unsigned long) [clone .constprop.0]": 13,
+    "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::Client*>, std::allocator<std::pair<unsigned long const, tomo_db0::Client*> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]": 54,
+    "tomo_db0::command_client_directory_find(unsigned long, unsigned int&)": 90,
+    "tomo_db0::command_client_migration_extract(tomo_db0::Client*)": 84,
+    "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]": 8,
+    "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::ClimonConn>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::ClimonConn> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]": 8,
+    "tomo_db0::IoLoop::climon_migration_ready(tomo_db0::Client const*) const": 63,
+    "tomo_db0::IoLoop::client_routing_prepare(tomo_db0::IoLoop::ClientMigration&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)": 65,
+    "tomo_db0::IoLoop::fliplisten_quiesce()": 20,
+    "tomo_db0::IoLoop::fliplisten_quiet() const": 19,
+    "tomo_db0::IoLoop::fliplisten_resume()": 20
+  },
+  "probe_sha256": "477cea72bb3e11ab4ece0488cbd0faa900873df3743963c0b885cdd5cea63f85"
+}

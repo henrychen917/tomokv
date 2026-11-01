@@ -1,0 +1,3 @@
+  row budget: 900s; median=48.09s; correctness-plan-fallback; txnorder battery (fused, atomic 1)
+tests/gate.sh: line 875: 3749865 Aborted                 (core dumped) taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "${database_args[@]}" "${engine_args[@]}" "${proof_engine[@]}" "$@" > "$SRVLOG" 2>&1
+  txnorder battery (fused, atomic 1)                   FAIL (see /home/user/Projects/cx-flipfix6/build/gate-run.RAULkr/jobs/txnorder-fused-1/txnorder-2s-1.txt)

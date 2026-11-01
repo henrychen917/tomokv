@@ -3042,6 +3042,16 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_stale_stage_refusals() : 0));
         appendf(body,
+                "flip_session_clients_transferred:%llu\r\n"
+                "flip_refused_s2:%llu\r\n"
+                "flip_refused_close:%llu\r\n",
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_session_clients_transferred() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_refused_s2() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_refused_close() : 0));
+        appendf(body,
                 "foreign_read_unsafe_refs:%llu\r\n"
                 "foreign_read_occupied_cells:%llu\r\n"
                 "foreign_read_wildcard_cells:%llu\r\n"

@@ -1581,6 +1581,14 @@ private:
                 }
             }
         }
+        if (stage == FlipStage::IoDrain && flip_owed(stage)) {
+            // The coordinator wakes every live FLIP pass. Those CQ completions
+            // can keep resetting idle_spins, starving sweep() after the last
+            // EXEC retired. IoDrain waits for that state's record refs. Run the
+            // existing bounded owner cleanup here, before any ExDrain ack;
+            // no owner work is permitted after that safe point.
+            return atomic_cleanup_cycle(64);
+        }
         if (stage == FlipStage::IoPrepare &&
             srv_->flip_candidate_target(self_->id()) == Role::Ifid &&
             flip_owed(stage)) {

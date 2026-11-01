@@ -1,0 +1,4813 @@
+{
+  "results_sha256": "f65bd447c3a953959679a3b6c2d11bee90079ec74d5caab394bd1071041ace70",
+  "rows": [
+    {
+      "leg": "2s-uring-0-db1-exec",
+      "pass": true,
+      "flips": 11940,
+      "sessions_moved": 23883,
+      "max_flip": 0.00365491583943367,
+      "ping_max": 0.0020799394696950912,
+      "max_worker_gap": 0.0026251710951328278,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 17628,
+          "execs": 17629,
+          "max_gap": 0.0026251710951328278,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 18033,
+          "execs": 18034,
+          "max_gap": 0.0017229672521352768,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 17690,
+          "execs": 17691,
+          "max_gap": 0.0017143376171588898,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 17799,
+          "execs": 17800,
+          "max_gap": 0.0016496675089001656,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 18540,
+          "execs": 18541,
+          "max_gap": 0.0015171868726611137,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 17947,
+          "execs": 17948,
+          "max_gap": 0.0017671585083007812,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db1-p1",
+      "pass": true,
+      "flips": 7531,
+      "sessions_moved": 15065,
+      "max_flip": 0.003427654504776001,
+      "ping_max": 0.0036341557279229164,
+      "max_worker_gap": 0.004165577702224255,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 9940,
+          "execs": 1,
+          "max_gap": 0.002876782789826393,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 9788,
+          "execs": 1,
+          "max_gap": 0.0031197043135762215,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 9904,
+          "execs": 1,
+          "max_gap": 0.004165577702224255,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 9907,
+          "execs": 1,
+          "max_gap": 0.003212793730199337,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 9851,
+          "execs": 1,
+          "max_gap": 0.002817472442984581,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 9948,
+          "execs": 1,
+          "max_gap": 0.0034336652606725693,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db1-p2",
+      "pass": true,
+      "flips": 8677,
+      "sessions_moved": 17357,
+      "max_flip": 0.0024674106389284134,
+      "ping_max": 0.0026450520381331444,
+      "max_worker_gap": 0.003213963471353054,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 12436,
+          "execs": 0,
+          "max_gap": 0.003213963471353054,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 12351,
+          "execs": 0,
+          "max_gap": 0.002548960968852043,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 12256,
+          "execs": 0,
+          "max_gap": 0.0026252809911966324,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 12539,
+          "execs": 0,
+          "max_gap": 0.002628061920404434,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 13404,
+          "execs": 0,
+          "max_gap": 0.002989053726196289,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 12127,
+          "execs": 0,
+          "max_gap": 0.002692312002182007,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db1-p3",
+      "pass": true,
+      "flips": 6831,
+      "sessions_moved": 13665,
+      "max_flip": 0.002858862280845642,
+      "ping_max": 0.0036993464455008507,
+      "max_worker_gap": 0.00712113082408905,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 2188,
+          "execs": 2189,
+          "max_gap": 0.005059951916337013,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 2147,
+          "execs": 2148,
+          "max_gap": 0.005947655998170376,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 2083,
+          "execs": 2084,
+          "max_gap": 0.00712113082408905,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 2093,
+          "execs": 2094,
+          "max_gap": 0.005357732996344566,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 2264,
+          "execs": 2265,
+          "max_gap": 0.0064340392127633095,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 2150,
+          "execs": 2151,
+          "max_gap": 0.0051370421424508095,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db1-watch",
+      "pass": true,
+      "flips": 7388,
+      "sessions_moved": 14779,
+      "max_flip": 0.0029788529500365257,
+      "ping_max": 0.0033733053132891655,
+      "max_worker_gap": 0.003945407457649708,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 9427,
+          "execs": 0,
+          "max_gap": 0.0029079224914312363,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 8918,
+          "execs": 0,
+          "max_gap": 0.0028272531926631927,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 9130,
+          "execs": 0,
+          "max_gap": 0.0035402150824666023,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 9340,
+          "execs": 0,
+          "max_gap": 0.0033740857616066933,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 9100,
+          "execs": 0,
+          "max_gap": 0.003945407457649708,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 9243,
+          "execs": 0,
+          "max_gap": 0.003779997117817402,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db1-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00033005140721797943
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.0002737008035182953
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.0002719014883041382
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.0007841233164072037
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.0002714106813073158
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00027301255613565445
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db1-exec",
+      "pass": true,
+      "flips": 10406,
+      "sessions_moved": 20815,
+      "max_flip": 0.0017423583194613457,
+      "ping_max": 0.0019057178869843483,
+      "max_worker_gap": 0.00228147953748703,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 13963,
+          "execs": 13964,
+          "max_gap": 0.00228147953748703,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 14046,
+          "execs": 14047,
+          "max_gap": 0.0020894594490528107,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 13735,
+          "execs": 13736,
+          "max_gap": 0.0016938978806138039,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 13906,
+          "execs": 13907,
+          "max_gap": 0.0022044694051146507,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 14372,
+          "execs": 14373,
+          "max_gap": 0.0020862584933638573,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 13792,
+          "execs": 13793,
+          "max_gap": 0.0017428779974579811,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db1-p1",
+      "pass": true,
+      "flips": 7925,
+      "sessions_moved": 15853,
+      "max_flip": 0.0026704827323555946,
+      "ping_max": 0.0030611325055360794,
+      "max_worker_gap": 0.0035599349066615105,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 10921,
+          "execs": 1,
+          "max_gap": 0.0035599349066615105,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 1,
+          "ops": 10795,
+          "execs": 1,
+          "max_gap": 0.002835712395608425,
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 10765,
+          "execs": 1,
+          "max_gap": 0.0031945249065756798,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 11613,
+          "execs": 1,
+          "max_gap": 0.0031066033989191055,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 11005,
+          "execs": 1,
+          "max_gap": 0.003092053346335888,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 10809,
+          "execs": 1,
+          "max_gap": 0.003483794629573822,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db1-p2",
+      "pass": true,
+      "flips": 7046,
+      "sessions_moved": 14095,
+      "max_flip": 0.0036489060148596764,
+      "ping_max": 0.0033164257183670998,
+      "max_worker_gap": 0.005505234003067017,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 8816,
+          "execs": 0,
+          "max_gap": 0.0033464450389146805,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 8582,
+          "execs": 0,
+          "max_gap": 0.003253125585615635,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 8595,
+          "execs": 0,
+          "max_gap": 0.002979992888867855,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 8700,
+          "execs": 0,
+          "max_gap": 0.005505234003067017,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 8653,
+          "execs": 0,
+          "max_gap": 0.003278994932770729,
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 8862,
+          "execs": 0,
+          "max_gap": 0.0029158126562833786,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db1-p3",
+      "pass": true,
+      "flips": 7886,
+      "sessions_moved": 15775,
+      "max_flip": 0.0023811710998415947,
+      "ping_max": 0.0038230568170547485,
+      "max_worker_gap": 0.006622479297220707,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 2736,
+          "execs": 2737,
+          "max_gap": 0.005619245581328869,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 2695,
+          "execs": 2696,
+          "max_gap": 0.006480257958173752,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 2737,
+          "execs": 2738,
+          "max_gap": 0.0054126521572470665,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 2732,
+          "execs": 2733,
+          "max_gap": 0.006622479297220707,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 2701,
+          "execs": 2702,
+          "max_gap": 0.005867915228009224,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 2803,
+          "execs": 2804,
+          "max_gap": 0.00555509515106678,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db1-watch",
+      "pass": true,
+      "flips": 7100,
+      "sessions_moved": 14203,
+      "max_flip": 0.004541739821434021,
+      "ping_max": 0.004000707529485226,
+      "max_worker_gap": 0.0062232064083218575,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 8828,
+          "execs": 0,
+          "max_gap": 0.004416018724441528,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 8702,
+          "execs": 0,
+          "max_gap": 0.004733710549771786,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 8748,
+          "execs": 0,
+          "max_gap": 0.004703070968389511,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 8914,
+          "execs": 0,
+          "max_gap": 0.0043199993669986725,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 8731,
+          "execs": 0,
+          "max_gap": 0.0062232064083218575,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 8972,
+          "execs": 0,
+          "max_gap": 0.0035455552861094475,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db1-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.0004005720838904381
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00019828137010335922
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00019412953406572342
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00018014106899499893
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00017316080629825592
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00017443019896745682
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db1-exec",
+      "pass": true,
+      "flips": 9348,
+      "sessions_moved": 18699,
+      "max_flip": 0.002060980536043644,
+      "ping_max": 0.003096252679824829,
+      "max_worker_gap": 0.003928137011826038,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 12189,
+          "execs": 12190,
+          "max_gap": 0.003538895398378372,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 12136,
+          "execs": 12137,
+          "max_gap": 0.003928137011826038,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 11976,
+          "execs": 11977,
+          "max_gap": 0.003906567580997944,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 12245,
+          "execs": 12246,
+          "max_gap": 0.003336215391755104,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 12146,
+          "execs": 12147,
+          "max_gap": 0.0031207632273435593,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 12435,
+          "execs": 12436,
+          "max_gap": 0.0035029463469982147,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db1-p1",
+      "pass": true,
+      "flips": 8439,
+      "sessions_moved": 16881,
+      "max_flip": 0.0030038729310035706,
+      "ping_max": 0.002926052547991276,
+      "max_worker_gap": 0.0035660844296216965,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 12153,
+          "execs": 1,
+          "max_gap": 0.0029463833197951317,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 11850,
+          "execs": 1,
+          "max_gap": 0.002778821624815464,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 11782,
+          "execs": 1,
+          "max_gap": 0.0035660844296216965,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 11612,
+          "execs": 1,
+          "max_gap": 0.003486345522105694,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 11566,
+          "execs": 1,
+          "max_gap": 0.002723531797528267,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 12327,
+          "execs": 1,
+          "max_gap": 0.0027145622298121452,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db1-p2",
+      "pass": true,
+      "flips": 7885,
+      "sessions_moved": 15773,
+      "max_flip": 0.0036259759217500687,
+      "ping_max": 0.002618301659822464,
+      "max_worker_gap": 0.0038859182968735695,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 10578,
+          "execs": 0,
+          "max_gap": 0.0030155526474118233,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 10594,
+          "execs": 0,
+          "max_gap": 0.0031112143769860268,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 10539,
+          "execs": 0,
+          "max_gap": 0.0038859182968735695,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 10839,
+          "execs": 0,
+          "max_gap": 0.003185414709150791,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 11425,
+          "execs": 0,
+          "max_gap": 0.002901303581893444,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 10524,
+          "execs": 0,
+          "max_gap": 0.0027446914464235306,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db1-p3",
+      "pass": true,
+      "flips": 6549,
+      "sessions_moved": 13101,
+      "max_flip": 0.003131372854113579,
+      "ping_max": 0.004085797816514969,
+      "max_worker_gap": 0.0061094872653484344,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 2064,
+          "execs": 2065,
+          "max_gap": 0.005327712744474411,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 2047,
+          "execs": 2048,
+          "max_gap": 0.005775204859673977,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 2046,
+          "execs": 2047,
+          "max_gap": 0.005438514053821564,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 2053,
+          "execs": 2054,
+          "max_gap": 0.005906157195568085,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 2133,
+          "execs": 2134,
+          "max_gap": 0.0056351348757743835,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 2061,
+          "execs": 2062,
+          "max_gap": 0.0061094872653484344,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db1-watch",
+      "pass": true,
+      "flips": 7659,
+      "sessions_moved": 15321,
+      "max_flip": 0.0032515348866581917,
+      "ping_max": 0.004022178240120411,
+      "max_worker_gap": 0.0036021359264850616,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 10029,
+          "execs": 0,
+          "max_gap": 0.0030778134241700172,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 10128,
+          "execs": 0,
+          "max_gap": 0.0036021359264850616,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 10035,
+          "execs": 0,
+          "max_gap": 0.0034334948286414146,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 10228,
+          "execs": 0,
+          "max_gap": 0.0033400841057300568,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 10671,
+          "execs": 0,
+          "max_gap": 0.003055642358958721,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 9970,
+          "execs": 0,
+          "max_gap": 0.0028896229341626167,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db1-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00027948059141635895
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00015600956976413727
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00018578115850687027
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.0001650797203183174
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00014596153050661087
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00015008170157670975
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db1-exec",
+      "pass": true,
+      "flips": 9537,
+      "sessions_moved": 19077,
+      "max_flip": 0.002095108851790428,
+      "ping_max": 0.0025657005608081818,
+      "max_worker_gap": 0.0032100342214107513,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 12786,
+          "execs": 12787,
+          "max_gap": 0.0029901424422860146,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 12612,
+          "execs": 12613,
+          "max_gap": 0.003107263706624508,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 12517,
+          "execs": 12518,
+          "max_gap": 0.0032100342214107513,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 12754,
+          "execs": 12755,
+          "max_gap": 0.003148123621940613,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 12980,
+          "execs": 12981,
+          "max_gap": 0.0025149909779429436,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 12369,
+          "execs": 12370,
+          "max_gap": 0.0031335046514868736,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db1-p1",
+      "pass": true,
+      "flips": 6981,
+      "sessions_moved": 13965,
+      "max_flip": 0.0036983853206038475,
+      "ping_max": 0.003445935435593128,
+      "max_worker_gap": 0.005095822736620903,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 8919,
+          "execs": 1,
+          "max_gap": 0.005095822736620903,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 8645,
+          "execs": 1,
+          "max_gap": 0.003961517475545406,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 8614,
+          "execs": 1,
+          "max_gap": 0.0032605743035674095,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 8620,
+          "execs": 1,
+          "max_gap": 0.0036504659801721573,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 8704,
+          "execs": 1,
+          "max_gap": 0.0031921137124300003,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 9006,
+          "execs": 1,
+          "max_gap": 0.002985253930091858,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db1-p2",
+      "pass": true,
+      "flips": 7639,
+      "sessions_moved": 15281,
+      "max_flip": 0.0033190352842211723,
+      "ping_max": 0.003284984268248081,
+      "max_worker_gap": 0.004098426550626755,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 10011,
+          "execs": 0,
+          "max_gap": 0.0034012850373983383,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 10089,
+          "execs": 0,
+          "max_gap": 0.0034552952274680138,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 10161,
+          "execs": 0,
+          "max_gap": 0.004098426550626755,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 10340,
+          "execs": 0,
+          "max_gap": 0.003595195710659027,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 10050,
+          "execs": 0,
+          "max_gap": 0.003048982471227646,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 10539,
+          "execs": 0,
+          "max_gap": 0.003156263381242752,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db1-p3",
+      "pass": true,
+      "flips": 6555,
+      "sessions_moved": 13113,
+      "max_flip": 0.003136454150080681,
+      "ping_max": 0.0032777832821011543,
+      "max_worker_gap": 0.006355607882142067,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 2038,
+          "execs": 2039,
+          "max_gap": 0.005617803893983364,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 2005,
+          "execs": 2006,
+          "max_gap": 0.005038891918957233,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 2062,
+          "execs": 2063,
+          "max_gap": 0.0060716671869158745,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 2040,
+          "execs": 2041,
+          "max_gap": 0.005805915221571922,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 2025,
+          "execs": 2026,
+          "max_gap": 0.006355607882142067,
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 2040,
+          "execs": 2041,
+          "max_gap": 0.006078566424548626,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db1-watch",
+      "pass": true,
+      "flips": 6420,
+      "sessions_moved": 12843,
+      "max_flip": 0.004435700364410877,
+      "ping_max": 0.003230813890695572,
+      "max_worker_gap": 0.0032423846423625946,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 7807,
+          "execs": 0,
+          "max_gap": 0.0032423846423625946,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 7778,
+          "execs": 0,
+          "max_gap": 0.003125833347439766,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 7624,
+          "execs": 0,
+          "max_gap": 0.0029872125014662743,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 7752,
+          "execs": 0,
+          "max_gap": 0.0030203629285097122,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 7795,
+          "execs": 0,
+          "max_gap": 0.0030698738992214203,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 7679,
+          "execs": 0,
+          "max_gap": 0.0030812937766313553,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db1-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00027697067707777023
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.0006882930174469948
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.0001537613570690155
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.0001485506072640419
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00016360171139240265
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00014166999608278275
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db16-exec",
+      "pass": true,
+      "flips": 9537,
+      "sessions_moved": 19077,
+      "max_flip": 0.0047078607603907585,
+      "ping_max": 0.004561080597341061,
+      "max_worker_gap": 0.004727981053292751,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 12136,
+          "execs": 12137,
+          "max_gap": 0.004537589848041534,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 12243,
+          "execs": 12244,
+          "max_gap": 0.004727981053292751,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 12021,
+          "execs": 12022,
+          "max_gap": 0.004457009956240654,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 12000,
+          "execs": 12001,
+          "max_gap": 0.004443349316716194,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 12478,
+          "execs": 12479,
+          "max_gap": 0.004450678825378418,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 11986,
+          "execs": 11987,
+          "max_gap": 0.004431379027664661,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db16-p1",
+      "pass": true,
+      "flips": 7832,
+      "sessions_moved": 15667,
+      "max_flip": 0.0031124241650104523,
+      "ping_max": 0.0032452838495373726,
+      "max_worker_gap": 0.003349754959344864,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 10519,
+          "execs": 1,
+          "max_gap": 0.0027465615421533585,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 10077,
+          "execs": 1,
+          "max_gap": 0.003349754959344864,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 10332,
+          "execs": 1,
+          "max_gap": 0.002534271217882633,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 10097,
+          "execs": 1,
+          "max_gap": 0.0028919028118252754,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 10062,
+          "execs": 1,
+          "max_gap": 0.0030649425461888313,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 10613,
+          "execs": 1,
+          "max_gap": 0.002649771049618721,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db16-p2",
+      "pass": true,
+      "flips": 7241,
+      "sessions_moved": 14485,
+      "max_flip": 0.001872878521680832,
+      "ping_max": 0.003639206290245056,
+      "max_worker_gap": 0.004985653795301914,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 9044,
+          "execs": 0,
+          "max_gap": 0.002831072546541691,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 8950,
+          "execs": 0,
+          "max_gap": 0.0030431225895881653,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 8926,
+          "execs": 0,
+          "max_gap": 0.0033122142776846886,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 9272,
+          "execs": 0,
+          "max_gap": 0.0027619432657957077,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 9474,
+          "execs": 0,
+          "max_gap": 0.004985653795301914,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 8782,
+          "execs": 0,
+          "max_gap": 0.0038679270073771477,
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db16-p3",
+      "pass": true,
+      "flips": 7224,
+      "sessions_moved": 14451,
+      "max_flip": 0.002326410263776779,
+      "ping_max": 0.003202684223651886,
+      "max_worker_gap": 0.006996160373091698,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 2449,
+          "execs": 2450,
+          "max_gap": 0.005074332468211651,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 2372,
+          "execs": 2373,
+          "max_gap": 0.005107361823320389,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 2416,
+          "execs": 2417,
+          "max_gap": 0.005982126109302044,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 2346,
+          "execs": 2347,
+          "max_gap": 0.006996160373091698,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 2476,
+          "execs": 2477,
+          "max_gap": 0.004879690706729889,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 2483,
+          "execs": 2484,
+          "max_gap": 0.005753835663199425,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db16-watch",
+      "pass": true,
+      "flips": 6627,
+      "sessions_moved": 13257,
+      "max_flip": 0.0031945230439305305,
+      "ping_max": 0.0032560033723711967,
+      "max_worker_gap": 0.0042457375675439835,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 7873,
+          "execs": 0,
+          "max_gap": 0.0042457375675439835,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 7893,
+          "execs": 0,
+          "max_gap": 0.003079993650317192,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 7720,
+          "execs": 0,
+          "max_gap": 0.0031967535614967346,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 7889,
+          "execs": 0,
+          "max_gap": 0.003459785133600235,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 7904,
+          "execs": 0,
+          "max_gap": 0.00310539361089468,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 7895,
+          "execs": 0,
+          "max_gap": 0.002922973595559597,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db16-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00037545058876276016
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00027350056916475296
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.0007471432909369469
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.000272141769528389
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00027179066091775894
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00027140043675899506
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db16-exec",
+      "pass": true,
+      "flips": 10080,
+      "sessions_moved": 20163,
+      "max_flip": 0.02833955455571413,
+      "ping_max": 0.025080440565943718,
+      "max_worker_gap": 0.028426675125956535,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 13344,
+          "execs": 13345,
+          "max_gap": 0.026187815703451633,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 13611,
+          "execs": 13612,
+          "max_gap": 0.019307004287838936,
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 13203,
+          "execs": 13204,
+          "max_gap": 0.018306691199541092,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 13288,
+          "execs": 13289,
+          "max_gap": 0.028426675125956535,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 13796,
+          "execs": 13797,
+          "max_gap": 0.026195354759693146,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 13468,
+          "execs": 13469,
+          "max_gap": 0.019649606198072433,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db16-p1",
+      "pass": true,
+      "flips": 6896,
+      "sessions_moved": 13795,
+      "max_flip": 0.0029876939952373505,
+      "ping_max": 0.003018532879650593,
+      "max_worker_gap": 0.004391930066049099,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 8516,
+          "execs": 1,
+          "max_gap": 0.0033776937052607536,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 8503,
+          "execs": 1,
+          "max_gap": 0.0028141122311353683,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 8632,
+          "execs": 1,
+          "max_gap": 0.0029100021347403526,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 8678,
+          "execs": 1,
+          "max_gap": 0.004391930066049099,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 8542,
+          "execs": 1,
+          "max_gap": 0.003201562911272049,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 8590,
+          "execs": 1,
+          "max_gap": 0.0033330442383885384,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db16-p2",
+      "pass": true,
+      "flips": 8015,
+      "sessions_moved": 16033,
+      "max_flip": 0.0019038785248994827,
+      "ping_max": 0.0033304747194051743,
+      "max_worker_gap": 0.0036491965875029564,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 11113,
+          "execs": 0,
+          "max_gap": 0.0027298806235194206,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 10719,
+          "execs": 0,
+          "max_gap": 0.0036491965875029564,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 10853,
+          "execs": 0,
+          "max_gap": 0.002942272461950779,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 10695,
+          "execs": 0,
+          "max_gap": 0.002740282565355301,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 10647,
+          "execs": 0,
+          "max_gap": 0.002972532995045185,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 11140,
+          "execs": 0,
+          "max_gap": 0.002987992949783802,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db16-p3",
+      "pass": true,
+      "flips": 6441,
+      "sessions_moved": 12885,
+      "max_flip": 0.003932297229766846,
+      "ping_max": 0.003417924977838993,
+      "max_worker_gap": 0.006159656681120396,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 1951,
+          "execs": 1952,
+          "max_gap": 0.0049128420650959015,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 1959,
+          "execs": 1960,
+          "max_gap": 0.004508019424974918,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 1980,
+          "execs": 1981,
+          "max_gap": 0.006159656681120396,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 1962,
+          "execs": 1963,
+          "max_gap": 0.00550475437194109,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 1960,
+          "execs": 1961,
+          "max_gap": 0.005297563038766384,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 2002,
+          "execs": 2003,
+          "max_gap": 0.005394933745265007,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db16-watch",
+      "pass": true,
+      "flips": 6687,
+      "sessions_moved": 13377,
+      "max_flip": 0.0031722234562039375,
+      "ping_max": 0.003044523298740387,
+      "max_worker_gap": 0.003853006288409233,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 8033,
+          "execs": 0,
+          "max_gap": 0.003853006288409233,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 7965,
+          "execs": 0,
+          "max_gap": 0.0035035666078329086,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 8140,
+          "execs": 0,
+          "max_gap": 0.002880251966416836,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 8050,
+          "execs": 0,
+          "max_gap": 0.003574616275727749,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 7959,
+          "execs": 0,
+          "max_gap": 0.002884862944483757,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 8045,
+          "execs": 0,
+          "max_gap": 0.0034702951088547707,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db16-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00035035237669944763
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00027327053248882294
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00027484074234962463
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00027211103588342667
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00027286168187856674
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.0002733515575528145
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db16-exec",
+      "pass": true,
+      "flips": 10439,
+      "sessions_moved": 20881,
+      "max_flip": 0.0032158037647604942,
+      "ping_max": 0.0025885310024023056,
+      "max_worker_gap": 0.0035925861448049545,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 14377,
+          "execs": 14378,
+          "max_gap": 0.0023424895480275154,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 14147,
+          "execs": 14148,
+          "max_gap": 0.002433360554277897,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 14123,
+          "execs": 14124,
+          "max_gap": 0.0022323699668049812,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 14349,
+          "execs": 14350,
+          "max_gap": 0.0035925861448049545,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 14637,
+          "execs": 14638,
+          "max_gap": 0.0026663923636078835,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 14158,
+          "execs": 14159,
+          "max_gap": 0.0031149741262197495,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db16-p1",
+      "pass": true,
+      "flips": 8215,
+      "sessions_moved": 16433,
+      "max_flip": 0.0030208630487322807,
+      "ping_max": 0.0030104834586381912,
+      "max_worker_gap": 0.004106778651475906,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 11225,
+          "execs": 1,
+          "max_gap": 0.004106778651475906,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 11212,
+          "execs": 1,
+          "max_gap": 0.002803102135658264,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 11440,
+          "execs": 1,
+          "max_gap": 0.003804677166044712,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 11448,
+          "execs": 1,
+          "max_gap": 0.00285981222987175,
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 11147,
+          "execs": 1,
+          "max_gap": 0.003068353049457073,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 11525,
+          "execs": 1,
+          "max_gap": 0.0037538977339863777,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db16-p2",
+      "pass": true,
+      "flips": 7651,
+      "sessions_moved": 15305,
+      "max_flip": 0.0072813620790839195,
+      "ping_max": 0.006771780550479889,
+      "max_worker_gap": 0.006919411011040211,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 10165,
+          "execs": 0,
+          "max_gap": 0.006919411011040211,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 10282,
+          "execs": 0,
+          "max_gap": 0.006077907048165798,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 9942,
+          "execs": 0,
+          "max_gap": 0.005999255925416946,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 10429,
+          "execs": 0,
+          "max_gap": 0.006753869354724884,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 10795,
+          "execs": 0,
+          "max_gap": 0.006080406717956066,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 9964,
+          "execs": 0,
+          "max_gap": 0.005924485623836517,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db16-p3",
+      "pass": true,
+      "flips": 6313,
+      "sessions_moved": 12629,
+      "max_flip": 0.003100654110312462,
+      "ping_max": 0.003922087140381336,
+      "max_worker_gap": 0.006108847446739674,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 1910,
+          "execs": 1911,
+          "max_gap": 0.0060753170400857925,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 1,
+          "ops": 1903,
+          "execs": 1904,
+          "max_gap": 0.005136832594871521,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 1948,
+          "execs": 1949,
+          "max_gap": 0.005293942987918854,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              7,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 1962,
+          "execs": 1963,
+          "max_gap": 0.005574814975261688,
+          "owners": [
+            [
+              11,
+              7
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 1923,
+          "execs": 1924,
+          "max_gap": 0.006108847446739674,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 1918,
+          "execs": 1919,
+          "max_gap": 0.005256772972643375,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db16-watch",
+      "pass": true,
+      "flips": 8407,
+      "sessions_moved": 16817,
+      "max_flip": 0.0030239829793572426,
+      "ping_max": 0.0036641471087932587,
+      "max_worker_gap": 0.003988257609307766,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 11793,
+          "execs": 0,
+          "max_gap": 0.0033624740317463875,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 11607,
+          "execs": 0,
+          "max_gap": 0.003327605314552784,
+          "owners": [
+            [
+              9,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 11633,
+          "execs": 0,
+          "max_gap": 0.0027776528149843216,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 11722,
+          "execs": 0,
+          "max_gap": 0.003988257609307766,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 11489,
+          "execs": 0,
+          "max_gap": 0.003359484486281872,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 12000,
+          "execs": 0,
+          "max_gap": 0.0026639513671398163,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db16-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00028996169567108154
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00018020067363977432
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00018191058188676834
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00015442166477441788
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00018125120550394058
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00018521025776863098
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db16-exec",
+      "pass": true,
+      "flips": 9061,
+      "sessions_moved": 18125,
+      "max_flip": 0.002907082438468933,
+      "ping_max": 0.003457404673099518,
+      "max_worker_gap": 0.004555900581181049,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 11570,
+          "execs": 11571,
+          "max_gap": 0.0036010965704917908,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 11463,
+          "execs": 11464,
+          "max_gap": 0.0035130251199007034,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 11427,
+          "execs": 11428,
+          "max_gap": 0.0037824762985110283,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 11580,
+          "execs": 11581,
+          "max_gap": 0.004555900581181049,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 11799,
+          "execs": 11800,
+          "max_gap": 0.0035184351727366447,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 11388,
+          "execs": 11389,
+          "max_gap": 0.004043757915496826,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db16-p1",
+      "pass": true,
+      "flips": 7684,
+      "sessions_moved": 15371,
+      "max_flip": 0.0033020833507180214,
+      "ping_max": 0.0025685103610157967,
+      "max_worker_gap": 0.0039681484922766685,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 10062,
+          "execs": 1,
+          "max_gap": 0.002899673767387867,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 10029,
+          "execs": 1,
+          "max_gap": 0.0039681484922766685,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 10188,
+          "execs": 1,
+          "max_gap": 0.0031489236280322075,
+          "owners": [
+            [
+              10,
+              6
+            ],
+            [
+              1,
+              7
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 10412,
+          "execs": 1,
+          "max_gap": 0.0037209857255220413,
+          "owners": [
+            [
+              7,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 10041,
+          "execs": 1,
+          "max_gap": 0.003362325020134449,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 10623,
+          "execs": 1,
+          "max_gap": 0.0027426928281784058,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db16-p2",
+      "pass": true,
+      "flips": 7470,
+      "sessions_moved": 14943,
+      "max_flip": 0.0036456454545259476,
+      "ping_max": 0.0033935150131583214,
+      "max_worker_gap": 0.003559635952115059,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 9737,
+          "execs": 0,
+          "max_gap": 0.003550315275788307,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 1,
+          "ops": 9768,
+          "execs": 0,
+          "max_gap": 0.0028169015422463417,
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 9735,
+          "execs": 0,
+          "max_gap": 0.003559635952115059,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 10415,
+          "execs": 0,
+          "max_gap": 0.0034313546493649483,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 10018,
+          "execs": 0,
+          "max_gap": 0.0029138727113604546,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 9653,
+          "execs": 0,
+          "max_gap": 0.00319073349237442,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db16-p3",
+      "pass": true,
+      "flips": 7016,
+      "sessions_moved": 14035,
+      "max_flip": 0.003124893642961979,
+      "ping_max": 0.0037220660597085953,
+      "max_worker_gap": 0.0062154363840818405,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 2182,
+          "execs": 2183,
+          "max_gap": 0.0059585366398096085,
+          "owners": [
+            [
+              14,
+              6
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 1,
+          "ops": 2176,
+          "execs": 2177,
+          "max_gap": 0.005708794109523296,
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              8,
+              6
+            ]
+          ],
+          "io_after": 6
+        },
+        {
+          "io_before": 2,
+          "ops": 2206,
+          "execs": 2207,
+          "max_gap": 0.0062154363840818405,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              4,
+              6
+            ]
+          ],
+          "io_after": 7
+        },
+        {
+          "io_before": 3,
+          "ops": 2214,
+          "execs": 2215,
+          "max_gap": 0.005882556550204754,
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 2294,
+          "execs": 2295,
+          "max_gap": 0.005341444164514542,
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 2204,
+          "execs": 2205,
+          "max_gap": 0.005484803579747677,
+          "owners": [
+            [
+              13,
+              7
+            ],
+            [
+              13,
+              7
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db16-watch",
+      "pass": true,
+      "flips": 8223,
+      "sessions_moved": 16449,
+      "max_flip": 0.0030773039907217026,
+      "ping_max": 0.0030122827738523483,
+      "max_worker_gap": 0.0037287771701812744,
+      "workers": [
+        {
+          "io_before": 0,
+          "ops": 11652,
+          "execs": 0,
+          "max_gap": 0.0029062731191515923,
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 1,
+          "ops": 11491,
+          "execs": 0,
+          "max_gap": 0.003277914598584175,
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 0
+        },
+        {
+          "io_before": 2,
+          "ops": 11525,
+          "execs": 0,
+          "max_gap": 0.002666751854121685,
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              0,
+              6
+            ]
+          ],
+          "io_after": 1
+        },
+        {
+          "io_before": 3,
+          "ops": 12398,
+          "execs": 0,
+          "max_gap": 0.003366384655237198,
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "io_after": 3
+        },
+        {
+          "io_before": 4,
+          "ops": 11477,
+          "execs": 0,
+          "max_gap": 0.0028931135311722755,
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "io_after": 2
+        },
+        {
+          "io_before": 5,
+          "ops": 11119,
+          "execs": 0,
+          "max_gap": 0.0037287771701812744,
+          "owners": [
+            [
+              5,
+              7
+            ],
+            [
+              10,
+              6
+            ]
+          ],
+          "io_after": 1
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db16-semantics",
+      "pass": true,
+      "subcases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.0002805115655064583
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.0002290504053235054
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00017872080206871033
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00017483998090028763
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.0001511313021183014
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.0001599704846739769
+        }
+      ]
+    }
+  ]
+}

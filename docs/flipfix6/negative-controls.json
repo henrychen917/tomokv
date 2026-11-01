@@ -1,0 +1,119 @@
+[
+  {
+    "arm": "PAD-A",
+    "leg": "2s-epoll-0-db1-exec",
+    "flip": [
+      {
+        "seconds": 5.000227557495236,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000209947116673,
+    "command_gap_max": 5.000357387587428,
+    "worker_errors": []
+  },
+  {
+    "arm": "PAD-A",
+    "leg": "2s-epoll-0-db16-exec",
+    "flip": [
+      {
+        "seconds": 5.000221920199692,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000267771072686,
+    "command_gap_max": 5.00037693977356,
+    "worker_errors": []
+  },
+  {
+    "arm": "PAD-A",
+    "leg": "2s-epoll-1-db1-exec",
+    "flip": [
+      {
+        "seconds": 5.000407516025007,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.00031778588891,
+    "command_gap_max": 5.000427517108619,
+    "worker_errors": []
+  },
+  {
+    "arm": "PAD-A",
+    "leg": "2s-epoll-1-db16-exec",
+    "flip": [
+      {
+        "seconds": 5.000309376977384,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000362987630069,
+    "command_gap_max": 5.000327547080815,
+    "worker_errors": []
+  },
+  {
+    "arm": "PAD-A",
+    "leg": "2s-uring-0-db1-exec",
+    "flip": [
+      {
+        "seconds": 5.000808049924672,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000616189092398,
+    "command_gap_max": 5.000793659128249,
+    "worker_errors": []
+  },
+  {
+    "arm": "PAD-A",
+    "leg": "2s-uring-0-db16-exec",
+    "flip": [
+      {
+        "seconds": 5.000451045110822,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000314464792609,
+    "command_gap_max": 5.00061799492687,
+    "worker_errors": []
+  },
+  {
+    "arm": "PAD-A",
+    "leg": "2s-uring-1-db1-exec",
+    "flip": [
+      {
+        "seconds": 5.00025146920234,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000475178472698,
+    "command_gap_max": 5.0003698179498315,
+    "worker_errors": []
+  },
+  {
+    "arm": "PAD-A",
+    "leg": "2s-uring-1-db16-exec",
+    "flip": [
+      {
+        "seconds": 5.000316091813147,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000091191381216,
+    "command_gap_max": 5.000365423038602,
+    "worker_errors": []
+  },
+  {
+    "arm": "PRE",
+    "leg": "2s-uring-0-db1-exec",
+    "flip": [
+      {
+        "seconds": 5.000242463313043,
+        "reply": "ERR FLIP cannot quiesce a connection: connection ROB, reply, borrow, or owner-local protocol state is busy"
+      }
+    ],
+    "ping_max": 5.000588114373386,
+    "command_gap_max": 5.000504534691572,
+    "worker_errors": []
+  }
+]

@@ -1,0 +1,613 @@
+[
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-0-db1",
+    "databases": 1,
+    "engine": "uring",
+    "atomic": 0,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 1
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP cannot quiesce a connection': 2}, 'owners': [(10, 6), (7, 7)]}, [])\n",
+        "seconds": 10.034,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5     io              0   51821188   10000.1      19.7    9955.9         0  3229500",
+          "t5 exec1s clients_live=0 clients_peak=0 io_enters=51821187 ex_enters=0 io_waits=5 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000080639 idle_ns=19745310 entry_ns=5096798693790944 begin_ns=5096798693790984 end_ns=5096808713616933 exit_ns=5096808713616963 role_exit=0 stopped=1",
+          "t6     ex           1019    5946653     348.5    8760.5    4988.8         1  3229507",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=2 ex_enters=3063894 io_waits=0 ex_waits=2859314 owner_passes=5946653 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex            989    5893564     365.3    8756.3    4982.4         1  3229507",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=2 ex_enters=3067218 io_waits=0 ex_waits=2804053 owner_passes=5893564 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=2021 direct=7 sends=72/72 short=0 err=0 peer_aborts=0 bytes=11474 zc_sends=0 zc_bytes=0 zc_releases=0 serves=100995 empty=100923",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "shutdown: dispatched=2004 executed=2008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":2004,\"executed\":2008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52943936,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":52943937,\"busy_ns\":10000097559,\"idle_ns\":19898671,\"cpu_ns\":9927002058,\"wake_tx\":0,\"wake_rx\":3229500,\"io_tenures\":[{\"entry_ns\":5096798693605683,\"begin_ns\":5096798693605733,\"end_ns\":5096808713601963,\"exit_ns\":5096808713602093,\"busy_ns\":10000097559,\"idle_ns\":19898671,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":3,\"io_enters\":3229996,\"ex_enters\":0,\"io_waits\":20,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":2004,\"iterations\":3230012,\"busy_ns\":10001561459,\"idle_ns\":18801993,\"cpu_ns\":10001800041,\"wake_tx\":22606512,\"wake_rx\":22606514,\"io_tenures\":[{\"entry_ns\":5096798693238651,\"begin_ns\":5096798693238691,\"end_ns\":5096808713602143,\"exit_ns\":5096808713602273,\"busy_ns\":10001561459,\"idle_ns\":18801993,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":53288217,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":53288218,\"busy_ns\":9999993530,\"idle_ns\":20070730,\"cpu_ns\":9945658804,\"wake_tx\":0,\"wake_rx\":3229500,\"io_tenures\":[{\"entry_ns\":5096798693539483,\"begin_ns\":5096798693539543,\"end_ns\":5096808713603803,\"exit_ns\":5096808713603833,\"busy_ns\":9999993530,\"idle_ns\":20070730,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":53308980,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":0,\"iterations\":53308981,\"busy_ns\":9999986109,\"idle_ns\":19949201,\"cpu_ns\":9946050836,\"wake_tx\":0,\"wake_rx\":3229500,\"io_tenures\":[{\"entry_ns\":5096798693668203,\"begin_ns\":5096798693668233,\"end_ns\":5096808713603543,\"exit_ns\":5096808713603763,\"busy_ns\":9999986109,\"idle_ns\":19949201,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52604021,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":0,\"iterations\":52604022,\"busy_ns\":10000085489,\"idle_ns\":19717820,\"cpu_ns\":9946062978,\"wake_tx\":0,\"wake_rx\":3229500,\"io_tenures\":[{\"entry_ns\":5096798693802244,\"begin_ns\":5096798693802284,\"end_ns\":5096808713605593,\"exit_ns\":5096808713605753,\"busy_ns\":10000085489,\"idle_ns\":19717820,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":51821187,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":51821188,\"busy_ns\":10000080639,\"idle_ns\":19745310,\"cpu_ns\":9955863790,\"wake_tx\":0,\"wake_rx\":3229500,\"io_tenures\":[{\"entry_ns\":5096798693790944,\"begin_ns\":5096798693790984,\"end_ns\":5096808713616933,\"exit_ns\":5096808713616963,\"busy_ns\":10000080639,\"idle_ns\":19745310,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":2,\"ex_enters\":3063894,\"io_waits\":0,\"ex_waits\":2859314,\"owner_passes\":5946653,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":1019,\"iterations\":5946653,\"busy_ns\":348489875,\"idle_ns\":8760526507,\"cpu_ns\":4988765935,\"wake_tx\":1,\"wake_rx\":3229507,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":2,\"ex_enters\":3067218,\"io_waits\":0,\"ex_waits\":2804053,\"owner_passes\":5893564,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":989,\"iterations\":5893564,\"busy_ns\":365326429,\"idle_ns\":8756292816,\"cpu_ns\":4982422438,\"wake_tx\":1,\"wake_rx\":3229507,\"io_tenures\":[]}],\"wb\":{\"retired\":2021,\"direct\":7,\"sends_completed\":72,\"sends_submitted\":72,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":11474,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":100995,\"serves_empty\":100923},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":false,\"events\":0,\"recvs\":0},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      },
+      {
+        "attempt": 1,
+        "value": {
+          "ops": 57636,
+          "flips": 12135,
+          "flip_refusals": 0,
+          "refused": 0,
+          "refusal_kinds": {},
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ]
+        },
+        "error": null,
+        "seconds": 6.103,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-1-db1",
+    "databases": 1,
+    "engine": "uring",
+    "atomic": 1,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 1
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 4, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(8, 6), (11, 7)]}, [])\n",
+        "seconds": 10.054,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 4,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5     io              0   52539122   10000.1      42.6    9930.2         0  3686918",
+          "t5 exec1s clients_live=0 clients_peak=0 io_enters=52539121 ex_enters=0 io_waits=5 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000088683 idle_ns=42586974 entry_ns=5096814831435928 begin_ns=5096814831435968 end_ns=5096824874111625 exit_ns=5096824874111695 role_exit=0 stopped=1",
+          "t6     ex            993    6529250     374.7    8661.8    5008.6         2  3686925",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=2 ex_enters=3472056 io_waits=0 ex_waits=3031464 owner_passes=6529250 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=8 record_visits=0",
+          "t7     ex           1017    6365862     399.2    8616.7    4975.8         1  3686924",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=2 ex_enters=3475880 io_waits=0 ex_waits=2866329 owner_passes=6365862 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=8 record_visits=0",
+          "wb: retired=2026 direct=8 sends=76/76 short=0 err=0 peer_aborts=0 bytes=11405 zc_sends=0 zc_bytes=0 zc_releases=0 serves=303627 empty=303551",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "shutdown: dispatched=2005 executed=2010 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":2005,\"executed\":2010},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52647434,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":52647435,\"busy_ns\":10000132465,\"idle_ns\":42525992,\"cpu_ns\":9930930721,\"wake_tx\":0,\"wake_rx\":3686918,\"io_tenures\":[{\"entry_ns\":5096814831450908,\"begin_ns\":5096814831450958,\"end_ns\":5096824874109415,\"exit_ns\":5096824874109445,\"busy_ns\":10000132465,\"idle_ns\":42525992,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":51777519,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":51777520,\"busy_ns\":10000140332,\"idle_ns\":42911917,\"cpu_ns\":9927610221,\"wake_tx\":0,\"wake_rx\":3686918,\"io_tenures\":[{\"entry_ns\":5096814831074986,\"begin_ns\":5096814831075146,\"end_ns\":5096824874127395,\"exit_ns\":5096824874127425,\"busy_ns\":10000140332,\"idle_ns\":42911917,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52707060,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":52707061,\"busy_ns\":10000128275,\"idle_ns\":42636993,\"cpu_ns\":9939268267,\"wake_tx\":0,\"wake_rx\":3686918,\"io_tenures\":[{\"entry_ns\":5096814831345477,\"begin_ns\":5096814831345537,\"end_ns\":5096824874110805,\"exit_ns\":5096824874110935,\"busy_ns\":10000128275,\"idle_ns\":42636993,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":15742018,\"ex_enters\":0,\"io_waits\":6,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":4,\"iterations\":15742020,\"busy_ns\":10000460024,\"idle_ns\":42509594,\"cpu_ns\":9926995576,\"wake_tx\":0,\"wake_rx\":3686919,\"io_tenures\":[{\"entry_ns\":5096814831142247,\"begin_ns\":5096814831142307,\"end_ns\":5096824874111925,\"exit_ns\":5096824874112065,\"busy_ns\":10000460024,\"idle_ns\":42509594,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":2,\"io_enters\":3687437,\"ex_enters\":0,\"io_waits\":19,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":2001,\"iterations\":3687452,\"busy_ns\":10001222090,\"idle_ns\":41480168,\"cpu_ns\":10001373021,\"wake_tx\":25808436,\"wake_rx\":25808438,\"io_tenures\":[{\"entry_ns\":5096814831404008,\"begin_ns\":5096814831404057,\"end_ns\":5096824874106315,\"exit_ns\":5096824874106345,\"busy_ns\":10001222090,\"idle_ns\":41480168,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52539121,\"ex_enters\":0,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":52539122,\"busy_ns\":10000088683,\"idle_ns\":42586974,\"cpu_ns\":9930150643,\"wake_tx\":0,\"wake_rx\":3686918,\"io_tenures\":[{\"entry_ns\":5096814831435928,\"begin_ns\":5096814831435968,\"end_ns\":5096824874111625,\"exit_ns\":5096824874111695,\"busy_ns\":10000088683,\"idle_ns\":42586974,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":2,\"ex_enters\":3472056,\"io_waits\":0,\"ex_waits\":3031464,\"owner_passes\":6529250,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":8,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":993,\"iterations\":6529250,\"busy_ns\":374656554,\"idle_ns\":8661792230,\"cpu_ns\":5008565875,\"wake_tx\":2,\"wake_rx\":3686925,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":2,\"ex_enters\":3475880,\"io_waits\":0,\"ex_waits\":2866329,\"owner_passes\":6365862,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":8,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":1017,\"iterations\":6365862,\"busy_ns\":399164237,\"idle_ns\":8616747640,\"cpu_ns\":4975777946,\"wake_tx\":1,\"wake_rx\":3686924,\"io_tenures\":[]}],\"wb\":{\"retired\":2026,\"direct\":8,\"sends_completed\":76,\"sends_submitted\":76,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":11405,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":303627,\"serves_empty\":303551},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":false,\"events\":0,\"recvs\":0},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      },
+      {
+        "attempt": 1,
+        "value": {
+          "ops": 49497,
+          "flips": 12543,
+          "flip_refusals": 0,
+          "refused": 0,
+          "refusal_kinds": {},
+          "owners": [
+            [
+              1,
+              7
+            ],
+            [
+              14,
+              6
+            ]
+          ]
+        },
+        "error": null,
+        "seconds": 6.106,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-0-db1",
+    "databases": 1,
+    "engine": "epoll",
+    "atomic": 0,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 0,
+      "abort": 0,
+      "fail": 2
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(12, 6), (7, 7)]}, [])\n",
+        "seconds": 10.038,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5 exec1s clients_live=0 clients_peak=1 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000920524 idle_ns=26830201 entry_ns=5096830991624655 begin_ns=5096830991624695 end_ns=5096841019375420 exit_ns=5096841019375460 role_exit=0 stopped=1",
+          "t6     ex           1002   66775597     992.4    5817.7    9952.2         0  3449689",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66775597 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           1006   66761982    1031.6    5812.7    9948.5         1  3449689",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66761982 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=2025 direct=4 sends=73/73 short=0 err=0 peer_aborts=0 bytes=11418 zc_sends=0 zc_bytes=0 zc_releases=0 serves=546546 empty=546473",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "epoll: events=17208398 recvs=21",
+          "shutdown: dispatched=2004 executed=2008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":2004,\"executed\":2008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":45084491,\"busy_ns\":10000109319,\"idle_ns\":27973588,\"cpu_ns\":9943145407,\"wake_tx\":0,\"wake_rx\":6891659,\"io_tenures\":[{\"entry_ns\":5096830991289693,\"begin_ns\":5096830991289743,\"end_ns\":5096841019372650,\"exit_ns\":5096841019372680,\"busy_ns\":10000109319,\"idle_ns\":27973588,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":44635947,\"busy_ns\":10000154040,\"idle_ns\":27581575,\"cpu_ns\":9941338488,\"wake_tx\":0,\"wake_rx\":6891052,\"io_tenures\":[{\"entry_ns\":5096830991632095,\"begin_ns\":5096830991632125,\"end_ns\":5096841019367740,\"exit_ns\":5096841019367770,\"busy_ns\":10000154040,\"idle_ns\":27581575,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":3,\"iterations\":31525380,\"busy_ns\":10000377070,\"idle_ns\":27316615,\"cpu_ns\":9947758485,\"wake_tx\":0,\"wake_rx\":6893343,\"io_tenures\":[{\"entry_ns\":5096830991683775,\"begin_ns\":5096830991683805,\"end_ns\":5096841019377490,\"exit_ns\":5096841019377520,\"busy_ns\":10000377070,\"idle_ns\":27316615,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":0,\"iterations\":44263074,\"busy_ns\":10000044089,\"idle_ns\":27954808,\"cpu_ns\":9943136617,\"wake_tx\":0,\"wake_rx\":6890960,\"io_tenures\":[{\"entry_ns\":5096830991371013,\"begin_ns\":5096830991371053,\"end_ns\":5096841019369950,\"exit_ns\":5096841019369990,\"busy_ns\":10000044089,\"idle_ns\":27954808,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":0,\"iterations\":3449694,\"busy_ns\":10000405221,\"idle_ns\":27390834,\"cpu_ns\":9998956811,\"wake_tx\":24147788,\"wake_rx\":0,\"io_tenures\":[{\"entry_ns\":5096830991571725,\"begin_ns\":5096830991571765,\"end_ns\":5096841019367820,\"exit_ns\":5096841019367950,\"busy_ns\":10000405221,\"idle_ns\":27390834,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":2001,\"iterations\":44577354,\"busy_ns\":10000920524,\"idle_ns\":26830201,\"cpu_ns\":9943389862,\"wake_tx\":10,\"wake_rx\":6889771,\"io_tenures\":[{\"entry_ns\":5096830991624655,\"begin_ns\":5096830991624695,\"end_ns\":5096841019375420,\"exit_ns\":5096841019375460,\"busy_ns\":10000920524,\"idle_ns\":26830201,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66775597,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":1002,\"iterations\":66775597,\"busy_ns\":992433263,\"idle_ns\":5817728113,\"cpu_ns\":9952233215,\"wake_tx\":0,\"wake_rx\":3449689,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66761982,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":1006,\"iterations\":66761982,\"busy_ns\":1031590077,\"idle_ns\":5812743121,\"cpu_ns\":9948469253,\"wake_tx\":1,\"wake_rx\":3449689,\"io_tenures\":[]}],\"wb\":{\"retired\":2025,\"direct\":4,\"sends_completed\":73,\"sends_submitted\":73,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":11418,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":546546,\"serves_empty\":546473},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":true,\"events\":17208398,\"recvs\":21},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      },
+      {
+        "attempt": 1,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(6, 6), (5, 7)]}, [])\n",
+        "seconds": 10.03,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000053037 idle_ns=19435788 entry_ns=5096841029750537 begin_ns=5096841029750577 end_ns=5096851049239402 exit_ns=5096851049239432 role_exit=0 stopped=1",
+          "t6     ex            994   66656964    1010.1    5793.0    9951.5         1  3495197",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66656964 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           1014   67116440     981.3    5838.3    9950.9         3  3495197",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=67116440 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=2021 direct=4 sends=67/67 short=0 err=0 peer_aborts=0 bytes=11350 zc_sends=0 zc_bytes=0 zc_releases=0 serves=553643 empty=553576",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "epoll: events=17435720 recvs=17",
+          "shutdown: dispatched=2004 executed=2008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":2004,\"executed\":2008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":44955066,\"busy_ns\":10000163077,\"idle_ns\":19233998,\"cpu_ns\":9943286790,\"wake_tx\":0,\"wake_rx\":6982180,\"io_tenures\":[{\"entry_ns\":5096841029840517,\"begin_ns\":5096841029840547,\"end_ns\":5096851049237622,\"exit_ns\":5096851049237652,\"busy_ns\":10000163077,\"idle_ns\":19233998,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":44869535,\"busy_ns\":10000111677,\"idle_ns\":19530379,\"cpu_ns\":9939565036,\"wake_tx\":0,\"wake_rx\":6982391,\"io_tenures\":[{\"entry_ns\":5096841029604196,\"begin_ns\":5096841029604236,\"end_ns\":5096851049246292,\"exit_ns\":5096851049246332,\"busy_ns\":10000111677,\"idle_ns\":19530379,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":3495201,\"busy_ns\":10000412908,\"idle_ns\":19046457,\"cpu_ns\":9998381019,\"wake_tx\":24466337,\"wake_rx\":0,\"io_tenures\":[{\"entry_ns\":5096841029775157,\"begin_ns\":5096841029775197,\"end_ns\":5096851049234562,\"exit_ns\":5096851049234692,\"busy_ns\":10000412908,\"idle_ns\":19046457,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":2001,\"iterations\":44360580,\"busy_ns\":10000893416,\"idle_ns\":18505029,\"cpu_ns\":9945189961,\"wake_tx\":10,\"wake_rx\":6981752,\"io_tenures\":[{\"entry_ns\":5096841029840057,\"begin_ns\":5096841029840087,\"end_ns\":5096851049238532,\"exit_ns\":5096851049238562,\"busy_ns\":10000893416,\"idle_ns\":18505029,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":3,\"iterations\":31936019,\"busy_ns\":10000430768,\"idle_ns\":19096617,\"cpu_ns\":9950051049,\"wake_tx\":2,\"wake_rx\":6982332,\"io_tenures\":[{\"entry_ns\":5096841029707997,\"begin_ns\":5096841029708037,\"end_ns\":5096851049235422,\"exit_ns\":5096851049235542,\"busy_ns\":10000430768,\"idle_ns\":19096617,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":45052280,\"busy_ns\":10000053037,\"idle_ns\":19435788,\"cpu_ns\":9945448682,\"wake_tx\":0,\"wake_rx\":6982994,\"io_tenures\":[{\"entry_ns\":5096841029750537,\"begin_ns\":5096841029750577,\"end_ns\":5096851049239402,\"exit_ns\":5096851049239432,\"busy_ns\":10000053037,\"idle_ns\":19435788,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66656964,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":994,\"iterations\":66656964,\"busy_ns\":1010074019,\"idle_ns\":5792981701,\"cpu_ns\":9951517249,\"wake_tx\":1,\"wake_rx\":3495197,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":67116440,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":1014,\"iterations\":67116440,\"busy_ns\":981301815,\"idle_ns\":5838281675,\"cpu_ns\":9950917500,\"wake_tx\":3,\"wake_rx\":3495197,\"io_tenures\":[]}],\"wb\":{\"retired\":2021,\"direct\":4,\"sends_completed\":67,\"sends_submitted\":67,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":11350,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":553643,\"serves_empty\":553576},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":true,\"events\":17435720,\"recvs\":17},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-1-db1",
+    "databases": 1,
+    "engine": "epoll",
+    "atomic": 1,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 0,
+      "abort": 0,
+      "fail": 2
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(10, 6), (15, 7)]}, [])\n",
+        "seconds": 10.032,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000151345 idle_ns=21141916 entry_ns=5096851060488333 begin_ns=5096851060488373 end_ns=5096861081781634 exit_ns=5096861081781763 role_exit=0 stopped=1",
+          "t6     ex            996   66640540     998.1    5803.0    9952.2         0  3466533",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66640540 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           1012   66995657     991.9    5833.7    9944.7         1  3466533",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66995657 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=2023 direct=4 sends=70/70 short=0 err=0 peer_aborts=0 bytes=11385 zc_sends=0 zc_bytes=0 zc_releases=0 serves=550890 empty=550820",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "epoll: events=17294285 recvs=19",
+          "shutdown: dispatched=2004 executed=2008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":2004,\"executed\":2008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":45112543,\"busy_ns\":10000167435,\"idle_ns\":21408077,\"cpu_ns\":9943781994,\"wake_tx\":0,\"wake_rx\":6926306,\"io_tenures\":[{\"entry_ns\":5096851060211702,\"begin_ns\":5096851060211742,\"end_ns\":5096861081787254,\"exit_ns\":5096861081787283,\"busy_ns\":10000167435,\"idle_ns\":21408077,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":3466540,\"busy_ns\":10000414777,\"idle_ns\":20851044,\"cpu_ns\":9998461888,\"wake_tx\":24265696,\"wake_rx\":0,\"io_tenures\":[{\"entry_ns\":5096851060526823,\"begin_ns\":5096851060526853,\"end_ns\":5096861081792674,\"exit_ns\":5096861081792703,\"busy_ns\":10000414777,\"idle_ns\":20851044,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":2001,\"iterations\":44097474,\"busy_ns\":10001220382,\"idle_ns\":20246520,\"cpu_ns\":9943226410,\"wake_tx\":10,\"wake_rx\":6925264,\"io_tenures\":[{\"entry_ns\":5096851060317152,\"begin_ns\":5096851060317192,\"end_ns\":5096861081784094,\"exit_ns\":5096861081784123,\"busy_ns\":10001220382,\"idle_ns\":20246520,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":3,\"iterations\":31785459,\"busy_ns\":10000370317,\"idle_ns\":20970694,\"cpu_ns\":9951639937,\"wake_tx\":0,\"wake_rx\":6925519,\"io_tenures\":[{\"entry_ns\":5096851060441232,\"begin_ns\":5096851060441272,\"end_ns\":5096861081782283,\"exit_ns\":5096861081782414,\"busy_ns\":10000370317,\"idle_ns\":20970694,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":0,\"iterations\":44543737,\"busy_ns\":10000070523,\"idle_ns\":21211287,\"cpu_ns\":9943343336,\"wake_tx\":0,\"wake_rx\":6924750,\"io_tenures\":[{\"entry_ns\":5096851060501153,\"begin_ns\":5096851060501193,\"end_ns\":5096861081783003,\"exit_ns\":5096861081783043,\"busy_ns\":10000070523,\"idle_ns\":21211287,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":45113940,\"busy_ns\":10000151345,\"idle_ns\":21141916,\"cpu_ns\":9943868535,\"wake_tx\":0,\"wake_rx\":6925053,\"io_tenures\":[{\"entry_ns\":5096851060488333,\"begin_ns\":5096851060488373,\"end_ns\":5096861081781634,\"exit_ns\":5096861081781763,\"busy_ns\":10000151345,\"idle_ns\":21141916,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66640540,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":996,\"iterations\":66640540,\"busy_ns\":998091925,\"idle_ns\":5802952434,\"cpu_ns\":9952202193,\"wake_tx\":0,\"wake_rx\":3466533,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66995657,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":1012,\"iterations\":66995657,\"busy_ns\":991880489,\"idle_ns\":5833746194,\"cpu_ns\":9944678791,\"wake_tx\":1,\"wake_rx\":3466533,\"io_tenures\":[]}],\"wb\":{\"retired\":2023,\"direct\":4,\"sends_completed\":70,\"sends_submitted\":70,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":11385,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":550890,\"serves_empty\":550820},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":true,\"events\":17294285,\"recvs\":19},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      },
+      {
+        "attempt": 1,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(0, 6), (11, 7)]}, [])\n",
+        "seconds": 10.03,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5 exec1s clients_live=0 clients_peak=1 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000456644 idle_ns=18550245 entry_ns=5096861092728573 begin_ns=5096861092728613 end_ns=5096871111735502 exit_ns=5096871111735632 role_exit=0 stopped=1",
+          "t6     ex            998   66609054    1026.7    5777.7    9955.6         0  3545936",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66609054 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           1010   67544097     929.0    5871.0    9947.4         2  3545937",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=67544097 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=2021 direct=4 sends=71/71 short=0 err=0 peer_aborts=0 bytes=11351 zc_sends=0 zc_bytes=0 zc_releases=0 serves=546720 empty=546649",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "epoll: events=17689363 recvs=17",
+          "shutdown: dispatched=2004 executed=2008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":2004,\"executed\":2008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":43205288,\"busy_ns\":10000023252,\"idle_ns\":19297588,\"cpu_ns\":9944399691,\"wake_tx\":0,\"wake_rx\":7083520,\"io_tenures\":[{\"entry_ns\":5096861092422982,\"begin_ns\":5096861092423032,\"end_ns\":5096871111743872,\"exit_ns\":5096871111743922,\"busy_ns\":10000023252,\"idle_ns\":19297588,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":45075674,\"busy_ns\":10000165824,\"idle_ns\":18902615,\"cpu_ns\":9942020004,\"wake_tx\":0,\"wake_rx\":7085294,\"io_tenures\":[{\"entry_ns\":5096861092679993,\"begin_ns\":5096861092680023,\"end_ns\":5096871111748462,\"exit_ns\":5096871111748492,\"busy_ns\":10000165824,\"idle_ns\":18902615,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":44554413,\"busy_ns\":10000162764,\"idle_ns\":18948256,\"cpu_ns\":9941713463,\"wake_tx\":0,\"wake_rx\":7082690,\"io_tenures\":[{\"entry_ns\":5096861092627883,\"begin_ns\":5096861092627932,\"end_ns\":5096871111738952,\"exit_ns\":5096871111738992,\"busy_ns\":10000162764,\"idle_ns\":18948256,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":2001,\"iterations\":44624541,\"busy_ns\":10000980207,\"idle_ns\":18173712,\"cpu_ns\":9947665024,\"wake_tx\":10,\"wake_rx\":7084037,\"io_tenures\":[{\"entry_ns\":5096861092588403,\"begin_ns\":5096861092588443,\"end_ns\":5096871111742362,\"exit_ns\":5096871111742392,\"busy_ns\":10000980207,\"idle_ns\":18173712,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":3,\"iterations\":31439368,\"busy_ns\":10000451264,\"idle_ns\":18631485,\"cpu_ns\":9948945050,\"wake_tx\":1,\"wake_rx\":7083447,\"io_tenures\":[{\"entry_ns\":5096861092654573,\"begin_ns\":5096861092654613,\"end_ns\":5096871111737362,\"exit_ns\":5096871111737482,\"busy_ns\":10000451264,\"idle_ns\":18631485,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":3545943,\"busy_ns\":10000456644,\"idle_ns\":18550245,\"cpu_ns\":9998667479,\"wake_tx\":24821517,\"wake_rx\":0,\"io_tenures\":[{\"entry_ns\":5096861092728573,\"begin_ns\":5096861092728613,\"end_ns\":5096871111735502,\"exit_ns\":5096871111735632,\"busy_ns\":10000456644,\"idle_ns\":18550245,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66609054,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":998,\"iterations\":66609054,\"busy_ns\":1026723590,\"idle_ns\":5777699827,\"cpu_ns\":9955579537,\"wake_tx\":0,\"wake_rx\":3545936,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":67544097,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":1010,\"iterations\":67544097,\"busy_ns\":929045924,\"idle_ns\":5871011167,\"cpu_ns\":9947445401,\"wake_tx\":2,\"wake_rx\":3545937,\"io_tenures\":[]}],\"wb\":{\"retired\":2021,\"direct\":4,\"sends_completed\":71,\"sends_submitted\":71,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":11351,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":546720,\"serves_empty\":546649},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":true,\"events\":17689363,\"recvs\":17},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-0-db16",
+    "databases": 16,
+    "engine": "uring",
+    "atomic": 0,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 1
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "ops": 46158,
+          "flips": 12573,
+          "flip_refusals": 0,
+          "refused": 0,
+          "refusal_kinds": {},
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ]
+        },
+        "error": null,
+        "seconds": 6.071,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      },
+      {
+        "attempt": 1,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP cannot quiesce a connection': 2}, 'owners': [(1, 7), (2, 6)]}, [])\n",
+        "seconds": 10.041,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5     io              0   52429871   10000.1      30.0    9947.6         0  3315351",
+          "t5 exec1s clients_live=0 clients_peak=0 io_enters=52429871 ex_enters=1 io_waits=5 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000090364 idle_ns=30031906 entry_ns=5096877194730494 begin_ns=5096877194730534 end_ns=5096887224852804 exit_ns=5096887224852954 role_exit=0 stopped=1",
+          "t6     ex           1960    6110935     352.7    8733.1    5028.7         2  3315363",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=3 ex_enters=3149628 io_waits=0 ex_waits=2927536 owner_passes=6110935 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           2048    6032726     363.0    8707.0    5075.7         1  3315362",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=3 ex_enters=3153415 io_waits=0 ex_waits=2842620 owner_passes=6032726 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=4023 direct=15 sends=128/128 short=0 err=0 peer_aborts=0 bytes=21495 zc_sends=0 zc_bytes=0 zc_releases=0 serves=103735 empty=103607",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "shutdown: dispatched=4004 executed=4008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":4004,\"executed\":4008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":3,\"io_enters\":3317829,\"ex_enters\":1,\"io_waits\":28,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":4004,\"iterations\":3317852,\"busy_ns\":10002514903,\"idle_ns\":28042909,\"cpu_ns\":10002797390,\"wake_tx\":23207477,\"wake_rx\":23207480,\"io_tenures\":[{\"entry_ns\":5096877194294912,\"begin_ns\":5096877194294962,\"end_ns\":5096887224852774,\"exit_ns\":5096887224852894,\"busy_ns\":10002514903,\"idle_ns\":28042909,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52227155,\"ex_enters\":1,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":52227155,\"busy_ns\":9999940583,\"idle_ns\":30213767,\"cpu_ns\":9947020873,\"wake_tx\":0,\"wake_rx\":3315351,\"io_tenures\":[{\"entry_ns\":5096877194700414,\"begin_ns\":5096877194700454,\"end_ns\":5096887224854804,\"exit_ns\":5096887224854834,\"busy_ns\":9999940583,\"idle_ns\":30213767,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52459243,\"ex_enters\":1,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":52459243,\"busy_ns\":10000037294,\"idle_ns\":30055146,\"cpu_ns\":9949503909,\"wake_tx\":0,\"wake_rx\":3315351,\"io_tenures\":[{\"entry_ns\":5096877194761095,\"begin_ns\":5096877194761124,\"end_ns\":5096887224853564,\"exit_ns\":5096887224853604,\"busy_ns\":10000037294,\"idle_ns\":30055146,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":50229078,\"ex_enters\":1,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":0,\"iterations\":50229078,\"busy_ns\":10000093844,\"idle_ns\":29973556,\"cpu_ns\":9946403230,\"wake_tx\":0,\"wake_rx\":3315351,\"io_tenures\":[{\"entry_ns\":5096877194786364,\"begin_ns\":5096877194786404,\"end_ns\":5096887224853804,\"exit_ns\":5096887224853844,\"busy_ns\":10000093844,\"idle_ns\":29973556,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52671856,\"ex_enters\":1,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":0,\"iterations\":52671856,\"busy_ns\":10000091144,\"idle_ns\":30330417,\"cpu_ns\":9948847489,\"wake_tx\":0,\"wake_rx\":3315351,\"io_tenures\":[{\"entry_ns\":5096877194431973,\"begin_ns\":5096877194432013,\"end_ns\":5096887224853574,\"exit_ns\":5096887224853704,\"busy_ns\":10000091144,\"idle_ns\":30330417,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52429871,\"ex_enters\":1,\"io_waits\":5,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":52429871,\"busy_ns\":10000090364,\"idle_ns\":30031906,\"cpu_ns\":9947556445,\"wake_tx\":0,\"wake_rx\":3315351,\"io_tenures\":[{\"entry_ns\":5096877194730494,\"begin_ns\":5096877194730534,\"end_ns\":5096887224852804,\"exit_ns\":5096887224852954,\"busy_ns\":10000090364,\"idle_ns\":30031906,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":3,\"ex_enters\":3149628,\"io_waits\":0,\"ex_waits\":2927536,\"owner_passes\":6110935,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":1960,\"iterations\":6110935,\"busy_ns\":352722516,\"idle_ns\":8733081173,\"cpu_ns\":5028703806,\"wake_tx\":2,\"wake_rx\":3315363,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":3,\"ex_enters\":3153415,\"io_waits\":0,\"ex_waits\":2842620,\"owner_passes\":6032726,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":2048,\"iterations\":6032726,\"busy_ns\":363039036,\"idle_ns\":8707025328,\"cpu_ns\":5075654587,\"wake_tx\":1,\"wake_rx\":3315362,\"io_tenures\":[]}],\"wb\":{\"retired\":4023,\"direct\":15,\"sends_completed\":128,\"sends_submitted\":128,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":21495,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":103735,\"serves_empty\":103607},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":false,\"events\":0,\"recvs\":0},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-1-db16",
+    "databases": 16,
+    "engine": "uring",
+    "atomic": 1,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 1
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP cannot quiesce a connection': 2}, 'owners': [(14, 6), (11, 7)]}, [])\n",
+        "seconds": 10.082,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5     io           4001   48383829   10001.8      68.6    9938.9        16  3391473",
+          "t5 exec1s clients_live=0 clients_peak=1 io_enters=48383811 ex_enters=1 io_waits=23 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10001822602 idle_ns=68648620 entry_ns=5096887236855328 begin_ns=5096887236855368 end_ns=5096897307326590 exit_ns=5096897307326620 role_exit=0 stopped=1",
+          "t6     ex           1983    6068042     359.8    8733.5    4947.7         1  3391465",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=3 ex_enters=3192892 io_waits=0 ex_waits=2838340 owner_passes=6068042 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           2025    5969343     369.4    8724.5    4948.8         3  3391467",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=3 ex_enters=3197802 io_waits=0 ex_waits=2735363 owner_passes=5969343 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=4022 direct=15 sends=126/126 short=0 err=0 peer_aborts=0 bytes=21480 zc_sends=0 zc_bytes=0 zc_releases=0 serves=595141 empty=595015",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "shutdown: dispatched=4004 executed=4008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":4004,\"executed\":4008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":34689414,\"ex_enters\":1,\"io_waits\":8,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":3,\"iterations\":34689417,\"busy_ns\":10000601486,\"idle_ns\":70262248,\"cpu_ns\":9932283182,\"wake_tx\":2,\"wake_rx\":3391459,\"io_tenures\":[{\"entry_ns\":5096887236442886,\"begin_ns\":5096887236443036,\"end_ns\":5096897307306770,\"exit_ns\":5096897307306900,\"busy_ns\":10000601486,\"idle_ns\":70262248,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":51684617,\"ex_enters\":1,\"io_waits\":6,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":51684618,\"busy_ns\":10000091664,\"idle_ns\":70697989,\"cpu_ns\":9930001039,\"wake_tx\":0,\"wake_rx\":3391455,\"io_tenures\":[{\"entry_ns\":5096887236518037,\"begin_ns\":5096887236518077,\"end_ns\":5096897307307730,\"exit_ns\":5096897307307760,\"busy_ns\":10000091664,\"idle_ns\":70697989,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":3391462,\"ex_enters\":1,\"io_waits\":6,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":3391463,\"busy_ns\":10000574035,\"idle_ns\":70009838,\"cpu_ns\":10000559003,\"wake_tx\":23740185,\"wake_rx\":23740185,\"io_tenures\":[{\"entry_ns\":5096887236723198,\"begin_ns\":5096887236723227,\"end_ns\":5096897307307100,\"exit_ns\":5096897307307130,\"busy_ns\":10000574035,\"idle_ns\":70009838,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":51572561,\"ex_enters\":1,\"io_waits\":6,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":0,\"iterations\":51572562,\"busy_ns\":10000202325,\"idle_ns\":70269457,\"cpu_ns\":9930711169,\"wake_tx\":0,\"wake_rx\":3391455,\"io_tenures\":[{\"entry_ns\":5096887236832458,\"begin_ns\":5096887236832498,\"end_ns\":5096897307304280,\"exit_ns\":5096897307304310,\"busy_ns\":10000202325,\"idle_ns\":70269457,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":52026968,\"ex_enters\":1,\"io_waits\":6,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":0,\"iterations\":52026969,\"busy_ns\":10000197873,\"idle_ns\":70296119,\"cpu_ns\":9934405910,\"wake_tx\":0,\"wake_rx\":3391455,\"io_tenures\":[{\"entry_ns\":5096887236808638,\"begin_ns\":5096887236808688,\"end_ns\":5096897307302680,\"exit_ns\":5096897307302820,\"busy_ns\":10000197873,\"idle_ns\":70296119,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":48383811,\"ex_enters\":1,\"io_waits\":23,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":4001,\"iterations\":48383829,\"busy_ns\":10001822602,\"idle_ns\":68648620,\"cpu_ns\":9938939882,\"wake_tx\":16,\"wake_rx\":3391473,\"io_tenures\":[{\"entry_ns\":5096887236855328,\"begin_ns\":5096887236855368,\"end_ns\":5096897307326590,\"exit_ns\":5096897307326620,\"busy_ns\":10001822602,\"idle_ns\":68648620,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":3,\"ex_enters\":3192892,\"io_waits\":0,\"ex_waits\":2838340,\"owner_passes\":6068042,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":1983,\"iterations\":6068042,\"busy_ns\":359770505,\"idle_ns\":8733522409,\"cpu_ns\":4947672690,\"wake_tx\":1,\"wake_rx\":3391465,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":3,\"ex_enters\":3197802,\"io_waits\":0,\"ex_waits\":2735363,\"owner_passes\":5969343,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":2025,\"iterations\":5969343,\"busy_ns\":369449848,\"idle_ns\":8724507516,\"cpu_ns\":4948777326,\"wake_tx\":3,\"wake_rx\":3391467,\"io_tenures\":[]}],\"wb\":{\"retired\":4022,\"direct\":15,\"sends_completed\":126,\"sends_submitted\":126,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":21480,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":595141,\"serves_empty\":595015},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":false,\"events\":0,\"recvs\":0},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      },
+      {
+        "attempt": 1,
+        "value": {
+          "ops": 51269,
+          "flips": 12259,
+          "flip_refusals": 0,
+          "refused": 0,
+          "refusal_kinds": {},
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              3,
+              7
+            ]
+          ]
+        },
+        "error": null,
+        "seconds": 6.106,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-0-db16",
+    "databases": 16,
+    "engine": "epoll",
+    "atomic": 0,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 0,
+      "abort": 0,
+      "fail": 2
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(4, 6), (13, 7)]}, [])\n",
+        "seconds": 10.041,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5 exec1s clients_live=0 clients_peak=1 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10001584062 idle_ns=27834987 entry_ns=5096903425566774 begin_ns=5096903425566824 end_ns=5096913454985873 exit_ns=5096913454985923 role_exit=0 stopped=1",
+          "t6     ex           1985   66487285     946.7    5736.2    9957.0         1  3502180",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66487285 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           2023   65821302     995.5    5760.4    9951.3         0  3502180",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=65821302 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=4022 direct=8 sends=126/126 short=0 err=0 peer_aborts=0 bytes=21356 zc_sends=0 zc_bytes=0 zc_releases=0 serves=527219 empty=527093",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "epoll: events=17476170 recvs=22",
+          "shutdown: dispatched=4004 executed=4008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":4004,\"executed\":4008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":45014613,\"busy_ns\":10000176966,\"idle_ns\":29587014,\"cpu_ns\":9945399595,\"wake_tx\":0,\"wake_rx\":6997876,\"io_tenures\":[{\"entry_ns\":5096903425243433,\"begin_ns\":5096903425243463,\"end_ns\":5096913455007443,\"exit_ns\":5096913455007483,\"busy_ns\":10000176966,\"idle_ns\":29587014,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":44910366,\"busy_ns\":10000182167,\"idle_ns\":29648524,\"cpu_ns\":9947466022,\"wake_tx\":0,\"wake_rx\":6999955,\"io_tenures\":[{\"entry_ns\":5096903425160732,\"begin_ns\":5096903425160782,\"end_ns\":5096913454991473,\"exit_ns\":5096913454991503,\"busy_ns\":10000182167,\"idle_ns\":29648524,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":44940062,\"busy_ns\":10000170737,\"idle_ns\":29298082,\"cpu_ns\":9946723640,\"wake_tx\":0,\"wake_rx\":6998515,\"io_tenures\":[{\"entry_ns\":5096903425518384,\"begin_ns\":5096903425518434,\"end_ns\":5096913454987253,\"exit_ns\":5096913454987393,\"busy_ns\":10000170737,\"idle_ns\":29298082,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":0,\"iterations\":3502182,\"busy_ns\":10000497118,\"idle_ns\":29157932,\"cpu_ns\":9999548555,\"wake_tx\":24515204,\"wake_rx\":0,\"io_tenures\":[{\"entry_ns\":5096903425332793,\"begin_ns\":5096903425332843,\"end_ns\":5096913454987893,\"exit_ns\":5096913454988023,\"busy_ns\":10000497118,\"idle_ns\":29157932,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":3,\"iterations\":30235263,\"busy_ns\":10000450169,\"idle_ns\":28922630,\"cpu_ns\":9951756980,\"wake_tx\":0,\"wake_rx\":6995909,\"io_tenures\":[{\"entry_ns\":5096903425614104,\"begin_ns\":5096903425614154,\"end_ns\":5096913454986953,\"exit_ns\":5096913454987093,\"busy_ns\":10000450169,\"idle_ns\":28922630,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":4001,\"iterations\":44163725,\"busy_ns\":10001584062,\"idle_ns\":27834987,\"cpu_ns\":9945350141,\"wake_tx\":16,\"wake_rx\":6994741,\"io_tenures\":[{\"entry_ns\":5096903425566774,\"begin_ns\":5096903425566824,\"end_ns\":5096913454985873,\"exit_ns\":5096913454985923,\"busy_ns\":10001584062,\"idle_ns\":27834987,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66487285,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":1985,\"iterations\":66487285,\"busy_ns\":946673402,\"idle_ns\":5736232918,\"cpu_ns\":9956976924,\"wake_tx\":1,\"wake_rx\":3502180,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":65821302,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":2023,\"iterations\":65821302,\"busy_ns\":995524283,\"idle_ns\":5760435267,\"cpu_ns\":9951320112,\"wake_tx\":0,\"wake_rx\":3502180,\"io_tenures\":[]}],\"wb\":{\"retired\":4022,\"direct\":8,\"sends_completed\":126,\"sends_submitted\":126,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":21356,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":527219,\"serves_empty\":527093},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":true,\"events\":17476170,\"recvs\":22},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      },
+      {
+        "attempt": 1,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(11, 7), (8, 6)]}, [])\n",
+        "seconds": 10.034,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000169698 idle_ns=22226651 entry_ns=5096913466551495 begin_ns=5096913466551545 end_ns=5096923488947894 exit_ns=5096923488948014 role_exit=0 stopped=1",
+          "t6     ex           2000   66392468     937.5    5743.3    9956.3         0  3480640",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66392468 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           2008   65913684     949.6    5795.2    9959.7         1  3480640",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=65913684 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=4024 direct=8 sends=128/128 short=0 err=0 peer_aborts=0 bytes=21389 zc_sends=0 zc_bytes=0 zc_releases=0 serves=544797 empty=544669",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "epoll: events=17378341 recvs=24",
+          "shutdown: dispatched=4004 executed=4008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":4004,\"executed\":4008},\"threads\":[{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":0,\"iterations\":45074150,\"busy_ns\":10000182208,\"idle_ns\":22693683,\"cpu_ns\":9947059812,\"wake_tx\":0,\"wake_rx\":6955395,\"io_tenures\":[{\"entry_ns\":5096913466079933,\"begin_ns\":5096913466079993,\"end_ns\":5096923488955884,\"exit_ns\":5096923488956004,\"busy_ns\":10000182208,\"idle_ns\":22693683,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":3,\"iterations\":31377749,\"busy_ns\":10000430048,\"idle_ns\":22360353,\"cpu_ns\":9953195669,\"wake_tx\":0,\"wake_rx\":6957613,\"io_tenures\":[{\"entry_ns\":5096913466167343,\"begin_ns\":5096913466167383,\"end_ns\":5096923488957784,\"exit_ns\":5096923488957814,\"busy_ns\":10000430048,\"idle_ns\":22360353,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":4001,\"iterations\":44639710,\"busy_ns\":10001466244,\"idle_ns\":20843894,\"cpu_ns\":9950118722,\"wake_tx\":18,\"wake_rx\":6957370,\"io_tenures\":[{\"entry_ns\":5096913466635266,\"begin_ns\":5096913466635316,\"end_ns\":5096923488945454,\"exit_ns\":5096923488945574,\"busy_ns\":10001466244,\"idle_ns\":20843894,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":0,\"iterations\":3480643,\"busy_ns\":10000477960,\"idle_ns\":21890859,\"cpu_ns\":9999358730,\"wake_tx\":24364417,\"wake_rx\":0,\"io_tenures\":[{\"entry_ns\":5096913466585316,\"begin_ns\":5096913466585345,\"end_ns\":5096923488954164,\"exit_ns\":5096923488954214,\"busy_ns\":10000477960,\"idle_ns\":21890859,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":0,\"iterations\":44070358,\"busy_ns\":10000171338,\"idle_ns\":22268891,\"cpu_ns\":9948513271,\"wake_tx\":0,\"wake_rx\":6955142,\"io_tenures\":[{\"entry_ns\":5096913466509715,\"begin_ns\":5096913466509755,\"end_ns\":5096923488949984,\"exit_ns\":5096923488950034,\"busy_ns\":10000171338,\"idle_ns\":22268891,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":45314872,\"busy_ns\":10000169698,\"idle_ns\":22226651,\"cpu_ns\":9946667277,\"wake_tx\":0,\"wake_rx\":6955937,\"io_tenures\":[{\"entry_ns\":5096913466551495,\"begin_ns\":5096913466551545,\"end_ns\":5096923488947894,\"exit_ns\":5096923488948014,\"busy_ns\":10000169698,\"idle_ns\":22226651,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66392468,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":2000,\"iterations\":66392468,\"busy_ns\":937543449,\"idle_ns\":5743308036,\"cpu_ns\":9956273751,\"wake_tx\":0,\"wake_rx\":3480640,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":65913684,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":2008,\"iterations\":65913684,\"busy_ns\":949586090,\"idle_ns\":5795229710,\"cpu_ns\":9959702311,\"wake_tx\":1,\"wake_rx\":3480640,\"io_tenures\":[]}],\"wb\":{\"retired\":4024,\"direct\":8,\"sends_completed\":128,\"sends_submitted\":128,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":21389,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":544797,\"serves_empty\":544669},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":0,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":true,\"events\":17378341,\"recvs\":24},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "op-flip",
+    "op": "EXEC",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-1-db16",
+    "databases": 16,
+    "engine": "epoll",
+    "atomic": 1,
+    "attempts": 2,
+    "seconds_per_attempt": 6.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 1
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "ops": 3,
+          "flips": 1,
+          "flip_refusals": 2,
+          "refused": 0,
+          "refusal_kinds": {
+            "ERR FLIP timed out before the ownership commit": 2
+          },
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ]
+        },
+        "error": null,
+        "seconds": 10.034,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      },
+      {
+        "attempt": 1,
+        "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 298, in main\n    record['value'] = CASES[args.case](leg_args, directory, '2s', engine, atomic, False)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-flipfix6/tests/flipfix5.py\", line 137, in op_flip\n    assert not errors and counts['flips'] and (counts['ops'] or args.op == 'NONE'), (result, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'ops': 3, 'flips': 0, 'flip_refusals': 2, 'refused': 0, 'refusal_kinds': {'ERR FLIP timed out before the ownership commit': 2}, 'owners': [(9, 7), (4, 6)]}, [])\n",
+        "seconds": 10.04,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "fail",
+        "counts": {
+          "ops": 3,
+          "flips": 0,
+          "flip_refusals": 2,
+          "refused": 0
+        },
+        "log_tail": [
+          "t5 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=0 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=0 record_visits=0",
+          "io_tenure t5/0 busy_ns=10000147263 idle_ns=22776013 entry_ns=5096933536950870 begin_ns=5096933536950910 end_ns=5096943559874186 exit_ns=5096943559874226 role_exit=0 stopped=1",
+          "t6     ex           1991   65603189     919.0    5675.8    9956.4         2  3403737",
+          "t6 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=65603189 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "t7     ex           2017   66340072     967.5    5751.3    9952.0         2  3403737",
+          "t7 exec1s clients_live=0 clients_peak=0 io_enters=0 ex_enters=0 io_waits=0 ex_waits=0 owner_passes=66340072 extra_passes=0 eager_collapses=0 wb_exec_holds=0 blind_clear=6 record_visits=0",
+          "wb: retired=4024 direct=8 sends=125/125 short=0 err=0 peer_aborts=0 bytes=21387 zc_sends=0 zc_bytes=0 zc_releases=0 serves=525050 empty=524925",
+          "tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0",
+          "stuck: live_conns=1 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0",
+          "epoll: events=16993479 recvs=24",
+          "shutdown: dispatched=4004 executed=4008 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0",
+          "shutdown_report {\"schema\":1,\"thread_mode\":\"2s\",\"work\":{\"kind\":\"split\",\"dispatched\":4004,\"executed\":4008},\"threads\":[{\"exec1s\":{\"clients_live\":1,\"clients_peak\":2,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":0,\"role\":\"io\",\"ops\":4001,\"iterations\":3404395,\"busy_ns\":10002044348,\"idle_ns\":21038148,\"cpu_ns\":10001224829,\"wake_tx\":23826107,\"wake_rx\":4,\"io_tenures\":[{\"entry_ns\":5096933536797200,\"begin_ns\":5096933536797240,\"end_ns\":5096943559879736,\"exit_ns\":5096943559879776,\"busy_ns\":10002044348,\"idle_ns\":21038148,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":1,\"role\":\"io\",\"ops\":0,\"iterations\":44979326,\"busy_ns\":10000165983,\"idle_ns\":23525626,\"cpu_ns\":9945262933,\"wake_tx\":0,\"wake_rx\":6801933,\"io_tenures\":[{\"entry_ns\":5096933536200927,\"begin_ns\":5096933536200957,\"end_ns\":5096943559892566,\"exit_ns\":5096943559892606,\"busy_ns\":10000165983,\"idle_ns\":23525626,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":2,\"role\":\"io\",\"ops\":0,\"iterations\":45243966,\"busy_ns\":10000208543,\"idle_ns\":22904834,\"cpu_ns\":9948345201,\"wake_tx\":0,\"wake_rx\":6803637,\"io_tenures\":[{\"entry_ns\":5096933536762529,\"begin_ns\":5096933536762589,\"end_ns\":5096943559875966,\"exit_ns\":5096943559876096,\"busy_ns\":10000208543,\"idle_ns\":22904834,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":3,\"role\":\"io\",\"ops\":0,\"iterations\":45976578,\"busy_ns\":10000206803,\"idle_ns\":22750533,\"cpu_ns\":9945293544,\"wake_tx\":0,\"wake_rx\":6800449,\"io_tenures\":[{\"entry_ns\":5096933536916370,\"begin_ns\":5096933536916410,\"end_ns\":5096943559873746,\"exit_ns\":5096943559873866,\"busy_ns\":10000206803,\"idle_ns\":22750533,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":1,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":4,\"role\":\"io\",\"ops\":3,\"iterations\":30190877,\"busy_ns\":10000542964,\"idle_ns\":22471892,\"cpu_ns\":9953589116,\"wake_tx\":2,\"wake_rx\":6803046,\"io_tenures\":[{\"entry_ns\":5096933536859190,\"begin_ns\":5096933536859240,\"end_ns\":5096943559874096,\"exit_ns\":5096943559874216,\"busy_ns\":10000542964,\"idle_ns\":22471892,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":0,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":0,\"record_visits\":0},\"tid\":5,\"role\":\"io\",\"ops\":0,\"iterations\":44377766,\"busy_ns\":10000147263,\"idle_ns\":22776013,\"cpu_ns\":9948128586,\"wake_tx\":0,\"wake_rx\":6803010,\"io_tenures\":[{\"entry_ns\":5096933536950870,\"begin_ns\":5096933536950910,\"end_ns\":5096943559874186,\"exit_ns\":5096943559874226,\"busy_ns\":10000147263,\"idle_ns\":22776013,\"role_exit\":false,\"stopped\":true,\"did_submit\":0,\"sweep_submit\":0,\"park\":0}]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":65603189,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":6,\"role\":\"ex\",\"ops\":1991,\"iterations\":65603189,\"busy_ns\":918958587,\"idle_ns\":5675766707,\"cpu_ns\":9956449707,\"wake_tx\":2,\"wake_rx\":3403737,\"io_tenures\":[]},{\"exec1s\":{\"clients_live\":0,\"clients_peak\":0,\"io_enters\":0,\"ex_enters\":0,\"io_waits\":0,\"ex_waits\":0,\"owner_passes\":66340072,\"extra_passes\":0,\"eager_collapses\":0,\"wb_exec_holds\":0,\"blind_clear\":6,\"record_visits\":0},\"tid\":7,\"role\":\"ex\",\"ops\":2017,\"iterations\":66340072,\"busy_ns\":967465962,\"idle_ns\":5751291409,\"cpu_ns\":9951984418,\"wake_tx\":2,\"wake_rx\":3403737,\"io_tenures\":[]}],\"wb\":{\"retired\":4024,\"direct\":8,\"sends_completed\":125,\"sends_submitted\":125,\"short_writes\":0,\"send_errors\":0,\"peer_aborts\":0,\"bytes_sent\":21387,\"zc_sends\":0,\"zc_bytes\":0,\"zc_releases\":0,\"serves\":525050,\"serves_empty\":524925},\"tls\":{\"accepts\":0,\"handshakes_completed\":0,\"handshakes_started\":0,\"handshakes_failed\":0,\"connections_freed\":0,\"want_read\":0,\"want_write\":0,\"ciphertext_input_bytes\":0,\"plaintext_input_bytes\":0,\"ciphertext_output_bytes\":0,\"plaintext_output_bytes\":0,\"zc_suppressed\":0,\"ktls_active\":0,\"ktls_fallback\":0},\"stuck\":{\"live_conns\":1,\"rob_not_quiesced\":0,\"unsent_bytes_pending\":0,\"slots_done\":0,\"slots_issued\":0,\"slots_free\":0,\"flag_set\":0},\"epoll\":{\"enabled\":true,\"events\":16993479,\"recvs\":24},\"persistence\":{\"enabled\":false,\"recording\":false,\"failed\":false,\"drain_gave_up\":false,\"posted\":0,\"flushed\":0,\"durable\":0,\"refused\":0,\"pending_chunks\":0,\"records_written\":0,\"producers_with_pending\":0,\"producers_stopped\":0,\"producers_expected\":0,\"completions_pending\":0},\"accept\":{\"accepts\":3,\"accept_err\":0,\"rearm\":0,\"sqe_starved\":0,\"notify_drop\":0}}"
+        ]
+      }
+    ]
+  }
+]

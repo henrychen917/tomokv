@@ -1,0 +1,318 @@
+[
+  {
+    "name": "gate-regression-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "flip flipctl lb-stationary-1s lb-stationary-2s debug-0 debug-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomic_batteries multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 tls feature-split-0 feature-split-1 feature-armed-0 feature-armed-1",
+      "GATE_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793446856.7990592,
+    "expected_exit": 0,
+    "exit": 1,
+    "seconds": 1284.065135717392,
+    "passed": false
+  },
+  {
+    "name": "gate-fused-uring",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries fused-0 fused-1",
+      "GATE_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "1",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793448140.8645065,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 258.73553490638733,
+    "passed": true
+  },
+  {
+    "name": "gate-fused-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries fused-0 fused-1",
+      "GATE_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793448399.600381,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 261.87813663482666,
+    "passed": true
+  },
+  {
+    "name": "gate-differ-uring",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+      "GATE_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793448661.479001,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 2523.308842897415,
+    "passed": true,
+    "folds": [
+      {
+        "schema": 1,
+        "group": "split",
+        "parts": [
+          "split-0",
+          "split-1",
+          "equivalence"
+        ],
+        "start": 1793448662.395298,
+        "end": 1793450797.4568894,
+        "seconds": 2135.061591386795,
+        "comparisons": 490,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "group": "armed",
+        "parts": [
+          "armed-0",
+          "armed-1"
+        ],
+        "start": 1793449725.0713172,
+        "end": 1793450775.6333318,
+        "seconds": 1050.562014579773,
+        "comparisons": 464,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "name": "gate-differ-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "32-39",
+      "--load-cores",
+      "40-47",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20399"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+      "GATE_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0",
+      "GATE_DIFFER_ORACLE_CORES": "40-47"
+    },
+    "start": 1793451184.9694035,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 2120.940861225128,
+    "passed": true,
+    "folds": [
+      {
+        "schema": 1,
+        "group": "split",
+        "parts": [
+          "split-0",
+          "split-1",
+          "equivalence"
+        ],
+        "start": 1793451185.8754086,
+        "end": 1793453305.4729817,
+        "seconds": 2119.597573041916,
+        "comparisons": 490,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "group": "armed",
+        "parts": [
+          "armed-0",
+          "armed-1"
+        ],
+        "start": 1793452239.692948,
+        "end": 1793453283.7707763,
+        "seconds": 1044.077828168869,
+        "comparisons": 464,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "name": "negative-PAD-A",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/flipfix6.py",
+      "--binary",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/PAD-A",
+      "--cores",
+      "32-39",
+      "--port",
+      "20300",
+      "--output",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/negative-PAD-A",
+      "--expect",
+      "pre",
+      "--cases",
+      "exec",
+      "--engines",
+      "uring",
+      "epoll",
+      "--atomics",
+      "0",
+      "1",
+      "--databases",
+      "1",
+      "16"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "start": 1793453306.0719628,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 40.42884659767151,
+    "passed": true
+  },
+  {
+    "name": "negative-PRE",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/flipfix6.py",
+      "--binary",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/PRE",
+      "--cores",
+      "32-39",
+      "--port",
+      "20300",
+      "--output",
+      "/home/user/Projects/cx-flipfix6/build/flipfix6/negative-PRE",
+      "--expect",
+      "post",
+      "--cases",
+      "exec",
+      "--engines",
+      "uring",
+      "--atomics",
+      "0",
+      "--databases",
+      "1"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "start": 1793453346.501155,
+    "expected_exit": 1,
+    "exit": 1,
+    "seconds": 5.075204610824585,
+    "passed": true,
+    "deadline_witness": true
+  },
+  {
+    "name": "gates-selftest",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_TEST_PORT": "20390"
+    },
+    "start": 1793453351.5770867,
+    "expected_exit": 0,
+    "exit": 0,
+    "seconds": 141.4852635860443,
+    "passed": true
+  }
+]

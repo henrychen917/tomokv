@@ -1,0 +1,554 @@
+diff --git a/Makefile b/Makefile
+index cce61b5ee..d4c72ec75 100644
+--- a/Makefile
++++ b/Makefile
+@@ -671,7 +671,7 @@ build/mdbqsbr-unit-tsan: build/mdbqsbr-tsan/tests/mdbqsbr_unit.o $(MDBQSBR_TSAN_
+ 	@mkdir -p $(dir $@)
+ 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $^ -o $@ $(LDLIBS) -lm $(MDBQSBR_WRAP)
+ # flipfix5: the stale-stage rows are included by the core fixture; rebuild it when they change.
+-build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/flipfix5_checks.inc
++build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/flipfix5_checks.inc tests/flipfix6_checks.inc
+ build/core-concurrency-mdbqsbr-asan: build/mdbqsbr-asan/tests/core_concurrency_unit.o $(MDBQSBR_ASAN_OBJ)
+ 	@mkdir -p $(dir $@)
+ 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=address,undefined $^ -o $@ $(LDLIBS) -lm
+@@ -978,7 +978,7 @@ build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) $(wildcard s
+ # Existing route row owns IO accounting/model/physical-placement proofs.
+ build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc
+ # Fast serverless lane entry; the gate uses its existing fully instrumented route row.
+-build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/flipfix5_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc $(CORE_TEST_OBJ)
++build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc tests/flipfix5_checks.inc tests/flipfix6_checks.inc tests/slowlog_completion_checks.inc tests/wave5_dispatch_checks.inc $(CORE_TEST_OBJ)
+ 	@mkdir -p $(dir $@)
+ 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+ 
+diff --git a/src/cmd/flip_session.inc b/src/cmd/flip_session.inc
+new file mode 100644
+index 000000000..0ab81d746
+--- /dev/null
++++ b/src/cmd/flip_session.inc
+@@ -0,0 +1,17 @@
++// D18.1: only ClientPrepare (after IoDrain/ExDrain) uses this exception. The
++// session, queued argv/error and watched aliases belong to the stable Client,
++// not its IO. An unpublished attempt still owns admission on its source IO.
++bool Client::flip_session_pending() const {
++    return multi_session_ && multi_session_->pending;
++}
++
++// Keep a distinct cold predicate for the PAD-A behaviour twin and for the
++// transfer finish recheck. No command-dispatch body calls this function.
++__attribute__((noinline, noipa)) bool Client::flip_migration_protocol_idle() const {
++    if (multi_session_ && multi_session_->pending) return false;
++    // Completed WATCH has one installed pin per physical alias, including all
++    // namespaces. pending/ROB/drain exclude partial installation and cleanup;
++    // equality rejects excess transient pins. safe_to_release still needs zero.
++    const size_t aliases = multi_session_ ? multi_session_->watched.size() : 0;
++    return watched_refs_.load(std::memory_order_acquire) == aliases && flip_drain_idle();
++}
+diff --git a/src/cmd/multi.inc b/src/cmd/multi.inc
+index 9d2155b9a..e42800676 100644
+--- a/src/cmd/multi.inc
++++ b/src/cmd/multi.inc
+@@ -185,6 +185,8 @@ struct MultiSession {
+     MultiExecState* pending = nullptr;       // prepared, but not yet published to owner queues
+ };
+ 
++#include "flip_session.inc"
++
+ struct MultiOwnerRecordRefs {
+     // `nodes` is also the pointer retained by every AtomicEntry installed on this executor. Writer
+     // owners begin at one so cleanup cannot release the state's pre-count before the owner has run
+diff --git a/src/cmd/t_server.cc b/src/cmd/t_server.cc
+index 57d89c028..ce5376a3a 100644
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -2971,6 +2971,16 @@ void cmd_info(Shard&, Op& op) {
+                     g_server ? g_server->flip_conservation_violations() : 0),
+                 static_cast<unsigned long long>(
+                     g_server ? g_server->flip_stale_stage_refusals() : 0));
++        appendf(body,
++                "flip_session_clients_transferred:%llu\r\n"
++                "flip_session_pending_skips:%llu\r\n"
++                "flip_session_pending_refusals:%llu\r\n",
++                static_cast<unsigned long long>(
++                    g_server ? g_server->flip_session_clients_transferred() : 0),
++                static_cast<unsigned long long>(
++                    g_server ? g_server->flip_session_pending_skips() : 0),
++                static_cast<unsigned long long>(
++                    g_server ? g_server->flip_session_pending_refusals() : 0));
+         appendf(body,
+                 "foreign_read_unsafe_refs:%llu\r\n"
+                 "foreign_read_occupied_cells:%llu\r\n"
+diff --git a/src/core/ex_loop.h b/src/core/ex_loop.h
+index 6fed7fb0f..35b962ca3 100644
+--- a/src/core/ex_loop.h
++++ b/src/core/ex_loop.h
+@@ -1580,6 +1580,14 @@ private:
+                 }
+             }
+         }
++        if (stage == FlipStage::IoDrain && flip_owed(stage)) {
++            // The coordinator wakes every live FLIP pass. Those CQ completions
++            // can keep resetting idle_spins, starving sweep() after the last
++            // EXEC retired. IoDrain waits for that state's record refs. Run the
++            // existing bounded owner cleanup here, before any ExDrain ack;
++            // no owner work is permitted after that safe point.
++            return atomic_cleanup_cycle(64);
++        }
+         if (stage == FlipStage::IoPrepare &&
+             srv_->flip_candidate_target(self_->id()) == Role::Ifid &&
+             flip_owed(stage)) {
+diff --git a/src/core/io_loop.h b/src/core/io_loop.h
+index 462e80cea..7f5ab1c68 100644
+--- a/src/core/io_loop.h
++++ b/src/core/io_loop.h
+@@ -308,7 +308,8 @@ public:
+     // Called only on this loop's physical thread by the migration control lane. The public split
+     // keeps preflight (no state change) distinct from request (source remains owner until an async
+     // recv cancellation has acknowledged that the old ring released Client*).
+-    bool client_transfer_ready(Client* client, uint32_t destination, std::string& error) const {
++    bool client_transfer_ready(Client* client, uint32_t destination, std::string& error,
++                               bool hold_for_commit = false) const {
+         if (!client || destination >= srv_->nthreads() || destination == self_->id()) {
+             error = "invalid client transfer owner";
+             return false;
+@@ -327,7 +328,11 @@ public:
+             error = "TLS connection has owner-local engine state";
+             return false;
+         }
+-        if (!client->migration_protocol_idle()) {
++        const auto protocol_idle = [&] {
++            return hold_for_commit ? client->flip_migration_protocol_idle()
++                                   : client->migration_protocol_idle();
++        };
++        if (!protocol_idle()) {
+             error = "connection ROB, reply, borrow, or owner-local protocol state is busy";
+             return false;
+         }
+@@ -339,7 +344,7 @@ public:
+             error = "connection has transient CLIENT/MONITOR/TRACKING state";
+             return false;
+         }
+-        if (!client_executor_quiesced(client) || !client->migration_protocol_idle()) {
++        if (!client_executor_quiesced(client) || !protocol_idle()) {
+             error = "connection has an unfinished executor completion";
+             return false;
+         }
+@@ -1513,7 +1518,7 @@ private:
+     template <bool kEp>
+     bool request_client_transfer_impl(Client* client, uint32_t destination,
+                                       bool hold_for_commit, std::string& error) {
+-        if (!client_transfer_ready(client, destination, error)) return false;
++        if (!client_transfer_ready(client, destination, error, hold_for_commit)) return false;
+         if (srv_->thread(destination).role() != Role::Ifid &&
+             !(srv_->flip_stage() != FlipStage::Idle &&
+               srv_->flip_final_role(destination) == Role::Ifid)) {
+@@ -1599,7 +1604,7 @@ private:
+         if (!target.client_transfer_free_slots(self_->id())) return false;
+ 
+         std::string error;
+-        if (!client_transfer_ready(client, destination, error)) {
++        if (!client_transfer_ready(client, destination, error, migration->hold_for_commit)) {
+             cancel_client_transfer<kEp>(client);
+             return false;
+         }
+@@ -1626,6 +1631,7 @@ private:
+         if (!migration || !migration->catalog || client->recv_armed()) return false;
+         const uint32_t destination = migration->destination;
+         const bool flip_transfer = migration->hold_for_commit;
++        const bool session_transfer = flip_transfer && client->multi_session();
+         ThreadCtx& target = srv_->thread(destination);
+         if (!target.client_transfer_free_slots(self_->id())) std::abort();
+         if constexpr (kEp) {
+@@ -1666,7 +1672,10 @@ private:
+             srv_->pubsub_event_created();
+             pubsub_post(event->target_io, event);
+         }
+-        if (flip_transfer) srv_->flip_note_client_transferred(client_id, destination);
++        if (flip_transfer) {
++            srv_->flip_note_client_transferred(client_id, destination);
++            if (session_transfer) srv_->flip_note_session_transferred();
++        }
+         erase_client_migration(client);       // pointer comparison only; source never dereferences
+         srv_->lb_client_move_committed(client_id, self_->id(), destination);
+         return true;
+@@ -1772,8 +1781,20 @@ private:
+         return true;
+     }
+ 
+-    bool flip_candidate_clients_ready(std::string& error) const {
++    bool flip_candidate_clients_ready(std::string& error, bool& s2_refusal) const {
++        s2_refusal = false;
+         const uint32_t planned = srv_->flip_source_clients(self_->id());
++        // S2 cannot become ready while dispatch is paused. Find it even if an
++        // earlier planned connection is still transiently busy.
++        if (srv_->flip_candidate_target(self_->id()) == Role::Ex)
++            for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
++                Client* client = srv_->flip_client_at(self_->id(), ordinal);
++                if (client && !client->closing() && client->flip_session_pending()) {
++                    s2_refusal = true;
++                    error = "prepared but unpublished MULTI/WATCH state on a converting IO thread";
++                    return false;
++                }
++            }
+         for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+             Client* client = srv_->flip_client_at(self_->id(), ordinal);
+             if (!client || client == flip_client_ || client->ifid_thread() != self_->id()) {
+@@ -1783,9 +1804,10 @@ private:
+             // Pinned, so still allocated and owned here. A planned connection that is closing
+             // never becomes transferable: it is dropped when this source claims the epoch.
+             if (client->closing()) continue;
++            if (client->flip_session_pending()) continue; // survives on this source
+             std::string refused;
+             if (!client_transfer_ready(
+-                    client, srv_->flip_client_destination(self_->id(), ordinal), refused)) {
++                    client, srv_->flip_client_destination(self_->id(), ordinal), refused, true)) {
+                 error = refused.empty() ? "a weighted FLIP connection is not transferable" : refused;
+                 return false;
+             }
+@@ -1797,15 +1819,20 @@ private:
+     // either still pinned here (allocated and owned) or a detached transfer. A closing entry that
+     // is not detached is dropped exactly once: forgotten in the plan row (so it is never read
+     // again once the pin is released) and its quota unit moved off its planned destination.
++    // D18.2 uses the same quota/audit allowance for S2 on a surviving source.
+     void flip_drop_closing_planned(uint32_t planned, bool converting_to_ex) {
+         for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+             Client* client = srv_->flip_client_at(self_->id(), ordinal);
+-            if (!client || !client->closing() || find_client_migration(client)) continue;
++            if (!client || find_client_migration(client)) continue;
++            const bool s2_stays = !converting_to_ex && !client->closing() &&
++                                  client->flip_session_pending();
++            if (!client->closing() && !s2_stays) continue;
+             srv_->flip_drop_planned_client(self_->id(),
+                                            srv_->flip_client_destination(self_->id(), ordinal),
+                                            !converting_to_ex);
+             srv_->flip_forget_planned_client(self_->id(), ordinal);
+             flip_dropped_local_++;
++            if (s2_stays) srv_->flip_note_session_pending_skip();
+         }
+     }
+ 
+@@ -2204,7 +2231,8 @@ private:
+             if (planned &&
+                 flip_prepare_epoch_ != srv_->flip_epoch()) {
+                 std::string ready_error;
+-                if (!flip_candidate_clients_ready(ready_error)) {
++                bool s2_refusal = false;
++                if (!flip_candidate_clients_ready(ready_error, s2_refusal)) {
+                     // A saturated pipelined connection is momentarily busy at ANY instant, so a
+                     // one-shot readiness snapshot let a single in-flight reply veto the whole
+                     // flip -- under 512-conn p16 load FLIP was refused essentially always, while
+@@ -2212,8 +2240,9 @@ private:
+                     // busy connections drain within milliseconds: leave the epoch unclaimed and
+                     // retry every loop pass, and only convert not-ready into failure when the
+                     // flip's own 5s deadline expires (a genuinely stuck connection still fails).
+-                    if (srv_->flip_timed_out()) {
++                    if (s2_refusal || srv_->flip_timed_out()) {
+                         flip_prepare_epoch_ = srv_->flip_epoch();
++                        if (s2_refusal) srv_->flip_note_session_pending_refusal();
+                         srv_->flip_note_failure(
+                             "ERR FLIP cannot quiesce a connection: " + ready_error);
+                     }
+@@ -2228,6 +2257,7 @@ private:
+                             Client* client = srv_->flip_client_at(self_->id(), ordinal);
+                             if (!client) std::abort();
+                             if (client->closing()) continue; // dropped below, never detached
++                            if (client->flip_session_pending()) continue; // surviving source, D18.2
+                             std::string error;
+                             if (!prepare_client_transfer(
+                                     client, srv_->flip_client_destination(self_->id(), ordinal),
+diff --git a/src/core/server.h b/src/core/server.h
+index dcf4daa81..6c180319d 100644
+--- a/src/core/server.h
++++ b/src/core/server.h
+@@ -972,6 +972,24 @@ public:
+     uint64_t flip_clients_transferred() const {
+         return flip_clients_transferred_.load(std::memory_order_relaxed);
+     }
++    uint64_t flip_session_clients_transferred() const {
++        return flip_session_clients_transferred_.load(std::memory_order_relaxed);
++    }
++    uint64_t flip_session_pending_skips() const {
++        return flip_session_pending_skips_.load(std::memory_order_relaxed);
++    }
++    uint64_t flip_session_pending_refusals() const {
++        return flip_session_pending_refusals_.load(std::memory_order_relaxed);
++    }
++    void flip_note_session_transferred() {
++        flip_session_clients_transferred_.fetch_add(1, std::memory_order_relaxed);
++    }
++    void flip_note_session_pending_skip() {
++        flip_session_pending_skips_.fetch_add(1, std::memory_order_relaxed);
++    }
++    void flip_note_session_pending_refusal() {
++        flip_session_pending_refusals_.fetch_add(1, std::memory_order_relaxed);
++    }
+     double flip_bucket_weight_spread_before() const {
+         return flip_bucket_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
+     }
+@@ -3885,6 +3903,11 @@ private:
+     std::atomic<uint64_t> debug_script_stage_watch_{0};
+     std::atomic<uint64_t> debug_script_stage_watch_tasks_{0};
+ 
++    // D18 diagnostics: control paths only, at the tail to preserve all existing offsets.
++    alignas(64) std::atomic<uint64_t> flip_session_clients_transferred_{0};
++    std::atomic<uint64_t> flip_session_pending_skips_{0};
++    std::atomic<uint64_t> flip_session_pending_refusals_{0};
++
+ };
+ 
+ }  // namespace tomo
+diff --git a/src/net/conn.h b/src/net/conn.h
+index 591f71d15..34a22788c 100644
+--- a/src/net/conn.h
++++ b/src/net/conn.h
+@@ -769,6 +769,10 @@ public:
+                barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
+                multi_session_ == nullptr && nothing_to_write();
+     }
++    // FLIP alone may carry durable session/WATCH state after the global drains.
++    // Definitions live beside MultiSession; LB and lifetime predicates stay unchanged.
++    bool flip_migration_protocol_idle() const;
++    bool flip_session_pending() const;
+     bool flip_drain_idle() const {
+         // Global dispatch is paused, but connections which remain on this IO may retain durable
+         // owner-local modes (subscriptions, WATCH/MULTI session metadata, tracking). Only work
+diff --git a/tests/atomic_survivors_unit.cc b/tests/atomic_survivors_unit.cc
+index a4a27180b..14caddd42 100644
+--- a/tests/atomic_survivors_unit.cc
++++ b/tests/atomic_survivors_unit.cc
+@@ -833,6 +833,7 @@ void watch_oom(Server& server) {
+             auto* session = c.multi_session();
+             saw_rollback |= session && session->watched.capacity() != 0;
+             require(!session || session->watched.empty(), "failed WATCH did not leave a phantom session key");
++            require(c.flip_migration_protocol_idle(), "WATCH OOM leaves no phantom transfer pins");
+             watch.op.clear_reply();
+             require(multi_handle_io(server, c, watch.op, 0, state) == MultiIoAction::Dispatch,
+                     "successful retry posts real WATCH work");
+@@ -848,8 +849,14 @@ void watch_oom(Server& server) {
+                     !namespaces[alias.ns], "one exact logical key, no duplicate namespace alias");
+             namespaces[alias.ns] = true;
+         }
++        require(!c.flip_migration_protocol_idle(), "prepared WATCH stays on source IO");
++        multi_dispatch_started(c, state);
+         for (const auto shard_id : state->shards)
+             require(execute_watch_phase(*state, server.shard(shard_id)), "retry registered owner watcher");
++        require(c.flip_migration_protocol_idle(), "all installed WATCH aliases exactly match session");
++        c.watch_ref();
++        require(!c.flip_migration_protocol_idle(), "transient WATCH pin still blocks transfer");
++        c.watch_unref();
+         server.shard(sid(server, key)).watch_write_committed(slice(key));
+         require(c.watch_dirty(), "foreign mutation dirties the successfully retried WATCH");
+         for (const auto& alias : state->watched)
+@@ -858,6 +865,7 @@ void watch_oom(Server& server) {
+         require(c.safe_to_release(), "every alias releases its client reference");
+         c.multi_session()->pending = nullptr;
+         c.multi_session()->watched.clear();
++        require(c.flip_migration_protocol_idle(), "WATCH cleanup restores zero-alias readiness");
+         destroy_multi_state(state);
+         if (reached_success) break;
+     }
+@@ -950,6 +958,7 @@ int main(int argc, char** argv) {
+     require(command_registry_init(false), "command registry");
+     Config cfg; cfg.databases = 1;
+     const std::string name = argv[1];
++    if (name == "watch_oom_db16") cfg.databases = 16;
+     if (name.starts_with("plain_")) cfg.atomic = name.ends_with("_1") ? 1 : 0;
+     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+     cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
+@@ -973,7 +982,7 @@ int main(int argc, char** argv) {
+     else if (name == "watch_cycle") watch_cycle(server);
+     else if (name == "post_apply_probe") post_apply_probe(server);
+     else if (name == "mset_arity") mset_arity(server);
+-    else if (name == "watch_oom") watch_oom(server);
++    else if (name == "watch_oom" || name == "watch_oom_db16") watch_oom(server);
+     else if (name == "stage_flag") stage_flag(server);
+     else if (name == "closure" || name == "lua_conversion" || name == "lua_lines" ||
+              name == "library_limit" || name == "instruction_limit") lua_case(server, name);
+diff --git a/tests/core_concurrency_unit.cc b/tests/core_concurrency_unit.cc
+index a7509d25f..5b585b9c6 100644
+--- a/tests/core_concurrency_unit.cc
++++ b/tests/core_concurrency_unit.cc
+@@ -1054,6 +1054,7 @@ struct CoreConcurrencyTest {
+ #include "flipreport_checks.inc"
+ #include "flipfix_checks.inc"
+ #include "flipfix5_checks.inc"
++#include "flipfix6_checks.inc"
+ 
+     static void snapshot_forward() {
+         Fixture f;
+@@ -1214,6 +1215,8 @@ int main(int argc, char** argv) {
+     else if (row == "flipfix-plan-lifetime") T::flipfix_plan_lifetime();
+     else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
+     else if (row == "flipfix5") T::flipfix5_all();
++    else if (row == "flipfix6-watch") { T::flipfix6_watch(1); T::flipfix6_watch(16); }
++    else if (row == "flipfix6-close-witness") { T::flipfix6_close_fence(1); T::flipfix6_close_fence(16); }
+     // Negative controls: the pre-flipfix5 live-epoch test must replay (FAIL) or abort.
+     else if (row == "flipfix5-planted") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, false);
+     else if (row == "flipfix5-planted-abort") T::flipfix5_ex(tomo::FlipStage::ExInstall, true, true);
+diff --git a/tests/flipfix6_checks.inc b/tests/flipfix6_checks.inc
+new file mode 100644
+index 000000000..16fdd1065
+--- /dev/null
++++ b/tests/flipfix6_checks.inc
+@@ -0,0 +1,162 @@
++// Real session preparation, owner fragments, retirement and FLIP control paths.
++// No sockets or DEBUG hook: S2 is the actual state before dispatch publication.
++    static void flipfix6_owner_drain(Fixture<false>& f) {
++        for (unsigned pass = 0; pass < 1000; ++pass) {
++            bool pending = false;
++            for (auto tid : f.server.placement().ex_threads()) {
++                f.loops[tid].service_multi_retries();
++                f.loops[tid].atomic_cleanup_cycle(256);
++                pending |= !f.loops[tid].multi_retries_.empty();
++            }
++            multi_owner_reap_entry(f.io);
++            if (!pending && f.io.multi_deferred_.empty()) return;
++        }
++        require(false, "flipfix6 owner work did not drain");
++    }
++
++    static std::string flipfix6_command(Fixture<false>& f, Client& client,
++                                        std::initializer_list<Slice> args) {
++        Op* op = client.rob().acquire<false>();
++        require(op, "flipfix6 ROB acquisition");
++        for (auto arg : args) require(op->push_arg(arg), "flipfix6 command arg");
++        op->spec = command_lookup(op->arg(0));
++        require(op->spec, "flipfix6 command registered");
++        op->db = client.session().db_index;
++        op->state.store(OpState::Issued, std::memory_order_release);
++        MultiExecState* state = nullptr;
++        const auto action = multi_handle_io(f.server, client, *op, client.ifid_thread(), state);
++        require(action == MultiIoAction::Dispatch || action == MultiIoAction::LocalDone,
++                "flipfix6 transaction command handled");
++        const auto id = client.rob().dispatch_id();
++        if (state) {
++            op->attach_multi_state(state);
++            client.atomic_group_started();
++            multi_dispatch_started(client, state);
++        } else op->state.store(OpState::Done, std::memory_order_release);
++        client.rob().publish();
++        if (state)
++            for (unsigned n = 0, count = multi_dispatch_count(state); n < count; ++n) {
++                const int32_t sid = multi_dispatch_shard(state, n);
++                require(f.loops[f.server.worker_of_shard(sid)].execute(
++                    multi_make_task(&client, id, sid, state)), "flipfix6 owner accepted fragment");
++            }
++        flipfix6_owner_drain(f);
++        std::string reply;
++        require(client.rob().drain([&](Op& done) {
++            if (state) multi_retire(client, done, f.io.multi_deferred_);
++            reply.assign(done.reply.data(), done.reply.size());
++        }) == 1, "flipfix6 exactly one reply retired");
++        flipfix6_owner_drain(f);
++        require(client.rob().quiesced(), "flipfix6 ROB empty after reply");
++        f.server.thread(client.ifid_thread()).ready().clear(client.wb_slot());
++        return reply;
++    }
++
++    static void flipfix6_pins(Client& client, unsigned aliases) {
++        require(client.flip_migration_protocol_idle(), "FLIP accepts exactly the session pins");
++        require(!client.migration_protocol_idle(), "LB still declines an allocated session");
++        require(client.safe_to_release() == (aliases == 0), "destruction still needs zero pins");
++        client.watch_ref();
++        require(!client.flip_migration_protocol_idle(), "FLIP rejects an excess transient pin");
++        client.watch_unref();
++        // State-only fixture: no registry reader runs while its pins are checked.
++        for (unsigned n = 0; n < aliases; ++n) client.watch_unref();
++        require(client.safe_to_release(), "physical alias count is exact, not just nonzero");
++        if (aliases) require(!client.flip_migration_protocol_idle(), "FLIP rejects missing pins");
++        for (unsigned n = 0; n < aliases; ++n) client.watch_ref();
++        require(client.flip_migration_protocol_idle(), "exact alias count restored");
++    }
++
++    static void flipfix6_watch(unsigned databases) {
++        Fixture f(false, 8, 16, databases);
++        command_bind_server(&f.server);
++        std::string acl_error;
++        require(acl_initialize(f.server, f.server.cfg(), acl_error), "flipfix6 default ACL");
++        Client client(-1);
++        f.client(client);
++        const auto key = f.key(f.sid());
++        auto call = [&](std::initializer_list<Slice> args) { return flipfix6_command(f, client, args); };
++        auto watch = [&] {
++            require(call({Slice("WATCH"), slice(key)}) == "+OK\r\n", "WATCH completed");
++            flipfix6_pins(client, databases);
++            require(call({Slice("WATCH"), slice(key), slice(key)}) == "+OK\r\n", "repeated WATCH");
++            flipfix6_pins(client, databases);
++        };
++        watch();
++        require(call({Slice("UNWATCH")}) == "+OK\r\n", "UNWATCH completed");
++        flipfix6_pins(client, 0);
++        watch();
++        require(call({Slice("MULTI")}) == "+OK\r\n", "MULTI completed");
++        require(call({Slice("DISCARD")}) == "+OK\r\n", "DISCARD completed");
++        flipfix6_pins(client, 0);
++        for (const unsigned outcome : {0u, 1u, 2u}) {
++            watch();
++            // Same stable Client now belongs to a different IO. Registry invalidation
++            // must still reach it; all new preparation uses this destination's identity.
++            client.set_ifid_thread(1);
++            if (outcome == 1) f.server.shard(f.sid()).watch_write_committed(slice(key));
++            require(client.watch_dirty() == (outcome == 1), "foreign write finds moved Client");
++            require(call({Slice("MULTI")}) == "+OK\r\n", "MULTI after handover");
++            require(call({Slice("INCR"), slice(key)}) == "+QUEUED\r\n", "queued write");
++            if (outcome == 2) multi_mark_queue_error(client);
++            const auto reply = call({Slice("EXEC")});
++            require(outcome == 0 ? reply == "*1\r\n:1\r\n" :
++                    outcome == 1 ? reply == "*-1\r\n" : reply.starts_with("-EXECABORT "),
++                    "EXEC success/nil/EXECABORT after move");
++            flipfix6_pins(client, 0);
++            client.set_ifid_thread(f.io_id);
++        }
++        watch();
++        // RESET and a close both use multi_close_entry; exercise that real cleanup.
++        multi_close_entry(f.io, client);
++        for (unsigned pass = 0; pass < 1000 && !f.io.pending_multi_cleanups_.empty(); ++pass) {
++            multi_owner_pass_entry(f.io);
++            for (auto tid : f.server.placement().ex_threads()) f.loops[tid].drain_tasks(true);
++        }
++        flipfix6_owner_drain(f);
++        require(f.io.pending_multi_cleanups_.empty(), "RESET/close WATCH cleanup published");
++        flipfix6_pins(client, 0);
++        acl_shutdown(); command_bind_server(nullptr);
++        std::printf("ARMED flipfix6 pins db%u: WATCH repeat UNWATCH DISCARD EXEC success/nil/abort RESET/close\n", databases);
++    }
++
++    // Diagnostic for the close interaction in s2-exdrain-review.md. It proves
++    // the current production scheduling, not the desired post-fix behaviour.
++    static void flipfix6_close_fence(unsigned databases) {
++        Fixture f(false, 8, 16, databases);
++        Client client(-1); f.client(client);
++        f.server.thread(f.io_id).add_client(&client); f.server.client_accepted();
++        const auto key = f.key(f.sid());
++        require(flipfix6_command(f, client, {Slice("WATCH"), slice(key)}) == "+OK\r\n",
++                "close-fence WATCH installed");
++        flipfix6_pins(client, databases);
++        std::string error;
++        require(f.server.flip_begin(5, 3, 1, error), "close-fence FLIP admitted");
++        require(f.io.flip_io_drained(), "durable WATCH passed IoDrain");
++        f.io.flip_close_pin_ = true;
++        f.server.flip_set_stage(FlipStage::ExDrain);
++        for (auto tid : f.server.placement().ex_threads()) {
++            f.loops[tid].flip_control_pass();
++            require(f.server.flip_acked(tid, FlipStage::ExDrain), "owner at frozen safe point");
++        }
++        f.server.flip_set_stage(FlipStage::ClientPrepare);
++        f.io.close_client(&client);
++        require(client.closing() && !client.dead() && f.io.pending_multi_cleanups_.size() == 1,
++                "WATCH close queued cleanup before consulting FLIP close pin");
++        multi_owner_pass_entry(f.io);
++        require(f.io.pending_multi_cleanups_.empty(), "close cleanup posted while EX frozen");
++        unsigned inboxes = 0;
++        for (auto tid : f.server.placement().ex_threads()) {
++            require(f.server.flip_acked(tid, FlipStage::ExDrain), "owner acknowledgement persists");
++            inboxes += !f.server.thread(tid).ex_inbound_quiesced();
++        }
++        require(inboxes && !client.safe_to_release(), "new work exists after owner safe point");
++        std::printf("ARMED flipfix6 close db%u: %u owner inboxes refilled after ExDrain ack; pins retained\n",
++                    databases, inboxes);
++        f.server.flip_refuse_active(); f.io.flip_close_pin_ = false;
++        for (auto tid : f.server.placement().ex_threads()) f.loops[tid].drain_tasks(true);
++        flipfix6_owner_drain(f);
++        require(client.safe_to_release(), "rollback permits WATCH cleanup to release pins");
++        client.set_in_active(false); f.io.active_.erase(&client);
++        f.server.thread(f.io_id).remove_client(&client); f.server.client_released();
++    }
