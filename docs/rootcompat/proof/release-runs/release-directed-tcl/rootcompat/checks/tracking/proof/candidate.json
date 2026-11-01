@@ -1,0 +1,487 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/release/POST",
+  "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+  "checks": [
+    {
+      "label": "1s-uring-db1-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db1-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db1-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db1-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db1-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db16-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db16-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db16-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-uring-db16-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db1-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db1-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db16-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "1s-epoll-db16-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db1-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db1-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db1-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db1-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db16-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db16-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db16-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-uring-db16-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db1-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db1-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db16-a0-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0scan no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0mget live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl0mget no missing keys",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1scan live enrolment",
+      "passed": true,
+      "actual": 100000
+    },
+    {
+      "label": "2s-epoll-db16-a1-rl1scan no missing keys",
+      "passed": true,
+      "actual": 0
+    }
+  ],
+  "slowlog": {}
+}

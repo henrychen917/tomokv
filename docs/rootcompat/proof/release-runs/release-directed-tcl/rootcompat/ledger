@@ -1,0 +1,9 @@
+ok	1.000000	rootcompat proc vs Redis 7.4
+ok	0.970000	rootcompat password vs Redis 7.4
+ok	0.970000	rootcompat replication vs Redis 7.4
+ok	0.980000	rootcompat sort-acl vs Redis 7.4
+ok	0.980000	rootcompat redact vs Redis 7.4
+ok	459.150000	rootcompat xsnotify vs Redis 7.4
+ok	450.100000	rootcompat tracking vs Redis 7.4
+ok	1.070000	rootcompat hscan vs Redis 7.4
+ok	24.800000	rootcompat setpast vs Redis 7.4
