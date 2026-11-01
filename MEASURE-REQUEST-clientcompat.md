@@ -180,7 +180,9 @@ bounded PRE control reproduced unsubscribe/PUNSUBSCRIBE races in 6 of 20
 mode/trial legs, including the exact failed assertion. Upstream util.tcl
 consumes zero replies for the no-argument helper before another client
 publishes. `pre-pubsub-control.json` retains every trial. No assertion or
-timeout was weakened; the sealed full Tcl jobs remain pending.
+timeout was weakened; the sealed full Tcl jobs both **PASS**, covering all 37 manifest files
+(39 declared runs per mode). All six mode/promotion events are independently
+checked in `validation/tcl-promotions.json`.
 
 Tcl promotions: old ALL-pause precedence; CLIENT KILL SKIPME's immediate INFO
 count; unsubscribe-inside-MULTI/publish-self. The transaction response-order
@@ -194,7 +196,8 @@ Five new `clientcompat-*` rows are collected before the quick-tier exit:
 `EXPECT_QUICK` and `EXPECT_FULL` were not edited. Tcl promotions add no row.
 
 **NOT RUN:** full `tests/gate.sh iteration`, ABBA/performance tiers,
-`flip_saturated`, and the inline tailgen workload. Those start performance
+`flip_saturated`, the inline tailgen workload, and release-only stream/xmove
+rate/size-ratio assertions omitted by `GATE_PROOF_NO_RATES=1`. Those start performance
 benchmarks/load generators reserved to the maintainer by this task. They are
 not included in the partial correctness verdict.
 
