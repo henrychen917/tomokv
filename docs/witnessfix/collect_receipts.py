@@ -29,7 +29,10 @@ for log in sorted((root / 'build/witnessfix').glob('*.log')):
             if not path.is_file() or path.is_symlink():
                 continue
             if path.name in ('ledger', 'timings') or path.suffix in ('.json', '.jsonl', '.txt', '.log'):
-                if path.stat().st_size <= 1_000_000:
+                # Full Tcl summaries contain the assertion inventory and raw
+                # events for 39 files; preserve those as well as per-file logs.
+                limit = 5_000_000 if path.suffix == '.json' else 1_000_000
+                if path.stat().st_size <= limit:
                     files.append(path)
     with tarfile.open(archive, 'w:gz') as tar:
         for path in files:

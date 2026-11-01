@@ -10,6 +10,12 @@ correctness-only setting; those attempts are explicitly excluded below and the
 adapter now rejects that action. No rate result is accepted as performance evidence.
 Receipts are recorded under `docs/witnessfix/`; temporary controls live in `build/`.
 
+This is a partial repair, not an all-flags closeout. The unresolved flags are
+listed individually below and excluded from proven regression coverage. The
+CG4.1 config-user probe also reproduces a baseline password-truncation security
+defect in both modes; its strict Redis assertion fails and is not converted
+into a green known-difference row.
+
 ### V1 — ACLKEYS3 last-owner-task wake
 
 Added the `aclkeys_wake` gate job. It runs the existing production-body unit in
@@ -64,8 +70,13 @@ The PASS IDs are 122, 149, 183, 206, 232 and 267. Row 310 (atomic-0 xmove) faile
 its obsolete same-edge detector despite W6 trace hits; its replacement is
 described under TM4.1. Rows 515/516 errored at the obsolete differential-driver
 adapter. The adapter now uses the matrix's focused-driver interface; separate
-follow-up receipts retain those runs. No attempted command or empty trace is
-counted as a hit. The sweep used the intermediate test versions whose SHA256
+follow-up receipts retain those runs. Both corrected adapters completed all
+40 focused comparison legs without a mismatch and recorded one compound hit
+each (765.9s / 767.9s). Both remain INSUFFICIENT against the unchanged 20-hit
+requirement; see `docs/witnessfix/lottery-followup/`. No attempted command or empty trace is
+counted as a hit. Final-tree rows 310/324 explicitly fail before boot with
+D2/V4: their retired live inter-hop cell cannot supply W6 evidence. The new
+serverless mover unit is not substituted for a candidate-binary trace. The sweep used the intermediate test versions whose SHA256
 is printed in each battery log, against baseline production code plus the
 existing observation-only lottery instrumentation.
 
@@ -199,8 +210,8 @@ not claim the ordinary storms open that window. DQ=DF=0.
 Reduced the ordinary client deadline from 15 s to 4 s, so a five-second freeze
 cannot pass. Valid computed FLIP shapes must not be refused. Existing per-worker
 progress before/after an observed completed FLIP remains mandatory. This is a
-liveness bound, not a throughput measurement. A planted freeze/PRE control is
-required before treating this change as demonstrated regression evidence.
+liveness bound, not a throughput measurement. The planted five-second freeze reaches one pause per process: the old battery
+passes and the repaired battery fails in both engines (freeze-control.json).
 DQ=DF=0.
 
 ### Compat 4.2 — failed foreground SAVE telemetry
@@ -288,14 +299,17 @@ modes; namespaces require the db16 image. Separate planted namespace-zero contro
 fail at the corresponding new/existing publisher. The baseline unit passes. DQ=+1, DF=+1: list_namespace is collected
 before the quick-tier exit. A separate test Makefile fragment owns this target; the production Makefile is unchanged.
 
-TM4.1 follow-up: restoring atomic 0 exposed xmove's obsolete witness. The current
-mover removes its source at the first mutation turn; the old detector required a
-push reply of 3 (source not yet removed), so it could count a before-first-hop
-push and could never prove the same-edge case. Replaced the LREM/sleep timing
-with the existing non-lead mutation delay, an observed source claim, and a
-still-pending move after the intervening push. Each fresh attempt checks exact
-lists and replies; missing arming still fails after 20 attempts. Timing/rate
-checks remain disabled in this correctness-only run.
+TM4.1 follow-up: restoring atomic 0 exposed an obsolete xmove witness. The
+current mover reselects and removes its live edge in one source-owner turn;
+the old same-edge detector required a phase-one value to survive an intervening
+push, which is no longer the command's linearization point. Retired that timing
+cell rather than making its no-hit result green. Its replacement lives in the
+already gated moverfix production-body unit: finish both movers' initial probes, require
+both destinations to defer, push on either source edge, then execute both source
+claims. Require two distinct non-null replies and exact conservation across both
+lists, accepting every valid cross-client linearization. Each schedule
+prints an actual probe/push/claim hit. A stale-selection mutant supplies the
+negative control. This is serverless evidence; no live pause is inferred.
 
 ### V3 — forced script-cycle scope
 
@@ -517,6 +531,7 @@ lottery memtier exception and fix are recorded under V14.
 
 | Final positive run | Result / scope |
 |---|---|
+| tcl-full-gate / YyGVfV | Complete checked-in manifest passes in both modes: 39 file entries per mode, 1,870 reported passing assertions each. The unchanged runner accepts five named setup errors and records 437 skips and 40 teardown EOF exceptions per mode; these are not new compatible assertions. |
 | V1-tcl-info-final-gate / KNbncV | 5 rows pass: ACLKEYS3 (88 schedules), touched Tcl files in both modes, INFO compatibility missing fields. |
 | compat-corrections-gate / wnjTzl | 15 rows pass: ACL runtime/capacity, locale, exact CONFIG errors. |
 | compat-rest-gate / PtFRDq | Auth's five rows and the remaining datafix1/netfix rows pass. Its initial locale and ACL capacity failures are preserved; corrected runs above supersede those two test states. |
@@ -527,7 +542,8 @@ lottery memtier exception and fix are recorded under V14.
 | debug-final-fused / BUEmU9 | 33 rows pass with GATE_TXN_FUSED=1 and read-local armed, both atomic settings. |
 | features-gate / O3MRN4 | 139 rows pass, split/armed-fused × atomic 0/1, including all netcmd legs. |
 | flip-list-final / qaKgTE | 11 rows pass: strict FLIP checks in both engines and the new list namespace unit. |
-| mover-final-gate / Q1ikt4 | 9 rows pass (release plus eight geometry legs), including the new probe/push/claim unit cases and EXEC coverage. |
+| differ-gate / DFaQBX | Split atomic 1, armed-fused atomic 0/1 and mode equivalence pass. Split atomic 0 reached the unchanged 900s row deadline; its timeout is preserved. |
+| mover-conservation-gate / ntf5Ys | 9 rows pass (release plus eight geometry legs), including the final two-mover probe/push/claim unit and EXEC coverage. Earlier Q1ikt4 used the superseded, overstrict single-mover expectation and is not the final proof. |
 
 Each archive in `docs/witnessfix/gates/` preserves the canonical partial ledger,
 job ledgers and small stdout/JSON receipts. `gate-runs.json` retains earlier
@@ -543,7 +559,7 @@ run the full tier's performance phases.
 |---|---|
 | ACLKEYS3 | No-wake and no-hold controls: 16/16 selected legs fail; baseline 88/88 pass. |
 | TM4.1 restoration | Removed restore: four mode/atomic settings fail the live flag assertion; restoration passes all four. |
-| Replacement mover push schedule | Stale phase-one selection: four unit legs fail the claimed-value assertion; baseline passes with 16 actual schedule hits. |
+| Replacement mover push schedule | Stale phase-one selection: four unit legs fail distinct-claim conservation; baseline passes with 16 actual schedule hits. |
 | List namespace publishers | Namespace zero at each of the two call sites fails exactly that branch; baseline reaches both branches/edges in namespaces 1/15/255. |
 | FLIP five-second freeze | One witnessed pause per process: old battery passes in both engines, repaired battery fails with client 4s timeouts in both. |
 | Snapshot script refusal | at412 PRE: all eight target shutdown legs fail on received TRYAGAIN; oracle and baseline legs pass. The PRE BGSAVE-script failures occur while arming BGSAVE and are not credited to the new refusal check. |
@@ -574,3 +590,8 @@ entire inventory and all real budget/watchdog/history helpers, and every
 failure-injection assertion remains. Real gate row deadlines, latency limits,
 arming thresholds and retry policy are unchanged. Earlier timeout receipts are
 retained. This correction is not offered as a production performance result.
+
+Self-tests: `python3 tests/gates_test.py` passes **77/77** with the inventory-derived
+fixture budget. Tcl runner 10/10, differential 24/24, lottery runner 18/18,
+lottery evidence reducer 17/17 and psfix 7/7 pass. Logs, including earlier
+scheduler timeouts, are retained in `docs/witnessfix/`.
