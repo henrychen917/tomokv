@@ -165,3 +165,12 @@ batteries and at412. Their exact data/reply/conservation assertions remain. A
 zero from this counter is not atomicity evidence; the forced AT4-WOUND-1 window
 in `job_txnorder_wound` is the relevant independent discriminator. This does
 not claim the ordinary storms open that window. DQ=DF=0.
+
+### V16 — FLIP stalls and refusals
+
+Reduced the ordinary client deadline from 15 s to 4 s, so a five-second freeze
+cannot pass. Valid computed FLIP shapes must not be refused. Existing per-worker
+progress before/after an observed completed FLIP remains mandatory. This is a
+liveness bound, not a throughput measurement. A planted freeze/PRE control is
+required before treating this change as demonstrated regression evidence.
+DQ=DF=0.
