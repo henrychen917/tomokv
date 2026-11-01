@@ -45,11 +45,14 @@ def main():
 
     def explain(row, reference):
         ns = 'tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo'
-        before = layouts[reference]['types'][ns]['Server']['fields']
-        after = layouts['POST']['types'][ns]['Server']['fields']
-        # Only exact, independently inspected member offsets are eligible.
-        moves = {offset: (after[name], name) for name, offset in before.items()
-                 if name in after and after[name] != offset}
+        pre_type = layouts[reference]['types'][ns]['Server']
+        post_type = layouts['POST']['types'][ns]['Server']
+        before, after = pre_type['fields'], post_type['fields']
+        # Include interior members (e.g. string data/size) only inside a real,
+        # independently inspected field whose complete size stays unchanged.
+        moves = [(offset, pre_type['field_bytes'][name], after[name], name)
+                 for name, offset in before.items() if name in after and after[name] != offset
+                 and pre_type['field_bytes'][name] == post_type['field_bytes'][name]]
         member_proof, table_proof = [], []
         for pair in by[row['name']]['references'][reference]:
             if pair['pre_size'] != pair['post_size']:
@@ -61,11 +64,14 @@ def main():
             for old, new in zip(removed, added):
                 def member(match):
                     number = int(match[1], 16)
-                    if number not in moves:
-                        return match[0]
-                    target, name = moves[number]
-                    member_proof.append(dict(field=name, before=number, after=target))
-                    return '0x' + format(target, 'x')
+                    for start, size, target, name in moves:
+                        if start <= number < start + size:
+                            target += number - start
+                            member_proof.append(dict(field=name, field_bytes=size,
+                                                     interior_offset=number-start,
+                                                     before=number, after=target))
+                            return '0x' + format(target, 'x')
+                    return match[0]
                 replaced = re.sub(r'0x([0-9a-f]+)(?=\(%[a-z0-9]+[,)])', member, old)
                 def table(line, arm):
                     def replace(match):

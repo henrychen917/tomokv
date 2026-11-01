@@ -200,7 +200,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -220,7 +220,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::txn_reservation_live(tomo_db0::TxnReservation const&)>": -1
@@ -242,7 +242,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::MaskedSpscArray<tomo::Task, 128u>::note_lane_full(tomo::MaskedSpscArray<tomo::Task, 128u>::ProducerLine&)>": -1
@@ -264,7 +264,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::MaskedSpscArray<tomo::Task, 128u>::note_lane_full(tomo::MaskedSpscArray<tomo::Task, 128u>::ProducerLine&)>": -1
@@ -467,7 +467,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -814,26 +814,36 @@
       "members": [
         {
           "field": "flip_clients_transferred_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82168,
           "after": 82192
         },
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 71136,
           "after": 71160
         },
         {
           "field": "lb_signal_mu_",
+          "field_bytes": 40,
+          "interior_offset": 0,
           "before": 83560,
           "after": 83584
         },
         {
           "field": "lb_clients_",
+          "field_bytes": 56,
+          "interior_offset": 0,
           "before": 83752,
           "after": 83776
         },
         {
           "field": "flip_active_transfers_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82176,
           "after": 82200
         }
@@ -864,26 +874,36 @@
       "members": [
         {
           "field": "flip_clients_transferred_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82168,
           "after": 82192
         },
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 71136,
           "after": 71160
         },
         {
           "field": "lb_signal_mu_",
+          "field_bytes": 40,
+          "interior_offset": 0,
           "before": 83560,
           "after": 83584
         },
         {
           "field": "lb_clients_",
+          "field_bytes": 56,
+          "interior_offset": 0,
           "before": 83752,
           "after": 83776
         },
         {
           "field": "flip_active_transfers_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82176,
           "after": 82200
         }
@@ -914,7 +934,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::IoLoop::client_transfer_ready(tomo::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const>": -4,
@@ -964,11 +984,15 @@
       "members": [
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 71136,
           "after": 71160
         },
         {
           "field": "flip_convert_",
+          "field_bytes": 128,
+          "interior_offset": 0,
           "before": 72192,
           "after": 72216
         }
@@ -999,11 +1023,15 @@
       "members": [
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 71136,
           "after": 71160
         },
         {
           "field": "flip_convert_",
+          "field_bytes": 128,
+          "interior_offset": 0,
           "before": 72192,
           "after": 72216
         }
@@ -1105,7 +1133,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::multi_dispatch_started(tomo::Client&, tomo::MultiExecState*)>": 1,
@@ -1128,7 +1156,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::multi_dispatch_started(tomo::Client&, tomo::MultiExecState*)>": 1,
@@ -1717,26 +1745,36 @@
       "members": [
         {
           "field": "flip_clients_transferred_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 81784,
           "after": 81808
         },
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 70752,
           "after": 70776
         },
         {
           "field": "lb_signal_mu_",
+          "field_bytes": 40,
+          "interior_offset": 0,
           "before": 83176,
           "after": 83200
         },
         {
           "field": "lb_clients_",
+          "field_bytes": 56,
+          "interior_offset": 0,
           "before": 83368,
           "after": 83392
         },
         {
           "field": "flip_active_transfers_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 81792,
           "after": 81816
         }
@@ -1767,26 +1805,36 @@
       "members": [
         {
           "field": "flip_clients_transferred_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 81784,
           "after": 81808
         },
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 70752,
           "after": 70776
         },
         {
           "field": "lb_signal_mu_",
+          "field_bytes": 40,
+          "interior_offset": 0,
           "before": 83176,
           "after": 83200
         },
         {
           "field": "lb_clients_",
+          "field_bytes": 56,
+          "interior_offset": 0,
           "before": 83368,
           "after": 83392
         },
         {
           "field": "flip_active_transfers_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 81792,
           "after": 81816
         }
@@ -1823,51 +1871,71 @@
       "members": [
         {
           "field": "lb_client_inflight_id_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82976,
           "after": 83000
         },
         {
           "field": "lb_client_refused_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 83080,
           "after": 83104
         },
         {
           "field": "lb_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 81872,
           "after": 81896
         },
         {
           "field": "lb_deadline_ns_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 81888,
           "after": 81912
         },
         {
           "field": "lb_client_inflight_id_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82976,
           "after": 83000
         },
         {
           "field": "lb_client_inflight_id_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82976,
           "after": 83000
         },
         {
           "field": "lb_client_refused_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 83080,
           "after": 83104
         },
         {
           "field": "lb_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 81872,
           "after": 81896
         },
         {
           "field": "lb_deadline_ns_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 81888,
           "after": 81912
         },
         {
           "field": "lb_client_inflight_id_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 82976,
           "after": 83000
         }
@@ -1918,11 +1986,15 @@
       "members": [
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 70752,
           "after": 70776
         },
         {
           "field": "flip_convert_",
+          "field_bytes": 128,
+          "interior_offset": 0,
           "before": 71808,
           "after": 71832
         }
@@ -1953,11 +2025,15 @@
       "members": [
         {
           "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 70752,
           "after": 70776
         },
         {
           "field": "flip_convert_",
+          "field_bytes": 128,
+          "interior_offset": 0,
           "before": 71808,
           "after": 71832
         }
@@ -2140,7 +2216,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -2161,7 +2237,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -2814,12 +2890,81 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "Persistfmt stream/library persistence combines with headline snapshot/FLUSH integration. The retained implementation has compiler/layout propagation beyond the isolated lane body. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with headline, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<std::mutex::lock()>": -1,
       "<pthread_mutex_lock@plt>": 1,
       "<_ZSt20__throw_system_errori@plt>": 1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "headline",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 68368,
+          "after": 68392
+        },
+        {
+          "field": "client_obuf_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84949,
+          "after": 84973
+        },
+        {
+          "field": "client_obuf_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84949,
+          "after": 84973
+        },
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        }
+      ],
+      "tables": []
     }
   },
   {
@@ -3104,7 +3249,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -3130,6 +3275,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -3283,7 +3430,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)>": -1,
@@ -3306,7 +3453,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&)>": -1,
@@ -3449,11 +3596,15 @@
       "members": [
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85168,
           "after": 85192
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         }
@@ -3483,6 +3634,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         }
@@ -3544,7 +3697,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<strcmp@plt>": 1,
@@ -3878,7 +4031,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::(anonymous namespace)::read_plain_length(tomo::(anonymous namespace)::Reader&, unsigned long&)>": -1,
@@ -3901,7 +4054,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -4030,7 +4183,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -4054,6 +4207,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         }
@@ -4126,6 +4281,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -4285,7 +4442,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)>": 1
@@ -4599,7 +4756,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<std::vector<unsigned int, std::allocator<unsigned int> >::~vector()>": -1,
@@ -4665,7 +4822,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::FlatStore::atomic_entry_key(tomo::AtomicEntry const&, unsigned int) const [clone .isra.0]>": -1,
@@ -4944,7 +5101,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -5377,6 +5534,8 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         }
@@ -5507,7 +5666,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<pthread_mutex_unlock@plt>": 1,
@@ -5534,6 +5693,8 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         }
@@ -5825,7 +5986,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<pthread_mutex_unlock@plt>": 1,
@@ -5854,11 +6015,15 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         },
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         }
@@ -5882,7 +6047,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*) [clone .isra.0]>": -1,
@@ -6005,7 +6170,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<abort@plt>": 2
@@ -6245,7 +6410,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::Op::cmd_name() const>": 1
@@ -6267,7 +6432,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -6288,7 +6453,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::IoLoop::flip_fingerprint_note(tomo::CommandSpec const&, tomo::Op const&)>": -1,
@@ -6313,7 +6478,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::Rob<64u>::unpublish()>": -1,
@@ -6337,7 +6502,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::Rob<64u>::publish()>": 1
@@ -6365,7 +6530,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -6385,7 +6550,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -6408,7 +6573,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::Op::cmd_name() const>": -1,
@@ -6435,7 +6600,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {}
   },
@@ -6456,7 +6621,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::IoLoop::flip_fingerprint_note(tomo::CommandSpec const&, tomo::Op const&)>": -1,
@@ -6479,7 +6644,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -6499,7 +6664,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -7019,6 +7184,8 @@
       "members": [
         {
           "field": "blocked_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84896,
           "after": 84920
         }
@@ -7103,7 +7270,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::IoLoop::client_transfer_ready(tomo::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const>": -1,
@@ -7302,9 +7469,85 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "FLIP composes session transfer/refusal and alias accounting with headline FLUSH drain state; persistfmt also shifts trailing Server fields. GCC propagation differs from the isolated lane. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with flipfix6, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "flipfix6",
-    "static_call_site_deltas": {}
+    "static_call_site_deltas": {},
+    "verified_displacement_or_table_only": {
+      "reference": "flipfix6",
+      "members": [
+        {
+          "field": "flip_error_mu_",
+          "field_bytes": 40,
+          "interior_offset": 0,
+          "before": 82080,
+          "after": 82104
+        },
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "flip_failed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 82072,
+          "after": 82096
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 0,
+          "before": 82120,
+          "after": 82144
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 16,
+          "before": 82136,
+          "after": 82160
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 8,
+          "before": 82128,
+          "after": 82152
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 0,
+          "before": 82120,
+          "after": 82144
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 16,
+          "before": 82136,
+          "after": 82160
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 0,
+          "before": 82120,
+          "after": 82144
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 8,
+          "before": 82128,
+          "after": 82152
+        }
+      ],
+      "tables": []
+    }
   },
   {
     "name": "tomo::IoLoop::flip_session_drain_refused() const [clone .cold]",
@@ -7581,7 +7824,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<pthread_mutex_lock@plt>": -2,
@@ -7607,7 +7850,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::IoLoop::client_transfer_ready(tomo::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const>": -1,
@@ -7884,6 +8127,8 @@
       "members": [
         {
           "field": "climon_tracking_io_mask_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85072,
           "after": 85096
         }
@@ -7913,6 +8158,8 @@
       "members": [
         {
           "field": "climon_tracking_io_mask_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85072,
           "after": 85096
         }
@@ -7942,6 +8189,8 @@
       "members": [
         {
           "field": "climon_invalidations_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85088,
           "after": 85112
         }
@@ -7969,6 +8218,8 @@
       "members": [
         {
           "field": "oob_frames_segmented_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85096,
           "after": 85120
         }
@@ -8018,11 +8269,15 @@
       "members": [
         {
           "field": "climon_tracking_items_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85136,
           "after": 85160
         },
         {
           "field": "climon_tracking_keys_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85128,
           "after": 85152
         }
@@ -8132,21 +8387,29 @@
       "members": [
         {
           "field": "climon_tracking_items_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85136,
           "after": 85160
         },
         {
           "field": "climon_tracking_keys_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85128,
           "after": 85152
         },
         {
           "field": "climon_tracking_items_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85136,
           "after": 85160
         },
         {
           "field": "climon_tracking_keys_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85128,
           "after": 85152
         }
@@ -8327,6 +8590,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -8356,6 +8621,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -8425,26 +8692,36 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85168,
           "after": 85192
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         }
@@ -8474,26 +8751,36 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85168,
           "after": 85192
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         }
@@ -8998,9 +9285,50 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with flipfix6, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "flipfix6",
-    "static_call_site_deltas": {}
+    "static_call_site_deltas": {},
+    "verified_displacement_or_table_only": {
+      "reference": "flipfix6",
+      "members": [
+        {
+          "field": "flip_failed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 82072,
+          "after": 82096
+        },
+        {
+          "field": "flip_error_mu_",
+          "field_bytes": 40,
+          "interior_offset": 0,
+          "before": 82080,
+          "after": 82104
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 0,
+          "before": 82120,
+          "after": 82144
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 8,
+          "before": 82128,
+          "after": 82152
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 0,
+          "before": 82120,
+          "after": 82144
+        }
+      ],
+      "tables": []
+    }
   },
   {
     "name": "tomo::Server::flip_final_role(unsigned int) const",
@@ -9076,7 +9404,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)>": -1,
@@ -10161,7 +10489,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::database_owned_key[abi:cxx11](tomo::Slice)>": -1,
@@ -10292,6 +10620,8 @@
       "members": [
         {
           "field": "shutting_down_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 84864,
           "after": 84888
         }
@@ -10861,6 +11191,8 @@
       "members": [
         {
           "field": "blocked_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84896,
           "after": 84920
         }
@@ -10890,6 +11222,8 @@
       "members": [
         {
           "field": "blocked_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84896,
           "after": 84920
         }
@@ -10954,7 +11288,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<_ZdlPvm@plt>": -1,
@@ -11263,7 +11597,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {}
   },
@@ -11343,7 +11677,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -11471,6 +11805,8 @@
       "members": [
         {
           "field": "snapshot_atomic_barrier_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 85184,
           "after": 85208
         }
@@ -11555,7 +11891,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -11581,6 +11917,8 @@
       "members": [
         {
           "field": "climon_tracking_io_mask_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85072,
           "after": 85096
         }
@@ -12045,6 +12383,8 @@
       "members": [
         {
           "field": "loading_",
+          "field_bytes": 4,
+          "interior_offset": 0,
           "before": 84848,
           "after": 84872
         }
@@ -12126,31 +12466,43 @@
       "members": [
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85168,
           "after": 85192
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -12180,31 +12532,43 @@
       "members": [
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85168,
           "after": 85192
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -12234,26 +12598,36 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85168,
           "after": 85192
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85168,
           "after": 85192
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         }
@@ -12330,26 +12704,36 @@
       "members": [
         {
           "field": "script_stage_bytes_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84840,
           "after": 84864
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85160,
           "after": 85184
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         }
@@ -12373,7 +12757,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const>": -3,
@@ -12402,6 +12786,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         }
@@ -12535,7 +12921,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)>": -1,
@@ -12558,7 +12944,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&)>": -1,
@@ -12701,11 +13087,15 @@
       "members": [
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         }
@@ -12735,6 +13125,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         }
@@ -12801,7 +13193,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<strcmp@plt>": 1,
@@ -12837,7 +13229,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -13157,7 +13549,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::read_plain_length(tomo_db0::(anonymous namespace)::Reader&, unsigned long&)>": -1,
@@ -13181,7 +13573,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -13311,7 +13703,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::KvObj* tomo_db0::Shard::store_find_read<true>(unsigned long, tomo_db0::Slice)>": -1,
@@ -13340,6 +13732,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         }
@@ -13412,6 +13806,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         }
@@ -13848,7 +14244,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<_Znwm@plt>": 1,
@@ -13874,7 +14270,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::FlatStore::atomic_entry_key(tomo_db0::AtomicEntry const&, unsigned int) const [clone .isra.0]>": -1,
@@ -14157,7 +14553,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::xshard_atomic_key_slice(tomo_db0::ScatterState const*, unsigned int)>": -1
@@ -14653,6 +15049,8 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         }
@@ -14781,7 +15179,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<pthread_mutex_unlock@plt>": 1,
@@ -14808,6 +15206,8 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         }
@@ -15099,7 +15499,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<pthread_mutex_unlock@plt>": 1,
@@ -15128,11 +15528,15 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         },
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         }
@@ -15459,7 +15863,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -15479,7 +15883,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -15500,7 +15904,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<_ZdlPvm@plt>": 1,
@@ -15526,7 +15930,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<abort@plt>": -1
@@ -15549,7 +15953,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo_db0::Rob<64u>::mark_current_write()>": 1,
@@ -15572,7 +15976,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -15599,7 +16003,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<free@plt>": -1,
@@ -15623,7 +16027,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -15646,7 +16050,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<_ZdlPvm@plt>": 1,
@@ -15673,7 +16077,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<abort@plt>": -1
@@ -15696,7 +16100,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<_ZdlPvm@plt>": 1,
@@ -15721,7 +16125,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -15741,7 +16145,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -16242,6 +16646,8 @@
       "members": [
         {
           "field": "blocked_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84512,
           "after": 84536
         }
@@ -16326,7 +16732,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo_db0::IoLoop::client_transfer_ready(tomo_db0::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const>": -1,
@@ -16808,7 +17214,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo_db0::IoLoop::client_transfer_ready(tomo_db0::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const>": -1,
@@ -16832,7 +17238,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo_db0::IoLoop::client_transfer_ready(tomo_db0::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const>": -1,
@@ -17081,6 +17487,8 @@
       "members": [
         {
           "field": "climon_tracking_io_mask_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84688,
           "after": 84712
         }
@@ -17110,6 +17518,8 @@
       "members": [
         {
           "field": "climon_tracking_io_mask_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84688,
           "after": 84712
         }
@@ -17139,6 +17549,8 @@
       "members": [
         {
           "field": "climon_invalidations_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84704,
           "after": 84728
         }
@@ -17166,6 +17578,8 @@
       "members": [
         {
           "field": "oob_frames_segmented_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84712,
           "after": 84736
         }
@@ -17215,11 +17629,15 @@
       "members": [
         {
           "field": "climon_tracking_items_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84752,
           "after": 84776
         },
         {
           "field": "climon_tracking_keys_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84744,
           "after": 84768
         }
@@ -17517,6 +17935,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         }
@@ -17546,6 +17966,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         }
@@ -17615,26 +18037,36 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         }
@@ -17664,26 +18096,36 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         }
@@ -17707,7 +18149,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()>": -1,
@@ -18150,9 +18592,50 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with flipfix6, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "flipfix6",
-    "static_call_site_deltas": {}
+    "static_call_site_deltas": {},
+    "verified_displacement_or_table_only": {
+      "reference": "flipfix6",
+      "members": [
+        {
+          "field": "flip_failed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 81688,
+          "after": 81712
+        },
+        {
+          "field": "flip_error_mu_",
+          "field_bytes": 40,
+          "interior_offset": 0,
+          "before": 81696,
+          "after": 81720
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 0,
+          "before": 81736,
+          "after": 81760
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 8,
+          "before": 81744,
+          "after": 81768
+        },
+        {
+          "field": "flip_error_",
+          "field_bytes": 32,
+          "interior_offset": 0,
+          "before": 81736,
+          "after": 81760
+        }
+      ],
+      "tables": []
+    }
   },
   {
     "name": "tomo_db0::Server::flip_final_role(unsigned int) const",
@@ -18228,7 +18711,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)>": -1,
@@ -19235,7 +19718,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::txn_unit_view(tomo_db0::TxnReservation const&) [clone .isra.0]>": -1
@@ -19257,7 +19740,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::txn_reservation_live(tomo_db0::TxnReservation const&)>": -3,
@@ -19301,7 +19784,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::txn_reservation_live(tomo_db0::TxnReservation const&)>": -1,
@@ -19450,6 +19933,8 @@
       "members": [
         {
           "field": "shutting_down_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 84480,
           "after": 84504
         }
@@ -20077,6 +20562,8 @@
       "members": [
         {
           "field": "blocked_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84512,
           "after": 84536
         }
@@ -20106,6 +20593,8 @@
       "members": [
         {
           "field": "blocked_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84512,
           "after": 84536
         }
@@ -20531,7 +21020,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {}
   },
@@ -20609,7 +21098,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {}
   },
@@ -20717,6 +21206,8 @@
       "members": [
         {
           "field": "snapshot_atomic_barrier_",
+          "field_bytes": 1,
+          "interior_offset": 0,
           "before": 84800,
           "after": 84824
         }
@@ -20740,7 +21231,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::(anonymous namespace)::op_routed_key(tomo_db0::Op const&)>": -1
@@ -20802,7 +21293,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>": -2,
@@ -20904,6 +21395,8 @@
       "members": [
         {
           "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
           "before": 84632,
           "after": 84656
         }
@@ -21235,11 +21728,15 @@
       "members": [
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         }
@@ -21309,6 +21806,8 @@
       "members": [
         {
           "field": "loading_",
+          "field_bytes": 4,
+          "interior_offset": 0,
           "before": 84464,
           "after": 84488
         }
@@ -21387,31 +21886,43 @@
       "members": [
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         }
@@ -21441,31 +21952,43 @@
       "members": [
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         },
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84520,
           "after": 84544
         }
@@ -21495,26 +22018,36 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         },
         {
           "field": "atomic_commit_inflight_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84784,
           "after": 84808
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         }
@@ -21593,26 +22126,36 @@
       "members": [
         {
           "field": "script_stage_bytes_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84456,
           "after": 84480
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         },
         {
           "field": "commit_seq_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84776,
           "after": 84800
         },
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         }
@@ -21636,7 +22179,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const>": -3,
@@ -21661,7 +22204,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>": 2
@@ -21684,7 +22227,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {}
   },
@@ -21968,6 +22511,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -21998,6 +22543,8 @@
       "members": [
         {
           "field": "blocking_waiters_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84904,
           "after": 84928
         }
@@ -22363,7 +22910,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<tomo::Client::nothing_to_write() const>": -1
@@ -22405,7 +22952,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<tomo::Client::nothing_to_write() const>": -1
@@ -22447,7 +22994,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<tomo::Client::nothing_to_write() const>": -1
@@ -22489,7 +23036,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<tomo::Client::nothing_to_write() const>": -1
@@ -22911,7 +23458,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<void tomo::IoLoop::arm_recv<true>(tomo::Client*)>": -1,
@@ -22954,7 +23501,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<void tomo::IoLoop::arm_recv<true>(tomo::Client*)>": -1,
@@ -22997,7 +23544,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<void tomo::IoLoop::arm_recv<true>(tomo::Client*)>": -1,
@@ -23040,7 +23587,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<void tomo::IoLoop::arm_recv<true>(tomo::Client*)>": -1,
@@ -23449,6 +23996,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         }
@@ -23478,6 +24027,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         }
@@ -23501,7 +24052,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<_ZdlPvm@plt>": 1,
@@ -23691,7 +24242,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::ThreadCtx::publish_read_local_tick(unsigned long)>": -1
@@ -24523,7 +25074,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* const&)>": -1,
@@ -24606,7 +25157,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<std::deque<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* const&)>": -1,
@@ -24989,7 +25540,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<tomo_db0::Client::reset_rbuf_at_quiescence()>": -1,
@@ -25012,7 +25563,7 @@
     "changed_lanes": [
       "flipfix6"
     ],
-    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "flipfix6 changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "flipfix6",
     "static_call_site_deltas": {
       "<tomo_db0::Client::reset_rbuf_at_quiescence()>": -1,
@@ -25201,6 +25752,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         }
@@ -25230,6 +25783,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         }
@@ -25253,7 +25808,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<_ZdlPvm@plt>": 2,
@@ -25326,7 +25881,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<tomo::KvObj::val_ptr() const>": 2
@@ -25390,7 +25945,7 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo_db0::KvObj::val_ptr() const>": -3,
@@ -25578,6 +26133,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 85176,
           "after": 85200
         }
@@ -25607,11 +26164,15 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         },
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         }
@@ -25641,11 +26202,15 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         },
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84912,
           "after": 84936
         }
@@ -25810,7 +26375,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<_ZdlPvm@plt>": -1,
@@ -26133,10 +26698,58 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with headline, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::ExLoopT<true>::bind_read_local_demotion(void*, bool (*)(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&))>": -1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "headline",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 85016,
+          "after": 85040
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 68368,
+          "after": 68392
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84872,
+          "after": 84896
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84948,
+          "after": 84972
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 85000,
+          "after": 85024
+        }
+      ],
+      "tables": []
     }
   },
   {
@@ -26176,9 +26789,57 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with headline, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "headline",
-    "static_call_site_deltas": {}
+    "static_call_site_deltas": {},
+    "verified_displacement_or_table_only": {
+      "reference": "headline",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 85016,
+          "after": 85040
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 68368,
+          "after": 68392
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84872,
+          "after": 84896
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84948,
+          "after": 84972
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 85000,
+          "after": 85024
+        }
+      ],
+      "tables": []
+    }
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
@@ -26216,10 +26877,58 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with headline, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::ExLoopT<true>::bind_read_local_demotion(void*, bool (*)(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&))>": -1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "headline",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 85016,
+          "after": 85040
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 68368,
+          "after": 68392
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84872,
+          "after": 84896
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84948,
+          "after": 84972
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 85000,
+          "after": 85024
+        }
+      ],
+      "tables": []
     }
   },
   {
@@ -26258,10 +26967,58 @@
     "changed_lanes": [
       "persistfmt"
     ],
-    "reason": "persistfmt changes this body; merged compiler propagation differs from isolated POST. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with headline, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "persistfmt",
     "static_call_site_deltas": {
       "<tomo::ExLoopT<true>::bind_read_local_demotion(void*, bool (*)(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&))>": -1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "headline",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 71136,
+          "after": 71160
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 85016,
+          "after": 85040
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 68368,
+          "after": 68392
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84872,
+          "after": 84896
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84948,
+          "after": 84972
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 85000,
+          "after": 85024
+        }
+      ],
+      "tables": []
     }
   },
   {
@@ -26902,6 +27659,8 @@
       "members": [
         {
           "field": "atomic_commit_safe_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84792,
           "after": 84816
         }
@@ -26931,11 +27690,15 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         },
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         }
@@ -26965,11 +27728,15 @@
       "members": [
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         },
         {
           "field": "live_config_version_",
+          "field_bytes": 8,
+          "interior_offset": 0,
           "before": 84528,
           "after": 84552
         }
@@ -27475,12 +28242,60 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with flipfix6, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<pthread_mutex_lock@plt>": -1,
       "<_ZSt20__throw_system_errori@plt>": -1,
       "<std::mutex::lock()>": 1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "flipfix6",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 70752,
+          "after": 70776
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 84632,
+          "after": 84656
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84488,
+          "after": 84512
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84564,
+          "after": 84588
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 67984,
+          "after": 68008
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84616,
+          "after": 84640
+        }
+      ],
+      "tables": []
     }
   },
   {
@@ -27520,12 +28335,60 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with flipfix6, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<pthread_mutex_lock@plt>": -1,
       "<_ZSt20__throw_system_errori@plt>": -1,
       "<std::mutex::lock()>": 1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "flipfix6",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 70752,
+          "after": 70776
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 84632,
+          "after": 84656
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84488,
+          "after": 84512
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84564,
+          "after": 84588
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 67984,
+          "after": 68008
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84616,
+          "after": 84640
+        }
+      ],
+      "tables": []
     }
   },
   {
@@ -27566,12 +28429,60 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with flipfix6, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<pthread_mutex_lock@plt>": -1,
       "<_ZSt20__throw_system_errori@plt>": -1,
       "<std::mutex::lock()>": 1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "flipfix6",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 70752,
+          "after": 70776
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 84632,
+          "after": 84656
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84488,
+          "after": 84512
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84564,
+          "after": 84588
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 67984,
+          "after": 68008
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84616,
+          "after": 84640
+        }
+      ],
+      "tables": []
     }
   },
   {
@@ -27934,7 +28845,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<pthread_mutex_lock@plt>": -1,
@@ -28064,7 +28975,7 @@
       "flipfix6",
       "persistfmt"
     ],
-    "reason": "Composition of flipfix6, persistfmt; residual instructions/layout require merit review. See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.",
+    "reason": "Compared with flipfix6, only independently verified Server member displacements differ. Instruction positions, lengths, opcodes and other operands match. The strict identity census retains this difference.",
     "static_call_site_delta_vs": "headline",
     "static_call_site_deltas": {
       "<pthread_mutex_lock@plt>": -1,
@@ -28075,6 +28986,54 @@
       "<_ZSt20__throw_system_errori@plt>": -1,
       "<std::bitset<128ul>::_M_check(unsigned long, char const*) const [clone .part.0]>": -1,
       "<std::unique_lock<std::mutex>::unlock()>": -1
+    },
+    "verified_displacement_or_table_only": {
+      "reference": "flipfix6",
+      "members": [
+        {
+          "field": "flip_stage_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 70752,
+          "after": 70776
+        },
+        {
+          "field": "climon_armed_",
+          "field_bytes": 4,
+          "interior_offset": 0,
+          "before": 84632,
+          "after": 84656
+        },
+        {
+          "field": "flipctl_",
+          "field_bytes": 1752,
+          "interior_offset": 48,
+          "before": 67984,
+          "after": 68008
+        },
+        {
+          "field": "live_clients_",
+          "field_bytes": 8,
+          "interior_offset": 0,
+          "before": 84488,
+          "after": 84512
+        },
+        {
+          "field": "client_cron_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84564,
+          "after": 84588
+        },
+        {
+          "field": "live_save_armed_",
+          "field_bytes": 1,
+          "interior_offset": 0,
+          "before": 84616,
+          "after": 84640
+        }
+      ],
+      "tables": []
     }
   },
   {

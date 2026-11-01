@@ -15,5 +15,7 @@ for namespace in ('tomo', 'tomo_db0'):
         else:
             rows[name]['fields'] = {field.name: field.bitpos // 8 for field in typ.fields()
                                    if field.name and hasattr(field, 'bitpos')}
+            rows[name]['field_bytes'] = {field.name: field.type.sizeof for field in typ.fields()
+                                       if field.name and hasattr(field, 'bitpos')}
     result[namespace] = rows
 print('WAVE13_LAYOUTS=' + json.dumps(result, sort_keys=True))

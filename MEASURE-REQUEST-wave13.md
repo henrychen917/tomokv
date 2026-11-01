@@ -83,7 +83,14 @@ db0 t_server 34177 → 34212; db0 AOF 39102 → 39117. Other budgets remain unch
 has 10,342 function groups: 9,038 equal headline, 1,021 changed groups equal an
 isolated lane POST, and 283 residual groups. Every changed group and its reason
 is listed in `docs/wave13/identity/changed-bodies.md`; every residual has exact
-instruction diffs against headline, flipfix6 and persistfmt. Of the 88 command
+instruction diffs against headline, flipfix6 and persistfmt. Independent field
+offsets/sizes and literal bytes explain 105 residual groups as displacement or
+switch-table-label changes; 178 retain other compiler/composition differences.
+Function snapshot save/load and AofManager::fail equal persistfmt in both
+namespaces; normal stream decoding equals it too. db0 stream decoding remains
+a compiler exception. The normal FLIP S2 helper differs from flipfix6 only in
+verified member displacements; its db0 body also changes compiler structure.
+Of the 88 command
 hot groups, 62 equal headline and four equal persistfmt. Of the remaining 22,
 ten differ only in verified Server member displacements, four only in compiler
 switch-table labels with identical complete table bytes, and eight are the
