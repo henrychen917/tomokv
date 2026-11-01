@@ -9,6 +9,8 @@ import json
 import os
 from pathlib import Path
 import re
+import select
+import time
 import traceback
 
 from authfix import Run, Server, clean
@@ -96,8 +98,97 @@ def errorstats(c, run, label):
     run.check(label + ' reset prefixes', fields(c, 'ERRORSTATS'), {})
 
 
+def hscan(c, run, label):
+    assert c.cmd('CONFIG', 'SET', 'hash-max-listpack-entries', 8) == b'OK'
+    a, b = 'scan:target', 'scan:source'
+    if not run.oracle:
+        names = [f'scan:{i}' for i in range(256)]
+        owners = c.cmd('DEBUG', 'SHARDS', *names)
+        a = names[0]
+        b = next(k for k, geo in zip(names, owners) if geo[1] != owners[0][1])
+        run.check(label + ' cross-owner rename', c.cmd('DEBUG', 'SHARDS', a, b),
+                  lambda rows: rows[0][1] != rows[1][1])
+    required = {f'f{i}'.encode() for i in range(8)}
+    for key, count in ((a, 8), (b, 64)):
+        args = [x for i in range(count) for x in (f'f{i}', str(i))]
+        assert c.cmd('HSET', key, *args) == count
+    assert c.cmd('OBJECT', 'ENCODING', a) == b'listpack'
+    assert c.cmd('OBJECT', 'ENCODING', b) == b'hashtable'
+    with run.server.client() as group:
+        held = False
+        try:
+            if not run.oracle:
+                assert c.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', 1) == b'OK'
+                held = True
+                from rootcompat_tracking.resp import encode
+                group.sock.sendall(encode('RENAME', b, a))
+                deadline = time.monotonic() + 5
+                while int(fields(c, 'STATS')[b'atomic_pending_entries']) < 2:
+                    assert time.monotonic() < deadline, 'rename never installed both entries'
+                    time.sleep(.005)
+                assert not select.select([group.sock], [], [], 0)[0], 'held rename already replied'
+            cursor, page = c.cmd('HSCAN', a, 0, 'COUNT', 1)
+            seen = set(page[::2])
+            run.check(label + ' compact predecessor returns all fields', sorted(seen), sorted(required))
+            if held:
+                assert c.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', 0) == b'OK'
+                held = False
+                assert group.read() == b'OK'
+            else:
+                assert c.cmd('RENAME', b, a) == b'OK'
+            assert c.cmd('OBJECT', 'ENCODING', a) == b'hashtable'
+            pages = 1
+            while int(cursor):
+                cursor, page = c.cmd('HSCAN', a, cursor, 'COUNT', 1)
+                seen.update(page[::2])
+                pages += 1
+                assert pages <= 1024, 'scan never terminated'
+            run.check(label + ' promotion preserves SCAN guarantee', sorted(required - seen), [])
+        finally:
+            if held:
+                c.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', 0)
+                group.read()
+
+
+def setpast(c, run, label):
+    from rootcompat_tracking.resp import Conn
+    assert c.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', 0) == b'OK'
+    sub = Conn(run.args.port)
+    try:
+        sub.send('PSUBSCRIBE', '__keyevent@0__:*')
+        assert sub.read()[0] == b'psubscribe'
+        # Every shard is visited: in fused mode this necessarily includes keys
+        # foreign to the connection's owner, where L4 prebuild is selected.
+        keys = ['past:0'] if run.oracle else []
+        if not run.oracle:
+            names = [f'past:{i}' for i in range(512)]
+            shards = c.cmd('DEBUG', 'SHARDS', *names)
+            chosen = {}
+            for key, (shard, _) in zip(names, shards):
+                chosen.setdefault(shard, key)
+            assert len(chosen) == 16, chosen
+            keys = list(chosen.values())
+        for key in keys:
+            for option in ('EXAT', 'PXAT'):
+                assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', '') == b'OK'
+                assert c.cmd('SET', key, 'old') == b'OK'
+                sub.poll_pushes(.01)
+                assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'E$gx') == b'OK'
+                run.check(label + ' elapsed large SET', c.cmd('SET', key, 'v' * 1024, option, 1), b'OK')
+                run.check(label + ' elapsed value absent', c.cmd('GET', key), None)
+                events = sub.read_frames_until_quiet(.04, 2)
+                actual = [(row[2], row[3]) for row in events]
+                run.check(label + f' {key} {option} ordered events', actual,
+                          [(b'__keyevent@0__:set', key.encode()),
+                           (b'__keyevent@0__:expire', key.encode()),
+                           (b'__keyevent@0__:expired', key.encode())])
+    finally:
+        sub.close()
+
+
 CASES = {'proc': proc, 'password': password, 'replication': replication,
-         'sort-acl': sort_acl, 'redact': redact, 'errorstats': errorstats}
+         'sort-acl': sort_acl, 'redact': redact, 'errorstats': errorstats,
+         'hscan': hscan, 'setpast': setpast}
 
 
 def main():
@@ -124,11 +215,14 @@ def main():
                     extra = ['--databases', str(databases), '--enable-debug-command', 'yes']
                     if not oracle:
                         extra += ['--net-io', engine]
+                        if a.case == 'hscan':
+                            extra += ['--atomic', '1', '--key-lb', '0', '--client-lb', '0']
                     conf = None
                     if a.case == 'password':
                         conf = run.conf(label, 'user embedded on ">a\\x00b" ~* +@all\n'
                                         'user leading on ">\\x00tail" ~* +@all\n')
                     server = Server(run, label, mode, conf, extra)
+                    run.server = server
                     if a.case == 'proc':
                         server.args[3:3] = ['env', 'LD_PRELOAD=' + str(Path('build/rootcompat/proc-fault.so').resolve())]
                     try:

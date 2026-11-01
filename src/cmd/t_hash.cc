@@ -1705,16 +1705,14 @@ uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
                          void* context, void (*visit)(void*, Slice, Slice)) {
     CollectionRef hash = as_hash(const_cast<KvObj*>(object));
     if (hash.encoding() == CollectionEncoding::Compact) {
-        uint64_t position = 0, sampled = 0;
+        // Like Redis's listpack scan, a compact immutable predecessor is one
+        // page. A positional cursor cannot survive promotion to a hash table.
         for (auto it = hash.begin(); it != hash.end(); ++it) {
             PairView pair;
             if (!decode_pair(*it, pair)) continue;
-            if (position++ < cursor) continue;
-            if (count && sampled >= count) { --position; break; }
-            ++sampled;
             visit(context, pair.field, pair.value);
         }
-        return position >= hash.entries() ? 0 : position;
+        return 0;
     }
     if (!count) {
         hash_fields(hash)->for_each([&](const HashFieldMap::Node& node) {

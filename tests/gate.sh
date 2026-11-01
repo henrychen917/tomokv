@@ -1189,7 +1189,7 @@ plan_jobs(){
     done; done; done; done
   done
   JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof)
-  for section in proc password replication sort-acl redact errorstats; do JOB_NAMES+=("rootcompat-$section"); done
+  for section in proc password replication sort-acl redact errorstats xsnotify tracking hscan setpast; do JOB_NAMES+=("rootcompat-$section"); done
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){
@@ -5642,14 +5642,15 @@ job_infofix_latency(){
 }
 
 job_rootcompat(){
-  local case=$1 label="rootcompat $1 vs Redis 7.4"
+  local case=$1 label="rootcompat $1 vs Redis 7.4" runner=tests/rootcompat.py
   row_begin "$label"
   mkdir -p "$PWD/build/rootcompat"
   if [ "$case" = proc ]; then
     taskset -c "$BUILD_CORES" cc -shared -fPIC tests/rootcompat_proc_fault.c -ldl \
       -o build/rootcompat/proc-fault.so || { bad "$label" "fault shim build failed"; return; }
   fi
-  py tests/rootcompat.py --case "$case" --binary "$CANDIDATE_BINARY" \
+  case "$case" in xsnotify|tracking) runner=tests/rootcompat_tracking/run.py;; esac
+  py "$runner" --case "$case" --binary "$CANDIDATE_BINARY" \
       --oracle "$REDIS74_ROOT/src/redis-server" --port "$PORT" --cores "$CORES" \
       --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/rootcompat.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/rootcompat.log and proof"
@@ -6336,7 +6337,7 @@ collect_job rlfix3_zc
 collect_job infofix_latency
 for CASE in missing docs loadaof; do collect_job "infofix_compat-$CASE"; done
 # rootcompat directed rows, before quick exit; EXPECT remains maintainer-owned.
-for CASE in proc password replication sort-acl redact errorstats; do collect_job "rootcompat-$CASE"; done
+for CASE in proc password replication sort-acl redact errorstats xsnotify tracking hscan setpast; do collect_job "rootcompat-$CASE"; done
 collect_job rlfix3_info
 
 collect_job acl_recheck
