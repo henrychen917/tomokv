@@ -1,0 +1,14 @@
+[
+  {
+    "mode": "1s",
+    "counts_and_exit_equal": true,
+    "event_data_equal": true,
+    "events": 69
+  },
+  {
+    "mode": "2s",
+    "counts_and_exit_equal": true,
+    "event_data_equal": true,
+    "events": 69
+  }
+]

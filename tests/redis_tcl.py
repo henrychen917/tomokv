@@ -211,24 +211,35 @@ MONITOR_ORDER_TEST = 'MONITOR log blocked command only once in tests/unit/intros
 # Redis); each gets one fresh-server retry and nothing else. Maintainer 2026-10-28.
 ORDER_TESTS = {
     'unit/introspection': MONITOR_ORDER_TEST,
-    'unit/type/list': 'BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl',
+    # The waker reply and another connection's EXEC do not order the blocked
+    # mover's completion. Both upstream assertions require that arrival order.
+    'unit/type/list': (
+        'BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl',
+        'PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl',
+    ),
     # REGISTER SLOWLOG-EXEC-BLOCKED-ORDER: BLPOP can retire before its waking EXEC.
     'unit/slowlog': 'SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl',
 }
 
-def retry_monitor_order(args, tree, unit, row, server_args):
+def retry_monitor_order(args, tree, unit, row, server_args, known_setup_errors=()):
     """One fresh-server retry for the named cross-connection ordering assertion of this file.
 
     Keep the failed receipt and never retry a file, timeout, missing assertion,
     setup failure, or another named failure. The exact upstream assertion must
     pass on its sole retry; it is not skipped or weakened.
     """
-    failures = [event for event in row['events'] if event['status'] == 'err']
-    name = ORDER_TESTS.get(unit)
-    if (name is None or row['error'] or not row['complete'] or
-            row['exit_code'] != 1 or row['failed'] != 1 or len(failures) != 1 or
-            failures[0]['test'] != name):
+    failures = [event for event in row['events'] if event['status'] == 'err'
+                and event['test'].split(' in tests/')[0]]
+    names = ORDER_TESTS.get(unit, ())
+    if isinstance(names, str):
+        names = (names,)
+    known = Counter({(k['command'], k['reply']): k['count'] for k in known_setup_errors})
+    if (not names or row['error'] or not row['complete'] or
+            row['exit_code'] != 1 or row['failed'] != 1 + sum(known.values()) or
+            setup_errors(row) != known or len(failures) != 1 or
+            failures[0]['test'] not in names):
         return row
+    name = failures[0]['test']
     folder = args.output / unit
     (folder / 'before-monitor-retry.json').write_text(json.dumps(row, indent=2) + '\n')
     child = copy.copy(args)
@@ -238,15 +249,15 @@ def retry_monitor_order(args, tree, unit, row, server_args):
     row['monitor_order_retry'] = dict(original_failure=failures[0],
         result=str(child.output / unit / 'result.json'), passed=False)
     try:
-        validate_passing(part, [name])
+        validate_passing(part, [name], known_setup_errors)
     except ValueError:
         return row
     row['monitor_order_retry']['passed'] = True
     row['events'] = [event for event in row['events'] if event is not failures[0]]
     row['events'] += [event for event in part['events'] if event['status'] == 'ok']
-    row['failed'] = 0
+    row['failed'] -= 1
     row['passed'] += 1
-    row['exit_code'] = 0
+    row['exit_code'] = 1 if known else 0
     row['seconds'] += part['seconds']
     return row
 
@@ -259,7 +270,7 @@ def run_manifest_file(args, tree, unit, spec, extra, server_args):
     require both runs' exact assertion inventory and completion evidence.
     """
     row=run_file(args,tree,unit,extra=extra,server_args=server_args)
-    row=retry_monitor_order(args,tree,unit,row,server_args)
+    row=retry_monitor_order(args,tree,unit,row,server_args,spec.get('known_setup_errors', ()))
     fresh=spec.get('fresh_tests', [])
     if not fresh:
         if 'monitor_order_retry' in row:

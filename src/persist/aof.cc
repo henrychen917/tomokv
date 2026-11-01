@@ -1008,6 +1008,14 @@ bool AofProducer::record_flush(int physical_db) {
                         nullptr, 0, nullptr, nullptr, nullptr);
 }
 
+bool AofProducer::record_group_flush(int physical_db) {
+    if (!enabled()) return true;
+    return active_group_ && record_group_bytes(*active_group_, AofRecordKind::GroupFlush,
+        physical_db >= 0 ? 1 : 0, 0,
+        Slice(nullptr, 0, physical_db >= 0 ? physical_db : 0), -1,
+        nullptr, nullptr, nullptr, 0);
+}
+
 bool AofProducer::record_database_map(const uint8_t* mapping) {
     if (!enabled()) return true;
     return record_bytes(AofRecordKind::DatabaseMap, 0, 0, Slice(), -1, 0,
@@ -3098,15 +3106,15 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
                                      payload_len, expire, group, next, error)) return nullptr;
             (void)type; (void)encoding; (void)key_len; (void)payload_len; (void)expire;
             if (kind < AofRecordKind::Put ||
-                kind > AofRecordKind::GroupDatabaseMap) {
+                kind > AofRecordKind::GroupFlush) {
                 error = "unknown AOF record kind";
                 return nullptr;
             }
             if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel ||
-                 kind == AofRecordKind::GroupDatabaseMap) && !group)
+                 kind == AofRecordKind::GroupDatabaseMap || kind == AofRecordKind::GroupFlush) && !group)
                 { error = "AOF group fragment has no ticket"; return nullptr; }
             if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel ||
-                 kind == AofRecordKind::GroupDatabaseMap) &&
+                 kind == AofRecordKind::GroupDatabaseMap || kind == AofRecordKind::GroupFlush) &&
                 !plan->committed_groups.count(group)) plan->groups_skipped++;
             plan->ticket_floor = std::max(plan->ticket_floor, group);
             plan->replayed_records++;
@@ -3280,7 +3288,8 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                 }
                 continue;
             }
-            if (kind == AofRecordKind::Flush) {
+            if (kind == AofRecordKind::GroupFlush && !plan.committed_groups.count(group)) continue;
+            if (kind == AofRecordKind::Flush || kind == AofRecordKind::GroupFlush) {
                 if (sources.legacy)
                     legacy_recovery_flush(shard, source, plan.shard_count, type == 1 ? key.ns : -1);
                 else if (type == 1) multidb_flush(shard, key.ns);

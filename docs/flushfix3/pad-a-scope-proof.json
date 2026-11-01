@@ -1,0 +1,6 @@
+{
+  "pad_receipt": "docs/flushfix3/pad-a.json",
+  "ordinary_scopes": 80,
+  "patched_functions_executed": false,
+  "reason": "All changed bytes lie inside four cold functions absent from every ordinary trace; all ELF addresses and all other bytes are identical."
+}

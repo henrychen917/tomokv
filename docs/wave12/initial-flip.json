@@ -1,0 +1,433 @@
+{
+  "binary_sha256": "72639fc8e9cdc538209e60b6e134eedd00a3e81bb90641036086ebf501c51fd8",
+  "runs": [
+    {
+      "case": "live-flip",
+      "databases": 16,
+      "command": [
+        "taskset",
+        "-c",
+        "88-95",
+        "python3",
+        "tests/flushfix2_siblings.py",
+        "--case",
+        "live-flip",
+        "--databases",
+        "16",
+        "--binary",
+        "/home/user/Projects/cx-wave12/build/wave12/tomokv-initial",
+        "--oracle",
+        "/home/user/Projects/redis/src/redis-server",
+        "--cores",
+        "72-79",
+        "--port",
+        "20040",
+        "--seconds",
+        "4",
+        "--output",
+        "/home/user/Projects/cx-wave12/build/flushfix2/siblings/wave12-initial-flip/live-flip-16",
+        "--modes",
+        "2s"
+      ],
+      "status": 0
+    },
+    {
+      "case": "live-flip",
+      "databases": 1,
+      "command": [
+        "taskset",
+        "-c",
+        "88-95",
+        "python3",
+        "tests/flushfix2_siblings.py",
+        "--case",
+        "live-flip",
+        "--databases",
+        "1",
+        "--binary",
+        "/home/user/Projects/cx-wave12/build/wave12/tomokv-initial",
+        "--oracle",
+        "/home/user/Projects/redis/src/redis-server",
+        "--cores",
+        "72-79",
+        "--port",
+        "20040",
+        "--seconds",
+        "4",
+        "--output",
+        "/home/user/Projects/cx-wave12/build/flushfix2/siblings/wave12-initial-flip/live-flip-1",
+        "--modes",
+        "2s"
+      ],
+      "status": 0
+    }
+  ],
+  "observations": [],
+  "status": "initial merged binary; final optimized binary will be rerun",
+  "results": {
+    "16": [
+      {
+        "case": "live-flip",
+        "leg": "redis-redis-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 68110,
+          "work": 0,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 68110,
+              "work": 0,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.142
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 25060,
+          "work": 0,
+          "saves": 0,
+          "flips": 25216,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 25060,
+              "work": 0,
+              "saves": 0,
+              "flips": 25216,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.06
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 25607,
+          "work": 0,
+          "saves": 0,
+          "flips": 25768,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 25607,
+              "work": 0,
+              "saves": 0,
+              "flips": 25768,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.068
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 29766,
+          "work": 0,
+          "saves": 0,
+          "flips": 29703,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 29766,
+              "work": 0,
+              "saves": 0,
+              "flips": 29703,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.141
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30296,
+          "work": 0,
+          "saves": 0,
+          "flips": 30373,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30296,
+              "work": 0,
+              "saves": 0,
+              "flips": 30373,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.091
+      }
+    ],
+    "1": [
+      {
+        "case": "live-flip",
+        "leg": "redis-redis-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 68102,
+          "work": 0,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 68102,
+              "work": 0,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.142
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 24237,
+          "work": 0,
+          "saves": 0,
+          "flips": 24370,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 24237,
+              "work": 0,
+              "saves": 0,
+              "flips": 24370,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.06
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 26787,
+          "work": 0,
+          "saves": 0,
+          "flips": 26923,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 26787,
+              "work": 0,
+              "saves": 0,
+              "flips": 26923,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.086
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30569,
+          "work": 0,
+          "saves": 0,
+          "flips": 30570,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30569,
+              "work": 0,
+              "saves": 0,
+              "flips": 30570,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.112
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30373,
+          "work": 0,
+          "saves": 0,
+          "flips": 30331,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30373,
+              "work": 0,
+              "saves": 0,
+              "flips": 30331,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.058
+      }
+    ]
+  }
+}

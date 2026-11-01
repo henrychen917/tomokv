@@ -16,7 +16,7 @@ import traceback
 
 import snapfix as s
 import snapfix2_flush as original
-from _lib import Conn, encode
+from _lib import Conn, RespError, encode
 
 
 def falsify(b, args):
@@ -38,9 +38,17 @@ def falsify(b, args):
             db = 7 if args.command == 'FLUSHDB' and args.databases > 1 else 0
             script.must('SELECT', db)
             flush.must('SELECT', db)
+            # Wave12: the range/OCC witness must also cover scriptfix3's warm
+            # metadata and persistent interpreter. Compile on this connection,
+            # reuse its SHA, then restore the original fixture before pinning.
+            sha = script.must('SCRIPT', 'LOAD', s.WRITE)
+            assert script.must('EVALSHA', sha, 2, *pair) == [6, 6]
+            assert script.must('EVALSHA', sha, 2, *pair) == [7, 7]
+            c.must('MSET', pair[0], 5, pair[1], 5)
+            before = s.stats(c)
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 500000)
             c.must('DEBUG', 'SCRIPT-STAGE-WATCH', script.must('CLIENT', 'ID'))
-            script.raw(encode('EVAL', s.WRITE, 2, *pair))
+            script.raw(encode('EVALSHA', sha, 2, *pair))
             s.wait(lambda: s.stats(c)['script_stage_watch_tasks'] > 0, 'script never gathered', args.stall)
             flush.raw(encode(args.command, args.flush_mode))
             s.wait(lambda: s.stats(c).get('atomic_flush_units', 0) > before.get('atomic_flush_units', 0),
@@ -49,15 +57,26 @@ def falsify(b, args):
             # cut. A separate key avoids legitimately aborting the script here.
             key = f'flushfix2:post:{attempt}'
             assert c.must('GET', key) is None
+            # The old script cut keeps the FLUSH range resident across both
+            # CONFIG barriers. All three memory-family values must apply on
+            # the owners before the following admission decision.
+            c.must('CONFIG', 'SET', 'maxmemory', 1,
+                   'maxmemory-policy', 'noeviction', 'maxmemory-samples', 7)
+            denied = c.cmd('SET', key, 'must-not-exist')
+            assert isinstance(denied, RespError) and denied.message.startswith(b'OOM'), denied
+            c.must('CONFIG', 'SET', 'maxmemory', 0,
+                   'maxmemory-policy', 'allkeys-lru', 'maxmemory-samples', 9)
             assert c.must('SET', key, 'post') == b'OK'
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 0)
             reply = script.read()
             assert reply in ([1, 1], [6, 6]), reply
             assert flush.read() == b'OK'
+            c.must('CONFIG', 'SET', 'maxmemory-policy', 'noeviction', 'maxmemory-samples', 5)
             after = s.stats(c)
             delta = {k: after.get(k, 0) - before.get(k, 0) for k in (
                 'atomic_flush_units', 'atomic_flush_range_reads', 'atomic_flush_post_versions',
-                'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses')}
+                'atomic_flush_script_conflicts', 'atomic_flush_slow_collapses',
+                'script_chunk_cache_hits')}
             history.append(dict(delta, script_reply=reply))
             if all(delta[k] > 0 for k in delta):
                 assert reply == [1, 1], 'OCC retry used the pre-flush script image'
@@ -185,7 +204,9 @@ def main():
     p.add_argument('--fresh-attempts', type=int, default=1,
                    help='bounded fresh boots after a clean observation (PRE reproduction only)')
     args = p.parse_args()
-    assert 20100 <= args.port < 20199
+    # Gate slots may be allocated to another integration lane. Keep both the
+    # candidate and its adjacent oracle below the ephemeral-port boundary.
+    assert 1024 <= args.port < 32767
     assert 1 <= args.fresh_attempts <= 8
     assert args.fresh_attempts == 1 or not args.require_counters
     os.environ['LC_ALL'] = 'C'

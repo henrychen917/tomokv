@@ -304,6 +304,7 @@ static_assert(sizeof(ReadLocalThreadState) == 376,
 
 class ThreadCtx {
     friend struct FlipListenerState;
+    friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
 public:
     using RolePrepareFn = bool (*)(void*);
     using RoleCancelFn = void (*)(void*);

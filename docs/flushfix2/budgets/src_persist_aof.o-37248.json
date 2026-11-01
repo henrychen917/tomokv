@@ -1,0 +1,39 @@
+{
+  "unit": "src/persist/aof.o",
+  "budget": "37248",
+  "old_budget": 37173,
+  "initial": 30439,
+  "changed": [
+    "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+    "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)"
+  ],
+  "total": 9,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=37173",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/persist/aof.cc",
+    "-o",
+    "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_persist_aof.o-37248.o",
+    "--param",
+    "large-unit-insns=37248",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_persist_aof.o-37248.inline"
+  ],
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+}

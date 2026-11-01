@@ -63,6 +63,7 @@
 #include "blocking.inc"
 #include "multi.inc"
 #include "watch_modified.inc"
+#include "flush.inc"
 #include "txn_group.inc"
 #include "script_escalation.inc"
 #include "auth.inc"

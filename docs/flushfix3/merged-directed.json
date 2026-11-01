@@ -1,0 +1,184 @@
+{
+  "log": {
+    "path": "build/flushfix3/merged-directed.log",
+    "sha256": "d306bd4015806bca4c9c0ee09bce5d6e53140a00a1f42ff5c77acadca36aaa9c"
+  },
+  "root": "build/gate-run.HWTk04",
+  "jobs": [
+    {
+      "name": "release",
+      "done": [
+        "0",
+        "1",
+        "0"
+      ],
+      "ledger": {
+        "path": "build/gate-run.HWTk04/jobs/release/ledger",
+        "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+      },
+      "rows": [
+        {
+          "job": "release",
+          "label": "release build (+footprint locks)",
+          "verdict": "ok",
+          "seconds": 0.01
+        }
+      ]
+    },
+    {
+      "name": "flushfix3",
+      "done": [
+        "0",
+        "2",
+        "0"
+      ],
+      "ledger": {
+        "path": "build/gate-run.HWTk04/jobs/flushfix3/ledger",
+        "sha256": "39956139c76f0d84f0ef1a99f5ba71488b4ded07862e66ad0a27c3f316ff2fc2"
+      },
+      "rows": [
+        {
+          "job": "flushfix3",
+          "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 16)",
+          "verdict": "ok",
+          "seconds": 46.72
+        },
+        {
+          "job": "flushfix3",
+          "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 1)",
+          "verdict": "ok",
+          "seconds": 45.86
+        }
+      ]
+    },
+    {
+      "name": "flushfix2",
+      "done": [
+        "0",
+        "14",
+        "0"
+      ],
+      "ledger": {
+        "path": "build/gate-run.HWTk04/jobs/flushfix2/ledger",
+        "sha256": "7c6ac6b1fbc592c33bd52bb52bc2cce29084f2f9c53a11579c81dd626d19faec"
+      },
+      "rows": [
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 flush-pair FLUSHALL SYNC (databases 16)",
+          "verdict": "ok",
+          "seconds": 62.47
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 flush-pair FLUSHALL SYNC (databases 1)",
+          "verdict": "ok",
+          "seconds": 62.55
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 flush-script FLUSHALL SYNC (databases 16)",
+          "verdict": "ok",
+          "seconds": 62.78
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 flush-script FLUSHALL SYNC (databases 1)",
+          "verdict": "ok",
+          "seconds": 62.71
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 flush-only FLUSHALL SYNC (databases 16)",
+          "verdict": "ok",
+          "seconds": 62.46
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 flush-only FLUSHALL SYNC (databases 1)",
+          "verdict": "ok",
+          "seconds": 62.46
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHALL SYNC (databases 16)",
+          "verdict": "ok",
+          "seconds": 62.48
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHALL ASYNC (databases 16)",
+          "verdict": "ok",
+          "seconds": 62.48
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHDB SYNC (databases 16)",
+          "verdict": "ok",
+          "seconds": 62.48
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHDB ASYNC (databases 16)",
+          "verdict": "ok",
+          "seconds": 62.48
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHALL SYNC (databases 1)",
+          "verdict": "ok",
+          "seconds": 62.48
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHALL ASYNC (databases 1)",
+          "verdict": "ok",
+          "seconds": 62.48
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHDB SYNC (databases 1)",
+          "verdict": "ok",
+          "seconds": 62.48
+        },
+        {
+          "job": "flushfix2",
+          "label": "flushfix2 namespace FLUSHDB ASYNC (databases 1)",
+          "verdict": "ok",
+          "seconds": 62.48
+        }
+      ]
+    },
+    {
+      "name": "flushfix2_units",
+      "done": [
+        "0",
+        "2",
+        "0"
+      ],
+      "ledger": {
+        "path": "build/gate-run.HWTk04/jobs/flushfix2_units/ledger",
+        "sha256": "07afafeeae3ceeb1fe00ddc8ccb08ca1cf645ee75fac6b4ff445774ce265d657"
+      },
+      "rows": [
+        {
+          "job": "flushfix2_units",
+          "label": "flushfix2-unit ranges and rollback",
+          "verdict": "ok",
+          "seconds": 0.04
+        },
+        {
+          "job": "flushfix2_units",
+          "label": "flushfix2-db0-unit ranges and rollback",
+          "verdict": "ok",
+          "seconds": 0.05
+        }
+      ]
+    }
+  ],
+  "omitted_unfinished_jobs": [],
+  "scored_rows": 19,
+  "verdicts": {
+    "ok": 19
+  }
+}

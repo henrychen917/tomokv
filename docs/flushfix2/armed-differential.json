@@ -1,0 +1,122 @@
+[
+  {
+    "phase": "differ-armed-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "0-7",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-flushfix2/build/flushfix2/post-v2/tomokv",
+      "20180",
+      "20181",
+      "8-15",
+      "6:2"
+    ],
+    "status": 0,
+    "environment": {
+      "LC_ALL": "C",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_LOAD_CORES": "0-7",
+      "GATE_DIFFER_ORACLE_CORES": "8-15",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-flushfix2/build/flushfix2/verification/final-v2/differ-armed-uring"
+    },
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "passed": 466,
+    "failed": 0,
+    "log": "build/flushfix2/verification/final-v2/differ-armed-uring.log",
+    "log_sha256": "b45e615985f6f82db5f81d0c0aa0199d0ad15e463efd27d130ca565022c3ccf3",
+    "seeds": {
+      "run": "/home/user/Projects/cx-flushfix2/build/flushfix2/verification/final-v2/differ-armed-uring",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "rotating": 22,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "history": "/home/user/Projects/cx-flushfix2/.gate-history/differ"
+    },
+    "mechanisms": [
+      "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+      "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=18 final_fallbacks=242)"
+    ],
+    "coverage": [
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2098739 recorded comparison witnesses, 464 legs)"
+    ]
+  },
+  {
+    "phase": "differ-armed-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "0-7",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-flushfix2/build/flushfix2/post-v2/tomokv",
+      "20180",
+      "20181",
+      "8-15",
+      "6:2"
+    ],
+    "status": 0,
+    "environment": {
+      "LC_ALL": "C",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_LOAD_CORES": "0-7",
+      "GATE_DIFFER_ORACLE_CORES": "8-15",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-flushfix2/build/flushfix2/verification/final-v2/differ-armed-epoll"
+    },
+    "binary_sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "passed": 466,
+    "failed": 0,
+    "log": "build/flushfix2/verification/final-v2/differ-armed-epoll.log",
+    "log_sha256": "08a5e00e363a29c00fae45fa3b76ec7dc43a0f18469a20867ef5f5e7533c0578",
+    "seeds": {
+      "run": "/home/user/Projects/cx-flushfix2/build/flushfix2/verification/final-v2/differ-armed-epoll",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "rotating": 24,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24
+      ],
+      "history": "/home/user/Projects/cx-flushfix2/.gate-history/differ"
+    },
+    "mechanisms": [
+      "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+      "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=21 final_fallbacks=239)"
+    ],
+    "coverage": [
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2099502 recorded comparison witnesses, 464 legs)"
+    ]
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "copy": "/home/user/Projects/cx-wave12/build/wave12/landing-selftest-final-source",
+  "commit": "ea097fcd0ffb3481f90efeb2abc6fd99efa2f9d5",
+  "tracked_files": 126798,
+  "archive_sha256": "c055c333568362e76bf330685b686b2d2c9c9467e1d04a1b11cfd0e454051a3f",
+  "only_tracked_file_differences": [
+    "tests/gate.sh"
+  ],
+  "root_expect": [
+    "EXPECT_QUICK=977",
+    "EXPECT_FULL=994"
+  ],
+  "copy_expect": [
+    "EXPECT_QUICK=999",
+    "EXPECT_FULL=1016"
+  ],
+  "root_gate_sha256": "1c16b1f11774bdc0aa3033e031627b3f6cdf2112d2e01426e0813500e5bdb8d2",
+  "copy_gate_sha256": "ee7b4cde09936d6d6d61509b13fcc57505b944566a466371a0016285428fa604",
+  "landing_fixture_sha256": "a6132de50c96eedbfd7242400665a7893895f950f8e3345c845223f441ae5e87",
+  "tracked_fixture_sha256": "a6132de50c96eedbfd7242400665a7893895f950f8e3345c845223f441ae5e87",
+  "passed": true
+}

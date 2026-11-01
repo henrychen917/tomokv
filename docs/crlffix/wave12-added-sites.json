@@ -1,0 +1,22 @@
+[
+  {
+    "file": "src/cmd/flush.inc",
+    "line": 39,
+    "expression": "        set_oom(op);"
+  },
+  {
+    "file": "src/cmd/flush.inc",
+    "line": 67,
+    "expression": "        set_oom(op);"
+  },
+  {
+    "file": "src/cmd/scatter_engine.inc",
+    "line": 4332,
+    "expression": "                reply_ok(op.sink());"
+  },
+  {
+    "file": "src/cmd/tracking.cc",
+    "line": 53,
+    "expression": "        return !op.reply_skip() && (op.argc() < 2 || !op.arg(1).eq_icase(\"async\"));"
+  }
+]

@@ -1,0 +1,76 @@
+[
+  {
+    "path": "build/flushfix3/f2-original",
+    "reason": "Superseded/control or finite-scope artifacts; hashes, commands and all counts retained in docs/flushfix3",
+    "images": [
+      {
+        "path": "build/flushfix3/f2-original/tomokv",
+        "sha256": "49e6a2ae691db14b20d7b989cdbfa2b915186e828e7fec682c8c25377e277be4"
+      }
+    ]
+  },
+  {
+    "path": "build/flushfix3/idle-fix",
+    "reason": "Superseded/control or finite-scope artifacts; hashes, commands and all counts retained in docs/flushfix3",
+    "images": [
+      {
+        "path": "build/flushfix3/idle-fix/tomokv",
+        "sha256": "689a5781a9386363b288d59326d5d31fb0a1df13fef81db8953375107e0fdfcf"
+      }
+    ]
+  },
+  {
+    "path": "build/flushfix3/counts",
+    "reason": "Superseded/control or finite-scope artifacts; hashes, commands and all counts retained in docs/flushfix3",
+    "images": [
+      {
+        "path": "build/flushfix3/counts/step",
+        "sha256": "727d1079c875eed8d76907425b1286f3e99673696810ff2f32472058f0a9ddd9"
+      },
+      {
+        "path": "build/flushfix3/counts/post-normal/probe",
+        "sha256": "f9d7892eeee4464cd1161a8eebd88fb793ffc442dc6c0007a460247d58fafb22"
+      },
+      {
+        "path": "build/flushfix3/counts/post-db0/probe",
+        "sha256": "b7b9af6e9929f939351285f446a29a19c7af4ed30fcbf51cdff1852f16c1c018"
+      },
+      {
+        "path": "build/flushfix3/counts/f2-normal/probe",
+        "sha256": "53ef845498ca39fc5d923c58b724c669c5e7d6ada0affa056eb7f8fde033d11e"
+      },
+      {
+        "path": "build/flushfix3/counts/f2-db0/probe",
+        "sha256": "99a3887fe6b142d2643011d6f593cc757eec6fb36aaeb9ef52daabcd0064e8ce"
+      },
+      {
+        "path": "build/flushfix3/counts/pre-db0/probe",
+        "sha256": "4dd70f5a1d38c3cec92f3c9d1cfe3296443579a6892f126c4b8766db61991406"
+      },
+      {
+        "path": "build/flushfix3/counts/pre-normal/probe",
+        "sha256": "521f9370e542ebb7b0231e78903129f1b25452851771ed939a7b9cd92875de5e"
+      }
+    ]
+  },
+  {
+    "path": "build/flushfix3/budget-counts",
+    "reason": "Superseded/control or finite-scope artifacts; hashes, commands and all counts retained in docs/flushfix3",
+    "images": [
+      {
+        "path": "build/flushfix3/budget-counts/step",
+        "sha256": "727d1079c875eed8d76907425b1286f3e99673696810ff2f32472058f0a9ddd9"
+      },
+      {
+        "path": "build/flushfix3/budget-counts/156000:14-normal/probe",
+        "sha256": "f42f2d6b730612a7cd238712c591c21249163682f74f4615e463080938f8e19e"
+      }
+    ]
+  },
+  {
+    "path": "build/flushfix3/pre-source",
+    "source": "e2b237926",
+    "reason": "Exact headline source and object tree; delivery PRE and scope receipts retained",
+    "source_diff_clean": true
+  }
+]

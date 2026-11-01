@@ -1,0 +1,38 @@
+{
+  "arms": [
+    {
+      "arm": "pre",
+      "path": "build/flushfix3/pre/tomokv",
+      "sha256": "0c9e431af327cddb0113d7a504591cf38ea895893ecacf7419f6c5328ae70d5e",
+      "bytes": 223180320
+    },
+    {
+      "arm": "f2",
+      "path": "build/flushfix3/f2/tomokv",
+      "sha256": "de33a1e3d60f876f29a20b0ebacf3a8e9a45fb41146d71c8cebba8ad8fa4cb03",
+      "bytes": 225558000
+    },
+    {
+      "arm": "post",
+      "path": "build/flushfix3/post/tomokv",
+      "sha256": "a9469f15f28a374f456f7e431c309a70fb32487293e84033d3895a9274d0427a",
+      "bytes": 225657456
+    },
+    {
+      "arm": "pad-a",
+      "path": "build/flushfix3/pad-a/tomokv",
+      "sha256": "c6f9664b2a96a5fcf55e2b635dd14bf9492d7c885a0c42ce43af69b16dba0f02",
+      "bytes": 225657456
+    }
+  ],
+  "production_source_commit": "a9e45b822",
+  "production_source_unchanged": true,
+  "expect_constants_unchanged": true,
+  "expect_constants": {
+    "EXPECT_QUICK": 946,
+    "EXPECT_FULL": 963
+  },
+  "build_bytes": 22948912910,
+  "make_all_log": "build/flushfix3/final-make-all.log",
+  "make_all_log_sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99"
+}

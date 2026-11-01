@@ -75,10 +75,10 @@ def declarations(source):
                 words = shlex.split(piece)
                 require(len(words) >= 2, f"missing gate label: {piece}")
                 nodes.append((words[0], words[1]))
-            elif piece.startswith("IFS=- read -r "):
-                match = re.fullmatch(r'IFS=- read -r (.*?) <<< "(.*?)"', piece)
+            elif re.match(r"IFS=[-:] read -r ", piece):
+                match = re.fullmatch(r'IFS=([-:]) read -r (.*?) <<< "(.*?)"', piece)
                 require(match is not None, f"unsupported gate label split: {piece}")
-                nodes.append(("split", match[1].split(), match[2]))
+                nodes.append(("split", match[2].split(), match[3], match[1]))
             elif re.match(r"(?:local )?\w+=", piece):
                 # Ignore irrelevant executable values. If a label uses one, expand
                 # refuses its unavailable binding instead of inventing a value.
@@ -115,8 +115,8 @@ def evaluate(nodes, values, collect):
             except ValueError:
                 values[args[0]] = None
         elif kind == "split":
-            names, expression = args
-            parts = expand(expression, values).split("-", len(names) - 1)
+            names, expression, separator = args
+            parts = expand(expression, values).split(separator, len(names) - 1)
             require(len(parts) == len(names), f"gate label split changed: {expression}")
             values.update(zip(names, parts))
         elif kind == "collect_job":
@@ -218,6 +218,18 @@ class FixtureControls(unittest.TestCase):
     def test_current_inventory_and_duplicate_occurrences(self):
         self.assertEqual(check(self.gate, self.labels), self.labels)
         self.assertGreater(Counter(self.labels)["AOF writer fired (records=N)"], 1)
+
+    def test_flush_declared_product_preserves_every_actual_leg(self):
+        expected = []
+        for databases in (16, 1):
+            for case in ('flush-pair', 'flush-script', 'flush-only'):
+                expected.append(f'flushfix2 {case} FLUSHALL SYNC (databases {databases})')
+            for command in ('FLUSHALL', 'FLUSHDB'):
+                for mode in ('SYNC', 'ASYNC'):
+                    expected.append(f'flushfix2 namespace {command} {mode} (databases {databases})')
+        actual = [label for label in source_labels(self.gate) if label.startswith('flushfix2 ')]
+        self.assertEqual(Counter(actual), Counter(expected))
+        self.assertEqual(len(actual), 14)
 
     def test_stale_wbland_fixture_names_both_missing_labels(self):
         missing = [f"writeback policy {group} witnesses + negative controls" for group in ("clauses", "paths")]

@@ -2,6 +2,7 @@
 // io_uring queues, worker loops, wall-time measurements or sleeps.
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
 #include "src/cmd/xshard.cc"
+#include "flushfix2_fixture.h"
 #include "src/cmd/cmdmeta.h"
 #include <cstdio>
 #include <cstdlib>
@@ -81,7 +82,7 @@ std::string run(Server& server, unsigned db, std::initializer_list<std::string> 
                     if (result == ScatterTaskResult::Retry) { parked[owner] = true; continue; }
                     if (result == ScatterTaskResult::Defer) continue;
                     completed[i] = true;
-                    const auto finish = xshard_multi_child_complete(state, r.op, owner);
+                    const auto finish = flushfix2_fixture_complete(server, client, state, r.op, owner, sid);
                     final = finish == MultiChildFinish::Final;
                     advanced = finish == MultiChildFinish::PhaseAdvanced;
                 }
@@ -89,7 +90,8 @@ std::string run(Server& server, unsigned db, std::initializer_list<std::string> 
             require(final || advanced, "bounded scatter progress");
         }
         require(final, "scatter finished");
-        if (state.atomic_group && !state.aborted.load()) state.epoch.store(server.atomic_commit());
+        if (state.atomic_group && !state.aborted.load() && state.kind != Kind::Flush)
+            state.epoch.store(server.atomic_commit());
         assemble_final(client, r.op, state, nullptr, nullptr, nullptr);
         for (unsigned sid = 0; sid < server.nshards(); ++sid) {
             auto& shard = server.shard(sid);

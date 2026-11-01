@@ -1,0 +1,432 @@
+{
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "runs": [
+    {
+      "case": "live-flip",
+      "databases": 16,
+      "command": [
+        "taskset",
+        "-c",
+        "88-95",
+        "python3",
+        "tests/flushfix2_siblings.py",
+        "--case",
+        "live-flip",
+        "--databases",
+        "16",
+        "--binary",
+        "/home/user/Projects/cx-wave12/build/wave12/tomokv-POST",
+        "--oracle",
+        "/home/user/Projects/redis/src/redis-server",
+        "--cores",
+        "64-71",
+        "--port",
+        "20040",
+        "--seconds",
+        "4",
+        "--output",
+        "/home/user/Projects/cx-wave12/build/flushfix2/siblings/wave12-final-flip/live-flip-16",
+        "--modes",
+        "2s"
+      ],
+      "status": 0
+    },
+    {
+      "case": "live-flip",
+      "databases": 1,
+      "command": [
+        "taskset",
+        "-c",
+        "88-95",
+        "python3",
+        "tests/flushfix2_siblings.py",
+        "--case",
+        "live-flip",
+        "--databases",
+        "1",
+        "--binary",
+        "/home/user/Projects/cx-wave12/build/wave12/tomokv-POST",
+        "--oracle",
+        "/home/user/Projects/redis/src/redis-server",
+        "--cores",
+        "64-71",
+        "--port",
+        "20040",
+        "--seconds",
+        "4",
+        "--output",
+        "/home/user/Projects/cx-wave12/build/flushfix2/siblings/wave12-final-flip/live-flip-1",
+        "--modes",
+        "2s"
+      ],
+      "status": 0
+    }
+  ],
+  "results": {
+    "1": [
+      {
+        "case": "live-flip",
+        "leg": "redis-redis-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 68752,
+          "work": 0,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 68752,
+              "work": 0,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.141
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30315,
+          "work": 0,
+          "saves": 0,
+          "flips": 30451,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30315,
+              "work": 0,
+              "saves": 0,
+              "flips": 30451,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.09
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30175,
+          "work": 0,
+          "saves": 0,
+          "flips": 30324,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30175,
+              "work": 0,
+              "saves": 0,
+              "flips": 30324,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.058
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-0",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30645,
+          "work": 0,
+          "saves": 0,
+          "flips": 30646,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30645,
+              "work": 0,
+              "saves": 0,
+              "flips": 30646,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.073
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-1",
+        "databases": 1,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 31009,
+          "work": 0,
+          "saves": 0,
+          "flips": 31010,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 31009,
+              "work": 0,
+              "saves": 0,
+              "flips": 31010,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.058
+      }
+    ],
+    "16": [
+      {
+        "case": "live-flip",
+        "leg": "redis-redis-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 68511,
+          "work": 0,
+          "saves": 0,
+          "flips": 0,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 68511,
+              "work": 0,
+              "saves": 0,
+              "flips": 0,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.141
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 29869,
+          "work": 0,
+          "saves": 0,
+          "flips": 30041,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 29869,
+              "work": 0,
+              "saves": 0,
+              "flips": 30041,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.058
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-uring-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 29498,
+          "work": 0,
+          "saves": 0,
+          "flips": 29677,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 29498,
+              "work": 0,
+              "saves": 0,
+              "flips": 29677,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.076
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-0",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 30559,
+          "work": 0,
+          "saves": 0,
+          "flips": 30560,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 30559,
+              "work": 0,
+              "saves": 0,
+              "flips": 30560,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.071
+      },
+      {
+        "case": "live-flip",
+        "leg": "2s-epoll-1",
+        "databases": 16,
+        "command": "FLUSHALL",
+        "flush_mode": "SYNC",
+        "value": {
+          "flushes": 29811,
+          "work": 0,
+          "saves": 0,
+          "flips": 29814,
+          "flip_refusals": 0,
+          "cancelled_saves": 0,
+          "snapshots_checked": 0,
+          "aof_sentinels": 0,
+          "aof_namespaces": 0
+        },
+        "pass": true,
+        "attempts": [
+          {
+            "value": {
+              "flushes": 29811,
+              "work": 0,
+              "saves": 0,
+              "flips": 29814,
+              "flip_refusals": 0,
+              "cancelled_saves": 0,
+              "snapshots_checked": 0,
+              "aof_sentinels": 0,
+              "aof_namespaces": 0
+            },
+            "passed": true
+          }
+        ],
+        "seconds": 4.058
+      }
+    ]
+  },
+  "status": "PASS: all eight target legs and both oracle legs; positive FLUSH/FLIP witnesses"
+}

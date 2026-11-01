@@ -1,0 +1,30 @@
+{
+  "removed": [
+    {
+      "path": "build/trackorder/pre-source/build",
+      "binary_sha256": "245067aea485496de700385eebf6a7a618dc9f52c2900dd745652dbc1414bbc9",
+      "reason": "completed headline text identity and command counts; reproducible from e32b04a44"
+    },
+    {
+      "path": "build/trackorder/counts/command-post-db0",
+      "reason": "completed serverless scopes; source, argv, hashes and per-function counts retained"
+    },
+    {
+      "path": "build/trackorder/counts/command-pre-db0",
+      "reason": "completed serverless scopes; source, argv, hashes and per-function counts retained"
+    },
+    {
+      "path": "build/trackorder/counts/command-post-normal",
+      "reason": "completed serverless scopes; source, argv, hashes and per-function counts retained"
+    },
+    {
+      "path": "build/trackorder/counts/command-pre-normal",
+      "reason": "completed serverless scopes; source, argv, hashes and per-function counts retained"
+    }
+  ],
+  "retained_merit_arms": [
+    "build/tomokv-PRE",
+    "build/tomokv-POST",
+    "build/tomokv-PAD-A"
+  ]
+}

@@ -116,7 +116,7 @@ def server(args):
            "--appendonly", "no", "--dir", str(directory)]
     if args.engine == "tomo":
         cmd += ["--databases", "1", "--shards", "16", "--thread-mode", args.mode, "--read-local", str(args.read_local),
-                "--flip-auto", "0", "--atomic", str(args.atomic),
+                "--flip-auto", "0", "--atomic", str(args.atomic), "--net-io", args.net_io,
                 "--enable-debug-command", "yes"]
         if args.mode == "2s":
             cmd += ["--ratio", "6:2"]
@@ -366,6 +366,7 @@ def main():
     ap.add_argument("--mode", choices=("1s", "2s"), required=True)
     ap.add_argument("--engine", choices=("tomo", "redis"), default="tomo")
     ap.add_argument("--atomic", type=int, choices=(0, 1), default=0)
+    ap.add_argument("--net-io", choices=("uring", "epoll"), default="uring")
     ap.add_argument("--read-local", type=int, choices=(0, 1), default=0)
     ap.add_argument("--single-state", action="store_true")
     ap.add_argument("--output", default="build/scriptfix/runtime")

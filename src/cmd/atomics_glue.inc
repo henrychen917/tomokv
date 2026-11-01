@@ -608,10 +608,12 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
     Op& op = task.client->rob().at(task.op_id);
     auto prepare_group = [&](Shard& owner, ShardGroup& group) {
         if (!owner.store().snapshot_active()) return FlatStore::SnapshotWriteResult::Ready;
-        if (state.phase == 1 &&
+        if ((state.phase == 1 || state.kind == Kind::Flush) &&
             !(state.kind == Kind::Mset || state.kind == Kind::Del || state.kind == Kind::Unlink ||
               (state.atomic_write && state.kind == Kind::Msetnx))) {
-            if (state.kind == Kind::AllShards && (op.spec->flags & CmdFlags::Write)) {
+            if ((state.kind == Kind::AllShards ||
+                 (state.kind == Kind::Flush && state.phase == 2)) &&
+                (op.spec->flags & CmdFlags::Write)) {
                 try {
                     if (!group.aux) group.aux = new GroupAux;
                     if (!group.aux->flush_keys_built) {

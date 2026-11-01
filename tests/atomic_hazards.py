@@ -19,6 +19,9 @@ S1  FLUSH READ-CUT LEAK.  FlatStore::atomic_tombstone_all (FLUSHDB/FLUSHALL/DEBU
     the read carried conn 0, so own_committed could not rescue it.
     Needs the first MSET's records to survive to the FLUSH, which cleanup normally reclaims within
     a pass; the floor is therefore pinned by a parked cross-shard MGET on a second connection.
+    Range FLUSH retains the floor through collapse and replies afterwards. Its arm instead runs
+    the post-decision MSET/RENAME/GET on another connection while both the pin and FLUSH remain
+    unfinished, then checks the old reader's intact image and the completed flush.
 
 S2  XREAD TOUCHES NO KEY.  for_each_touched_key (atomics_glue.inc) handed the positional key table
     xread_count == 0, so a localfast XREAD/XREADGROUP named no key.  It therefore never deferred
@@ -33,14 +36,17 @@ NOT VACUOUS, BY CONSTRUCTION
 ----------------------------
 - GEOMETRY.  Keys are picked with DEBUG SHARD on THIS boot's hash seed so every group really is
   cross-shard (a same-owner MSET/DEL takes localfast and cannot exercise either path).
-- THE WINDOW REALLY OPENED.  S1 asserts the whole write sequence finished while the pinning read
+- THE WINDOW REALLY OPENED.  Legacy S1 asserts the whole write sequence finished while the pinning read
   was still parked, and that the FLUSH tombstoned live records (atomic_pending_entries holds at
   least one group entry plus one tombstone per key after the FLUSH).  S2 asserts the DEL/EXEC reply
   itself arrived no earlier than half the armed commit delay, so the group was held undecided while
   the XREAD was free to run; an unarmed control round asserts the same shape completes quickly.
+  Range S1 requires nonzero unit/range-read/post-version counters, retained old MSET records, and
+  unreadable pin/FLUSH sockets before the unchanged park deadline. No missed window is a pass.
 """
 
 import socket
+import select
 import sys
 import time
 import _lib
@@ -128,7 +134,9 @@ note("enable atomic lane", ADMIN.cmd("CONFIG", "SET", "atomic", "1") == b"OK")
 
 
 def info_field(field):
-    text = ADMIN.cmd("INFO")
+    # Full INFO can itself scatter through the armed fanout delay. Stats is the
+    # local observational surface, so sampling a window cannot consume it.
+    text = ADMIN.cmd("INFO", "stats")
     if not isinstance(text, (bytes, bytearray)):
         return None
     for line in text.decode(errors="replace").split("\r\n"):
@@ -241,12 +249,96 @@ def flush_leak_round(round_id, keys, dest, pin_keys):
     return ("MISS" if problems else "ARMED"), "; ".join(problems)
 
 
+def flush_range_round(round_id, keys, dest, pin_keys):
+    """The range FLUSH replies after collapse, so overlap another connection.
+
+    Acknowledge FLUSH's decision with its counter, and prove the pin retained
+    the first MSET's entries. The
+    post-decision MSET/RENAME/GET must finish while the old read remains parked;
+    FLUSH itself must still be waiting for that cut. Missing windows are retried
+    on fresh keys, with the same 600 ms deadline and nine-attempt bound.
+    """
+    old, new = "range%d-old" % round_id, "range%d-new" % round_id
+    if ADMIN.cmd(*mset_args(pin_keys, "pin")) != b"OK":
+        return "FAIL", "pin population refused"
+    fields = ('atomic_flush_units', 'atomic_flush_range_reads', 'atomic_flush_post_versions')
+    before = {k: info_field(k) for k in fields}
+    if any(v is None for v in before.values()):
+        return "FAIL", "missing range counters"
+    if not debug_set("ATOMIC-FANOUT-DEFER", HOLD_US):
+        return "FAIL", "arm refused"
+    pinner = writer = flusher = None
+    try:
+        pinner, writer, flusher = Resp(), Resp(), Resp()
+        started = time.monotonic()
+        deadline = started + HOLD_US / 1e6
+        pinner.send(frame("MGET", *pin_keys))
+        # The arm is not credited for this delay: retained records and the
+        # unfinished pin/FLUSH below prove the actual overlap. The existing
+        # atomic_fanout_cuts counter counts only atomic-OFF gap admissions.
+        time.sleep(0.05)
+        r_mset1 = writer.cmd(*mset_args(keys, old))
+        flusher.send(frame("FLUSHDB"))
+        decided = False
+        while time.monotonic() < deadline:
+            if info_field('atomic_flush_units') > before['atomic_flush_units']:
+                decided = True
+                break
+        if not decided:
+            # Without the decision edge, racing MSET/RENAME against FLUSH
+            # would permit FLUSH between them and test an invalid expectation.
+            pinned, r_flush = pinner.read(), flusher.read()
+            if r_mset1 != b'OK' or r_flush != b'OK' or pinned != [b'pin'] * len(pin_keys):
+                return 'FAIL', 'unarmed setup/pin=%r/%r/%r' % (r_mset1, r_flush, pinned)
+            return 'MISS', 'FLUSH decision was not acknowledged before the pin deadline'
+        live = info_field('atomic_pending_entries')
+        absent = writer.cmd('GET', keys[0])
+        writer.send(frame(*mset_args(keys, new)), frame("RENAME", keys[0], dest), frame("GET", dest))
+        r_mset2, r_rename, r_get = writer.read(), writer.read(), writer.read()
+        writes_done = time.monotonic() - started
+        pin_parked = not select.select([pinner.sock], [], [], 0)[0]
+        flush_parked = not select.select([flusher.sock], [], [], 0)[0]
+        pinned = pinner.read()
+        r_flush = flusher.read()
+        after = {k: info_field(k) for k in fields}
+    finally:
+        for c in (writer, flusher, pinner):
+            if c is not None:
+                c.close()
+        disarmed = debug_set("ATOMIC-FANOUT-DEFER", 0)
+        if not disarmed:
+            raise AssertionError('range witness disarm refused')
+    problems = []
+    if r_mset1 != b'OK' or r_flush != b'OK' or r_mset2 != b'OK':
+        problems.append('setup replies %r/%r/%r' % (r_mset1, r_flush, r_mset2))
+    if r_rename != b'OK' or r_get != new.encode():
+        problems.append('RENAME/GET=%r/%r' % (r_rename, r_get))
+    if decided and absent is not None:
+        problems.append('committed range GET=%r' % absent)
+    if pinned != [b'pin'] * len(pin_keys):
+        problems.append('old pinned MGET=%r' % pinned)
+    if not disarmed:
+        problems.append('disarm refused')
+    if problems:
+        return 'FAIL', '; '.join(problems)
+    delta = {k: after[k] - before[k] for k in fields}
+    armed = (decided and pin_parked and flush_parked and
+             writes_done < HOLD_US / 1e6 and live is not None and
+             live >= len(_lib.topology(ADMIN).shard_owner) + len(keys) and
+             all(v > 0 for v in delta.values()))
+    detail = 'decided=%s pin_parked=%s flush_parked=%s writes=%.3fs live=%r counters=%r' % (
+        decided, pin_parked, flush_parked, writes_done, live, delta)
+    if armed:
+        print('  WINDOW S1 range ' + detail, flush=True)
+    return ('ARMED' if armed else 'MISS'), detail
+
+
 def flush_campaign(attempt):
     """Count three actually armed successes; never count an exhausted arm as a pass.
 
     A captured gate round finished its writes at 0.600 s, with the pin answering at
     0.601 s and no live records left: it supplied no evidence of an open window.
-    Keep that 600 ms deadline and the live-record witness unchanged. Only a pure
+    Keep that 600 ms deadline and require the appropriate live-record witness. Only a pure
     missed arm can be retried, on fresh state, with a fixed total attempt bound.
     """
     armed, misses = 0, []
@@ -288,7 +380,8 @@ if HAVE_DEBUG:
                     len({current[shard_of(key)] for key in pins}) < 2 or
                     current[shard_of(keys[0])] == current[shard_of(dest[0])]):
                 return "FAIL", "fresh keys lost their cross-owner geometry"
-            return flush_leak_round(index, keys, dest[0], pins)
+            attempt = flush_range_round if info_field('atomic_flush_units') is not None else flush_leak_round
+            return attempt(index, keys, dest[0], pins)
         passed, detail = flush_campaign(fresh_attempt)
         note("S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees "
              "its own write)", passed, detail)

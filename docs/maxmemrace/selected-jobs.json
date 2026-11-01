@@ -1,0 +1,2824 @@
+{
+ "rule": "job body or a tests/tools script it names matches a family regex",
+ "families": {
+  "maxmemory": "maxmemory",
+  "eviction": "evict",
+  "config": "\\bCONFIG\\b['\"]?\\s*,?\\s*['\"]?(?:SET|GET|REWRITE|RESETSTAT)|'CONFIG'|\"CONFIG\"|config_set|config set",
+  "denyoom": "denyoom|OOM command|-OOM",
+  "pubsub": "\\b[PS]?SUBSCRIBE\\b|\\bPUBLISH\\b|\\bSPUBLISH\\b|pubsub|keyspace notification|notify-keyspace"
+ },
+ "total_jobs": 279,
+ "selected": 155,
+ "jobs": [
+  {
+   "job": "release",
+   "tier": "quick",
+   "function": "job_release",
+   "scripts": [
+    "tests/gate_receipt.py"
+   ],
+   "families": {
+    "config": [
+     "tests/gate_receipt.py"
+    ],
+    "pubsub": [
+     "gate.sh:job_release",
+     "tests/gate_receipt.py"
+    ]
+   }
+  },
+  {
+   "job": "core_tsan_build",
+   "tier": "quick",
+   "function": "job_core_tsan_build",
+   "scripts": [
+    "tests/core_concurrency_unit.cc",
+    "tests/parbuild.sh"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/core_concurrency_unit.cc"
+    ],
+    "eviction": [
+     "tests/core_concurrency_unit.cc"
+    ],
+    "config": [
+     "tests/core_concurrency_unit.cc"
+    ],
+    "pubsub": [
+     "tests/core_concurrency_unit.cc"
+    ]
+   }
+  },
+  {
+   "job": "waits_tsan_build",
+   "tier": "quick",
+   "function": "job_waits_tsan_build",
+   "scripts": [
+    "tests/parbuild.sh",
+    "tests/waits_unit.cc"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/waits_unit.cc"
+    ],
+    "pubsub": [
+     "tests/waits_unit.cc"
+    ]
+   }
+  },
+  {
+   "job": "pubtrackfix",
+   "tier": "quick",
+   "function": "job_pubtrackfix",
+   "scripts": [
+    "tests/pubtrackfix.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "gate.sh:job_pubtrackfix",
+     "tests/pubtrackfix.py"
+    ],
+    "eviction": [
+     "gate.sh:job_pubtrackfix",
+     "tests/pubtrackfix.py"
+    ],
+    "config": [
+     "gate.sh:job_pubtrackfix",
+     "tests/pubtrackfix.py"
+    ],
+    "pubsub": [
+     "gate.sh:job_pubtrackfix",
+     "tests/pubtrackfix.py"
+    ]
+   }
+  },
+  {
+   "job": "maxmemrace",
+   "tier": "quick",
+   "function": "job_maxmemrace",
+   "scripts": [
+    "tests/maxmemrace.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "gate.sh:job_maxmemrace",
+     "tests/maxmemrace.py"
+    ],
+    "eviction": [
+     "tests/maxmemrace.py"
+    ],
+    "config": [
+     "gate.sh:job_maxmemrace",
+     "tests/maxmemrace.py"
+    ],
+    "denyoom": [
+     "tests/maxmemrace.py"
+    ]
+   }
+  },
+  {
+   "job": "multifix-1s-uring",
+   "tier": "quick",
+   "function": "job_multifix",
+   "scripts": [
+    "tests/multifix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/multifix.py"
+    ]
+   }
+  },
+  {
+   "job": "climonfix4-1s-uring",
+   "tier": "quick",
+   "function": "job_climonfix4",
+   "scripts": [
+    "tests/climonfix4.py"
+   ],
+   "families": {
+    "config": [
+     "tests/climonfix4.py"
+    ],
+    "pubsub": [
+     "tests/climonfix4.py"
+    ]
+   }
+  },
+  {
+   "job": "multifix-1s-epoll",
+   "tier": "quick",
+   "function": "job_multifix",
+   "scripts": [
+    "tests/multifix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/multifix.py"
+    ]
+   }
+  },
+  {
+   "job": "climonfix4-1s-epoll",
+   "tier": "quick",
+   "function": "job_climonfix4",
+   "scripts": [
+    "tests/climonfix4.py"
+   ],
+   "families": {
+    "config": [
+     "tests/climonfix4.py"
+    ],
+    "pubsub": [
+     "tests/climonfix4.py"
+    ]
+   }
+  },
+  {
+   "job": "multifix-2s-uring",
+   "tier": "quick",
+   "function": "job_multifix",
+   "scripts": [
+    "tests/multifix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/multifix.py"
+    ]
+   }
+  },
+  {
+   "job": "climonfix4-2s-uring",
+   "tier": "quick",
+   "function": "job_climonfix4",
+   "scripts": [
+    "tests/climonfix4.py"
+   ],
+   "families": {
+    "config": [
+     "tests/climonfix4.py"
+    ],
+    "pubsub": [
+     "tests/climonfix4.py"
+    ]
+   }
+  },
+  {
+   "job": "multifix-2s-epoll",
+   "tier": "quick",
+   "function": "job_multifix",
+   "scripts": [
+    "tests/multifix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/multifix.py"
+    ]
+   }
+  },
+  {
+   "job": "climonfix4-2s-epoll",
+   "tier": "quick",
+   "function": "job_climonfix4",
+   "scripts": [
+    "tests/climonfix4.py"
+   ],
+   "families": {
+    "config": [
+     "tests/climonfix4.py"
+    ],
+    "pubsub": [
+     "tests/climonfix4.py"
+    ]
+   }
+  },
+  {
+   "job": "datafix1_bitfield",
+   "tier": "quick",
+   "function": "job_datafix1_bitfield",
+   "scripts": [
+    "tests/datafix1_bitfield.py"
+   ],
+   "families": {
+    "config": [
+     "tests/datafix1_bitfield.py"
+    ]
+   }
+  },
+  {
+   "job": "datafix1_locale",
+   "tier": "quick",
+   "function": "job_datafix1_locale",
+   "scripts": [
+    "tests/datafix1_locale.py"
+   ],
+   "families": {
+    "config": [
+     "tests/datafix1_locale.py"
+    ]
+   }
+  },
+  {
+   "job": "datafix1_lists",
+   "tier": "quick",
+   "function": "job_datafix1_lists",
+   "scripts": [
+    "tests/datafix1_lists.py"
+   ],
+   "families": {
+    "config": [
+     "tests/datafix1_lists.py"
+    ]
+   }
+  },
+  {
+   "job": "datafix1_spop",
+   "tier": "quick",
+   "function": "job_datafix1_spop",
+   "scripts": [
+    "tests/datafix1_spop.py"
+   ],
+   "families": {
+    "config": [
+     "tests/datafix1_spop.py"
+    ]
+   }
+  },
+  {
+   "job": "config_unit",
+   "tier": "quick",
+   "function": "job_config_unit",
+   "scripts": [
+    "tests/config_parser_test.cc",
+    "tests/docs_drift.py"
+   ],
+   "families": {
+    "config": [
+     "tests/config_parser_test.cc"
+    ]
+   }
+  },
+  {
+   "job": "flip_unit",
+   "tier": "quick",
+   "function": "job_flip_unit",
+   "scripts": [
+    "tests/flipctl_unit.cc"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/flipctl_unit.cc"
+    ]
+   }
+  },
+  {
+   "job": "filter_unit",
+   "tier": "quick",
+   "function": "job_filter_unit",
+   "scripts": [
+    "tests/foreign_read_safety_test.cc"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/foreign_read_safety_test.cc"
+    ]
+   }
+  },
+  {
+   "job": "ring_unit",
+   "tier": "quick",
+   "function": "job_ring_unit",
+   "scripts": [
+    "tests/read_local_lane.py",
+    "tests/read_local_write_ring_unit.cc"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/read_local_write_ring_unit.cc"
+    ],
+    "eviction": [
+     "tests/read_local_write_ring_unit.cc"
+    ],
+    "config": [
+     "tests/read_local_lane.py"
+    ],
+    "pubsub": [
+     "tests/read_local_write_ring_unit.cc"
+    ]
+   }
+  },
+  {
+   "job": "storage_units",
+   "tier": "quick",
+   "function": "job_storage_units",
+   "scripts": [],
+   "families": {
+    "eviction": [
+     "gate.sh:job_storage_units"
+    ]
+   }
+  },
+  {
+   "job": "acl_metadata",
+   "tier": "quick",
+   "function": "job_acl_metadata",
+   "scripts": [
+    "tools/gen_acl_categories.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tools/gen_acl_categories.py"
+    ]
+   }
+  },
+  {
+   "job": "abba_selftest",
+   "tier": "quick",
+   "function": "job_abba_selftest",
+   "scripts": [
+    "tests/abba_instrument.py",
+    "tests/abbagate.py",
+    "tests/background_environment_test.py",
+    "tests/gate_history.py",
+    "tests/gate_measurements.py",
+    "tests/gate_process_test.py",
+    "tests/gate_quiet.py",
+    "tests/gate_receipt.py",
+    "tests/gate_subset_test.py",
+    "tests/gateprod.py",
+    "tests/gates_test.py",
+    "tests/lb_stationary.py",
+    "tests/netio.py",
+    "tests/redis_tcl_test.py",
+    "tests/tailgen_stall.py",
+    "tests/wb_policy.py"
+   ],
+   "families": {
+    "eviction": [
+     "tests/gate_history.py"
+    ],
+    "config": [
+     "tests/abbagate.py",
+     "tests/gate_receipt.py",
+     "tests/gateprod.py",
+     "tests/gates_test.py",
+     "tests/netio.py",
+     "tests/redis_tcl_test.py",
+     "tests/tailgen_stall.py",
+     "tests/wb_policy.py"
+    ],
+    "pubsub": [
+     "tests/abbagate.py",
+     "tests/gate_receipt.py",
+     "tests/gates_test.py"
+    ]
+   }
+  },
+  {
+   "job": "differ-split-0",
+   "tier": "full-only",
+   "function": "job_body:differ-*",
+   "scripts": [
+    "tests/differ_gate.sh"
+   ],
+   "families": {
+    "config": [
+     "tests/differ_gate.sh"
+    ]
+   }
+  },
+  {
+   "job": "differ-split-1",
+   "tier": "full-only",
+   "function": "job_body:differ-*",
+   "scripts": [
+    "tests/differ_gate.sh"
+   ],
+   "families": {
+    "config": [
+     "tests/differ_gate.sh"
+    ]
+   }
+  },
+  {
+   "job": "differ-armed-0",
+   "tier": "full-only",
+   "function": "job_body:differ-*",
+   "scripts": [
+    "tests/differ_gate.sh"
+   ],
+   "families": {
+    "config": [
+     "tests/differ_gate.sh"
+    ]
+   }
+  },
+  {
+   "job": "differ-armed-1",
+   "tier": "full-only",
+   "function": "job_body:differ-*",
+   "scripts": [
+    "tests/differ_gate.sh"
+   ],
+   "families": {
+    "config": [
+     "tests/differ_gate.sh"
+    ]
+   }
+  },
+  {
+   "job": "differ-equivalence",
+   "tier": "full-only",
+   "function": "job_body:differ-*",
+   "scripts": [
+    "tests/differ_gate.sh"
+   ],
+   "families": {
+    "config": [
+     "tests/differ_gate.sh"
+    ]
+   }
+  },
+  {
+   "job": "evict-lruclock-split-0",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "evict-lruclock-armed-0",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "evict-lruclock-split-1",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "evict-lruclock-armed-1",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "evict-lfu-split-0",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "evict-lfu-armed-0",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "evict-lfu-split-1",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "evict-lfu-armed-1",
+   "tier": "quick",
+   "function": "job_body:evict-*",
+   "scripts": [
+    "tests/evict_battery.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/evict_battery.py"
+    ],
+    "eviction": [
+     "gate.sh:job_body:evict-*",
+     "tests/evict_battery.py"
+    ],
+    "config": [
+     "tests/evict_battery.py"
+    ],
+    "denyoom": [
+     "tests/evict_battery.py"
+    ]
+   }
+  },
+  {
+   "job": "slotless",
+   "tier": "quick",
+   "function": "job_slotless",
+   "scripts": [
+    "tests/slotless.py"
+   ],
+   "families": {
+    "config": [
+     "tests/slotless.py"
+    ]
+   }
+  },
+  {
+   "job": "wb_mixed",
+   "tier": "quick",
+   "function": "job_wb_mixed",
+   "scripts": [
+    "tests/wb_mixed.py"
+   ],
+   "families": {
+    "config": [
+     "tests/wb_mixed.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T1",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T2",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T3",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T4",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T5",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T6",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T7",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T8",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T9",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T10",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T11a",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T11b",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T12",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T13",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T14",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T15",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-T16",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "at412-owner",
+   "tier": "quick",
+   "function": "job_at412",
+   "scripts": [
+    "tests/at412.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/at412.py"
+    ],
+    "config": [
+     "tests/at412.py"
+    ],
+    "denyoom": [
+     "tests/at412.py"
+    ],
+    "pubsub": [
+     "tests/at412.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-fragment-1s-epoll",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-fragment-1s-uring",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-fragment-2s-epoll",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-fragment-2s-uring",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-cpu-1s-epoll",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-cpu-1s-uring",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-cpu-2s-epoll",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-cpu-2s-uring",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-neighbour-1s-epoll",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-neighbour-1s-uring",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-neighbour-2s-epoll",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "respresume-neighbour-2s-uring",
+   "tier": "quick",
+   "function": "job_respresume",
+   "scripts": [
+    "tests/respresume.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respresume.py"
+    ],
+    "pubsub": [
+     "tests/respresume.py"
+    ]
+   }
+  },
+  {
+   "job": "feature-split-0",
+   "tier": "quick",
+   "function": "feature_split_job",
+   "scripts": [
+    "tests/feature_atomic.py"
+   ],
+   "families": {
+    "config": [
+     "tests/feature_atomic.py"
+    ]
+   }
+  },
+  {
+   "job": "feature-armed-0",
+   "tier": "quick",
+   "function": "feature_armed_job",
+   "scripts": [
+    "tests/feature_atomic.py"
+   ],
+   "families": {
+    "config": [
+     "tests/feature_atomic.py"
+    ]
+   }
+  },
+  {
+   "job": "feature-split-1",
+   "tier": "quick",
+   "function": "feature_split_job",
+   "scripts": [
+    "tests/feature_atomic.py"
+   ],
+   "families": {
+    "config": [
+     "tests/feature_atomic.py"
+    ]
+   }
+  },
+  {
+   "job": "feature-armed-1",
+   "tier": "quick",
+   "function": "feature_armed_job",
+   "scripts": [
+    "tests/feature_atomic.py"
+   ],
+   "families": {
+    "config": [
+     "tests/feature_atomic.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-1s-0-0",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-1s-0-1",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-1s-1-0",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-1s-1-1",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-2s-0-0",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-2s-0-1",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-2s-1-0",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "multidb-2s-1-1",
+   "tier": "quick",
+   "function": "job_multidb",
+   "scripts": [
+    "tests/aclkeys_wake_state.py",
+    "tests/mdbqsbr_live.py",
+    "tests/multidb.py",
+    "tests/multidb_serial.py"
+   ],
+   "families": {
+    "config": [
+     "tests/mdbqsbr_live.py",
+     "tests/multidb.py"
+    ],
+    "pubsub": [
+     "tests/aclkeys_wake_state.py",
+     "tests/multidb.py"
+    ]
+   }
+  },
+  {
+   "job": "aof-epoll",
+   "tier": "quick",
+   "function": "job_aof",
+   "scripts": [
+    "tests/aof.py",
+    "tests/aof_fsync.py",
+    "tests/aof_rewrite_matrix.sh",
+    "tests/aof_rewrite_trigger_matrix.sh",
+    "tests/aof_torn_group.py",
+    "tests/aoffix2.py",
+    "tests/knobs.py",
+    "tests/persistfix.py",
+    "tests/savefix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/aof.py",
+     "tests/aof_fsync.py",
+     "tests/aof_torn_group.py",
+     "tests/knobs.py"
+    ]
+   }
+  },
+  {
+   "job": "aof-uring",
+   "tier": "quick",
+   "function": "job_aof",
+   "scripts": [
+    "tests/aof.py",
+    "tests/aof_fsync.py",
+    "tests/aof_rewrite_matrix.sh",
+    "tests/aof_rewrite_trigger_matrix.sh",
+    "tests/aof_torn_group.py",
+    "tests/aoffix2.py",
+    "tests/knobs.py",
+    "tests/persistfix.py",
+    "tests/savefix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/aof.py",
+     "tests/aof_fsync.py",
+     "tests/aof_torn_group.py",
+     "tests/knobs.py"
+    ]
+   }
+  },
+  {
+   "job": "snapshot-epoll",
+   "tier": "quick",
+   "function": "job_snapshot",
+   "scripts": [
+    "tests/savefix.py",
+    "tests/snap_cut_battery.py",
+    "tests/snap_typed_race.py",
+    "tests/snap_typed_roundtrip.py",
+    "tests/snapfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/snap_cut_battery.py",
+     "tests/snap_typed_race.py"
+    ]
+   }
+  },
+  {
+   "job": "snapshot-uring",
+   "tier": "quick",
+   "function": "job_snapshot",
+   "scripts": [
+    "tests/savefix.py",
+    "tests/snap_cut_battery.py",
+    "tests/snap_typed_race.py",
+    "tests/snap_typed_roundtrip.py",
+    "tests/snapfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/snap_cut_battery.py",
+     "tests/snap_typed_race.py"
+    ]
+   }
+  },
+  {
+   "job": "debug-0",
+   "tier": "quick",
+   "function": "job_debug",
+   "scripts": [
+    "tests/atomic_plain.py",
+    "tests/scriptatomic_strict.py"
+   ],
+   "families": {
+    "config": [
+     "gate.sh:job_debug",
+     "tests/atomic_plain.py"
+    ],
+    "pubsub": [
+     "tests/atomic_plain.py"
+    ]
+   }
+  },
+  {
+   "job": "debug-1",
+   "tier": "quick",
+   "function": "job_debug",
+   "scripts": [
+    "tests/atomic_plain.py",
+    "tests/scriptatomic_strict.py"
+   ],
+   "families": {
+    "config": [
+     "gate.sh:job_debug",
+     "tests/atomic_plain.py"
+    ],
+    "pubsub": [
+     "tests/atomic_plain.py"
+    ]
+   }
+  },
+  {
+   "job": "wb_policy",
+   "tier": "quick",
+   "function": "job_wb_policy",
+   "scripts": [
+    "tests/wb_policy.py"
+   ],
+   "families": {
+    "config": [
+     "tests/wb_policy.py"
+    ]
+   }
+  },
+  {
+   "job": "netio-1s",
+   "tier": "quick",
+   "function": "job_netio",
+   "scripts": [
+    "tests/netio.py"
+   ],
+   "families": {
+    "config": [
+     "tests/netio.py"
+    ]
+   }
+  },
+  {
+   "job": "netio-2s",
+   "tier": "quick",
+   "function": "job_netio",
+   "scripts": [
+    "tests/netio.py"
+   ],
+   "families": {
+    "config": [
+     "tests/netio.py"
+    ]
+   }
+  },
+  {
+   "job": "reorder_sync",
+   "tier": "quick",
+   "function": "job_reorder_sync",
+   "scripts": [
+    "tests/r7shadow_sync.py",
+    "tests/r7shadow_sync_test.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/r7shadow_sync.py"
+    ]
+   }
+  },
+  {
+   "job": "atomfix5_accounting",
+   "tier": "quick",
+   "function": "job_atomfix5_accounting",
+   "scripts": [
+    "tests/atomfix5_accounting.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/atomfix5_accounting.py"
+    ]
+   }
+  },
+  {
+   "job": "climonfix",
+   "tier": "quick",
+   "function": "job_climonfix",
+   "scripts": [
+    "tests/shutdown_persist.py"
+   ],
+   "families": {
+    "config": [
+     "tests/shutdown_persist.py"
+    ]
+   }
+  },
+  {
+   "job": "clientfix",
+   "tier": "quick",
+   "function": "job_clientfix",
+   "scripts": [
+    "tests/clientfix.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/clientfix.py"
+    ]
+   }
+  },
+  {
+   "job": "lbplanner_units",
+   "tier": "quick",
+   "function": "job_lbplanner_units",
+   "scripts": [
+    "tests/connreset_harness_test.py",
+    "tests/lbplanner_checks.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/lbplanner_checks.py"
+    ]
+   }
+  },
+  {
+   "job": "exbatch_live",
+   "tier": "quick",
+   "function": "job_exbatch_live",
+   "scripts": [
+    "tests/exbatch.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/exbatch.py"
+    ]
+   }
+  },
+  {
+   "job": "wbland_units",
+   "tier": "quick",
+   "function": "job_wbland_units",
+   "scripts": [
+    "tests/wbland_checks.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/wbland_checks.py"
+    ]
+   }
+  },
+  {
+   "job": "atomic_units",
+   "tier": "quick",
+   "function": "job_atomic_units",
+   "scripts": [
+    "tests/flushfix_checks.py",
+    "tests/mdbqsbr_checks.py",
+    "tests/multidb_serial.py",
+    "tests/storesize_checks.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/flushfix_checks.py"
+    ]
+   }
+  },
+  {
+   "job": "netcmd_units",
+   "tier": "quick",
+   "function": "job_netcmd_units",
+   "scripts": [],
+   "families": {
+    "denyoom": [
+     "gate.sh:job_netcmd_units"
+    ],
+    "pubsub": [
+     "gate.sh:job_netcmd_units"
+    ]
+   }
+  },
+  {
+   "job": "netcap",
+   "tier": "quick",
+   "function": "job_netcap",
+   "scripts": [
+    "tests/netcap.py"
+   ],
+   "families": {
+    "config": [
+     "tests/netcap.py"
+    ]
+   }
+  },
+  {
+   "job": "netfix_query_stats",
+   "tier": "quick",
+   "function": "job_netfix_query_stats",
+   "scripts": [
+    "tests/netfix_query_stats.py"
+   ],
+   "families": {
+    "config": [
+     "tests/netfix_query_stats.py"
+    ]
+   }
+  },
+  {
+   "job": "netfix_config",
+   "tier": "quick",
+   "function": "job_netfix_config",
+   "scripts": [
+    "tests/netfix_config.py"
+   ],
+   "families": {
+    "config": [
+     "tests/netfix_config.py"
+    ],
+    "pubsub": [
+     "tests/netfix_config.py"
+    ]
+   }
+  },
+  {
+   "job": "respcompat",
+   "tier": "quick",
+   "function": "job_respcompat",
+   "scripts": [
+    "tests/inline_protocol.py",
+    "tests/respcompat.py"
+   ],
+   "families": {
+    "config": [
+     "tests/inline_protocol.py",
+     "tests/respcompat.py"
+    ]
+   }
+  },
+  {
+   "job": "crlffix",
+   "tier": "quick",
+   "function": "job_crlffix",
+   "scripts": [
+    "tests/crlffix.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/crlffix.py"
+    ],
+    "config": [
+     "tests/crlffix.py"
+    ],
+    "pubsub": [
+     "tests/crlffix.py"
+    ]
+   }
+  },
+  {
+   "job": "dbdefault",
+   "tier": "quick",
+   "function": "job_dbdefault",
+   "scripts": [
+    "tests/dbdefault.py"
+   ],
+   "families": {
+    "config": [
+     "tests/dbdefault.py"
+    ]
+   }
+  },
+  {
+   "job": "release_batteries",
+   "tier": "quick",
+   "function": "job_release_batteries",
+   "scripts": [
+    "tests/acl.py",
+    "tests/acl_categories.py",
+    "tests/lbsignals.py",
+    "tests/ryow.py",
+    "tests/shutdown_report.py",
+    "tests/spinprobe.py",
+    "tests/torture.py"
+   ],
+   "families": {
+    "config": [
+     "tests/acl.py"
+    ],
+    "pubsub": [
+     "tests/acl.py"
+    ]
+   }
+  },
+  {
+   "job": "atomic_batteries",
+   "tier": "quick",
+   "function": "job_atomic_batteries",
+   "scripts": [
+    "tests/atomic_hazards.py",
+    "tests/atomic_ryow.py",
+    "tests/atomic_torn.py",
+    "tests/txngroup.py",
+    "tests/txniso.py"
+   ],
+   "families": {
+    "config": [
+     "tests/atomic_hazards.py",
+     "tests/atomic_ryow.py",
+     "tests/atomic_torn.py",
+     "tests/txngroup.py",
+     "tests/txniso.py"
+    ],
+    "pubsub": [
+     "tests/txniso.py"
+    ]
+   }
+  },
+  {
+   "job": "moverfix",
+   "tier": "quick",
+   "function": "job_moverfix",
+   "scripts": [
+    "tests/moverfix.py",
+    "tests/txn_movers.py"
+   ],
+   "families": {
+    "config": [
+     "tests/moverfix.py",
+     "tests/txn_movers.py"
+    ]
+   }
+  },
+  {
+   "job": "hexpread",
+   "tier": "quick",
+   "function": "job_hexpread",
+   "scripts": [
+    "tests/hexpread.py",
+    "tests/objectpread.py"
+   ],
+   "families": {
+    "config": [
+     "tests/hexpread.py"
+    ],
+    "pubsub": [
+     "tests/hexpread.py"
+    ]
+   }
+  },
+  {
+   "job": "compat2",
+   "tier": "quick",
+   "function": "job_compat2",
+   "scripts": [
+    "tests/tls.py"
+   ],
+   "families": {
+    "config": [
+     "tests/tls.py"
+    ]
+   }
+  },
+  {
+   "job": "compat3",
+   "tier": "quick",
+   "function": "job_compat3",
+   "scripts": [],
+   "families": {
+    "pubsub": [
+     "gate.sh:job_compat3"
+    ]
+   }
+  },
+  {
+   "job": "bplus",
+   "tier": "quick",
+   "function": "job_bplus",
+   "scripts": [
+    "tests/bplus.py",
+    "tests/read_local_lane.py",
+    "tests/rlfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/bplus.py",
+     "tests/read_local_lane.py",
+     "tests/rlfix.py"
+    ],
+    "pubsub": [
+     "tests/bplus.py",
+     "tests/rlfix.py"
+    ]
+   }
+  },
+  {
+   "job": "rlfix3_zc",
+   "tier": "quick",
+   "function": "job_rlfix3_zc",
+   "scripts": [
+    "tests/rlfix3_lifetime.cc",
+    "tests/rlfix3_zc.py"
+   ],
+   "families": {
+    "config": [
+     "tests/rlfix3_zc.py"
+    ]
+   }
+  },
+  {
+   "job": "rlfix3_info",
+   "tier": "quick",
+   "function": "job_rlfix3_info",
+   "scripts": [
+    "tests/rlfix3_info.py"
+   ],
+   "families": {
+    "config": [
+     "tests/rlfix3_info.py"
+    ]
+   }
+  },
+  {
+   "job": "aclfix",
+   "tier": "quick",
+   "function": "job_aclfix",
+   "scripts": [
+    "tests/aclfix.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/aclfix.py"
+    ]
+   }
+  },
+  {
+   "job": "sort",
+   "tier": "quick",
+   "function": "job_sort",
+   "scripts": [
+    "tests/sort.py"
+   ],
+   "families": {
+    "config": [
+     "tests/sort.py"
+    ]
+   }
+  },
+  {
+   "job": "script_bounds",
+   "tier": "quick",
+   "function": "job_script_bounds",
+   "scripts": [
+    "tests/xscript.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/xscript.py"
+    ],
+    "eviction": [
+     "tests/xscript.py"
+    ],
+    "config": [
+     "tests/xscript.py"
+    ],
+    "denyoom": [
+     "tests/xscript.py"
+    ]
+   }
+  },
+  {
+   "job": "efficiency",
+   "tier": "quick",
+   "function": "job_efficiency",
+   "scripts": [
+    "tests/borrow_registry.py",
+    "tests/expireindex.py",
+    "tests/xshard_dispatch_scale.sh"
+   ],
+   "families": {
+    "config": [
+     "tests/borrow_registry.py"
+    ]
+   }
+  },
+  {
+   "job": "auth",
+   "tier": "quick",
+   "function": "job_auth",
+   "scripts": [
+    "tests/auth.py",
+    "tests/debug.py",
+    "tests/debug_load.py",
+    "tests/persistfix2.py",
+    "tests/snap_typed_roundtrip.py"
+   ],
+   "families": {
+    "config": [
+     "tests/auth.py",
+     "tests/debug.py",
+     "tests/persistfix2.py"
+    ],
+    "pubsub": [
+     "tests/auth.py"
+    ]
+   }
+  },
+  {
+   "job": "authfix",
+   "tier": "quick",
+   "function": "job_authfix",
+   "scripts": [
+    "tests/acl.py",
+    "tests/authfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/acl.py",
+     "tests/authfix.py"
+    ],
+    "pubsub": [
+     "tests/acl.py"
+    ]
+   }
+  },
+  {
+   "job": "latencyfix_grammar",
+   "tier": "quick",
+   "function": "job_latencyfix_grammar",
+   "scripts": [
+    "tests/latencyfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/latencyfix.py"
+    ]
+   }
+  },
+  {
+   "job": "latencyfix_shape",
+   "tier": "quick",
+   "function": "job_latencyfix_shape",
+   "scripts": [
+    "tests/latencyfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/latencyfix.py"
+    ]
+   }
+  },
+  {
+   "job": "latencyfix_off",
+   "tier": "quick",
+   "function": "job_latencyfix_off",
+   "scripts": [
+    "tests/latencyfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/latencyfix.py"
+    ]
+   }
+  },
+  {
+   "job": "serverfix_lines",
+   "tier": "quick",
+   "function": "job_serverfix_lines",
+   "scripts": [
+    "tests/serverfix_lines.py"
+   ],
+   "families": {
+    "config": [
+     "tests/serverfix_lines.py"
+    ]
+   }
+  },
+  {
+   "job": "serverfix_scalar",
+   "tier": "quick",
+   "function": "job_serverfix_scalar",
+   "scripts": [
+    "tests/serverfix_scalar.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/serverfix_scalar.py"
+    ],
+    "eviction": [
+     "tests/serverfix_scalar.py"
+    ],
+    "config": [
+     "tests/serverfix_scalar.py"
+    ],
+    "pubsub": [
+     "tests/serverfix_scalar.py"
+    ]
+   }
+  },
+  {
+   "job": "serverfix_config",
+   "tier": "quick",
+   "function": "job_serverfix_config",
+   "scripts": [
+    "tests/serverfix_config.py"
+   ],
+   "families": {
+    "config": [
+     "tests/serverfix_config.py"
+    ],
+    "pubsub": [
+     "tests/serverfix_config.py"
+    ]
+   }
+  },
+  {
+   "job": "serverfix_slowlog",
+   "tier": "quick",
+   "function": "job_serverfix_slowlog",
+   "scripts": [
+    "tests/serverfix_slowlog.py"
+   ],
+   "families": {
+    "config": [
+     "tests/serverfix_slowlog.py"
+    ]
+   }
+  },
+  {
+   "job": "serverfix_acllog",
+   "tier": "quick",
+   "function": "job_serverfix_acllog",
+   "scripts": [
+    "tests/serverfix_acllog.py"
+   ],
+   "families": {
+    "config": [
+     "tests/serverfix_acllog.py"
+    ]
+   }
+  },
+  {
+   "job": "notify",
+   "tier": "quick",
+   "function": "job_notify",
+   "scripts": [
+    "tests/blocking.py",
+    "tests/lua_scripting.py",
+    "tests/multi_exec.py",
+    "tests/notify.py",
+    "tests/pubsub.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/blocking.py",
+     "tests/notify.py"
+    ],
+    "eviction": [
+     "tests/notify.py"
+    ],
+    "config": [
+     "tests/blocking.py",
+     "tests/lua_scripting.py",
+     "tests/multi_exec.py",
+     "tests/notify.py",
+     "tests/pubsub.py"
+    ],
+    "pubsub": [
+     "gate.sh:job_notify",
+     "tests/blocking.py",
+     "tests/notify.py",
+     "tests/pubsub.py"
+    ]
+   }
+  },
+  {
+   "job": "notifycompat",
+   "tier": "quick",
+   "function": "job_notifycompat",
+   "scripts": [
+    "tests/notifycompat.py"
+   ],
+   "families": {
+    "maxmemory": [
+     "tests/notifycompat.py"
+    ],
+    "eviction": [
+     "tests/notifycompat.py"
+    ],
+    "config": [
+     "tests/notifycompat.py"
+    ],
+    "pubsub": [
+     "tests/notifycompat.py"
+    ]
+   }
+  },
+  {
+   "job": "tracking_redirect",
+   "tier": "quick",
+   "function": "job_tracking_redirect",
+   "scripts": [
+    "tests/tracking_redirect.py",
+    "tools/notifycompat_schedule.py"
+   ],
+   "families": {
+    "config": [
+     "tests/tracking_redirect.py"
+    ],
+    "pubsub": [
+     "tests/tracking_redirect.py",
+     "tools/notifycompat_schedule.py"
+    ]
+   }
+  },
+  {
+   "job": "notify_order",
+   "tier": "quick",
+   "function": "job_notify_order",
+   "scripts": [
+    "tests/notify_order.py"
+   ],
+   "families": {
+    "config": [
+     "tests/notify_order.py"
+    ],
+    "pubsub": [
+     "tests/notify_order.py"
+    ]
+   }
+  },
+  {
+   "job": "notify_aof",
+   "tier": "quick",
+   "function": "job_notify_aof",
+   "scripts": [
+    "tests/notify_order.py"
+   ],
+   "families": {
+    "config": [
+     "tests/notify_order.py"
+    ],
+    "pubsub": [
+     "tests/notify_order.py"
+    ]
+   }
+  },
+  {
+   "job": "trackfix_accounting",
+   "tier": "quick",
+   "function": "job_trackfix_accounting",
+   "scripts": [
+    "tests/trackfix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/trackfix.py"
+    ],
+    "pubsub": [
+     "tests/trackfix.py"
+    ]
+   }
+  },
+  {
+   "job": "trackfix_order",
+   "tier": "quick",
+   "function": "job_trackfix_order",
+   "scripts": [
+    "tests/trackfix.py",
+    "tools/trackfix_schedule.py"
+   ],
+   "families": {
+    "config": [
+     "tests/trackfix.py"
+    ],
+    "pubsub": [
+     "tests/trackfix.py",
+     "tools/trackfix_schedule.py"
+    ]
+   }
+  },
+  {
+   "job": "flip",
+   "tier": "quick",
+   "function": "job_flip",
+   "scripts": [
+    "tests/flip.py",
+    "tests/flip_ttl.py",
+    "tests/flip_under_load.py",
+    "tests/flipfix.py",
+    "tests/perfio.py",
+    "tests/spinprobe.py"
+   ],
+   "families": {
+    "config": [
+     "tests/flip_ttl.py"
+    ],
+    "pubsub": [
+     "tests/flip_ttl.py",
+     "tests/flipfix.py"
+    ]
+   }
+  },
+  {
+   "job": "flipfix5",
+   "tier": "quick",
+   "function": "job_flipfix5",
+   "scripts": [
+    "tests/flipfix5.py"
+   ],
+   "families": {
+    "config": [
+     "tests/flipfix5.py"
+    ]
+   }
+  },
+  {
+   "job": "atomic_floor",
+   "tier": "quick",
+   "function": "job_atomic_floor",
+   "scripts": [
+    "tests/pipeorder.py"
+   ],
+   "families": {
+    "config": [
+     "tests/pipeorder.py"
+    ]
+   }
+  },
+  {
+   "job": "aof_frame",
+   "tier": "quick",
+   "function": "job_aof_frame",
+   "scripts": [
+    "tests/aof_frame_order.py",
+    "tests/aof_frame_order_test.py"
+   ],
+   "families": {
+    "config": [
+     "tests/aof_frame_order.py"
+    ]
+   }
+  },
+  {
+   "job": "tls",
+   "tier": "quick",
+   "function": "job_tls",
+   "scripts": [
+    "tests/respcompat.py",
+    "tests/tls.py"
+   ],
+   "families": {
+    "config": [
+     "tests/respcompat.py",
+     "tests/tls.py"
+    ]
+   }
+  },
+  {
+   "job": "ntfix_input",
+   "tier": "quick",
+   "function": "job_ntfix_input",
+   "scripts": [
+    "tests/infofix.py"
+   ],
+   "families": {
+    "config": [
+     "tests/infofix.py"
+    ]
+   }
+  },
+  {
+   "job": "fused-0",
+   "tier": "quick",
+   "function": "job_fused",
+   "scripts": [
+    "tests/feature_atomic.py",
+    "tests/spinprobe.py",
+    "tests/txn_nx.py"
+   ],
+   "families": {
+    "config": [
+     "tests/feature_atomic.py",
+     "tests/txn_nx.py"
+    ]
+   }
+  },
+  {
+   "job": "fused-1",
+   "tier": "quick",
+   "function": "job_fused",
+   "scripts": [
+    "tests/feature_atomic.py",
+    "tests/spinprobe.py",
+    "tests/txn_nx.py"
+   ],
+   "families": {
+    "config": [
+     "tests/feature_atomic.py",
+     "tests/txn_nx.py"
+    ]
+   }
+  },
+  {
+   "job": "execfair",
+   "tier": "quick",
+   "function": "job_execfair",
+   "scripts": [
+    "tests/execfair.py",
+    "tests/wave10.py",
+    "tests/wave6_exec.py",
+    "tests/wave7.py",
+    "tests/wave8.py",
+    "tests/wave8b.py",
+    "tests/wave9.py"
+   ],
+   "families": {
+    "config": [
+     "tests/wave6_exec.py",
+     "tests/wave7.py",
+     "tests/wave8.py",
+     "tests/wave8b.py"
+    ],
+    "denyoom": [
+     "tests/wave10.py"
+    ],
+    "pubsub": [
+     "tests/wave6_exec.py",
+     "tests/wave7.py",
+     "tests/wave8b.py",
+     "tests/wave9.py"
+    ]
+   }
+  },
+  {
+   "job": "txnorder2",
+   "tier": "quick",
+   "function": "job_txnorder2",
+   "scripts": [
+    "tests/txniso.py",
+    "tests/txnorder_watch.py"
+   ],
+   "families": {
+    "config": [
+     "tests/txniso.py"
+    ],
+    "pubsub": [
+     "tests/txniso.py"
+    ]
+   }
+  },
+  {
+   "job": "txnorder-fused-0",
+   "tier": "quick",
+   "function": "job_txnorder",
+   "scripts": [
+    "tests/txnorder.py"
+   ],
+   "families": {
+    "config": [
+     "tests/txnorder.py"
+    ],
+    "pubsub": [
+     "tests/txnorder.py"
+    ]
+   }
+  },
+  {
+   "job": "txnorder-fused-1",
+   "tier": "quick",
+   "function": "job_txnorder",
+   "scripts": [
+    "tests/txnorder.py"
+   ],
+   "families": {
+    "config": [
+     "tests/txnorder.py"
+    ],
+    "pubsub": [
+     "tests/txnorder.py"
+    ]
+   }
+  },
+  {
+   "job": "txnorder-split-0",
+   "tier": "quick",
+   "function": "job_txnorder",
+   "scripts": [
+    "tests/txnorder.py"
+   ],
+   "families": {
+    "config": [
+     "tests/txnorder.py"
+    ],
+    "pubsub": [
+     "tests/txnorder.py"
+    ]
+   }
+  },
+  {
+   "job": "txnorder-split-1",
+   "tier": "quick",
+   "function": "job_txnorder",
+   "scripts": [
+    "tests/txnorder.py"
+   ],
+   "families": {
+    "config": [
+     "tests/txnorder.py"
+    ],
+    "pubsub": [
+     "tests/txnorder.py"
+    ]
+   }
+  },
+  {
+   "job": "asan_batteries",
+   "tier": "full-only",
+   "function": "job_asan_batteries",
+   "scripts": [
+    "tests/atomic_ryow.py",
+    "tests/atomic_torn.py",
+    "tests/ryow.py",
+    "tests/torture.py"
+   ],
+   "families": {
+    "config": [
+     "tests/atomic_ryow.py",
+     "tests/atomic_torn.py"
+    ]
+   }
+  },
+  {
+   "job": "replyoff",
+   "tier": "full-only",
+   "function": "job_replyoff",
+   "scripts": [
+    "tests/replyoff_xshard.py"
+   ],
+   "families": {
+    "config": [
+     "tests/replyoff_xshard.py"
+    ]
+   }
+  },
+  {
+   "job": "globcase",
+   "tier": "full-only",
+   "function": "job_globcase",
+   "scripts": [
+    "tests/globcase.py"
+   ],
+   "families": {
+    "pubsub": [
+     "tests/globcase.py"
+    ]
+   }
+  },
+  {
+   "job": "infofix_compat-missing",
+   "tier": "quick",
+   "function": "job_infofix_compat",
+   "scripts": [
+    "tests/infofix_compat.py"
+   ],
+   "families": {
+    "config": [
+     "tests/infofix_compat.py"
+    ]
+   }
+  },
+  {
+   "job": "infofix_compat-docs",
+   "tier": "quick",
+   "function": "job_infofix_compat",
+   "scripts": [
+    "tests/infofix_compat.py"
+   ],
+   "families": {
+    "config": [
+     "tests/infofix_compat.py"
+    ]
+   }
+  },
+  {
+   "job": "infofix_compat-loadaof",
+   "tier": "quick",
+   "function": "job_infofix_compat",
+   "scripts": [
+    "tests/infofix_compat.py"
+   ],
+   "families": {
+    "config": [
+     "tests/infofix_compat.py"
+    ]
+   }
+  }
+ ],
+ "unselected": [
+  "asan",
+  "racefix_tsan_build",
+  "tailgen_build",
+  "rldbg",
+  "datafix1_randscan",
+  "datafix1_hexpire",
+  "datafix1_geo",
+  "production_units",
+  "source_identity",
+  "cmd_metadata",
+  "redis_tcl",
+  "bugs5",
+  "flipctl",
+  "witness_contracts",
+  "reorder_bounds",
+  "rob_portable",
+  "inline_quoted",
+  "blockfix2",
+  "blockfix_structure",
+  "blockfix_registry",
+  "blockfix_mkstream",
+  "persistfix2_lastsave",
+  "persistfix2_shutdown",
+  "persistfix2_commands",
+  "persistfix2_errors",
+  "snapfix_shutdown",
+  "snapfix_bgsave_script",
+  "snapfix_bgsave_exec",
+  "snapfix2_tables",
+  "iofix-deferred",
+  "iofix-hz",
+  "iofix-sleep",
+  "iofix-signal",
+  "perfio_stream",
+  "lb-stationary-1s",
+  "lb-stationary-2s",
+  "reorder_engagement",
+  "reorder_identity",
+  "atomfix5_watch",
+  "core_units",
+  "flipfix_units",
+  "flipfix5_units",
+  "racefix_counters",
+  "racefix_climon",
+  "persistfix_units",
+  "perfex_units",
+  "perfex_live",
+  "ntnew4_live",
+  "exbatch_units",
+  "wb_rule_units",
+  "splitlocal_units",
+  "netfix_unix",
+  "netfix_tls",
+  "netfix_idle_buffers",
+  "boot_grammar",
+  "wait_units",
+  "readonly",
+  "streamfix",
+  "datafix2_notouch",
+  "datafix2_encoding",
+  "datafix2_subkeys",
+  "datafix2_watch",
+  "datafix2_idle",
+  "dispatch_arity",
+  "dispatch_errors",
+  "dispatch_children",
+  "acl_subcommands",
+  "router_uniform",
+  "acl_recheck",
+  "scriptfix",
+  "scriptfix2",
+  "lualibs",
+  "dump_restore",
+  "wave8b_off",
+  "serverfix_hello",
+  "serverfix_waitaof",
+  "serverfix_hll",
+  "fliplisten",
+  "flip_saturated",
+  "aoforder",
+  "txn_group_fused",
+  "txn_group_split",
+  "exec1s",
+  "txnorder_index",
+  "txnorder_wound",
+  "txnorder_wake",
+  "zc",
+  "rlcache",
+  "feature-cell-1s-0-0-0-0",
+  "feature-cell-1s-0-0-0-1",
+  "feature-cell-1s-0-0-1-0",
+  "feature-cell-1s-0-0-1-1",
+  "feature-cell-1s-0-1-0-0",
+  "feature-cell-1s-0-1-0-1",
+  "feature-cell-1s-0-1-1-0",
+  "feature-cell-1s-0-1-1-1",
+  "feature-cell-1s-1-0-0-0",
+  "feature-cell-1s-1-0-0-1",
+  "feature-cell-1s-1-0-1-0",
+  "feature-cell-1s-1-0-1-1",
+  "feature-cell-1s-1-1-0-0",
+  "feature-cell-1s-1-1-0-1",
+  "feature-cell-1s-1-1-1-0",
+  "feature-cell-1s-1-1-1-1",
+  "feature-cell-2s-0-0-0-0",
+  "feature-cell-2s-0-0-0-1",
+  "feature-cell-2s-0-0-1-0",
+  "feature-cell-2s-0-0-1-1",
+  "feature-cell-2s-0-1-0-0",
+  "feature-cell-2s-0-1-0-1",
+  "feature-cell-2s-0-1-1-0",
+  "feature-cell-2s-0-1-1-1",
+  "feature-cell-2s-1-0-0-0",
+  "feature-cell-2s-1-0-0-1",
+  "feature-cell-2s-1-0-1-0",
+  "feature-cell-2s-1-0-1-1",
+  "feature-cell-2s-1-1-0-0",
+  "feature-cell-2s-1-1-0-1",
+  "feature-cell-2s-1-1-1-0",
+  "feature-cell-2s-1-1-1-1",
+  "infofix_latency",
+  "feature-cell-split-home-min",
+  "feature-cell-fused-home-max-nopin",
+  "feature-cell-split-shards-auto"
+ ]
+}

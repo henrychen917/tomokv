@@ -1,3 +1,11 @@
+Current lane: MEASURE-REQUEST-flushfix3.md, section "flushfix3". D12 approval pending.
+
+See MEASURE-REQUEST-flushfix2.md, section "flushfix2", for the owner's requested
+PRE/POST/PAD-A cells, proof status and decision criteria. Landing awaits design
+approval. No performance measurement is requested from a Codex lane.
+
+Historical headline request retained:
+
 # wave9
 
 Current lane request: [MEASURE-REQUEST-exec1s-d.md](MEASURE-REQUEST-exec1s-d.md), section `## exec1s-d`.

@@ -1,0 +1,541 @@
+# Tcl named-skip sweep
+
+All 259 original named skips were attempted three times in each mode on the frozen POST (1,554 attempts). Each attempt booted a fresh server. A missing assertion is a failure. Every observed occurrence must pass, and the file must complete. Forty-five names passed all six attempts and were promoted; 214 remain skipped.
+
+Full first-failure details and each attempt are retained in summary.json.gz and the numbered receipt directories. Full-suite validation follows promotion.
+
+## ACL-SCRIPTS-NEED-ALLCOMMANDS
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/scripting | Script ACL check | r bob has no permissions to run the 'fcall' command |
+
+## APPENDONLY-IMMUTABLE
+
+Promoted: 0; retained: 3.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/expire | GETEX use of PERSIST option should remove TTL after loadaof |  SET failed (possibly related to argument 'appendonly') - can't set immutable config |
+| unit/expire | SET - use KEEPTTL option, TTL should not be removed after loadaof |  SET failed (possibly related to argument 'appendonly') - can't set immutable config |
+| unit/other | EXPIRES after AOF reload (without rewrite) |  SET failed (possibly related to argument 'appendonly') - can't set immutable config |
+
+## BLOCK-CHAIN-ASYNC
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/type/list | Circular BRPOPLPUSH | Expected 'foo' to be equal to '' (context: type eval line 14 cmd {assert_equal {foo} [r lrange list1{t} 0 -1]} proc ::test) |
+| unit/type/list | Linked LMOVEs | Expected '' to be equal to 'foo' (context: type eval line 15 cmd {assert_equal {} [r lrange list2{t} 0 -1]} proc ::test) |
+
+## BLOCK-WAKE-ORDER-MULTI
+
+Promoted: 12; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/type/list | BLMPOP with multiple blocked clients | Expected 'blist{t} e' to be equal to 'blist2{t} 5' (context: type eval line 22 cmd {assert_equal {blist{t} e} [$rd1 read]} proc ::test) |
+| unit/type/zset | BZMPOP with multiple blocked clients | Expected 'myzset{t} {{e 5} {d 4} {c 3} {b 2}}' to be equal to 'myzset2{t} {{e 5} {d 4} {c 3} {b 2} {a 1}}' (context: type eval line 23 cmd {assert_equal {myzset{t} {{e 5} {d 4} {c 3} {b 2}}} [$rd2 read]} proc ::test) |
+
+## CLIENT-EVICTION-ABSENT
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection | CONFIG SET rollback on set error | Expected 'ERR Unknown option or number of arguments for CONFIG SET - 'maxmemory-clients'' to match 'ERR CONFIG SET failed (possibly related to argument 'maxmemory-clients') - percentage argument must be less or equal to 100' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-2/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1)  |
+
+## COMMAND-DOCS-INCOMPLETE
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| integration/redis-cli | Non-interactive non-TTY CLI: Test command-line hinting - latest server | Expected 'Test case 'MIGRATE ' FAILED: expected 'host port key\|"" destination-db timeout [COPY] [REPLACE] [AUTH password\|AUTH2 username password] [KEYS key [key ...]]', got '(null)'' to match '*SUCCESS*' (context: type eval line 4 cmd {assert_match "*SUCCESS*" $output} proc ::test)  |
+
+## CONFIG-DAEMONIZE-ABSENT
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection | CONFIG SET set immutable | Expected 'ERR Unknown option or number of arguments for CONFIG SET - 'daemonize'' to match 'ERR *immutable*' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-3/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1)  |
+
+## CONFIG-RUNTIME-IMMUTABLE
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection | CONFIG SET rollback on apply error | Expected 'ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config' to match 'ERR CONFIG SET failed (possibly related to argument 'port') - Unable to listen on this port*' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1)  |
+| unit/introspection | CONFIG sanity |  SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config |
+
+## CONNECTED-CLIENTS-LAG
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection | CLIENT KILL SKIPME YES/NO will kill all clients | Expected 2 == 4 - 1 (context: type eval line 8 cmd {assert {$res == $connected_clients - 1}} proc ::test) |
+
+## DEBUG-RELOAD-OPTIONS
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/functions | FUNCTION - test debug reload different options | Expected 'ERR unknown subcommand or wrong number of arguments for 'debug' command' to match '*Error trying to load the RDB*' (context: type eval line 3 cmd {assert_match "*Error trying to load the RDB*" $e} proc ::test)  |
+| unit/functions | FUNCTION - test debug reload with nosave and noflush | y not found |
+
+## DIRTY-COUNTER
+
+Promoted: 0; retained: 4.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/bitops | SETBIT/BITFIELD only increase dirty when the value changed | Expected 0 == 0 + 2 (context: type eval line 9 cmd {assert {$dirty2 == $dirty + 2}} proc ::test) |
+| unit/type/list | BLPOP/BLMOVE should increase dirty | Expected 0 == 0 + 2 (context: type eval line 11 cmd {assert {$dirty2 == $dirty + 2}} proc ::test) |
+| unit/type/stream-cgroups | XREADGROUP from PEL does not change dirty | Expected 0 == 0 + 1 (context: type eval line 38 cmd {assert {$dirty2 == $dirty + 1}} proc ::test) |
+| unit/type/stream-cgroups | XREADGROUP of multiple entries changes dirty by one | Expected 0 == 0 + 1 (context: type eval line 14 cmd {assert {$dirty2 == $dirty + 1}} proc ::test) |
+
+## DUMP-STREAM-REFUSED
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/type/stream-cgroups | Consumer seen-time and active-time | h key |
+
+## EVAL-SHEBANG
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/scripting | allow-oom shebang flag | Expected an error matching 'OOM *' but got '1' (context: type eval line 21 cmd {assert_error {OOM *} { |
+| unit/scripting | reject script do not cause a Lua stack leak | Expected an error matching 'OOM *' but got '1' (context: type eval line 4 cmd {assert_error {OOM *} {r eval {#!lua |
+
+## EXTERNAL-CHILD-PID
+
+Promoted: 6; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/type/set | SMOVE wrong dst key type | Expected an error matching 'WRONGTYPE*' but got '0' (context: type eval line 3 cmd {assert_error "WRONGTYPE*" {r smove myset2{t} x{t} foo}} proc ::test) |
+| unit/type/set | SRANDMEMBER with a dict containing long chain | n option or number of arguments for CONFIG SET - 'rdb-key-save-delay' |
+
+## FUNCTION-LOAD-DENYOOM
+
+Promoted: 1; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/functions | FUNCTION - verify OOM on function load and function restore | Expected 'test' to match '*command not allowed when used memory*' (context: type eval line 13 cmd {assert_match {*command not allowed when used memory*} $e} proc ::test)  |
+
+## HIDDEN-DEBUG-CONFIGS
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection | CLIENT KILL close the client connection during bgsave | n option or number of arguments for CONFIG SET - 'rdb-key-save-delay' |
+| unit/introspection | CONFIG GET hidden configs | Expected [dict exists [r config get key-load-delay] "key-load-delay"] (context: type eval line 8 cmd {assert {[dict exists [r config get $hidden_config] "$hidden_config"]}} proc ::test) |
+
+## HLL-SPARSE-MAX-BYTES
+
+Promoted: 0; retained: 3.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/hyperloglog | Change hll-sparse-max-bytes |  SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config |
+| unit/hyperloglog | HyperLogLogs are promote from sparse to dense |  SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config |
+| unit/hyperloglog | Hyperloglog promote to dense well in different hll-sparse-max-bytes |  SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config |
+
+## INFO-CMDSTAT-FIELDS
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/type/list | Blocking command accounted only once in commandstats | Expected 'calls=1,rejected_calls=0' to match '*calls=1,*,rejected_calls=0,failed_calls=0' (context: type eval line 19 cmd {assert_match {*calls=1,*,rejected_calls=0,failed_calls=0} [cmdrstat blpop r]} proc ::test)  |
+| unit/type/list | Blocking command accounted only once in commandstats after timeout | Expected 'calls=1,rejected_calls=0' to match '*calls=1,*,rejected_calls=0,failed_calls=0' (context: type eval line 20 cmd {assert_match {*calls=1,*,rejected_calls=0,failed_calls=0} [cmdrstat blpop r]} proc ::test)  |
+
+## INFO-ERRORSTATS
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection-2 | errors stats for GEOADD | Expected 'calls=1,rejected_calls=0' to match '*calls=1*,rejected_calls=0,failed_calls=1*' (context: type eval line 6 cmd {assert_match {*calls=1*,rejected_calls=0,failed_calls=1*} [cmdstat geoadd]} proc ::test)  |
+| unit/scripting | Consistent eval error reporting | Expected '' to be equal to 'count=1' (context: type eval line 8 cmd {assert_equal [errorrstat OOM r] {count=1}} proc ::test) |
+
+## LAZYFREE-COUNTERS
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/tracking | Tracking invalidation message of eviction keys should be before response | lazyfree isn't done |
+
+## LUA-REDIS-API
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/scripting | LUA redis.error_reply API | Expected '' to be equal to 'count=1' (context: type eval line 6 cmd {assert_equal [errorrstat MY_ERR_CODE r] {count=1}} proc ::test) |
+| unit/scripting | LUA redis.error_reply API with empty string | Expected '' to be equal to 'count=1' (context: type eval line 6 cmd {assert_equal [errorrstat ERR r] {count=1}} proc ::test) |
+
+## LUA-SANDBOX-GLOBALS
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/scripting | Measures elapsed time os.clock() | t exceeded the 100000 instruction limit |
+
+## MAXMEMORY-BASELINE
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/functions | FUNCTION - deny oom | Expected 'invalid command name "OK"' to match 'OOM *when used memory > 'maxmemory'*' (context: type eval line 9 cmd {assert_match {OOM *when used memory > 'maxmemory'*} $e} proc ::test)  |
+
+## MEMORY-ACCOUNTING
+
+Promoted: 0; retained: 3.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/functions | FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread | Expected '' to be more than '100000' (context: type eval line 6 cmd {assert_morethan [s used_memory_vm_functions] 100000} proc ::test) |
+| unit/scripting | Test script flush will not leak memory - script:0 | Expected '0' to be less than '0.0' (context: type eval line 26 cmd {assert_lessthan [s used_memory] [expr $used_memory*1.5]} proc ::test) |
+| unit/scripting | Test script flush will not leak memory - script:1 | Expected '0' to be less than '0.0' (context: type eval line 26 cmd {assert_lessthan [s used_memory] [expr $used_memory*1.5]} proc ::test) |
+
+## MULTI-OOM-EXEC
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/multi | EXEC with at least one use-memory command should fail | Expected 'OOM command not allowed when used memory > 'maxmemory'.' to match 'EXECABORT*OOM*' (context: type eval line 13 cmd {assert_match {EXECABORT*OOM*} $e} proc ::test)  |
+
+## MULTI-OOM-QUEUE
+
+Promoted: 5; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/multi | DISCARD should not fail during OOM | Expected 'QUEUED' to match 'OOM*' (context: type eval line 7 cmd {assert_match {OOM*} $e} proc ::test)  |
+| unit/multi | EXEC fails if there are errors while queueing commands #2 | Expected 'OK 1 OK' to match 'EXECABORT*' (context: type eval line 13 cmd {assert_match {EXECABORT*} $e} proc ::test)  |
+
+## MULTI-POLICY-REFUSAL
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/pubsub | unsubscribe inside multi, and publish to self | d not allowed inside a transaction |
+
+## OBJECT-IDLETIME-ZERO
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection-2 | TTL, TYPE and EXISTS do not alter the last access time of a key | Expected [r object idletime foo] >= 2 (context: type eval line 7 cmd {assert {[r object idletime foo] >= 2}} proc ::test) |
+
+## PAUSE-BLOCKED-COUNT
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/pause | CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE | Expected '1' to be equal to '0' (context: type eval line 22 cmd {assert_equal 1 [r client unblock $client_id1 timeout]} proc ::test) |
+| unit/type/list | Blocking timeout following PAUSE should honor the timeout | Timeout waiting for blocked clients |
+
+## PAUSE-CLIENT-EXEMPT
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/pause | Test old pause-all takes precedence over new pause-write (less restrictive) | Expected '200' to be less than '51' (context: type eval line 24 cmd {assert_lessthan 200 $elapsed} proc ::test) |
+
+## PUBSUB-SUBSCRIBE-NO-DENYOOM
+
+Promoted: 0; retained: 12.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/pubsub | psubscribe  fails with OOM when memory limit exceeded | Expected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test) |
+| unit/pubsub | psubscribe succeeds with small pattern but fails with large pattern due to OOM | Expected an error matching '*OOM command not allowed when used memory > 'maxmemory'*' but got 'psubscribe bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ... [full 10486001-character failure in compressed receipt] |
+| unit/pubsub | psubscribe with 2 clients fails with OOM when memory limit exceeded | Expected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test) |
+| unit/pubsub | psubscribe with large pattern name fails due to OOM | Expected an error matching '*OOM command not allowed when used memory > 'maxmemory'*' but got 'psubscribe aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ... [full 2097393-character failure in compressed receipt] |
+| unit/pubsub | ssubscribe  fails with OOM when memory limit exceeded | Expected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test) |
+| unit/pubsub | ssubscribe succeeds with small channel but fails with large channel due to OOM | Expected an error matching '*OOM command not allowed when used memory > 'maxmemory'*' but got 'ssubscribe bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ... [full 10486001-character failure in compressed receipt] |
+| unit/pubsub | ssubscribe with 2 clients fails with OOM when memory limit exceeded | Expected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test) |
+| unit/pubsub | ssubscribe with large shard channel name fails due to OOM | Expected an error matching '*OOM command not allowed when used memory > 'maxmemory'*' but got 'ssubscribe aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ... [full 2097393-character failure in compressed receipt] |
+| unit/pubsub | subscribe  fails with OOM when memory limit exceeded | Expected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test) |
+| unit/pubsub | subscribe succeeds with small channel but fails with large channel due to OOM | Expected an error matching '*OOM command not allowed when used memory > 'maxmemory'*' but got 'subscribe bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ... [full 10486000-character failure in compressed receipt] |
+| unit/pubsub | subscribe with 2 clients fails with OOM when memory limit exceeded | Expected 0 == 1 (context: type eval line 47 cmd {assert {$oom_occurred == 1}} proc ::test) |
+| unit/pubsub | subscribe with large channel name fails due to OOM | Expected an error matching '*OOM command not allowed when used memory > 'maxmemory'*' but got 'subscribe aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ... [full 2097392-character failure in compressed receipt] |
+
+## RESTORE-IDLETIME-FREQ-IGNORED
+
+Promoted: 0; retained: 2.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/dump | RESTORE can set LFU | Expected 0 == 100 (context: type eval line 8 cmd {assert {$freq == 100}} proc ::test) |
+| unit/dump | RESTORE can set LRU | Expected 0 >= 1000 && 0 <= 1010 (context: type eval line 8 cmd {assert {$idle >= 1000 && $idle <= 1010}} proc ::test) |
+
+## SCRIPT-CMD-WHITELIST
+
+Promoted: 0; retained: 19.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/functions | LIBRARIES - test shared function can access default globals | d 'PING' is not allowed from scripts script: f1, on @user_function:3. |
+| unit/introspection-2 | command stats for scripts | d 'EXPIRE' is not allowed from scripts script: 67f06db3229218458a8defc01ab51e788a78adc5, on @user_script:3. |
+| unit/pause | Test may-replicate commands are rejected in RO scripts | Expected 'ERR command 'PUBLISH' is not allowed from scripts script: 182a3b6a9baccb64fbda951faab9575c9707d126, on @user_script:1.' to match 'ERR Write commands are not allowed from read-only scripts. script:*' (context: type source line 89 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1)  |
+| unit/pubsub | publish to self inside script | d 'PING' is not allowed from scripts script: 7f1d4bda1729939be0acff94f0e6dbabb8b75249, on @user_script:2. |
+| unit/scripting | Correct handling of reused argv (issue #1939) | d 'MGET' is not allowed from scripts script: test, on @user_function:6. |
+| unit/scripting | EVAL - Scripts do not block on XREAD with BLOCK option | d 'XREAD' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream | d 'XREAD' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on XREADGROUP with BLOCK option | d 'XREADGROUP' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream | d 'XREADGROUP' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on blmove command | d 'BLMOVE' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on blpop command | d 'BLPOP' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on brpop command | d 'BRPOP' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on brpoplpush command | d 'BRPOPLPUSH' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on bzpopmax command | d 'BZPOPMAX' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on bzpopmin command | d 'BZPOPMIN' is not allowed from scripts |
+| unit/scripting | SORT BY <constant> output gets ordered for scripting | d 'SORT' is not allowed from scripts script: 5a5fd3aef83ed2311df2823b8cbf343647e572a9, on @user_script:1. |
+| unit/scripting | SORT BY <constant> with GET gets ordered for scripting | d 'SORT' is not allowed from scripts script: e9beb397ca34facf839ac6126d322a6553367b59, on @user_script:1. |
+| unit/scripting | SORT is normally not alpha re-ordered for the scripting engine | d 'SORT' is not allowed from scripts script: a7f71e49316dfad0dc5eb3fb098a9899b73be282, on @user_script:1. |
+| unit/sort | SORT sorted set BY nosort works as expected from scripts | d 'SORT' is not allowed from scripts script: 878266beec32a7d3361496ad4153a766c3890493, on @user_script:2. |
+
+## SCRIPT-ERROR-WORDING
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/scripting | LUA test pcall with non string/integer arg | d 'PING' is not allowed from scripts script: cf412faafadb9db5689008ed5333d3994c1d130b, on @user_script:2. |
+
+## SCRIPT-INSTRUCTION-LIMIT
+
+Promoted: 0; retained: 3.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/functions | LIBRARIES - load timeout | Expected '*FUNCTION LOAD timeout*' to equal or match 'ERR Error registering functions: ERR ERR function library exceeded the instruction limit' |
+| unit/latency-monitor | LATENCY of expire events are correctly collected | t exceeded the 100000 instruction limit |
+| unit/scripting | EVAL - cmsgpack pack/unpack smoke test | t exceeded the 100000 instruction limit |
+
+## SCRIPT-NO-BUSY-WINDOW
+
+Promoted: 0; retained: 11.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/functions | FUNCTION - test function kill | n option or number of arguments for CONFIG SET - 'busy-reply-threshold' |
+| unit/functions | FUNCTION - test function kill not working on eval | n option or number of arguments for CONFIG SET - 'busy-reply-threshold' |
+| unit/functions | FUNCTION - test script kill not working on function | n option or number of arguments for CONFIG SET - 'busy-reply-threshold' |
+| unit/multi | EXEC and script timeout | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+| unit/multi | MULTI and script timeout | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+| unit/multi | MULTI-EXEC body and script timeout | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+| unit/multi | just EXEC and script timeout | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+| unit/scripting | Timedout read-only scripts can be killed by SCRIPT KILL | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+| unit/scripting | Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+| unit/scripting | Timedout script does not cause a false dead client | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+| unit/scripting | Timedout script link is still usable after Lua returns | n option or number of arguments for CONFIG SET - 'lua-time-limit' |
+
+## SCRIPT-UNDECLARED-KEY
+
+Promoted: 15; retained: 5.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/introspection | MONITOR can log commands issued by functions |  attempted to access an undeclared key script: test, on @user_function:2. |
+| unit/scripting | EVAL - Lua number -> Redis integer conversion |  attempted to access an undeclared key |
+| unit/scripting | LUA test trim string as expected |  attempted to access an undeclared key script: c1b24d3859c5f9c748f3ccee7469ab33e020aedc, on @user_script:2. |
+| unit/scripting | Script - disallow write on OOM | Expected 'ERR Script attempted to access an undeclared key script: 16f3e4af2b7a0f1b9dcfcba0d266110083815748, on @user_script:1.' to match '*command not allowed when used memory*' (context: type eval line 5 cmd {assert_match {*command not allowed when used memory*} $e} proc ::test)  |
+| unit/tracking | Tracking only occurs for scripts when a command calls a read-only command |  attempted to access an undeclared key script: 2a46f44468e85a68d476d3bcda9318ca658c8952, on @user_script:1. |
+
+## SLOWLOG-BLOCKED-NOT-LOGGED
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/slowlog | SLOWLOG - Rewritten commands are logged as their original command | Expected 'blpop l 0' to be equal to 'slowlog reset' (context: type eval line 45 cmd {assert_equal {blpop l 0} [lindex [lindex [r slowlog get] 0] 3]} proc ::test) |
+
+## SLOWLOG-MAXLEN-PER-THREAD
+
+Promoted: 2; retained: 5.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/slowlog | SLOWLOG - GET optional argument to limit output len works | Expected '5' to be equal to '0' (context: type eval line 3 cmd {assert_equal 5  [llength [r slowlog get 5]]} proc ::test) |
+| unit/slowlog | SLOWLOG - can clean older entries | Expected [llength [r slowlog get]] == 1 (context: type eval line 5 cmd {assert {[llength [r slowlog get]] == 1}} proc ::test) |
+| unit/slowlog | SLOWLOG - get all slow logs | Expected '5' to be equal to '3' (context: type eval line 11 cmd {assert_equal [r slowlog len] 3} proc ::test) |
+| unit/slowlog | SLOWLOG - logged entry sanity check | Expected '0' to be equal to '6' (context: type eval line 5 cmd {assert_equal [llength $e] 6} proc ::test) |
+| unit/slowlog | SLOWLOG - max entries is correctly handled | Expected '10' to equal or match '11' |
+
+## TRACK-INVALIDATE-BEFORE-REPLY
+
+Promoted: 1; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/tracking | Tracking invalidation message is not interleaved with multiple keys response | Expected 'invalidate y{t}' to be equal to '1 {}' (context: type eval line 15 cmd {assert_equal $res {1 {}}} proc ::test) |
+
+## TRACK-MAXKEYS-IMMUTABLE
+
+Promoted: 0; retained: 14.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/tracking | CLIENT GETREDIR provides correct client id | Expected '3' to be equal to '-1' (context: type eval line 3 cmd {assert_equal $redir_id $res} proc ::test) |
+| unit/tracking | CLIENT TRACKINGINFO provides reasonable results when tracking redir broken |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | Invalidation message received for flushall |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | Invalidation message received for flushdb |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | RESP2 based basic invalidation with client reply off |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | RESP3 based basic invalidation with client reply off |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | RESP3 based basic redirect invalidation with client reply off |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | RESP3 based basic tracking-redir-broken with client reply off |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | Regression test for #11715 |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | Test ASYNC flushall |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | Tracking gets notification on tracking table key eviction |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | Tracking info is correct |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+| unit/tracking | flushdb tracking invalidation message is not interleaved with transaction response |  SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config |
+
+## UNSUP-CLUSTER
+
+Promoted: 0; retained: 7.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| integration/redis-cli | Non-interactive non-TTY CLI: ASK redirect test | Expected 'OK' to be equal to 'ERR unexpected command SET foo bar' (context: type eval line 20 cmd {assert_equal "OK" [run_cli_host_port_db "127.0.0.1" $port1 0 -c SET foo bar]} proc ::test) |
+| unit/dump | MIGRATE cached connections are released after some time | Expected '# Server |
+| unit/introspection | MONITOR supports redacting command arguments | n command 'migrate', with args beginning with: '127.0.0.1' '20072' 'key' '9' '5000' |
+| unit/introspection-2 | COMMAND LIST FILTERBY PATTERN - list all commands/subcommands | Expected '-1' not equal to '-1' (context: type eval line 19 cmd {assert_not_equal [lsearch $commands "cluster\|help"] -1} proc ::test) |
+| unit/introspection-2 | MIGRATE command is marked with movablekeys | Expected '' to match '*movablekeys*' (context: type eval line 3 cmd {assert_match {*movablekeys*} [lindex $info 2]} proc ::test)  |
+| unit/scripting | CLUSTER RESET can not be invoke from within a script | Expected '*command is not allowed*' to equal or match 'ERR Unknown Redis command called from script script: test, on @user_function:4.' |
+| unit/slowlog | SLOWLOG - Some commands can redact sensitive fields | n command 'migrate', with args beginning with: '127.0.0.1' '20072' 'key' '9' '5000' |
+
+## UNSUP-DEBUG
+
+Promoted: 2; retained: 32.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/dump | RESTORE fail with invalid payload size | n subcommand or wrong number of arguments for 'debug' command |
+| unit/dump | RESTORE with ABSTTL in the past | Expected 'ERR no such key' to equal or match 'ERR unknown subcommand or wrong number of arguments for 'debug' command' |
+| unit/introspection-2 | Operations in no-touch mode do not alter the last access time of a key | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for $type set | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for hashtable hash | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for list - listpack | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for list - quicklist | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for listpack hash | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for listpack sorted set | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for skiplist sorted set | n subcommand or wrong number of arguments for 'debug' command |
+| unit/keyspace | COPY basic usage for stream | n subcommand or wrong number of arguments for 'debug' command |
+| unit/other | Check consistency of different data types after a reload | n subcommand or wrong number of arguments for 'debug' command |
+| unit/other | Same dataset digest if saving/reloading as AOF? | n subcommand or wrong number of arguments for 'debug' command |
+| unit/protocol | RESP3 attributes | n subcommand or wrong number of arguments for 'debug' command |
+| unit/protocol | RESP3 attributes on RESP2 | n subcommand or wrong number of arguments for 'debug' command |
+| unit/protocol | RESP3 attributes readraw | Expected '-ERR unknown subcommand or wrong number of arguments for 'debug' command' to be equal to '\|1' (context: type eval line 7 cmd {assert_equal [r read] {\|1}} proc ::test) |
+| unit/protocol | test big number parsing | n subcommand or wrong number of arguments for 'debug' command |
+| unit/protocol | test bool parsing | n subcommand or wrong number of arguments for 'debug' command |
+| unit/protocol | test verbatim str parsing | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/hash | Is a ziplist encoded Hash promoted on big payload? | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/incr | INCR can modify objects in-place | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Crash due to delete entry from a compress quicklist node | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Crash due to split quicklist node wrongly | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LINDEX and LINSERT on plain nodes | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LMOVE on plain nodes | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LPOS on plain nodes | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LPUSH and LPOP on plain nodes | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LREM on plain nodes | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LSET with packed / plain combinations | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LSET with packed consist only one item | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LSET with packed is split in the middle | n subcommand or wrong number of arguments for 'debug' command |
+| unit/type/list | Test LTRIM on plain nodes | n subcommand or wrong number of arguments for 'debug' command |
+
+## UNSUP-ENCODING
+
+Promoted: 1; retained: 9.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/pubsub | Keyspace notifications: hash events test (listpackex) | Expected 'listpack' to match 'listpackex' (context: type source line 100 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-3/tests/support/test.tcl cmd {assert_match $enc $val} proc ::assert_encoding level 1)  |
+| unit/sort | SORT STORE quicklist with the right options | n option or number of arguments for CONFIG SET - 'list-compress-depth' |
+| unit/type/incr | INCR uses shared objects in the 0-9999 range | Expected '1' to be more than '1' (context: type source line 122 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-2/tests/support/test.tcl cmd {assert_morethan $val $ref} proc ::assert_refcount_morethan level 2) |
+| unit/type/list | List invalid list-max-listpack-size config | Expected 'listpack' to match 'quicklist' (context: type source line 100 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-1/tests/support/test.tcl cmd {assert_match $enc $val} proc ::assert_encoding level 1)  |
+| unit/type/list | List listpack -> quicklist encoding conversion | Expected 'listpack' to match 'quicklist' (context: type source line 100 file /home/user/Projects/cx-wave12/build/wave12/tcl-skips/checkout-2/tests/support/test.tcl cmd {assert_match $enc $val} proc ::assert_encoding level 1)  |
+| unit/type/list-3 | Check compression with recompress | n option or number of arguments for CONFIG SET - 'list-compress-depth' |
+| unit/type/list-3 | Crash due to wrongly recompress after lrem | n option or number of arguments for CONFIG SET - 'list-compress-depth' |
+| unit/type/list-3 | LINSERT correctly recompress full quicklistNode after inserting a element after it | n option or number of arguments for CONFIG SET - 'list-compress-depth' |
+| unit/type/list-3 | LINSERT correctly recompress full quicklistNode after inserting a element before it | n option or number of arguments for CONFIG SET - 'list-compress-depth' |
+
+## UNSUP-MODULE
+
+Promoted: 0; retained: 1.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| unit/other | Coverage: HELP commands | n command 'MODULE', with args beginning with: 'HELP' |
+
+## UNSUP-REPLICATION
+
+Promoted: 0; retained: 40.
+
+| File | Retained skip | Current first failure |
+|---|---|---|
+| integration/redis-cli | Connecting as a replica | n option or number of arguments for CONFIG SET - 'repl-diskless-sync' |
+| integration/redis-cli | Dumping an RDB - functions only: no | n option or number of arguments for CONFIG SET - 'repl-diskless-sync' |
+| integration/redis-cli | Dumping an RDB - functions only: yes | n option or number of arguments for CONFIG SET - 'repl-diskless-sync' |
+| unit/dump | RESTORE should not store key that are already expired, with REPLACE will propagate it as DEL or UNLINK | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/expire | All TTL in commands are propagated as absolute timestamp in replication stream | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/expire | GETEX propagate as to replica as PERSIST, DEL, or nothing | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/expire | RANDOMKEY: Lazy-expire should not be wrapped in MULTI/EXEC | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/expire | Redis should not propagate the read command on lazy expire | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/expire | SCAN: Lazy-expire should not be wrapped in MULTI/EXEC | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/introspection | CONFIG GET multiple args | Expected [dict exists bind 127.0.0.1 maxmemory 0 maxmemory-policy noeviction maxmemory-samples 5 slaveof] && [dict exists bind 127.0.0.1 maxmemory 0 maxmemory-policy noeviction maxmemory-samples 5 replicaof] (context: type eval line 8 cmd {assert {[dict exists $res slaveof] && [dict exists $res replicaof]}  } proc ::test) |
+| unit/introspection | CONFIG SET with multiple args | n option or number of arguments for CONFIG SET - 'repl-backlog-size' |
+| unit/multi | MULTI / EXEC is not propagated (single write command) | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI / EXEC is propagated correctly (empty transaction) | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI / EXEC is propagated correctly (multiple commands) | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI / EXEC is propagated correctly (read-only commands) | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI / EXEC is propagated correctly (write command, no effect) | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI / EXEC with REPLICAOF | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI propagation of EVAL | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI propagation of PUBLISH | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI propagation of SCRIPT FLUSH | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI propagation of SCRIPT LOAD | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | MULTI propagation of XREADGROUP | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/multi | exec with read commands and stale replica state change | n option or number of arguments for CONFIG SET - 'replica-serve-stale-data' |
+| unit/multi | exec with write commands and state change | n option or number of arguments for CONFIG SET - 'min-replicas-to-write' |
+| unit/scripting | EVAL - Scripts do not block on wait | d 'WAIT' is not allowed from scripts |
+| unit/scripting | EVAL - Scripts do not block on waitaof |  SET failed (possibly related to argument 'appendonly') - can't set immutable config |
+| unit/scripting | EXPIRE: We can call scripts rewriting client->argv from Lua | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/scripting | INCRBYFLOAT: We can call scripts expanding client->argv from Lua | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/scripting | MGET: mget shouldn't be propagated in Lua | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/scripting | SPOP: We can call scripts rewriting client->argv from Lua | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/scripting | not enough good replicas | n option or number of arguments for CONFIG SET - 'min-replicas-to-write' |
+| unit/slowlog | SLOWLOG - Certain commands are omitted that contain sensitive information | n option or number of arguments for CONFIG SET - 'masteruser' |
+| unit/type/list | BLMPOP propagate as pop with count command to replica | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/type/list | Command being unblocked cause another command to get unblocked execution order test | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/type/list | LMPOP propagate as pop with count command to replica | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/type/set | SPOP new implementation: code path #1 propagate as DEL or UNLINK | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/type/string | GETDEL propagate as DEL command to replica | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/type/string | GETEX without argument does not propagate to replica | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/type/zset | BZMPOP propagate as pop with count command to replica | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |
+| unit/type/zset | ZMPOP propagate as pop with count command to replica | n option or number of arguments for CONFIG SET - 'repl-ping-replica-period' |

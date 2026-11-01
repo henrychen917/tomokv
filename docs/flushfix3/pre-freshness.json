@@ -1,0 +1,10 @@
+{
+  "command": [
+    "make",
+    "-C",
+    "build/flushfix3/pre-source",
+    "-q",
+    "all"
+  ],
+  "status": 0
+}

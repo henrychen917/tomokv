@@ -1,0 +1,38 @@
+{
+  "rows": [
+    {
+      "job": "flushfix3",
+      "rows": 2,
+      "collection_line": 6025
+    },
+    {
+      "job": "flushfix3_units",
+      "rows": 2,
+      "collection_line": 6026
+    },
+    {
+      "job": "flushfix2",
+      "rows": 14,
+      "collection_line": 6027
+    },
+    {
+      "job": "flushfix2_units",
+      "rows": 2,
+      "collection_line": 6028
+    }
+  ],
+  "quick_exit_line": 6334,
+  "incoming_constants": {
+    "EXPECT_QUICK": 946,
+    "EXPECT_FULL": 963
+  },
+  "constants_unchanged_from_headline": true,
+  "flushfix3_DQ": 4,
+  "flushfix3_DF": 4,
+  "cumulative_DQ": 20,
+  "cumulative_DF": 20,
+  "owner_expected": {
+    "quick": 966,
+    "full": 983
+  }
+}

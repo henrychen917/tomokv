@@ -1,0 +1,41 @@
+{
+  "unit": "db0/src/cmd/t_set.o",
+  "budget": "26683",
+  "old_budget": 26651,
+  "initial": 19623,
+  "changed": [
+    "void tomo_db0::(anonymous namespace)::cmd_spop<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "void tomo_db0::(anonymous namespace)::cmd_spop<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]"
+  ],
+  "total": 49,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=26651",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_set.cc",
+    "-o",
+    "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_t_set.o-26683.o",
+    "--param",
+    "large-unit-insns=26683",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/db0_src_cmd_t_set.o-26683.inline"
+  ],
+  "revision": "96ad88389e758f708a58e6219897f51f57c21328"
+}

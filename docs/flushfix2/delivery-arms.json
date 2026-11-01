@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "PRE",
+    "path": "build/flushfix2/pre/tomokv",
+    "sha256": "e1f756b465273991a42b350986645a2660700bee6d71404b9630182789528d3e",
+    "bytes": 220087816,
+    "text_bytes": 8551031,
+    "executable_section_bytes": 8561759
+  },
+  {
+    "arm": "POST",
+    "path": "build/flushfix2/post-v2/tomokv",
+    "sha256": "7389c241a63ed94d17a03c447c90bba6ae1dde422f0fe6a9edb728006d13bad8",
+    "bytes": 222403712,
+    "text_bytes": 8653079,
+    "executable_section_bytes": 8663807
+  },
+  {
+    "arm": "PAD-A",
+    "path": "build/flushfix2/pad-a-v2/tomokv",
+    "sha256": "2f7c9591acc21effb52787cc75194f9d6f9426e63e36538027c7f264d0b0832e",
+    "bytes": 222403712,
+    "text_bytes": 8653079,
+    "executable_section_bytes": 8663807
+  }
+]

@@ -1,0 +1,51 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave12/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave12",
+  "env": {
+    "LANG": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "debug-0 debug-1 script_bounds notify asan_batteries release_batteries dump_restore sort auth aof_frame replyoff zc feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 wb_policy multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 respcompat flip fliplisten flipctl atomic_floor",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_ZC_NET_IO": "epoll",
+    "GATE_SHUTDOWN_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave12/docs/wave12/jobs/landing-secondary-2s-epoll.tsv"
+  },
+  "binary_sha256": "bded27b18371edf7a43df171f042444d6c7f6d34c2fe2bd87f6b83b13c9356d4",
+  "source_commit": "2ad5f8f8b797eaaa13da9ba1f92e17ee9e8b8638",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "gate_sha256": "1c16b1f11774bdc0aa3033e031627b3f6cdf2112d2e01426e0813500e5bdb8d2",
+  "tests_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "started": 1793445244.9624562,
+  "source_tree_sha256": "5171c8c4c354b6552fd48f983309b98495107494eeeaef30dc3a74f7045bbf39",
+  "tests_tools_sha256": "03f058ee04955229a447bab08fa63c98d08d309af9020d88cc1c00bfa99492b3",
+  "exit": 0,
+  "seconds": 829.2191205024719,
+  "source_tree_unchanged": true,
+  "tests_tools_unchanged": true,
+  "artifacts": "/home/user/Projects/cx-wave12/build/gate-run.YIGf2K",
+  "summary": [
+    "GATE(PARTIAL): 279 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave12/docs/wave12/jobs/landing-secondary-2s-epoll.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

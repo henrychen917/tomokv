@@ -1,0 +1,642 @@
+[
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 310981,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 137130,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 162740,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 273371,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 214250,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 136910,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 379881,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 187790,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 166910,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 102790,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 126910,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 894591,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 474200,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 115431,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 175021,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 417140,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 149691,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 687461,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 236650,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 280740,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 160350,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 84290,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 150200,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 148600,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 223960,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 82480,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 170541,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 157781,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 143340,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 186410,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 155951,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 479361,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db16",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 285711,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 407991,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 195620,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 134090,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 400191,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 253680,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 381241,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 151250,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 674841,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 100810,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 130291,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 103230,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 190400,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 543601,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 103650,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 101390,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "1s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 140210,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 72521,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 78860,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 71470,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 283950,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 85680,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 72430,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 975802,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-uring-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 140670,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 81421,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 76540,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 1033161,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-0",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "SYNC",
+    "maximum_ns": 242431,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHALL",
+    "option": "ASYNC",
+    "maximum_ns": 75840,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "SYNC",
+    "maximum_ns": 83100,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  },
+  {
+    "command": "FLUSHDB",
+    "option": "ASYNC",
+    "maximum_ns": 81540,
+    "required_calls": 1000,
+    "misses": 0,
+    "db": "db1",
+    "leg": "2s-epoll-1",
+    "calls": 1000
+  }
+]

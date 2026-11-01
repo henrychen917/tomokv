@@ -1,0 +1,33 @@
+{
+  "unit": "src/cmd/t_stream_groups.o",
+  "budget": "current",
+  "old_budget": 10012,
+  "initial": 18921,
+  "changed": [],
+  "total": 41,
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "large-unit-insns=10012",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_stream_groups.cc",
+    "-o",
+    "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_stream_groups.o-current.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_stream_groups.o-current.inline"
+  ],
+  "revision": "9fbab5566ee288968f0d1c1e557d5946a36357b2:ef117c609b3fc79cb64b23bc5a616bbff3f8e4e6eda1ea0befa822eaa05725de",
+  "object": "/home/user/Projects/cx-flushfix2/build/flushfix2/budgets/src_cmd_t_stream_groups.o-current.o"
+}
