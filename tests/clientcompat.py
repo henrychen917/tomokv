@@ -215,6 +215,13 @@ def probe(case, port, rows, oracle, mode=None):
                 check('choice invalidations', sorted(keys(t.drain(.3))), sorted(ks) if expected else [])
                 t.close()
         elif case == 'multi-controls':
+            # Reuse AT15's exact RESP2 subscription wire assertion on both arms.
+            from at15 import Connection, subscription_policy
+            raw = Connection('127.0.0.1', port)
+            try:
+                rows.append(dict(at15_subscription=clean(subscription_policy(raw, oracle))))
+            finally:
+                raw.close()
             for proto in (2, 3):
                 b = peer(proto)
                 check('multi acl', b.cmd('MULTI'), b'OK')

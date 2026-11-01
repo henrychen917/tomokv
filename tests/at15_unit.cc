@@ -263,14 +263,18 @@ void check(Fixture& f, bool resp3, const std::string& only) {
         require(f.multi({"WATCH", "at15:key"}) == "-ERR WATCH inside MULTI is not allowed\r\n", "WATCH exact error");
         queue(f, {"PING"});
         require(f.multi({"EXEC"}) == "*1\r\n+PONG\r\n", "control errors do not dirty EXEC");
-        for (const char* name : {"SAVE", "SUBSCRIBE"}) {
+        begin(f);
+        require(f.multi({"SAVE"}) == "-ERR Command not allowed inside a transaction\r\n",
+                "metadata SAVE exact refusal");
+        require(f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
+                "refusal dirties EXEC");
+        // This owner-only fixture checks admission. The gate's clientcompat
+        // and pubsub jobs exercise the IO acknowledgements and EXEC replies.
+        for (const char* name : {"SUBSCRIBE", "UNSUBSCRIBE", "PSUBSCRIBE", "PUNSUBSCRIBE",
+                                 "SSUBSCRIBE", "SUNSUBSCRIBE"}) {
             begin(f);
-            const auto args = std::string(name) == "SAVE" ? std::vector<std::string>{name}
-                : std::vector<std::string>{name, "at15:channel"};
-            require(f.multi(args) == "-ERR Command not allowed inside a transaction\r\n",
-                    "metadata SAVE / group-5 subscription policy exact refusal");
-            require(f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
-                    "refusal dirties EXEC");
+            queue(f, {name, "at15:channel"});
+            require(f.multi({"DISCARD"}) == "+OK\r\n", "discard admitted subscription child");
         }
     }
     if (only.empty() || only == "metadata") {
