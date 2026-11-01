@@ -1016,6 +1016,7 @@ job_body(){
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
     rootcore-*) job_rootcore "${name#rootcore-}";;
+    wave14_order) job_wave14_order;;
     rootcompat) job_rootcompat all;;
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     multifix-*) job_multifix "$name";;
@@ -1208,6 +1209,7 @@ plan_jobs(){
   # One complete-gate worker retains all nine rows. Named partial jobs keep the
   # directed interface without adding nine shells to the serial scheduler.
   if [ "${GATE_PARTIAL:-0}" = 1 ]; then
+    JOB_NAMES+=(wave14_order)
     for section in proc password replication sort-acl redact xsnotify tracking hscan setpast stringlimit hx3 errorstats xsexpiry; do JOB_NAMES+=("rootcompat-$section"); done
   fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
@@ -5796,6 +5798,21 @@ job_wave14_functions(){
       --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/proof" \
       "${select[@]}" >"$TMPDIR/proof.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
+}
+
+# Diagnostic interaction witness. Kept outside the landing inventory until the
+# Redis comparison is classified; it still uses this job's watchdog and ledger.
+job_wave14_order(){
+  local options=()
+  [ "${WAVE14_ORDER_SINGLE:-0}" != 1 ] || options+=(--single)
+  row_begin "wave14 script EXEC wake publication order"
+  if py tests/wave14_order.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/proof" "${options[@]}" \
+      >"$TMPDIR/proof.log" 2>&1; then
+    ok "wave14 script EXEC wake publication order"
+  else
+    bad "wave14 script EXEC wake publication order" "see $TMPDIR/proof.log"
+  fi
 }
 
 job_rootcore(){
