@@ -12,7 +12,8 @@ Per attempt (fresh key prefix):
      both servers), then DEBUG SET-ACTIVE-EXPIRE 1 and wait for DBSIZE 0
   6. collect T's invalidations until 2 s quiet
 Verdict per attempt: distinct keys invalidated vs N (a flush counts for all).
-HIT (TomoKV) = notify_events_dropped advanced during the attempt (the 4096 cap overflowed).
+HIT (TomoKV) = the old drop counter advanced, or the fixed overflow branch
+published a whole-cache invalidation. No FLUSH command runs while tracking is on.
 """
 import argparse
 import json
@@ -137,7 +138,9 @@ def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chun
             info1 = {} if is_redis else info_dict(w)
             dropped = int(info1.get("notify_events_dropped", 0)) - dropped0
             fired = int(info1.get("notify_events_fired", 0)) - fired0
-            hit = True if is_redis else dropped > 0
+            # The repair correctly stops counting a tracking invalidation as
+            # dropped. Its whole-cache frame witnesses the same overflow path.
+            hit = True if is_redis else dropped > 0 or flushes > 0
             row = {"attempt": a, "n": n, "dbsize_before_trigger": dbsize_before,
                    "dbsize_after": dbsize_after, "trigger_calls": scans,
                    "trigger_seconds": round(trig_s, 3), "enrol_seconds": round(enrol_done, 3),
