@@ -72,7 +72,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Startup has a TomoKV banner, with no Redis-style conditional logo renderer."
   },
   {
     "name": "protected-mode",
@@ -82,7 +82,7 @@
     "since": "1482e32774",
     "mutable_redis": true,
     "mutable_tomo": true,
-    "default_equal": "NOT MEASURED (override)",
+    "default_equal": "yes (source defaults)",
     "get_equal": true,
     "oracle": [
       "protected-mode",
@@ -183,7 +183,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Worker names and the original argv remain intact; no process-title storage or renderer exists."
   },
   {
     "name": "dynamic-hz",
@@ -423,7 +423,7 @@
       "yes"
     ],
     "flags_equal": true,
-    "reason": "Native snapshot/AOF format and writer differ from Redis RDB/RESP persistence; this Redis control is not implemented."
+    "reason": "Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation."
   },
   {
     "name": "aof-use-rdb-preamble",
@@ -444,7 +444,7 @@
       "yes"
     ],
     "flags_equal": true,
-    "reason": "Native snapshot/AOF format and writer differ from Redis RDB/RESP persistence; this Redis control is not implemented."
+    "reason": "Native AOF bases are TomoKV snapshots: yes is accepted, no is rejected explicitly. This format boundary now blocks stream-cgroups after appendonly setup succeeds."
   },
   {
     "name": "aof-timestamp-enabled",
@@ -465,7 +465,7 @@
       "no"
     ],
     "flags_equal": true,
-    "reason": "Native snapshot/AOF format and writer differ from Redis RDB/RESP persistence; this Redis control is not implemented."
+    "reason": "Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation."
   },
   {
     "name": "cluster-replica-no-failover",
@@ -663,7 +663,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: jemalloc policy is inherited from the allocator; its mallctl background-thread switch is not exposed."
   },
   {
     "name": "activedefrag",
@@ -729,8 +729,8 @@
     "present": true,
     "since": "f94726446d",
     "mutable_redis": true,
-    "mutable_tomo": false,
-    "default_equal": "NOT MEASURED (override)",
+    "mutable_tomo": true,
+    "default_equal": "yes (source defaults)",
     "get_equal": true,
     "oracle": [
       "appendonly",
@@ -741,7 +741,7 @@
       "no"
     ],
     "flags_equal": true,
-    "reason": "UNFIXED: runtime activation requires a persistence cut, producer/writer rebinding and durable stop; currently boot-only."
+    "reason": "Runtime ON starts an unpublished increment and initial rewrite; OFF drains, fsyncs and closes. Outstanding: switches refuse active atomic/snapshot/topology work instead of Redis cancellation/scheduling."
   },
   {
     "name": "cluster-allow-reads-when-down",
@@ -795,7 +795,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Native assert-map/core-dump diagnostics have no Redis crash-report signal handler to toggle."
   },
   {
     "name": "crash-memcheck-enabled",
@@ -813,7 +813,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: No crash-time memory checker exists for concurrently owned/QSBR-retired stores."
   },
   {
     "name": "use-exit-on-panic",
@@ -831,7 +831,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Native assertion failures abort; no configurable panic exit policy exists."
   },
   {
     "name": "disable-thp",
@@ -849,7 +849,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Boot does not expose PR_SET_THP_DISABLE; this process setting still requires implementation."
   },
   {
     "name": "cluster-allow-replica-migration",
@@ -906,7 +906,7 @@
       "no"
     ],
     "flags_equal": true,
-    "reason": "Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation."
+    "reason": "Default remains no (Redis yes): optional histogram observers are off in the measured baseline; changing this default requires a separately measured cost decision."
   },
   {
     "name": "aof-disable-auto-gc",
@@ -960,7 +960,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Existing diagnostics lack the data-classification metadata needed for a complete redaction policy."
   },
   {
     "name": "lua-enable-deprecated-api",
@@ -978,7 +978,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Lua API registration does not expose Redis deprecated-API gating."
   },
   {
     "name": "aclfile",
@@ -1413,7 +1413,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Boot diagnostics have no named warning registry or suppression parser."
   },
   {
     "name": "proc-title-template",
@@ -1431,7 +1431,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: No process-title storage/renderer or Redis title substitution grammar exists."
   },
   {
     "name": "bind-source-addr",
@@ -1480,7 +1480,7 @@
     "since": null,
     "mutable_redis": false,
     "mutable_tomo": null,
-    "default_equal": "no",
+    "default_equal": "oracle absent",
     "get_equal": null,
     "oracle": [],
     "candidate": [],
@@ -1686,7 +1686,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: The Linux OOM adjustment apply/restore mechanism has not been implemented."
   },
   {
     "name": "acl-pubsub-default",
@@ -1725,7 +1725,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: DUMP/RESTORE uses native checksummed object images; Redis RDB sanitization policy does not apply."
   },
   {
     "name": "enable-protected-configs",
@@ -1753,7 +1753,7 @@
     "since": "1482e32774",
     "mutable_redis": false,
     "mutable_tomo": false,
-    "default_equal": "NOT MEASURED (override)",
+    "default_equal": "yes (source defaults)",
     "get_equal": false,
     "oracle": [
       "enable-debug-command",
@@ -1891,7 +1891,7 @@
     "since": "d82abe6cb9",
     "mutable_redis": true,
     "mutable_tomo": true,
-    "default_equal": "NOT MEASURED (override)",
+    "default_equal": "yes (source defaults)",
     "get_equal": true,
     "oracle": [
       "port",
@@ -2148,7 +2148,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Native LFU admission/counter code uses fixed policy constants, without a live logarithmic-factor control."
   },
   {
     "name": "lfu-decay-time",
@@ -2166,7 +2166,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Native LFU decay uses its existing clock policy, without Redis minute-based live reconfiguration."
   },
   {
     "name": "replica-priority",
@@ -2259,7 +2259,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Owner-local eviction has a different bounded work budget; no Redis tenacity mapping has been implemented."
   },
   {
     "name": "timeout",
@@ -2481,7 +2481,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Native compact/quicklist storage has no Redis LZF interior-node compression; accepting this would be ineffective."
   },
   {
     "name": "rdb-key-save-delay",
@@ -2538,7 +2538,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Expiry uses owner-local incremental budgets; the Redis effort-to-budget mapping is absent."
   },
   {
     "name": "hz",
@@ -2649,7 +2649,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: No Redis-style watchdog signal/timer exists; native worker stall diagnostics use other mechanisms."
   },
   {
     "name": "shutdown-timeout",
@@ -2667,7 +2667,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Redis waits for replica catch-up here; TomoKV has no replicas and uses its own final-save/drain deadlines."
   },
   {
     "name": "repl-diskless-sync-max-replicas",
@@ -2695,7 +2695,7 @@
     "since": "8f3d0900ec",
     "mutable_redis": true,
     "mutable_tomo": true,
-    "default_equal": "NOT MEASURED (override)",
+    "default_equal": "yes (source defaults)",
     "get_equal": true,
     "oracle": [
       "maxclients",
@@ -2745,7 +2745,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Listener creation does not apply SO_MARK; the immutable socket option remains absent."
   },
   {
     "name": "max-new-connections-per-cycle",
@@ -2763,7 +2763,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Accept batching/multishot io_uring admission has no Redis per-cycle quota setting."
   },
   {
     "name": "max-new-tls-connections-per-cycle",
@@ -2781,7 +2781,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: TLS accept admission has no Redis per-cycle quota setting."
   },
   {
     "name": "client-default-resp",
@@ -2791,7 +2791,7 @@
     "since": null,
     "mutable_redis": false,
     "mutable_tomo": null,
-    "default_equal": "no",
+    "default_equal": "oracle absent",
     "get_equal": null,
     "oracle": [],
     "candidate": [],
@@ -2874,7 +2874,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Script execution has native instruction/work budgets, without Redis elapsed-time busy-reply policy."
   },
   {
     "name": "lua-time-limit",
@@ -2892,7 +2892,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Script execution has native instruction/work budgets, without Redis elapsed-time busy-reply policy."
   },
   {
     "name": "cluster-node-timeout",
@@ -3420,7 +3420,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Client accounting exists, but Redis client-memory eviction and percentage limits are absent."
   },
   {
     "name": "repl-backlog-ttl",
@@ -3477,7 +3477,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: Native loading is coordinated across owners; Redis single-thread event-pump byte intervals have no mapping."
   },
   {
     "name": "tls-port",
@@ -3877,15 +3877,15 @@
     "since": "d82abe6cb9",
     "mutable_redis": true,
     "mutable_tomo": false,
-    "default_equal": "NOT MEASURED (override)",
+    "default_equal": "yes (source defaults)",
     "get_equal": false,
     "oracle": [
       "dir",
-      "/home/user/Projects/cx-cfgfix/build/gate-run.mHmvCn/jobs/cfgfix/proof/oracle-oracle-tcp"
+      "/home/user/Projects/cx-cfgfix/build/gate-run.RtDLuU/jobs/cfgfix/proof/oracle-oracle-tcp"
     ],
     "candidate": [
       "dir",
-      "/home/user/Projects/cx-cfgfix/build/gate-run.mHmvCn/jobs/cfgfix/proof/2s-epoll-tcp"
+      "/home/user/Projects/cx-cfgfix/build/gate-run.RtDLuU/jobs/cfgfix/proof/1s-epoll-tcp"
     ],
     "flags_equal": true,
     "reason": "UNFIXED: persistence paths are retained at boot; protected-config policy is not implemented."
@@ -3898,7 +3898,7 @@
     "since": "f94726446d",
     "mutable_redis": true,
     "mutable_tomo": true,
-    "default_equal": "NOT MEASURED (override)",
+    "default_equal": "yes (source defaults)",
     "get_equal": true,
     "oracle": [
       "save",
@@ -3948,7 +3948,7 @@
     ],
     "candidate": [],
     "flags_equal": false,
-    "reason": "UNFIXED: no implementation for this Redis control; it is rejected, never accepted as an ineffective setting."
+    "reason": "UNFIXED: No configurable OOM-score policy for process roles exists; native persistence uses owner threads, not Redis fork children."
   },
   {
     "name": "notify-keyspace-events",
@@ -3979,7 +3979,7 @@
     "since": "d82abe6cb9",
     "mutable_redis": true,
     "mutable_tomo": true,
-    "default_equal": "NOT MEASURED (override)",
+    "default_equal": "no (source defaults)",
     "get_equal": true,
     "oracle": [
       "bind",

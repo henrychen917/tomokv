@@ -40,7 +40,10 @@ def test(a, port, certs, proc, oracle):
         (a.output / ('oracle' if oracle else f'candidate-{proc.pid}')).with_suffix('.explicit.json').write_text(
             json.dumps(explicit, indent=2))
         for args in (
-            ('GET', 'key-load-delay'), ('GET', 'key-load-*'),
+            ('GET', 'key-load-delay'), ('GET', 'KEY-LOAD-DELAY'), ('GET', 'key-load-*'),
+            ('GET', 'MAXMEMORY', 'maxmemory', 'maxmem*'),
+            ('GET', 'maxmem*', 'MAXMEMORY'),
+            ('GET', 'HASH-MAX-ZIPLIST-ENTRIES', 'hash-max-listpack-entries', 'hash-max-*'),
             ('GET', 'key-load-delay', 'key-load-*', 'key-load-delay'),
             ('GET', 'daemonize', 'logfile', 'syslog-*', 'loglevel', 'supervised'),
             ('SET', 'daemonize', 'yes'), ('SET', 'logfile', 'anything'),
@@ -145,6 +148,13 @@ def test(a, port, certs, proc, oracle):
 
         c.must('SET', 'cfgfix:before-aof', 'old')
         c.must('SET', 'cfgfix:deleted-in-gap', 'old')
+        appenddir = Path(proc.args[proc.args.index('--dir') + 1]) / 'appendonlydir'
+        appenddir.write_text('not a directory\n')
+        command('CONFIG', 'SET', 'maxmemory', '12345678', 'appendonly', 'yes', 'port', str(port + 1))
+        command('CONFIG', 'GET', 'maxmemory', 'appendonly', 'port')
+        with closing(n.connect(port)) as original:
+            assert original.must('PING') == b'PONG'
+        appenddir.unlink()
         command('CONFIG', 'SET', 'appendonly', 'yes')
         command('CONFIG', 'GET', 'appendonly')
         c.must('SET', 'cfgfix:after-aof', 'written')

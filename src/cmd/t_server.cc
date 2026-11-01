@@ -1843,25 +1843,36 @@ void cmd_config(Shard& sh, Op& op) {
         std::vector<std::pair<std::string, std::string>> matches;
         {
             ConfigLock lock;
-            for (const ConfigValue& item : g_config) {
-                auto match = [&](const char* spelling) {
-                    const Slice name(spelling, std::strlen(spelling));
-                    for (uint32_t i = 2; i < op.argc(); i++) {
-                        // Hidden entries participate only in exact lookup, as
-                        // in Redis; overlapping visible patterns still dedup.
-                        if (item.hidden && !op.arg(i).eq_icase(spelling)) continue;
-                        if (!command_glob_match(op.arg(i), name, true)) continue;
-                        matches.emplace_back(spelling, item.value);
-                        break;
+            auto add = [&](Slice spelling, const ConfigValue& item) {
+                for (const auto& present : matches)
+                    if (spelling.eq_icase(present.first.c_str())) return;
+                matches.emplace_back(std::string(spelling.p, spelling.n), item.value);
+            };
+            // Exact lookup preserves the caller's spelling. Pattern lookup
+            // uses registered spellings; earlier matches win case-insensitive
+            // deduplication, including an exact hidden-name lookup.
+            for (uint32_t i = 2; i < op.argc(); ++i) {
+                const Slice pattern = op.arg(i);
+                bool glob = false;
+                for (char ch : pattern) glob |= ch == '[' || ch == '*' || ch == '?';
+                if (!glob) {
+                    if (const ConfigValue* item = find_config(pattern)) add(pattern, *item);
+                    continue;
+                }
+                for (const ConfigValue& item : g_config) {
+                    if (item.hidden) continue;
+                    auto match = [&](const char* spelling) {
+                        const Slice name(spelling, std::strlen(spelling));
+                        if (command_glob_match(pattern, name, true)) add(name, item);
+                    };
+                    match(item.name);
+                    if (item.kind == ConfigKind::Encoding) {
+                        const int key = EncodingConfig::find(Slice(item.name, std::strlen(item.name)));
+                        if (key >= 0 && EncodingConfig::settings[key].alias)
+                            match(EncodingConfig::settings[key].alias);
+                        if (key >= 0 && EncodingConfig::settings[key].tomo_alias)
+                            match(EncodingConfig::settings[key].tomo_alias);
                     }
-                };
-                match(item.name);
-                if (item.kind == ConfigKind::Encoding) {
-                    const int key = EncodingConfig::find(Slice(item.name, std::strlen(item.name)));
-                    if (key >= 0 && EncodingConfig::settings[key].alias)
-                        match(EncodingConfig::settings[key].alias);
-                    if (key >= 0 && EncodingConfig::settings[key].tomo_alias)
-                        match(EncodingConfig::settings[key].tomo_alias);
                 }
             }
         }

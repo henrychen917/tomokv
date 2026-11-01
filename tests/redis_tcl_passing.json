@@ -2064,7 +2064,7 @@
         {
           "command": "r config set $param $val",
           "count": 1,
-          "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+          "reply": "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot"
         }
       ],
       "passed_tests": [
@@ -2987,6 +2987,6 @@
         "List invalid list-max-listpack-size config"
       ]
     },
-    "note": "MULTI with config error already passed PRE; replication-specific multi-pattern/argument tests remain excluded. Native list compression setup remains a known error."
+    "note": "MULTI with config error already passed PRE; replication-specific multi-pattern/argument tests remain excluded. Native list compression setup remains a known error. Stream-cgroups appendonly setup now succeeds and exposes the existing native-format refusal of aof-use-rdb-preamble no; the replacement setup signature is recorded explicitly, with the same 50 assertions."
   }
 }

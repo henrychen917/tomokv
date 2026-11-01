@@ -208,7 +208,7 @@ struct FlipListenerState {
             loop->accept_quiescing_ = true;
             if (!loop->epoll_) {
                 loop->ring_.submit_and_reap();
-                for (const auto& listener : state.listeners) {
+                for (auto& listener : state.listeners) {
                     if (listener.fd < 0 || listener.kind == UrKind::UnixAccept || listener.owner != tid)
                         continue;
                     io_uring_sync_cancel_reg cancel{};
@@ -218,6 +218,12 @@ struct FlipListenerState {
                     int rc;
                     do { rc = io_uring_register_sync_cancel(loop->ring_.raw(), &cancel); } while (rc == -EINTR);
                     if (rc < 0 && rc != -ENOENT) plan.okay.store(false);
+                    else {
+                        // A later AOF apply failure keeps these descriptors,
+                        // but rollback still owes them a fresh accept arm.
+                        if (listener.home == tid) loop->accept_armed_ref(listener.kind) = false;
+                        else listener.armed = false;
+                    }
                 }
                 // Fence old accepts without executing unrelated client CQEs
                 // inside the rendezvous. Preserve successful accepts for the
