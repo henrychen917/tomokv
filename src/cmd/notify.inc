@@ -888,6 +888,55 @@ uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t orde
     return before && !after ? batch->tracking_stamp : 0;
 }
 
+// Only the committed EXEC subscription phase calls this helper. Owners have
+// joined, so the batch is immutable except for these IO-owned route bits.
+// Keep tracking records and their certificates for ordinary EXEC retirement.
+[[gnu::noinline]] std::shared_ptr<PubSubNotificationChain> notify_multi_before(
+        Server& server, NotifyBatch* batch, uint32_t order) {
+    if (!batch) return {};
+    constexpr uint32_t routes = NOTIFY_KEYSPACE | NOTIFY_KEYEVENT;
+    const auto selected = [order](const NotifyRecordImpl& record) {
+        return record.order < order && (record.routes & routes);
+    };
+    std::shared_ptr<PubSubNotificationChain> chain;
+    try {
+        std::vector<NotifyRecordImpl*> records;
+        for (uint32_t i = 0; i < batch->inline_size; ++i)
+            if (selected(batch->inline_records[i])) records.push_back(&batch->inline_records[i]);
+        for (auto& record : batch->spill)
+            if (selected(record)) records.push_back(&record);
+        if (records.empty()) return {};
+        std::stable_sort(records.begin(), records.end(), [](const auto* lhs, const auto* rhs) {
+            return lhs->order < rhs->order ||
+                (lhs->order == rhs->order && lhs->sequence < rhs->sequence);
+        });
+        auto building = std::make_unique<PubSubNotificationChain>();
+        building->items.reserve(records.size() * 2);
+        for (const auto* record : records) {
+            for (uint8_t route = 0; route < 2; ++route) {
+                std::string channel, message;
+                if (!notify_make_publication(record->db, record->routes, route,
+                        record->event, record->key, channel, message)) continue;
+                building->items.push_back(
+                    PubSubNotificationItem{std::move(channel), std::move(message)});
+            }
+        }
+        chain = notify_reserve_chain(server, std::move(building), batch->expiry_completion);
+    } catch (const std::bad_alloc&) {
+        // Match normal notification retirement's bounded best-effort policy.
+    }
+    uint32_t count = 0;
+    const auto consume = [&](NotifyRecordImpl& record) {
+        if (!selected(record)) return;
+        record.routes &= ~routes;
+        ++count;
+    };
+    for (uint32_t i = 0; i < batch->inline_size; ++i) consume(batch->inline_records[i]);
+    for (auto& record : batch->spill) consume(record);
+    if (!chain) server.notify_event_dropped(count);
+    return chain;
+}
+
 NotifyBatch* notify_take_batch(Op& op) {
     // Some asynchronous committers publish Done outside the ordinary owner epilogue.
     // At IO retirement all fragments and atomic publication have joined.

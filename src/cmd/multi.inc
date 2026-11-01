@@ -2763,7 +2763,18 @@ bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state) {
     // slot and connection barrier. No child publishes a second ROB slot.
     Client& client = *state.client;
     while (state.io_cursor < state.commands.size()) {
-        auto& command = *state.commands[state.io_cursor++];
+        auto& command = *state.commands[state.io_cursor];
+        // Data children have committed, but their buffered keyspace events
+        // must see the subscription set at their own child position. Join
+        // that delivery before applying the next subscription change.
+        if (auto chain = notify_multi_before(*state.server,
+                state.notify.load(std::memory_order_acquire), command.notify_order_base)) {
+            chain->completed = multi_io_child_completed;
+            chain->completion = &state;
+            loop.pubsub_notification_enqueue(std::move(chain));
+            return false;
+        }
+        ++state.io_cursor;
         if (command.kind == MultiCommandKind::Ping) {
             // Ownerless PING replies were prepared before the IO effects.
             // RESP2 observes subscription changes at this child position.
