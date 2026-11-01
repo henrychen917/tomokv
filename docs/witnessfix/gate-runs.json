@@ -22,7 +22,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/V1-aclreply-gate.tar.gz",
-    "archive_sha256": "af2f8c33861333ee1ed2aa483fa98bb3621db81829498ff83b18494981d7ac5f"
+    "archive_sha256": "072b75479f61fd32c4abc3b934d51e79df22b5de130dc869756fa137886981c4"
   },
   {
     "log": "V1-gate.log",
@@ -43,7 +43,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/V1-gate.tar.gz",
-    "archive_sha256": "ecc810452ce75b78c3574c4bb147f86d32ca2d068cb0e1628625c84f76725d34"
+    "archive_sha256": "d5af4761de8dc70c90d8dac37d63a40a6014902f55e8e471e89e110f2cad8f34"
   },
   {
     "log": "V1-tcl-info-final-gate.log",
@@ -72,7 +72,12 @@
       }
     },
     "archive": "docs/witnessfix/gates/V1-tcl-info-final-gate.tar.gz",
-    "archive_sha256": "c9f412150e890c25c2c332f4d7816d920582658d076738fd724e7e1ac78326c9"
+    "archive_sha256": "37f936f39fd0d49960fdd70e7524592023af074e13244dc916c6aa514c0fe6c9"
+  },
+  {
+    "log": "at412-rest-script-bounds.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.vxNJ6f",
+    "complete": false
   },
   {
     "log": "compat-corrections-gate.log",
@@ -101,7 +106,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/compat-corrections-gate.tar.gz",
-    "archive_sha256": "74dc15de930ab3bfad85f592b999bdf56790e16c68e6671161d1c67b38dc051a"
+    "archive_sha256": "6ffba09f663956211c15399d9d1e1b623129a340a9acdf510e042044031c0ea7"
   },
   {
     "log": "compat-rest-gate.log",
@@ -158,7 +163,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/compat-rest-gate.tar.gz",
-    "archive_sha256": "51aca2be387c119b2e9e620979029096f6e15c2c295b8166cc4fbe7c96967582"
+    "archive_sha256": "6739745dedc15abae56d3739ae7c558b31a095cd6d0ab1810d4e331413e0891a"
   },
   {
     "log": "compat-strengthened-gate.log",
@@ -187,7 +192,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/compat-strengthened-gate.tar.gz",
-    "archive_sha256": "c67ea065c694857328251285049b9fe3cec6d4a3c99f57ab316e350619349b02"
+    "archive_sha256": "441f35b4888025ee9d341c45e391655284549348d45148cc9e1797985797969e"
   },
   {
     "log": "config-mutant-gate.log",
@@ -208,7 +213,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/config-mutant-gate.tar.gz",
-    "archive_sha256": "c48857841d8b8c4ef622028d4af4db977126bd6e16fa5bf83853cd72cbb56832"
+    "archive_sha256": "3f22a33c1e1b818540102294c7043add7e868bb6f2a08a1174e6692a54997e56"
   },
   {
     "log": "core-gate.log",
@@ -253,7 +258,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/core-gate.tar.gz",
-    "archive_sha256": "2cd9ef4b4bf59fcee28c58980085e091c7d849ac7269f9c98339bc42a16f9c5c"
+    "archive_sha256": "d1dac35ffe02546b01329c5ac66eb56a48cdfd4b929c362918dfcb27288db87d"
   },
   {
     "log": "cpu-mutant-gate.log",
@@ -274,7 +279,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/cpu-mutant-gate.tar.gz",
-    "archive_sha256": "6d1eee70efcb8daa0be941788ab37b09906914ca6e963e8737858a5ec4fb838e"
+    "archive_sha256": "8c80df0cae6319c401f3e2adb54eeb370013fb123ceef943ac8ba1ed98774031"
   },
   {
     "log": "debug-final-fused.log",
@@ -303,7 +308,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/debug-final-fused.tar.gz",
-    "archive_sha256": "2ddaf368e02931706da3ee0db394915599a59f6afdd568cfa51a6e1b9a4f6ecf"
+    "archive_sha256": "f0bb8f341bec742683d9f849cdbfff72168ab23f4c0f657d3949d68db3c4a504"
   },
   {
     "log": "debug-final-split.log",
@@ -332,19 +337,23 @@
       }
     },
     "archive": "docs/witnessfix/gates/debug-final-split.tar.gz",
-    "archive_sha256": "1dd4d8995368cf86d1a18c205429cdff77c1624a5994505bdc4328267a1343df"
+    "archive_sha256": "237b19e881ec7d11a98166a8fb352bbbadd0d1d8c86dad50ab5e27a2f79bac27"
   },
   {
     "log": "differ-gate.log",
     "run": "/home/user/Projects/cx-witnessfix/build/gate-run.DFaQBX",
-    "complete": false,
+    "complete": true,
     "counts": {
-      "ok": 0,
-      "FAIL": 0
+      "ok": 5,
+      "FAIL": 1
     },
     "jobs": {
+      "differ-equivalence": {
+        "ok": 1,
+        "FAIL": 0
+      },
       "differ-armed-0": {
-        "ok": 0,
+        "ok": 1,
         "FAIL": 0
       },
       "differ-split-0": {
@@ -355,13 +364,38 @@
         "ok": 1,
         "FAIL": 0
       },
+      "differ-armed-1": {
+        "ok": 1,
+        "FAIL": 0
+      },
       "release": {
         "ok": 1,
         "FAIL": 0
       }
     },
     "archive": "docs/witnessfix/gates/differ-gate.tar.gz",
-    "archive_sha256": "ad2fd0dbc0e714ba40cbff530fd8aeff7be80548bae3c844f3a2775cea871479"
+    "archive_sha256": "416a8f27086d7e1e18f89dd731237e4526046d2277c5814f9263afd66f1c1adf"
+  },
+  {
+    "log": "differ-split0-final.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.tATR7A",
+    "complete": true,
+    "counts": {
+      "ok": 2,
+      "FAIL": 0
+    },
+    "jobs": {
+      "differ-split-0": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/differ-split0-final.tar.gz",
+    "archive_sha256": "6a677ff54bfda9ff8fa54b1835cb78d3b24024b39a3ed88aeece4df51d939dbe"
   },
   {
     "log": "exec-private-gate.log",
@@ -386,7 +420,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/exec-private-gate.tar.gz",
-    "archive_sha256": "82101b1ab37ac0ce054a4f44a8bb4b2ad0c56bb27674a395a52ead6b8871eb5a"
+    "archive_sha256": "ae1d273d4588a642f5cab5ec1de3f2792ae612a39a096663f23e7271d9b92bdc"
   },
   {
     "log": "features-gate.log",
@@ -419,7 +453,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/features-gate.tar.gz",
-    "archive_sha256": "61677b5b85619d75e422b9f76ba754e1e278872f50f98ed556653869b7eb281e"
+    "archive_sha256": "be7c2d1d866fd06d28c4beb7fed8e7de9bcb68e2cad8c8025b3d8f525aaaba2f"
   },
   {
     "log": "flip-gate.log",
@@ -440,7 +474,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/flip-gate.tar.gz",
-    "archive_sha256": "3721a3cc3fa268491ea79ebf1e53cc32584f3d051699f7f2b92eee2c35bfaf5a"
+    "archive_sha256": "194d2c097ea1316be60233272bc8c33e1b3e8b2ec700c6ed6d1164b17c465ba0"
   },
   {
     "log": "flip-list-final.log",
@@ -465,7 +499,70 @@
       }
     },
     "archive": "docs/witnessfix/gates/flip-list-final.tar.gz",
-    "archive_sha256": "db243c69a9cda766648cc3b660166459b01276c348fb1731ec58e8601d8572b9"
+    "archive_sha256": "c2a796d4e98ad9e34a1305729002594dc1dac36ae2b41aeaa004c391b55518fd"
+  },
+  {
+    "log": "geo-count-mutant.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.SXs0I6",
+    "complete": true,
+    "counts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "jobs": {
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "datafix1_geo": {
+        "ok": 0,
+        "FAIL": 1
+      }
+    },
+    "archive": "docs/witnessfix/gates/geo-count-mutant.tar.gz",
+    "archive_sha256": "c1669acd1121d71ae0bfe1005467cb29a0f8f56fae0292a9f4557abbcd8a529b"
+  },
+  {
+    "log": "geo-count-positive.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.EEpVC2",
+    "complete": true,
+    "counts": {
+      "ok": 2,
+      "FAIL": 0
+    },
+    "jobs": {
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "datafix1_geo": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/geo-count-positive.tar.gz",
+    "archive_sha256": "79b0d78f4ee630a14f495292b49eb854f6a7101a95d0ecf2382a4c2e97838681"
+  },
+  {
+    "log": "geo-reverse-mutant.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.YPDTnJ",
+    "complete": true,
+    "counts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "jobs": {
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "datafix1_geo": {
+        "ok": 0,
+        "FAIL": 1
+      }
+    },
+    "archive": "docs/witnessfix/gates/geo-reverse-mutant.tar.gz",
+    "archive_sha256": "b8a3d75f90e50fde61dc5ba09e234f7c44057970b6e20286da55a88a5e54362b"
   },
   {
     "log": "histogram-mutant-gate.log",
@@ -486,7 +583,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/histogram-mutant-gate.tar.gz",
-    "archive_sha256": "4cb74af16e9d7c3ce96610b8e782776d68194eda84a9567883a0aa2214556191"
+    "archive_sha256": "ee32cc9814657ee5811ae3a4fb8021566ce0fea40a14b9dcb9c5a8eef0b1bb5c"
   },
   {
     "log": "list-namespace-gate.log",
@@ -507,7 +604,32 @@
       }
     },
     "archive": "docs/witnessfix/gates/list-namespace-gate.tar.gz",
-    "archive_sha256": "11215ff0817a8041642a157115044680884f70e4ab29e475e2330dacfc83273e"
+    "archive_sha256": "684c8ae7fd1e09c821951dfc11decbcd88b14aeb055b967268b31b60198a3054"
+  },
+  {
+    "log": "mover-conservation-gate.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.ntf5Ys",
+    "complete": true,
+    "counts": {
+      "ok": 9,
+      "FAIL": 0
+    },
+    "jobs": {
+      "moverfix": {
+        "ok": 8,
+        "FAIL": 0
+      },
+      "production_units": {
+        "ok": 0,
+        "FAIL": 0
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/mover-conservation-gate.tar.gz",
+    "archive_sha256": "d93aa5a0bfa4d7fb2687693ff40960513a5e81f5735864a905592c7a55e0f36e"
   },
   {
     "log": "mover-final-gate.log",
@@ -532,7 +654,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/mover-final-gate.tar.gz",
-    "archive_sha256": "2fb20be1e67eafdcc40b4ecf88edf3d87a2e1a81a0a14074acb452e11cadf6d7"
+    "archive_sha256": "1479ede0aa4b2f684587ef449f259f709c3dd8ace89e06023f1a66bb081e195d"
   },
   {
     "log": "mover-pre-gate.log",
@@ -557,7 +679,49 @@
       }
     },
     "archive": "docs/witnessfix/gates/mover-pre-gate.tar.gz",
-    "archive_sha256": "6a7bf2b4d34e36e221c2f20241cd3c1268c237f90982adb89481867306379aa2"
+    "archive_sha256": "e87f1f91d08d37db8046d9a94d641df0b9028bcd26c6e26d59365e576f2c5983"
+  },
+  {
+    "log": "mpop-exact-mutant.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.766xc6",
+    "complete": true,
+    "counts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "jobs": {
+      "datafix1_lists": {
+        "ok": 0,
+        "FAIL": 1
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/mpop-exact-mutant.tar.gz",
+    "archive_sha256": "6bae7602f9688e259d577b16a2aa60dcbbf99a89c16d1fdd274dd769901e887e"
+  },
+  {
+    "log": "mpop-exact-positive.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.z6Bgep",
+    "complete": true,
+    "counts": {
+      "ok": 2,
+      "FAIL": 0
+    },
+    "jobs": {
+      "datafix1_lists": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/mpop-exact-positive.tar.gz",
+    "archive_sha256": "74f71e02e64a2eeef275c9dca966f0f3471a687943b0f078ab828e73b7e3fcc8"
   },
   {
     "log": "remaining-core-gate.log",
@@ -614,7 +778,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/remaining-core-gate.tar.gz",
-    "archive_sha256": "806e1f2ca32596f2903909524799a44f99c5c644f335240e42d336c2ffc4f914"
+    "archive_sha256": "2eea894cd73d1701c60fec8db83b16efef32824a1facf4f570daae81ed66c234"
   },
   {
     "log": "snapfix-refusal-pre-gate.log",
@@ -639,7 +803,28 @@
       }
     },
     "archive": "docs/witnessfix/gates/snapfix-refusal-pre-gate.tar.gz",
-    "archive_sha256": "b5b2a0506aa92d4e59012f156e356c62b1f048b143798d76c9ed15ebc623a53d"
+    "archive_sha256": "f35bdab2540646c1626d4f89b65ee421860419175a641918e74b81ab499855a7"
+  },
+  {
+    "log": "tcl-full-gate.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.YyGVfV",
+    "complete": true,
+    "counts": {
+      "ok": 3,
+      "FAIL": 0
+    },
+    "jobs": {
+      "redis_tcl": {
+        "ok": 2,
+        "FAIL": 0
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/tcl-full-gate.tar.gz",
+    "archive_sha256": "fed718470695507e8378159258b00f71a33c512aa1c25b2429459a6c8330518c"
   },
   {
     "log": "tcl-gate.log",
@@ -660,7 +845,7 @@
       }
     },
     "archive": "docs/witnessfix/gates/tcl-gate.tar.gz",
-    "archive_sha256": "bf999dd617b81c1835a233e2b0c29e94399a23062886f6ad386569aa39e82c21"
+    "archive_sha256": "c46f927faafd7b03c5e26c16c83f1fc0fd81daa1cf7d67ff65c004642d6d1f1e"
   },
   {
     "log": "watch-pre-gate.log",
@@ -681,6 +866,6 @@
       }
     },
     "archive": "docs/witnessfix/gates/watch-pre-gate.tar.gz",
-    "archive_sha256": "4f91326ccaacbd500dd1dd87677c976cf2f26a8fd6b6238d7f4871bf2007204d"
+    "archive_sha256": "5c648ba685148bb3fb7a4c3a05274472c9ff60b4bce350c1ec1623683eaa5e22"
   }
 ]

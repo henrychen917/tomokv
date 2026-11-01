@@ -27,5 +27,17 @@
     "arm": "exec-private-view",
     "sha256": "486503f3d082a4021cf8ac3bd2b841b57bd9ebb207494feb0c60264620dd055c",
     "verdict": "non-discriminating; all EXEC arms still pass; excluded from proof"
+  },
+  {
+    "arm": "mpop-error-suffix",
+    "sha256": "6e8d77bd729b8ffd685762b955811078ad174a53370520a72cbb21e57c3250b3"
+  },
+  {
+    "arm": "geo-count-order",
+    "sha256": "c2a94efe4e01e9142654dd248a9c0fdfff1bfbac5bccfc78b31654092af1da9b"
+  },
+  {
+    "arm": "geo-order-reversed",
+    "sha256": "4689c44951aa35fdae5b2243dc9f2f85d68dbd8b4ad168c3257937ba6c40612d"
   }
 ]

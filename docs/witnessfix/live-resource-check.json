@@ -1,0 +1,68 @@
+[
+  {
+    "pid": 2189796,
+    "executable": "/home/user/Projects/redis/src/redis-server 127.0.0.1:20598",
+    "cwd": "/home/user/Projects/cx-witnessfix/build/witnessfix/oracle",
+    "affinity": [
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "locale": null,
+    "locale_observation": "not visible in /proc after Redis setproctitle relocates environ; boot command inherited LC_ALL=C"
+  },
+  {
+    "pid": 2198063,
+    "executable": "/home/user/Projects/redis/src/redis-server 127.0.0.1:20561",
+    "cwd": "/home/user/Projects/cx-witnessfix/build/gate-run.tATR7A/jobs/differ-split-0/differ/oracle",
+    "affinity": [
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "locale": null,
+    "locale_observation": "not visible in /proc after Redis setproctitle relocates environ; boot command inherited LC_ALL=C"
+  },
+  {
+    "pid": 2198193,
+    "executable": "/home/user/Projects/cx-witnessfix/build/witnessfix/tomokv-7d2f8a205",
+    "cwd": "/home/user/Projects/cx-witnessfix",
+    "affinity": [
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "locale": "LC_ALL=C"
+  },
+  {
+    "pid": 2505538,
+    "executable": "/home/user/Projects/cx-witnessfix/build/witnessfix/tomokv-7d2f8a205",
+    "cwd": "/home/user/Projects/cx-witnessfix",
+    "affinity": [
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "locale": "LC_ALL=C"
+  }
+]

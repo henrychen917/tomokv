@@ -22,8 +22,11 @@ Added the `aclkeys_wake` gate job. It runs the existing production-body unit in
 both database images, split/fused and atomic 0/1, across eleven schedules (88
 invocations). The window cases require latch stages 1/2/3 and a renewed IO
 notification after the last owner task leaves; missing arming is a failure.
-Control builders/runners now accept the lane CPU allocation instead of forcing
-the maintainer's CPUs.
+The stale unit dispatcher now uses the production WATCH-aware scatter route,
+retains deferred owner turns, and flushes each owner's thread-local commit batch
+before visiting another logical owner. Its bounded drain still requires actual
+completion; the latch stages remain mandatory. Control builders/runners accept
+the lane CPU allocation instead of forcing the maintainer's CPUs.
 
 Baseline: 88/88 unit schedules passed through the gate. The no-wake/no-hold
 controls fail all 16 selected mode/database/atomic legs; see aclkeys-controls.json.
@@ -212,7 +215,9 @@ cannot pass. Valid computed FLIP shapes must not be refused. Existing per-worker
 progress before/after an observed completed FLIP remains mandatory. This is a
 liveness bound, not a throughput measurement. The planted five-second freeze reaches one pause per process: the old battery
 passes and the repaired battery fails in both engines (freeze-control.json).
-DQ=DF=0.
+The separate AT4.12 T10 storm still pauses producers during FLIP and accepts
+refusals; its passing row is not a five-second-stall witness. This V16 repair
+is limited to flip_under_load, and the T10 weakness remains open. DQ=DF=0.
 
 ### Compat 4.2 — failed foreground SAVE telemetry
 
@@ -458,9 +463,9 @@ mean every existing row in that family was skipped.
 | CD4.2 compact HSCAN | NOT RUN: mutate between pages while another unit retains a version. |
 | CD4.9 same-owner SMOVE WATCH | Repaired: actual same-shard geometry, ordinary and EXEC arms, exact WATCH result; PRE fails the added assertion. |
 | CD4.5 / CD4.15 / CD4.6 | Current list tests already cover 4,085/4,086-byte boundaries and repeated 100-byte values. Lua locale difference is now explicit. NOT RUN: 45–192-byte encoding and RENAME/COPY/MOVE preservation; ambient non-C boot conflicts with this task's LC_ALL=C requirement. |
-| CD4.1 / CD4.19 GEO COUNT | NOT RUN: unspecified-order COUNT form against Redis. |
+| CD4.1 / CD4.19 GEO COUNT | Repaired: 20 centers, all read forms and both store paths compare COUNT without ASC/DESC/ANY directly to Redis. Both missing-implicit-order and reversed-order controls fail every added matrix leg. |
 | Stream trim / image rebuild | NOT RUN: non-default node limits across image round trips. Existing Tcl mutant pass remains non-evidence. |
-| MPOP error prefixes | NOT RUN: full-string oracle matrix. Prefix-only checks remain weak. |
+| MPOP error prefixes | Repaired in the list gate job: 68 exact error replies per RESP version, all four verbs, 12 geometries. A prefix-preserving suffix mutant fails all 12 legs; the 144 divergent replies still satisfy the old Tcl prefix pattern. |
 | EX4.4 histogram stub | Repaired: enabled histogram must contain 32 acknowledged GET samples in RESP2/RESP3; empty stub fails. |
 | Histogram default | Default-off versus Redis default-on remains a documented difference; explicitly enabling both servers does not prove default parity. |
 | racefix_counters TSan filtering | NOT RUN: unfiltered accepts/plain_accepts race proof. |
@@ -510,9 +515,9 @@ No new fixtures or binaries were built for this inventory.
   in setup/cleanup, including FLUSHALL/FLUSHDB invalidation, CLIENT REPLY OFF and
   redirection. TRACK-FLUSH-INVALIDATE-ORDER fixes on unmerged cx-trackorder are
   not evidence for this base; stale client caches remain the S1 concern.
-- CD4.19's GEO COUNT form and NT4.17 remain only partly covered. Round 5 should
-  isolate their wrong-reply/protocol paths rather than treating neighboring
-  forms or the smaller inline battery as equivalent coverage.
+- NT4.17 remains only partly covered; the smaller inline battery is not
+  equivalent UDS/engine coverage. CD4.19's COUNT-without-order gap is now closed
+  by the added direct Redis matrix; broader GEO grammar remains separate.
 
 ### Validation inventory and limits
 
@@ -543,6 +548,9 @@ lottery memtier exception and fix are recorded under V14.
 | features-gate / O3MRN4 | 139 rows pass, split/armed-fused × atomic 0/1, including all netcmd legs. |
 | flip-list-final / qaKgTE | 11 rows pass: strict FLIP checks in both engines and the new list namespace unit. |
 | differ-gate / DFaQBX | Split atomic 1, armed-fused atomic 0/1 and mode equivalence pass. Split atomic 0 reached the unchanged 900s row deadline; its timeout is preserved. |
+| differ-split0-final / tATR7A | Split atomic 0 passes all 235 legs in 8m57s under the original 900s deadline. Permanent seeds 7/19/20/23 plus the runner-selected rotating seed 22; the earlier run used rotating seed 21. |
+| mpop-exact-positive / z6Bgep | List job passes all 12 geometries with 136 exact MPOP error comparisons per leg (RESP2/RESP3). |
+| geo-count-positive / EEpVC2 | GEO job passes all 12 geometries with 20 direct-oracle COUNT centers per leg. |
 | mover-conservation-gate / ntf5Ys | 9 rows pass (release plus eight geometry legs), including the final two-mover probe/push/claim unit and EXEC coverage. Earlier Q1ikt4 used the superseded, overstrict single-mover expectation and is not the final proof. |
 
 Each archive in `docs/witnessfix/gates/` preserves the canonical partial ledger,
@@ -567,6 +575,8 @@ run the full tier's performance phases.
 | Enabled histogram | Always-empty mutant fails all four mode/engine legs; baseline passes. |
 | INFO CPU | Constant-zero mutant fails the new advancing-CPU assertions in all eight target geometry legs (both RESP versions); baseline passes. |
 | CONFIG errors | Unrelated-error mutant fails the exact allowlist check; baseline passes all mode/engine legs. |
+| MPOP full errors | Prefix-preserving suffix mutation fails 12/12 geometry legs; all 144 changed replies would match the old Tcl pattern. |
+| GEO COUNT | Missing implicit ASC and reversed shared ordering each fail 12/12 legs. The reversed comparator still passes both old self-comparison cases in 1s/2s (4/4), proving their blind spot. |
 
 Anti-witness conversions, label repairs and deleted dead-counter checks are not
 counted as new defect controls. Named known differences remain exclusions from
@@ -591,7 +601,35 @@ failure-injection assertion remains. Real gate row deadlines, latency limits,
 arming thresholds and retry policy are unchanged. Earlier timeout receipts are
 retained. This correction is not offered as a production performance result.
 
-Self-tests: `python3 tests/gates_test.py` passes **77/77** with the inventory-derived
+Self-tests: `GATE_TEST_PORT=20599 python3 tests/gates_test.py` passes **77/77**
+(final run 223.915s) with the inventory-derived
 fixture budget. Tcl runner 10/10, differential 24/24, lottery runner 18/18,
 lottery evidence reducer 17/17 and psfix 7/7 pass. Logs, including earlier
 scheduler timeouts, are retained in `docs/witnessfix/`.
+
+Resource notes: all correctness server binaries used the assigned CPU/port
+ranges and C-locale boot commands. Earlier scheduler self-test socket-ownership
+probes used their existing ephemeral-port default; the final run sets
+`GATE_TEST_PORT=20599`. Those probes are Python test listeners, not server
+binaries, but their earlier port selection was outside the requested range.
+`build/` briefly reached approximately 19 GiB during unit/control rebuilds;
+deleting copied controls and stripping unit debug sections reduced it below
+15 GiB. No production source or production Makefile byte changed.
+
+Static verification: `make -q` returns 0; production-path diff is empty;
+44 changed Python files parse; shell syntax and the implementation whitespace
+check pass. Verbatim planted-defect patch receipts retain unified-diff blank
+context lines. The untouched EXPECT values and frozen baseline hash are in
+`docs/witnessfix/static-checks.json`.
+
+### Compat 4.1 follow-up — MPOP errors and GEO COUNT
+
+The existing list gate job now compares all four MPOP verbs' illegal-argument
+and wrong-type replies byte-for-byte with Redis, in verified RESP2/RESP3. The
+GEO job now compares every no-order COUNT query directly with Redis across 20
+centers and checks stored membership as well as replies. Neither uses the
+candidate's own explicit ASC as the oracle. The original MPOP prefix matcher
+and GEO self-comparison controls accept the respective planted defects; the
+repaired assertions fail. Both baseline jobs pass every declared geometry.
+Known MPOP argument-precedence residue outside these Tcl shapes remains open;
+this is not a claim that every grammar combination is compatible. DQ=DF=0.
