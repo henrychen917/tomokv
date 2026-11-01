@@ -1,0 +1,52 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "rediscross_owner staged armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "rediscross_owner staged ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "rediscross_owner staged invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "redissame_shard staged armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "redissame_shard staged ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "redissame_shard staged invalidations",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "redissame_owner_2shards staged armed",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "redissame_owner_2shards staged ordered events",
+      "passed": true,
+      "actual": 3
+    },
+    {
+      "label": "redissame_owner_2shards staged invalidations",
+      "passed": true,
+      "actual": 3
+    }
+  ],
+  "slowlog": {}
+}
