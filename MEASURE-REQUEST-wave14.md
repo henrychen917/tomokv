@@ -302,3 +302,16 @@ a fresh throwaway landing copy with 1090/1107 and the final known-difference
 labels. Source identity lint passed for all 59 C++ units in both namespaces
 and six shared C units, including the stable-assertion failure checks. The
 checked-in EXPECT values were never edited.
+
+The placed/unstarted EXEC fixture passes under ASAN and TSAN, with all four
+new namespace/atomic arming markers, all twelve wave13 FLUSH markers and all
+54 original flipfix6 markers retained. Published placement holds the normal
+ROB/executor drain; it is not unpublished S2. The unchanged S2 and pinned-close
+paths still refuse immediately. `placed-exec-flip` has three passing public
+rows including release.
+
+All 55 primary `job_production_units` targets built, plus mdbqsbr live controls,
+blockfix-cost and both blockfix2 units. `make -q all` and all four target-group
+freshness checks returned zero; `production-freshness.json` records the exact
+lists. Matching native companions are bound beside the frozen POST with their
+hashes in `companions.json`; the release bytes remain unchanged.
