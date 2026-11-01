@@ -165,6 +165,20 @@ def source_labels(gate):
         raise ValueError(f"missing public job_label declaration: {name}")
 
     def collect(name):
+        if name == 'rootcompat':
+            # The default worker recursively invokes its nine named cases.
+            # Read that finite list from the source, preserving one public
+            # row per invocation rather than inventing a "rootcompat" case.
+            body = bodies['job_rootcompat']
+            group = re.search(r'if \[ "\$1" = all \]; then\s+'
+                              r'local rootcompat_tmp=\$TMPDIR case\s+'
+                              r'for case in ([^;]+); do\s+'
+                              r'TMPDIR="\$rootcompat_tmp/\$case"; mkdir -p "\$TMPDIR"\s+'
+                              r'job_rootcompat "\$case"\s+done\s+'
+                              r'TMPDIR=\$rootcompat_tmp\s+return\s+fi', body)
+            require(group is not None, 'rootcompat finite worker declaration changed')
+            return [label for case in shlex.split(group[1])
+                    for label in collect('rootcompat-' + case)]
         if name in ("differ-split", "differ-armed", "flipctl") or name.startswith("evict-"):
             return [public_label(name)]
         function, argument = "job_" + name, name

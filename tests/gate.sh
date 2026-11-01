@@ -1174,6 +1174,7 @@ plan_jobs(){
     JOB_NAMES+=(differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence)
   fi
   JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
+  JOB_NAMES+=(wave14_functions)
   local atomic mode section slot FM FR FO FQ FF
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
@@ -5777,6 +5778,26 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
 # multifix: six directed roots in each mode/engine, before the quick exit.
 # Each row retains both atomic settings, both read-local settings and both
 # compiled namespace variants. DQ=DF=+24; EXPECT remains owner-owned.
+job_wave14_functions(){
+  local label="wave14 function snapshot and journal history" scheduled="${WAVE14_CAPTURE_BINARY:-}"
+  local select=()
+  [ "${WAVE14_CAPTURE_SINGLE:-0}" != 1 ] || select=(--single)
+  row_begin "$label"
+  if [ -z "$scheduled" ]; then
+    if ! cmp -s build/tomokv "$CANDIDATE_BINARY" ||
+       ! taskset -c "$BUILD_CORES" python3 tools/wave14_capture.py --output "$TMPDIR/scheduled" \
+          >"$TMPDIR/build.log" 2>&1; then
+      bad "$label" "scheduling twin must use the selected candidate objects; see $TMPDIR/build.log"
+      return
+    fi
+    scheduled="$TMPDIR/scheduled/tomokv"
+  fi
+  py tests/wave14_functions.py --binary "$scheduled" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/proof" \
+      "${select[@]}" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
+}
+
 job_rootcore(){
   local root=$1 label="rootcore $1"
   row_begin "$label"
@@ -6402,6 +6423,7 @@ fi
 # rootcore: seven directed rows collected before the quick-tier exit (DQ=DF=+7).
 # EXPECT_QUICK / EXPECT_FULL are maintainer-owned.
 for root in inbox eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
+collect_job wave14_functions
 collect_job release
 
 collect_job asan
