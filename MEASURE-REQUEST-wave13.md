@@ -180,6 +180,12 @@ retry for `MONITOR log blocked command only once` and passed; the original
 ordering failure is retained. `tcl-positive-proof.json` verifies the exact
 per-file assertion multisets. The idle FLUSH deadline job also passed all
 eight legs in both db1 and db16.
+The planted `CLIENT-LIST-CMD-NAME` defect was then linked with production
+flags in both namespaces and run through the same complete Tcl job. The job
+returned failure, and `CLIENT LIST with IDs` produced an explicit assertion
+error in both modes, with no timeout substitution. `isolated-regressions.json`
+records the source, object and binary hashes, both witnesses, and pruning of
+the throwaway mutant.
 
 The first build-only job selection was rejected by the gate interface; its
 consuming unit job now builds all prerequisites. The durable Redis directory
