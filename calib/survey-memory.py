@@ -32,7 +32,7 @@ def sample(conn, pid, expected):
     info = s.fm.info(conn)
     keys = conn.cmd('DBSIZE')
     s.require(keys == expected, f'memory population mismatch: {keys} != {expected}')
-    used, rss = int(info['used_memory']), s.fm.rss(pid)
+    used, rss = int(info['used_memory']), s.rss(pid)
     s.require(used >= 0 and (expected == 0 or used > 0) and rss > 0, 'invalid memory counters')
     return dict(keys=keys, used_memory=used, rss_bytes=rss,
                 info_used_memory_rss=int(info['used_memory_rss']), info=info)

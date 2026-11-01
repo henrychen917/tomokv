@@ -39,6 +39,7 @@ def prepare(args, selected):
         for rung in rungs:
             folder = args.output / 'calibration' / cmd / f'connections-{rung}'
             trial = dict(cell, connections=rung, pipeline=32, seconds=2 if args.smoke else args.calibration_seconds)
+            args.failure_context = dict(cell=f'calibration/{cmd}/connections-{rung}', arm='redis-4')
             result = s.run_throughput(args, trial, 'redis-4', folder)
             rows.append(dict(result, connections=rung))
             s.save(folder / 'calibration.json', rows[-1])
@@ -48,6 +49,7 @@ def prepare(args, selected):
             capacity = min(r['ops_per_second'] for r in rows) * .01
             label = 'SMOKE_ONLY 1% calibration rate; not a capacity estimate'
         else:
+            args.failure_context = dict(cell=f'calibration/{cmd}/plateau', arm='redis-4')
             capacity = calibration_capacity(rows)
             label = 'Redis4 conservative minimum of final two closed-loop p32 plateau rungs'
         s.save(args.output / 'calibration' / cmd / 'capacity.json', dict(capacity=capacity, label=label, rungs=rungs))

@@ -67,7 +67,7 @@ def run(args, cell, arm, folder):
         if cell['persistence'] in ('everysec', 'always'):
             s.require(int(after['aof_enabled']) == 1 and after['aof_last_write_status'] == 'ok', 'AOF inactive or failed')
             s.require(int(after['aof_current_size']) > int(baseline['aof_current_size']), 'AOF did not grow during load')
-            s.require(sum(p.stat().st_size for p in (folder / 'data').rglob('*') if p.is_file()) > 0, 'AOF produced no file')
+            s.require(s.disk_bytes(folder / 'data') > 0, 'AOF produced no file')
         result.update(persistence=cell['persistence'], workload=cell['workload']['name'],
                       persistence_before=baseline, persistence_after=after, bgsave_events=events)
         return result
