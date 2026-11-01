@@ -1598,5 +1598,50 @@
     "after_bytes": 11971992,
     "allocated_sections_identical": true,
     "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/mdbqsbr2-no-wake/tomokv",
+    "before_sha256": "b37a1c4d73dca92cfb602070cae44a0cc2dcd1ea47529ebc6b73dded49f7062e",
+    "after_sha256": "2d2bceb448236d52867ce25aa27eddfa62ae1b65246779ba2dc2070af42338da",
+    "before_bytes": 230042472,
+    "after_bytes": 11967280,
+    "allocated_sections_identical": true,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/mdbqsbr2-park/tomokv",
+    "before_sha256": "02229f31c7e17172b0af1354968f5f9417def7cbe2b2f1b48f145b9175fe7507",
+    "after_sha256": "8f19f84fd46dfc9ad0da612093f7338dd9006860ba03923d16a65f8cc9d40ffa",
+    "before_bytes": 230043104,
+    "after_bytes": 11967360,
+    "allocated_sections_identical": true,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/blockfix-cost",
+    "before_sha256": "18af98ebb15793b49b23ce0b789bb543b0fc3b85a15fa3aa1cf8116bb2346516",
+    "after_sha256": "d0d68749ec28e9b914c39db16662b7528867933f851ad45ba4cddd047bfff562",
+    "before_bytes": 107973832,
+    "after_bytes": 6098776,
+    "allocated_sections_identical": true,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/blockfix2-db0-unit",
+    "before_sha256": "90d93d89fd132a40a137af2faf90f9d61214faefdbc6af15842b697e3dbf77cc",
+    "after_sha256": "42222e0dfc9deba6b9853930c2e7d6a960ca798f25febc13d5f8948b79f714fa",
+    "before_bytes": 213504312,
+    "after_bytes": 11419232,
+    "allocated_sections_identical": true,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/blockfix2-unit",
+    "before_sha256": "7eed768597b0791b0f6af1e84a1330f5b915708f70e0b7436ea7a9d5a3f00656",
+    "after_sha256": "2e0b336a63aa922cdfacffc93469919f409dd818d7ed4847d8c53f995d4ad280",
+    "before_bytes": 109678112,
+    "after_bytes": 6296856,
+    "allocated_sections_identical": true,
+    "source_commit": "fbbd5ddd76"
   }
 ]

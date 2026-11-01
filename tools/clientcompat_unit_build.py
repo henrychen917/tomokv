@@ -29,7 +29,7 @@ def trim_units():
     for path in sorted(Path("build").rglob("*")):
         if path.is_symlink() or not path.is_file() or "clientcompat" in path.parts:
             continue
-        if path == Path("build/tomokv") or path.suffix in (".o", ".a"):
+        if path in (Path("build/tomokv"), Path("build/blockfix-cost")) or path.suffix in (".o", ".a"):
             continue
         stat = path.stat()
         if stat.st_size < 80_000_000 or not os.access(path, os.X_OK):
@@ -47,6 +47,28 @@ def trim_units():
                                 before_bytes=len(before), after_bytes=len(after),
                                 allocated_sections_identical=True, trim_revision="fbbd5ddd76"))
     receipt.write_text(json.dumps(records, indent=2) + "\n")
+
+
+def finish_unit_artifacts():
+    # The cost probe has an explicit server/probe binding. Older cleanup runs
+    # also stripped its debug information; bind the retained, allocation-
+    # identical bytes rather than leaving a stale file digest beside it.
+    binding = Path("build/tomokv.blockfix-cost.sha256")
+    if binding.exists():
+        binding.write_text("".join(hashlib.sha256(p.read_bytes()).hexdigest() + "  " +
+                                   str(p.resolve()) + "\n"
+                                   for p in (Path("build/tomokv"), Path("build/blockfix-cost"))))
+    for path in Path("build").iterdir():
+        if not path.is_file() or path.name == "tomokv":
+            continue
+        if not os.access(path, os.X_OK) and path.name not in (
+                "tomokv.asserts.tsv", "tomokv.blockfix-cost.sha256"):
+            continue
+        link = Path("build/clientcompat/POST") / path.name
+        if link.is_symlink():
+            link.unlink()
+        if not link.exists():
+            link.symlink_to(Path("../..") / path.name)
 
 
 def main():
@@ -72,13 +94,7 @@ def main():
         print(index, result.returncode, command[-1], flush=True)
         assert result.returncode == 0, log
         trim_units()
-    for path in Path("build").iterdir():
-        if path.is_file() and os.access(path, os.X_OK) and path.name != "tomokv":
-            link = Path("build/clientcompat/POST") / path.name
-            if link.is_symlink():
-                link.unlink()
-            if not link.exists():
-                link.symlink_to(Path("../..") / path.name)
+    finish_unit_artifacts()
 
 
 if __name__ == "__main__":

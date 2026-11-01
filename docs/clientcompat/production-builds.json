@@ -623,5 +623,44 @@
     "exit": 0,
     "log": "build/clientcompat/ack-units-50.log",
     "source_commit": "fbbd5ddd76"
+  },
+  {
+    "command": [
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "exit": 0,
+    "log": "build/clientcompat/ack-units-51.log",
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "command": [
+      "make",
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk",
+      "-j16",
+      "build/blockfix-cost"
+    ],
+    "exit": 0,
+    "log": "build/clientcompat/ack-units-52.log",
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "command": [
+      "make",
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix2.mk",
+      "-j16",
+      "build/blockfix2-unit",
+      "build/blockfix2-db0-unit"
+    ],
+    "exit": 0,
+    "log": "build/clientcompat/ack-units-53.log",
+    "source_commit": "fbbd5ddd76"
   }
 ]
