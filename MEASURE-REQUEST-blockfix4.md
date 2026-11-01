@@ -4,8 +4,8 @@
 
 Baseline: `7d2f8a2051961a1942735fb6dc9b507d778e09d1` (`origin/cpp` at lane creation).
 Worktree/branch: `/home/user/Projects/cx-blockfix4`, `cx-blockfix4`. No push.
-Correctness processes and builds are restricted to CPUs 32–47; live tests use ports
-20200–20299. Every server inherits `LC_ALL=C`. No performance benchmark or full
+Correctness processes and builds are restricted to CPUs 32–47; TomoKV, oracle
+and Tcl control boots use ports 20200–20299. Every server inherits `LC_ALL=C`. No performance benchmark or full
 iteration is run by this lane.
 
 ### Mechanisms and witnesses
@@ -23,7 +23,7 @@ Redis 7.4.10 at `/home/user/Projects/redis/src/redis-server` runs the same scrip
 | 2 SCRIPT-PUSH-WAKE-POINT | 24 / 24 script replies returned LLEN=0 | Final receipt pending | One publication scope covers the complete EVAL/EVALSHA/FCALL activation, including error exits | EXEC-SEES-UNSERVED-STATE remains outside this lane |
 | 3 BLOCK-MOVE-RESUME-NIL | 720 / 720 stolen-source hits returned nil | Final receipt pending | Reuse the existing blocking remap/registration path, preserving the original deadline and ROB/barrier; only a real timeout completes with null | No D11 serve-order change |
 | 4 creator readiness | 256 / 256 missed wakes in 480 / 480 creator/control hits | Final receipt pending | Store image installation signals collection readiness; native pushes retain their existing waiter gate; remove mutation command allowlists; include owner-built GEO STORE | RESTORE-stream is NOT RUN pending the separate D9 format fix, as stated in the owner report |
-| 5 removed stream | 126 / 63 foreign-stream data replies in 400 / 400 hits | Final receipt pending | Logical external-stream retirement releases old group waiters synchronously, before overwrite/clear/expiry becomes visible; replacement type chooses WRONGTYPE versus NOGROUP | Script/EXEC deferral and direct stream-to-stream replacement retain Redis's final-state behavior |
+| 5 removed stream | 126 / 63 foreign-stream data replies in 400 / 400 hits | Final receipt pending | Logical external-stream retirement releases old group waiters synchronously, before a later batch command can supply replacement stream data; replacement type chooses WRONGTYPE versus NOGROUP | Script/EXEC deferral and direct stream-to-stream replacement retain Redis's final-state behavior |
 | 6 AT4.20-A0 | 2,195 / 4,154 null replies with a nonempty fallback, in 51,200 / 51,200 pops | Final receipt pending | A missed selected pop reuses the existing re-probe in either atomic mode; no retry-count-to-null shortcut; refresh an atomic-off retry's read cut | Queue admission may still return its existing explicit error |
 
 The first PRE gate run failed all five added rows before production changes.
@@ -32,6 +32,15 @@ PRE evidence: `docs/blockfix4/pre-uring-witnesses.tar.gz`,
 candidate passed all five rows on both engines: 108 script attempts, 720 stolen
 move hits, 480 creator hits, 400 stream-removal hits and 51,200 pops per engine.
 These are intermediate receipts; the final binary's receipts are recorded below.
+
+The final io_uring witness job passed 116/116 legs, including its oracle legs.
+TomoKV completed 108 ordinary/held script pushes and 1,024 natural-MVCC script
+attempts (1,019 observed MVCC windows), all with LLEN=1 and no rescue push;
+720/720 stolen-source move windows re-parked and consumed the second push;
+480 creator wakes returned the oracle's values; 560 removed-stream hits gave
+the exact errors (80 WRONGTYPE, 480 NOGROUP); all 51,200 MPOPs were non-null.
+The removal inventory now includes 160 additional ASYNC-flush cases.
+`docs/blockfix4/post-uring-summary.json` derives these counts from the archive.
 
 The expanded PRE gate run, including natural-MVCC witnesses, failed all five
 aggregate rows again.
@@ -69,9 +78,12 @@ server boots; otherwise an epoll Tcl job would still test io_uring.
 
 The initial `tests/gates_test.py` run had scheduler fixture timeouts while
 compilation and GDB tracing shared the lane. Its raw failure log is retained;
-the final rerun passed all 83 tests in 159.888 seconds after compilation and
-tracing finished (`docs/blockfix4/gates-test-final.log`). No timeout or assertion
-was relaxed. `tests/redis_tcl_test.py` also passed its 10 tests.
+an unloaded rerun passed all 83 tests in 159.888 seconds after compilation and
+tracing finished. Those first harness runs used its default ephemeral
+socket-only fixtures. The final run pins those fixtures with
+`GATE_TEST_PORT=20270` and passed all 83 tests in 145.694 seconds
+(`docs/blockfix4/gates-test-bounded.log`). No timeout or assertion was relaxed.
+`tests/redis_tcl_test.py` also passed its 10 tests.
 
 The complete final io_uring Tcl rerun passed both modes: 39 manifest files and
 1,875 passing assertions per mode (`gate-receipts/tcl-uring-repeat.json`).
@@ -81,6 +93,16 @@ A focused PRE control reproduced that exact pub/sub assertion in 2s;
 its scripting tests passed. This pre-existing pub/sub failure is reported and
 left outside this blocking lane. All initial red results and the unchanged
 successful full Tcl rerun are retained; no manifest skip or timeout changed.
+
+The final io_uring differential job passed all 930 standard comparison legs:
+47 suites × five seeds × atomic 0/1 in split mode, and 46 suites × five seeds
+× atomic 0/1 in armed fused mode (SORT has its existing split-only geometry).
+Seeds were 7, 19, 20, 23 and 24. Both fused read-local activity checks and the
+complete mode-equivalence part passed. The combined functional run retains
+its two earlier Tcl failures; the separate complete Tcl rerun supplies the
+passing Tcl result. Its first archive collector found concurrent run folders;
+the recovered receipt names only the gate's own banner directory and records
+that collection error.
 
 ### Cost and arms
 
@@ -155,3 +177,5 @@ would be 1004 and 1021.
 D11's ordered serve walk, EXEC-SEES-UNSERVED-STATE, sweep notification/slowlog
 order, and tracking fixes are not implemented. The maintainer's performance
 cells and full iteration are NOT RUN here under the task's runtime restriction.
+The atomic RYOW battery's rate assertions are also NOT RUN under that restriction
+(`GATE_PROOF_NO_RATES=1`); its correctness assertions remain enabled.
