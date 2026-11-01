@@ -348,3 +348,17 @@ with a discriminating pre-cleanup observer. A production diagnostic is needed
 before these cleanup passes can serve as leak evidence.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V20 — previously omitted geometries
+
+The standalone savefix acknowledgement/capture/replay probe was run on the
+frozen baseline with 16 databases, fused mode, read-local=1 and atomic=1. It
+passed with an observed partial capture and no acknowledged writes lost after
+restart. This does not establish that LARGE-MSET-DROP is fixed: the current
+probe batches its seed frames below 1 MiB and no original failing PRE is in
+bins/. No new permanent gate row is claimed for it. The armed debug posture is
+selected by GATE_TXN_FUSED=1 in this base (the audit's =0 spelling selects split).
+Its two atomic jobs are included in the final validation inventory. NOT RUN:
+a reproduced original large-frame defect/negative control.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
