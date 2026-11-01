@@ -31,8 +31,10 @@ def run(args, cell, arm, folder):
         def during(process):
             # Separate control connection, no interference with main INFO snapshots.
             control = s.Resp(args.port, args.timeout)
+            deadline = time.monotonic() + cell['seconds'] + args.timeout
             try:
                 while process.poll() is None:
+                    s.require(time.monotonic() < deadline, 'client timed out during BGSAVE loop')
                     start = time.monotonic()
                     before = s.fm.info(control)
                     reply = control.cmd('BGSAVE')

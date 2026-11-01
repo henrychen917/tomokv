@@ -858,14 +858,14 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
         selected = build_cells(args)
         require(selected, 'empty survey')
         save(args.output / 'cells.json', selected)
+        variants = select(args.variants, ('1s-rl0', '1s-rl1', '2s-rl0', '2s-rl1'))
+        pairs = [(f'redis-{r}', v) for r in numbers(args.redis_threads) for v in variants]
+        expected = len(selected) * len(pairs) * args.blocks * 4
         args.failure_context = dict(cell='prepare', arm='-')
         if prepare:
             prepare(args, selected)
         behavior = sidecar(args, behaviour_cells(args) if behaviour_cells else selected)
         save(args.output / 'behaviour.json', behavior)
-        variants = select(args.variants, ('1s-rl0', '1s-rl1', '2s-rl0', '2s-rl1'))
-        pairs = [(f'redis-{r}', v) for r in numbers(args.redis_threads) for v in variants]
-        expected = len(selected) * len(pairs) * args.blocks * 4
         for block in range(args.blocks):
             for cell in selected:
                 for redis, tomo in pairs:
@@ -895,6 +895,7 @@ def campaign(args, tool, build_cells, runner=run_throughput, prepare=None, finis
                                 elif 'loaded' in row:
                                     metrics = f' used_B_per_key={row["loaded"]["used_memory_per_key"]:.3f} rss_B_per_key={row["loaded"]["rss_per_key"]:.3f} half_rss_B_per_key={row["after_half_del"]["rss_per_key"]:.3f}'
                             print(f'{tool}: cell={cell["name"]} block={block} visit={seq} arm={arm} status={"VALID" if row["valid"] else "INVALID"} kind={"SMOKE_ONLY" if args.smoke else "SURVEY"}{metrics}', flush=True)
+        args.failure_context = dict(cell='finalize', arm='-')
         save(args.output / 'ratios.json', paired_ratios(records))
         if finish:
             finish(args, records)
