@@ -19,14 +19,14 @@ waiter, missing MVCC window, absent stolen-element hit, unexecuted creator,
 wrong value or wrong exact error fails the row. Each attempt uses fresh keys.
 Redis 7.4.10 at `/home/user/Projects/redis/src/redis-server` runs the same scripts.
 
-| Item | PRE witness (io_uring / epoll) | POST result | Mechanism changed | Residual |
+| Item | PRE witness (io_uring / epoll) | POST per engine, all eight geometries | Mechanism changed | Residual |
 |---|---|---|---|---|
-| 1 SCRIPT-PUSH-NO-WAKE | 36 / 36 script pushes needed a rescue push; held-record cases also missed publication before hold release | Final receipt pending | Deferred native publication marks the shard dirty; script scope restores the previous deferral state and publishes after the last command, or after its outer plain view closes | No ordered ready-key walk |
-| 2 SCRIPT-PUSH-WAKE-POINT | 24 / 24 script replies returned LLEN=0 | Final receipt pending | One publication scope covers the complete EVAL/EVALSHA/FCALL activation, including error exits | EXEC-SEES-UNSERVED-STATE remains outside this lane |
-| 3 BLOCK-MOVE-RESUME-NIL | 720 / 720 stolen-source hits returned nil | Final receipt pending | Reuse the existing blocking remap/registration path, preserving the original deadline and ROB/barrier; only a real timeout completes with null | No D11 serve-order change |
-| 4 creator readiness | 256 / 256 missed wakes in 480 / 480 creator/control hits | Final receipt pending | Store image installation signals collection readiness; native pushes retain their existing waiter gate; remove mutation command allowlists; include owner-built GEO STORE | RESTORE-stream is NOT RUN pending the separate D9 format fix, as stated in the owner report |
-| 5 removed stream | 126 / 63 foreign-stream data replies in 400 / 400 hits | Final receipt pending | Logical external-stream retirement releases old group waiters synchronously, before a later batch command can supply replacement stream data; replacement type chooses WRONGTYPE versus NOGROUP | Script/EXEC deferral and direct stream-to-stream replacement retain Redis's final-state behavior |
-| 6 AT4.20-A0 | 2,195 / 4,154 null replies with a nonempty fallback, in 51,200 / 51,200 pops | Final receipt pending | A missed selected pop reuses the existing re-probe in either atomic mode; no retry-count-to-null shortcut; refresh an atomic-off retry's read cut | Queue admission may still return its existing explicit error |
+| 1 SCRIPT-PUSH-NO-WAKE | 36 / 36 script pushes needed a rescue push; held-record cases also missed publication before hold release | 108/108 ordinary/held and 1,024/1,024 natural-MVCC pushes woke without rescue | Deferred native publication marks the shard dirty; script scope restores the previous deferral state and publishes after the last command, or after its outer plain view closes | No ordered ready-key walk |
+| 2 SCRIPT-PUSH-WAKE-POINT | 24 / 24 script replies returned LLEN=0 | 1,132/1,132 script replies returned LLEN=1 | One publication scope covers the complete EVAL/EVALSHA/FCALL activation, including error exits | EXEC-SEES-UNSERVED-STATE remains outside this lane |
+| 3 BLOCK-MOVE-RESUME-NIL | 720 / 720 stolen-source hits returned nil | 720/720 stolen-source windows re-parked, then returned the second value | Reuse the existing blocking remap/registration path, preserving the original deadline and ROB/barrier; only a real timeout completes with null | No D11 serve-order change |
+| 4 creator readiness | 256 / 256 missed wakes in 480 / 480 creator/control hits | 480/480 wakes with oracle-exact values | Store image installation signals collection readiness; native pushes retain their existing waiter gate; remove mutation command allowlists; include owner-built GEO STORE | RESTORE-stream is NOT RUN pending the separate D9 format fix, as stated in the owner report |
+| 5 removed stream | 126 / 63 foreign-stream data replies in 400 / 400 hits | 640/640 exact errors: 160 WRONGTYPE, 480 NOGROUP | Logical external-stream retirement releases old group waiters synchronously, before a later batch command can supply replacement stream data; replacement type chooses WRONGTYPE versus NOGROUP | Script/EXEC deferral and direct stream-to-stream replacement retain Redis's final-state behavior |
+| 6 AT4.20-A0 | 2,195 / 4,154 null replies with a nonempty fallback, in 51,200 / 51,200 pops | 51,200/51,200 non-null pops with nonempty fallback | A missed selected pop reuses the existing re-probe in either atomic mode; no retry-count-to-null shortcut; refresh an atomic-off retry's read cut | Queue admission may still return its existing explicit error |
 
 The first PRE gate run failed all five added rows before production changes.
 PRE evidence: `docs/blockfix4/pre-uring-witnesses.tar.gz`,
@@ -113,6 +113,11 @@ The complete final io_uring Tcl rerun passed both modes: 39 manifest files and
 1,875 passing assertions per mode (`gate-receipts/tcl-uring-repeat.json`).
 The final epoll job passed the same 39 files and 1,875 assertions in each mode
 (`gate-receipts/functional-epoll.json`).
+Each mode also records the manifest's five predeclared setup errors: two for
+the unsupported Lua debug switch, two for list compression configuration,
+and one for changing `appendonly`. They match the unchanged manifest exactly;
+there are no unexpected validation errors. This is the passing-subset job,
+not a claim that the entire upstream Redis Tcl suite passes.
 The first run timed out in Lua's script-loading GC test while compilation and
 tracing were active, and also hit the pub/sub unsubscribe assertion in 1s.
 A focused PRE control reproduced that exact pub/sub assertion in 2s;
