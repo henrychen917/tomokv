@@ -318,7 +318,10 @@ each mode. `MONITOR log blocked command only once`, for example, is PFP in
 final split-mode probes, confirming why its earlier six-pass sample did not
 justify restoring the guard-only promotion.
 
-`python3 tests/gates_test.py`: 77/77 passed. `abba_selftest` passed again in
+`python3 tests/gates_test.py`: 77/77 passed. The headline's 83 becomes 77
+because witnessfix removes seven tests of the retired Tcl retry and adds
+one no-retry check; every other lane test method remains. The method inventory
+is recorded in `gates-test-method-inventory.json`. `abba_selftest` passed again in
 a fresh throwaway landing copy with 1090/1107 and the final known-difference
 labels. Source identity lint passed for all 59 C++ units in both namespaces
 and six shared C units, including the stable-assertion failure checks. The
