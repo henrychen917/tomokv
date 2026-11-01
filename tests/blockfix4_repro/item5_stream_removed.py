@@ -40,6 +40,10 @@ CASES = {
                                  ['XADD', s + ':src', '*', 'f', 'renamed'], ['RENAME', s + ':src', s]],
     'FLUSHALL+RENAME': lambda s: [['FLUSHALL'], ['XGROUP', 'CREATE', s + ':src', 'g', '$', 'MKSTREAM'],
                                   ['XADD', s + ':src', '*', 'f', 'renamed'], ['RENAME', s + ':src', s]],
+    'FLUSHDB-ASYNC+RENAME': lambda s: [['FLUSHDB', 'ASYNC'], ['XGROUP', 'CREATE', s + ':src', 'g', '$', 'MKSTREAM'],
+                                       ['XADD', s + ':src', '*', 'f', 'renamed'], ['RENAME', s + ':src', s]],
+    'FLUSHALL-ASYNC+RENAME': lambda s: [['FLUSHALL', 'ASYNC'], ['XGROUP', 'CREATE', s + ':src', 'g', '$', 'MKSTREAM'],
+                                        ['XADD', s + ':src', '*', 'f', 'renamed'], ['RENAME', s + ':src', s]],
     'DEL+RENAME(ctl)': lambda s: [['DEL', s], ['RENAME', s + ':src', s]],
     'RENAME(ctl)': lambda s: [['RENAME', s + ':src', s]],
 }
