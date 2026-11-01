@@ -2644,6 +2644,11 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         client.set_atomic_backpressure(true);
         return true;
     }
+    if (auto* tracking = loop.climon_conn_find(client.id())) {
+        tracking->tracking_dispatch = tracking->tracking_on && !multi_session_active(client);
+        if (action == MultiIoAction::LocalDone && was_queueing &&
+            !multi_session_active(client)) tracking->caching_armed = false;
+    }
     if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
     if (action == MultiIoAction::LocalDone) {
         if (latency_started && (op.spec->flags & CmdFlags::Transaction))

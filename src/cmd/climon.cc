@@ -587,7 +587,7 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
             return false;
         }
         state->gate_op_id = id;
-        if (state->tracking_on) tracking_register_read(client, *state, op);
+        if (state->tracking_dispatch) tracking_register_read(client, *state, op);
     }
     if (armed & Server::kClimonMonitor) climon_monitor_feed(client, op);
     climon_mark_reply(client, op);

@@ -65,6 +65,7 @@
         bool monitor = false;
         bool pause_blocked = false;
         bool tracking_on = false;
+        bool tracking_dispatch = false; // ON, and not collecting a MULTI queue
         bool tracking_draining = false;
         bool bcast = false;
         bool optin = false;
@@ -171,6 +172,7 @@
 
     // ---- CLIENT TRACKING (tracking.cc) ----------------------------------------------------------
     friend void tracking_observe_read(Shard&, Op&);
+    friend void tracking_execute_read(Shard&, Op&);
     friend void tracking_observe_local(Server&, Op&);
     void tracking_reply_trackinginfo(Client* client, Op& op);
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);

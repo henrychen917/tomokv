@@ -66,7 +66,7 @@ std::atomic<uint64_t> g_track_bcast_prefixes{0};
 // Release certificates follow actual publication, never speculative fire points.
 // A separate line avoids false sharing with the membership filter and prefix counter.
 alignas(64) std::atomic<uint64_t> g_tracking_clock{1};
-void tracking_read_marker(Shard&, Op&) { std::abort(); }
+void tracking_read_marker(Shard& shard, Op& op) { tracking_execute_read(shard, op); }
 
 
 inline void track_filter_add(uint64_t hash) {
@@ -111,6 +111,13 @@ void tracking_observe_read(Shard& shard, Op& op) {
     observed = std::min(observed, stamp); // each shard slot has exactly one writer
 }
 
+void tracking_execute_read(Shard& shard, Op& op) {
+    // WATCH selects handler_notify even for a read. The tracking receipt uses
+    // that slot as its tag, so forward to the original observed handler.
+    const auto& read = *static_cast<const IoLoop::TrackingRead*>(op.spec);
+    read.original->handler_notify(shard, op);
+}
+
 void tracking_observe_local(Server& server, Op& op) {
     (void)server;
     if (!op.spec || op.spec->handler_notify != tracking_read_marker) return;
@@ -137,17 +144,16 @@ void IoLoop::tracking_note_prefix_registered(const std::string& prefix, bool add
 // at all -- its prefix registry is the whole subscription -- so only default (per-key
 // remembering) mode registers here.
 void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
-    // QUEUED is not an execution. CACHING survives the whole transaction too.
-    if (multi_session_active(*client) || op.cmd_name().eq_icase("multi")) return;
     // Redis preserves CACHING across every CLIENT command, including introspection and errors.
     // Consuming it before TRACKINGINFO both hides the flag and loses the following OPTIN read's
     // invalidation (or wrongly subscribes an exempted OPTOUT read). CLIENT has no keys to enroll.
-    if (op.cmd_name().eq_icase("client")) return;
+    const CommandSpec* spec = op.spec;
+    if (!spec) return;
+    if ((spec->flags & (CmdFlags::Climon | CmdFlags::Transaction)) &&
+        (op.cmd_name().eq_icase("client") || op.cmd_name().eq_icase("multi"))) return;
     const bool caching = state.caching_armed;
     state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
     if (state.bcast) return;
-    const CommandSpec* spec = op.spec;
-    if (!spec) return;
     // Only genuine reads register. A write from the tracking connection is not a subscription.
     if (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write)) return;
     // OPTIN: register only when the previous command was CLIENT CACHING yes.
@@ -327,6 +333,7 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
     state.prefixes.clear();
     if (state.tracking_on) {
         state.tracking_on = false;
+        state.tracking_dispatch = false;
         state.bcast = state.optin = state.optout = state.noloop = false;
         state.caching_armed = false;
         state.redirect = 0;
@@ -973,6 +980,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     }
 
     ClimonConn& state = climon_conn_get(client);
+    state.tracking_dispatch = true;
     if (!state.tracking_on) {
         state.tracking_on = true;
         if (!state.tracking_draining) {
