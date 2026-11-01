@@ -132,6 +132,8 @@ public:
                 latency_blocking_retire(*loop->srv_, client, op, *loop->self_);
             } else if (op.has_multi_state()) {
                 notifications = notify_take_batch(op);
+                loop->tracking_finish_multi(client,
+                    *static_cast<MultiExecState*>(op.multi_state()), notifications);
                 latency_multi_retire(*loop, client, op);
             } else if (__builtin_expect(op.has_notify_state(), false)) {
                 notifications = notify_take_batch(op);
@@ -522,6 +524,7 @@ private:
     friend void acl_command_entry(IoLoop&, Client&, Op&);
     friend void acl_broadcast_user_change(IoLoop&, uint32_t, const AclPerm*, bool);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
+    friend bool multi_exec_io_commands(IoLoop&, MultiExecState&);
     friend uint32_t multi_owner_pass_entry(IoLoop&);
     friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
     template <bool IofusedPrivateQueue>
@@ -4741,7 +4744,7 @@ ordinary_shard_ready:
         else          sig.clear_oldest_age();
     }
 
-    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk };
+    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk, TrackingOn };
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -4787,8 +4790,10 @@ ordinary_shard_ready:
             const DeferredTimer timer = deferred_timers_[i];
             const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
                 ? srv_->debug_sleep_complete(timer.deadline_ms)
-                : (timer.deadline_ms && now_ms >= timer.deadline_ms) ||
-                  server_tail_wait_ready(timer.client->rob().at(timer.op_id), timer.client);
+                : timer.kind == DeferredTimerKind::TrackingOn
+                    ? srv_->tracking_config_ready(timer.deadline_ms)
+                    : (timer.deadline_ms && now_ms >= timer.deadline_ms) ||
+                      server_tail_wait_ready(timer.client->rob().at(timer.op_id), timer.client);
             if (!ready) {
                 i++;
                 continue;
@@ -4906,6 +4911,10 @@ ordinary_shard_ready:
         for (const auto& timer : deferred_timers_)
             if (timer.kind == DeferredTimerKind::WaitZero && timer.deadline_ms)
                 deadline = std::min(deadline, timer.deadline_ms);
+            else if (timer.kind == DeferredTimerKind::TrackingOn)
+                // Owner acknowledgements publish a mailbox word, not an IO
+                // completion. Only this cold control wait needs a short poll.
+                deadline = std::min(deadline, now_ms + 1);
         return deadline > now_ms ? static_cast<unsigned>(deadline - now_ms) : 0;
     }
 
@@ -5032,6 +5041,7 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
+        command_client_closing(c);
         climon_unpark_paused(c);
         if (!c->closing()) {
 #ifdef TOMO_CONNRESET_TRACE

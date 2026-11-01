@@ -20,6 +20,8 @@
 
 namespace tomo {
 
+[[gnu::noipa, gnu::cold]] bool clientcompat_post() { return true; }
+
 namespace {
 
 // Redis quotes MONITOR arguments with the same escaping sdscatrepr uses for DEBUG output.
@@ -587,7 +589,7 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
             return false;
         }
         state->gate_op_id = id;
-        if (state->tracking_on) tracking_register_read(client, *state, op);
+        if (state->tracking_dispatch) tracking_register_read(client, *state, op);
     }
     if (armed & Server::kClimonMonitor) climon_monitor_feed(client, op);
     climon_mark_reply(client, op);
@@ -741,6 +743,17 @@ bool command_pause_write(const Op& op) {
     if (!op.spec) return false;
     if (op.spec->flags & CmdFlags::ScriptRoute)
         return function_is_fcall(op) ? function_metadata_write(op) : script_metadata_write(op);
+    // Containers expose subcommand flags in Redis. XGROUP HELP is read-only;
+    // FUNCTION's library mutations are WRITE even though FUNCTION itself has
+    // no root flags. The other supported containers have no WRITE children.
+    if (clientcompat_post() && op.argc() >= 2) {
+        if (op.cmd_name().eq_icase("xgroup") && op.arg(1).eq_icase("help")) return false;
+        if (op.cmd_name().eq_icase("function")) {
+            const Slice sub = op.arg(1);
+            return sub.eq_icase("load") || sub.eq_icase("flush") ||
+                   sub.eq_icase("restore") || sub.eq_icase("delete");
+        }
+    }
     // Redis's MAY_REPLICATE flag is deliberately absent from COMMAND INFO.
     return (op.spec->flags & CmdFlags::Write) || op.cmd_name().eq_icase("pfcount") ||
         op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish");
@@ -753,12 +766,10 @@ bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
     if (cached_now_ms_ >= climon_pause_deadline_ms_) return false;
     const CommandSpec* spec = op.spec;
     if (!spec) return false;
-    // DELIBERATE DIVERGENCE FROM REDIS: redis postpones CLIENT
-    // UNPAUSE itself under PAUSE ... ALL, so an ALL pause can only end by expiring. We exempt the
-    // connection-control class (CLIENT/RESET/MONITOR, the CmdFlags::Climon rows) so UNPAUSE
-    // always works. Everything else -- including PING and reads -- is held under ALL, matching
-    // redis.
-    if (spec->flags & CmdFlags::Climon) return false;
+    if ((spec->flags & CmdFlags::Climon) && !clientcompat_post()) return false;
+    // Redis postpones every valid command under ALL, including CLIENT UNPAUSE,
+    // RESET and MONITOR. WRITE uses WRITE | MAY_REPLICATE, including queued
+    // EXEC children; DENYOOM alone is not a pause classification.
     if (srv_->climon_pause_mode() == Server::kPauseWrite)
         return command_pause_write(op) ||
             (op.cmd_name().eq_icase("exec") && multi_pause_writes(client));
@@ -1312,6 +1323,7 @@ void IoLoop::climon_handle_client_request(PubSubEvent& event) {
         result->count = victims.size();
         for (Client* victim : victims) {
             if (victim->id() == event.caller_id) {
+                command_client_closing(victim);
                 victim->mark_closing();
                 mark_active(victim);
             } else {

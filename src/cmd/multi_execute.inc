@@ -128,7 +128,7 @@
                 }
             } else command.scatter->aborted.store(true, std::memory_order_release);
             if (notify)
-                notify_execute_source(shard, *command.op, command.notify_order_base);
+                multi_notify_source(shard, *command.op, command.notify_order_base);
             const Task child_task{state.client, task.op_id, shard.id(), command.scatter};
             bool execute_child = !state.decision.aborted.load(std::memory_order_acquire);
             if (execute_child && command.scatter->atomic_pop && command.scatter->phase == 2) {

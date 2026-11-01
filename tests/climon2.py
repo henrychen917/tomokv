@@ -379,21 +379,31 @@ try:
     assert write_ms > 300, f"write was NOT held (took {write_ms:.0f}ms) -- pause never fired"
     holds_after = stats()["client_pause_holds"]
     assert holds_after > holds_before, "client_pause_holds counter never moved"
-    # ALL mode holds reads too, and UNPAUSE releases immediately.
-    expect(admin.command("CLIENT", "PAUSE", "5000", "ALL"), b"OK", "PAUSE ALL")
+    # WRITE permits CLIENT UNPAUSE, which releases a proved-held write.
+    expect(admin.command("CLIENT", "PAUSE", "5000", "WRITE"), b"OK", "PAUSE WRITE for UNPAUSE")
     waiter = new()
-    waiter.send("GET", "cl2:p")
-    t0 = time.time()
-    time.sleep(0.3)
-    expect(waiter.drain(0.3), b"", "read was NOT held under PAUSE ALL")
-    expect(admin.command("CLIENT", "UNPAUSE"), b"OK", "UNPAUSE")
-    expect(waiter.read(), b"1", "UNPAUSE released the held read")
-    released_ms = (time.time() - t0) * 1000
+    waiter.send("SET", "cl2:p", "2")
+    expect(waiter.drain(0.3), b"", "write was NOT held before UNPAUSE")
+    t0 = time.monotonic()
+    expect(admin.command("CLIENT", "UNPAUSE"), b"OK", "UNPAUSE WRITE")
+    expect(waiter.read(), b"OK", "UNPAUSE released the held write")
+    released_ms = (time.monotonic() - t0) * 1000
     assert released_ms < 2000, f"UNPAUSE took {released_ms:.0f}ms"
-    expect(victim.command("SET", "cl2:p", "2"), b"OK", "writes flow after UNPAUSE")
+    # ALL postpones both reads and CLIENT UNPAUSE until natural expiry.
+    all_holds_before = stats()["client_pause_holds"]
+    expect(admin.command("CLIENT", "PAUSE", "800", "ALL"), b"OK", "PAUSE ALL")
+    waiter.send("GET", "cl2:p")
+    admin.send("CLIENT", "UNPAUSE")
+    expect(waiter.drain(0.15), b"", "read was NOT held under PAUSE ALL")
+    expect(admin.drain(0.15), b"", "UNPAUSE bypassed PAUSE ALL")
+    expect(admin.read(), b"OK", "UNPAUSE after ALL expiry")
+    expect(waiter.read(), b"2", "read after ALL expiry")
+    assert stats()["client_pause_holds"] >= all_holds_before + 2, \
+        "ALL did not postpone both the read and CLIENT UNPAUSE"
+    expect(victim.command("SET", "cl2:p", "3"), b"OK", "writes flow after pause expiry")
     victim.close()
     waiter.close()
-    checks += 12
+    checks += 18
 
     # ---- 8. RESET ---------------------------------------------------------------------------
     rc = new()

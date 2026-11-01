@@ -1016,6 +1016,7 @@ job_body(){
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
+    clientcompat-*) job_clientcompat "${name#clientcompat-}";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
@@ -1152,6 +1153,7 @@ plan_jobs(){
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace)
+  JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
     JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
@@ -5871,6 +5873,16 @@ job_climonfix4(){
   done
 }
 
+job_clientcompat(){
+  local case=$1 label="clientcompat $1"
+  row_begin "$label"
+  py tests/clientcompat.py --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --ratio "$GATE_RATIO" \
+      --port "$PORT" --output "$TMPDIR/clientcompat-$case" \
+      >"$TMPDIR/clientcompat-$case.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/clientcompat-$case.log"
+}
+
 job_redis_tcl(){
   local mode passed=1 label manifest=${GATE_TCL_MANIFEST:-tests/redis_tcl_passing.json}
   # Focused regression controls use this same runner/watchdog/ledger in a
@@ -6377,6 +6389,11 @@ collect_job perfex_units
 collect_job perfex_live
 collect_job ntnew4_live
 collect_job clientfix
+# Five clientcompat rows before the quick-tier exit: DQ=DF=+5.
+# EXPECT_QUICK / EXPECT_FULL remain maintainer-owned (999/1016 -> 1004/1021).
+for CC_CASE in pause disconnect multi-tracking multi-controls enable-race; do
+  collect_job "clientcompat-$CC_CASE"
+done
 # AT4.13: one row before the quick exit, DQ=+1 / DF=+1.
 collect_job atomfix5_watch
 # AT4.19: one row before the quick exit, DQ=+1 / DF=+1.

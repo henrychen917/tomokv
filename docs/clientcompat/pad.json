@@ -1,0 +1,25 @@
+{
+  "kind": "A: PRE behavior with exact POST text and data layout",
+  "patches": [
+    {
+      "symbol": "_ZN4tomo17clientcompat_postEv",
+      "pc": "0x6e654",
+      "offset": 452180,
+      "before": "b001c3",
+      "after": "31c0c3"
+    },
+    {
+      "symbol": "_ZN8tomo_db017clientcompat_postEv",
+      "pc": "0x43d9e",
+      "offset": 277918,
+      "before": "b001c3",
+      "after": "31c0c3"
+    }
+  ],
+  "changed_bytes": 4,
+  "sections_equal": true,
+  "symbols_equal": true,
+  "post_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+  "pad_sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
+  "text_bytes": 8884599
+}

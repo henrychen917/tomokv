@@ -186,6 +186,10 @@ bool command_registry_init(bool tls_enabled, bool fused_mode, bool read_local_ar
     }
 
     try {
+        for (auto& entry : g_registry.entries)
+            if (!std::strcmp(entry.name, "CLIENT") ||
+                (!std::strcmp(entry.name, "MULTI") && clientcompat_post()))
+                entry.flags |= CmdFlags::PreserveCaching;
         g_registry.notify_entries = g_registry.entries;
         for (CommandSpec& entry : g_registry.notify_entries) {
             entry.flags |= CmdFlags::NotifySelected;

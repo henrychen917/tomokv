@@ -1,0 +1,16 @@
+[
+  {
+    "kind": "draft Tcl",
+    "run": "d7LPhU",
+    "sha256": "384eafec9e4cc1cba05a75f742ea4e33bedc173ca8f32dcd6dbe92f7937c1f1c",
+    "archive": "docs/clientcompat/validation/draft-tcl.json.gz",
+    "archive_sha256": "799bad1385fe82cd55c1eaed6ae19908173bbe2d653af54aa266197ff82121c3"
+  },
+  {
+    "kind": "gates_test first sealed run",
+    "tests": 83,
+    "failures": 1,
+    "reason": "one-slot scheduler fixture exceeded its unchanged 45-second outer timeout while other correctness work was active",
+    "failure_artifacts": "build/scheduler-failure-8kxg83jl"
+  }
+]

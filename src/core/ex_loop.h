@@ -397,7 +397,7 @@ public:
             if (read_local_enabled())
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
-        const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+        const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;
         if (!lb_frozen) refresh_live_config();
         if (maxmemory_enabled_)
             cached_lru_clock_ = static_cast<uint8_t>(
@@ -617,7 +617,7 @@ public:
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
             const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
-            const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+            const bool lb_frozen = lb_controller_armed_ && srv_->lb_stage() == LbStage::ExDrain;
             const bool placement_frozen = flip_frozen || lb_frozen;
             // refresh_live_config() walks this owner's shard vector. The coordinator may rewrite
             // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
@@ -1707,6 +1707,8 @@ private:
         slowlog_armed_ = slowlog_arm_.armed();
         debug_fanout_defer_us_ = snapshot.debug_fanout_defer_us;
         live_config_version_ = snapshot.version;
+        if constexpr (OwnsShards)
+            srv_->tracking_config_applied(self_->id(), snapshot.version);
     }
 
     // CONFIG SET maxmemory/-policy/-samples: called by this owner's own CONFIG fragment, after the

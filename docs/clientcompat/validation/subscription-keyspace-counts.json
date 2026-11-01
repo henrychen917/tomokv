@@ -1,0 +1,2984 @@
+{
+  "previous_source": "0606bdb130",
+  "source": "1076280569",
+  "changed_totals": [
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        1,
+        0
+      ],
+      "before": 1998,
+      "after": 1980,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        1,
+        1
+      ],
+      "before": 1998,
+      "after": 1980,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        32,
+        0
+      ],
+      "before": 52466,
+      "after": 51890,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        32,
+        1
+      ],
+      "before": 52466,
+      "after": 51890,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        1,
+        0
+      ],
+      "before": 2618,
+      "after": 2600,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        1,
+        1
+      ],
+      "before": 2618,
+      "after": 2600,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        32,
+        0
+      ],
+      "before": 52311,
+      "after": 51735,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        32,
+        1
+      ],
+      "before": 52311,
+      "after": 51735,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        1,
+        0
+      ],
+      "before": 2748,
+      "after": 2729,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        1,
+        1
+      ],
+      "before": 2748,
+      "after": 2729,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        32,
+        0
+      ],
+      "before": 76995,
+      "after": 76387,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        32,
+        1
+      ],
+      "before": 76995,
+      "after": 76387,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        1,
+        0
+      ],
+      "before": 3368,
+      "after": 3349,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        1,
+        1
+      ],
+      "before": 3368,
+      "after": 3349,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        32,
+        0
+      ],
+      "before": 76840,
+      "after": 76232,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        32,
+        1
+      ],
+      "before": 76840,
+      "after": 76232,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        1,
+        0
+      ],
+      "before": 16740,
+      "after": 16596,
+      "delta": -144
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        1,
+        1
+      ],
+      "before": 23053,
+      "after": 22885,
+      "delta": -168
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        32,
+        0
+      ],
+      "before": 535525,
+      "after": 530917,
+      "delta": -4608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        32,
+        1
+      ],
+      "before": 1156158,
+      "after": 1150782,
+      "delta": -5376
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        1,
+        0
+      ],
+      "before": 16558,
+      "after": 16414,
+      "delta": -144
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        1,
+        1
+      ],
+      "before": 22721,
+      "after": 22553,
+      "delta": -168
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        32,
+        0
+      ],
+      "before": 529701,
+      "after": 525093,
+      "delta": -4608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        32,
+        1
+      ],
+      "before": 1145534,
+      "after": 1140158,
+      "delta": -5376
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        1,
+        0
+      ],
+      "before": 9976,
+      "after": 9974,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        1,
+        1
+      ],
+      "before": 10002,
+      "after": 10000,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        32,
+        0
+      ],
+      "before": 318054,
+      "after": 317990,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        32,
+        1
+      ],
+      "before": 318886,
+      "after": 318822,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        1,
+        0
+      ],
+      "before": 9976,
+      "after": 9974,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        1,
+        1
+      ],
+      "before": 10002,
+      "after": 10000,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        32,
+        0
+      ],
+      "before": 318054,
+      "after": 317990,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        32,
+        1
+      ],
+      "before": 318886,
+      "after": 318822,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        1,
+        0
+      ],
+      "before": 10765,
+      "after": 10762,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        1,
+        1
+      ],
+      "before": 16321,
+      "after": 16318,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        32,
+        0
+      ],
+      "before": 344325,
+      "after": 344229,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        32,
+        1
+      ],
+      "before": 895598,
+      "after": 895502,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        1,
+        0
+      ],
+      "before": 10576,
+      "after": 10573,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        1,
+        1
+      ],
+      "before": 15982,
+      "after": 15979,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        32,
+        0
+      ],
+      "before": 338277,
+      "after": 338181,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        32,
+        1
+      ],
+      "before": 884750,
+      "after": 884654,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        1,
+        0
+      ],
+      "before": 1783,
+      "after": 1770,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        1,
+        1
+      ],
+      "before": 1783,
+      "after": 1770,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        32,
+        0
+      ],
+      "before": 49585,
+      "after": 49169,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        32,
+        1
+      ],
+      "before": 49585,
+      "after": 49169,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        1,
+        0
+      ],
+      "before": 2016,
+      "after": 2003,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        1,
+        1
+      ],
+      "before": 2016,
+      "after": 2003,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        32,
+        0
+      ],
+      "before": 49043,
+      "after": 48627,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        32,
+        1
+      ],
+      "before": 49043,
+      "after": 48627,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        1,
+        0
+      ],
+      "before": 2381,
+      "after": 2367,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        1,
+        1
+      ],
+      "before": 2381,
+      "after": 2367,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        32,
+        0
+      ],
+      "before": 69250,
+      "after": 68802,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        32,
+        1
+      ],
+      "before": 69250,
+      "after": 68802,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        1,
+        0
+      ],
+      "before": 2614,
+      "after": 2600,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        1,
+        1
+      ],
+      "before": 2614,
+      "after": 2600,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        32,
+        0
+      ],
+      "before": 68708,
+      "after": 68260,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        32,
+        1
+      ],
+      "before": 68708,
+      "after": 68260,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        1,
+        0
+      ],
+      "before": 22448,
+      "after": 22446,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        1,
+        1
+      ],
+      "before": 22474,
+      "after": 22472,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        32,
+        0
+      ],
+      "before": 684267,
+      "after": 684203,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        32,
+        1
+      ],
+      "before": 685099,
+      "after": 685035,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        1,
+        0
+      ],
+      "before": 22448,
+      "after": 22446,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        1,
+        1
+      ],
+      "before": 22474,
+      "after": 22472,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        32,
+        0
+      ],
+      "before": 684267,
+      "after": 684203,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        32,
+        1
+      ],
+      "before": 685099,
+      "after": 685035,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        0
+      ],
+      "before": 16196,
+      "after": 16102,
+      "delta": -94
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        1
+      ],
+      "before": 21755,
+      "after": 21661,
+      "delta": -94
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        0
+      ],
+      "before": 518117,
+      "after": 515109,
+      "delta": -3008
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        1
+      ],
+      "before": 1069486,
+      "after": 1066478,
+      "delta": -3008
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        0
+      ],
+      "before": 16007,
+      "after": 15913,
+      "delta": -94
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        1
+      ],
+      "before": 21416,
+      "after": 21322,
+      "delta": -94
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        0
+      ],
+      "before": 512069,
+      "after": 509061,
+      "delta": -3008
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        1
+      ],
+      "before": 1058638,
+      "after": 1055630,
+      "delta": -3008
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        0
+      ],
+      "before": 34179,
+      "after": 34145,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        1
+      ],
+      "before": 34182,
+      "after": 34148,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        0
+      ],
+      "before": 111864,
+      "after": 111728,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        1
+      ],
+      "before": 111867,
+      "after": 111731,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        0
+      ],
+      "before": 33766,
+      "after": 33732,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        1
+      ],
+      "before": 33769,
+      "after": 33735,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        0
+      ],
+      "before": 110212,
+      "after": 110076,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        1
+      ],
+      "before": 110215,
+      "after": 110079,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        0
+      ],
+      "before": 39005,
+      "after": 38971,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        1
+      ],
+      "before": 39008,
+      "after": 38974,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        0
+      ],
+      "before": 132560,
+      "after": 132424,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        1
+      ],
+      "before": 132563,
+      "after": 132427,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        0
+      ],
+      "before": 38502,
+      "after": 38468,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        1
+      ],
+      "before": 38505,
+      "after": 38471,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        0
+      ],
+      "before": 130548,
+      "after": 130412,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        1
+      ],
+      "before": 130551,
+      "after": 130415,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        0
+      ],
+      "before": 31904,
+      "after": 31874,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        1
+      ],
+      "before": 31907,
+      "after": 31877,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        0
+      ],
+      "before": 102275,
+      "after": 102155,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        1
+      ],
+      "before": 102278,
+      "after": 102158,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        0
+      ],
+      "before": 31450,
+      "after": 31420,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        1
+      ],
+      "before": 31453,
+      "after": 31423,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        0
+      ],
+      "before": 100471,
+      "after": 100351,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        1
+      ],
+      "before": 100474,
+      "after": 100354,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        0
+      ],
+      "before": 36554,
+      "after": 36524,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        1
+      ],
+      "before": 36557,
+      "after": 36527,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        0
+      ],
+      "before": 122192,
+      "after": 122072,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        1
+      ],
+      "before": 122195,
+      "after": 122075,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        0
+      ],
+      "before": 36002,
+      "after": 35972,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        1
+      ],
+      "before": 36005,
+      "after": 35975,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        0
+      ],
+      "before": 119996,
+      "after": 119876,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        1
+      ],
+      "before": 119999,
+      "after": 119879,
+      "delta": -120
+    }
+  ],
+  "changed_symbols": [
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 172,
+      "after": 154,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 172,
+      "after": 154,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5504,
+      "after": 4928,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5504,
+      "after": 4928,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 172,
+      "after": 154,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 172,
+      "after": 154,
+      "delta": -18
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5504,
+      "after": 4928,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-SET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5504,
+      "after": 4928,
+      "delta": -576
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 176,
+      "after": 157,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 176,
+      "after": 157,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5632,
+      "after": 5024,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5632,
+      "after": 5024,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 176,
+      "after": 157,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 176,
+      "after": 157,
+      "delta": -19
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5632,
+      "after": 5024,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-INCR",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 5632,
+      "after": 5024,
+      "delta": -608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 2325,
+      "after": 2181,
+      "delta": -144
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_flat_enabled(void*, unsigned int)",
+      "before": 128,
+      "after": 104,
+      "delta": -24
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 2325,
+      "after": 2181,
+      "delta": -144
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 74400,
+      "after": 69792,
+      "delta": -4608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_flat_enabled(void*, unsigned int)",
+      "before": 4096,
+      "after": 3328,
+      "delta": -768
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 74400,
+      "after": 69792,
+      "delta": -4608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 2325,
+      "after": 2181,
+      "delta": -144
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_flat_enabled(void*, unsigned int)",
+      "before": 128,
+      "after": 104,
+      "delta": -24
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 2325,
+      "after": 2181,
+      "delta": -144
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 74400,
+      "after": 69792,
+      "delta": -4608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_flat_enabled(void*, unsigned int)",
+      "before": 4096,
+      "after": 3328,
+      "delta": -768
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "normal",
+        "TRACK-MSET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 74400,
+      "after": 69792,
+      "delta": -4608
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 159,
+      "after": 146,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 159,
+      "after": 146,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5088,
+      "after": 4672,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5088,
+      "after": 4672,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 159,
+      "after": 146,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 159,
+      "after": 146,
+      "delta": -13
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5088,
+      "after": 4672,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-SET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5088,
+      "after": 4672,
+      "delta": -416
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 163,
+      "after": 149,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 163,
+      "after": 149,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5216,
+      "after": 4768,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5216,
+      "after": 4768,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 163,
+      "after": 149,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 163,
+      "after": 149,
+      "delta": -14
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5216,
+      "after": 4768,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-INCR",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 5216,
+      "after": 4768,
+      "delta": -448
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 32,
+      "after": 30,
+      "delta": -2
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1024,
+      "after": 960,
+      "delta": -64
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 2014,
+      "after": 1923,
+      "delta": -91
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 2014,
+      "after": 1923,
+      "delta": -91
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 64448,
+      "after": 61536,
+      "delta": -2912
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 64448,
+      "after": 61536,
+      "delta": -2912
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 2014,
+      "after": 1923,
+      "delta": -91
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 34,
+      "after": 31,
+      "delta": -3
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 2014,
+      "after": 1923,
+      "delta": -91
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 64448,
+      "after": 61536,
+      "delta": -2912
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "before": 1088,
+      "after": 992,
+      "delta": -96
+    },
+    {
+      "product": "POST-elf",
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 64448,
+      "after": 61536,
+      "delta": -2912
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 302,
+      "after": 268,
+      "delta": -34
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before": 1208,
+      "after": 1072,
+      "delta": -136
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 280,
+      "after": 250,
+      "delta": -30
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "db0",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before": 1120,
+      "after": 1000,
+      "delta": -120
+    }
+  ]
+}

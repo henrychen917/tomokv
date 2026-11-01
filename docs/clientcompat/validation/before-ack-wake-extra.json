@@ -1,0 +1,103 @@
+{
+  "run": "build/gate-run.rwGpt8",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": false,
+  "jobs": [
+    {
+      "job": "blockfix2",
+      "exit": 0,
+      "passed": 6,
+      "failed": 1,
+      "ledger": [
+        "ok\t36.250000\tblockfix2 BLOCK-WAKE-RENAME-SORTSTORE",
+        "ok\t38.540000\tblockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+        "ok\t35.880000\tblockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS",
+        "ok\t35.680000\tblockfix2 MULTI-XREADGROUP-BLOCK-HANG",
+        "ok\t35.830000\tblockfix2 INFO-TOTAL-BLOCKING-KEYS",
+        "ok\t35.660000\tblockfix2 SLOWLOG-BLOCKED-NOT-LOGGED",
+        "FAIL\t0.010000\tblockfix2 BLOCK-SERVE-REFUSED-DROP"
+      ]
+    },
+    {
+      "job": "core_tsan_build",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "debug-0",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t9.170000\tplain-write lost updates (atomic 0)",
+        "ok\t0.170000\tlbsignals battery (atomic 0)",
+        "ok\t1.480000\tslowlog battery (atomic 0)",
+        "ok\t0.040000\tatomfix battery (atomic 0)",
+        "ok\t0.130000\tscriptatomic battery (atomic 0)",
+        "ok\t14.460000\texecatomic battery (atomic 0)",
+        "ok\t11.870000\texeciso battery (atomic 0)",
+        "ok\t0.440000\texecfix battery (atomic 0)",
+        "ok\t0.120000\tmultires battery (atomic 0)",
+        "ok\t0.780000\tmultirace battery (atomic 0)",
+        "ok\t30.580000\tsession_monotonic battery (atomic 0)",
+        "ok\t0.360000\txacct battery (atomic 0)",
+        "ok\t0.030000\txmove battery (atomic 0)",
+        "ok\t3.270000\txscript battery (atomic 0)",
+        "ok\t1.910000\ttxn_nx battery (atomic 0)",
+        "ok\t9.600000\ttxniso battery (atomic 0)"
+      ]
+    },
+    {
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    {
+      "job": "ring_unit",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.100000\tread-local write ring + arming transient unit",
+        "ok\t0.170000\tclimon 128-owner delivery mask",
+        "ok\t0.890000\tread-local MGET fence symmetry unit"
+      ]
+    },
+    {
+      "job": "snapfix_bgsave_exec",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t55.460000\tsnapfix SNAP-STORM-1 BGSAVE under EXEC + writer storm (both modes, both engines, atomic 0/1)"
+      ]
+    }
+  ],
+  "missing": [
+    "atomic_batteries",
+    "core_units",
+    "debug-1",
+    "netcmd_units",
+    "ntfix_input",
+    "release_batteries",
+    "wave8b_off"
+  ],
+  "archive": "docs/clientcompat/validation/before-ack-wake-extra.json.gz",
+  "archive_sha256": "4e25337cb52bafefbedcf59db29fe2fccb9a7e6c2c31c2eac6ad4baef9754611",
+  "passed": 27,
+  "failed": 1
+}

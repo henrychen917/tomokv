@@ -4,6 +4,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -94,6 +95,11 @@ AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
                                  const std::vector<std::string>& argv,
                                  uint32_t* denied_arg = nullptr);
 bool acl_reply_sort_option_denied(Op& op, AclDeniedReason reason, uint32_t denied_arg);
+// EXEC preflight sees earlier SETUSER changes to its own caller without
+// publishing any ACL side effect from an attempt that can still abort.
+AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
+                               const std::vector<std::string>& argv,
+                               std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg);
 // Live ACL check of a parked command, by whichever thread is about to run it (or retire a reply
 // it never executed for). True means it denied: the reply is now exactly that denial.
 bool acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread);

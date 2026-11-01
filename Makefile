@@ -22,7 +22,7 @@ CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread
 LDLIBS   ?= -luring -pthread
 SRC      := src/main.cc src/net/tls.cc src/cmd/commands.cc src/cmd/glob.cc src/cmd/xshard.cc src/cmd/acl.cc src/cmd/hll.cc src/cmd/t_server.cc src/cmd/t_string.cc src/cmd/t_string_notify.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc \
             src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc src/cmd/t_zset_ops.cc src/cmd/geo.cc src/cmd/t_stream.cc src/cmd/t_stream_groups.cc src/cmd/scripting.cc src/cmd/functions.cc src/cmd/serialize.cc src/snapshot/snapshot.cc src/persist/aof.cc
-SRC      += src/cmd/climon.cc src/cmd/tracking.cc
+SRC      += src/cmd/climon.cc src/cmd/tracking.cc src/cmd/clientcompat.cc
 SRC      += src/cmd/server_tail.cc src/cmd/slowlog.cc src/cmd/lcs.cc src/cmd/info_stats.cc
 SRC      += src/cmd/lbsignals.cc
 SRC      += src/core/flipctl.cc
@@ -291,14 +291,15 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # flushfix3: merged headline scope trials select auto=14/18; ordinary fan-out
 # must not pay for the cold FLUSH helpers or their alignment spillover.
 # Exact finite counts and rejected trials: docs/flushfix3/{counts,budget-counts}.
-# rootcompat: keep script observer and APPLY carriers in script-only callees.
-# Compile-only unit deltas are +1167/+1164; selected budgets restore ordinary
-# prepare/destroy inlining. All 80 finite command scopes add zero instructions
-# (docs/rootcompat/counts-expiry-tuned; budgets-expiry records the trials).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=159000 --param max-inline-insns-auto=14
+# clientcompat: cold EXEC growth is isolated in clientcompat.cc. Bounded compile
+# and executed-count trials retain ordinary scopes at/below PRE; see
+# docs/clientcompat/budgets and the instruction census (including outlined STL).
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=158654 --param max-inline-insns-auto=14 --param early-inlining-insns=5
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161500 --param max-inline-insns-auto=18
+# clientcompat notification capture adds cold code; the 161773 neighbour keeps
+# the ordinary hash routing inlined (finite trial receipts in budgets/).
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161773 --param max-inline-insns-auto=18 --param early-inlining-insns=8
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this

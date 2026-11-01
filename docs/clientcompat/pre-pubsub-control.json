@@ -1,0 +1,237 @@
+[
+  {
+    "attempt": "pre-pubsub-1",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.B9E0JO",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-1",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.B9E0JO",
+    "failed": 1,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "attempt": "pre-pubsub-10",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.0Hty3i",
+    "failed": 1,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "attempt": "pre-pubsub-10",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.0Hty3i",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-2",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.YpfM5j",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-2",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.YpfM5j",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-3",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.jpkktm",
+    "failed": 1,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "attempt": "pre-pubsub-3",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.jpkktm",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-4",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.gjsPPz",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-4",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.gjsPPz",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-5",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.wbjytG",
+    "failed": 2,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "data": "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1 hello]} proc ::test)",
+        "milliseconds": "0"
+      },
+      {
+        "status": "err",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "attempt": "pre-pubsub-5",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.wbjytG",
+    "failed": 1,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "attempt": "pre-pubsub-6",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.B17y9O",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-6",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.B17y9O",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-7",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.fftUsg",
+    "failed": 1,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": [
+      {
+        "status": "err",
+        "file": "tests/unit/pubsub.tcl",
+        "test": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl",
+        "data": "PUBLISH/PSUBSCRIBE after PUNSUBSCRIBE without arguments in tests/unit/pubsub.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal 0 [r publish chan1.hi hello]} proc ::test)",
+        "milliseconds": "0"
+      }
+    ]
+  },
+  {
+    "attempt": "pre-pubsub-7",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.fftUsg",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-8",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.dG3S8Y",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-8",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.dG3S8Y",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-9",
+    "mode": "1s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.YGDkVM",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  },
+  {
+    "attempt": "pre-pubsub-9",
+    "mode": "2s",
+    "run": "/home/user/Projects/cx-clientcompat/build/gate-run.YGDkVM",
+    "failed": 0,
+    "complete": true,
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "errors": []
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "arm": "PRE",
+  "namespace": "normal",
+  "unit": "tracking",
+  "initial": 12901,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/tracking.cc",
+    "-o",
+    "/home/user/Projects/cx-clientcompat/build/clientcompat/budgets/PRE-normal-tracking.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-clientcompat/build/clientcompat/budgets/PRE-normal-tracking"
+  ],
+  "object_sha256": "a2b9cbb8e5178088889c97ec8c9c123f1ccc0e7ccf13c1278544934e28ee2772"
+}

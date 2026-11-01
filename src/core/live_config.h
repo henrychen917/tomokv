@@ -63,6 +63,11 @@ public:
         return observed == slot.next.live.version - 1 ? slot.previous : slot.next;
     }
 
+    // Owner publication after applying a snapshot, used only by the cold
+    // TRACKING ON acknowledgement. Fits the consumer line's existing padding.
+    void applied(uint64_t version) { applied_.store(version, std::memory_order_release); }
+    uint64_t applied() const { return applied_.load(std::memory_order_acquire); }
+
 private:
     static constexpr uint32_t kDirty = 4;
     static constexpr uint32_t kIndex = 3;
@@ -73,8 +78,10 @@ private:
     };
     Publication slots_[3]{};
     alignas(64) uint32_t front_ = 0;                  // consumer only
+    std::atomic<uint64_t> applied_{0};
     alignas(64) uint32_t back_ = 1;                   // serialized producer only
     alignas(64) std::atomic<uint32_t> middle_{2};
 };
+static_assert(sizeof(LiveConfigMailbox) == 960, "Keep the existing mailbox allocation/layout");
 
 } // namespace tomo

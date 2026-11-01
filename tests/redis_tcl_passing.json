@@ -511,6 +511,7 @@
         "CLIENT GETNAME check if name set correctly in tests/unit/introspection.tcl",
         "CLIENT GETNAME should return NIL if name is not assigned in tests/unit/introspection.tcl",
         "CLIENT INFO in tests/unit/introspection.tcl",
+        "CLIENT KILL SKIPME YES/NO will kill all clients in tests/unit/introspection.tcl",
         "CLIENT KILL maxAGE will kill old clients in tests/unit/introspection.tcl",
         "CLIENT KILL with illegal arguments in tests/unit/introspection.tcl",
         "CLIENT LIST in tests/unit/introspection.tcl",
@@ -539,7 +540,6 @@
       },
       "sha256": "92fa93cdb4bcb77698c6f516bbed9c7e34cf02d757baa8e40ccf5f1f45dd2e7c",
       "skip_tests": {
-        "CLIENT KILL SKIPME YES/NO will kill all clients": "failed on TomoKV 2s in the survey",
         "CLIENT KILL close the client connection during bgsave": "failed on TomoKV 2s in the survey",
         "CONFIG GET hidden configs": "failed on TomoKV 2s in the survey",
         "CONFIG GET multiple args": "failed on TomoKV 2s in the survey",
@@ -816,6 +816,7 @@
         "Test clients with syntax errors will get responses immediately in tests/unit/pause.tcl",
         "Test multiple clients can be queued up and unblocked in tests/unit/pause.tcl",
         "Test new pause time is smaller than old one, then old time preserved in tests/unit/pause.tcl",
+        "Test old pause-all takes precedence over new pause-write (less restrictive) in tests/unit/pause.tcl",
         "Test read commands are not blocked by client pause in tests/unit/pause.tcl",
         "Test read-only scripts in multi-exec are not blocked by pause RO in tests/unit/pause.tcl",
         "Test read/admin multi-execs are not blocked by pause RO in tests/unit/pause.tcl",
@@ -834,8 +835,7 @@
       "sha256": "ab08200bf658762cbe77f8a910ff7f25d224d5581200a328a2cca72fc798bc95",
       "skip_tests": {
         "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE": "failed on TomoKV 2s in the survey",
-        "Test may-replicate commands are rejected in RO scripts": "failed on TomoKV 2s in the survey",
-        "Test old pause-all takes precedence over new pause-write (less restrictive)": "failed on TomoKV 2s in the survey"
+        "Test may-replicate commands are rejected in RO scripts": "failed on TomoKV 2s in the survey"
       }
     },
     "unit/protocol": {
@@ -910,7 +910,8 @@
         "PubSub messages with CLIENT REPLY OFF in tests/unit/pubsub.tcl",
         "SUBSCRIBE to one channel more than once in tests/unit/pubsub.tcl",
         "UNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
-        "publish to self inside multi in tests/unit/pubsub.tcl"
+        "publish to self inside multi in tests/unit/pubsub.tcl",
+        "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl"
       ],
       "seconds": {
         "1s": 0.72,
@@ -932,7 +933,6 @@
         "subscribe succeeds with small channel but fails with large channel due to OOM": "failed on TomoKV 2s in the survey",
         "subscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
         "subscribe with large channel name fails due to OOM": "failed on TomoKV 2s in the survey",
-        "unsubscribe inside multi, and publish to self": "failed on TomoKV 2s in the survey",
         "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments": "PUBSUB-DISCONNECT-LAG (D14): intermittent cross-owner disconnect lag observed on PRE and POST; no retry and no compatible-pass claim."
       }
     },
@@ -2973,6 +2973,23 @@
       "file": "unit/type/zset",
       "test": "ZRANDMEMBER - listpack",
       "occurrences": 1
+    }
+  ],
+  "clientcompat_promotions": [
+    {
+      "file": "unit/pause",
+      "name": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+      "previous": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/introspection",
+      "name": "CLIENT KILL SKIPME YES/NO will kill all clients",
+      "previous": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/pubsub",
+      "test": "unsubscribe inside multi, and publish to self",
+      "previous_reason": "failed on TomoKV 2s in the survey"
     }
   ]
 }

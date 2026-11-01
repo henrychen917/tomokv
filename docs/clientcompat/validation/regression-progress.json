@@ -1,0 +1,295 @@
+{
+  "run": "build/gate-run.mzKGBQ",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": false,
+  "jobs": [
+    {
+      "job": "clientcompat-disconnect",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t9.870000\tclientcompat disconnect"
+      ]
+    },
+    {
+      "job": "clientcompat-enable-race",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t659.040000\tclientcompat enable-race"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t165.780000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-tracking",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t266.310000\tclientcompat multi-tracking"
+      ]
+    },
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t207.690000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "climonfix4-1s-epoll",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t12.020000\tclimonfix4 PAUSE-BLOCKED-COUNT (1s epoll)",
+        "ok\t12.370000\tclimonfix4 PAUSE-MAY-REPLICATE (1s epoll)",
+        "ok\t11.450000\tclimonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)",
+        "ok\t13.500000\tclimonfix4 MONITOR-SCRIPT-CMDS (1s epoll)",
+        "ok\t11.430000\tclimonfix4 RESET-CLEARS-LIBNAME (1s epoll)",
+        "ok\t11.400000\tclimonfix4 RESET-MONITOR-ECHO (1s epoll)",
+        "ok\t11.420000\tclimonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+      ]
+    },
+    {
+      "job": "climonfix4-1s-uring",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.940000\tclimonfix4 PAUSE-BLOCKED-COUNT (1s uring)",
+        "ok\t12.320000\tclimonfix4 PAUSE-MAY-REPLICATE (1s uring)",
+        "ok\t11.410000\tclimonfix4 PAUSE-SCRIPT-FLAGS (1s uring)",
+        "ok\t13.460000\tclimonfix4 MONITOR-SCRIPT-CMDS (1s uring)",
+        "ok\t11.380000\tclimonfix4 RESET-CLEARS-LIBNAME (1s uring)",
+        "ok\t11.390000\tclimonfix4 RESET-MONITOR-ECHO (1s uring)",
+        "ok\t11.410000\tclimonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+      ]
+    },
+    {
+      "job": "climonfix4-2s-uring",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.870000\tclimonfix4 PAUSE-BLOCKED-COUNT (2s uring)",
+        "ok\t12.300000\tclimonfix4 PAUSE-MAY-REPLICATE (2s uring)",
+        "ok\t11.350000\tclimonfix4 PAUSE-SCRIPT-FLAGS (2s uring)",
+        "ok\t13.420000\tclimonfix4 MONITOR-SCRIPT-CMDS (2s uring)",
+        "ok\t11.350000\tclimonfix4 RESET-CLEARS-LIBNAME (2s uring)",
+        "ok\t11.340000\tclimonfix4 RESET-MONITOR-ECHO (2s uring)",
+        "ok\t11.370000\tclimonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+      ]
+    },
+    {
+      "job": "core_tsan_build",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "multifix-1s-epoll",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.140000\tmultifix RESET-IN-MULTI (1s epoll)",
+        "ok\t11.150000\tmultifix WATCH-SPURIOUS-INVALIDATION (1s epoll)",
+        "ok\t11.580000\tmultifix EXEC-REPEATED-KEY-LINEAR (1s epoll)",
+        "ok\t15.320000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)",
+        "ok\t28.720000\tmultifix PAUSE-IN-MULTI (1s epoll)",
+        "ok\t12.160000\tmultifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      ]
+    },
+    {
+      "job": "multifix-1s-uring",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.130000\tmultifix RESET-IN-MULTI (1s uring)",
+        "ok\t11.120000\tmultifix WATCH-SPURIOUS-INVALIDATION (1s uring)",
+        "ok\t11.540000\tmultifix EXEC-REPEATED-KEY-LINEAR (1s uring)",
+        "ok\t15.310000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)",
+        "ok\t28.660000\tmultifix PAUSE-IN-MULTI (1s uring)",
+        "ok\t11.910000\tmultifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      ]
+    },
+    {
+      "job": "multifix-2s-epoll",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.110000\tmultifix RESET-IN-MULTI (2s epoll)",
+        "ok\t11.140000\tmultifix WATCH-SPURIOUS-INVALIDATION (2s epoll)",
+        "ok\t11.550000\tmultifix EXEC-REPEATED-KEY-LINEAR (2s epoll)",
+        "ok\t15.310000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)",
+        "ok\t28.700000\tmultifix PAUSE-IN-MULTI (2s epoll)",
+        "ok\t11.760000\tmultifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      ]
+    },
+    {
+      "job": "multifix-2s-uring",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.140000\tmultifix RESET-IN-MULTI (2s uring)",
+        "ok\t11.160000\tmultifix WATCH-SPURIOUS-INVALIDATION (2s uring)",
+        "ok\t11.590000\tmultifix EXEC-REPEATED-KEY-LINEAR (2s uring)",
+        "ok\t15.300000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)",
+        "ok\t28.620000\tmultifix PAUSE-IN-MULTI (2s uring)",
+        "ok\t11.920000\tmultifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      ]
+    },
+    {
+      "job": "pubtrackfix",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t10.740000\tpubtrackfix TRACK-BCAST-BATCH",
+        "ok\t11.890000\tpubtrackfix PUBSUB-REPLY-OFF-PUSH",
+        "ok\t10.030000\tpubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT",
+        "ok\t21.360000\tpubtrackfix PUBSUB-EVICT-ON-MAXMEMORY"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [
+    "acl_metadata",
+    "acl_recheck",
+    "acl_subcommands",
+    "aclfix",
+    "atomfix5_accounting",
+    "atomfix5_watch",
+    "auth",
+    "authfix",
+    "clientfix",
+    "climonfix",
+    "climonfix4-2s-epoll",
+    "compat2",
+    "compat3",
+    "exec1s",
+    "execfair",
+    "feature-armed-0",
+    "feature-armed-1",
+    "feature-cell-1s-0-0-0-0",
+    "feature-cell-1s-0-0-0-1",
+    "feature-cell-1s-0-0-1-0",
+    "feature-cell-1s-0-0-1-1",
+    "feature-cell-1s-0-1-0-0",
+    "feature-cell-1s-0-1-0-1",
+    "feature-cell-1s-0-1-1-0",
+    "feature-cell-1s-0-1-1-1",
+    "feature-cell-1s-1-0-0-0",
+    "feature-cell-1s-1-0-0-1",
+    "feature-cell-1s-1-0-1-0",
+    "feature-cell-1s-1-0-1-1",
+    "feature-cell-1s-1-1-0-0",
+    "feature-cell-1s-1-1-0-1",
+    "feature-cell-1s-1-1-1-0",
+    "feature-cell-1s-1-1-1-1",
+    "feature-cell-2s-0-0-0-0",
+    "feature-cell-2s-0-0-0-1",
+    "feature-cell-2s-0-0-1-0",
+    "feature-cell-2s-0-0-1-1",
+    "feature-cell-2s-0-1-0-0",
+    "feature-cell-2s-0-1-0-1",
+    "feature-cell-2s-0-1-1-0",
+    "feature-cell-2s-0-1-1-1",
+    "feature-cell-2s-1-0-0-0",
+    "feature-cell-2s-1-0-0-1",
+    "feature-cell-2s-1-0-1-0",
+    "feature-cell-2s-1-0-1-1",
+    "feature-cell-2s-1-1-0-0",
+    "feature-cell-2s-1-1-0-1",
+    "feature-cell-2s-1-1-1-0",
+    "feature-cell-2s-1-1-1-1",
+    "feature-cell-fused-home-max-nopin",
+    "feature-cell-split-home-min",
+    "feature-cell-split-shards-auto",
+    "feature-split-0",
+    "feature-split-1",
+    "flip",
+    "flip_unit",
+    "flipctl",
+    "flipfix5",
+    "flipfix5_units",
+    "flipfix_units",
+    "fliplisten",
+    "fused-0",
+    "fused-1",
+    "infofix_compat-docs",
+    "infofix_compat-loadaof",
+    "infofix_compat-missing",
+    "infofix_latency",
+    "lb-stationary-1s",
+    "lb-stationary-2s",
+    "lbplanner_units",
+    "multidb-1s-0-0",
+    "multidb-1s-0-1",
+    "multidb-1s-1-0",
+    "multidb-1s-1-1",
+    "multidb-2s-0-0",
+    "multidb-2s-0-1",
+    "multidb-2s-1-0",
+    "multidb-2s-1-1",
+    "notify",
+    "notify_aof",
+    "notify_order",
+    "notifycompat",
+    "racefix_climon",
+    "replyoff",
+    "rlfix3_info",
+    "serverfix_acllog",
+    "serverfix_config",
+    "serverfix_hello",
+    "serverfix_hll",
+    "serverfix_lines",
+    "serverfix_scalar",
+    "serverfix_slowlog",
+    "serverfix_waitaof",
+    "trackfix_accounting",
+    "trackfix_order",
+    "tracking_redirect",
+    "trackorder",
+    "txn_group_fused",
+    "txn_group_split",
+    "txnorder-fused-0",
+    "txnorder-fused-1",
+    "txnorder-split-0",
+    "txnorder-split-1",
+    "txnorder2",
+    "txnorder_index",
+    "txnorder_wake",
+    "txnorder_wound"
+  ],
+  "archive": "docs/clientcompat/validation/regression-progress.json.gz",
+  "archive_sha256": "c0cf293cd2a69dc303a50ebec239c8ce89e4d6202bf62e4f0f8328516971832d",
+  "passed": 55,
+  "failed": 0
+}

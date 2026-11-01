@@ -26,6 +26,7 @@ class ThreadCtx;
 class Ring;
 class LoopSignals;
 struct ScatterState;
+struct PubSubNotificationChain;
 
 inline constexpr uint32_t NOTIFY_KEYSPACE = 1u << 0;
 inline constexpr uint32_t NOTIFY_KEYEVENT = 1u << 1;
@@ -253,11 +254,16 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
 uint64_t tracking_clock_observe();
 uint64_t tracking_clock_commit();
 void tracking_observe_read(Shard& shard, Op& op);
+void tracking_execute_read(Shard& shard, Op& op);
 void tracking_observe_local(Server& server, Op& op);
 void notify_tracking_commit(Op& op);
 
 // IO retirement.  Special states surrender their batch before their existing destructor runs.
 NotifyBatch* notify_take_batch(Op& op);
+void notify_tracking_multi_writes(IoLoop& loop, NotifyBatch* batch, uint64_t writer, uint32_t order);
+uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t order);
+std::shared_ptr<PubSubNotificationChain> notify_multi_before(
+    Server& server, NotifyBatch* batch, uint32_t order);
 void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer_id = 0);
 void notify_discard_batch(NotifyBatch* batch);
 void notify_discard_speculative(std::atomic<NotifyBatch*>& slot);

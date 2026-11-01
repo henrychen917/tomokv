@@ -1,0 +1,31 @@
+{
+  "run": "build/gate-run.5Ornt4",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t163.910000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.010000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/subscription-keyspace-before.json.gz",
+  "archive_sha256": "25fd860595f96045bc90fa34bd239f5cc61afd2e7e9fcb62feabb64290c91b0a",
+  "passed": 1,
+  "failed": 1
+}

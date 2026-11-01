@@ -65,6 +65,7 @@
         bool monitor = false;
         bool pause_blocked = false;
         bool tracking_on = false;
+        bool tracking_dispatch = false; // ON, and not collecting a MULTI queue
         bool tracking_draining = false;
         bool bcast = false;
         bool optin = false;
@@ -171,11 +172,18 @@
 
     // ---- CLIENT TRACKING (tracking.cc) ----------------------------------------------------------
     friend void tracking_observe_read(Shard&, Op&);
+    friend void tracking_execute_read(Shard&, Op&);
     friend void tracking_observe_local(Server&, Op&);
     void tracking_reply_trackinginfo(Client* client, Op& op);
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);
     void tracking_retire_read(Client& client, Op& op);
+    ClimonStartResult tracking_ack_enable(Client* client, Op& op);
+    friend void notify_tracking_multi_writes(IoLoop&, NotifyBatch*, uint64_t, uint32_t);
+    void tracking_prepare_multi(Client& client, MultiExecState& state);
+    void tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch);
+    void tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batch,
+                                   uint32_t order, bool committed);
     bool tracking_retire_plain(Client* client);
     void tracking_register_key(uint64_t id, const std::string& key, uint64_t stamp);
     void tracking_forget_client(uint64_t id, ClimonConn& state);

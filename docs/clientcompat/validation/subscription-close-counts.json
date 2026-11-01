@@ -1,0 +1,1320 @@
+{
+  "previous_source": "1076280569",
+  "source": "694fae5c73",
+  "changed_totals": [
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        0
+      ],
+      "before": 34145,
+      "after": 34121,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        1
+      ],
+      "before": 34148,
+      "after": 34124,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        0
+      ],
+      "before": 111728,
+      "after": 111632,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        1
+      ],
+      "before": 111731,
+      "after": 111635,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        0
+      ],
+      "before": 33732,
+      "after": 33708,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        1
+      ],
+      "before": 33735,
+      "after": 33711,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        0
+      ],
+      "before": 110076,
+      "after": 109980,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        1
+      ],
+      "before": 110079,
+      "after": 109983,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        0
+      ],
+      "before": 38971,
+      "after": 38947,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        1
+      ],
+      "before": 38974,
+      "after": 38950,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        0
+      ],
+      "before": 132424,
+      "after": 132328,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        1
+      ],
+      "before": 132427,
+      "after": 132331,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        0
+      ],
+      "before": 38468,
+      "after": 38444,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        1
+      ],
+      "before": 38471,
+      "after": 38447,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        0
+      ],
+      "before": 130412,
+      "after": 130316,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        1
+      ],
+      "before": 130415,
+      "after": 130319,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        1,
+        0
+      ],
+      "before": 30177,
+      "after": 30153,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        1,
+        1
+      ],
+      "before": 30180,
+      "after": 30156,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        4,
+        0
+      ],
+      "before": 89989,
+      "after": 89893,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        4,
+        1
+      ],
+      "before": 90001,
+      "after": 89905,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        1,
+        0
+      ],
+      "before": 29766,
+      "after": 29742,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        1,
+        1
+      ],
+      "before": 29769,
+      "after": 29745,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        4,
+        0
+      ],
+      "before": 88345,
+      "after": 88249,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        4,
+        1
+      ],
+      "before": 88357,
+      "after": 88261,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        1,
+        0
+      ],
+      "before": 32267,
+      "after": 32243,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        1,
+        1
+      ],
+      "before": 32270,
+      "after": 32246,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        4,
+        0
+      ],
+      "before": 97914,
+      "after": 97818,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        4,
+        1
+      ],
+      "before": 97926,
+      "after": 97830,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        1,
+        0
+      ],
+      "before": 31816,
+      "after": 31792,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        1,
+        1
+      ],
+      "before": 31819,
+      "after": 31795,
+      "delta": -24
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        4,
+        0
+      ],
+      "before": 96110,
+      "after": 96014,
+      "delta": -96
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        4,
+        1
+      ],
+      "before": 96122,
+      "after": 96026,
+      "delta": -96
+    }
+  ],
+  "changed_symbols": [
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-single",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 112,
+      "after": 84,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-cross",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 448,
+      "after": 336,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-single",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "1s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        1,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 226,
+      "after": 230,
+      "delta": 4
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        1,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 140,
+      "after": 112,
+      "delta": -28
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        4,
+        0
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_armed_gate(tomo::Client*, tomo::Op&)",
+      "before": 904,
+      "after": 920,
+      "delta": 16
+    },
+    {
+      "product": "POST-session-elf",
+      "cell": [
+        "normal",
+        "TRACK-EXEC-reads-cross",
+        "2s",
+        4,
+        1
+      ],
+      "symbol": "tomo::IoLoop::climon_conn_find(unsigned long)",
+      "before": 560,
+      "after": 448,
+      "delta": -112
+    }
+  ]
+}

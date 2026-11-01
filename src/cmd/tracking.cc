@@ -66,7 +66,7 @@ std::atomic<uint64_t> g_track_bcast_prefixes{0};
 // Release certificates follow actual publication, never speculative fire points.
 // A separate line avoids false sharing with the membership filter and prefix counter.
 alignas(64) std::atomic<uint64_t> g_tracking_clock{1};
-void tracking_read_marker(Shard&, Op&) { std::abort(); }
+void tracking_read_marker(Shard& shard, Op& op) { tracking_execute_read(shard, op); }
 
 
 inline void track_filter_add(uint64_t hash) {
@@ -140,14 +140,15 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     // Redis preserves CACHING across every CLIENT command, including introspection and errors.
     // Consuming it before TRACKINGINFO both hides the flag and loses the following OPTIN read's
     // invalidation (or wrongly subscribes an exempted OPTOUT read). CLIENT has no keys to enroll.
-    if (op.cmd_name().eq_icase("client")) return;
+    if (op.spec && (op.spec->flags & CmdFlags::PreserveCaching)) return;
     const bool caching = state.caching_armed;
     state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
-    if (state.bcast) return;
     const CommandSpec* spec = op.spec;
     if (!spec) return;
     // Only genuine reads register. A write from the tracking connection is not a subscription.
     if (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write)) return;
+    // Writes consumed CACHING above, but cannot enroll in either tracking mode.
+    if (state.bcast) return;
     // OPTIN: register only when the previous command was CLIENT CACHING yes.
     // OPTOUT: register unless the previous command was CLIENT CACHING no.
     if (state.optin && !caching) return;
@@ -184,10 +185,12 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
         track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
     read->handler_notify = tracking_read_marker;
-    // QUEUED stores the registry spec beyond this ROB slot's lifetime.
+    // A queued receipt is never selected for execution. POST bypasses this
+    // function while collecting MULTI; the PAD-A control retains PRE's receipt.
     if (!multi_session_active(*client)) op.spec = read.get();
     state.tracking_reads[&op] = std::move(read);
 }
+
 
 void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_t stamp) {
     const Slice key(name.data(), static_cast<uint32_t>(name.size()));
@@ -300,6 +303,7 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
     state.prefixes.clear();
     if (state.tracking_on) {
         state.tracking_on = false;
+        state.tracking_dispatch = false;
         state.bcast = state.optin = state.optout = state.noloop = false;
         state.caching_armed = false;
         state.redirect = 0;
@@ -946,6 +950,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     }
 
     ClimonConn& state = climon_conn_get(client);
+    state.tracking_dispatch = true;
     if (!state.tracking_on) {
         state.tracking_on = true;
         if (!state.tracking_draining) {
@@ -979,8 +984,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     std::sort(state.prefixes.begin(), state.prefixes.end());   // redis reports them sorted
     command_client_set_tracking_view(client, true, static_cast<int64_t>(redirect));
     climon_refresh_armed();
-    reply_ok(op.sink());
-    return ClimonStartResult::Sync;
+    return tracking_ack_enable(client, op);
 }
 
 }  // namespace tomo

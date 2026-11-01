@@ -1,0 +1,731 @@
+[
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "1eafdd9034e8efb585b4f48d9f786703db3c5128dd30a1185f645df96bb25842",
+    "bytes": 234136720
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "ee0ce9bde11ec79edfd6f0eb249d109dd6a3c995fe121593b65eb3fc86efd724",
+    "bytes": 13433488
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-normal/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-normal/probe",
+    "sha256": "b8f29a01f3a1c51b2fc5c4f4b584a77732c80baba199aaa7bbe60c2c99adcfe2",
+    "bytes": 231332984
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-normal/probe.o",
+    "sha256": "36fe2b66d5ef6583dd65144237c9125078fa0338a94c7241808bdbac57e204c7",
+    "bytes": 13300624
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "dced3a04df8d6fa5abbca77df362b7b1612a9cb367129fdaa9275ead85bfe8ab",
+    "bytes": 234130368
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "0f881f4e359bab60803319b955c5cd6fa56bd13beb4a4092a513cf2248191a9b",
+    "bytes": 13313248
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "1338a7a9fd87d5d58037fa8c62a3303e1c4a32d70a384189a96a3d261f19c409",
+    "bytes": 26972688
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "8a50f6f16c3437a1445fdc32dda2e6e8e99e94b7408cae9bb5b5717e661ff319",
+    "bytes": 230196608
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "a97fcf396a22b0a21dcd6fea2b9c6e5bd03f173f861bc4c6ec26ba0d1d3f6b86",
+    "bytes": 313632
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-normal/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-normal/probe",
+    "sha256": "addce479b391634cb5a118bf82555f89f1288030388d34a81c2d2a4494c131b9",
+    "bytes": 231973984
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-normal/probe.o",
+    "sha256": "cc29273bcee55d18c649a4a905f27319a854e5537a08fb7daea55c8c552939a0",
+    "bytes": 14786816
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "4690792cc49de121f5bc182acad040ec474517f7d477c077b83699b5f4c3a597",
+    "bytes": 234765592
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "5f4ddd961e665d7a652d6a5bc94d75940bf6ae169824b97ab2af8b5e99e51e1f",
+    "bytes": 14793616
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-db0/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-db0/probe",
+    "sha256": "613c0c11c4eea52c864293a486fe6692b55afe0ea956107fa1ff056ce572606e",
+    "bytes": 231979360
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-db0/probe.o",
+    "sha256": "70849b6f310c73cce0946a8e4353b75ffe42e2e67e7f3bc83a6c5e26f1514b42",
+    "bytes": 14891168
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-db0/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-db0/probe",
+    "sha256": "de75668f3f8eb657b60a3cdaa96619295be89ab76be33aa975738cb16397ce30",
+    "bytes": 231339352
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-db0/probe.o",
+    "sha256": "20176f634c4b97d8b70492720d79e871ba8a2f75de5861cede74689693b24ee7",
+    "bytes": 13421352
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "ec1ccd8835d1193823e51d05bf7168f468a1cf4049fddfb1bf6d3c50ae7d3248",
+    "bytes": 234770976
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "4fc9ac8e8543c8de3c4cd54155c93f6f98a07d34980f7699c1f3e4983ac61a21",
+    "bytes": 14899184
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "867788ee00b4f9f8067f148af49bdf640283a417aba042a27477409295c0a41e",
+    "bytes": 234794016,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "35d0e3b752649de5e1613432ee020cf16971dcf9b214fd21c3d3bd3ff5b83367",
+    "bytes": 14793616,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "34e5cbbd2ed2942c38c8f6607674e3a2c9b3e9a07fd9aced20c2a6ad0539bd83",
+    "bytes": 234799400,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "ad28deaf047363580d7fcb1a7dc14ef6fe7065ae8e191ea88258bab32ee7f3a8",
+    "bytes": 14899184,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "f8a06ca50119bbcba217303b4ec9ba7480906c0417fdd37030ce4711eb67a393",
+    "bytes": 234158792,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "0b0f23fd00bd87864f3f4781ec7c2cd7e84c1e86461d7715cafeef1e194fbcf6",
+    "bytes": 13313248,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "283f8e546ccafeb599bae47b5beb1e4895c28d34178e29f750aeb74136ab0e4a",
+    "bytes": 234165144,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "83955edcca1bb5a843494a264bac4045ff1312b46c93a1ce9f35c24f5eb9d244",
+    "bytes": 13433488,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "75e060f5e4e2ec07b56a994f3ded0389db8f76dcf2637156144437faa65df02e",
+    "bytes": 230156016,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "ca9e3e60b4aeae0f180c1318feebff601d204c783b95a953e75f74a8f66afbd6",
+    "bytes": 313632,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "510836b65449928d6aef92a899a8ecfdc5d9e1a2dc8a9d8de333045f15b89922",
+    "bytes": 234798664,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "35d0e3b752649de5e1613432ee020cf16971dcf9b214fd21c3d3bd3ff5b83367",
+    "bytes": 14793616,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "5292172f13ae0aa70736e1300a5c248dc90e6b8c5069844a741e913acfe78d15",
+    "bytes": 234804040,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "ad28deaf047363580d7fcb1a7dc14ef6fe7065ae8e191ea88258bab32ee7f3a8",
+    "bytes": 14899184,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "0538b4a87afd1bd3182f101fc3735f013b2c58d78e53e47ac63a80787397197a",
+    "bytes": 234163440,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "0b0f23fd00bd87864f3f4781ec7c2cd7e84c1e86461d7715cafeef1e194fbcf6",
+    "bytes": 13313248,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "843d2bb95c34c70fa82b97d39693ea38b088a1d58a3a4e56ed661436144f359a",
+    "bytes": 234169784,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "83955edcca1bb5a843494a264bac4045ff1312b46c93a1ce9f35c24f5eb9d244",
+    "bytes": 13433488,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "d79bc884898647b46e71ccde3bdd763e528305bcb1069617493f8cfb424ca2d4",
+    "bytes": 230160656,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "ca9e3e60b4aeae0f180c1318feebff601d204c783b95a953e75f74a8f66afbd6",
+    "bytes": 313632,
+    "source_commit": "0606bdb130"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "c5604389366c3da2e4be2293cbce7fd88d72e3424caf924a971cfc6d3ce4e382",
+    "bytes": 234324088,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "113e1f78c30058d73e528b0f4f91f484949373a859ac95242eeae045136179b9",
+    "bytes": 13433456,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "0b1dd83fd7a9de0485eae666e5258f2b4bb8aad7185ce87ced6da292a418b76a",
+    "bytes": 234317728,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "58c96c778a0ac68398617dcd7191ce0e9d666fddb409f126f9a39bee8510d76c",
+    "bytes": 13313200,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "92d32fb2f48f3067afd6fafae70edd9d3776318d75579c623ef062e67fbd263e",
+    "bytes": 230314992,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "ca9e3e60b4aeae0f180c1318feebff601d204c783b95a953e75f74a8f66afbd6",
+    "bytes": 313632,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "b296048f700ea29c1e09c81bdc87d78ccd1319ba39878f896d6156ae16a0826d",
+    "bytes": 234957088,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "4628048abaf509825b2afed934601caca1e0a03d240d89b94a99ec519e4b956c",
+    "bytes": 14793616,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "d959b515ae5de42878d307c0a15071c13a0ab26d73df18d83ff0d1d90c37de67",
+    "bytes": 234962456,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "cbc115fc0dcd1c94b190ba8032a7bb6c1c0ebde7d44d60905f363df81c756aeb",
+    "bytes": 14899176,
+    "source_commit": "ecdf5d9ffa"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/inline-db0-18-161901-early8/probe",
+    "sha256": "76d93baee2c49ed91bf9290f120689c9ec50bc2610778333ab308ae8d18a4cfe",
+    "bytes": 12142720,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "3c30d72fff4c412aa96274813866040c6e2d47c3bb648f2e25618da1441082ac",
+    "bytes": 234729960,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "113e1f78c30058d73e528b0f4f91f484949373a859ac95242eeae045136179b9",
+    "bytes": 13433456,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/inline-db0-18-161773-early8/probe",
+    "sha256": "7ac92b645ddef83e5a002d221c0bf1acf472d01b26221320d3fe2a85f3b048d9",
+    "bytes": 12142720,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "83c45171cda2d77fb90ae9600f9bdfd407c120e51a0cfbc4ce69a383d96d73a0",
+    "bytes": 234723600,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "58c96c778a0ac68398617dcd7191ce0e9d666fddb409f126f9a39bee8510d76c",
+    "bytes": 13313200,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "9f60996285110d19fe3caf88a24460f4b5b4e674f4d259fb5e4bbaab33375d40",
+    "bytes": 230720856,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "ca9e3e60b4aeae0f180c1318feebff601d204c783b95a953e75f74a8f66afbd6",
+    "bytes": 313632,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/inline-db0-18-161709-early8/probe",
+    "sha256": "10628cc7662ee96d20f91eef9a96c2d36a1d2d50a0ee6446bc4a6683b37af0d2",
+    "bytes": 12142744,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "9be5d6bcc97c4849ede9c9ac2c32fc0163c304bac45c7e4703dfe9567b694eaa",
+    "bytes": 235367064,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "4628048abaf509825b2afed934601caca1e0a03d240d89b94a99ec519e4b956c",
+    "bytes": 14793616,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/inline-db0-18-162157-early8/probe",
+    "sha256": "c6ae50f458b5be6a845128aeb46dea6f24304142cf50b9002fce5b5901f492ac",
+    "bytes": 12146816,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "c0acd69c10ad02c17dda58a74f7d5d6432e53b3e0367a71dfc1c5ac1a156b72c",
+    "bytes": 235368336,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "cbc115fc0dcd1c94b190ba8032a7bb6c1c0ebde7d44d60905f363df81c756aeb",
+    "bytes": 14899176,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/budgets/inline-db0-18-161645-early8.o",
+    "sha256": "3003af79b1c44ac19ac212b982079ab38fb130fbe18ffbe59b5a575a472331d8",
+    "bytes": 1504096,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/budgets/inline-db0-18-161773-early8.o",
+    "sha256": "2439e000d476a749bd34153755b6388df64275c8c8a4fef6a984bd23bbae59bd",
+    "bytes": 1508128,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/budgets/inline-db0-18-161709-early8.o",
+    "sha256": "f8f2c067364afd38d16515115765b93328e3195a1e4055acc8ab3a0db858dd0d",
+    "bytes": 1508088,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/budgets/inline-db0-18-162157-early8.o",
+    "sha256": "a87de0786ca45ecc491311ace45e909ac5b1579747e89f8f165f2029f38877a4",
+    "bytes": 1510424,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/budgets/inline-db0-18-161901-early8.o",
+    "sha256": "e828dd50844d27d84fc04aca1771158e53db857dcad9599ddbe59df4b19c56ba",
+    "bytes": 1509080,
+    "source_commit": "4307fd0354"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "84a7c9afcbd1864e197f2efe25bcd3aba7586aa5017a209866a2f92c3e40fa9d",
+    "bytes": 234738104,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "113e1f78c30058d73e528b0f4f91f484949373a859ac95242eeae045136179b9",
+    "bytes": 13433456,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "5f0f301f07763d9eced1a57f91db3761db6c970f30fd7f761755a02f814d483c",
+    "bytes": 234731744,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "58c96c778a0ac68398617dcd7191ce0e9d666fddb409f126f9a39bee8510d76c",
+    "bytes": 13313200,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "4b8fe8240051cefd51010bcaf38d781989db6c17bfcbba3c41f08da939a66a03",
+    "bytes": 230729000,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "ca9e3e60b4aeae0f180c1318feebff601d204c783b95a953e75f74a8f66afbd6",
+    "bytes": 313632,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "43e02e06b674e222aada5156d6a534f1af4e10f293ad7db0c6d4bf63981d2484",
+    "bytes": 235375208,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "4628048abaf509825b2afed934601caca1e0a03d240d89b94a99ec519e4b956c",
+    "bytes": 14793616,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "fe9680441b539c255e8d62ec03958c9f52eed5fb39f36be1277333ca935e7ab1",
+    "bytes": 26983432,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "c95b2fadd3939244ee703951ee609ef78a867ddc5d59d88edd5fb466614ca100",
+    "bytes": 235376480,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "cbc115fc0dcd1c94b190ba8032a7bb6c1c0ebde7d44d60905f363df81c756aeb",
+    "bytes": 14899176,
+    "source_commit": "1076280569"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "ff1d154fa9e1dae5fb62e8551ccdfba4d3a8c5e04e1e43d044252c86606424a0",
+    "bytes": 26984968,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "549f44aa10882226bdaf7cfe28c898efb4848713b683aa15efa3875016bbed0a",
+    "bytes": 234723576,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "75f7207b10f443e418d303743be3284a6896a9fb40cb1131b0b27beafc358158",
+    "bytes": 13433456,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "ff1d154fa9e1dae5fb62e8551ccdfba4d3a8c5e04e1e43d044252c86606424a0",
+    "bytes": 26984968,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "b21ee153492a3d2780cd90795e6e411e49f7c4b933ec44f10c23a130d2d43ff4",
+    "bytes": 234717224,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "bdb73a06dc4008ca8ec110d40e104166a5a0e25cbb03c588de4115fa127ffcc7",
+    "bytes": 13313200,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "ff1d154fa9e1dae5fb62e8551ccdfba4d3a8c5e04e1e43d044252c86606424a0",
+    "bytes": 26984968,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "d7587b071ab9a61d74fc6ccbced2165fc904f2b3a97fce20d4be5c6db3d31baa",
+    "bytes": 230714480,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "ca9e3e60b4aeae0f180c1318feebff601d204c783b95a953e75f74a8f66afbd6",
+    "bytes": 313632,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "ff1d154fa9e1dae5fb62e8551ccdfba4d3a8c5e04e1e43d044252c86606424a0",
+    "bytes": 26984968,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "7f36eca6f73253a5e084f9b5416ae097013ad41512280bd95609c119b2d22bc5",
+    "bytes": 235356584,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "202e94fca681eebc9da174ce55e1172228dc34d6afb92686004e45d0a8e9f69b",
+    "bytes": 14793616,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "ff1d154fa9e1dae5fb62e8551ccdfba4d3a8c5e04e1e43d044252c86606424a0",
+    "bytes": 26984968,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "c2dd30a3db85d99ca94261cbf1d3595edcf82754188ad951bc5dd9a9267a0a04",
+    "bytes": 235361952,
+    "source_commit": "694fae5c73"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "863dd9e352ed0d961285b9c8f8ef3f7cb45c4a4ae33de0591b2c79a0508ce850",
+    "bytes": 14899176,
+    "source_commit": "694fae5c73"
+  }
+]

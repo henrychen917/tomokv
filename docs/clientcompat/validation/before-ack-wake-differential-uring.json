@@ -1,0 +1,72 @@
+{
+  "run": "build/gate-run.st2QlY",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "differ-armed-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t577.440000\tRedis 7.4 differential part (armed fused, atomic 0)"
+      ],
+      "differential_legs": 230
+    },
+    {
+      "job": "differ-armed-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t634.350000\tRedis 7.4 differential part (armed fused, atomic 1)"
+      ],
+      "differential_legs": 234
+    },
+    {
+      "job": "differ-equivalence",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t21.540000\tmode equivalence part (all execution modes and knobs)"
+      ],
+      "differential_legs": 0
+    },
+    {
+      "job": "differ-split-0",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t716.730000\tRedis 7.4 differential part (split, atomic 0)"
+      ],
+      "differential_legs": 235
+    },
+    {
+      "job": "differ-split-1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t574.990000\tRedis 7.4 differential part (split, atomic 1)"
+      ],
+      "differential_legs": 239
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/before-ack-wake-differential-uring.json.gz",
+  "archive_sha256": "c241f5a0de787f0a6076729663a4776f8402a73f30f45a7f9743442d14c028cb",
+  "passed": 6,
+  "failed": 0
+}

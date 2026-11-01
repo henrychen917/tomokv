@@ -19,6 +19,10 @@
 
 namespace tomo {
 
+// Cold compatibility control for the exact-layout PAD-A artifact. Production
+// always returns true; the artifact builder patches only this function body.
+bool clientcompat_post();
+
 class Shard;
 class Op;
 class Client;
@@ -115,6 +119,9 @@ struct CmdFlags {
     // Boot-stamped from generated metadata. Only containers need persistent
     // child identity for CLIENT LIST; ordinary verbs use the retained ROB spec.
     static constexpr uint32_t ClientCommandName = 1u << 28;
+    // CLIENT and MULTI preserve Redis's one-shot CLIENT CACHING choice.
+    // Internal registry metadata; never exposed as a COMMAND flag.
+    static constexpr uint32_t PreserveCaching = 1u << 29;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -360,6 +367,7 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 void command_client_connected(Client* client, const char* addr, const char* laddr,
                               bool unix_socket, uint64_t now_ms);
 void command_client_disconnected(Client* client);
+void command_client_closing(Client* client);
 // Cold synchronized snapshot for a client that predates slowlog enable.
 bool command_client_slowlog_identity(uint64_t id, std::string& addr, std::string& name);
 // Runtime IO-owner handoff moves the thread-local CLIENT catalog as an extracted map node. The
