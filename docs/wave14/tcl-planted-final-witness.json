@@ -1,0 +1,24 @@
+[
+  {
+    "mode": "1s",
+    "summary": "/home/user/Projects/cx-wave14/build/gate-run.qWoFie/jobs/redis_tcl/redis-tcl-1s/summary.json",
+    "failure": {
+      "status": "err",
+      "file": "tests/unit/introspection.tcl",
+      "test": "CLIENT LIST with IDs in tests/unit/introspection.tcl",
+      "data": "CLIENT LIST with IDs in tests/unit/introspection.tcl\nExpected 'id=2 addr=127.0.0.1:39527 laddr=127.0.0.1:20090 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=41 qbuf-free=16240 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=' to match 'id=2 * cmd=client|list *' (context: type eval line 4 cmd {assert_match \"id=$myid * cmd=client|list *\" [lindex $cl 0]} proc ::test) ",
+      "milliseconds": "0"
+    }
+  },
+  {
+    "mode": "2s",
+    "summary": "/home/user/Projects/cx-wave14/build/gate-run.qWoFie/jobs/redis_tcl/redis-tcl-2s/summary.json",
+    "failure": {
+      "status": "err",
+      "file": "tests/unit/introspection.tcl",
+      "test": "CLIENT LIST with IDs in tests/unit/introspection.tcl",
+      "data": "CLIENT LIST with IDs in tests/unit/introspection.tcl\nExpected 'id=2 addr=127.0.0.1:39467 laddr=127.0.0.1:20090 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=41 qbuf-free=16240 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=' to match 'id=2 * cmd=client|list *' (context: type eval line 4 cmd {assert_match \"id=$myid * cmd=client|list *\" [lindex $cl 0]} proc ::test) ",
+      "milliseconds": "0"
+    }
+  }
+]

@@ -123,17 +123,21 @@ and rejected counts are retained, not presented as the integration cost proof.
 ### Tcl reconciliation and negative control
 
 All 22 touched named assertions were attempted three times in each mode
-(132 isolated attempts). `docs/wave14/tcl-audit.md` lists every result and the
+(132 isolated attempts). `docs/wave14/tcl-final-audit.md` lists every final-binary result and the
 exact reason for retaining a skip. Existing lane promotions all passed six
 attempts. No guard-only promotion is restored merely because six attempts
 happened to pass. Intermittent and consistently failing assertions remain named
-skips. Original run receipts, including failures, are preserved.
+skips. Original run receipts, including failures, are preserved. The earlier 132
+pre-budget attempts are retained separately. The final manifest requires 1876
+assertion occurrences and has 213 named skips, versus 1878/211 on headline:
+three lane promotions and five witnessfix/rootcompat retirements. See
+`tcl-manifest-reconcile.json`.
 
 The normal Tcl gate job rejects a throwaway binary that discards CLIENT's
 subcommand name. Both modes fail the unchanged upstream `CLIENT LIST with IDs`
 assertion: actual `cmd=client`, required `cmd=client|list`. This is an assertion
-failure, not a timeout or missing window. See `tcl-planted-witness.json` and
-`tcl-regression-build.json`. The first invocation was rejected by the gate's
+failure, not a timeout or missing window. See `tcl-planted-final-witness.json` and
+`tcl-regression-final-build.json`; the control was rebuilt from final objects. The first invocation was rejected by the gate's
 16-physical-core resource preflight and booted nothing; the valid invocation
 uses 16 of the authorized cores.
 
@@ -276,3 +280,25 @@ stream/xmove rate checks and full iteration are **NOT RUN: maintainer-only**.
 `GATE_PROOF_NO_RATES=1` preserves their correctness assertions where supported;
 the standalone efficiency and saturated-load jobs are excluded. No throughput
 claim is made.
+
+### Completed directed receipts
+
+The final candidate passes the 27 forced FUNCTION-history legs (3 Redis fsync
+policies plus 24 TomoKV mode/engine/namespace/policy legs), all 48 maxmemrace
+legs, and the expanded keyless-tracking matrix: 80 candidate overflow legs,
+including 32 EXEC-enrolment legs, each armed with zero missing invalidations.
+The first stricter cap attempt used the obsolete drop counter and was stopped
+as a fixture failure; the repaired predicate observes the null invalidation
+emitted by the fixed overflow branch. That failed receipt is retained.
+
+The uring full Tcl manifest passes in both modes. Final named-skip probes
+retain their red diagnostic results; all three lane promotions pass 3/3 in
+each mode. `MONITOR log blocked command only once`, for example, is PFP in
+final split-mode probes, confirming why its earlier six-pass sample did not
+justify restoring the guard-only promotion.
+
+`python3 tests/gates_test.py`: 77/77 passed. `abba_selftest` passed again in
+a fresh throwaway landing copy with 1090/1107 and the final known-difference
+labels. Source identity lint passed for all 59 C++ units in both namespaces
+and six shared C units, including the stable-assertion failure checks. The
+checked-in EXPECT values were never edited.
