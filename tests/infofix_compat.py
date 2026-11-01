@@ -41,12 +41,23 @@ def missing(c, run, label):
         run.check(label + ' CPU fields', sorted(cpu), sorted(expected))
         run.check(label + ' CPU values', list(cpu.values()),
                   lambda rows: len(rows) == 6 and all(re.fullmatch(rb'\d+\.\d{6}', x) for x in rows))
+        before_cpu = sum(float(cpu[k]) for k in (b'used_cpu_sys', b'used_cpu_user'))
+        for _ in range(8):
+            reply = c.cmd('EVAL', 'local n=0; for i=1,10000 do n=n+i end; return n', 0)
+            assert reply == 50005000, ('bounded CPU witness', reply)
+        worked = fields(c, 'CPU')
+        run.check(label + ' CPU advances after observed work',
+                  sum(float(worked[k]) for k in (b'used_cpu_sys', b'used_cpu_user')) > before_cpu, True)
         server = fields(c, 'SERVER')
         for name, pattern in ((b'redis_git_sha1', rb'[0-9a-f]{8}'),
                               (b'redis_git_dirty', rb'[01]'),
                               (b'redis_build_id', rb'[0-9a-f]{1,16}')):
             run.check(label + ' build ' + name.decode(), server.get(name),
                       lambda x: isinstance(x, bytes) and re.fullmatch(pattern, x) is not None)
+        if not run.oracle:
+            run.check(label + ' build ID is not a zero placeholder',
+                      int(server[b'redis_build_id'], 16) > 0, True)
+            run.check(label + ' git ID is not a fallback', server[b'redis_git_sha1'] != b'00000000', True)
         for selection in ('DEFAULT', 'ALL', 'EVERYTHING'):
             run.check(label + ' ' + selection + ' CPU', b'used_cpu_user' in fields(c, selection), True)
     c.cmd('CONFIG', 'RESETSTAT')

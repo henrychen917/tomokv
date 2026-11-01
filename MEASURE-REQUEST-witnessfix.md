@@ -143,3 +143,10 @@ The dispatch-children row now also enables latency tracking in RESP2/RESP3,
 executes exactly 32 GETs and requires their call count and nonempty cumulative
 buckets. An empty histogram stub cannot pass. The default/off probes remain.
 DQ=DF=0; PRE and current receipts pending.
+
+### Compat 4.1 — INFO placeholders
+
+INFO CPU must advance across eight acknowledged bounded Lua computations, not
+merely format six zeros. Target git/build IDs must not be zero placeholders.
+The standalone printver format check remains a format check; replication offset
+semantics remain a separate gap, not implied by INFO field presence. DQ=DF=0.
