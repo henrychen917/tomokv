@@ -16,7 +16,6 @@
 #include "../base/numeric.h"
 #include "../base/slice.h"
 #include "../exec/op.h"
-#include "errorstats.h"
 
 namespace tomo {
 
@@ -37,14 +36,12 @@ template <bool Trim = true, typename Buf> inline void reply_line_text(Buf&& b, c
 }
 template <typename Buf> [[gnu::cold, gnu::noinline]]
 void reply_err(Buf&& b, const char* msg, size_t len, bool trim = true) {
-    record_error_reply(msg, len);
     b.push_back('-');
     if (trim) reply_line_text(b, msg, len);
     else reply_line_text<false>(b, msg, len);
     b.append("\r\n", 2);
 }
 template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
-    record_error_reply(msg, std::strlen(msg));
     b.push_back('-'); reply_line_text(b, msg, std::strlen(msg)); b.append("\r\n", 2);
 }
 template <typename Buf> [[gnu::cold, gnu::noinline]]
@@ -677,18 +674,18 @@ template <typename Buf> __attribute__((always_inline)) inline void reply_emptyst
     b.append("$0\r\n\r\n");
 }
 template <typename Buf> inline void reply_wrongtype(Buf&& b) {
-    reply_err(b, "WRONGTYPE Operation against a key holding the wrong kind of value");
+    b.append("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
 }
 template <typename Buf> inline void reply_syntax(Buf&& b) {
-    reply_err(b, "ERR syntax error");
+    b.append("-ERR syntax error\r\n", 19);
 }
 template <typename Buf> inline void reply_outofrange(Buf&& b) {
     // Redis's getRangeLongFromObject names the bounds it enforces; every caller of this helper
     // (SRANDMEMBER / ZRANDMEMBER / HRANDFIELD counts) is one of those sites.
     static constexpr char kMsg[] =
-        "ERR value is out of range, value must between "
-        "-9223372036854775807 and 9223372036854775807";
-    reply_err(b, kMsg, sizeof(kMsg) - 1);
+        "-ERR value is out of range, value must between "
+        "-9223372036854775807 and 9223372036854775807\r\n";
+    b.append(kMsg, sizeof(kMsg) - 1);
 }
 
 // AN INTEGER IS A VALUE, NOT A FORMAT. DEL's count, EXISTS's count, SETNX's 0/1, INCR's new

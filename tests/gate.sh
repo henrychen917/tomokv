@@ -1189,9 +1189,9 @@ plan_jobs(){
     done; done; done; done
   done
   JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof)
-  for section in proc password replication sort-acl redact errorstats xsnotify tracking hscan setpast; do JOB_NAMES+=("rootcompat-$section"); done
+  for section in proc password replication sort-acl redact xsnotify tracking hscan setpast; do JOB_NAMES+=("rootcompat-$section"); done
   # Diagnostic witnesses for documented residuals; no complete-gate row.
-  if [ "${GATE_PARTIAL:-0}" = 1 ]; then JOB_NAMES+=(rootcompat-stringlimit rootcompat-hx3); fi
+  if [ "${GATE_PARTIAL:-0}" = 1 ]; then JOB_NAMES+=(rootcompat-stringlimit rootcompat-hx3 rootcompat-errorstats); fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){
@@ -6339,7 +6339,7 @@ collect_job rlfix3_zc
 collect_job infofix_latency
 for CASE in missing docs loadaof; do collect_job "infofix_compat-$CASE"; done
 # rootcompat directed rows, before quick exit; EXPECT remains maintainer-owned.
-for CASE in proc password replication sort-acl redact errorstats xsnotify tracking hscan setpast; do collect_job "rootcompat-$CASE"; done
+for CASE in proc password replication sort-acl redact xsnotify tracking hscan setpast; do collect_job "rootcompat-$CASE"; done
 collect_job rlfix3_info
 
 collect_job acl_recheck

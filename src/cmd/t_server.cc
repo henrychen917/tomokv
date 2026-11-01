@@ -3132,15 +3132,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
-    const auto errors = (want_stats || want_errors) ? error_stats_snapshot() : ErrorStatsSnapshot{};
-    if (want_stats)
-        appendf(body, "total_error_replies:%llu\r\n", static_cast<unsigned long long>(errors.total));
-    if (want_errors) {
-        body += "# Errorstats\r\n";
-        for (const auto& [prefix, count] : errors.prefixes)
-            appendf(body, "errorstat_%s:count=%llu\r\n", prefix.c_str(),
-                    static_cast<unsigned long long>(count));
-    }
+    // Generic error accounting is not implemented. Do not advertise a total or
+    // per-prefix count that only covers a particular command's failures.
+    if (want_errors) body += "# Errorstats\r\n";
     if (info_section(op, "CPU")) info_stats_cpu_fields(body);
     if (info_section(op, "REPLICATION"))
         appendf(body, "# Replication\r\nrole:master\r\nconnected_slaves:0\r\n"
@@ -3559,7 +3553,6 @@ bool command_aof_load_truncated(bool boot_value) {
 }
 
 void command_config_resetstat() {
-    error_stats_reset();
     latency_tracking_reset();
     query_limit_disconnections.store(0, std::memory_order_relaxed);
     // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters

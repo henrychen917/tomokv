@@ -1088,9 +1088,7 @@
         "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
         "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
         "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
-        "LUA redis.error_reply API in tests/unit/scripting.tcl",
         "LUA redis.error_reply API with CRLF injection attempt in tests/unit/scripting.tcl",
-        "LUA redis.error_reply API with empty string in tests/unit/scripting.tcl",
         "LUA redis.status_reply API in tests/unit/scripting.tcl",
         "LUA test pcall in tests/unit/scripting.tcl",
         "LUA test pcall with error in tests/unit/scripting.tcl",
@@ -1202,7 +1200,9 @@
         "Timedout script link is still usable after Lua returns": "failed on TomoKV 2s in the survey",
         "allow-oom shebang flag": "scriptfix2: shebang/flags parsed; test also needs global OOM admission and SCRIPT-UNDECLARED-KEY owner change.",
         "not enough good replicas": "failed on TomoKV 2s in the survey",
-        "reject script do not cause a Lua stack leak": "scriptfix2: global maxmemory admission is an owner/architecture decision; current admission is per-shard object memory."
+        "reject script do not cause a Lua stack leak": "scriptfix2: global maxmemory admission is an owner/architecture decision; current admission is per-shard object memory.",
+        "LUA redis.error_reply API": "rootcompat: generic errorstats prototype rejected by zero-cost proof; no command-specific counter remains. Wire replies are covered by scriptfix2.",
+        "LUA redis.error_reply API with empty string": "rootcompat: generic errorstats prototype rejected by zero-cost proof; no command-specific counter remains. Wire replies are covered by scriptfix2."
       }
     },
     "unit/slowlog": {
@@ -2126,7 +2126,7 @@
         "Consumer seen-time and active-time": "failed on TomoKV 2s in the survey",
         "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
         "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey",
-        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "rootcompat: removed the NOGROUP-only cmdstat timing/failed_calls guard. Generic total_error_replies and errorstats are covered by rootcompat-errorstats; generic per-command failed_calls remains unimplemented."
+        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "rootcompat: removed NOGROUP-only total_error_replies, errorstats and cmdstat timing/failed_calls. Generic error accounting remains unimplemented under the authorized zero-cost fallback."
       }
     },
     "unit/type/string": {
