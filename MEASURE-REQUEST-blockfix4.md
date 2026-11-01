@@ -34,13 +34,18 @@ move hits, 480 creator hits, 400 stream-removal hits and 51,200 pops per engine.
 These are intermediate receipts; the final binary's receipts are recorded below.
 
 The final io_uring witness job passed 116/116 legs, including its oracle legs.
-TomoKV completed 108 ordinary/held script pushes and 1,024 natural-MVCC script
-attempts (1,019 observed MVCC windows), all with LLEN=1 and no rescue push;
-720/720 stolen-source move windows re-parked and consumed the second push;
-480 creator wakes returned the oracle's values; 560 removed-stream hits gave
-the exact errors (80 WRONGTYPE, 480 NOGROUP); all 51,200 MPOPs were non-null.
-The removal inventory now includes 160 additional ASYNC-flush cases.
-`docs/blockfix4/post-uring-summary.json` derives these counts from the archive.
+With the complete removal inventory, TomoKV completed 108 ordinary/held script
+pushes and 1,024 natural-MVCC script attempts (1,001 observed MVCC windows), all
+with LLEN=1 and no rescue push; 720/720 stolen-source move windows re-parked
+and consumed the second push; 480 creator wakes returned the oracle's values;
+640 removed-stream hits gave the exact errors (160 WRONGTYPE, 480 NOGROUP);
+all 51,200 MPOPs were non-null. The removal inventory adds ASYNC FLUSHDB,
+ASYNC FLUSHALL and MSET replacement to the original five cases.
+`docs/blockfix4/extended-proof-summary.json` derives these counts from
+`post-extended-uring`. The earlier final-binary run, before adding MSET, is
+retained in `post-uring-summary.json` (560 removal hits, 1,019 MVCC windows).
+The complete job also passed with `--databases 16`, exercising the normal
+namespace in addition to the default DB0 specialization.
 
 The expanded PRE gate run, including natural-MVCC witnesses, failed all five
 aggregate rows again.
@@ -57,8 +62,10 @@ equally to PRE and POST. The additional natural-MVCC runs use no DEBUG hold.
 
 ### Validation
 
-Final broad gate, differential and Tcl receipts pending. The production-unit
-proof passed 30/30 rows. `make all` and all 51 targets in the first
+The broad io_uring gate proof passed 334/334 rows; the additional fused debug
+jobs passed 33/33, and fused blocking/atomic/notification jobs passed 19/19
+on each engine. Remaining epoll and PAD-A receipts are pending.
+The production-unit proof passed 30/30 rows. `make all` and all 51 targets in the first
 `job_production_units` make command built; its two MDBQSBR control servers,
 blockfix cost target and both blockfix2 unit targets also built. All five
 freshness commands return zero (`docs/blockfix4/freshness.json`), including
@@ -68,6 +75,9 @@ The complete requested job list is `docs/blockfix4/required-jobs.txt`.
 interface, pins the oracle and both engines, archives every red and green
 ledger, and refuses a binary change during a run. No EXPECT tally, ABBA or
 iteration receipt is claimed by a partial proof.
+An initial attempt to select `production_units` alone was rejected by the
+gate because it is a build-only prerequisite; the successful run selected
+its consuming jobs. That rejected invocation is retained too.
 
 The existing Tcl manifest already requires the relevant removed/renamed-stream
 assertions. Its remaining list skips describe D11 ordering, statistics,
@@ -78,7 +88,7 @@ server boots; otherwise an epoll Tcl job would still test io_uring.
 
 The initial `tests/gates_test.py` run had scheduler fixture timeouts while
 compilation and GDB tracing shared the lane. Its raw failure log is retained;
-an unloaded rerun passed all 83 tests in 159.888 seconds after compilation and
+a later rerun passed all 83 tests in 159.888 seconds after compilation and
 tracing finished. Those first harness runs used its default ephemeral
 socket-only fixtures. The final run pins those fixtures with
 `GATE_TEST_PORT=20270` and passed all 83 tests in 145.694 seconds
@@ -94,11 +104,14 @@ its scripting tests passed. This pre-existing pub/sub failure is reported and
 left outside this blocking lane. All initial red results and the unchanged
 successful full Tcl rerun are retained; no manifest skip or timeout changed.
 
-The final io_uring differential job passed all 930 standard comparison legs:
+The final io_uring differential job passed all 930 base comparison legs:
 47 suites × five seeds × atomic 0/1 in split mode, and 46 suites × five seeds
 × atomic 0/1 in armed fused mode (SORT has its existing split-only geometry).
-Seeds were 7, 19, 20, 23 and 24. Both fused read-local activity checks and the
-complete mode-equivalence part passed. The combined functional run retains
+Seeds were 7, 19, 20, 23 and 24. The suite also runs four fixed repetitions of
+MULTI/atomic=1/seed=19 in each mode: all eight passed, for 938 comparisons.
+These are the suite's existing sentinel repetitions, not retries of failures.
+Both fused read-local activity checks and the complete mode-equivalence part
+passed. The combined functional run retains
 its two earlier Tcl failures; the separate complete Tcl rerun supplies the
 passing Tcl result. Its first archive collector found concurrent run folders;
 the recovered receipt names only the gate's own banner directory and records
