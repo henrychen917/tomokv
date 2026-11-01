@@ -1416,6 +1416,10 @@
     }
 
     bool pubsub_disconnect_ready(Client* client) {
+        // A committed EXEC may still be applying subscription children on IO.
+        // Wait for its ROB retirement before the one cleanup sweep, otherwise
+        // a later child can install a home entry after that sweep has passed.
+        if (client->multi_session() && !client->rob().quiesced()) return false;
         // FLIP pin (IO4.1/IO4.4): both teardown paths pass this gate before the connection leaves
         // ThreadCtx::clients and before cleanup reads Placement. While a FLIP holds this IO's
         // connection set, the close waits here (still owned, counted and allocated).
