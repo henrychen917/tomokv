@@ -157,7 +157,10 @@ def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chun
         w.close(); trk.close()
     finally:
         srv.stop()
-    if not is_redis and any(not row['hit'] for row in res['attempts']):
+    # A real lost invalidation is never re-rolled, even if another arming
+    # diagnostic is absent; the caller must retain it as a failed assertion.
+    if not is_redis and all(row['missing'] == 0 for row in res['attempts']) and \
+            any(not row['hit'] for row in res['attempts']):
         raise CapNotOpened(json.dumps(res))
     with open(out, "a") as f:
         f.write(json.dumps(res) + "\n")
