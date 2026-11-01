@@ -103,13 +103,36 @@ def main():
         events = [json.loads(line) for line in path.read_text().splitlines()]
         commands = [r['command'] for r in events if r['event'] == 'aof_failure_command']
         windows = [r for r in events if r['event'] == 'failure_window_armed']
-        limits = [r for r in events if r['event'] == 'wave13_flush_aof_limit']
+        attempts = [r for r in events if r['event'] == 'aof_failure_attempt']
+        unarmed = [r for r in events if r['event'] == 'failure_window_unarmed']
+        stops = [r for r in events if r['event'] == 'stop']
         assert commands == ['SET', 'FLUSHALL', 'FLUSHDB']
-        assert len(windows) == 3 and all(r['threads'] for r in windows)
+        assert len(windows) == 3 and [r['command'] for r in windows] == commands
+        for window in windows:
+            command, count = window['command'], window['attempt']
+            assert 1 <= count <= 8 and window['threads']
+            marker = window['markers']
+            assert marker.keys() == {'fail', 'gate', 'diagnostic'}
+            assert marker['fail']['tid'] == marker['diagnostic']['tid']
+            assert marker['gate']['tid'] != marker['diagnostic']['tid']
+            assert marker['diagnostic']['stage'] == 2
+            assert marker['diagnostic']['tid'] in [int(Path(t).name) for t in window['threads']]
+            assert [r['attempt'] for r in attempts if r['command'] == command] == list(range(1, count + 1))
+            retries = [r for r in unarmed if r['command'] == command]
+            assert [r['attempt'] for r in retries] == list(range(1, count))
+            assert all(r['markers'].keys() == {'fail'} and r['markers']['fail']['stage'] == 0 for r in retries)
+        assert len(stops) == len(attempts) == len(unarmed) + 3
+        assert all(not r['escalated'] for r in stops)
+        assert sum(r['exit'] == 1 for r in stops) == 3
+        assert sum(r['exit'] == -9 for r in stops) == len(unarmed)
+        successful = {(r['command'], r['attempt']) for r in windows}
+        limits = [r for r in events if r['event'] == 'wave13_flush_aof_limit' and
+                  (r['command'], r['attempt']) in successful]
         assert [r['command'] for r in limits] == ['FLUSHALL', 'FLUSHDB']
         assert all(r['bytes'] > 80 for r in limits)
         failures.append(dict(mode=mode, engine=engine, commands=commands,
-                             windows=windows, limits=limits, events_sha256=sha(path)))
+                             windows=windows, limits=limits, unarmed_attempts=unarmed,
+                             events_sha256=sha(path)))
     job('persistfmt_aof_error')
     job('trackorder')
     job('maxmemrace')
@@ -136,7 +159,7 @@ def main():
                       sha256=sha(ROOT / 'build/persistfmt/scheduled/tomokv'),
                       production_aof_source_sha256=sha(ROOT / 'src/persist/aof.cc'),
                       schedule_generator_sha256=sha(ROOT / 'tools/persistfmt_schedule.py'),
-                      note='Gate-owned scheduling twin: merged production objects, with AOF-only timing latches compiled from the merged AOF source.'),
+                      note='Gate-owned scheduling twin: merged production objects, with AOF-only timing latches and trace markers compiled from the merged AOF source.'),
                   note='Gap values verify the original one-second correctness bound. No rate, throughput, cycles or IPC claim.', passed=True)
     (DOC / 'interaction-receipts.json').write_text(json.dumps(output, indent=2) + '\n')
     print(len(storms), 'PING-probed storm legs;', len(semantics), 'session matrices;',
