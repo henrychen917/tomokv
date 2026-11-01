@@ -32,7 +32,7 @@ Final arms are built; SHA-256s are in `docs/rootcompat/arms.sha256`:
 
 The final paired-image gate controls pass on POST-layout and reproduce PRE's replication/HSCAN/redaction failures on PAD-A, in both modes, engines and namespaces. `docs/rootcompat/pad-a.json` records equal sections/symbols and exactly five changed bytes.
 
-PAD semantics: **A, behaviour twin**. `tools/rootcompat_pad.py` builds a common image containing POST and a symbol-isolated PRE. `POST-layout` executes POST; `PAD-A` changes only the five-byte main-entry jump to PRE. Sections, symbols and addresses match within that pair. The ordinary `POST` release binary is smaller; its null comparison against PRE remains separate. Do not describe PAD-A as an exact layout twin of the ordinary release binary.
+PAD semantics: **A, behaviour twin**. `tools/rootcompat_pad.py` builds a common image containing POST and a symbol-isolated PRE. `POST-layout` executes POST; `PAD-A` changes only the five-byte main-entry jump to PRE. Sections, symbols and addresses match within that pair. Execution selects different PRE/POST function ranges, so this does not establish equal placement of the active instructions. The ordinary `POST` release binary is smaller; its null comparison against PRE remains separate. Do not describe PAD-A as an exact layout twin of the ordinary release binary.
 
 Maintainer measurement request: the 14 generic cells, plus 2s GET/SET at p1 and p32, on PRE/POST and the POST-layout/PAD-A control pair. Use the gate's normal ABBA instrument and matched offered load. Report rate, cycles/op, instructions/op and IPC per cell. A candidate is acceptable only with zero headline regression and a flat layout control; no rate has been measured by this lane.
 
@@ -46,7 +46,7 @@ Finite zero-cost proof: GET/SET/INCR/MGET/MSET on the notification-disabled path
 | MGET | 16 | 0 |
 | MSET | 16 | 0 |
 
-Gate count accounting by physical collection location: **DQ=+9, DF=+9**. Nine `rootcompat-*` directed rows are collected before the quick-tier exit. `rootcompat-errorstats`, `rootcompat-stringlimit`, and `rootcompat-hx3` are diagnostic-only partial jobs and add zero complete-gate rows. From the checked-in 999/1016 constants, the maintainer's new counts should be **1008/1025**. EXPECT_QUICK and EXPECT_FULL were not edited.
+Gate count accounting by physical collection location: **DQ=+9, DF=+9**. Nine `rootcompat-*` directed rows are collected at `tests/gate.sh:6339`, before the quick-tier exit at line 6482. `rootcompat-errorstats`, `rootcompat-stringlimit`, and `rootcompat-hx3` are diagnostic-only partial jobs and add zero complete-gate rows. From the checked-in 999/1016 constants, the maintainer's new counts should be **1008/1025**. EXPECT_QUICK and EXPECT_FULL were not edited.
 
 Validation in progress:
 
