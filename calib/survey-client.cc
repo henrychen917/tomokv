@@ -64,7 +64,15 @@ static std::string canon(const Reply& r) {
     for(const auto& c:r.array) s+="["+canon(c)+"]";
     return s;
 }
-struct Op { bool primary; std::string rule, request, expect; Reply expected; };
+struct Op { bool primary; std::string rule, request, expect; Reply expected; std::vector<size_t> key_offsets; };
+static std::vector<size_t> key_offsets(const std::string& s) {
+    std::vector<size_t> offsets;
+    for(const char* prefix:{"sv:","sw:","ss:","s0:","s1:","s2:","s3:","s4:","s5:","s6:","s7:"}) {
+        std::string mark=std::string(prefix)+"000000000000";size_t p=0;
+        while((p=s.find(mark,p))!=std::string::npos){offsets.push_back(p+3);p+=15;}
+    }
+    return offsets;
+}
 static bool equal(const Reply& a, const Reply& b) {
     if(a.kind!=b.kind || a.nil!=b.nil || a.array.size()!=b.array.size()) return false;
     if(a.kind!='*' && a.text!=b.text) return false;
@@ -98,23 +106,28 @@ static std::vector<Op> script(const std::string& path) {
         Op o; size_t a,b; f>>o.primary>>o.rule>>a>>b; need(f.get()=='\n',"script header");
         o.request.resize(a); o.expect.resize(b); f.read(o.request.data(),a); f.read(o.expect.data(),b);
         need(bool(f),"truncated script"); size_t p=0;
-        need(parse(o.expect,p,o.expected) && p==b,"bad expected response"); out.push_back(std::move(o));
+        need(parse(o.expect,p,o.expected) && p==b,"bad expected response");
+        o.key_offsets=key_offsets(o.request);out.push_back(std::move(o));
     }
     need(!out.empty(),"empty script"); return out;
 }
 // Every placeholder has the same width as the deterministic key. ss: is a stream.
 static std::string keywire(std::string s, u64 key) {
     char digits[13]; snprintf(digits,sizeof digits,"%012llu",(unsigned long long)(100000000000ull+key));
-    for(const char* prefix:{"sv:","sw:","ss:","s0:","s1:","s2:","s3:","s4:","s5:","s6:","s7:"}) {
-        std::string mark=std::string(prefix)+"000000000000"; size_t p=0;
-        while((p=s.find(mark,p))!=std::string::npos) { s.replace(p+3,12,digits); p+=15; }
-    }
+    for(size_t p:key_offsets(s))s.replace(p,12,digits);
     return s;
 }
 // HDR-style 3 significant decimal digits: 2048 sub-buckets, 1 ns floor.
 // Upper equivalent value has <0.1% relative error; exact max also retained.
 static u64 bucket(u64 n) { int shift=std::max(0,int(std::bit_width(n))-11); return (n>>shift<<shift)|((u64(1)<<shift)-1); }
-struct Hist { std::map<u64,u64> bins; u64 max=0,n=0; void add(u64 x){bins[bucket(x)]++;max=std::max(max,x);n++;} };
+static size_t hist_index(u64 n) { int shift=std::max(0,int(std::bit_width(n))-11);return shift*1024+(n>>shift); }
+static u64 hist_edge(size_t i) { int shift=std::max(0,int(i/1024)-1);return (u64(i-shift*1024)<<shift)|((u64(1)<<shift)-1); }
+struct Hist {
+    // Same HDR-equivalent buckets as before, without three tree lookups and
+    // per-bucket allocation on the reply path. Covers the full uint64 range.
+    std::vector<u64> bins=std::vector<u64>(55*1024);u64 max=0,n=0;
+    void add(u64 x){bins[hist_index(x)]++;max=std::max(max,x);n++;}
+};
 struct Pending { size_t op; u64 scheduled,sent,key; };
 struct SendStamp { u64 byte; Pending* pending; };
 struct Conn {
@@ -142,17 +155,20 @@ static int dial(int port) {
 static double threadcpu(){timespec t{};clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t);return t.tv_sec+t.tv_nsec/1e9;}
 static void histjson(std::ostream& f,const Hist& h){
     f<<"{\"n\":"<<h.n<<",\"max\":"<<h.max<<",\"bins\":[";bool first=true;
-    for(auto [edge,count]:h.bins){if(!first)f<<",";first=false;f<<"["<<edge<<","<<count<<"]";}f<<"]}";
+    for(size_t i=0;i<h.bins.size();i++)if(h.bins[i]){if(!first)f<<",";first=false;f<<"["<<hist_edge(i)<<","<<h.bins[i]<<"]";}
+    f<<"]}";
 }
 static u64 deadline(const Conn& c,const Options& o,u64 start,u64 primary_ops) {
     return start+u64((c.cycle*o.connections+c.id)*double(primary_ops)*1e9/o.rate);
 }
 static void enqueue(Conn& c,const std::vector<Op>& ops,u64 scheduled,u64 key,Result& res) {
+    char digits[13];snprintf(digits,sizeof digits,"%012llu",(unsigned long long)(100000000000ull+key));
     for(size_t j=0;j<ops.size();j++) {
-        std::string request=keywire(ops[j].request,key);
         c.pending.push_back({j,scheduled,0,key});
         c.unsent.push_back({c.queued,&c.pending.back()});
-        c.queued+=request.size();c.output+=request;res.scheduled+=ops[j].primary;
+        size_t begin=c.output.size();c.output+=ops[j].request;
+        for(size_t p:ops[j].key_offsets)memcpy(c.output.data()+begin+p,digits,12);
+        c.queued+=ops[j].request.size();res.scheduled+=ops[j].primary;
     }
     c.cycle++;
 }
@@ -281,9 +297,12 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
 static void selftest(){
     Reply r;size_t p=0;need(!parse("$3\r\nxy",p,r)&&p==0,"partial bulk");
     need(parse("*2\r\n:1\r\n$1\r\nx\r\n",p,r)&&r.array.size()==2,"nested reply");
-    Op op{true,"exact","",":1\r\n",{}};p=0;need(parse(op.expect,p,op.expected),"fixture");check(op,op.expected);
+    Op op{true,"exact","",":1\r\n",{}, {}};p=0;need(parse(op.expect,p,op.expected),"fixture");check(op,op.expected);
     auto bad=op.expected;bad.text="2";bool rejected=false;try{check(op,bad);}catch(...){rejected=true;}need(rejected,"bad reply accepted");
     for(u64 n:{0ull,1ull,1024ull,2048ull,1000000ull,100000000000ull})need(bucket(n)>=n&&bucket(n)-n<=std::max<u64>(1,n/1000),"hist precision");
+    for(size_t i=0;i<55*1024;i++)need(hist_index(hist_edge(i))==i&&bucket(hist_edge(i))==hist_edge(i),"hist bucket roundtrip");
+    for(int bit=0;bit<64;bit++)for(u64 n:{(u64(1)<<bit)-1,u64(1)<<bit,(u64(1)<<bit)+1})
+        need(hist_edge(hist_index(n))==bucket(n),"hist boundary equivalence");
     need(keywire("sv:000000000000 sw:000000000000",42)=="sv:100000000042 sw:100000000042","key substitution");
     // Uneven worker/connection division must cover every global deadline once.
     Options o;o.connections=512;o.threads=80;o.rate=100000;
@@ -307,7 +326,11 @@ static void selftest(){
     need(setsockopt(c.fd,SOL_SOCKET,SO_SNDBUF,&small,sizeof small)==0,"test send buffer");
     int ep=epoll_create1(0);need(ep>=0,"test epoll");epoll_event event{};event.events=EPOLLIN;event.data.ptr=&c;
     need(epoll_ctl(ep,EPOLL_CTL_ADD,c.fd,&event)==0,"test epoll add");
-    Result res;Op large=op;large.request.assign(65536,'x');
+    Result res;Op large=op;
+    large.request="sv:000000000000 sw:000000000000";large.key_offsets=key_offsets(large.request);
+    Conn keyed;enqueue(keyed,{large},1,42,res);
+    need(keyed.output==keywire(large.request,42),"prepared key substitution");
+    large.request.assign(65536,'x');large.key_offsets.clear();
     enqueue(c,{large},ns(),0,res);flush(c,ep);
     need(c.write_wait&&c.pending.front().sent>0,"partial send witness");
     enqueue(c,{large},ns(),1,res);flush(c,ep);
