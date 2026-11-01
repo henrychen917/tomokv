@@ -53,12 +53,12 @@ Validation in progress:
 | Proof | Final result / evidence |
 |---|---|
 | Nine directed jobs | PASS, 10/10 ledger rows including release; `proof/post-release/` |
-| Production units | All 51 primary targets and the four auxiliary readiness groups built; all required `make -q` checks return 0; `proof/build.json` |
-| Notification units | PASS, 17/17 rows; `proof/units-final/`. Earlier private-shard fixture failure and repair are recorded separately |
+| Production units | All 51 primary targets and the four auxiliary readiness groups built; all required `make -q` checks return 0; `proof/build-final.json` |
+| Notification units | PASS, 17/17 rows; `proof/units-release/`. Earlier private-shard fixture failure and repair are recorded separately |
 | Tcl passing-subset job | PASS in 2s and 1s, 39 file jobs each, zero manifest validation errors; `proof/tcl-final/`. This preserves the manifest's existing known setup errors and skips |
 | Broader touched jobs | Running, both modes/engines |
 | Standard differential seeds | Running, both engines |
-| `tests/gates_test.py` | Final isolated rerun pending; the first run exceeded fixed scheduler-fixture deadlines during builds |
+| `tests/gates_test.py` | Final isolated rerun running; the first run exceeded fixed scheduler-fixture deadlines during builds |
 
 Tcl accounting: the XGROUP DESTROY/NOGROUP counter assertion is re-skipped after guard removal. The two Lua error_reply statistics assertions remain skipped. No other entire upstream test was made passing by these fixes: the combined SLOWLOG privacy test also requires unsupported replication/TLS configs, and the adjacent redaction test requires MIGRATE. Their fixed ACL assertions are covered by the new oracle-directed SLOWLOG/MONITOR job. The first Tcl attempt used the rejected counter prototype; a focused PRE control reproduced its intermittent 2s pubsub unsubscribe failure. Final POST passes the full checked-in manifest in both modes.
 
