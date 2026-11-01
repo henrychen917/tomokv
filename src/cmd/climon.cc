@@ -20,6 +20,8 @@
 
 namespace tomo {
 
+[[gnu::noipa, gnu::cold]] bool clientcompat_post() { return true; }
+
 namespace {
 
 // Redis quotes MONITOR arguments with the same escaping sdscatrepr uses for DEBUG output.
@@ -753,6 +755,7 @@ bool IoLoop::climon_pause_holds(const Client& client, Op& op) {
     if (cached_now_ms_ >= climon_pause_deadline_ms_) return false;
     const CommandSpec* spec = op.spec;
     if (!spec) return false;
+    if ((spec->flags & CmdFlags::Climon) && !clientcompat_post()) return false;
     // Redis postpones every valid command under ALL, including CLIENT UNPAUSE,
     // RESET and MONITOR. WRITE uses WRITE | MAY_REPLICATE, including queued
     // EXEC children; DENYOOM alone is not a pause classification.

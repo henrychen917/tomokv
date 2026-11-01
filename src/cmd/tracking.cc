@@ -150,7 +150,8 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     const CommandSpec* spec = op.spec;
     if (!spec) return;
     if ((spec->flags & (CmdFlags::Climon | CmdFlags::Transaction)) &&
-        (op.cmd_name().eq_icase("client") || op.cmd_name().eq_icase("multi"))) return;
+        (op.cmd_name().eq_icase("client") ||
+         (op.cmd_name().eq_icase("multi") && clientcompat_post()))) return;
     const bool caching = state.caching_armed;
     state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
     if (state.bcast) return;
@@ -192,7 +193,9 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
         track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
     read->handler_notify = tracking_read_marker;
-    op.spec = read.get();
+    // A queued receipt is never selected for execution. POST bypasses this
+    // function while collecting MULTI; the PAD-A control retains PRE's receipt.
+    if (!multi_session_active(*client)) op.spec = read.get();
     state.tracking_reads[&op] = std::move(read);
 }
 
@@ -1032,7 +1035,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     // publication. This cold timer shares WAIT's already-conditional service;
     // no command handler or unchanging owner pass gains a tracking check.
     const uint64_t version = srv_->live_config_snapshot(self_->id()).version;
-    if (!srv_->tracking_config_ready(version) &&
+    if (clientcompat_post() && !srv_->tracking_config_ready(version) &&
         &op == &client->rob().at(client->rob().dispatch_id())) {
         try {
             deferred_timers_.push_back(DeferredTimer{client, client->rob().dispatch_id(),

@@ -2609,7 +2609,9 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
                       "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n"
                       "total_blocking_keys:%llu\r\ntotal_blocking_keys_on_nokey:%llu\r\n",
-                static_cast<unsigned long long>(g_connected_clients.load(std::memory_order_relaxed)),
+                static_cast<unsigned long long>(clientcompat_post()
+                    ? g_connected_clients.load(std::memory_order_relaxed)
+                    : (g_server ? g_server->live_clients() : 0)),
                 static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->climon_tracking_clients() : 0),

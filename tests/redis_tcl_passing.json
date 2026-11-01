@@ -911,7 +911,8 @@
         "PubSub messages with CLIENT REPLY OFF in tests/unit/pubsub.tcl",
         "SUBSCRIBE to one channel more than once in tests/unit/pubsub.tcl",
         "UNSUBSCRIBE from non-subscribed channels in tests/unit/pubsub.tcl",
-        "publish to self inside multi in tests/unit/pubsub.tcl"
+        "publish to self inside multi in tests/unit/pubsub.tcl",
+        "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl"
       ],
       "seconds": {
         "1s": 0.72,
@@ -932,8 +933,7 @@
         "subscribe  fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
         "subscribe succeeds with small channel but fails with large channel due to OOM": "failed on TomoKV 2s in the survey",
         "subscribe with 2 clients fails with OOM when memory limit exceeded": "failed on TomoKV 2s in the survey",
-        "subscribe with large channel name fails due to OOM": "failed on TomoKV 2s in the survey",
-        "unsubscribe inside multi, and publish to self": "failed on TomoKV 2s in the survey"
+        "subscribe with large channel name fails due to OOM": "failed on TomoKV 2s in the survey"
       }
     },
     "unit/quit": {
@@ -2985,6 +2985,11 @@
       "file": "unit/introspection",
       "name": "CLIENT KILL SKIPME YES/NO will kill all clients",
       "previous": "failed on TomoKV 2s in the survey"
+    },
+    {
+      "file": "unit/pubsub",
+      "test": "unsubscribe inside multi, and publish to self",
+      "previous_reason": "failed on TomoKV 2s in the survey"
     }
   ]
 }

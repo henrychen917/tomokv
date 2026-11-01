@@ -19,6 +19,10 @@
 
 namespace tomo {
 
+// Cold compatibility control for the exact-layout PAD-A artifact. Production
+// always returns true; the artifact builder patches only this function body.
+bool clientcompat_post();
+
 class Shard;
 class Op;
 class Client;

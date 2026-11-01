@@ -560,6 +560,11 @@ void destroy_multi_state(MultiExecState* state) {
 }
 
 bool multi_engine_policy_refusal(const Op& op) {
+    const Slice control = op.cmd_name();
+    if ((control.eq_icase("acl") || control.eq_icase("subscribe") ||
+         control.eq_icase("psubscribe") || control.eq_icase("ssubscribe") ||
+         control.eq_icase("unsubscribe") || control.eq_icase("punsubscribe") ||
+         control.eq_icase("sunsubscribe")) && !clientcompat_post()) return true;
     // Owner decision group 5: these are engine limitations, NOT Redis no_multi flags.
     // FLUSH's range unit still owns a separate placement/decision/collapse
     // lifecycle; composing it under EXEC needs child-aware lowering. DEBUG
@@ -2581,6 +2586,7 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
 }
 
 void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
+    if (!clientcompat_post()) return;
     auto* tracking = climon_conn_find(client.id());
     if (!tracking || !tracking->tracking_on || state.kind != MultiStateKind::Execute) return;
     const bool saved = tracking->caching_armed;
@@ -2605,6 +2611,7 @@ void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
 }
 
 void IoLoop::tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch) {
+    if (!clientcompat_post()) return;
     const bool committed = state.kind == MultiStateKind::Execute &&
         state.final_reply == MultiFinalReply::Exec &&
         !state.watch_failed.load(std::memory_order_acquire) &&
@@ -2652,7 +2659,8 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         return true;
     }
     if (auto* tracking = loop.climon_conn_find(client.id())) {
-        tracking->tracking_dispatch = tracking->tracking_on && !multi_session_active(client);
+        tracking->tracking_dispatch = tracking->tracking_on &&
+            (!clientcompat_post() || !multi_session_active(client));
         if (action == MultiIoAction::LocalDone && was_queueing &&
             !multi_session_active(client)) tracking->caching_armed = false;
     }
