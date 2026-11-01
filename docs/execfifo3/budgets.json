@@ -63,5 +63,38 @@
       "/home/user/Projects/cx-execfifo3/build/execfifo3/budget-trial/build_db0_src_core_genthread.o",
       "-fdump-ipa-inline=/home/user/Projects/cx-execfifo3/build/execfifo3/budget-trial/build_db0_src_core_genthread.o.inline"
     ]
+  },
+  {
+    "unit": "src/main.o",
+    "pre_initial": 103382,
+    "fifo_initial": 105028,
+    "delta": 1646,
+    "pre_budget": 147838,
+    "post_budget": 149484,
+    "pre_receipt": "docs/execfifo2/budgets-POST/pre-src_main.o-None.json",
+    "pre_receipt_sha256": "5872bc50b35d06e9d2314852ed0f16cc1521d5024852853812faa4d8f28c6774",
+    "trial_command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_DUAL_DATABASE",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=149484",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/main.cc",
+      "-o",
+      "/home/user/Projects/cx-execfifo3/build/execfifo3/budget-trial/final-main.o",
+      "-g0",
+      "-fdump-ipa-inline=/home/user/Projects/cx-execfifo3/build/execfifo3/budget-trial/final-main.inline"
+    ]
   }
 ]

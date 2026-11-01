@@ -66,7 +66,7 @@ def instrument():
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--kind',choices=('commands','memory'),default='commands')
-    p.add_argument('--arms',default='PRE,FIFO,POST')
+    p.add_argument('--arms',default='PRE,FIFO,POST-final')
     p.add_argument('--build-only',action='store_true');p.add_argument('--trace-only',action='store_true')
     p.add_argument('--workers',type=int,default=4)
     p.add_argument('--namespaces',default='normal,db0');p.add_argument('--batches',default='1,32')

@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-final-normal-MSET-2s-1-1--1.log
+SHA-256: 85fded2f453f40b0fb148955b746e5dc6ff037260e84719825a1179b0b7ea96e
+Exit: 0
+0x0000555555a99284	569	}
+0x0000555555a99286	569	}
+0x0000555555a99288	569	}
+0x0000555555de9d02 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execfifo3/tests/txnorder_command_scope.cc:152
+152	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+135	   for(unsigned i=0;i<n;i++){
+0x0000555555de9d0e	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de9d15	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de9d1d	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de9d24	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de9d2a	155	   std::string want="+OK\r\n";
+0x0000555555de9d31	155	   std::string want="+OK\r\n";
+0TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+x0000555555de9d38	154	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3991716) exited normally]
+COUNT 16624

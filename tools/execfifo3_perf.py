@@ -18,7 +18,7 @@ CELLS=[(cmd,mode,local,threads) for cmd,mode,local in
 CELLS += [(cmd,'1s',local,1) for cmd in ('PARSE-SET','PARSE-INCR') for local in (0,1)]
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--arms',default='PRE,FIFO,POST')
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--arms',default='PRE,FIFO,POST-final')
     p.add_argument('--blocks',type=int,default=3);p.add_argument('--turns',type=int,default=8192)
     a=p.parse_args();assert os.sched_getaffinity(0)<=set(range(96,112))
     OUT.mkdir(parents=True,exist_ok=True);rows=[]

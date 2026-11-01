@@ -1,0 +1,99 @@
+[
+  {
+    "path": "build/execfifo3/pre-source/build/db0",
+    "reason": "Final probes, release arms and PAD linked; discard archived build intermediates. Rebuild from retained archived source if needed."
+  },
+  {
+    "path": "build/execfifo3/pre-source/build/src",
+    "reason": "Final probes, release arms and PAD linked; discard archived build intermediates. Rebuild from retained archived source if needed."
+  },
+  {
+    "path": "build/execfifo3/pre-source/build/third_party",
+    "reason": "Final probes, release arms and PAD linked; discard archived build intermediates. Rebuild from retained archived source if needed."
+  },
+  {
+    "path": "build/execfifo3/fifo-source/build/db0",
+    "reason": "Final probes, release arms and PAD linked; discard archived build intermediates. Rebuild from retained archived source if needed."
+  },
+  {
+    "path": "build/execfifo3/fifo-source/build/src",
+    "reason": "Final probes, release arms and PAD linked; discard archived build intermediates. Rebuild from retained archived source if needed."
+  },
+  {
+    "path": "build/execfifo3/fifo-source/build/third_party",
+    "reason": "Final probes, release arms and PAD linked; discard archived build intermediates. Rebuild from retained archived source if needed."
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal",
+    "reason": "Superseded two-budget diagnostic probe; final POST uses POST-final scopes."
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0",
+    "reason": "Superseded two-budget diagnostic probe; final POST uses POST-final scopes."
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-2s-32-1--1.log",
+    "sha256": "51830212b6f3a73b7992f707c105ea848978d1dbd326783914e132c100e3106d",
+    "reason": "Aborted superseded trace, not counted as a passing proof."
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-1s-32-1--1.log",
+    "sha256": "1e68a50e6cb2f8c82da2be9c859483048f184b797028e7586d1bdb66d3ada132",
+    "reason": "Aborted superseded trace, not counted as a passing proof."
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-MGET-2s-32-1--1.log",
+    "sha256": "5e835ede66a6a3ae944b84837e6ca65d7614b2cbc6ab6ca5da7feaf5726bde3d",
+    "reason": "Aborted superseded trace, not counted as a passing proof."
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-MGET-1s-32-1--1.log",
+    "sha256": "bd7910a227ee3ad9a2470bfcb9a7a4b6076dd26369bd266f84c9f7c8d022e3c6",
+    "reason": "Aborted superseded trace, not counted as a passing proof."
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal",
+    "probe_sha256": "343f1dc498310cb902d0d3091a3dd39531514f53ee362c16aa70d53caddbc434",
+    "reason": "Superseded diagnostic; final three-budget POST uses POST-final probes and keeps separate receipts."
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0",
+    "probe_sha256": "bb3533c4e6f6b0d0bd08380e91a4665e0c6e5bd98a1b878fc9ccfb24c354e077",
+    "reason": "Superseded diagnostic; final three-budget POST uses POST-final probes and keeps separate receipts."
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/TRIAL-normal",
+    "probe_sha256": "83068811a146c65330d1c138380941b4e14610931d169f3cf848846331e63662",
+    "reason": "Superseded diagnostic; final three-budget POST uses POST-final probes and keeps separate receipts."
+  },
+  {
+    "path": "build/execfifo3/budget-trial/build_db0_src_core_genthread.o.inline",
+    "sha256": "408ec21cea44344ffcc8502af575d2e7ef09da584e4fba21f615d3bd98b81a49",
+    "reason": "Compile-only intermediate; commands and IPA-size derivation retained."
+  },
+  {
+    "path": "build/execfifo3/budget-trial/main-149484.inline",
+    "sha256": "14ce09631d8c8763ef78afd403bf991d1378261c49eb83f9abb07f366241c484",
+    "reason": "Compile-only intermediate; commands and IPA-size derivation retained."
+  },
+  {
+    "path": "build/execfifo3/budget-trial/build_src_core_genthread.o.inline",
+    "sha256": "d7c5d559b178e1e14eebff4566d00449ca8336cebc893a34cb833ed1107587b1",
+    "reason": "Compile-only intermediate; commands and IPA-size derivation retained."
+  },
+  {
+    "path": "build/execfifo3/budget-trial/build_db0_src_core_genthread.o",
+    "sha256": "c915956c37201b7dd6fcca0c06e14877349bf6b7459d4047f3714cdbb8b22694",
+    "reason": "Compile-only intermediate; commands and IPA-size derivation retained."
+  },
+  {
+    "path": "build/execfifo3/budget-trial/main-149484.o",
+    "sha256": "6c5a18b16e2dc7e4678f3dce52ce6f8cd6eb51990a20c22076cd59f9f0413784",
+    "reason": "Compile-only intermediate; commands and IPA-size derivation retained."
+  },
+  {
+    "path": "build/execfifo3/budget-trial/build_src_core_genthread.o",
+    "sha256": "b26e044f34167a04ebf3a9739f2e1cad84201acac22917bb41b5708e8d2472a0",
+    "reason": "Compile-only intermediate; commands and IPA-size derivation retained."
+  }
+]

@@ -46,10 +46,13 @@
     "Thread0+0 access=1": 1
   },
   "unknown_memory": {
-    "1": 2466,
-    "2": 2134
+    "1": 1587,
+    "stack/2": 595,
+    "2": 1539,
+    "stack/1": 879
   },
   "memory_operands": 5757,
+  "stack_cache_lines": 7,
   "instruction_cache_lines": 75,
   "regions": [
     {
@@ -110,5 +113,5 @@
     "_Znwm@plt": 1
   },
   "clock_calls": 0,
-  "probe_sha256": "f91e26c0609dc0b4c7b4486d23a7e407275085ab3648c5e202bc236280920bc0"
+  "probe_sha256": "bb3533c4e6f6b0d0bd08380e91a4665e0c6e5bd98a1b878fc9ccfb24c354e077"
 }

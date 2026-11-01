@@ -1,5 +1,5 @@
 Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/memory-scopes/POST-db0-PARSE-SET-1s-32-1-1.log
-SHA-256: c37cb8d16479170d4f8e60d17cf50204ab76aff6a4779012545e9bd40fb1f6c3
+SHA-256: cb1fbf1a0896639f2e4538ccac29925fea3d342e1602df1d94290a9e1721c9b6
 Exit: 0
 0x00005555558eeb3f	4232	    }
 0x00005555558eeb48	4232	    }
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:29
 29	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
-[Inferior 1 (process 2426321) exited normally]
+[Inferior 1 (process 3389931) exited normally]
 COUNT 27427

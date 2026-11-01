@@ -1,0 +1,41 @@
+{
+  "reason": "Superseded two-budget POST trace; all 48 PRE scopes complete. The final three-budget POST is traced separately.",
+  "pid": 3101781,
+  "children": {},
+  "completed_pre": 48,
+  "time_ns": 1793498760806676413,
+  "worker_children": [
+    {
+      "pid": 3635920,
+      "command": "gdb -nx -batch -x /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-normal-MSET-1s-32-1--1.gdb /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-normal/probe "
+    },
+    {
+      "pid": 3635972,
+      "command": "/home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-normal/probe MSET 1s 32 1 -1 "
+    },
+    {
+      "pid": 3664928,
+      "command": "gdb -nx -batch -x /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-normal-MSET-2s-32-1--1.gdb /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-normal/probe "
+    },
+    {
+      "pid": 3665039,
+      "command": "/home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-normal/probe MSET 2s 32 1 -1 "
+    },
+    {
+      "pid": 3820202,
+      "command": "gdb -nx -batch -x /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-db0-MGET-1s-32-1--1.gdb /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-db0/probe "
+    },
+    {
+      "pid": 3822095,
+      "command": "/home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-db0/probe MGET 1s 32 1 -1 "
+    },
+    {
+      "pid": 3844974,
+      "command": "gdb -nx -batch -x /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-db0-MGET-2s-32-1--1.gdb /home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-db0/probe "
+    },
+    {
+      "pid": 3847640,
+      "command": "/home/user/Projects/cx-execfifo3/build/execfifo3/commands-scopes/POST-db0/probe MGET 2s 32 1 -1 "
+    }
+  ]
+}

@@ -42,6 +42,11 @@ at 23,669 -> 25,045 instructions (read-local off) and 27,427 -> 28,803
 explicit memory operands per batch, INCR 608. The recorded Server, Shard,
 ExLoop, ThreadCtx, IoLoop and Client accesses remain identical. A compiler
 change therefore caused work outside the previously counted owner scope.
+The SET delta is 160 stack reads, 480 stack writes and 64 reads of the
+thread-local stack canary at `FS+0x28`; outlining address-taken parser locals
+introduces stack protection as well as spills. The INCR/GET delta has 384
+stack writes instead. The additional TLS reads are directly classified in
+`memory-sites/`; they are not FIFO state or another owner's publication line.
 
 FIFO/C1 enlarges each fused translation unit's initial GCC IPA size by 2,031
 instructions. Its unchanged `large-unit-insns` ceiling reduces the allowance
@@ -51,8 +56,7 @@ operands. The extended trace also finds +44 instructions and three explicit
 memory operands per batch in the multi-database split parser, including an
 outlined `Client::nothing_to_write`. Restoring that unit's 1,646-size-unit
 allowance removes this delta as well. The production change is three Makefile
-values. All FIFO
-predicates, queue links, promotion rules and boundary code remain byte-for-byte
+values. All FIFO predicates, queue links, promotion rules and boundary code remain byte-for-byte
 unchanged in source. Final linked-image scopes and perf receipts qualify the
 result; no server throughput improvement is inferred.
 

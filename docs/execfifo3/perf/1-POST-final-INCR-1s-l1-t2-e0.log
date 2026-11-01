@@ -1,0 +1,2 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS finite INCR owners=2 turns=8192 batch=32 read_local=1

@@ -33,7 +33,20 @@ then the immutable unit age and existing shared liveness words if non-null.
 The shared decision/abort/refcount words are written by the transaction’s
 participating threads; the queue links themselves have one owner writer.
 
-Additional parser accesses are thread-private stack traffic caused by lost
-inlining, plus an existing Client load in the multi-database split parser.
-No other thread writes the parser stack. Full per-object line/access deltas,
-explicit stack reads/writes, and stack footprint counts are in `memory/*.json`.
+The added ordinary-path accesses are compiler generated. Counts below are per
+batch of 32, FIFO minus PRE; POST minus PRE is zero. These are **explicit x86
+memory operands**, excluding implicit call/return and push/pop stack accesses.
+
+| Path | Added loads | Added stores | Lines and other writers |
+| --- | ---: | ---: | --- |
+| Fused SET, read-local 0 or 1 | 160 stack + 64 TLS | 480 stack | One additional traced stack line; stack is private to this thread. TLS loads address `FS+0x28`, the stack-canary word on the first TLS line; initialized by the runtime, never written by EXEC bookkeeping. |
+| Fused INCR / GET | 160 stack + 64 TLS | 384 stack | Same private stack/TLS explanation; no extra Shard/owner/Client access. |
+| Multi-database split parser, GET/SET/INCR | 1 stack + 1 Client header | 1 stack | No additional unique object line. The Client load is in the existing first 64-byte header (`nothing_to_write`, `fill_` at +40); IO owns this byte, while existing IO/owner communication also uses the header. |
+| Owner SET/INCR, including armed read-local replacement | 0 | 0 | Existing Shard+8 read short-circuits; no queue/counter access. |
+
+The TLS attribution is dynamic, not inferred from an unclassified address:
+`memory-sites/fifo-extra-loads.json` records exactly 64 additional reads of
+`ThreadTLS+0`, and the batch-1 site trace records the `fs:[0x28]` prologue and
+epilogue loads. Input-buffer accesses are unchanged. POST's explicit operand
+counts, classified object accesses and TLS accesses return exactly to PRE.
+The raw per-object counts and stack footprint are in `memory/*.json`.

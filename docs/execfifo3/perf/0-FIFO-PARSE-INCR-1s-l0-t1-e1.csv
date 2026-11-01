@@ -1,0 +1,5 @@
+# started on Sun Nov  1 10:23:10 2026
+
+32108,,l2_cache_req_stat.ls_rd_blk_c:u,59871400,100.00,,
+57790,,cache-misses:u,59871400,100.00,,
+96,,ls_any_fills_from_sys.remote_cache:u,59871400,100.00,,
