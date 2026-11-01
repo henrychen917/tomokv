@@ -27,6 +27,8 @@ def proc(c, run, label):
 
 
 def password(c, run, label):
+    run.check(label + ' leading-NUL requirepass boot flag', c.cmd('PING'),
+              lambda r: isinstance(r, dict) and r['error'].startswith('NOAUTH'))
     for user, password in ((b'embedded', b'a\0b'), (b'leading', b'\0tail')):
         run.check(label + ' full binary AUTH ' + user.decode(), c.cmd('AUTH', user, password), b'OK')
         run.check(label + ' full authenticated PING', c.cmd('PING'), b'PONG')
@@ -74,6 +76,27 @@ def redact(c, run, label):
         row = c.cmd('SLOWLOG', 'GET', 1)[0][3]
         run.check(label + ' ' + command[1], row,
                   [b'ACL', command[1].encode()] + [b'(redacted)'] * (len(command) - 2))
+
+    # ACL commands are admin commands in Redis and may be omitted entirely from
+    # MONITOR. Compare the actual feed, with a visible PING as a positive fence.
+    with run.server.client() as monitor:
+        assert monitor.cmd('MONITOR') == b'OK'
+        c.cmd('ACL', 'GETUSER', 'monitor-secret')
+        c.cmd('ACL', 'DELUSER', 'monitor-secret', 'monitor-secret-2')
+        assert c.cmd('PING', 'rootcompat-monitor-end') == b'rootcompat-monitor-end'
+        feed = []
+        for _ in range(8):
+            frame = monitor.read()
+            assert isinstance(frame, bytes) and b'] ' in frame, frame
+            command = frame.split(b'] ', 1)[1]
+            feed.append(command)
+            if command == b'"PING" "rootcompat-monitor-end"':
+                break
+        run.check(label + ' MONITOR fence', feed[-1], b'"PING" "rootcompat-monitor-end"')
+        if run.oracle:
+            run.reference['monitor'] = feed
+        run.check(label + ' MONITOR ACL visibility/redaction', feed, run.reference['monitor'])
+        run.check(label + ' no MONITOR secret', b'monitor-secret' in b' '.join(feed), False)
 
 
 def errorstats(c, run, label):
@@ -302,7 +325,8 @@ def main():
                     conf = None
                     if a.case == 'password':
                         conf = run.conf(label, 'user embedded on ">a\\x00b" ~* +@all\n'
-                                        'user leading on ">\\x00tail" ~* +@all\n')
+                                        'user leading on ">\\x00tail" ~* +@all\n'
+                                        'requirepass "\\x00default"\n')
                     server = Server(run, label, mode, conf, extra)
                     run.server = server
                     if a.case == 'proc':
