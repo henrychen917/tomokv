@@ -1,0 +1,8 @@
+release
+clientcompat-pause
+clientcompat-disconnect
+clientcompat-multi-tracking
+clientcompat-multi-controls
+clientcompat-enable-race
+trackorder
+core_units

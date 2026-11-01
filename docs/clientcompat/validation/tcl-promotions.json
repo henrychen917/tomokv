@@ -1,5 +1,5 @@
 {
-  "run": "build/gate-run.mjQ5XY",
+  "run": "build/gate-run.iOV7wW",
   "summary": [
     {
       "mode": "2s",
@@ -9,7 +9,7 @@
         "unit/slowlog": 3
       },
       "manifest_errors": 0,
-      "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884"
+      "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
     },
     {
       "mode": "1s",
@@ -19,7 +19,7 @@
         "unit/slowlog": 3
       },
       "manifest_errors": 0,
-      "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884"
+      "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
     }
   ],
   "promotions": [
@@ -56,7 +56,7 @@
         "file": "tests/unit/pubsub.tcl",
         "test": "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl",
         "data": "unsubscribe inside multi, and publish to self",
-        "milliseconds": "350"
+        "milliseconds": "200"
       }
     },
     {
@@ -68,7 +68,7 @@
         "file": "tests/unit/pause.tcl",
         "test": "Test old pause-all takes precedence over new pause-write (less restrictive) in tests/unit/pause.tcl",
         "data": "Test old pause-all takes precedence over new pause-write (less restrictive)",
-        "milliseconds": "266"
+        "milliseconds": "265"
       }
     },
     {
@@ -92,7 +92,7 @@
         "file": "tests/unit/pubsub.tcl",
         "test": "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl",
         "data": "unsubscribe inside multi, and publish to self",
-        "milliseconds": "200"
+        "milliseconds": "50"
       }
     }
   ]
