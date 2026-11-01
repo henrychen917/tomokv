@@ -82,7 +82,7 @@ try:
             raise AssertionError("boot-only knob was mutable: " + name)
         if conn.must("CONFIG", "GET", name) != [name.encode(), values[name.encode()]]:
             raise AssertionError("rejected boot-only SET changed its GET value: " + name)
-    for name in ("port", "bind", "tls-auth-clients", "loglevel"):
+    for name in ("port", "bind", "tls-auth-clients", "loglevel", "appendonly"):
         conn.must("CONFIG", "SET", name, values[name.encode()])
     conn.must("CONFIG", "SET", "key-load-delay", "17")
     if conn.must("CONFIG", "GET", "key-load-delay") != [b"key-load-delay", b"17"]:

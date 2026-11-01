@@ -3881,11 +3881,11 @@
     "get_equal": false,
     "oracle": [
       "dir",
-      "/home/user/Projects/cx-cfgfix/build/gate-run.RtDLuU/jobs/cfgfix/proof/oracle-oracle-tcp"
+      "/home/user/Projects/cx-cfgfix/build/gate-run.Bnjrst/jobs/cfgfix/proof/oracle-oracle-tcp"
     ],
     "candidate": [
       "dir",
-      "/home/user/Projects/cx-cfgfix/build/gate-run.RtDLuU/jobs/cfgfix/proof/1s-epoll-tcp"
+      "/home/user/Projects/cx-cfgfix/build/gate-run.Bnjrst/jobs/cfgfix/proof/1s-epoll-tcp"
     ],
     "flags_equal": true,
     "reason": "UNFIXED: persistence paths are retained at boot; protected-config policy is not implemented."
