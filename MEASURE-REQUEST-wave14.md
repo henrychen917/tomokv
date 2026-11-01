@@ -42,3 +42,22 @@ Every later mutation is journaled in the retained increment. Earlier duplicate
 full-registry postimages replay in their original order. The scheduling wrapper
 is linked only into the witness twin; the release binary contains no hook.
 The negative receipt is `docs/wave14/jobs/function-capture-before.json`.
+
+### Wake publication audit: release condition still fails
+
+The directed single-observer test (`tests/wave14_order.py`, partial gate job
+`wave14_order`) compares EVAL, EVALSHA and EXEC with a registered BLPOP waiter,
+keyevents, invalidations, and slowlog. It verifies same-shard, same-owner and
+cross-owner placement. The merged reply is correct (the script sees its item
+before BLPOP consumes it), but the requested Redis publication order is **not
+satisfied**. Invalidations are batched before events; same-shard Lua captures
+wake events under the producer's notification context; deferred EXEC/staged
+wakes omit pop events; slowlog may record BLPOP before the producer.
+
+Controls used the frozen headline and the separate blockfix4/rootcompat POSTs,
+with ordinary read enrolment because the headline lacks EXEC enrolment. They
+reproduce these publication/slowlog differences before integration. The merged
+sequence is the composition of those lane behaviours, not an additional merge
+regression. This is the pre-existing D11 publication/retirement problem; it is
+not promoted, tolerated as a Redis pass, or silently hidden in a new green row.
+The red directed receipts are retained under `docs/wave14/jobs/order-*`.

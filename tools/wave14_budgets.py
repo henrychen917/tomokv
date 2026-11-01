@@ -80,7 +80,7 @@ def main():
  elif phase=='select':
   rows=json.loads((DOC/'scan.json').read_text());unique={}
   for row in rows:unique.setdefault((row['object'],row['code_digest']),row)
-  with ProcessPoolExecutor(max_workers=32) as pool:scores=list(pool.map(score,unique.values()))
+  with ProcessPoolExecutor(max_workers=int(os.getenv("WAVE14_BUILD_WORKERS", "32"))) as pool:scores=list(pool.map(score,unique.values()))
   by={(r['object'],r['code_digest']):r for r in scores};choices=[]
   for obj,value in new.items():
    opts=[dict(r,score=by[r['object'],r['code_digest']]['score']) for r in rows if r['object']==obj]
@@ -90,6 +90,6 @@ def main():
   for r in choices:print(r['object'],r['old'],'->',r['budget'],r['score'],flush=True)
   return
  else:raise ValueError(phase)
- with ProcessPoolExecutor(max_workers=32) as pool:rows=list(pool.map(trial,jobs))
+ with ProcessPoolExecutor(max_workers=int(os.getenv("WAVE14_BUILD_WORKERS", "32"))) as pool:rows=list(pool.map(trial,jobs))
  rows=[dict(r,**j) for r,j in zip(rows,jobs)];(DOC/(phase+'.json')).write_text(json.dumps(rows,indent=2)+'\n')
 if __name__=='__main__':main()
