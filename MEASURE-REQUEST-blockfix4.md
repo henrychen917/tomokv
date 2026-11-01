@@ -33,10 +33,11 @@ candidate passed all five rows on both engines: 108 script attempts, 720 stolen
 move hits, 480 creator hits, 400 stream-removal hits and 51,200 pops per engine.
 These are intermediate receipts; the final binary's receipts are recorded below.
 
-The expanded PRE natural-MVCC witness failed all five aggregate rows again.
+The expanded PRE gate run, including natural-MVCC witnesses, failed all five
+aggregate rows again.
 Its eight no-hook legs produced 559 MVCC hits in 670 fresh attempts, including
 34 hit failures and seven other wake failures. In particular, read-local 0
-in 2s reproduced one hang in 103 observed MVCC windows. Failing PRE legs stop
+in 2s reproduced one lost wake in 103 observed MVCC windows. Failing PRE legs stop
 early after ten defects; POST must complete all 128 attempts per leg and open
 at least one MVCC window in each leg.
 
@@ -77,7 +78,7 @@ The complete final io_uring Tcl rerun passed both modes: 39 manifest files and
 The first run timed out in Lua's script-loading GC test while compilation and
 tracing were active, and also hit the pub/sub unsubscribe assertion in 1s.
 A focused PRE control reproduced that exact pub/sub assertion in 2s;
-its scripting tests passed. This pre-existing pub/sub race is reported and
+its scripting tests passed. This pre-existing pub/sub failure is reported and
 left outside this blocking lane. All initial red results and the unchanged
 successful full Tcl rerun are retained; no manifest skip or timeout changed.
 
