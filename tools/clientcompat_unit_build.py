@@ -45,7 +45,7 @@ def trim_units():
             records.append(dict(path=str(path), before_sha256=hashlib.sha256(before).hexdigest(),
                                 after_sha256=hashlib.sha256(after).hexdigest(),
                                 before_bytes=len(before), after_bytes=len(after),
-                                allocated_sections_identical=True, source_commit="fbbd5ddd76"))
+                                allocated_sections_identical=True, trim_revision="fbbd5ddd76"))
     receipt.write_text(json.dumps(records, indent=2) + "\n")
 
 

@@ -113,5 +113,25 @@
     "source_commit": "fbbd5ddd76",
     "reason": "Cold owner wake and TrackingOn-only 1 ms idle poll; no test timeout changed",
     "log": "build/clientcompat/ack-wake-build.log"
+  },
+  {
+    "command": [
+      "make",
+      "-j16",
+      "build/expire-notify-unit"
+    ],
+    "exit": 0,
+    "log": "build/clientcompat/ack-units-00.log",
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "command": [
+      "make",
+      "-j16",
+      "build/ktls-lifetime-unit"
+    ],
+    "exit": 0,
+    "log": "build/clientcompat/ack-units-01.log",
+    "source_commit": "fbbd5ddd76"
   }
 ]

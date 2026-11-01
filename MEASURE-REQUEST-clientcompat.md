@@ -1,26 +1,26 @@
 ## clientcompat
 
 Implemented on `cx-clientcompat`, PRE `7d2f8a205`, production source through
-`79c5ecbe0`. No push. All commands are restricted to CPUs 64–79; builds use
+`fbbd5ddd76`. No push. All commands are restricted to CPUs 64–79; builds use
 `-j16`; correctness boots use `LC_ALL=C`, ports 20400–20499, 16 shards and the
 job's declared geometry. No performance benchmark, load generator, or full
 iteration gate was run. Correctness receipts below are partial job receipts,
 not a full gate claim.
 
-### Prior sealed arms (cold acknowledgement wake correction in progress)
+### Sealed arms
 
 | Arm | Path | SHA-256 |
 |---|---|---|
 | PRE | `build/clientcompat/PRE/tomokv` | `b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39` |
-| POST | `build/clientcompat/POST/tomokv` | `01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464` |
-| PAD-A | `build/clientcompat/PAD-A/tomokv` | `8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53` |
+| POST | `build/clientcompat/POST/tomokv` | `eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884` |
+| PAD-A | `build/clientcompat/PAD-A/tomokv` | `f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c` |
 
 PAD is kind **A, behavior twin**: PRE compatibility behavior with POST's exact
 ELF section sizes/addresses and symbol table. `tools/clientcompat_pad.py`
 changes the two cold namespace selectors to false, changing four bytes total.
 It restores PRE pause exceptions, delayed INFO count, queue-time tracking,
 MULTI control refusals and immediate TRACKING ON acknowledgement. No ordinary
-GET/SET/INCR/MGET/MSET path calls the selector. POST and PAD have 8,863,271 bytes
+GET/SET/INCR/MGET/MSET path calls the selector. POST and PAD have 8,864,375 bytes
 of `.text`; `docs/clientcompat/pad.json` proves their section/symbol equality.
 This is not an inverse control. Debug-only reductions of unrelated unit
 executables preserve all allocated sections; the three sealed arms are intact.
@@ -87,7 +87,10 @@ Raw JSON, oracle assertions and SHA-256s are in
   or allocation was added. Only configuration-changing passes publish it.
   Refresh remains allowed during IO drain, preventing ON/FLIP/LB joins from
   deadlocking; ExDrain still freezes ownership updates. The 2s witness joins
-  pending ON with FLIP and checks delivery after the move.
+  pending ON with FLIP and checks delivery after the move. Pending ON also
+  wakes each remote owner once through its existing ring and polls its
+  acknowledgement at a 1 ms idle interval. These operations are confined to
+  the cold control wait; ordinary commands and empty timer lists add no work.
 
 Deliberate deviations kept: **FLUSHALL/FLUSHDB inside MULTI remain refused**.
 `xshard_prepare_flush` owns group placement, WATCH reservations, an independent
@@ -167,8 +170,9 @@ The additional atomic-unit and all AT4.12 jobs are listed in
 change for these assertion updates.
 
 Final execution is in progress. The tracking FLUSH-order run exposed idle
-acknowledgement waits; the cold owner-wake/poll correction requires new POST
-and PAD-A arms and repeated validation. Earlier receipts remain archived.
+acknowledgement waits; the corrected POST/PAD-A arms above are built and their
+complete 160/128-row instruction products retain exactly the reported counts.
+Correctness validation is being repeated. Earlier receipts remain archived.
 This section will be replaced with completed
 receipts before delivery. The sealed POST passed **160/160** candidate legs across all five new
 witnesses; every oracle leg passed. PAD-A failed all five gate rows as intended:
