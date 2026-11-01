@@ -1,0 +1,16 @@
+  row budget: 900s; median=2.14s; correctness-plan-fallback; B+ held-group GET/MGET filter battery
+  B+ held-group GET/MGET filter battery                ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; read-local lane admission battery
+  read-local lane admission battery                    ok
+  row budget: 900s; median=0.08s; correctness-plan-fallback; read-local MGET fence battery (1s)
+  read-local MGET fence battery (1s)                   ok
+  row budget: 900s; median=1.9s; correctness-plan-fallback; read-local GET miss battery (1s)
+  read-local GET miss battery (1s)                     ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; read-local one-key delete battery (1s)
+  read-local one-key delete battery (1s)               ok
+  row budget: 900s; median=0.33s; correctness-plan-fallback; read-local MGET fence battery (2s)
+  read-local MGET fence battery (2s)                   ok
+  row budget: 900s; median=1.89s; correctness-plan-fallback; read-local GET miss battery (2s)
+  read-local GET miss battery (2s)                     ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; read-local one-key delete battery (2s)
+  read-local one-key delete battery (2s)               ok

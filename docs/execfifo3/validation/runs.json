@@ -869,5 +869,134 @@
     "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/scriptbounds-uring-1-a0-1793512878244301598.log",
     "exit_code": 0,
     "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.TimU6w"
+  },
+  {
+    "group": "ownership-extra-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/ownership-extra-epoll-1793512883920443069.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.O1yDtd"
+  },
+  {
+    "group": "atomic-controls-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "atomic_floor",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/atomic-controls-epoll-1793513986295688145.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.2JEzRT"
+  },
+  {
+    "group": "readlocal-extra-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "bplus ring_unit filter_unit acl_recheck",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/readlocal-extra-epoll-1793513989598724701.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.F2gws8"
+  },
+  {
+    "group": "notify-fused-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "notify",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/notify-fused-epoll-1793514019296761791.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.OOohdW"
   }
 ]
