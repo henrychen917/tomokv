@@ -227,6 +227,48 @@ def setpast(c, run, label):
         sub.close()
 
 
+def xsexpiry(c, run, label):
+    from rootcompat_tracking.resp import Conn
+    names = [f'xsdeadline:{i}' for i in range(128)]
+    shapes = {name: names[:2] for name in ('same_shard', 'same_owner', 'cross_owner')}
+    if not run.oracle:
+        geometry = c.cmd('DEBUG', 'SHARDS', *names)
+        sid, owner = geometry[0]
+        for name, predicate in (
+                ('same_shard', lambda s, o: s == sid),
+                ('same_owner', lambda s, o: s != sid and o == owner),
+                ('cross_owner', lambda s, o: o != owner)):
+            shapes[name] = [names[0], next(k for k, (s, o) in zip(names[1:], geometry[1:]) if predicate(s, o))]
+    assert c.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', 0) == b'OK'
+    sub = Conn(run.args.port)
+    try:
+        sub.send('PSUBSCRIBE', '__keyevent@0__:*')
+        assert sub.read()[0] == b'psubscribe'
+        for atomic in ([0] if run.oracle else [0, 1]):
+            if not run.oracle:
+                assert c.cmd('CONFIG', 'SET', 'atomic', atomic) == b'OK'
+            for shape, keys in shapes.items():
+                assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', '') == b'OK'
+                assert c.cmd('MSET', keys[0], 'old', keys[1], 'old') == b'OK'
+                sub.poll_pushes(.02)
+                assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'E$gx') == b'OK'
+                before = 0 if run.oracle else int(fields(c, 'STATS')[b'script_crossshard_activations'])
+                script = "redis.call('set',KEYS[2],'x','PXAT',1); redis.call('set',KEYS[1],'y'); return 1"
+                run.check(f'{label} {shape} a{atomic} reply', c.cmd('EVAL', script, 2, *keys), 1)
+                if not run.oracle:
+                    after = int(fields(c, 'STATS')[b'script_crossshard_activations'])
+                    run.check(f'{label} {shape} a{atomic} staged geometry', after - before,
+                              0 if shape == 'same_shard' else 1)
+                run.check(f'{label} {shape} a{atomic} expired value', c.cmd('GET', keys[1]), None)
+                frames = sub.read_frames_until_quiet(.05, 2)
+                actual = [(row[2].decode().rsplit(':', 1)[1], keys.index(row[3].decode())) for row in frames]
+                if run.oracle:
+                    run.reference[shape] = actual
+                run.check(f'{label} {shape} a{atomic} ordered events', actual, run.reference[shape])
+    finally:
+        sub.close()
+
+
 def stringlimit(c, run, label):
     limit = 1024 * 1024
     assert c.cmd('CONFIG', 'SET', 'proto-max-bulk-len', limit) == b'OK'
@@ -300,7 +342,8 @@ def hx3(c, run, label):
 
 CASES = {'proc': proc, 'password': password, 'replication': replication,
          'sort-acl': sort_acl, 'redact': redact, 'errorstats': errorstats,
-         'hscan': hscan, 'setpast': setpast, 'stringlimit': stringlimit, 'hx3': hx3}
+         'hscan': hscan, 'setpast': setpast, 'stringlimit': stringlimit, 'hx3': hx3,
+         'xsexpiry': xsexpiry}
 
 
 def main():
@@ -327,7 +370,7 @@ def main():
                     extra = ['--databases', str(databases), '--enable-debug-command', 'yes']
                     if not oracle:
                         extra += ['--net-io', engine]
-                        if a.case in ('hscan', 'hx3'):
+                        if a.case in ('hscan', 'hx3', 'xsexpiry'):
                             extra += ['--atomic', '1', '--key-lb', '0', '--client-lb', '0']
                     conf = None
                     if a.case == 'password':
