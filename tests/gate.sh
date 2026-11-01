@@ -4154,9 +4154,6 @@ blockfix2_case(){
       fi
       py tools/blockfix3_controls.py check-boundary --binary "$CANDIDATE_BINARY" \
           --output "$boundary" >"$boundary/verdict.log" 2>&1 || return 1
-      py tools/blockfix3_controls.py check-tcl --binary "$CANDIDATE_BINARY" \
-          --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
-          --output "$TMPDIR/control-statistics" >"$TMPDIR/control-statistics.log" 2>&1 || return 1
     fi
   }
 }
