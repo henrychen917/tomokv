@@ -12,13 +12,21 @@ No throughput result is claimed. The broader proof is still in progress below.
 | Arm | Executable | SHA-256 |
 | --- | --- | --- |
 | PRE | `build/rootcore/PRE` | `20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7` |
-| POST | `build/rootcore/POST` | `c9b173b64222d38963cfffc85949c6be49e6f6d86aa8f1893793b35ab72ec780` |
+| POST | `build/rootcore/POST` | `d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d` |
 | PAD-A | `build/rootcore/PAD-A` | `1728de4bc8e377581be39e1c554e0edd893c9f90c67aba3f57e55790ff26c38e` |
 
-POST production sources are those committed in `eb1e3a7d1`. The binary was built
-before that commit, so its compiled version string names the preceding commit
-and a dirty tree; the artifact digest above identifies the tested executable.
-`docs/rootcore/arms.sha256` is the machine-readable receipt.
+POST production sources are those committed in `eb1e3a7d1`, with the test-only
+link-wrapper update in `a8ed915e8`. The final binary reports `a8ed915e`, clean
+production sources. `docs/rootcore/arms.sha256` is the machine-readable receipt.
+The final rebuild uses `CXX="g++ -gz=zlib"`, `CC="cc -gz=zlib"` to compress debug
+sections. Its entire `.text` and `.data` match the first POST byte for byte;
+only 16 bytes of `.rodata` change, all in the two namespaces' INFO Git revision
+and dirty strings. `docs/rootcore/wrapper-rebuild-identity.json` records this
+comparison. The 48-cell census was obtained from that identical executable
+code before the test-wrapper rebuild and remains applicable; it was not rerun
+merely for debug compression and version strings. Earlier witness receipts name
+the first POST digest `c9b173b64222d38963cfffc85949c6be49e6f6d86aa8f1893793b35ab72ec780`;
+final proof receipts name the delivered digest above.
 
 PAD-A is **kind A, a behaviour twin**: unmodified PRE production objects, with
 unreachable padding and an unreachable `mkdtemp` relocation. Its `.text` address
@@ -36,6 +44,13 @@ The incomplete placement match limits that attribution. Pay particular
 attention to the task-notify RMW's coherence cost. Performance measurements,
 load generators, saturated-FLIP memtier and full iteration are **NOT RUN** by
 this lane: the task reserves them for the maintainer.
+
+`docs/rootcore/merit.cells.txt` freezes the exact 18 cells: the unchanged fourteen
+from `tests/wbland_merit_cells.txt` (`h05 h06 p8g p8s d1g_l0 d1s_l0 m8g_l0
+v1g_l0 d128g_l0 d32g_l1 d8s_l1 d32s_l1 x9_32_l1 x9_32_l0`), followed by
+`h53 h54 h21 h22` (2s GET/SET p1, then p32). Retain the instrument's calibration,
+worker floors, latency score and per-cell null acceptance band. Do not average
+away a regression or infer a gain from an instruction reduction alone.
 
 ### Directed witnesses and mechanisms
 
@@ -58,7 +73,7 @@ from target counts. PRE logs are in `docs/rootcore/pre`; frozen POST logs are in
 | 9 flagged EVAL in EXEC | 16/16 target legs abort the first allow-oom child; 16 target hits; four oracle variants pass | 16/16 target legs × EVAL/EVALSHA × allow-oom/no-writes pass (64 target hits), plus four oracle hits | All ScriptRoute EXEC children enter script preparation inside flag-aware memory admission, as FCALL does | No execution algorithm replacement |
 | 10 MISCONF | 8/8 target legs remain failed for the five-second recovery bound; both oracle policies recover and replay the failed write | Still 8/8 fail; two oracle legs pass | **STOPPED** under the algorithm freeze, detailed below | S1 remains; retrying discarded bytes needs a recovery state machine |
 | 11 WAITAOF | Final PRE matrix: 32/32 target legs return the wrong fresh local ack; two oracle legs pass | Original fsync/receipt checks pass all 32 target legs. Expanded row fails all 32 targets on rejected SET NX; both oracle legs pass | AOF-only per-connection buffered-record/sequence receipts; local ack follows durable frontier; existing timer wait polls fsync readiness | **Partial, S1 remains:** redundant native post-images advance the receipt on a non-mutation; see the freeze boundary below |
-| 12 FUNCTION journal | 12/12 target legs lose FUNCTION LOAD after rewrite; 12 target hits; three oracle policy legs pass | 12/12 targets and three oracle legs pass; five mutation/restart hits per leg (75 total) | Full registry post-images enter the ordered native increment control stream; replay restores each mutation in journal order | Snapshot/rewrite registry capture deliberately untouched for persistfmt integration |
+| 12 FUNCTION journal | Expanded PRE: 24/24 target legs lose FUNCTION LOAD after rewrite; 24 target hits; three oracle policy legs pass | Initial 12/12 targets and three oracle legs pass; expanded POST proof pending | Full registry post-images enter the ordered native increment control stream; replay restores each mutation in journal order | Snapshot/rewrite registry capture deliberately untouched for persistfmt integration |
 
 Items 6–8 remain assigned to blockfix4. No blocking wake mechanism is changed.
 The two edits in `blocking.inc` only supply the originating client ID to AOF
@@ -157,6 +172,12 @@ baseline constants are 999/1016, so these additions alone require **1006/1023**.
 `EXPECT_QUICK` and `EXPECT_FULL` are not edited. Row counting uses collector line
 placement, not the word `full` in the partial invocation.
 
+Their collector is at `tests/gate.sh:6162`; the quick exit is at line 6491.
+The static source inventory confirms PRE full=1016 and POST full=1023. The seven
+literal labels were added to the reviewed receipt fixture without using a run
+ledger. Its check remains red **only because EXPECT_FULL is still 1016**;
+missing/extra labels are both none (`docs/rootcore/ledger-fixture.log`).
+
 `tools/rootcore_proof.py` records exact selected jobs, binary SHA and environment
 for directed, main-uring, main-epoll, fused-uring and fused-epoll phases. Only
 selected correctness jobs run, with `GATE_PROOF_NO_RATES=1`; this is not a full
@@ -170,6 +191,15 @@ tests and one failure: the complete single-slot scheduler fixture reaches its
 existing 45-second deadline (exit 124). The second attempt ran without a build
 on its CPUs. The deadline and coverage were not changed. Logs are retained as
 `docs/rootcore/gates-test*.log.gz`; no all-green harness claim is made.
+
+An isolated control reused the unchanged scheduler test on CPUs 24–27: PRE's
+278 jobs passed in 44.887 seconds; POST's 285 jobs timed out at the unchanged
+45-second bound (45.193 seconds including teardown). Thus the additional seven
+jobs push the serial fixture over an already nearly exhausted deadline. This
+is a harness/inventory failure, not a reproduced server hang. It is documented
+under the owner's rule to leave non-S1 work for later; neither the deadline nor
+the mandatory inventory was weakened. `tools/rootcore_scheduler.py` and
+`docs/rootcore/scheduler` retain the comparison.
 
 ### Item 11 — remaining non-mutation receipt boundary
 

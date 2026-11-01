@@ -50,6 +50,7 @@ for name, engine, fused, jobs in phases:
         print('already completed', name, flush=True)
         continue
     env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
+        CXX='g++ -gz=zlib', CC='cc -gz=zlib',
         GATE_ONLY_JOBS=' '.join(jobs), GATE_PROOF_NO_RATES='1',
         GATE_PROOF_NET_IO=engine, GATE_DIFFER_NET_IO=engine,
         GATE_TXN_FUSED=str(fused))
@@ -61,7 +62,8 @@ for name, engine, fused, jobs in phases:
     with (out / (name + '.log')).open('w') as log:
         result = subprocess.run(cmd, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
     record = dict(name=name, command=cmd, jobs=jobs, engine=engine, fused=fused,
-                  sha256=frozen_sha, started=started, ended=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                  sha256=frozen_sha, rootcore_test_sha256=digest(root / 'tests/rootcore.py'),
+                  started=started, ended=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                   exit_code=result.returncode)
     receipt.write_text(json.dumps(record, indent=2) + '\n')
     print('DONE', name, 'exit', result.returncode, flush=True)

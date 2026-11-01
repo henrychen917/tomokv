@@ -38,7 +38,8 @@ def eval_oom(a):
 
 
 def functions(a):
-    opts = ['--appendonly', 'yes', '--appendfsync', a.fsync]
+    opts = ['--appendonly', 'yes', '--appendfsync', a.fsync,
+            '--databases', str(a.databases)]
     source = "#!lua name=rootcore\nredis.register_function('rootcore',function() return 17 end)"
     with boot(a, 'write', opts) as (_, c, data):
         assert c.must('SET', 'rootcore:key', 'before') == b'OK'
@@ -248,7 +249,7 @@ def main():
         for fsync in (('always', 'everysec', 'no') if args.case == 'functions' else
                       ('always', 'everysec') if args.case == 'waitaof' else
                       ('everysec', 'no') if args.case == 'misconf' else ('always',)):
-            for databases in ((1, 16) if not oracle and args.case in ('eval', 'notify', 'waitaof') else (1,)):
+            for databases in ((1, 16) if not oracle and args.case in ('eval', 'notify', 'waitaof', 'functions') else (1,)):
                 for atomic in ((0, 1) if not oracle and args.case in ('eval', 'notify', 'waitaof') else (0,)):
                     a = copy.copy(args)
                     a.oracle, a.mode, a.engine, a.fsync = oracle, mode, engine, fsync
