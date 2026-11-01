@@ -4,8 +4,8 @@
 The owner pauses after finish_completions' failed() guard, before the receipt gate.
 The faulting writer waits for that pause, then wakes it after changing failure state.
 The live row holds the writer's diagnostic on a full pipe until the reply is checked.
-Markers distinguish an armed S1 window from a fused FLUSH whose remaining owner
-work is held by the injected writer wait; only the latter may re-arm on fresh state.
+Markers distinguish an armed S1 window from owner work held by the injected
+latches. A fresh attempt is required when the gate and writer cannot rendezvous.
 """
 from pathlib import Path
 import sys
@@ -55,6 +55,15 @@ text = text.replace(before_fail, before_fail + '''
 ''')
 diagnostic = '    std::fprintf(stderr, "AOF error: %s\\n", message ? message : "AOF failure");'
 assert text.count(diagnostic) == 1
-text = text.replace(diagnostic, '    if (persistfmt_armed()) { persistfmt_schedule.store(2); if (persistfmt_fault_writer) persistfmt_marker(".diagnostic"); }\n' + diagnostic)
+text = text.replace(diagnostic, '''
+    if (persistfmt_armed()) {
+        persistfmt_schedule.store(2);
+        if (persistfmt_fault_writer) persistfmt_marker(".diagnostic");
+        // Any concurrent failure reporter may own stderr's FILE lock. Record
+        // every logger so the driver can identify the actual pipe waiter.
+        const std::string suffix = ".logging-" + std::to_string(static_cast<long>(::gettid()));
+        persistfmt_marker(suffix.c_str());
+    }
+''' + diagnostic)
 destination.parent.mkdir(parents=True, exist_ok=True)
 destination.write_text(text)

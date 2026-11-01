@@ -116,11 +116,20 @@ def main():
             assert marker['fail']['tid'] == marker['diagnostic']['tid']
             assert marker['gate']['tid'] != marker['diagnostic']['tid']
             assert marker['diagnostic']['stage'] == 2
-            assert marker['diagnostic']['tid'] in [int(Path(t).name) for t in window['threads']]
+            blocked = {int(Path(t).name) for t in window['threads']}
+            assert window['logging_waiters'] and set(window['logging_waiters']) <= blocked
+            assert all(str(tid) in window['loggers'] and window['loggers'][str(tid)]['stage'] == 2
+                       for tid in window['logging_waiters'])
             assert [r['attempt'] for r in attempts if r['command'] == command] == list(range(1, count + 1))
             retries = [r for r in unarmed if r['command'] == command]
             assert [r['attempt'] for r in retries] == list(range(1, count))
-            assert all(r['markers'].keys() == {'fail'} and r['markers']['fail']['stage'] == 0 for r in retries)
+            for retry in retries:
+                markers = retry['markers']
+                assert ((markers.keys() == {'fail'} and markers['fail']['stage'] == 0 and
+                         retry['reason'] == 'writer held by test latch before any reply gate') or
+                        (mode == '1s' and markers.keys() == {'gate'} and markers['gate']['stage'] == 0 and
+                         markers['gate']['producer'] == retry['writer'] and
+                         retry['reason'] == 'writer held at its own receipt gate before failure'))
         assert len(stops) == len(attempts) == len(unarmed) + 3
         assert all(not r['escalated'] for r in stops)
         assert sum(r['exit'] == 1 for r in stops) == 3
