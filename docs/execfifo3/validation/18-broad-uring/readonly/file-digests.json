@@ -1,0 +1,67 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "42a52187f3fb65550c4b755cb3a1d49776e3e43784f8a47e0ffb19c5786e0961"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 53,
+    "sha256": "e2c8713551b965f3c50a35bd338bfacd48c8293610bc0f35509a78e67f6c4480"
+  },
+  {
+    "path": "gate-rehash-readonly-fused-0.txt",
+    "bytes": 369,
+    "sha256": "300ddb6cefd0fc9c6b980ed1f61d633821a4463d25711f4feda36cd090a4e614"
+  },
+  {
+    "path": "gate-rehash-readonly-fused-1.txt",
+    "bytes": 369,
+    "sha256": "946d4335736fa5a6f452e339e1f9007492f5407eaba41b46faea207c257879ac"
+  },
+  {
+    "path": "gate-rehash-readonly-split-0.txt",
+    "bytes": 375,
+    "sha256": "a1c096d2c0f71439536ce470ee3f9981bb96e9495d9252cc6bf26563c25f0a9e"
+  },
+  {
+    "path": "gate-rehash-readonly-split-1.txt",
+    "bytes": 375,
+    "sha256": "d4269924c5312d2f4ee6321e30ccfb4ae93f3a459d74634035f5885df83d6ba5"
+  },
+  {
+    "path": "gate-srv-fused.O8XHWv",
+    "bytes": 10702,
+    "sha256": "161f0548a2ca3877923f53ba5ecb3dd470548adc5ce93931b9f4029535202c7d"
+  },
+  {
+    "path": "gate-srv-fused.YSPIVU",
+    "bytes": 10670,
+    "sha256": "35a2dcbf88160d18ba53ca5002edf54a95a87e68f7718cdb858ac0cdd253afb7"
+  },
+  {
+    "path": "gate-srv-main.OLTQ2e",
+    "bytes": 9932,
+    "sha256": "9a5e4fa71b3432263e94732d5bc0554238a408c52cd1aa41bdc858908b2957eb"
+  },
+  {
+    "path": "gate-srv-main.tJLW8E",
+    "bytes": 9842,
+    "sha256": "245bf2d2510e1aa1b1cf589e00fda13ae5e78c43f957f2aef9bd980b998c99fa"
+  },
+  {
+    "path": "ledger",
+    "bytes": 192,
+    "sha256": "1824dfb9ea762fb2c2bbaf3c157bece347c400ba8ee59cee7b74b24927630765"
+  },
+  {
+    "path": "output.log",
+    "bytes": 632,
+    "sha256": "f0955750578fdacbad9e8e00f8d0274e348c5bbc56bb223baee6e02b237c08dd"
+  },
+  {
+    "path": "timings",
+    "bytes": 192,
+    "sha256": "1824dfb9ea762fb2c2bbaf3c157bece347c400ba8ee59cee7b74b24927630765"
+  }
+]
