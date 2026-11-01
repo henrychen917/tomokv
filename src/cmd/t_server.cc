@@ -1849,7 +1849,7 @@ void cmd_config(Shard& sh, Op& op) {
             ConfigLock lock;
             auto add = [&](Slice spelling, const ConfigValue& item) {
                 for (const auto& present : matches)
-                    if (spelling.eq_icase(present.first.c_str())) return;
+                    if (eq_icase(spelling, present.first.c_str())) return;
                 matches.emplace_back(std::string(spelling.p, spelling.n), item.value);
             };
             // Exact lookup preserves the caller's spelling. Pattern lookup

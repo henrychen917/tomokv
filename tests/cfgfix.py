@@ -222,10 +222,16 @@ def test(a, port, certs, proc, oracle):
         c.must('SET', 'cfgfix:deleted-in-gap', 'old')
         appenddir = Path(proc.args[proc.args.index('--dir') + 1]) / 'appendonlydir'
         appenddir.write_text('not a directory\n')
-        command('CONFIG', 'SET', 'maxmemory', '12345678', 'appendonly', 'yes', 'port', str(port + 1))
-        command('CONFIG', 'GET', 'maxmemory', 'appendonly', 'port')
-        with closing(n.connect(port)) as original:
-            assert original.must('PING') == b'PONG'
+        for fsync in ('no', 'everysec', 'always'):
+            c.must('CONFIG', 'SET', 'appendfsync', fsync)
+            command('CONFIG', 'SET', 'maxmemory', '12345678', 'appendonly', 'yes', 'port', str(port + 1))
+            command('CONFIG', 'GET', 'maxmemory', 'appendonly', 'port')
+            with closing(n.connect(port)) as original:
+                assert original.must('PING') == b'PONG'
+        c.must('CONFIG', 'SET', 'appendfsync', 'everysec')
+        server_log = appenddir.parent / 'server.log'
+        (a.output / ('oracle' if oracle else f'candidate-{proc.pid}') / 'apply-error.log').parent.mkdir(exist_ok=True)
+        (a.output / ('oracle' if oracle else f'candidate-{proc.pid}') / 'apply-error.log').write_bytes(server_log.read_bytes())
         appenddir.unlink()
         command('CONFIG', 'SET', 'appendonly', 'yes')
         command('CONFIG', 'GET', 'appendonly')

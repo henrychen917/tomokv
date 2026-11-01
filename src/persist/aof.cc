@@ -1283,7 +1283,8 @@ void AofManager::fail(const char* message, int error) {
                                               std::memory_order_relaxed);
     failed_.store(true, std::memory_order_release);
     std::fprintf(stderr, "AOF error: %s\n", message ? message : "AOF failure");
-    if (fsync_policy() == AppendFsyncPolicy::Always) {
+    if (fsync_policy() == AppendFsyncPolicy::Always &&
+        (!runtime_enabling_ || writer_ready_.load(std::memory_order_acquire))) {
         std::fprintf(stderr, "Can't recover from AOF write error when the AOF fsync policy "
                              "is 'always'. Exiting...\n");
         std::fflush(stderr);
@@ -1966,6 +1967,7 @@ bool AofManager::runtime_enable(ThreadCtx& writer, Ring& ring, std::string& erro
     init(*server, config, server->nthreads(), server->nshards(), writer.id(), nullptr, true);
     if (failed() || !bind_writer(writer, ring, error)) {
         if (error.empty()) error = last_error_;
+        if (error.empty()) error = "could not initialize runtime AOF";
         runtime_reset();
         return false;
     }
