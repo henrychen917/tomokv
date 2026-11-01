@@ -133,5 +133,15 @@
     "exit": 0,
     "log": "build/clientcompat/ack-units-01.log",
     "source_commit": "fbbd5ddd76"
+  },
+  {
+    "command": [
+      "make",
+      "-j16",
+      "build/moverfix-unit"
+    ],
+    "exit": 0,
+    "log": "build/clientcompat/ack-units-02.log",
+    "source_commit": "fbbd5ddd76"
   }
 ]

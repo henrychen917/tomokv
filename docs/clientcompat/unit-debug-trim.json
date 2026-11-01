@@ -914,5 +914,14 @@
     "after_bytes": 6126816,
     "allocated_sections_identical": true,
     "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/moverfix-unit",
+    "before_sha256": "87c5cd74af8b6d4949883c7a869851c929b22b139e463ed466fd2c5b92eaf29d",
+    "after_sha256": "d2d8bd911b916b9fb1c5078af09bafa200a023dfec75426608fdb4ddd46be55d",
+    "before_bytes": 107994840,
+    "after_bytes": 6108960,
+    "allocated_sections_identical": true,
+    "source_commit": "fbbd5ddd76"
   }
 ]

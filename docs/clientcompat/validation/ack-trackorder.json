@@ -1,0 +1,31 @@
+{
+  "run": "build/gate-run.ALJCTE",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    {
+      "job": "trackorder",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t288.720000\ttracking FLUSH reply order vs Redis 7.4"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/ack-trackorder.json.gz",
+  "archive_sha256": "9c97530b192a400ee1aea14c56c3d3b6c9f867b9104e52d236799d0cf23c0983",
+  "passed": 2,
+  "failed": 0
+}

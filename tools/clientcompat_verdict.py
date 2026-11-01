@@ -17,27 +17,28 @@ def main():
     chosen = {}
     history = []
     sources = []
-    # Whole replacement jobs supersede the original legacy expectations.
-    # The first receipt and its four failed rows remain part of the evidence.
-    for name in ("regression-final", "feature-expectations-corrected",
-                 "supplement-final", "coverage-extra-final"):
+    # Every winning job uses the final binary, including the separately
+    # completed full FLUSH-order job. Preserve earlier failures separately.
+    for name in ("regression-final", "ack-trackorder"):
         receipt = read(name)
         assert receipt["complete"] and not receipt["full_gate_receipt"], name
         archive = Path(receipt["archive"])
         assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["archive_sha256"]
         sources.append(dict(receipt=name, archive_sha256=receipt["archive_sha256"]))
         for job in receipt["jobs"]:
-            if job["exit"] or job["failed"]:
-                assert name == "regression-final", (name, job)
-                assert job["job"] in ("feature-split-0", "feature-armed-0"), job
-                history.append(dict(receipt=name, **job))
+            assert job["exit"] == job["failed"] == 0, (name, job)
             chosen[job["job"]] = dict(receipt=name, **job)
+    for name in ("before-ack-wake-regression", "before-ack-wake-extra"):
+        for job in read(name)["jobs"]:
+            if job["exit"] or job["failed"]:
+                assert job["job"] in ("feature-split-0", "feature-armed-0", "trackorder", "blockfix2"), job
+                history.append(dict(receipt=name, **job))
     expected = set()
     for name in ("final-regression-jobs.txt", "supplement-jobs.txt", "coverage-extra-jobs.txt"):
         expected.update((DOC / name).read_text().split())
     assert not expected - chosen.keys(), sorted(expected - chosen.keys())
     assert all(j["exit"] == j["failed"] == 0 for j in chosen.values())
-    assert sum(j["failed"] for j in history) == 4, history
+    assert sum(j["failed"] for j in history) == 6, history
 
     differential = []
     for engine in ("uring", "epoll"):
