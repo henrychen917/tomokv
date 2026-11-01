@@ -1,5 +1,5 @@
 {
-  "run": "build/gate-run.st2QlY",
+  "run": "build/gate-run.ZigKsB",
   "partial": true,
   "full_gate_receipt": false,
   "complete": true,
@@ -10,7 +10,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t577.440000\tRedis 7.4 differential part (armed fused, atomic 0)"
+        "ok\t605.400000\tRedis 7.4 differential part (armed fused, atomic 0)"
       ],
       "differential_legs": 230
     },
@@ -20,7 +20,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t634.350000\tRedis 7.4 differential part (armed fused, atomic 1)"
+        "ok\t533.440000\tRedis 7.4 differential part (armed fused, atomic 1)"
       ],
       "differential_legs": 234
     },
@@ -30,7 +30,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t21.540000\tmode equivalence part (all execution modes and knobs)"
+        "ok\t21.570000\tmode equivalence part (all execution modes and knobs)"
       ],
       "differential_legs": 0
     },
@@ -40,7 +40,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t716.730000\tRedis 7.4 differential part (split, atomic 0)"
+        "ok\t554.380000\tRedis 7.4 differential part (split, atomic 0)"
       ],
       "differential_legs": 235
     },
@@ -50,7 +50,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t574.990000\tRedis 7.4 differential part (split, atomic 1)"
+        "ok\t536.040000\tRedis 7.4 differential part (split, atomic 1)"
       ],
       "differential_legs": 239
     },
@@ -66,7 +66,7 @@
   ],
   "missing": [],
   "archive": "docs/clientcompat/validation/differential-uring.json.gz",
-  "archive_sha256": "c241f5a0de787f0a6076729663a4776f8402a73f30f45a7f9743442d14c028cb",
+  "archive_sha256": "db838d6b21d8a2af5ab1ec969c2fd7da0487aa9aaf88b84fe8f593a0d9ec43e7",
   "passed": 6,
   "failed": 0
 }

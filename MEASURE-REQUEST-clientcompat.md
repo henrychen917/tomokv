@@ -156,64 +156,72 @@ the sealed server SHA-256s; retained build recipes reproduce the probes.
 
 ### Correctness validation
 
-The first split/armed feature runs rejected two legacy test expectations:
-CLIENT UNPAUSE bypassing PAUSE ALL, and refusing SSUBSCRIBE at MULTI queue time.
-`climon2.py` now independently proves WRITE unpause and ALL postponement;
-`pubsub.py` checks QUEUED followed by the exact DENY BLOCKING EXEC error and
-absence of a subscription. Their complete replacement jobs pass **34/34 split
-and 35/35 armed-fused rows**. The original four failures remain in the broad
-ledger; `validation/feature-expectations-corrected.json` supplies the replacement
-receipts. AT15's legacy refusal control is also replaced by admission checks
-and its exact wire assertion is reused by the oracle-judged multi-controls row.
-The additional atomic-unit and all AT4.12 jobs are listed in
-`supplement-jobs.txt`; these add no public gate rows. Production bytes did not
-change for these assertion updates.
+All results in this paragraph use the sealed POST SHA above. The five new
+witness jobs pass **160/160 candidate legs and every oracle leg**. PAD-A fails
+all five public rows as intended: pause 32/32, disconnect 24/32, multi-tracking
+32/32, multi-controls 32/32 and enable-race 29/32 failing candidate legs.
+All 29 enable-race failures are missing invalidations after the witnessed
+occupation completed. Raw assertions and binary identities are retained in
+`docs/clientcompat/witnesses/summary.json` and compressed archives.
 
-Final execution is in progress. The tracking FLUSH-order run exposed idle
-acknowledgement waits; the corrected POST/PAD-A arms above are built and their
-complete 160/128-row instruction products retain exactly the reported counts.
-Correctness validation is being repeated. All five new POST witness jobs now
-pass on the final SHA (160 candidate legs plus every oracle). The complete
-FLUSH-order job also passes: 24 geometries × 864 exact-wire cases, in 288.72 s
-under the unchanged 900 s watchdog. Earlier receipts remain archived.
-This section will be replaced with completed
-receipts before delivery. The sealed POST passed **160/160** candidate legs across all five new
-witnesses; every oracle leg passed. PAD-A failed all five gate rows as intended:
-pause 32/32, disconnect 24/32, multi-tracking 32/32, multi-controls 32/32 and
-enable-race 29/32 failing candidate legs. `docs/clientcompat/witnesses/summary.json`
-and its compressed raw assertions retain both halves of this control. The sealed broad selection is
-`docs/clientcompat/final-regression-jobs.txt`; its 120 selected jobs and required
-prerequisites include the complete requested command families, Tcl both modes,
-all feature-matrix geometries and multidb/FLIP/LB/transaction ordering jobs.
-Standard differential seeds completed on io_uring: 235/239 split legs,
-230/234 armed-fused legs (atomic 0/1), plus all 16 equivalence cells; zero
-differences and all completion artifacts present. The same complete matrix also passed on epoll; see
-`validation/differential-epoll.json`.
-The AT15-expanded multi-controls witness also passed all 32 candidate legs and
-the Redis oracle. See `validation/differential-uring.json`.
-The sealed PAD-A negative controls are complete.
-`coverage-extra-jobs.txt` adds the existing tracking-off EXEC, delivery-mask,
-core notification, netcmd notification, MULTI/debug, blocking MULTI, snapshot
-EXEC and INFO-input jobs found during the final coverage audit.
+The complete tracking FLUSH-order job passes **24 geometries × 864 exact-wire
+cases**, plus 864 oracle cases, in 288.72 seconds under the unchanged 900-second
+watchdog (`validation/ack-trackorder.json` and `ack-trackorder-product.json`).
+Both Tcl modes pass **37 manifest files / 39 declared runs each**; all six
+mode/promotion terminal events are independently checked in
+`validation/tcl-promotions.json`. `python3 tests/gates_test.py` passes
+**83/83 in 145.503 seconds**, with the CPU allocation isolated from the two gate
+queues (`validation/final-gates-test.json`). All nine core concurrency rows
+also pass on the final build (`validation/final-core-units.json`).
 
-`make all`, all 51 explicitly enumerated production-unit targets, live MDBQSBR
-arms and blockfix control/unit targets built successfully. See
-`production-builds.json`, `production-targets.json` and `freshness.json`.
-`python3 tests/gates_test.py`: **83/83 PASS** in the fully isolated CPU
-allocation (147.185 seconds). Two earlier runs each had the same one-slot
-scheduler 45-second deadline failure during concurrent correctness traffic;
-the unchanged test passed after pausing both gate queues between jobs. The
-PRE self-test also showed this deadline failure. All logs are retained under
-`docs/clientcompat/validation/`; no timeout was widened.
-The draft full Tcl run passed 2s; 1s failed a no-acknowledgement unsubscribe
-assertion and timed out in the 50,000-script GC test during compilation. A
-bounded PRE control reproduced unsubscribe/PUNSUBSCRIBE races in 6 of 20
-mode/trial legs, including the exact failed assertion. Upstream util.tcl
-consumes zero replies for the no-argument helper before another client
-publishes. `pre-pubsub-control.json` retains every trial. No assertion or
-timeout was weakened; the sealed full Tcl jobs both **PASS**, covering all 37 manifest files
-(39 declared runs per mode). All six mode/promotion events are independently
-checked in `validation/tcl-promotions.json`.
+The standard io_uring differential run passes **235/239 split comparisons and
+230/234 armed-fused comparisons** (atomic 0/1), plus all **16 mode-equivalence
+cells**. Its fixed seeds are 7/19/20/23, with the gate's own rotating fifth seed;
+no suite or seed override was used (`validation/differential-uring.json`).
+The final epoll run and broader selected-job run are still in progress; they
+must finish before this report is delivered. The requested inventory is the
+union of `final-regression-jobs.txt`, `supplement-jobs.txt` and
+`coverage-extra-jobs.txt`. The final verifier checks every requested job and
+all raw AT4.12 mode/engine/atomic/script-form legs, including oracle legs.
+
+`make all`, all **51 production-unit targets**, live MDBQSBR arms and blockfix
+control/unit targets built successfully. All **55 make-q freshness checks**
+pass. See `production-builds.json`, `production-targets.json` and
+`freshness.json`. Compiler work finished before the final isolated harness and
+Tcl checks; production source has remained frozen through the final reruns.
+
+Earlier failures are retained, not counted as passing evidence:
+
+* Four legacy assertions in the initial split/armed feature jobs expected
+  UNPAUSE to bypass ALL and SSUBSCRIBE to fail at queue time. `climon2.py` now
+  proves WRITE unpause and ALL postponement; `pubsub.py` checks QUEUED followed
+  by the exact DENY BLOCKING EXEC error and no actual subscription. Complete
+  replacement jobs passed 34/34 split and 35/35 armed rows before the final
+  rebuild. AT15's refusal check was also replaced by admission controls and
+  its exact RESP2 assertion is reused by the oracle-judged multi-controls job.
+* The first full tracking-order run reached 6 × 864 passing candidate cases
+  before the unchanged 900-second deadline. Idle owners and the waiting IO
+  could each park for 50 ms per TRACKING ON. The final cold owner wake and
+  pending-ack 1 ms polling change fixes that delay; the complete final job
+  passes as reported above. No test deadline was increased.
+* One blockfix2 job could not find its unit binaries beside the sealed POST.
+  The final artifact directory now links the freshly built unit executables
+  and the verified blockfix hash binding. Its replacement is in the final
+  broader selection.
+* Two earlier harness runs each hit the existing 45-second one-slot scheduler
+  deadline during concurrent correctness traffic; PRE reproduced that same
+  failure. The final unchanged self-test passes in isolation. One draft Tcl
+  1s run failed a no-acknowledgement unsubscribe assertion and hit the script
+  GC timeout during compilation. PRE reproduced unsubscribe/PUNSUBSCRIBE
+  races in 6/20 bounded mode/trial legs, including the same assertion. Both
+  final Tcl modes pass unchanged. `pre-pubsub-control.json` retains the trials.
+
+The superseded broad ledgers retain the four legacy assertion failures, the
+tracking-order timeout and the missing-unit failure. The final verdict keeps
+that history separate from the complete replacement-job receipts. Draft Tcl,
+harness, instruction-census and retired-arm evidence is archived under
+`docs/clientcompat/validation/` and `history/`; no assertion was weakened to
+obtain a pass.
 
 Tcl promotions: old ALL-pause precedence; CLIENT KILL SKIPME's immediate INFO
 count; unsubscribe-inside-MULTI/publish-self. The transaction response-order
@@ -222,7 +230,8 @@ known failures/skips in pause, tracking, introspection, info-command and multi.
 Tracking #11715 also depends on tracking-table eviction/cron and stays skipped;
 FLUSHDB-in-MULTI stays skipped for the design reason above.
 
-Five new `clientcompat-*` rows are collected before the quick-tier exit:
+Five new `clientcompat-*` rows are collected at `tests/gate.sh:6196`, before
+the quick-tier branch at line 6481 (exit at 6485):
 **DQ=+5, DF=+5**, so maintainer constants should change **999/1016 → 1004/1021**.
 `EXPECT_QUICK` and `EXPECT_FULL` were not edited. Tcl promotions add no row.
 

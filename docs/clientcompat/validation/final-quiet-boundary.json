@@ -1,0 +1,11 @@
+{
+  "pid": 1189809,
+  "parent": 1188884,
+  "state": "S",
+  "start": "516362133",
+  "stopped": 1793509207.6230125,
+  "reason": "Pause queue between jobs for quiet full Tcl validation; current child continues with unchanged watchdog.",
+  "run": "build/gate-run.ZigKsB",
+  "resumed": 1793511205.097396,
+  "reason_resumed": "Final isolated 83/83 harness test and both full Tcl modes passed; all six promoted terminal events verified."
+}
