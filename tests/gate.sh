@@ -1155,7 +1155,7 @@ plan_jobs(){
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
-              production_units aclkeys_wake source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
+              production_units aclkeys_wake list_namespace source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -2200,6 +2200,14 @@ job_aclkeys_wake(){
       >"$log" 2>&1 \
       && taskset -c "$CORES" python3 tools/aclkeys3_verify.py "$TMPDIR/aclkeys-wake" \
           --rounds 1 --cores "$CORES" >>"$log" 2>&1 \
+      && ok "$label" || bad "$label" "see $log"
+}
+
+job_list_namespace(){
+  local label="AT4.5 list publisher physical namespaces" log="$TMPDIR/list-namespace.log"
+  row_begin "$label"
+  taskset -c "$BUILD_CORES" make -f Makefile -f tests/list_namespace.mk -j"$BUILD_JOBS" build/list-namespace-unit >"$log" 2>&1 \
+      && taskset -c "$CORES" build/list-namespace-unit >>"$log" 2>&1 \
       && ok "$label" || bad "$label" "see $log"
 }
 
@@ -6243,6 +6251,7 @@ collect_job storage_units
 
 collect_job atomic_units
 collect_job aclkeys_wake
+collect_job list_namespace
 
 collect_job netcmd_units
 

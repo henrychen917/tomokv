@@ -242,3 +242,15 @@ every mode/engine/database leg, alongside the donor controls. Exact delivery,
 no duplicate or missing members and post-drain state are required; no blind
 counter substitutes for those checks. DQ=DF=0. Baseline validation is pending;
 a reproduced D2/EXEC loss will be reported rather than excused as timing.
+
+### V11 — both list-push namespace publishers
+
+Added a serverless producer-contract unit that invokes the production helper's
+new-object and existing-object branches, both list edges, in physical namespaces
+1/15/255. A link-time observer checks the actual namespace passed to the registry,
+requires exactly one publisher hit per push, and checks resulting list content.
+It complements the live SWAPDB/XADD consumer test; it does not claim a live mover
+wake or a particular thread interleaving. The helper is shared by both thread
+modes; namespaces require the db16 image. Separate planted namespace-zero controls
+are being checked for each call site. DQ=+1, DF=+1: list_namespace is collected
+before the quick-tier exit. The Makefile change adds only this test target.
