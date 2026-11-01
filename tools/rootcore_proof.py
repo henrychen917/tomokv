@@ -43,6 +43,12 @@ phases = [
     ('main-epoll', 'epoll', 0, common + differ),
     ('fused-uring', 'uring', 1, 'release_batteries atomic_batteries debug-0 debug-1 script_bounds'.split()),
     ('fused-epoll', 'epoll', 1, 'release_batteries atomic_batteries debug-0 debug-1 script_bounds'.split()),
+    # The original AOF scanner only knew GCMT control records. After teaching
+    # it the FUNCTION record, rerun both full AOF jobs on each arm and mode.
+    ('aof-pre-split', 'uring', 0, ['aof-uring', 'aof-epoll']),
+    ('aof-pre-fused', 'uring', 1, ['aof-uring', 'aof-epoll']),
+    ('aof-final-split', 'uring', 0, ['aof-uring', 'aof-epoll']),
+    ('aof-final-fused', 'uring', 1, ['aof-uring', 'aof-epoll']),
 ]
 for name, engine, fused, jobs in phases:
     receipt = out / (name + '.json')
@@ -54,15 +60,18 @@ for name, engine, fused, jobs in phases:
         GATE_ONLY_JOBS=' '.join(jobs), GATE_PROOF_NO_RATES='1',
         GATE_PROOF_NET_IO=engine, GATE_DIFFER_NET_IO=engine,
         GATE_TXN_FUSED=str(fused))
+    candidate = root / 'build/rootcore/PRE' if name.startswith('aof-pre-') else binary
+    candidate_sha = digest(candidate)
     cmd = ['tests/gate.sh', 'full', '--server-cores', '16-23', '--load-cores', '24-31',
-           '--ports', '20100-20199', '--candidate-binary', str(binary)]
+           '--ports', '20100-20199', '--candidate-binary', str(candidate)]
     assert digest(binary) == frozen_sha, 'candidate changed after freezing POST'
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
     print('START', name, started, flush=True)
     with (out / (name + '.log')).open('w') as log:
         result = subprocess.run(cmd, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
     record = dict(name=name, command=cmd, jobs=jobs, engine=engine, fused=fused,
-                  sha256=frozen_sha, rootcore_test_sha256=digest(root / 'tests/rootcore.py'),
+                  sha256=candidate_sha, rootcore_test_sha256=digest(root / 'tests/rootcore.py'),
+                  aof_test_sha256=digest(root / 'tests/aof.py'),
                   started=started, ended=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                   exit_code=result.returncode)
     receipt.write_text(json.dumps(record, indent=2) + '\n')

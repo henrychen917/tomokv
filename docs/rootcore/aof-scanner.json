@@ -1,0 +1,45 @@
+{
+  "path": "build/gate-run.YtFHZQ/jobs/aof-epoll/gate-aof-epoll-atomic0.YujRfY/appendonlydir/appendonly.aof.1.incr.tomo",
+  "input_sha256": "b027a5f9bcd0914ad6d0a906f60be0b41d1cbe18cd37c819fbccd3eb9e9f42db",
+  "test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+  "function_record_offset": 14328579,
+  "checks": [
+    {
+      "case": "old scanner rejects new valid record",
+      "accepted": false,
+      "error": "invalid AOF group commit record"
+    },
+    {
+      "case": "updated scanner accepts actual increment",
+      "accepted": true,
+      "tickets": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "case": "unknown control kind",
+      "accepted": false,
+      "error": "invalid AOF group commit record"
+    },
+    {
+      "case": "FUNCTION checksum damage",
+      "accepted": false,
+      "error": "invalid AOF FUNCTION dump checksum"
+    },
+    {
+      "case": "FUNCTION ticket is nonzero",
+      "accepted": false,
+      "error": "invalid AOF group commit record"
+    },
+    {
+      "case": "record crosses frame",
+      "accepted": false,
+      "error": "AOF control record crosses its frame"
+    }
+  ]
+}
