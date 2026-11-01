@@ -1,0 +1,3 @@
+/home/user/Projects/cx-wave14/build/wave14/counts/trace /home/user/Projects/cx-wave14/build/wave14/counts/scopes/post-ordinary-initial-normal/probe /home/user/Projects/cx-wave14/build/wave14/counts/scopes/post-ordinary-initial-normal/lua.ranges 8c1d00 8c1d10 000000000002bb30 SET 2s 32 1 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope

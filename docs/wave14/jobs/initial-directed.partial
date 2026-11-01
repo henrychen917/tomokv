@@ -1,0 +1,28 @@
+PARTIAL	0	GATE_ONLY_JOBS=rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf rootcompat clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race blockfix4 maxmemrace; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	53.210000	maxmemrace CONFIG SET maxmemory reaches every owner before +OK
+ok	207.520000	clientcompat pause
+ok	4.640000	clientcompat disconnect
+ok	162.670000	clientcompat multi-tracking
+ok	444.390000	clientcompat multi-controls
+ok	77.470000	clientcompat enable-race
+ok	8.210000	rootcore eval
+ok	1.540000	rootcore segments
+ok	4.440000	rootcore notify
+ok	20.200000	rootcore functions
+ok	12.450000	rootcore waitaof
+ok	41.570000	rootcore misconf
+ok	17.340000	blockfix4 scripts (all modes, read-local and atomic)
+ok	43.680000	blockfix4 moves (all modes, read-local and atomic)
+ok	4.930000	blockfix4 creators (all modes, read-local and atomic)
+ok	9.700000	blockfix4 removed (all modes, read-local and atomic)
+ok	6.660000	blockfix4 mpop (all modes, read-local and atomic)
+ok	1.070000	rootcompat proc vs Redis 7.4
+ok	1.030000	rootcompat password vs Redis 7.4
+ok	1.030000	rootcompat replication vs Redis 7.4
+ok	1.030000	rootcompat sort-acl vs Redis 7.4
+ok	1.030000	rootcompat redact vs Redis 7.4
+ok	459.100000	rootcompat xsnotify vs Redis 7.4
+ok	456.860000	rootcompat tracking vs Redis 7.4
+ok	1.250000	rootcompat hscan vs Redis 7.4
+ok	31.220000	rootcompat setpast vs Redis 7.4

@@ -1,0 +1,160 @@
+{
+  "label": "order-plain-rootcompat",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.q5WR2R",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/order-plain-rootcompat.tar.gz",
+  "archive_sha256": "207341df217efa914a0ab99d65e787ae5db0cfd130d7e4d729cf1ed8fd22d2a0",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 109,
+      "sha256": "b2bd32de13ab8303d215d2a11097c664f3a1ffa4f68e293962bc5c8bdad0e297"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "e4135f0f13013b54880dcb152c36459eab21df7662c71b5d082d30d4b576a254"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 153,
+      "sha256": "4fc1a4fcb7a3593edd9bcff481138239f3ab51334ca726fdb1ae90004276ad23"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/wave14_order/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/wave14_order/family.tsv",
+      "size": 57,
+      "sha256": "add9688e6895e4f61689188642291599cdfaf3c84c678218beb73e0bbf1fcda9"
+    },
+    {
+      "path": "jobs/wave14_order/ledger",
+      "size": 56,
+      "sha256": "a3e756a857792db40d250985784ca00a702e7a736b03bf51db4a5df8c7a5a514"
+    },
+    {
+      "path": "jobs/wave14_order/output.log",
+      "size": 246,
+      "sha256": "de7cb8efa17a8381bb1e9dc234c95b268be4c97ce2035ba73d926d3bd8b43780"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db16-a1/server/argv.json",
+      "size": 715,
+      "sha256": "8f2e4933099adcd94881ff516d2bc9498c397c971c4de8c6a2cfc87d02fb923c"
+    },
+    {
+      "path": "jobs/wave14_order/proof/2s-epoll-db16-a1/server/server.log",
+      "size": 9857,
+      "sha256": "c3aaafb81a768e1fcc2de08814b43060bcb3dcba37ee072dc97b392cc4617833"
+    },
+    {
+      "path": "jobs/wave14_order/proof/oracle-normal-db16-a1/server/argv.json",
+      "size": 538,
+      "sha256": "a4e537d0f960c7192a66db9bc61de1bb9905b2d597a85729ac0c1c4ef4a20b57"
+    },
+    {
+      "path": "jobs/wave14_order/proof/oracle-normal-db16-a1/server/server.log",
+      "size": 1127,
+      "sha256": "a7aaaa37189608cdb8d270abab801e9896bc76ab5d3ea424deb1228d9a49e8dc"
+    },
+    {
+      "path": "jobs/wave14_order/proof/results.json",
+      "size": 16035,
+      "sha256": "7e86a2895bcf9fa6f300be8e35a92d5e6eeb9538ce70335958c0f7ee7950b025"
+    },
+    {
+      "path": "jobs/wave14_order/proof.log",
+      "size": 12725,
+      "sha256": "5fdaa4d79aa2f2f0b32244c2ffd8070851de54e687d175943ee1befb14fd4def"
+    },
+    {
+      "path": "jobs/wave14_order/timings",
+      "size": 56,
+      "sha256": "a3e756a857792db40d250985784ca00a702e7a736b03bf51db4a5df8c7a5a514"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "3c4e9cb930b6744a6ff23e87556074650261151d7e51eba7569b9a9385dbabd9"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1186,
+      "sha256": "62b31dba587302779559cf2fc6767d5d2d9e92b04dad492409ac442b7a52f0d1"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 6438,
+      "sha256": "b8d9f235592402788bf6384dae71d5fd52d2e291f5d9a6d52c6b1a0ff1b8124d"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "wave14_order",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "1.050000",
+          "label": "wave14 script EXEC wake publication order"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/bins/rootcompat-post-f3511f86"
+  ],
+  "binary_sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+  "exit_code": 1,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.q5WR2R",
+  "engine": "uring",
+  "fused": false
+}

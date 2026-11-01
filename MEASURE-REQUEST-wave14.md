@@ -81,6 +81,9 @@ sequence is the composition of those lane behaviours, not an additional merge
 regression. This is the pre-existing D11 publication/retirement problem; it is
 not promoted, tolerated as a Redis pass, or silently hidden in a new green row.
 The red directed receipts are retained under `docs/wave14/jobs/order-*`.
+The final frozen POST repeats the failure across all sixteen declared
+mode/engine/namespace/atomic legs in `jobs/wake-order-final.json`; its Redis
+control is retained in the same archive.
 
 ### Initial command census and budget criterion
 
@@ -111,7 +114,7 @@ and rejected counts are retained, not presented as the integration cost proof.
   enrols through EXEC, in every existing scan geometry. It retains fresh-state,
   bounded window arming and exact full-cache coverage; no tolerance is widened.
 - New error sites were audited against crlffix. The new direct `reply_err` sites
-  use static ACL/SORT, OOM, subscription and deleted-stream messages. XREADGROUP
+  use static ACL/SORT, OOM, subscription and WAITAOF-disabled messages. XREADGROUP
   still uses the central NOGROUP builder; no new user-controlled error text
   bypasses the central CR/LF handling.
 - The maxmemrace Redis oracle assumed `maxmemory 1` immediately implies OOM.

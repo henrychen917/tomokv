@@ -1,0 +1,498 @@
+[
+  {
+    "object": "src/main.o",
+    "sha256": "167eb577c7b1a08115060584d61d7b96a405abe9d1a59aad1a43e102d14731b8"
+  },
+  {
+    "object": "src/persist/aof_frame_debug.o",
+    "sha256": "4c595ce18632b57ba951603867d0b6aafc5771149ba2b8c3e43fc5f12ecc3523"
+  },
+  {
+    "object": "src/persist/aof.o",
+    "sha256": "1218e265037bfadbc1fcc6a0ac0a17869912090a771b8e10f0fbe30f2e6ce905"
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "sha256": "61ce3e8a21dde0b9fce93e2f5cd60b4ebb9b5f441c86886f25e90c391da5163f"
+  },
+  {
+    "object": "src/net/tls.o",
+    "sha256": "e22f73993604574b50cbff920644f8017377675e8b5a41ddd7334ce30a237d61"
+  },
+  {
+    "object": "src/store/flush.o",
+    "sha256": "a0cb2d9f4a2dca35f95fbb692806388282ac7d76b8c3e60b7fd6f6c9f069c294"
+  },
+  {
+    "object": "src/cmd/hll.o",
+    "sha256": "f9ee62721307b24c5d6704f71dd10f14a2acd5a112ca4f82d7d4faec58976124"
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "sha256": "dfd74449b4a4cd41259e45b740bed9561edd9a47f9c1ea906a6aefcfd92f513c"
+  },
+  {
+    "object": "src/cmd/tracking.o",
+    "sha256": "fde48ef4c44fc097bcd9611e203b3627f835132be12bd35aad3e4d8046955f41"
+  },
+  {
+    "object": "src/cmd/geo_store.o",
+    "sha256": "783bc8ab8e89a3f98349206e50a8b688632a171889b083f2e04266398de3aea6"
+  },
+  {
+    "object": "src/cmd/t_sort.o",
+    "sha256": "2e3e6e1cd720da18c941b88e95e7dde9be0c75727b6d52f04c93b69cc9bd8fc6"
+  },
+  {
+    "object": "src/cmd/clientcompat.o",
+    "sha256": "f591f3dac0172e6106ae581981b44ed5e7019dd1e076e7b1756b83086dc90cd5"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "sha256": "77210654cfe09c2a64c3c4de42691249917fadf886c1ce006f6d1b14b6f6b094"
+  },
+  {
+    "object": "src/cmd/t_zset_ops.o",
+    "sha256": "8a54248514f773b0abbbd32ab5627b4022da55919f128f495badb1ba3abecbc6"
+  },
+  {
+    "object": "src/cmd/info_stats.o",
+    "sha256": "547b415191fad7574697ff4b1117f579f075b8a54f0bc24d04508c52cbf0db45"
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "sha256": "06e07a83153078268b9dc1d72f0cad01fe33ace61e3502c1b126f0809771cfc0"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "sha256": "4bf704f91ad66d3d466bb09653d828c5396c25784a1762af7daac3881a07c48c"
+  },
+  {
+    "object": "src/cmd/lcs.o",
+    "sha256": "ee75e5156ea37845883b1ed6083072a814ea5d7c0c0473977849a2431a8b03b7"
+  },
+  {
+    "object": "src/cmd/server_tail.o",
+    "sha256": "acef19db3b30493a702c0d92b45e6498435fecca0aed730e5b78e28fdedb9dc1"
+  },
+  {
+    "object": "src/cmd/autharity.o",
+    "sha256": "9d0e5e24c01afa5de4a58af2a8f95dfbb211a5a92d3a7db3c29102c88a059ddd"
+  },
+  {
+    "object": "src/cmd/multidb.o",
+    "sha256": "d3fd625071bb9b68fccf53319f1ec016e42683fe0b2b375d8d508d83f39acf13"
+  },
+  {
+    "object": "src/cmd/cmdgap.o",
+    "sha256": "b35ba60536c1c8c43ac356b6ede37e9d3f8e2b43d2d37eabe336ce0c81a8138a"
+  },
+  {
+    "object": "src/cmd/storesize.o",
+    "sha256": "0d098a866e254e023b4289db5157edf7695fb8b581f6a90f0fbf118d76ef800c"
+  },
+  {
+    "object": "src/cmd/hexpread.o",
+    "sha256": "13e7e23d383bcdf952ee41da6d59bd8723c5658c6a457c21d769ce25c0ed17cc"
+  },
+  {
+    "object": "src/cmd/pfdebug.o",
+    "sha256": "a647d025a9e20b31ead517f69ba70af6f30a378ab20b9dc76b8018f42ceb033d"
+  },
+  {
+    "object": "src/cmd/t_string.o",
+    "sha256": "d489664a598dd3b7a4f6290bca5f7d28a3734ff5f81318967323013a4579cc8a"
+  },
+  {
+    "object": "src/cmd/multi_admin.o",
+    "sha256": "e4e6de7110726ec1f25ca265366e1e946329ecce7b483fcb0e7d7c43a5033b7c"
+  },
+  {
+    "object": "src/cmd/aclkeys.o",
+    "sha256": "101e9f0270582dea7631f0c9eec6282b505e74453ae86329ebfb3373cceb5bbd"
+  },
+  {
+    "object": "src/cmd/latency_tracking.o",
+    "sha256": "a87e6611e9159048ec163360ccdad5f52b22c4da81eec9ce9db3504fbc09ff4b"
+  },
+  {
+    "object": "src/cmd/commands.o",
+    "sha256": "c511358c114ff0237ffe160797784547db8d9f346c80102ad4cb5410c2ee0b88"
+  },
+  {
+    "object": "src/cmd/serialize.o",
+    "sha256": "b7a0732554244fbd76a9daa2604d325b4bb5fbdf8158b9dc56aadf806a488270"
+  },
+  {
+    "object": "src/cmd/geo.o",
+    "sha256": "a33ae7645373fa46d3c7e1bb2a5a203c6f72b6a96c12571378ed0dcb7b65a469"
+  },
+  {
+    "object": "src/cmd/t_hash_ttl.o",
+    "sha256": "30a081837d8d0795e884c0b01a8513dc7965a6ce6285631ca5a21d4493e3d560"
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "sha256": "14788be61ced7fefaf9d5c1ade63a83e069837a729387a9b377fe31166d65e22"
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "sha256": "e45d1a37384c1b2625301e647222b93286cbfb2a4fb50ac4c91d38d1c41b46c0"
+  },
+  {
+    "object": "src/cmd/glob.o",
+    "sha256": "b70da7f377b14a741b07d340fee6ff3b8a98de8e8a931f7d983b0de61380b36d"
+  },
+  {
+    "object": "src/cmd/t_stream.o",
+    "sha256": "249feff8deba17da7eb78f4df0806010e0224403356e9a0c6a252a23a4ad3003"
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "sha256": "99b18ae7aba19d9f9c92ac8df20bf211859d7c8791f1c336507d05dbd24c82dd"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "sha256": "bc51935dceea91786f42f2c6c1dc59a4db025aa7c5c83b95a4b3630077b29054"
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "sha256": "2e15beb9ddded97aadc5c935d8d9e0f42d6b8a67cea2b23a03cb3cb45d4444fc"
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "sha256": "0817d1127cadfb65773126a23b968b202f7b640e50601fd8cf0a8cfbe9acf143"
+  },
+  {
+    "object": "src/cmd/slowlog.o",
+    "sha256": "66d98b8334d376e2a3075b4c8d83341b859d5026351860196b690752a6d22dec"
+  },
+  {
+    "object": "src/cmd/objectpread.o",
+    "sha256": "6a4283b777c00478a0f85d683afda4bfbe80eba9317ee155bfc1914ee0d68c1f"
+  },
+  {
+    "object": "src/cmd/t_hash.o",
+    "sha256": "dc6b8c9d8a1acb63d6255dad315b5ae76370fa8d007b9d1a59f878d785de6c3d"
+  },
+  {
+    "object": "src/cmd/eviction.o",
+    "sha256": "caec7051fcf48519bb268aa9e625bad1a4ea0680dd64b5b297bbcee39b6a60ae"
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "sha256": "7ca29a71685201d27135019b44f1ed64484b6d7c56f4a7e355d15a9b9c69e359"
+  },
+  {
+    "object": "src/cmd/blocking_debug.o",
+    "sha256": "c2149e0536a10fa129dae0b25d248392c9f4f6cdcf603b4ac469342e2d996543"
+  },
+  {
+    "object": "src/cmd/scripting.o",
+    "sha256": "8fe315e388b5a0156990f48638ad77a353bfe657832058c8e8c0b917d75c89e2"
+  },
+  {
+    "object": "src/cmd/lbsignals.o",
+    "sha256": "8d50aa9e8603bb818227b7035bbe19f9a2f6b28e6e386bb7217568b318c33103"
+  },
+  {
+    "object": "src/cmd/functions.o",
+    "sha256": "abb1d44d5eb4e9a9c8941ab6a6d8a63fa1da9b82da58c5fa7922741a1d3420ba"
+  },
+  {
+    "object": "src/core/fliplisten.o",
+    "sha256": "4219b95c04ea352a918f60e2bfcdb5e74e737c9b10e3531c64b8ad6d4a2874e8"
+  },
+  {
+    "object": "src/core/genthread.o",
+    "sha256": "f51528b9026ae9c02617a0c83df0ec91fe2c8d5441a0dcbccc606a7a7ba26f87"
+  },
+  {
+    "object": "src/core/lbplanner.o",
+    "sha256": "f1c965fb06828a5e58a6cd5d6f0265787fdf87802789a8ad06dcd9ad2595a07d"
+  },
+  {
+    "object": "src/core/flipctl.o",
+    "sha256": "8917257ae18905e1d628a4d704455c87aa7ed6c4ca2538e11acebef2371ec82c"
+  },
+  {
+    "object": "src/core/reorder.o",
+    "sha256": "7b0bfbe96aae11b0281b7f1a29f95620401da70811fe2be39e5518d71052fe41"
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "sha256": "91f5c584df433c34cb8a1299549379737f396f359133e1ce8bd6bfa12cf7eb09"
+  },
+  {
+    "object": "src/core/shutdown.o",
+    "sha256": "e34a4dd433757164dfa9b2fe657fda6853913a86814f715d4549e0f44e9ca466"
+  },
+  {
+    "object": "src/core/version.o",
+    "sha256": "7277a876147534345ac9b2d83cca1c175c70028f76bb36505668bffcd4aaf745"
+  },
+  {
+    "object": "src/core/lbstall.o",
+    "sha256": "19fcf4ac4a62df44dc45698731d8b64343c95b4d4fe769e3796a00bba87fab7e"
+  },
+  {
+    "object": "db0/src/main.o",
+    "sha256": "67e9cacdbbfb8d295a4af8f93e2e70e0ed40e6bc3a984eb0dbc055bdb19ce1e9"
+  },
+  {
+    "object": "db0/src/persist/aof_frame_debug.o",
+    "sha256": "24633773a96c4fd64d91501d9c14e3cb37991b76f725d0c51dc92ea0f7b66474"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "sha256": "6208384cbfa77d4439ee436d3a1726d0e19a1fa4dd44d2dd792ceae9a9edcf87"
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "sha256": "e37df4f9499f04790da97bdacf09d6431403ad4ce669cafae1b697acecef44db"
+  },
+  {
+    "object": "db0/src/net/tls.o",
+    "sha256": "0b87f0b2fd38a0ea25361b3c72b8a87f0be7dd83dcbfd4cf7c638707d14ea7a6"
+  },
+  {
+    "object": "db0/src/store/flush.o",
+    "sha256": "1a770cf413193c530ea8b96b37422df75585f304635c1bb79654f374ef4632e5"
+  },
+  {
+    "object": "db0/src/cmd/hll.o",
+    "sha256": "bca64aff2e34d38c415fdc993eb6c4be8962cb17e47bb4c01b80dc4ed2075434"
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "sha256": "86930320a42f7fde8a674c99bba3dd7a012c6852238dffd383fdf8e27fc55082"
+  },
+  {
+    "object": "db0/src/cmd/tracking.o",
+    "sha256": "abc64e97fd9cd5e10c162ffb970f309e19681dce1197a5cf6fb48e587505f1b1"
+  },
+  {
+    "object": "db0/src/cmd/geo_store.o",
+    "sha256": "ccb99036095cbf2756111c1a1344eba131c05fd557b5279743bf235c0e4faee9"
+  },
+  {
+    "object": "db0/src/cmd/t_sort.o",
+    "sha256": "e78e0c09402c8e82682cbbe8fba0c587686cc73bc20db8747adbdd8389d2da22"
+  },
+  {
+    "object": "db0/src/cmd/clientcompat.o",
+    "sha256": "efa2cd2373673dd3c745509a14db4928e43878d0d1b63ccb06c89efb378ab8e6"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "sha256": "80794014bb99db279527230957df1803838125899cfed84a3e12c0c667d033e7"
+  },
+  {
+    "object": "db0/src/cmd/t_zset_ops.o",
+    "sha256": "282b52211c4bc8bc0637bb7ed1f43e7babbcd8c925ff61e7c93bb48e3578ef94"
+  },
+  {
+    "object": "db0/src/cmd/info_stats.o",
+    "sha256": "0a99727bca52be1d16c92729113c249dd8e4382fe71c3e7a1b02171640d2262c"
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "sha256": "02bc6bc22356b41a8b2479bf5ca6cedb80f88ff56373c703f766e75453a8da34"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "sha256": "39013c11f46d57c2e0ef022f6965a58bb4ac7799cfb8255f595f6b2ae87fd194"
+  },
+  {
+    "object": "db0/src/cmd/lcs.o",
+    "sha256": "e0eb8e161e12e86274414a8b0d2abc75528595400de2b7f3458d2f9809c5aee8"
+  },
+  {
+    "object": "db0/src/cmd/server_tail.o",
+    "sha256": "1afe2c632abc804dd16f45fc35fa9cf438749d692e875ad284e2bd91fdcd0f8e"
+  },
+  {
+    "object": "db0/src/cmd/autharity.o",
+    "sha256": "03ebf4a2614660c6fc187085c504342850ff2ed2e855e4c0e039f1c038c63254"
+  },
+  {
+    "object": "db0/src/cmd/multidb.o",
+    "sha256": "81783836d82692860fa5f3a2375adae9b5b685f7cb6123310f447825692072bd"
+  },
+  {
+    "object": "db0/src/cmd/cmdgap.o",
+    "sha256": "33fee787223544d553f5cbf53427520b15f19240f24a9f1735927da284bf1100"
+  },
+  {
+    "object": "db0/src/cmd/storesize.o",
+    "sha256": "c8233c88fe1237d57b502b80f83de57c74c749def5a859f6adcfcb259794d2e8"
+  },
+  {
+    "object": "db0/src/cmd/hexpread.o",
+    "sha256": "fa28dd7dacc49e4ef88b37d0b9c2dbbc17add77e86bacd260148a3f45d51eb4c"
+  },
+  {
+    "object": "db0/src/cmd/pfdebug.o",
+    "sha256": "7089670ff82cdebf6864a52c9011e6588c240e8b923930320393d76b3eb39eaa"
+  },
+  {
+    "object": "db0/src/cmd/t_string.o",
+    "sha256": "361770c16740fc64b567ce39506e81e57cbb16189e1615f188fcb48a95c5d118"
+  },
+  {
+    "object": "db0/src/cmd/multi_admin.o",
+    "sha256": "f72491fe80c24d2e85200337ace46492c5247a1b58e5c17fa28af74cbabf90ea"
+  },
+  {
+    "object": "db0/src/cmd/aclkeys.o",
+    "sha256": "25971c5dd8e09b708f29b617d3d3fa68e3da29de7aee7b6cd674071d703ce592"
+  },
+  {
+    "object": "db0/src/cmd/latency_tracking.o",
+    "sha256": "c9e2db3d144a4b7bab05b3d1ba8616923f5b1a8d95aa0589d0d067a85a9d16af"
+  },
+  {
+    "object": "db0/src/cmd/commands.o",
+    "sha256": "8ad3d8e6bae59fab7d8fe1f4ba17e2427348b701112f86aeed03c267f2cda728"
+  },
+  {
+    "object": "db0/src/cmd/serialize.o",
+    "sha256": "e0e24b36a4954c93c0ee5908dc05d09b468150c1d5e3db2a83ebed0220778530"
+  },
+  {
+    "object": "db0/src/cmd/geo.o",
+    "sha256": "585604438734ee999ebec51738f6813a05d5b51b0c3e8f4d8885365784738e5a"
+  },
+  {
+    "object": "db0/src/cmd/t_hash_ttl.o",
+    "sha256": "462c85dd6b017c6f1196a3f24a917433a015ee821a40b4e590d251b590d7f4e4"
+  },
+  {
+    "object": "db0/src/cmd/t_list.o",
+    "sha256": "183f8896e2f0e42b2407627e7e5bebe7845e11a5cbd54b407b674abb2756e304"
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "sha256": "6ec3d98efc08abf01107699cbeb7a964bfc90f6f1454014921da1199bd7ceab9"
+  },
+  {
+    "object": "db0/src/cmd/glob.o",
+    "sha256": "b05d4de92e45af986ada9cea63db94b8a5f2dc9487d8cc1f3cdbf280dfee0d9c"
+  },
+  {
+    "object": "db0/src/cmd/t_stream.o",
+    "sha256": "487e0221fc6cc8aa976fe541a5cf313e64945496be67a65f916c419e4ab190b5"
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "sha256": "71803b2fddd64353317c63ca461f0379d9a2ef9f873e1c8f35eeafa7bbf97197"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "sha256": "6e7224cce23067a0c6a607e119ca0df8cc7dbe9353776f31dc4a11c0cda50b52"
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "sha256": "c3e52169ae48d342ec260a4fcd127f1afdca4da6a6709a1445c5cbcdc7872f65"
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "sha256": "71de58930801937d66a0e6567bfe73fddd2cfb4045324d71c12cd89948e4c02b"
+  },
+  {
+    "object": "db0/src/cmd/slowlog.o",
+    "sha256": "441830d513de04cb1257e268d547e8fbb7734803540e54d4ae0a417c69f8b25f"
+  },
+  {
+    "object": "db0/src/cmd/objectpread.o",
+    "sha256": "0b4d590b0e3c7730628012bd0bd7e29d7b4eb5505bc3fb836dd2ec7dac84ccf3"
+  },
+  {
+    "object": "db0/src/cmd/t_hash.o",
+    "sha256": "58528f4a4a1402d987a6cb463b1f3e2a240b42c1c965a816c5d4bf190095b7f4"
+  },
+  {
+    "object": "db0/src/cmd/eviction.o",
+    "sha256": "e59fef96c33770d77104cf1e7bff368eb37c8bc5fef890862eb2e54783787c0f"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "sha256": "e4eac0bee45bfd367948e738cf4e21dc9c9545c4cd3ebff4a99d6e77773cee3e"
+  },
+  {
+    "object": "db0/src/cmd/blocking_debug.o",
+    "sha256": "a30f833d40ce53f241aabff5d8ee6df0b4a993c4f8eef37a3ba9bf423c6c65b6"
+  },
+  {
+    "object": "db0/src/cmd/scripting.o",
+    "sha256": "9627ae577dfd06f8f710678f60aeec5810d43e0ff54e4b8868fa8f39d88fadea"
+  },
+  {
+    "object": "db0/src/cmd/lbsignals.o",
+    "sha256": "120f47a6fe04a73c42beb609b1e70b877be754ee3463ce3f4748dcf76057d814"
+  },
+  {
+    "object": "db0/src/cmd/functions.o",
+    "sha256": "4b6ddeefea86a0c2863c3d3b9fb5aa43ec33526f841b28efaa78bfa1d97961d7"
+  },
+  {
+    "object": "db0/src/core/fliplisten.o",
+    "sha256": "e349309a1714de2a7bce123417fc1c3929df61e48fea9d37745cb70f768e2390"
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "sha256": "b371671fc5e57fca812ddd85041396b90e85481c28808f6d24d08cde618a2eb1"
+  },
+  {
+    "object": "db0/src/core/lbplanner.o",
+    "sha256": "604c9dd4bf309e846ffce256bd4605b7c3c982079c3c0a90eac0d6e815f49475"
+  },
+  {
+    "object": "db0/src/core/flipctl.o",
+    "sha256": "57869b21196bf215c4f78c135512160b2864e05be8d2292ec9d412930589cee9"
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "sha256": "2efdb648c646da339f8eebe74b9e10b84dee04819b38172d29faa881dc2d05e9"
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "sha256": "42e0981d41ce77d316d575299341fcd7459e1659388b8dee6cc75e7ecf4bc109"
+  },
+  {
+    "object": "db0/src/core/shutdown.o",
+    "sha256": "61aa3a91fbc00b70783d493ec09ec896c99edd49b7155f0bb037d2b9117538af"
+  },
+  {
+    "object": "db0/src/core/version.o",
+    "sha256": "58ffdf593511ca77107a42eeae68dc5070e33ce3cf531cb61c497b5b159eb809"
+  },
+  {
+    "object": "db0/src/core/lbstall.o",
+    "sha256": "f9457ff6ff36fadd980b49dc166329f059dde08d9c196a16b4dab8a564650f84"
+  },
+  {
+    "object": "third_party/lua/helpers/lua_cjson.o",
+    "sha256": "dd12c2937b6dba9e57343bba51ca4d104185b898abaefcc9d450b556dcc981cb"
+  },
+  {
+    "object": "third_party/lua/helpers/lua_cmsgpack.o",
+    "sha256": "70b9a50564852dfcb78cad31b72c566c0d8c2c9c9111e748eed698afd79a7f9f"
+  },
+  {
+    "object": "third_party/lua/helpers/lua_bit.o",
+    "sha256": "7491647a51292690a60ced58e034b8c8759fcf8cc373495e47215ffa7a300f32"
+  },
+  {
+    "object": "third_party/lua/helpers/strbuf.o",
+    "sha256": "45a71d547b2d2dda754164cca814490815ccf9f487fe2f0351cc99479143bd0c"
+  },
+  {
+    "object": "third_party/lua/helpers/fpconv.o",
+    "sha256": "ec8384a17ec7016149fa31e7ddc274e07516e13e0cf340c34ad1ec05d47403ef"
+  },
+  {
+    "object": "third_party/lua/helpers/lua_struct.o",
+    "sha256": "1a4927fbe6e791b9deea55d0a8ba6785570f458d39e2f1991456e34881358a74"
+  }
+]
