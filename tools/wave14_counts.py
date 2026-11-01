@@ -23,7 +23,8 @@ def trace(prepared, label, ns, case):
     target = census.DOC/label/('-'.join(map(str,(ns,*case)))+'.json')
     if target.exists():
         old = json.loads(target.read_text())
-        if old['probe_sha256'] == digest and old['tracer_sha256'] == sha(census.BUILD/'trace'):
+        if old['probe_sha256'] == digest and old['tracer_sha256'] == sha(census.BUILD/'trace') and \
+                Path(str(target)+'.sites.gz').exists():
             return old
     target.parent.mkdir(parents=True, exist_ok=True)
     run = subprocess.run(argv+list(map(str,case)), text=True, capture_output=True, timeout=900)

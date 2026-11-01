@@ -1,0 +1,3810 @@
+[
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-1s-1-0--1.json.sites.gz",
+    "sha256": "cad8bef0554f60d72325a0151769d08e036009cca4ce93f721d8f1a7fed95b28",
+    "raw_sha256": "91fca980ce279fbcaad9e2f23ccb9ef272a185dc3e38f67252c387b530bbdd47",
+    "addresses": 714,
+    "instructions": 783
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "5f43c2be2e7d6485658352b17e65512ee7d7684b5075ea0efa10f36f5cbb0b5e",
+    "raw_sha256": "91fca980ce279fbcaad9e2f23ccb9ef272a185dc3e38f67252c387b530bbdd47",
+    "addresses": 714,
+    "instructions": 783
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-1s-32-0--1.json.sites.gz",
+    "sha256": "385a6f9a54bdd9e08c88d58727c65fef3d80e62c7f80b97158cfc6979d798cfb",
+    "raw_sha256": "c1b36d22d2e3ee18901b411fc71d9b452bde281c322b6d68076626a3140c7a6e",
+    "addresses": 716,
+    "instructions": 17585
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "54ae789c2aa853ee8f05c55acaf62f2db5adcc993188e68da09fabb5e26aef02",
+    "raw_sha256": "c1b36d22d2e3ee18901b411fc71d9b452bde281c322b6d68076626a3140c7a6e",
+    "addresses": 716,
+    "instructions": 17585
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-2s-1-0--1.json.sites.gz",
+    "sha256": "644c1875581505f7de31834e6721a8f23fb083d3fe3edf138eb27b7aeacdd7f0",
+    "raw_sha256": "26e155e9dbdfb51becf1c1987917871591766ad7400f497d9b133445e01b1ecf",
+    "addresses": 689,
+    "instructions": 1016
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "86b4e1aed51d10f53a25359de87c13acc70f26be2c796d0974668cb6f99a3c7d",
+    "raw_sha256": "26e155e9dbdfb51becf1c1987917871591766ad7400f497d9b133445e01b1ecf",
+    "addresses": 689,
+    "instructions": 1016
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-2s-32-0--1.json.sites.gz",
+    "sha256": "2c371453de0b4a20a74eeb00a31274013160c530c72e5d5b388dc44231fea595",
+    "raw_sha256": "2549d55ce80b698f9c9c56c02e8b125e9b27d034a7416b49be3e86ed7c74043d",
+    "addresses": 691,
+    "instructions": 17043
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "dab584c6862e9a62386d6d4303896e41a77846041b51cb0caaf1d9df677830d8",
+    "raw_sha256": "2549d55ce80b698f9c9c56c02e8b125e9b27d034a7416b49be3e86ed7c74043d",
+    "addresses": 691,
+    "instructions": 17043
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-1s-1-0--1.json.sites.gz",
+    "sha256": "234d6304927a06d49739271518f1f25dc942ac41ca6aef531c7df0865d582028",
+    "raw_sha256": "bdab762f28566285355d6e05d3cf6d03f1ddc666016240595c1e9df3faedb9b2",
+    "addresses": 1198,
+    "instructions": 1244
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-1s-1-1--1.json.sites.gz",
+    "sha256": "2949bdb5acc4a087d1b847502aa1edd7724dd3a60aedf6ce2ca8284eb085eada",
+    "raw_sha256": "bdab762f28566285355d6e05d3cf6d03f1ddc666016240595c1e9df3faedb9b2",
+    "addresses": 1198,
+    "instructions": 1244
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-1s-32-0--1.json.sites.gz",
+    "sha256": "7b73b5c0df5befbd26a5474ab340b7aa2509f1155fc61389a9da70bedd5f055f",
+    "raw_sha256": "7ea03f6875857d339817c08e3f9e412557538fb2e62ea487f77c5709e058f590",
+    "addresses": 1200,
+    "instructions": 32866
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-1s-32-1--1.json.sites.gz",
+    "sha256": "5a56b951be3119f9889949322762e87b639db9f73094053d176fff12b7c7047e",
+    "raw_sha256": "7ea03f6875857d339817c08e3f9e412557538fb2e62ea487f77c5709e058f590",
+    "addresses": 1200,
+    "instructions": 32866
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-2s-1-0--1.json.sites.gz",
+    "sha256": "47b6f71cde5a640bc27bbb0b091fb57dca3395a46b610d586cff8ff2bef54ad9",
+    "raw_sha256": "b1263493c9ad2c4acd438cf7f3c2216589325b2843d5b55df364f38e7e65412f",
+    "addresses": 1173,
+    "instructions": 1477
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "63d96fbed5cc9eadc6186f79da7754c28bfd6ed9731d56db18f8fbdf09862e39",
+    "raw_sha256": "b1263493c9ad2c4acd438cf7f3c2216589325b2843d5b55df364f38e7e65412f",
+    "addresses": 1173,
+    "instructions": 1477
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-2s-32-0--1.json.sites.gz",
+    "sha256": "a681f5bc58ab3fd2ed20344ca82218b889318c2762f63d09114747ed82cd9c1d",
+    "raw_sha256": "38143aad8bc96a646fcdeb316bbbaba338b6c876475287f994934b685adf9510",
+    "addresses": 1175,
+    "instructions": 32324
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "606c655dc4b4da6955635742e67ae4b359a82edb0e723447aa4dd34f436a7669",
+    "raw_sha256": "38143aad8bc96a646fcdeb316bbbaba338b6c876475287f994934b685adf9510",
+    "addresses": 1175,
+    "instructions": 32324
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "a0ba2e63e41105df92021d87db377b2cc908032687685a97adb725edb51ca458",
+    "raw_sha256": "eeb3d90c1bab8a603f26c2028bc8fe5255098dbbb24981322b4569098ab09534",
+    "addresses": 2438,
+    "instructions": 2906
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "423c670034df416b493283e100206a985716720d760a7ab9d202f73747b8fcd2",
+    "raw_sha256": "eeb3d90c1bab8a603f26c2028bc8fe5255098dbbb24981322b4569098ab09534",
+    "addresses": 2438,
+    "instructions": 2906
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "623e84a09b53d62e9efbf0d5e625c0e415dbd038a73b769f379bb293de4fc1fb",
+    "raw_sha256": "d6db8a53cb7531124a398f8f83dbbf276ccd656140eee66c5d539aa2e8a52aba",
+    "addresses": 2782,
+    "instructions": 56855
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "9439d5c4bf92cac1df493df6df41d9583f2682d526b0353adeec7a61e6f8fafd",
+    "raw_sha256": "d6db8a53cb7531124a398f8f83dbbf276ccd656140eee66c5d539aa2e8a52aba",
+    "addresses": 2782,
+    "instructions": 56855
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "ed59df86fa7865c5ece3964a887dd1b28efddc339cbde69e1c04830076f41833",
+    "raw_sha256": "63a8550e5dc9ab7b131dec6e9df300e224ea0ba02fdb37a19f8bd874a93cb957",
+    "addresses": 2413,
+    "instructions": 3139
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "6cdb9ace1aeea4e431e767be5f12690125d88f462f61caa118f5a4af189133c4",
+    "raw_sha256": "63a8550e5dc9ab7b131dec6e9df300e224ea0ba02fdb37a19f8bd874a93cb957",
+    "addresses": 2413,
+    "instructions": 3139
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "08dea1986427883e794004adbb538951800bbadee24ddf05aae9ab1b8e5474c8",
+    "raw_sha256": "0931cb79c766fbe3e3e33c42d47ed492abe16af7ef94ab60270228ab6f808a57",
+    "addresses": 2757,
+    "instructions": 56313
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-LPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "afc8f9f6ea187dbe1a774ac5ef634c5c1bcf9a5f4eaa895a43ee6854eda7d23e",
+    "raw_sha256": "0931cb79c766fbe3e3e33c42d47ed492abe16af7ef94ab60270228ab6f808a57",
+    "addresses": 2757,
+    "instructions": 56313
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-1s-1-0--1.json.sites.gz",
+    "sha256": "ef328a362e9757a891b69f6ac657e572ca88ce675d205e73d6f0c73aede05cee",
+    "raw_sha256": "a18a26fdb56d4b301e59aaa4db194cba782d662a2c812dc4e32f74c9e2c963a5",
+    "addresses": 2726,
+    "instructions": 10026
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-1s-1-1--1.json.sites.gz",
+    "sha256": "d2517924f9863f04bd46b634638c9911d085a17a873d056dabf7c0aa0d7e1c38",
+    "raw_sha256": "f36caee16910c8db311a0402363f8703310bdaf42ec13f3e60859618f54570e9",
+    "addresses": 2744,
+    "instructions": 10044
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-1s-32-0--1.json.sites.gz",
+    "sha256": "f8f5d1e6c48f4c333dff11473c700ffc3fd32724d45d676baf7ebd8a6efc1592",
+    "raw_sha256": "4440aa92c26c5e7be7272fdea1391b3d25d856f6a90e1027f52c0af1e14d64dc",
+    "addresses": 2735,
+    "instructions": 319654
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-1s-32-1--1.json.sites.gz",
+    "sha256": "74e40304f0079060464fb12f7f6ea2541181b0fa63c4d818844cd313767c661b",
+    "raw_sha256": "a9c28031107ac19fa359e64c15431ec3675aebc73102264ea3f3e194476074fb",
+    "addresses": 2753,
+    "instructions": 320230
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-2s-1-0--1.json.sites.gz",
+    "sha256": "7880ac197fbe27437c0fcb1c3f00d6676473e09bb12d5aa61628c54e0961ed64",
+    "raw_sha256": "e1ec42133f892f634d716466c8c5a8d3723d0ddbc519787f000d2ef667f22f5b",
+    "addresses": 2726,
+    "instructions": 10026
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-2s-1-1--1.json.sites.gz",
+    "sha256": "daac98b68f4299657a1498fd5a04285f344cd05fdd82a1e9b0f0d84335f9ec96",
+    "raw_sha256": "a2ca33fdc9ab11691cf8f18ce92c4f842b9525195c191915db25597619ea423f",
+    "addresses": 2744,
+    "instructions": 10044
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-2s-32-0--1.json.sites.gz",
+    "sha256": "c1b961497532adbdcebdcbd621c54d6ceec8e6dbde09014b002806fb0c926854",
+    "raw_sha256": "890efca550c6177277f4d508323f65f22693906a59dd1fa2eaf3560b978faf8c",
+    "addresses": 2735,
+    "instructions": 319654
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MGET-2s-32-1--1.json.sites.gz",
+    "sha256": "7e609168aa21995e531bbd9aa69d5c51a5deae223797842c5009b289cee9949b",
+    "raw_sha256": "b62266d51f27cece2de42fa05cd491847ecf4e589c093976795a2eccfafe9566",
+    "addresses": 2753,
+    "instructions": 320230
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-1s-1-0--1.json.sites.gz",
+    "sha256": "b4ca750b6563234f142c65475dc837f05a6d799dd3849b3a1a6a0d36e0d20cc7",
+    "raw_sha256": "d33147902db42f5ff073cbff61c1f9bfd37b00751a1c0f93992556971101bafe",
+    "addresses": 2599,
+    "instructions": 10729
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-1s-1-1--1.json.sites.gz",
+    "sha256": "6c8bd6a7f7f3ecb143480444218b929b773f4fafbcc35d1bef3f1690f83510df",
+    "raw_sha256": "dcf261e147eadc34ba234c4b73bfa9d234c59e123d0f817ca45919f74ec27af9",
+    "addresses": 3525,
+    "instructions": 16376
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-1s-32-0--1.json.sites.gz",
+    "sha256": "054cc288f9b2b604ed71f880cd3b89aec3b43d8589643c5aed4dd1ab657ba8d0",
+    "raw_sha256": "7b25e79e5826beb2e2350a2bf9af579a1d2abe1da7b45a79cfbad669403a00bb",
+    "addresses": 2605,
+    "instructions": 343173
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-1s-32-1--1.json.sites.gz",
+    "sha256": "0e60aaf424434a9f3cf9ce9a4c4e4841da6f7c210ecc72e2b044ab44fced2e95",
+    "raw_sha256": "8fff77ff5492b7e327c013b56e1abda269b6ae98127e1fa2d747eb45e0844512",
+    "addresses": 3753,
+    "instructions": 897854
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-2s-1-0--1.json.sites.gz",
+    "sha256": "7e0c3c80bb1732c90bfdc71fe592c5c74134f5079220122a7cd07b1b4ec777ef",
+    "raw_sha256": "47f035dfe3e7b659f6160e31a076614dda2f4368ae3fc8825a4d6ef9a9191649",
+    "addresses": 2568,
+    "instructions": 10539
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-2s-1-1--1.json.sites.gz",
+    "sha256": "01f9a51c59a69834e693809b4cec26841dc6cc30b98211cfb43118dafc6573ab",
+    "raw_sha256": "14286b705efb901d808f8fc3ad4bcc979dccb09f57688d9f3d2af64ef357c174",
+    "addresses": 3498,
+    "instructions": 16030
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-2s-32-0--1.json.sites.gz",
+    "sha256": "9b4d894229cae22cda377602f7928ef5ad4ba84c03c8180c7a4afc01e494d835",
+    "raw_sha256": "6961f7c4011631a670ff5d27f57f69a3b637e4137e98e0c9a4232a5a957d6c84",
+    "addresses": 2574,
+    "instructions": 337093
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-MSET-2s-32-1--1.json.sites.gz",
+    "sha256": "597ec96ef217ccd57fbfd4ae2e45bf4e946a2ef0ad5ddc1f1c6fe631202db490",
+    "raw_sha256": "d577bd5b72b9978da82b81efd9c9ed8b789096b7574ff22db806f76ac2d708b2",
+    "addresses": 3726,
+    "instructions": 886782
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "fa3b9a4f6b6590d46aa9dd958a867b05630213acec24131f3399e324b3805d6c",
+    "raw_sha256": "1873045c7a0446b608ac06d227444877b3b8fccba7eb243d3620bec2229cccf5",
+    "addresses": 2214,
+    "instructions": 2744
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "1e4b85c6503b95e3500f090af4a9c7fb3e076dc2693d80692e7f6d4303791b84",
+    "raw_sha256": "1873045c7a0446b608ac06d227444877b3b8fccba7eb243d3620bec2229cccf5",
+    "addresses": 2214,
+    "instructions": 2744
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "aea766ea09d6735b41ac05d1931ee17f8959513905147bb8dad7ebda1cab26c0",
+    "raw_sha256": "449af5c98224fb43c1b6e702024686fe854977b6325a28d0c1059083dad5cf33",
+    "addresses": 2537,
+    "instructions": 43422
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "9f84de9d8389d0219132fba0b47f00087c982e7435f07f45caed55b2831c915d",
+    "raw_sha256": "449af5c98224fb43c1b6e702024686fe854977b6325a28d0c1059083dad5cf33",
+    "addresses": 2537,
+    "instructions": 43422
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "9135a84cbeb93ce563def559b20e10d8a08fd3754441062a63612239e0f0d48f",
+    "raw_sha256": "f34df2cc015ad9d96f0699141ab6a2ea0f7d5a0af3d34c93302d1c3973dc14b8",
+    "addresses": 2189,
+    "instructions": 2977
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "a5dbed3b99a07ed10fdcfa83766b1898bd0c08a2095636f3a7db35302624e305",
+    "raw_sha256": "f34df2cc015ad9d96f0699141ab6a2ea0f7d5a0af3d34c93302d1c3973dc14b8",
+    "addresses": 2189,
+    "instructions": 2977
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "b0a4214179a24714a31349f2e940a94e53935c268af47c47be037cca1d082d30",
+    "raw_sha256": "df3e820b514ebc99bb4b28965b8f99b843c9053ad14c7d28aa671850e367506b",
+    "addresses": 2512,
+    "instructions": 42880
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-RPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "99f13cc3e02fe66290021a8cf8ce3f3015dfbe3e4f85ca93abb827cab7bfa774",
+    "raw_sha256": "df3e820b514ebc99bb4b28965b8f99b843c9053ad14c7d28aa671850e367506b",
+    "addresses": 2512,
+    "instructions": 42880
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-1s-1-0--1.json.sites.gz",
+    "sha256": "93004586425c14eeb3cbf2d7434ff35edf6b5f377681ea13e57df590829120f1",
+    "raw_sha256": "55e9bc407bdd551ac8695625b7df9b25689afd0f6d65e7d52ab3f365c979ac5b",
+    "addresses": 833,
+    "instructions": 894
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-1s-1-1--1.json.sites.gz",
+    "sha256": "c87830d373100b40caa12152aea7a7603c499e2fa305981dec61d777f8803030",
+    "raw_sha256": "55e9bc407bdd551ac8695625b7df9b25689afd0f6d65e7d52ab3f365c979ac5b",
+    "addresses": 833,
+    "instructions": 894
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-1s-32-0--1.json.sites.gz",
+    "sha256": "9f184db21a02abf915f47007024565cffed9216553314745d651d481237c0447",
+    "raw_sha256": "74d17bf8edb9e3f7744357c9e03c6cdbd6b1e1221be07cc0944b07ee7caef4fc",
+    "addresses": 835,
+    "instructions": 21137
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-1s-32-1--1.json.sites.gz",
+    "sha256": "bd3141bcc1aefc2a079a13aa3ae15768b651b949bb383f3bd15b18388e7baec3",
+    "raw_sha256": "74d17bf8edb9e3f7744357c9e03c6cdbd6b1e1221be07cc0944b07ee7caef4fc",
+    "addresses": 835,
+    "instructions": 21137
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-2s-1-0--1.json.sites.gz",
+    "sha256": "b66d42cd4549dba2088de9897d56f31d7a23a3bb6a73d674a58e6007ed99cb4c",
+    "raw_sha256": "c70f60abbd84ab93b16e2751b99e560ed53c7e89bc20482f262caba4b419529e",
+    "addresses": 808,
+    "instructions": 1127
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "2676976716559470e8b2f0369c5193f5e04b3913df717742eca2fef431b287ba",
+    "raw_sha256": "c70f60abbd84ab93b16e2751b99e560ed53c7e89bc20482f262caba4b419529e",
+    "addresses": 808,
+    "instructions": 1127
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-2s-32-0--1.json.sites.gz",
+    "sha256": "f9560214edd3e7452f0947a88d7880afeb016f860f577d9ef524b0aa2a02ac52",
+    "raw_sha256": "faf72c5ee321ccce0666e9300e9ae7335e436455956565039f88265d860f10d6",
+    "addresses": 810,
+    "instructions": 20595
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/db0-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "9e8eae95855ec03527dbdb9255b707c831641f6df16b97efb9633fe33d0a89fd",
+    "raw_sha256": "faf72c5ee321ccce0666e9300e9ae7335e436455956565039f88265d860f10d6",
+    "addresses": 810,
+    "instructions": 20595
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-1s-1-0--1.json.sites.gz",
+    "sha256": "5e8a61125f05ef245668e0f8baf1a839542c47606e9b491d4fa559ccb2a89cc8",
+    "raw_sha256": "fb8f6cb83c97bb6931c23f0bd245cc4c08d216ca3ec1c9510bf11c5c33c44242",
+    "addresses": 787,
+    "instructions": 936
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "95a6a1bd5655c1d76f081d98d32ea529473fb1b81147da7c8a49e7fb50482dc6",
+    "raw_sha256": "fb8f6cb83c97bb6931c23f0bd245cc4c08d216ca3ec1c9510bf11c5c33c44242",
+    "addresses": 787,
+    "instructions": 936
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-1s-32-0--1.json.sites.gz",
+    "sha256": "9b688d66dc30db0057e1f3c96ba61b3d223a242d3c59ec8191ad659240aac76d",
+    "raw_sha256": "f2b792402cc36b1dededc97aa7f69023abc711e793cf489ae58875dafec9ced4",
+    "addresses": 789,
+    "instructions": 18482
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "b70a639c9e16e9c85457c0199dab25a5074112f4078f3607c6856323882e8d52",
+    "raw_sha256": "f2b792402cc36b1dededc97aa7f69023abc711e793cf489ae58875dafec9ced4",
+    "addresses": 789,
+    "instructions": 18482
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-2s-1-0--1.json.sites.gz",
+    "sha256": "65da3aade259824aba49951d7182f99062a5182897b87725a364ff83448b7b5b",
+    "raw_sha256": "770c919a7023ebdc86204313ebd0ab87255b27fb58b9ef5822344651a86b7f60",
+    "addresses": 762,
+    "instructions": 1556
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "daad9671330004e1ad2210ec14d08714896283744abb16a7113995637ab9a347",
+    "raw_sha256": "770c919a7023ebdc86204313ebd0ab87255b27fb58b9ef5822344651a86b7f60",
+    "addresses": 762,
+    "instructions": 1556
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-2s-32-0--1.json.sites.gz",
+    "sha256": "bf3d938674e4879b456520aa4f2916b707978a3b4c6c199790da570f7503a74f",
+    "raw_sha256": "b52621077a5ad9ace5d45a8a95153b38d223839efd33d67a1845b461ed71abaf",
+    "addresses": 764,
+    "instructions": 18327
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "4012a4477edffd96217e5a1c74159fe3fbe831408f5c64265477e733b7d29ca7",
+    "raw_sha256": "b52621077a5ad9ace5d45a8a95153b38d223839efd33d67a1845b461ed71abaf",
+    "addresses": 764,
+    "instructions": 18327
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-1s-1-0--1.json.sites.gz",
+    "sha256": "a5b06583ca6124cb485cc6dfeb507254e132e4569373231175e1ea90b787c439",
+    "raw_sha256": "dfba9f7fe12ed86550b204a561965cb7a72b292dbb612db7190b123ad1ade875",
+    "addresses": 1331,
+    "instructions": 1484
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-1s-1-1--1.json.sites.gz",
+    "sha256": "334d684b0dbc66c309b5495846e41dac01cd7ea8d794887b74ff8aac880f568c",
+    "raw_sha256": "dfba9f7fe12ed86550b204a561965cb7a72b292dbb612db7190b123ad1ade875",
+    "addresses": 1331,
+    "instructions": 1484
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-1s-32-0--1.json.sites.gz",
+    "sha256": "45f7b8416925d0137018c5b33c74baba9ede5951ad22f00cdda693856aa07230",
+    "raw_sha256": "6b2bd58c050472792716740892530b5147efbe0ef0d750e63a4d36948a5753c9",
+    "addresses": 1333,
+    "instructions": 36547
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-1s-32-1--1.json.sites.gz",
+    "sha256": "b0d14f10bef0ddb04115dd0b2c75abf3347c27c731dd02e811c735f3c8f0d6ad",
+    "raw_sha256": "6b2bd58c050472792716740892530b5147efbe0ef0d750e63a4d36948a5753c9",
+    "addresses": 1333,
+    "instructions": 36547
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-2s-1-0--1.json.sites.gz",
+    "sha256": "c0de90213e48561e7c483c067e9e89caaeefbd96d21b10a26e44f95441fd77d8",
+    "raw_sha256": "0b4307384390461e57aeb0acdbea94216b135a1ab252d05f0d7932cc7c1a4f78",
+    "addresses": 1306,
+    "instructions": 2104
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "1f60798943d09b389e29ff983774558b2e422885b713720583238cc84504aeb5",
+    "raw_sha256": "0b4307384390461e57aeb0acdbea94216b135a1ab252d05f0d7932cc7c1a4f78",
+    "addresses": 1306,
+    "instructions": 2104
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-2s-32-0--1.json.sites.gz",
+    "sha256": "d3b2650170b1137450e34ad8deb77522d6cd3af52f687f834bb0922d0132f3a1",
+    "raw_sha256": "002d9e3a4a8d14f0985287558897004033eae8c390df775c020c5853f3b16b29",
+    "addresses": 1308,
+    "instructions": 36392
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "8116027beb5a28932d99fd983baaa7d6a1a21a181dfbfc4712b3854927bcbab1",
+    "raw_sha256": "002d9e3a4a8d14f0985287558897004033eae8c390df775c020c5853f3b16b29",
+    "addresses": 1308,
+    "instructions": 36392
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "19a50e8dceeefbb80cb15aec75d1800a161d439f708987e3c1e40f51ac625556",
+    "raw_sha256": "f98a042907c24a0d05623c3e0cbf05a7d8ad043b58a943f69b468c618c1cb28a",
+    "addresses": 2569,
+    "instructions": 3171
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "666efbf1d0bc74667999cf94bae3155b093478af3a745a1f762aca51f7bcbd2c",
+    "raw_sha256": "f98a042907c24a0d05623c3e0cbf05a7d8ad043b58a943f69b468c618c1cb28a",
+    "addresses": 2569,
+    "instructions": 3171
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "3518bf7b45449ec158b398028e16aaf2b49e68ab8457937df02d216fd37fdf07",
+    "raw_sha256": "e44e3ea8f139c00439701f4af78b8801ce0159913029f912935f9d6fb7f82990",
+    "addresses": 2912,
+    "instructions": 58143
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "99abe734b226ebefaa2ef776dfa26dc08c7b71931b9a276712131ef5d1be8459",
+    "raw_sha256": "e44e3ea8f139c00439701f4af78b8801ce0159913029f912935f9d6fb7f82990",
+    "addresses": 2912,
+    "instructions": 58143
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "0fa51d7f8cf03c7053782cd9c84f36b27cf089580c962ce32ef768f7aac07ce8",
+    "raw_sha256": "fcf4a86ba07dbb78220836c70a5d8e6323b41a0dc81cccc0ec35cbdf484455ce",
+    "addresses": 2544,
+    "instructions": 3791
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "9efda3e72fbd04ea8af63cbf465834763099328f9ab25d51d91f9ed7a0bbd29a",
+    "raw_sha256": "fcf4a86ba07dbb78220836c70a5d8e6323b41a0dc81cccc0ec35cbdf484455ce",
+    "addresses": 2544,
+    "instructions": 3791
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "d631e61f2521fd884ff16e701f53cd55bae02d66d2387a9c75319939e22bc269",
+    "raw_sha256": "aa4d7578eb17d3f0a2203e1214f73dadc254c56fff2d0327f85b1e61ce7ce558",
+    "addresses": 2887,
+    "instructions": 57988
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-LPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "25340b9749bef070c192c61d487364824aa8329f0bfe65142062268edf9c6a6c",
+    "raw_sha256": "aa4d7578eb17d3f0a2203e1214f73dadc254c56fff2d0327f85b1e61ce7ce558",
+    "addresses": 2887,
+    "instructions": 57988
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-1s-1-0--1.json.sites.gz",
+    "sha256": "ddcc51b1a703a093840898926aaf585a8881cf42797b2f34d50b683fc256f76c",
+    "raw_sha256": "f5b61a82a4ea1e6e6eb67add8ba7ad6cb2cf9f41375a6f9b810e6cd0fb495984",
+    "addresses": 2717,
+    "instructions": 10154
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-1s-1-1--1.json.sites.gz",
+    "sha256": "fd529d0b6aeca3998c1567bb5d0f1be2ca9f4362fdee107bd80fea8334a6b99f",
+    "raw_sha256": "3a5d7ae36d46ebd77288af93e0dad99a913f4cda463e0632ab24949014248f23",
+    "addresses": 2737,
+    "instructions": 10174
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-1s-32-0--1.json.sites.gz",
+    "sha256": "ff8dd56f6115bddde1abd0f8e61549fe4e4e108838617b0b1fa963ab5bb2a0b1",
+    "raw_sha256": "b89a51181f77dca16a07c2e43c6894f8c616060d32c38a06d5e46310ba3c5027",
+    "addresses": 2726,
+    "instructions": 323750
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-1s-32-1--1.json.sites.gz",
+    "sha256": "74ae68b4356f479be8d9ad239fc9b1da1f0728cddef9fb59a6f590531ea896a4",
+    "raw_sha256": "8c318602d9ddb74c140c29d6d7f112ddc17f2cca5fc68964f33e1e64dee65653",
+    "addresses": 2746,
+    "instructions": 324390
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-2s-1-0--1.json.sites.gz",
+    "sha256": "8b19c93ef54f810c23139af02e9c10dbe9be08a6867bc6bba6d2f14756f05aaf",
+    "raw_sha256": "4ee43eec82c1c53cf6027bba56c701e2bcf1a47d9451246ec9bf20c6b150bcfc",
+    "addresses": 2717,
+    "instructions": 10154
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-2s-1-1--1.json.sites.gz",
+    "sha256": "ba5d940d94b5af743ed1c1079a51bc5df92be01c8b1c9c6247c63724848f5a8a",
+    "raw_sha256": "5535f7d2d03dac9cdeaedaf7572b803ace365dd21ba41e893fd8d607b30c16dd",
+    "addresses": 2737,
+    "instructions": 10174
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-2s-32-0--1.json.sites.gz",
+    "sha256": "ce25d57bbbae22612ccfa116575c61ee221cb5736e5674571b6121966dc2c01f",
+    "raw_sha256": "ac727da9a420009f5c7ae649cb2bdde648c1930f06f7c3d004f3855ac3f54bdb",
+    "addresses": 2726,
+    "instructions": 323750
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MGET-2s-32-1--1.json.sites.gz",
+    "sha256": "e971844161292dbc61e4feb1ca393a33d87684480da2eaecc56bae03bb002e27",
+    "raw_sha256": "d3f2dc19a71c067b98cb271bad25fdcb01f6784fbbf31eb7169ddf9905cfbd40",
+    "addresses": 2746,
+    "instructions": 324390
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-1s-1-0--1.json.sites.gz",
+    "sha256": "33b1ae2828014e529a1e646a96fcb0bf5efe20a11baa1dd53787bc1a47a89edf",
+    "raw_sha256": "033a01da1f399d435e3db7eed5bcb5d94902f8a95e933ce49a4ecea916054420",
+    "addresses": 2539,
+    "instructions": 10610
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-1s-1-1--1.json.sites.gz",
+    "sha256": "924a6cc8db97efb3acb86cf8cb671322c114767225421c9f122c5924e88a8fbe",
+    "raw_sha256": "3bb030100e09ecaa67a5845d0317feaac846520592bf0263b83931ce3633ce87",
+    "addresses": 3530,
+    "instructions": 16991
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-1s-32-0--1.json.sites.gz",
+    "sha256": "4771346c7a50ee8e5b51f3c72c3451133571bfa7a6c28a8139e993b541dc938e",
+    "raw_sha256": "37889c076a5a12246824c51167bb6b4bc779697bd11c60868f4bd3f62b6532cd",
+    "addresses": 2545,
+    "instructions": 339365
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-1s-32-1--1.json.sites.gz",
+    "sha256": "d3fce4a9151001e2bee390acdeef999b4426fdf4c090bc423e43783e9de346dd",
+    "raw_sha256": "8c9fec63b735fa131ae7194c283e85735385745b0933dbe249c94e6efac5709c",
+    "addresses": 3758,
+    "instructions": 962174
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-2s-1-0--1.json.sites.gz",
+    "sha256": "ad30933b36b71aff274b01a1408b47bbf232c5ca962341bb2e2ee43a9a6a2509",
+    "raw_sha256": "4ef633fd3fd780a13774bded023422d84c54a6a56bcd2758ecb1048fd7017f61",
+    "addresses": 2509,
+    "instructions": 10428
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-2s-1-1--1.json.sites.gz",
+    "sha256": "163ccac03f27811928334e980dd803fde1504c8a251d7d3c9fa0e83f99482efd",
+    "raw_sha256": "4dc126156109f0fda12891a1a8d90c3b641134321e2c351aed1181944f2a637d",
+    "addresses": 3505,
+    "instructions": 16659
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-2s-32-0--1.json.sites.gz",
+    "sha256": "5687f751e86d90677fd311684cda0b5ac34cfd0a00a1352aa4b579badacf1f72",
+    "raw_sha256": "11dcd76d593afd66d76f3a560cd1dc4277bc6e3cf2ff60ff60cb385afbe2c228",
+    "addresses": 2515,
+    "instructions": 333541
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-MSET-2s-32-1--1.json.sites.gz",
+    "sha256": "86ea2dc75636a29d72ab83b4c3b7d2b53d7258298728a42e18b85f0318d2b0df",
+    "raw_sha256": "b9b77b91a2e2bab3e3da9d17fc1cb5e504d85e1ffc0a8357a1cee69b0dbe4b47",
+    "addresses": 3733,
+    "instructions": 951550
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "38a42fca5703ee31aab6208f6d65196595d09d11f22033718b5e48466ba7fd21",
+    "raw_sha256": "29a6919063c13d30419dc01bdb32421ec8d6cafc4836905f6a6193b3b5975582",
+    "addresses": 2345,
+    "instructions": 3009
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "bb9a4a69663a880d401dc0098c4f2f9449f4a112cf8d17ee2e7aea2d4249a8c8",
+    "raw_sha256": "29a6919063c13d30419dc01bdb32421ec8d6cafc4836905f6a6193b3b5975582",
+    "addresses": 2345,
+    "instructions": 3009
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "7a4fafe6b30d6907f39ef8e906e2f9ae1aedbd3fa04030f85e66e8debf8d2d4a",
+    "raw_sha256": "743b71c9820dea7346e68e506c6948c54cc5d82744904fded546ee60684cccdd",
+    "addresses": 2667,
+    "instructions": 44710
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "50f0d96d494bad7b407a9514ea25f2f919bf47fef302369ba0e839d6abdb1563",
+    "raw_sha256": "743b71c9820dea7346e68e506c6948c54cc5d82744904fded546ee60684cccdd",
+    "addresses": 2667,
+    "instructions": 44710
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "6b068db3842d7c33a32778c2895f0c821fa02671ae88346bbf3cc92b8e951239",
+    "raw_sha256": "b028a38a2c436330fab4521a6ed812fb88aaceca31adfe4002682c4eb070aaaf",
+    "addresses": 2320,
+    "instructions": 3629
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "bca22ab5408cb0a0f28b3bf6913702fd5084589f0439686985fb6a0aca678e9b",
+    "raw_sha256": "b028a38a2c436330fab4521a6ed812fb88aaceca31adfe4002682c4eb070aaaf",
+    "addresses": 2320,
+    "instructions": 3629
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "b5d3f5ade3ba1314c7fbec49a177b1980f40bc403d9d5a35805fdf012ae2479f",
+    "raw_sha256": "574006ac21619dcd061e59d03b4261fe731b09dcc7fe337cbf69a0c767bda794",
+    "addresses": 2642,
+    "instructions": 44555
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-RPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "e67daf8c31ff6a94fc7b7a7331ed7f72c194bf9e8a02137266508908b2c7054b",
+    "raw_sha256": "574006ac21619dcd061e59d03b4261fe731b09dcc7fe337cbf69a0c767bda794",
+    "addresses": 2642,
+    "instructions": 44555
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-1s-1-0--1.json.sites.gz",
+    "sha256": "610761cd5411b358022ac809e43a5aecd755fb41d4dab87fe4f299a7b4bca499",
+    "raw_sha256": "e552e13210d99ee59f1e23c3e4927157c15c83817eaadf7cf06a0e23de012e14",
+    "addresses": 875,
+    "instructions": 1027
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-1s-1-1--1.json.sites.gz",
+    "sha256": "b0172963c57d899e403133703c404d94de13e3d4ff1d5393e3aba67dfff87643",
+    "raw_sha256": "e552e13210d99ee59f1e23c3e4927157c15c83817eaadf7cf06a0e23de012e14",
+    "addresses": 875,
+    "instructions": 1027
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-1s-32-0--1.json.sites.gz",
+    "sha256": "bdceb2ab804588a810cc04cb1391505e56fa41f90f2055fe1afa99eec356764e",
+    "raw_sha256": "79401870a13417f7b17b93e87d3893bbe1c3024c6f7019ad41891614b7df0874",
+    "addresses": 877,
+    "instructions": 21394
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-1s-32-1--1.json.sites.gz",
+    "sha256": "e39a9fd2389c7649ada03634a40095deedc1a34ef0fe688de7d8e65dacc28bb9",
+    "raw_sha256": "79401870a13417f7b17b93e87d3893bbe1c3024c6f7019ad41891614b7df0874",
+    "addresses": 877,
+    "instructions": 21394
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-2s-1-0--1.json.sites.gz",
+    "sha256": "d4209285c8ed746548aa486d77b574dfa402622828a658a17b21640172f9a33e",
+    "raw_sha256": "050849dbc17be215b4b57c6e3c9bf4e6e80d0875f3c38950e039705475fd3bdb",
+    "addresses": 850,
+    "instructions": 1647
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "8032faec53beadc93ff3f3db046c726bb33e0235efec8f9d8531dd542f3156af",
+    "raw_sha256": "050849dbc17be215b4b57c6e3c9bf4e6e80d0875f3c38950e039705475fd3bdb",
+    "addresses": 850,
+    "instructions": 1647
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-2s-32-0--1.json.sites.gz",
+    "sha256": "56b979e85049257258b89a41285aea4f3ac03c5087bbc777dc8b7ef0581563fd",
+    "raw_sha256": "b4a60fbf9ef8c57d78730a2fc9dbb756f76e6b5253a634523bc6b82b1f8b4410",
+    "addresses": 852,
+    "instructions": 21239
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary/normal-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "aef666709509895b9eb4de3a86b0fbcc4a9cfc1baad77ea42be72caa7df26aaa",
+    "raw_sha256": "b4a60fbf9ef8c57d78730a2fc9dbb756f76e6b5253a634523bc6b82b1f8b4410",
+    "addresses": 852,
+    "instructions": 21239
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-1s-1-0--1.json.sites.gz",
+    "sha256": "18bcaf86f51d7516fa44623abb852afea099b22744543ce0cc75cd8b86606c1a",
+    "raw_sha256": "983c81fbc288acd6783d957aed3e44571fd0d02cbc7c6ee2a4dc9be53fc4b16d",
+    "addresses": 749,
+    "instructions": 818
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "af4bf26b4dad2b9e3b7b66228d5b1e94b2ea87f7a8dbb07ab832743c9a122809",
+    "raw_sha256": "983c81fbc288acd6783d957aed3e44571fd0d02cbc7c6ee2a4dc9be53fc4b16d",
+    "addresses": 749,
+    "instructions": 818
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-1s-32-0--1.json.sites.gz",
+    "sha256": "db5c1211d8e7715a7910d0c76ba022e56956e4c6847da9a88c7f77d67e869c42",
+    "raw_sha256": "5fc4c108c9917ec0ea7231700b444f979ccaf50aac2a775d2b23bf304d05f3d5",
+    "addresses": 751,
+    "instructions": 18705
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "c5aa442488de7867c8a3a05eeb56d35193447fe34fe5ab476728d784066b5e56",
+    "raw_sha256": "5fc4c108c9917ec0ea7231700b444f979ccaf50aac2a775d2b23bf304d05f3d5",
+    "addresses": 751,
+    "instructions": 18705
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-2s-1-0--1.json.sites.gz",
+    "sha256": "ed52c92bc45a5c9440693ea7b32f62c0103038f3f2b2acfe96520f687acc28e1",
+    "raw_sha256": "528c1412031644dc2bf487ccd0e0f7d3a67387c3a6df7167ddcff39ebb3d60d7",
+    "addresses": 724,
+    "instructions": 1051
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "8df3a3269ccef5b37700c6749d7cd2c28613ddb4653e25816d0842bbeba33ddd",
+    "raw_sha256": "528c1412031644dc2bf487ccd0e0f7d3a67387c3a6df7167ddcff39ebb3d60d7",
+    "addresses": 724,
+    "instructions": 1051
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-2s-32-0--1.json.sites.gz",
+    "sha256": "4fcb0224388741cc872225b916a5a436995d70b24007dd6e1789fbe563e95697",
+    "raw_sha256": "9d9e65d7cae6b1302a202d0423c3737890b40554857fdbcbfa24bd499ecfbdfe",
+    "addresses": 726,
+    "instructions": 18163
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "290b483b1e37084b813d8bda972a35d790c3c9844f94fc7fcb94ed01075a757b",
+    "raw_sha256": "9d9e65d7cae6b1302a202d0423c3737890b40554857fdbcbfa24bd499ecfbdfe",
+    "addresses": 726,
+    "instructions": 18163
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-1s-1-0--1.json.sites.gz",
+    "sha256": "a3041a7e2ed74efde0f8f1a9f328fe9913337005bafb6c9a4afc26b689ff1eeb",
+    "raw_sha256": "c931c0121912c1de2c8d4ba0e62e8c5a999c46f855c1ae52e38d51816e32446a",
+    "addresses": 1233,
+    "instructions": 1279
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-1s-1-1--1.json.sites.gz",
+    "sha256": "7e5e0ce8f5238ce6909c5c3aecf6af2822b2fbb26141e568e5d45d71e70bd202",
+    "raw_sha256": "c931c0121912c1de2c8d4ba0e62e8c5a999c46f855c1ae52e38d51816e32446a",
+    "addresses": 1233,
+    "instructions": 1279
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-1s-32-0--1.json.sites.gz",
+    "sha256": "e5c05540f80244a20a67222bb898e3f238f12525271b9aba9cf80deacaf75ede",
+    "raw_sha256": "9f7edfe1797ae4d8ea02befa78a427467cadaa486c797b4be32cf50dc4dc5eda",
+    "addresses": 1235,
+    "instructions": 33986
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-1s-32-1--1.json.sites.gz",
+    "sha256": "216955cb79a0cfe76104be3ce011dc19dbcbdada1963e3823331c50b57705242",
+    "raw_sha256": "9f7edfe1797ae4d8ea02befa78a427467cadaa486c797b4be32cf50dc4dc5eda",
+    "addresses": 1235,
+    "instructions": 33986
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-2s-1-0--1.json.sites.gz",
+    "sha256": "cd26231c018d75bd900198a04ef50ab13c99725981fcacfc442c03149cf8bf21",
+    "raw_sha256": "d3ff8941527d1db88f7e10f5221b4eb75475325050e0ed900cc874c55a32facf",
+    "addresses": 1208,
+    "instructions": 1512
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "baa964b207fb7e67aa38c4837819cfcc1df5086c061ffb8f5df8b3e06a6d9f06",
+    "raw_sha256": "d3ff8941527d1db88f7e10f5221b4eb75475325050e0ed900cc874c55a32facf",
+    "addresses": 1208,
+    "instructions": 1512
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-2s-32-0--1.json.sites.gz",
+    "sha256": "6d65cc6a2223db47faac6f24644ae61d2ec7bd3f181f929182709a7e1fec8b2d",
+    "raw_sha256": "641125cb7a1380034717d6f295cda37719ec3cbdbdb51d9fc6fccce2ca5fe04a",
+    "addresses": 1210,
+    "instructions": 33444
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "b9e3de1c3e68d2b40dc0f51ac99fa2802cac42d8c3f7c1cb54aba4898817dbf2",
+    "raw_sha256": "641125cb7a1380034717d6f295cda37719ec3cbdbdb51d9fc6fccce2ca5fe04a",
+    "addresses": 1210,
+    "instructions": 33444
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "e0e92136e5712b22196914d751e71d5956310d7354da50558772f7b17fa0ca22",
+    "raw_sha256": "9558226b5f786097f6f3a036eebab0d3c2dfd4d232c1948ad66e35896e680760",
+    "addresses": 2473,
+    "instructions": 2941
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "77e417c8b31296dbabc4670927c980087b96778874747150a46930e42b1828bd",
+    "raw_sha256": "9558226b5f786097f6f3a036eebab0d3c2dfd4d232c1948ad66e35896e680760",
+    "addresses": 2473,
+    "instructions": 2941
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "802254b6cd5bbf311252308e3c8739bbf5d12adb91a6a5653541769261a0b516",
+    "raw_sha256": "3c3628333ff4dc9058c3be94e6e230971f6434cd8c5c538c00ee486d4b6403e3",
+    "addresses": 2817,
+    "instructions": 57975
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "88f77a872ee16a6d563d5ba95cbbf9c03fea81c8a678485a75af39d093a1f9d3",
+    "raw_sha256": "3c3628333ff4dc9058c3be94e6e230971f6434cd8c5c538c00ee486d4b6403e3",
+    "addresses": 2817,
+    "instructions": 57975
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "cbf7ef39eed7f88cbea6fd8cbde41192259736d4c2b41be8954cc9564adaff09",
+    "raw_sha256": "cc293f635111c5bd53040da725ca1bf8ad6196f95521273d2a17548d71039035",
+    "addresses": 2448,
+    "instructions": 3174
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "7ac9a3392f66c53c4c478244038d52b0a4c5f73e34c74b74bedf601c5b520171",
+    "raw_sha256": "cc293f635111c5bd53040da725ca1bf8ad6196f95521273d2a17548d71039035",
+    "addresses": 2448,
+    "instructions": 3174
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "221825af86dda248b70c5a9e6fd3d336a1b9ff97766626d7f8a700e7ba813fa7",
+    "raw_sha256": "4b33fcd289832d891560379fb1f1a022e88b537f65a76c6caf776cec00bd1a24",
+    "addresses": 2792,
+    "instructions": 57433
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-LPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "b5e8c73bc49199ed1d2d6939c1c2e3cb09b9e84b1d9c48417086cf002e498885",
+    "raw_sha256": "4b33fcd289832d891560379fb1f1a022e88b537f65a76c6caf776cec00bd1a24",
+    "addresses": 2792,
+    "instructions": 57433
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-1s-1-0--1.json.sites.gz",
+    "sha256": "133ff07c789d05ca04c0968bd4682eb559407f32e33a4ad4a23d456602307a8f",
+    "raw_sha256": "59fda01d1fd6ce9a66578d65865825457d09714d7094f573fbd2dcf9346ff7ed",
+    "addresses": 2769,
+    "instructions": 10321
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-1s-1-1--1.json.sites.gz",
+    "sha256": "16ffe2962cf8874b1e93f10b85945e510c729142e82deddbaff38a0a71803aef",
+    "raw_sha256": "28b4365c5f1c9372b3aff6269c1bc4a92624232390f0629d75b0bce2068ad91b",
+    "addresses": 2786,
+    "instructions": 10338
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-1s-32-0--1.json.sites.gz",
+    "sha256": "6914efc1b3c36d8fe6d5a94ed4ebb16e6d2593568f8813495dd02f30a0fc468f",
+    "raw_sha256": "d439115792551cf3d88b13005ac6a951bf1312ee37c1f55850f6e2f7d4059e4e",
+    "addresses": 2778,
+    "instructions": 329094
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-1s-32-1--1.json.sites.gz",
+    "sha256": "b0d27fa43d8d750ae354fcdc42ead8e2d812eb418c520e97323b0c318c713fd0",
+    "raw_sha256": "a0ce03412b819397db978f1b1ce3449fc1a5500f567ab72cbd61779ad7df62e9",
+    "addresses": 2795,
+    "instructions": 329638
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-2s-1-0--1.json.sites.gz",
+    "sha256": "2567987caf13d1a6295569579242b701e30f97a4eecfa7e6a81e8804fa096fab",
+    "raw_sha256": "46677ed084af17c5188057c8470c37b7a0d26d3df62703726cf2cc8962af93ff",
+    "addresses": 2769,
+    "instructions": 10321
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-2s-1-1--1.json.sites.gz",
+    "sha256": "7c602f86d67937be396fdfc1864baf0eff758f7e3fedb5e48080c132aacb2282",
+    "raw_sha256": "1056e48bfb6ff1ae6c11dd178b970f23813ed44177aeefea7ca9522285eb152d",
+    "addresses": 2786,
+    "instructions": 10338
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-2s-32-0--1.json.sites.gz",
+    "sha256": "f1f4f50bb18d8f1a29f450c81747d201a847787c3e8bb3ab43a0aca1792bb7cd",
+    "raw_sha256": "025180a979025805ab6a2a4504a6ccc1951c08a9a757b8db4692d45b6c20e452",
+    "addresses": 2778,
+    "instructions": 329094
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MGET-2s-32-1--1.json.sites.gz",
+    "sha256": "48c13f4cd2e84d5b979794842ed0db3b7c797cc69e564951a27029b35f748c64",
+    "raw_sha256": "f3772e9490fa4ad1472daff6079102fa31ec7bc1a903da0f335b09def4aeb42a",
+    "addresses": 2795,
+    "instructions": 329638
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-1s-1-0--1.json.sites.gz",
+    "sha256": "982b7bcddc0040e80aaede7fe2bf32b2874b2019c187b2b4e0397b9fe0470724",
+    "raw_sha256": "f98fd1dd81e36f5fe4ba3ddc89e411e5a4884322bf1d4234c2f4add7ed166f0e",
+    "addresses": 2607,
+    "instructions": 10744
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-1s-1-1--1.json.sites.gz",
+    "sha256": "f3419577cbc3262aacef87ab3075ef22d26506f3d36158d4b521193b5988a3c7",
+    "raw_sha256": "f06ac5d1e1c40b3be23113cc588fbf50d117bfbaec08ee5c6ff92d6a44148821",
+    "addresses": 3531,
+    "instructions": 16382
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-1s-32-0--1.json.sites.gz",
+    "sha256": "351a69032c2ced9408e4f4093bec035fef40d154e3e666a3903c535fc7ef8557",
+    "raw_sha256": "4f4d722949d01f06fd3b754bfd02dd7e5cca41e8f9c1307882408595a4afb4d2",
+    "addresses": 2613,
+    "instructions": 343653
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-1s-32-1--1.json.sites.gz",
+    "sha256": "9e3da888add7d78e7efe17a62f6cd66570f4ebb2f776cb6b1ae943a7438f3ff4",
+    "raw_sha256": "f5f49cde482eea99a4d3b51069995b33f499db783a70ee74ebdfc0d78e01f519",
+    "addresses": 3758,
+    "instructions": 897798
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-2s-1-0--1.json.sites.gz",
+    "sha256": "7da2641cc3b310d34d7568beae895a96c3a72fa1d58954d4283266cafc2d9a00",
+    "raw_sha256": "1358a338f7365cc7c6d00c9c34bacfd6335a6a50a85e232e92a5bf02fb2fa49f",
+    "addresses": 2576,
+    "instructions": 10554
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-2s-1-1--1.json.sites.gz",
+    "sha256": "1b0977a0b1adce06f174bbfb872dc54fa047ef38afcf070992b73399146de511",
+    "raw_sha256": "9ae9f1d6ce0058386551bbd1d2967040487fffb4fe35420f763f364ad97c1099",
+    "addresses": 3504,
+    "instructions": 16036
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-2s-32-0--1.json.sites.gz",
+    "sha256": "0213d615dc5eff7d1f7560d144c05a6c281c2ed07d725a6f8204ab0d1a4b2c75",
+    "raw_sha256": "f8002cb7698184d53f6d465b15c9007bd14f0765500dce5a7863fd9bbf6737cf",
+    "addresses": 2582,
+    "instructions": 337573
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-MSET-2s-32-1--1.json.sites.gz",
+    "sha256": "195283f955a68a6ff1538a103ab69b49d099e23a9ab5e7cd09cb45357401aea4",
+    "raw_sha256": "1797384c1b463ba1640e83579a8e755f3bbbcb285943c0f83bbe26f93e839188",
+    "addresses": 3731,
+    "instructions": 886726
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "16526dbf1d84e957a4eaff3e354360ffa473dd6d572395009b737390e57ef330",
+    "raw_sha256": "b343f6c27d29de19cf79413068a4c88b2080c02f570acf9f17d12ee5edd28b2e",
+    "addresses": 2249,
+    "instructions": 2779
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "5dd98d15e6411c6501e00bb491416951ecc506e070c1423ea62c032756d11d3f",
+    "raw_sha256": "b343f6c27d29de19cf79413068a4c88b2080c02f570acf9f17d12ee5edd28b2e",
+    "addresses": 2249,
+    "instructions": 2779
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "dfd61f3009bed38f395aa7fc366ee049db83753dd9e54a49d5bcd706c10356af",
+    "raw_sha256": "7cff87593178eaa5a5406b58faab925f69923370fb2cff41389c06b0694d0f5e",
+    "addresses": 2572,
+    "instructions": 44542
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "9f4b1306621e1b0927c746c18933da1ffa4cad3b8817b47350b814df4dfd075a",
+    "raw_sha256": "7cff87593178eaa5a5406b58faab925f69923370fb2cff41389c06b0694d0f5e",
+    "addresses": 2572,
+    "instructions": 44542
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "efd6a31d30de93102a948db9cd29fc628cdfbe9c2e8852a18fc82e35db678ef7",
+    "raw_sha256": "feaae291d34ecb109b228089038b937ba9a1a8b3d0718093d792ed5829c3ee0d",
+    "addresses": 2224,
+    "instructions": 3012
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "74331155204e13d49aa4338ac91ff151d702e1b72fc0131ee5b156bf035c1df4",
+    "raw_sha256": "feaae291d34ecb109b228089038b937ba9a1a8b3d0718093d792ed5829c3ee0d",
+    "addresses": 2224,
+    "instructions": 3012
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "d4c2471c12632af702d1d54bf9ea5ac6bb947ef84fa65d478d41118c7d503f07",
+    "raw_sha256": "e7a04a5e984a207477a7a1eb6ef2d7f8370b5f2b3cc2499c36e82f3e8eabf676",
+    "addresses": 2547,
+    "instructions": 44000
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-RPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "920eef222c912131407ddc629d9cb1bfe5a82d6d429a0b819993f20337d7ca7b",
+    "raw_sha256": "e7a04a5e984a207477a7a1eb6ef2d7f8370b5f2b3cc2499c36e82f3e8eabf676",
+    "addresses": 2547,
+    "instructions": 44000
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-1s-1-0--1.json.sites.gz",
+    "sha256": "b17ada8cd4196dd064627c8baa62601d24e3db0f7da042e5764ca65752bc1251",
+    "raw_sha256": "a438c9a05e8a91166ff67a0eafd7afdb52697cbe7e953627d054ba8fff8766d3",
+    "addresses": 833,
+    "instructions": 894
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-1s-1-1--1.json.sites.gz",
+    "sha256": "b4fa9326ac4d1e049766f75fbb6c21f62aaf41704d00d982c2516dcffa42c87d",
+    "raw_sha256": "a438c9a05e8a91166ff67a0eafd7afdb52697cbe7e953627d054ba8fff8766d3",
+    "addresses": 833,
+    "instructions": 894
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-1s-32-0--1.json.sites.gz",
+    "sha256": "84f25c9fc04591c2670857a766929853f33c524495161c48df99ef1d8fbe9193",
+    "raw_sha256": "6936b2c1e06f6f1716da9e87674466d3c08d26cc637528daed61e8b51c15dbfc",
+    "addresses": 835,
+    "instructions": 21137
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-1s-32-1--1.json.sites.gz",
+    "sha256": "12b09202ddf47a7b7dc2d4116375a5ff14abaee96ca858501bc6ac0a282230f7",
+    "raw_sha256": "6936b2c1e06f6f1716da9e87674466d3c08d26cc637528daed61e8b51c15dbfc",
+    "addresses": 835,
+    "instructions": 21137
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-2s-1-0--1.json.sites.gz",
+    "sha256": "e8f86e36029a7f947981abf71424c683ac4029be44193207a2b5810700ff6ea2",
+    "raw_sha256": "6e5dba8979d0f7fd288a49be934adcc0919bfd3a33a29b3ad2bfdacd24d42ce4",
+    "addresses": 808,
+    "instructions": 1127
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "73b8c24f3dc49661750e3b5ed734554aa2339de5bcf95c68513ade9cb64140bb",
+    "raw_sha256": "6e5dba8979d0f7fd288a49be934adcc0919bfd3a33a29b3ad2bfdacd24d42ce4",
+    "addresses": 808,
+    "instructions": 1127
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-2s-32-0--1.json.sites.gz",
+    "sha256": "2c6d3769282e5a0b3b53bb76aa693a20a7838c904f943d16c40b97acaf924d53",
+    "raw_sha256": "a374425271911aaf29084ed92b1b15eedd8ac0c327c4755e1a90194eff6e6422",
+    "addresses": 810,
+    "instructions": 20595
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/db0-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "9da0fccf2da773579f1c51b490a696c7dc0083e113675557e471c900b6dae59b",
+    "raw_sha256": "a374425271911aaf29084ed92b1b15eedd8ac0c327c4755e1a90194eff6e6422",
+    "addresses": 810,
+    "instructions": 20595
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-1s-1-0--1.json.sites.gz",
+    "sha256": "c4cf1ee59b6364aeaaa220ef9bc300b1307c861e39b096fc1ca1f93569be10d5",
+    "raw_sha256": "3113be0d49725c7118d998c0729ec224d2fa73a7f02d62cb734b54b2fb2332da",
+    "addresses": 787,
+    "instructions": 936
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "2251eabd0d4e5c10c11d24d1635046422f8368137319436bc27a4058276d9063",
+    "raw_sha256": "3113be0d49725c7118d998c0729ec224d2fa73a7f02d62cb734b54b2fb2332da",
+    "addresses": 787,
+    "instructions": 936
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-1s-32-0--1.json.sites.gz",
+    "sha256": "bd8a8bd2610ac26f74e7e3366c3e378a796ef4cea1bc3b387d205cfa2adeca0f",
+    "raw_sha256": "fcdf740948623134f28e22e8a401e785f934424e8dca51c840152a0f33f2d6e9",
+    "addresses": 789,
+    "instructions": 18482
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "76a05427149330d9eb31a3bebfcf75dbea9d3fc54f3f4f6c4cac4e9a9b3cedb2",
+    "raw_sha256": "fcdf740948623134f28e22e8a401e785f934424e8dca51c840152a0f33f2d6e9",
+    "addresses": 789,
+    "instructions": 18482
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-2s-1-0--1.json.sites.gz",
+    "sha256": "71e22a22009289c09544f5e930d7eea1c6e7839fe3dfdc479671265197a1fefb",
+    "raw_sha256": "23c9f9622ea490c5a9943d6b00332cadc32a58a8c2adbd632dbe114e77270e39",
+    "addresses": 762,
+    "instructions": 1556
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "dd33f7936e919a899685de9ecf6f1a017d5343588c9eb01a2a2cb825a6d6b091",
+    "raw_sha256": "23c9f9622ea490c5a9943d6b00332cadc32a58a8c2adbd632dbe114e77270e39",
+    "addresses": 762,
+    "instructions": 1556
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-2s-32-0--1.json.sites.gz",
+    "sha256": "c8119600647bc7f0cdb931232f20201f0e97f6562e35fb0056f69458b40cb738",
+    "raw_sha256": "47542670a0af075dcd88ad15e6418e58340bf955ccf5a97bb12aa199e3b6515c",
+    "addresses": 764,
+    "instructions": 18327
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "770a43ab9c77b661fb19b5523348a1391dc89084facfeaeef334a331309ae06e",
+    "raw_sha256": "47542670a0af075dcd88ad15e6418e58340bf955ccf5a97bb12aa199e3b6515c",
+    "addresses": 764,
+    "instructions": 18327
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-1s-1-0--1.json.sites.gz",
+    "sha256": "dd32047dac6a02f35f2e627cfdd3939893474dcf839c98f95501debf5cd5246d",
+    "raw_sha256": "9c6a4472a13251cc54d6fb9c9848682c162cd5809c768fad5426b6b47431c40a",
+    "addresses": 1331,
+    "instructions": 1484
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-1s-1-1--1.json.sites.gz",
+    "sha256": "9fe0391d98ddb5d6afa198d96395771b47d85fadf5ef1a3dc3c92939e604bb10",
+    "raw_sha256": "9c6a4472a13251cc54d6fb9c9848682c162cd5809c768fad5426b6b47431c40a",
+    "addresses": 1331,
+    "instructions": 1484
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-1s-32-0--1.json.sites.gz",
+    "sha256": "7e686e6e3eead6dc6279b4828ba9ac1198ebf35d9f3fbfdc741048887a489877",
+    "raw_sha256": "735331ef6c65c5141349ffa1d150781e8a54e73af1fbd3f76455fa59e284585a",
+    "addresses": 1333,
+    "instructions": 36547
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-1s-32-1--1.json.sites.gz",
+    "sha256": "0d72a6f0cd7e1a4c309f7b5995fbf418d1279ead6c093180a125712755bd37f2",
+    "raw_sha256": "735331ef6c65c5141349ffa1d150781e8a54e73af1fbd3f76455fa59e284585a",
+    "addresses": 1333,
+    "instructions": 36547
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-2s-1-0--1.json.sites.gz",
+    "sha256": "5876a11d76ac5c00c2b6406dc62a0a9a3bec3107d49a3a763c456a668b54d7b5",
+    "raw_sha256": "8c0dfa9a45b34c5ab03f3f2d5ed4eceee850f1f6af3ea4079edeea11dc0c1249",
+    "addresses": 1306,
+    "instructions": 2104
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "545031dbe7b54aa8d2d271ca4cd006b49e218bf9edf41ed1c63c237e67f6924b",
+    "raw_sha256": "8c0dfa9a45b34c5ab03f3f2d5ed4eceee850f1f6af3ea4079edeea11dc0c1249",
+    "addresses": 1306,
+    "instructions": 2104
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-2s-32-0--1.json.sites.gz",
+    "sha256": "c316107fce8691fe276c1454613ecb4ba3dbc6d6791c4521c975056fb8e8b9a7",
+    "raw_sha256": "6f27feede908d60479cf392fb9ba2afd0ff73fe8414f59cdf0c2e8e0e10c644e",
+    "addresses": 1308,
+    "instructions": 36392
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "a67557333a9232d48713b8e04f727d757574a9aea47ebe9695813c934d3d645b",
+    "raw_sha256": "6f27feede908d60479cf392fb9ba2afd0ff73fe8414f59cdf0c2e8e0e10c644e",
+    "addresses": 1308,
+    "instructions": 36392
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "7741975e7247a1298bd99e18951d762441eb3a5091507a0284cb11705c0d7edb",
+    "raw_sha256": "632d6ba0cc5715eea3c91a0464eafede6414af6eae9301c1c8a7bcd4a1d30884",
+    "addresses": 2569,
+    "instructions": 3171
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "f0ce1173bdf1908294180cec9311a2e004277e5fac9dfca6c83ac3d0dce06720",
+    "raw_sha256": "632d6ba0cc5715eea3c91a0464eafede6414af6eae9301c1c8a7bcd4a1d30884",
+    "addresses": 2569,
+    "instructions": 3171
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "dc9cf67fce66ced535d5ca3f7939d11715e0b465872e2dc12d99ad8fbd1d03ff",
+    "raw_sha256": "bb942d0628db098585517f3b40e48fad3f4fd9f5727db126ab68e6c1b8d30db8",
+    "addresses": 2912,
+    "instructions": 58143
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "3dae523e0b96c9263dcbda3e16fe54b3e1dde9c2efbe98d1917a7c46d10af3f4",
+    "raw_sha256": "bb942d0628db098585517f3b40e48fad3f4fd9f5727db126ab68e6c1b8d30db8",
+    "addresses": 2912,
+    "instructions": 58143
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "80b329399d69607fc64df59e0bedbf48895cf2c2d1996b779c393b70684e8830",
+    "raw_sha256": "0f8183a41d80c554f128ebe6c2a83be6cbb222a2957de08a99c973d05758d328",
+    "addresses": 2544,
+    "instructions": 3791
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "096827a3507afaaccbb783d964bdecae5390d351d716f492245b5e1c5d535d5e",
+    "raw_sha256": "0f8183a41d80c554f128ebe6c2a83be6cbb222a2957de08a99c973d05758d328",
+    "addresses": 2544,
+    "instructions": 3791
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "20ccf415e92d5641f6ada88129aee2c07b7f8f67f2fdb52c1b3204773cdf0e61",
+    "raw_sha256": "168c93e6ab7ed597a34420e89a68479cddfb3b6018ad6f914dab1528e7aeb7fb",
+    "addresses": 2887,
+    "instructions": 57988
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-LPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "825de384d613d727cd7c0c9f0e70b4d2af7d5e06df2408756978897d08b7f41a",
+    "raw_sha256": "168c93e6ab7ed597a34420e89a68479cddfb3b6018ad6f914dab1528e7aeb7fb",
+    "addresses": 2887,
+    "instructions": 57988
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-1s-1-0--1.json.sites.gz",
+    "sha256": "cc55986f0e3b0f73b75eb1f942ba381cb59157443e0f71a9e1426df8e9258582",
+    "raw_sha256": "ad2b8170240f3693370709ba866d482b183fbb80cbc0e5c51ac3ba8b488fc418",
+    "addresses": 2733,
+    "instructions": 10226
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-1s-1-1--1.json.sites.gz",
+    "sha256": "78d4681b80fa1aaefe1c4e07fb8ea3d9a1cb892a2784f61a4e38c2f83a162ca5",
+    "raw_sha256": "c5746150c0a27a092abbb04b6d4a1fc8085fbabdb687bd24980a07f3d3770756",
+    "addresses": 2753,
+    "instructions": 10246
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-1s-32-0--1.json.sites.gz",
+    "sha256": "6c04234f84ca95344c008f56f5eddf81ab68410ec6e6f5ca0a41aa490df93bb3",
+    "raw_sha256": "3c646927e03d04ff075ebdacfcaa2246cf7067d1ab1fb74aab7d0ab81e94826b",
+    "addresses": 2742,
+    "instructions": 326054
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-1s-32-1--1.json.sites.gz",
+    "sha256": "3739a6f01f65d3c3bdf8764ae74ea0b7fb2c53aa8698e5bcb1c261cf614e9727",
+    "raw_sha256": "0b44a93ad1875b5688018297dbd2739bf5d9e6830cbfaf79ffd56886c3cafe9c",
+    "addresses": 2762,
+    "instructions": 326694
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-2s-1-0--1.json.sites.gz",
+    "sha256": "d318098fb000216ef0539a44fbcf84db60f19172a962c0f2d7d998e34503bbf6",
+    "raw_sha256": "c40d7e420316e7ed2300e89aed178c09c0f84748e46fc9c68e7d0ef9d135a63f",
+    "addresses": 2733,
+    "instructions": 10226
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-2s-1-1--1.json.sites.gz",
+    "sha256": "4893a06d323e3ae6433532e6eedca699a97919f81a980a7d778d2a24ff8f693a",
+    "raw_sha256": "c73219177ddaf9519bbd5ec041d3a510eaec85aa56b1b73a57d1112e95ccf889",
+    "addresses": 2753,
+    "instructions": 10246
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-2s-32-0--1.json.sites.gz",
+    "sha256": "99a7f3ae26205212e7726876cc0b0d9cb6b70048a853f1c59a077fac8e41c6dd",
+    "raw_sha256": "d32678f26232c23cd6aeb41a0c923c999fe23192740cf71a998bdd603892d458",
+    "addresses": 2742,
+    "instructions": 326054
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MGET-2s-32-1--1.json.sites.gz",
+    "sha256": "77d86f5a4d6a9ea75316428abfc128707f25c3e7b141807f223a95aeae66daec",
+    "raw_sha256": "c10a83f8df8b8055f10f696dd06be8712d2fc9b2ac4beca68f1af8833f62e403",
+    "addresses": 2762,
+    "instructions": 326694
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-1s-1-0--1.json.sites.gz",
+    "sha256": "e5f677655d47626a6107f9269bab108bcf51a288741c22c9ba91451fcd4cc0f7",
+    "raw_sha256": "45d0d628ed59a44c7edd9ea0dfe3752d16c18e57edf1eb8cc054fe0f60577a09",
+    "addresses": 2554,
+    "instructions": 10681
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-1s-1-1--1.json.sites.gz",
+    "sha256": "d8292779d5553bbd5217121ed9a4b51bb5d9841db4dcf23046f1e23aafb69cfd",
+    "raw_sha256": "d568cc080af513fd5823f73c6d06db9b462072924d7d037f4367ea60fa2b5e8a",
+    "addresses": 3537,
+    "instructions": 17047
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-1s-32-0--1.json.sites.gz",
+    "sha256": "dbaab58fc4925c645272eba79a9d3c6d345d9753609711a82ced1000a6328669",
+    "raw_sha256": "9ea506e351705e0c006690855ad49db650fe555f6cfa9362d41cac8c27497301",
+    "addresses": 2560,
+    "instructions": 341637
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-1s-32-1--1.json.sites.gz",
+    "sha256": "9130fc86219a1aef2f87d2d823b7544099862e19a71c24e79a0cc7fa8301f68d",
+    "raw_sha256": "b9d53f4abbdbf7afdd96a000218a64d1595a555c3011201934597790a99c67ca",
+    "addresses": 3765,
+    "instructions": 963966
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-2s-1-0--1.json.sites.gz",
+    "sha256": "ef6c7001b29574711e3600f9a9f76d0aa0bcbc1b7c0267529afda4182c6a99f8",
+    "raw_sha256": "78e49301ab2fde4d111d209c1f8f0cbb14eb6c47073adbc8be41fd5dfb41156e",
+    "addresses": 2524,
+    "instructions": 10499
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-2s-1-1--1.json.sites.gz",
+    "sha256": "ab5490e705ee50f05fc597e15e987580af2fb197e7fad9cd0cee98120b9e1a86",
+    "raw_sha256": "551cf423452d4eca731efd2a7e56af5203d6c2d6e35761d5178ca906b6d9cd9e",
+    "addresses": 3512,
+    "instructions": 16715
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-2s-32-0--1.json.sites.gz",
+    "sha256": "84df502bd8ea228041594984f3673517c43f9535e454ac76a29353ae6ab403c1",
+    "raw_sha256": "6f7e42c8bbd5e1dec59413c1ab32affee38b0a383201647610712e0c38eecf9d",
+    "addresses": 2530,
+    "instructions": 335813
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-MSET-2s-32-1--1.json.sites.gz",
+    "sha256": "240e176ba22966498b21924c203be73b73c71a3c8a2178427eefefaec71dabc3",
+    "raw_sha256": "b90e4d6d1f4d705435f6a09235a4928101993e27dc97005f05917f1cf65595e6",
+    "addresses": 3740,
+    "instructions": 953342
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "1643159750a653e7797f0c223b52024642f272723892f24b3367343ff5abf030",
+    "raw_sha256": "fe1d9c23a271be9f25bdb9aab5b39ec68e6b6edeedf8b2888e66d36259e0ec4c",
+    "addresses": 2345,
+    "instructions": 3009
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "e08fb6f4102e905059aa184f7e18a7b627d1b9cfc8c2aec062f13d2cec9f31c3",
+    "raw_sha256": "fe1d9c23a271be9f25bdb9aab5b39ec68e6b6edeedf8b2888e66d36259e0ec4c",
+    "addresses": 2345,
+    "instructions": 3009
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "9539c6ad7617e088939c3f8896c4ad0f5b95a7b1dc4fda077cecbf4739c7345d",
+    "raw_sha256": "18986ea32230b63bdd79fa380d25e631ffbbad4847efe2397df2fbae58ae6dfe",
+    "addresses": 2667,
+    "instructions": 44710
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "0a93626665854f85858ce958ccb44a238f6b7a88dbf0e38c11fb7bd700db4f69",
+    "raw_sha256": "18986ea32230b63bdd79fa380d25e631ffbbad4847efe2397df2fbae58ae6dfe",
+    "addresses": 2667,
+    "instructions": 44710
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "276ffd74336ab7b4ae34d949ed5ac32c3231471fb02d8ed890aff9135613c47b",
+    "raw_sha256": "ff01d7730a2988b040dbdb243de78319cd5c18ebf8c4aadc35e162261c491dc7",
+    "addresses": 2320,
+    "instructions": 3629
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "efbb70b1ff7cf030b6c7622cbde733a00c2b4b878a8f2d7b8ab52502e7c4e937",
+    "raw_sha256": "ff01d7730a2988b040dbdb243de78319cd5c18ebf8c4aadc35e162261c491dc7",
+    "addresses": 2320,
+    "instructions": 3629
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "b8e5adf6e5b87fce973fa1f2da677a451a665728b6e27565ecd0a94da3cfeab7",
+    "raw_sha256": "724ccf6ce6163e7fbad1ece0e47243324d5d8cfbf8659efa0977594c275208b9",
+    "addresses": 2642,
+    "instructions": 44555
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-RPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "9b2eb5b8f203a26020e67fe3d2b55001f984576435acde30573fb49caa0d63d8",
+    "raw_sha256": "724ccf6ce6163e7fbad1ece0e47243324d5d8cfbf8659efa0977594c275208b9",
+    "addresses": 2642,
+    "instructions": 44555
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-1s-1-0--1.json.sites.gz",
+    "sha256": "56de255d6e642337519597516a624657310a1d8b06d3bf432f7cd0cea5ae6430",
+    "raw_sha256": "1de00014a20a5bd5dd8a0c58e08c17c4c237c71638baafb0d1ffba0a0ebac770",
+    "addresses": 875,
+    "instructions": 1027
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-1s-1-1--1.json.sites.gz",
+    "sha256": "8ffe8107711b8c4be3db1ad3b8a574ab462e7af456a75b21d6d22c96ec97d666",
+    "raw_sha256": "1de00014a20a5bd5dd8a0c58e08c17c4c237c71638baafb0d1ffba0a0ebac770",
+    "addresses": 875,
+    "instructions": 1027
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-1s-32-0--1.json.sites.gz",
+    "sha256": "2f0b33bb5414acb2e2cdab60a3a8e82da3df67b8d6e30e00efed3c4a07a42608",
+    "raw_sha256": "6feeb361e6a39512b12c01c15b73d693f3aa933647a871e66b99926bf374ef71",
+    "addresses": 877,
+    "instructions": 21394
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-1s-32-1--1.json.sites.gz",
+    "sha256": "b895e804169664f221ef435d91550b9ed14fe8074347c29c65c124cc39440168",
+    "raw_sha256": "6feeb361e6a39512b12c01c15b73d693f3aa933647a871e66b99926bf374ef71",
+    "addresses": 877,
+    "instructions": 21394
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-2s-1-0--1.json.sites.gz",
+    "sha256": "183a3ea74804b96d5e6fcb51b6703a7bc1e414283a09c3a134fe8b0d3256c8d5",
+    "raw_sha256": "a1b9481f64f2fabc83170447fdb6acaf564e784c02e9da12752c9f4602d13917",
+    "addresses": 850,
+    "instructions": 1647
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "f71c356e96079d4d24dda4ca327624dfbf6a113c0d72e6222ae66ce324b0fb08",
+    "raw_sha256": "a1b9481f64f2fabc83170447fdb6acaf564e784c02e9da12752c9f4602d13917",
+    "addresses": 850,
+    "instructions": 1647
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-2s-32-0--1.json.sites.gz",
+    "sha256": "1853db6b86da8b6ae47028d0a34bd035d963352a59016c9e3c81f1abd88724dc",
+    "raw_sha256": "f60637b48969688a050d67e9103d447961d8bfb84b29bf2dc54609e14782f840",
+    "addresses": 852,
+    "instructions": 21239
+  },
+  {
+    "path": "docs/wave14/instructions/post-ordinary-initial/normal-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "40279d52f35676a22331c67d6c231d8f6a1f4d02a8ed29797de04e41e7f8ff2d",
+    "raw_sha256": "f60637b48969688a050d67e9103d447961d8bfb84b29bf2dc54609e14782f840",
+    "addresses": 852,
+    "instructions": 21239
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-empty-1s-1-0--1.json.sites.gz",
+    "sha256": "5e3fa173c6142887c50e75681ffc7da17c7b6c07943d2cac8609cecb16b6f2de",
+    "raw_sha256": "f24f10c6a3e6e60e82fba43e3c53cf5f2a415a7133e17ec7f6858a4cdb31e7c7",
+    "addresses": 4256,
+    "instructions": 168438
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-empty-1s-1-1--1.json.sites.gz",
+    "sha256": "6a036a9d49219e8d34a8da681833faefe5fd67b6adfb8e20f5ae53197e8e4f1a",
+    "raw_sha256": "f24f10c6a3e6e60e82fba43e3c53cf5f2a415a7133e17ec7f6858a4cdb31e7c7",
+    "addresses": 4256,
+    "instructions": 168438
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-empty-2s-1-0--1.json.sites.gz",
+    "sha256": "9168b54bd94735197e1647bce2e1aebce010aec453d9d72de951b004751a96d9",
+    "raw_sha256": "54648dd44140872aa63948783be8619f46bd4a56361ae2d7d3c2fb3dbed818ad",
+    "addresses": 4256,
+    "instructions": 168048
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-empty-2s-1-1--1.json.sites.gz",
+    "sha256": "9b224c5c01a92593f770ee2ec9a035569f45d256c379136995bca55ebaf385a3",
+    "raw_sha256": "54648dd44140872aa63948783be8619f46bd4a56361ae2d7d3c2fb3dbed818ad",
+    "addresses": 4256,
+    "instructions": 168048
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-small-1s-1-0--1.json.sites.gz",
+    "sha256": "0a7e09cecad8d6795bb291ae57d9e87f5185bbf41167e5ed22cca79584263d76",
+    "raw_sha256": "bc4e5b5bab352ddecddcf22520a8661293415984fd4ff211f896087d521cb689",
+    "addresses": 4333,
+    "instructions": 169030
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-small-1s-1-1--1.json.sites.gz",
+    "sha256": "bbe4bd28989dd6b8e0259dadfb2f8832829dd07ed083b70e3f4f8723f37a0402",
+    "raw_sha256": "bc4e5b5bab352ddecddcf22520a8661293415984fd4ff211f896087d521cb689",
+    "addresses": 4333,
+    "instructions": 169030
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-small-2s-1-0--1.json.sites.gz",
+    "sha256": "c1694c06959acef4cda25ea9df8b3b90364d59487b7ea469b1aea22380ac653f",
+    "raw_sha256": "2e207a374f54cc6ccf4c275947441222bcff71b58cedd8f519ab6d839c632e1e",
+    "addresses": 4333,
+    "instructions": 168640
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-FLUSHALL-small-2s-1-1--1.json.sites.gz",
+    "sha256": "ec9a45f609c3b8674aae7a36180c488fef7cbe04896c800d94f336396f945271",
+    "raw_sha256": "2e207a374f54cc6ccf4c275947441222bcff71b58cedd8f519ab6d839c632e1e",
+    "addresses": 4333,
+    "instructions": 168640
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-READLOCAL-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "2a243195b596ea07d234a00b7ce76f77fce478941c2e0a327fefdbd8e8fffcae",
+    "raw_sha256": "298909e6a25bc6526d56e6ef2ca223bff75e506d9b7fc0a437b2e2cb4e1c093a",
+    "addresses": 1960,
+    "instructions": 2345
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/db0-READLOCAL-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "9779b3263c01ddcf78eab3763c8eb8d732142b0d1cdcdedd45a1b77c3cd34cc8",
+    "raw_sha256": "cc2b4a5b04ab1e1f5236ae82c70780c1742e0a51d76027f5fedcd1128122c531",
+    "addresses": 1994,
+    "instructions": 45954
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-empty-1s-1-0--1.json.sites.gz",
+    "sha256": "9645a6705ed9f7869720b01a198f5bd2acd188c38f0cd7e7d6bd3b23254e4865",
+    "raw_sha256": "249c0c1f6205be14f6c5e3f71d5f5199ba0eae20c229ffc32e1f85f23a198102",
+    "addresses": 4344,
+    "instructions": 202063
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-empty-1s-1-1--1.json.sites.gz",
+    "sha256": "57344f254c9d29f39717cc2693983ad7022f80a836fbdd2876b484149eed313d",
+    "raw_sha256": "249c0c1f6205be14f6c5e3f71d5f5199ba0eae20c229ffc32e1f85f23a198102",
+    "addresses": 4344,
+    "instructions": 202063
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-empty-2s-1-0--1.json.sites.gz",
+    "sha256": "4ea8ce24b567e7a23445b5f816a3596c01d5b599ec2f423b933d247b8665c962",
+    "raw_sha256": "85e04e685d106634dbb8ad4d9b08bfbba54e9438ca48e9c2a134069e0aa5e0a1",
+    "addresses": 4344,
+    "instructions": 201705
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-empty-2s-1-1--1.json.sites.gz",
+    "sha256": "881a1618b74e72859fe8190ea1959dce207bcacc1be7a77e4cfcc2b732368282",
+    "raw_sha256": "85e04e685d106634dbb8ad4d9b08bfbba54e9438ca48e9c2a134069e0aa5e0a1",
+    "addresses": 4344,
+    "instructions": 201705
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-small-1s-1-0--1.json.sites.gz",
+    "sha256": "34730200bb8e1b1c2213b262c14b3db40c92f3302f08e4648831d4c5337e4cf5",
+    "raw_sha256": "d929d3b3f37db60f66e4ae28b90a029600ac1ac87bfdfb56e67cee9364fc7910",
+    "addresses": 4459,
+    "instructions": 202975
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-small-1s-1-1--1.json.sites.gz",
+    "sha256": "77d955d67fc18b741a0460010c15f9a5a220433969c55e66ce3a9bd2557063cc",
+    "raw_sha256": "d929d3b3f37db60f66e4ae28b90a029600ac1ac87bfdfb56e67cee9364fc7910",
+    "addresses": 4459,
+    "instructions": 202975
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-small-2s-1-0--1.json.sites.gz",
+    "sha256": "2fe4946f41de36a9a3ee69889ef7e494a3128a810468bd686b2b645a025af5bf",
+    "raw_sha256": "f46cfd59b85e82aa9a4dd6cb5027560d29e8c28dffcab086241614ab4bbae658",
+    "addresses": 4459,
+    "instructions": 202617
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-FLUSHALL-small-2s-1-1--1.json.sites.gz",
+    "sha256": "c53feb5226c2603c642d9d185edc97c7b03fcf440e2e99e0d80f4563988bce84",
+    "raw_sha256": "f46cfd59b85e82aa9a4dd6cb5027560d29e8c28dffcab086241614ab4bbae658",
+    "addresses": 4459,
+    "instructions": 202617
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-READLOCAL-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "3587ecd49e27b9670db6ff4d092f1993984095445dc574541bffe9aaec3deaa9",
+    "raw_sha256": "ebbba9d5084718677619d9f81f8bebef6885d80d19b0fc07d882340ba2f3b713",
+    "addresses": 2052,
+    "instructions": 2433
+  },
+  {
+    "path": "docs/wave14/instructions/post-other/normal-READLOCAL-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "90c36f525349a63173cbf1bd7f02fc5cb4358f4d725b1cb3d16a65454bdfb496",
+    "raw_sha256": "e19a1b0c63e8c1ecad414643037bcba2f5e416637a4682fae95b909fde61d1e0",
+    "addresses": 2079,
+    "instructions": 49236
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-GET-1s-1-1-0.json.sites.gz",
+    "sha256": "67ec311887030b7b7fa56312588195e07f170a2ce90297359cb0fd0878e48279",
+    "raw_sha256": "9a87019ba0c6442bbb6d0170852665589d2951c159a582df387df37acf30b3fd",
+    "addresses": 882,
+    "instructions": 1217
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-GET-1s-1-1-1.json.sites.gz",
+    "sha256": "458890af186cb264bec94af3d43bd1541497967a361be3a61cd40f045e47595f",
+    "raw_sha256": "770e99692fa69dba3830a3a3b67e75acbd64e83c4895f341cee5d8b7d7959bba",
+    "addresses": 1032,
+    "instructions": 1372
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-GET-1s-32-1-0.json.sites.gz",
+    "sha256": "7fe42b6527e1b93c9b85d4ed4a418eb20b1c7bc683d8548a7574bfac476f815d",
+    "raw_sha256": "06e399a9c67ac87a4981c118183fb15e1a707ec10c9993895cf876892dbeee9b",
+    "addresses": 870,
+    "instructions": 21198
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-GET-1s-32-1-1.json.sites.gz",
+    "sha256": "56cd266bba912ac4b4556f3ad0f2e5de4f55fa124a3cefd6e98ac1666b75148d",
+    "raw_sha256": "8c2d66e35ba0013711e9065f3e3af118f4648bc896ef25e065c3f44aedf2fc4f",
+    "addresses": 1057,
+    "instructions": 24423
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "d84c011eb4e521e58fdf7eb2fa8bd7f1ee7e7c23b24a577cd7eb7beaf26f2723",
+    "raw_sha256": "1864a02b334e2bfd3c681644ce19f5a1d27393b1aaf06274e51d223756f2aa98",
+    "addresses": 722,
+    "instructions": 1036
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "b7b6b6a114c544c814f5ed27f8742e514dc3c722c2a52e4a206939d72a957e9f",
+    "raw_sha256": "a1d073a8bff409aa3511572e8be054f1306950ce9c21003128adfb96da53b27d",
+    "addresses": 723,
+    "instructions": 18399
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-INCR-1s-1-1-0.json.sites.gz",
+    "sha256": "7eb7e566132552a2d193508fc2f7fd6703080a26deedd0974beaed6751283811",
+    "raw_sha256": "06a4c3ae293a258e1726973e1ea198369f26f0e922f95ae785c1b0e27c34ef01",
+    "addresses": 882,
+    "instructions": 1217
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-INCR-1s-1-1-1.json.sites.gz",
+    "sha256": "883e983043818530b27f1dd76f38f58a77eec3c2cb27d7dc8ef7e3a76d289de5",
+    "raw_sha256": "e4ae2f837e2ad394cfa72c20c008f6654cfba1c07a05d622741b8128a7488622",
+    "addresses": 1007,
+    "instructions": 1347
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-INCR-1s-32-1-0.json.sites.gz",
+    "sha256": "1c662c8513789f3d5548d29b978208e3a4577473dc97e1204adebb04b1e1232f",
+    "raw_sha256": "04277f309b5d789abe27f420e3f73094c0702508978a0a29c97badac8cf20fde",
+    "addresses": 870,
+    "instructions": 21198
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-INCR-1s-32-1-1.json.sites.gz",
+    "sha256": "237d51aaf49658f829129f1a9186b43480005f1cb5ccdea9cf43b37d77929122",
+    "raw_sha256": "77cc6574048cc161db52e91daebc31440631524d51cb54c627dd3eb48795df63",
+    "addresses": 995,
+    "instructions": 24956
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "78018c207511dd3481510129d521fca857d4ca1b19598fb5f2c2e134cd6ef260",
+    "raw_sha256": "584883d500496cd29fb30cc0ef9869196c40632da927cb56382633f7519c03c6",
+    "addresses": 722,
+    "instructions": 1036
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "daf6a3c610cfef8e8ec3bb36e2e3067398f46410015ee29aaccd3d75eaecbbe6",
+    "raw_sha256": "db0286977ab597cd082854d8bf23847f4d5df064bd4af6e743d0f1ed25745344",
+    "addresses": 723,
+    "instructions": 18399
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-SET-1s-1-1-0.json.sites.gz",
+    "sha256": "99e93631966723ff4ea40462d485bd442d3b0e4562d61309c818839b22dcdb52",
+    "raw_sha256": "fbf780cd04f1204472cc4606ee7efcd0350ef80194a0c5963c436c1832eb6863",
+    "addresses": 885,
+    "instructions": 1294
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-SET-1s-1-1-1.json.sites.gz",
+    "sha256": "7452f3f0752f43e1680ae5491120e5532a46c2cf0aa5622d4bddeb23ec540636",
+    "raw_sha256": "2913813339839957784e2656e25b9b82644573e49e202f98f979a133c939a1a1",
+    "addresses": 1010,
+    "instructions": 1424
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-SET-1s-32-1-0.json.sites.gz",
+    "sha256": "bfbd36ab5e9b0951e9451bf395707bc6afd4f7f1905de304973a1dfeb87fb6d0",
+    "raw_sha256": "0db4b5eea9eab2c89653cf1caead135fe0b6189c76871fe9e72e010b0b7ea19d",
+    "addresses": 873,
+    "instructions": 23662
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-SET-1s-32-1-1.json.sites.gz",
+    "sha256": "51922d5b5e38670a517cb0db2ffe5df688ba5877ce15cb8a91f8e4a7936d33f6",
+    "raw_sha256": "eda33b894b8cf8ce58016d8a4339c8da511a08c021be64e94094dc148d19ab7b",
+    "addresses": 998,
+    "instructions": 27420
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "5b716cb050cf3a27330a14011bf4faf89e987cbe06bff3c18297a4a1193c2a52",
+    "raw_sha256": "2705af1fb398e1050c9addbf667dc4a0c0d768272fe4fff2228a785217f52d24",
+    "addresses": 718,
+    "instructions": 1106
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/db0-PARSE-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "9627a578df5f65c1805ffaa9eb6bb790821eb4202640f66125267033b8ed4202",
+    "raw_sha256": "a28a9860768bfaa13771870c8e82f758fbdc00a87716c2b5a708a9fa076b71e4",
+    "addresses": 719,
+    "instructions": 20639
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-GET-1s-1-1-0.json.sites.gz",
+    "sha256": "32e241ebc56c3b2eb4a82d26cdf8339cb529019b7152c8bd973e2e5ed531161b",
+    "raw_sha256": "9926570ddaae725d0a9475b54b00a87571590d05dd3022b95f3a044a2f04c31c",
+    "addresses": 966,
+    "instructions": 1298
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-GET-1s-1-1-1.json.sites.gz",
+    "sha256": "2cb577c14f4f8edf1774262c6348156f009b6502860fd4b10f094511429737aa",
+    "raw_sha256": "4096581a9cd503a4124ec93de51f86fc1975a99ddc51fe7d4c5aefdb4d799aea",
+    "addresses": 1111,
+    "instructions": 1448
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-GET-1s-32-1-0.json.sites.gz",
+    "sha256": "42b07f1adeda07461452d6e20efdaa7e3c99a49261ca4eeffe6692a620c3289e",
+    "raw_sha256": "594887cb18de4cdab1d3b1ee3e68dd5117ea1bde6105e1c92e78275cdb59ac21",
+    "addresses": 955,
+    "instructions": 23760
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-GET-1s-32-1-1.json.sites.gz",
+    "sha256": "2c678fa6fce3625895a8d6b47445f4d2dc855536f50e23161de0a186a496ef4e",
+    "raw_sha256": "69a8b24e83e5736acebc9844f3355581318b1ac687d5a1c03872518e1264954c",
+    "addresses": 1130,
+    "instructions": 26887
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "677bb4fbdc5e326411e76225a1de4ae4758c8b816d8f5cf1d2ffe7be708eafc9",
+    "raw_sha256": "d1fdddf242dd5ce952b5fe05afdaede51cef062827374d04b2aa40eaa25ab7c0",
+    "addresses": 811,
+    "instructions": 1114
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "8119a22b2da48f404cde7303f5f2586520e4c928b7938ad1515a7598bd7d1dd7",
+    "raw_sha256": "450eb70e2394240f30a48c0c6fa9907c7196fdc693324093eb2ed951581774dc",
+    "addresses": 812,
+    "instructions": 21088
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-INCR-1s-1-1-0.json.sites.gz",
+    "sha256": "b72ee2fc6f0b2c1fd1096734f98330fdb39765593363be7ca66253b763f667a7",
+    "raw_sha256": "d93962e8e8cdd0b52d452b3c3b44672351e12d1c2435a6c09155b5b87c14b8ec",
+    "addresses": 966,
+    "instructions": 1298
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-INCR-1s-1-1-1.json.sites.gz",
+    "sha256": "c1e371c59273637d75793db4da52182dc16fd5e8e287e93bb2ad9a7e995f7045",
+    "raw_sha256": "30648ae912cddd09eb0b089bc4d76192bd5d8b1fea5549c6ef594a9566fdccdb",
+    "addresses": 1094,
+    "instructions": 1431
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-INCR-1s-32-1-0.json.sites.gz",
+    "sha256": "4306e61af26b00d56f0acf689cf47f2619528120440413748c9df3d2d0590c95",
+    "raw_sha256": "f794ff0bb9f649f7d6ca8446ac11825eb1b2e66a691b69fda7d8380db8facc72",
+    "addresses": 955,
+    "instructions": 23760
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-INCR-1s-32-1-1.json.sites.gz",
+    "sha256": "546a8cf498dd9dd0612aa5e93842732315f784d9c29982ab9c9ffedb44b88be5",
+    "raw_sha256": "5a9b98c8963d0fd465f868149cf6fed8a9cdbb3b2be2301c60abb593e414f6b4",
+    "addresses": 1083,
+    "instructions": 27614
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "31a1c21c5b09e09a20cbc12e4b46ce7aea30259373d9f42f1b81b0a20e6d9397",
+    "raw_sha256": "8ece47cc6a2e419f387be7e7594e64065380c02a9feeb9a10b437ef79d78591c",
+    "addresses": 811,
+    "instructions": 1114
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "9f4b2add346255bbeace01b7f7e3660d2e1f98adc1e2fe0525417b07c3572c36",
+    "raw_sha256": "ffdf61a68df2d83e426bd11c9be889c8021bcc4f29d69a6446313515997d1af0",
+    "addresses": 812,
+    "instructions": 21088
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-SET-1s-1-1-0.json.sites.gz",
+    "sha256": "add1766cf580d2816c4f7757dcf89ca90f9e1ed65b0a53a5f82cddde8e1c6c28",
+    "raw_sha256": "58b15f8e41583be951dfb60b3f599855141c2fe986241fba95efbdf64b860c63",
+    "addresses": 969,
+    "instructions": 1372
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-SET-1s-1-1-1.json.sites.gz",
+    "sha256": "2aa51ef020e90d10649048ea9215bf4a26ae5f7883612c1f37ea90b66e77cc58",
+    "raw_sha256": "8e1a029f703037044caef06d6bdb5a6d7a7fb777f0bf637abd1f9559fdaf603a",
+    "addresses": 1097,
+    "instructions": 1505
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-SET-1s-32-1-0.json.sites.gz",
+    "sha256": "378ff9eb0280e345e6dcf5e5ff9f0d0f299495e49e2a2c26b0d7a055a00ab3b2",
+    "raw_sha256": "887168c9786f9a938f83b54d5238977ad81af1d32db42c5c0accbda2093aaf27",
+    "addresses": 958,
+    "instructions": 26128
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-SET-1s-32-1-1.json.sites.gz",
+    "sha256": "19e7df6cc49688a6b56acd946f042b4aa608e6b54450883367c0ef32f93f7d4c",
+    "raw_sha256": "850330dfd2225ae6dcaad1b6ef89582103a98312a97d05ca2a35655ebfd29787",
+    "addresses": 1086,
+    "instructions": 29982
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "2ea2d90f621c9f9ab5d74760a87916716779497fc77c467f315f4f2aac64b656",
+    "raw_sha256": "5eaeb281b3f2b596895a10d6ec85deb91a88917b0db3af168ca48eab8ff8f55b",
+    "addresses": 807,
+    "instructions": 1181
+  },
+  {
+    "path": "docs/wave14/instructions/post-parser/normal-PARSE-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "9fe6d24480706f1809f93bbe2667553de34f5b770c9d8e4333c68912cfb84ea9",
+    "raw_sha256": "8489ce5a75e0b905bbfb4f7093a625c35e78dcc174fb203c879b613123e37467",
+    "addresses": 808,
+    "instructions": 23232
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "c10ee23169ffebf8732bff2adcecbeefd0ac508fb0f512e448ec97b804fdb9c0",
+    "raw_sha256": "bdc9d5fffb8eee9ed654aec855a0f724f5bfa4eb1b39e244a839613b5bff673c",
+    "addresses": 10315,
+    "instructions": 38728
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "9bf0f3e21721ebc27ee13c8c5244bcde86e07a8a1ed5d19a96244503bc207ca6",
+    "raw_sha256": "9b07bc8765ee11d096da3c14ced7c32c2af0443b12e4b0ea7d58494099be944b",
+    "addresses": 10310,
+    "instructions": 38721
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "bbc9069f9329c9ee6ab18331b2f1130afe4c7321cca5a8c38e8cf45b193a7794",
+    "raw_sha256": "af692b1f4f5cd75bc14f317ceb4fa5ca27331454fc838e5ed584ebee87d33296",
+    "addresses": 10321,
+    "instructions": 38746
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "34ed858689110096216412559c448af82d54780e8498b63d33d3ebb94f5fcd9b",
+    "raw_sha256": "690848e9943389fb39439f4aac607453cb4b71c8bdf136024c3da8e50ac5add6",
+    "addresses": 10316,
+    "instructions": 38739
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-single-1s-1-0--1.json.sites.gz",
+    "sha256": "1b7f4eb389687a6f2f14fb6cc2abe4ab3a24c9dc5f68da9c96a3c5cdcf503866",
+    "raw_sha256": "87d377d84723f9174b25b5f4666b4f80ec4e9032dac8549303f36f6af18a0494",
+    "addresses": 5587,
+    "instructions": 14340
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-single-1s-1-1--1.json.sites.gz",
+    "sha256": "b8200712b7a7e15b6cd488d99425f8304a1739bef40da27f784219f891692c00",
+    "raw_sha256": "87d377d84723f9174b25b5f4666b4f80ec4e9032dac8549303f36f6af18a0494",
+    "addresses": 5587,
+    "instructions": 14340
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-single-2s-1-0--1.json.sites.gz",
+    "sha256": "789eac7dd63ad4b12302f94caf4674acead41b3b4d1a3ffadb079c54dfb9dc77",
+    "raw_sha256": "8d7ebf3a3ec205984c36545f1d4a105274e7603e080089ebcd67b6cce57165a6",
+    "addresses": 5562,
+    "instructions": 14561
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVAL-single-2s-1-1--1.json.sites.gz",
+    "sha256": "c2712ece3bb6fa54433c736477a0e79c6af65da6e495b8c1b8b50a68fddd5ebe",
+    "raw_sha256": "456efef273f1856b88ae598ed5423c5e2d40ab453d682176ff1622cb193e2ba6",
+    "addresses": 5559,
+    "instructions": 14556
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "6de562844c7321be75a7d88e5e58f1944bfc5d2439dba970f605452bc8781a39",
+    "raw_sha256": "67a6b65df67165845d398f853269687be67c4a1bf7ad16f8d801482ef68d15f4",
+    "addresses": 10278,
+    "instructions": 38631
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "eb0a841d66df86b55e82549a54e20cf2501b4a2c84de6973b078bd730b0a3fe6",
+    "raw_sha256": "276141044275f8a8e2770e6adc323f4e3996f6e62e8dc453a15bbc4a4ce930df",
+    "addresses": 10276,
+    "instructions": 38629
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "c72d328e9c69559dd51f21c5440cc0acd99822f6f6d6057e841fb7dd42b8714f",
+    "raw_sha256": "dea6c71d771006fde2f3ad305b05eb7a37d57cc28e02f934b43f7e7339b6df9f",
+    "addresses": 10287,
+    "instructions": 38654
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "0df882d2b5d62fdce3a0467264d7c4e8f08614b5bbecbe930be494ef13f4495f",
+    "raw_sha256": "687cb195866af6ab5050fd22017d75a0addc2c2ae92c281fb2c6b4600b67e7ce",
+    "addresses": 10282,
+    "instructions": 38647
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-single-1s-1-0--1.json.sites.gz",
+    "sha256": "49b908ca2ee5151277e2fbe83f639c68aaa5ec35e7213e3a4f5b192c4cd4532a",
+    "raw_sha256": "c5a7d20641e3357388c13e54ae37e2dfa8e626c8dd84b4709b3d3740708fbb09",
+    "addresses": 5550,
+    "instructions": 14168
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-single-1s-1-1--1.json.sites.gz",
+    "sha256": "7c4a86f9b12e530b9a56ea0b7adaf936416b8d3dca04f9459d7e27fabd779f4c",
+    "raw_sha256": "1aee5af715132a74c267a547b17fbb1732626a9fd118f3e0474a53242d93c9e5",
+    "addresses": 5553,
+    "instructions": 14173
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-single-2s-1-0--1.json.sites.gz",
+    "sha256": "592b35ceb34cddfeb6ad48fd25ac5d026a0d8fddaed08e6a7357de266a435263",
+    "raw_sha256": "3b24eedd70fc8ad94b73b38b33ec775bdc3035a6f18f34a28962ccc47d35fd58",
+    "addresses": 5525,
+    "instructions": 14389
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/db0-EVALSHA-single-2s-1-1--1.json.sites.gz",
+    "sha256": "a77b3515e4e8b5882e727c7bdbd0a1db6e32a86ae6c41a1becaeca6a536e37c7",
+    "raw_sha256": "98099702b62ebf62e79590e058f4fbf69dc04548fc7777467a31227fbc3faf9e",
+    "addresses": 5528,
+    "instructions": 14394
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "c5692fa642b82eb4f068cdbe2065a11e9416d58b42dbb6ca0aa04c73895fc646",
+    "raw_sha256": "c8f163d2cc25dda56cacff5078579ce7b3a7cb2894394fe3d5bae3e58a010bab",
+    "addresses": 10025,
+    "instructions": 40400
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "05d476de1c6e9f01ed9b2a9457edac70753941ab5f5c2a3d4ca4529e4b70f8ac",
+    "raw_sha256": "39b117c6e659f554d12c539c3169a893d0d3b7352f09b076188920b3699214b7",
+    "addresses": 10026,
+    "instructions": 40403
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "c0a27436dfb615c859e6275ef102430e784a4d70fdcd092321dac6eebba4dd15",
+    "raw_sha256": "90e09b797cc18bfed7d734e1c7dd9d807a23c5366499af8a01ecffc1dcd37c9a",
+    "addresses": 10027,
+    "instructions": 40414
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "d4603597642607a8e2debc89d5cb2edb8287f1822810777069bb61ddc1c9f6f4",
+    "raw_sha256": "70245defe3d0b07741dab320a09aa536a3515edef76c040805551c7282a9e6b4",
+    "addresses": 10025,
+    "instructions": 40412
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-single-1s-1-0--1.json.sites.gz",
+    "sha256": "171abced03e7c0adb5b43249114d95559b4069f32c7c4454a734292170325e56",
+    "raw_sha256": "ecedc0f28193ef6d29f924659d0d410b0b4aa325f31274882d9fe0f16055ef07",
+    "addresses": 5399,
+    "instructions": 13715
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-single-1s-1-1--1.json.sites.gz",
+    "sha256": "595da41cbb48137c8d7ff3d3f22c4e5160c2ba9ae0523a162dc4d4a69bc4799a",
+    "raw_sha256": "019e264398e5a09c5b2345e4b4620357ee539539a4f01a8730e731cccc544479",
+    "addresses": 5402,
+    "instructions": 13720
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-single-2s-1-0--1.json.sites.gz",
+    "sha256": "0598f12428d5e69e0029faa48366476ec4b63ccc634907d10fcd2c47cb39d76f",
+    "raw_sha256": "e8dafd9bcc36d01831c5e66f087a7eee64b08e3e3ebc258310986f37fe8cddc0",
+    "addresses": 5377,
+    "instructions": 14259
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVAL-single-2s-1-1--1.json.sites.gz",
+    "sha256": "9b83e56c6d4bdf1414cc50953682ea51615681526dc6032d2a3b79cb6abb4026",
+    "raw_sha256": "e8dafd9bcc36d01831c5e66f087a7eee64b08e3e3ebc258310986f37fe8cddc0",
+    "addresses": 5377,
+    "instructions": 14259
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "28dd60b9d2b7b82778946b4a73efe28e643ed37969fa57761b480e3a58ab0079",
+    "raw_sha256": "340e35553d64e25ca34d4530d7db9652bf2a11af3fde0b8f196b170e9896a6a9",
+    "addresses": 9970,
+    "instructions": 40303
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "e8519d8734c18310d7fe9e490e836697562e0a39399c6851ae1de44874206de3",
+    "raw_sha256": "1bcb3b8aef7a6cbb82f402324a83f2392f4f1210242280ce9a9c6c8ef193ac42",
+    "addresses": 9968,
+    "instructions": 40301
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "accae185f527130a42ead5c951f47b864042aaee18889327251b29a7fe7df9be",
+    "raw_sha256": "312719dc053f8803118a7500e0d81f16f8f49fb82bcc53b367ef5dd2630e2a65",
+    "addresses": 9972,
+    "instructions": 40317
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "26a131cb491ddf9effadcbdf20ea41506612ac0ae0d1f8772635d0368d3b0ae4",
+    "raw_sha256": "c3a8495cb385a4283297cb979f1c6520eaa28ac451ac56f0de88ccb35d275499",
+    "addresses": 9970,
+    "instructions": 40315
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-single-1s-1-0--1.json.sites.gz",
+    "sha256": "8df7d92315b51a031df3286600fb5b28b5c64e4781ccf07e9c2a2da7570cccd5",
+    "raw_sha256": "89baa7de63e43f2e7ebba7281c78d7ecc52d61ee314b2bdc0fad816ff468b811",
+    "addresses": 5344,
+    "instructions": 13538
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-single-1s-1-1--1.json.sites.gz",
+    "sha256": "a0105210d9a1c82498ed7bbcb95fbdd4e4e0fb53a4b5be5b9c3a2cee03f21fa0",
+    "raw_sha256": "89baa7de63e43f2e7ebba7281c78d7ecc52d61ee314b2bdc0fad816ff468b811",
+    "addresses": 5344,
+    "instructions": 13538
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-single-2s-1-0--1.json.sites.gz",
+    "sha256": "3e9f9a8a84e0703e4f9fcc6ed2ca5c96bf5e2d39e78d2c03f1e0c6146bb3afbf",
+    "raw_sha256": "c342bd908e5121b68cdb352d30c3dbb5a7ee8f0283f7191efe2f8d89fc3a72ac",
+    "addresses": 5319,
+    "instructions": 14077
+  },
+  {
+    "path": "docs/wave14/instructions/post-scripts/normal-EVALSHA-single-2s-1-1--1.json.sites.gz",
+    "sha256": "5b952728b95b77a40419650732441f15a7b829885abf69c1c61273a4e3e70c31",
+    "raw_sha256": "c342bd908e5121b68cdb352d30c3dbb5a7ee8f0283f7191efe2f8d89fc3a72ac",
+    "addresses": 5319,
+    "instructions": 14077
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "3eba4aaa0a9216dde9b5b49b8ac8ab1b886a04ce53a912f7a15bf4cd809fb127",
+    "raw_sha256": "a208e3243a523198a2bb701de85b4bbeb5263463274eb9b6caea191ad7a4a1e7",
+    "addresses": 10722,
+    "instructions": 33927
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "d97f405544d6615e419473048ed4c0e4e57802c56597c81fb7706b0792ad4cc0",
+    "raw_sha256": "dc0c2724d72327c39edd372d0653c2bd5e6f8d2916df22440dacc38af6199f72",
+    "addresses": 10725,
+    "instructions": 33930
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "434611c0e41887bab72a0bf6b1fc7628d7c6ff8a52e83e7fdc45580352c8866d",
+    "raw_sha256": "5b90bb3b895c72840a464aa486b9912d08a7eae3e5d71de926a23df71ce329e7",
+    "addresses": 10570,
+    "instructions": 33380
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "ec250846574cc52222d4ca5046834401d420a92ef74c987bdd59e3ac34b870a0",
+    "raw_sha256": "b48d46441cf36ab703728ee2f4ba7047a2cc017f3c04c520fba0e44510279908",
+    "addresses": 10573,
+    "instructions": 33383
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-single-1s-1-0--1.json.sites.gz",
+    "sha256": "078b61f1afa42161860bca97e8235f325ed236908f2949bf586d4a0a3f685656",
+    "raw_sha256": "9bce167aaf0225ba7165de3712bada74b4f05e71cbf03e178830c63d4438f251",
+    "addresses": 10744,
+    "instructions": 29347
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-single-1s-1-1--1.json.sites.gz",
+    "sha256": "a764fc39f24843356f95d08da38e1a97bfc1e2e252748cdbdfc8b1d5043051bc",
+    "raw_sha256": "4d97e1bd3d973c07d7ed971463731957b4b920b385a3e1cb9cdd1e03fd0d58ea",
+    "addresses": 10747,
+    "instructions": 29350
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-single-2s-1-0--1.json.sites.gz",
+    "sha256": "b7a98e7ada8b7b27bf1e307253a417ebf6f95a5e167cdc288aafc185597b01bc",
+    "raw_sha256": "d2da1ddc4a014dfefdcf0f03d00dc1c83a39f427faab7bfdb8008c50913b01c2",
+    "addresses": 10594,
+    "instructions": 28898
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/db0-EXEC-single-2s-1-1--1.json.sites.gz",
+    "sha256": "5e09ce21043bc359073975c4553822a8db32d158657892f26973984f20789bd3",
+    "raw_sha256": "ccd4bb49aaa432786062f4698f51c5453c08700498f44dd428e3ebfb8790dbc0",
+    "addresses": 10597,
+    "instructions": 28901
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "b4d73bacaacfbd94db20801266e00ef0869a520ce84d3dce88eea3b0a4d4d657",
+    "raw_sha256": "f07f39ca7dd28ee68ea81a6e24a4c5dbc0641274dc5edc841612c49d3a8404e8",
+    "addresses": 10913,
+    "instructions": 36257
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "3b8f8ba032723832074537b370a6ee3d0bae5bc0b030de3f398796d529b1e816",
+    "raw_sha256": "6960db20a1212295c9b90460095f214155cad20e67470fe432a4fc4b0019da5e",
+    "addresses": 10916,
+    "instructions": 36260
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "cfa4347d55548544762af4d68bdad5dff32c44535a6b59c08ced4efa9a0591bc",
+    "raw_sha256": "cdf7f2252acc4054befe5f1c0fa34cb07e3209b23c9ae39d43b1258fbe44d4e9",
+    "addresses": 10782,
+    "instructions": 35754
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "234eeb667c066bcc2ac60001f7aaa27afd1bdff08e73c79022a6a8d2bb601dc6",
+    "raw_sha256": "baeb2ca2f7865cd3cea37fc73d00b8d7386d11f9a924a58da7f105b5f25cb0b8",
+    "addresses": 10785,
+    "instructions": 35757
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-single-1s-1-0--1.json.sites.gz",
+    "sha256": "5cb6ecb34366677f744a97bc7623ccb335ff19045f935609a8067d348e16f08c",
+    "raw_sha256": "d8a5db4fdeb7ff8f62b194ff1ee0ad599061becb798a45c51eb106df344f5155",
+    "addresses": 10933,
+    "instructions": 31511
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-single-1s-1-1--1.json.sites.gz",
+    "sha256": "378494ab7b522be70b9f1034dd90c1a3621021f745a55eb8f866474a4d3e3e87",
+    "raw_sha256": "599247e3887670f2fd12491078bc5d0145f06dddd1805e92b580803420e4aa7d",
+    "addresses": 10936,
+    "instructions": 31514
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-single-2s-1-0--1.json.sites.gz",
+    "sha256": "31a5bd52e1971cfb69e08300d07e136dcc473dc887920b6880cacf2a6f8727c2",
+    "raw_sha256": "239af955f6ed46da69725af8710476e6ec776f1327d1ea06fdf81f58022762ed",
+    "addresses": 10803,
+    "instructions": 31098
+  },
+  {
+    "path": "docs/wave14/instructions/post-session/normal-EXEC-single-2s-1-1--1.json.sites.gz",
+    "sha256": "b33d2bedd125d4f8efffc7a032f02a3568845112602089f748ba7c2eb37c0489",
+    "raw_sha256": "2c73069954b5845257aad4088fe5ee8a5f45fc964a8ddef02dd1581c41670b59",
+    "addresses": 10806,
+    "instructions": 31101
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-1s-1-0--1.json.sites.gz",
+    "sha256": "f4ba7db646aa09f6b56a1d0eb42452209675d1c60f39c273ffc32838640b04b7",
+    "raw_sha256": "fb9d4752ef814c66a9846c896716a77d34d6dc7d9f42e87fb341b7a6dfe01e08",
+    "addresses": 714,
+    "instructions": 783
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "f3c39de98fb99831209711370c4c05f6218daeb731b71ea36f1ca6549bf63ede",
+    "raw_sha256": "fb9d4752ef814c66a9846c896716a77d34d6dc7d9f42e87fb341b7a6dfe01e08",
+    "addresses": 714,
+    "instructions": 783
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-1s-32-0--1.json.sites.gz",
+    "sha256": "94f4ea2569733e7b659ca8b53a60e266347d70474e7b0f3805d189c844c8fbf1",
+    "raw_sha256": "a48a711e4e5304c600db25c98846f791b1d22256eec43338bae5838ff21ce7a6",
+    "addresses": 716,
+    "instructions": 17585
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "9eb877a0d3eca0134c44d8083239d26b67cc5a2a430b0ec35487990816874f3d",
+    "raw_sha256": "a48a711e4e5304c600db25c98846f791b1d22256eec43338bae5838ff21ce7a6",
+    "addresses": 716,
+    "instructions": 17585
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-2s-1-0--1.json.sites.gz",
+    "sha256": "b37e2058a9322f181098cf46b58ab8379979f592719fb4e8e3966ac922300bb9",
+    "raw_sha256": "9cd4ea3393205849a3320ba4f57c9b47a3df0f80a6df88bd19fca28e7f563668",
+    "addresses": 689,
+    "instructions": 1016
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "3cf19bf2b70983d6601bef4d85e2d3b659ea6f8e9526d589c02c0ecc1c786585",
+    "raw_sha256": "9cd4ea3393205849a3320ba4f57c9b47a3df0f80a6df88bd19fca28e7f563668",
+    "addresses": 689,
+    "instructions": 1016
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-2s-32-0--1.json.sites.gz",
+    "sha256": "6b34a2b1b8dc0c2647f5156dcd8fe56f92353ebdb6a28117b1d2d19fc7d17f5d",
+    "raw_sha256": "cc0d423da1841580944a623a3cf11b50674b24e7d36c5022c0ef3b5ba474680e",
+    "addresses": 691,
+    "instructions": 17043
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "2eb290331791a3e08fd3cf2aeaec5ec11f3868536e5034f13b711b1b5d3dd98c",
+    "raw_sha256": "cc0d423da1841580944a623a3cf11b50674b24e7d36c5022c0ef3b5ba474680e",
+    "addresses": 691,
+    "instructions": 17043
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-1s-1-0--1.json.sites.gz",
+    "sha256": "062f74b5a45ed86b464d65bc56ff55f500d302d02727a73d09be7dee26386976",
+    "raw_sha256": "4eb95bc2965f6483d2a0f0049fc60ea9c7140d230509dac797b1ce1f9c02514d",
+    "addresses": 1223,
+    "instructions": 1269
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-1s-1-1--1.json.sites.gz",
+    "sha256": "4d6914ce850195a3c4bd974cc2213937c137e56fdb49763010baeb2d15530ac3",
+    "raw_sha256": "4eb95bc2965f6483d2a0f0049fc60ea9c7140d230509dac797b1ce1f9c02514d",
+    "addresses": 1223,
+    "instructions": 1269
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-1s-32-0--1.json.sites.gz",
+    "sha256": "99dc4d80a277fc42abe2050b61ce1e8951b238b05f037c3db639db31f6f72d2f",
+    "raw_sha256": "d762eaffc083718c62eb7c829b5d1f91cfe101219be37559a23be73268bfa299",
+    "addresses": 1225,
+    "instructions": 33666
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-1s-32-1--1.json.sites.gz",
+    "sha256": "e11f9f2f0db7593faaa67e9e91213395797974b685821f150e1a501fd7394081",
+    "raw_sha256": "d762eaffc083718c62eb7c829b5d1f91cfe101219be37559a23be73268bfa299",
+    "addresses": 1225,
+    "instructions": 33666
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-2s-1-0--1.json.sites.gz",
+    "sha256": "d18896d1689af0d859275a4e56b426d4ca2906416184354afc28e609912e51e5",
+    "raw_sha256": "0d0b870573258c5875fde9d4b6ea329a0c840ce03982ebf633140fe4f73b4d6b",
+    "addresses": 1198,
+    "instructions": 1502
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "49150988ac820d97e82a5985cbbeb259d1a91dd60a0c1c7aca413c5b7460810f",
+    "raw_sha256": "0d0b870573258c5875fde9d4b6ea329a0c840ce03982ebf633140fe4f73b4d6b",
+    "addresses": 1198,
+    "instructions": 1502
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-2s-32-0--1.json.sites.gz",
+    "sha256": "a4defe5c9b55d57e47e12cb9709c193ff0f92095a22199aac709adb52f66fc83",
+    "raw_sha256": "bf4f30ce9171ff65dde69dd8e50587a2a55555f98f6c2e83c468603aaf272add",
+    "addresses": 1200,
+    "instructions": 33124
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "7e3b58771428fa376e21e537a27a1bf380f76cd062b024a82fbc14e886e4d769",
+    "raw_sha256": "bf4f30ce9171ff65dde69dd8e50587a2a55555f98f6c2e83c468603aaf272add",
+    "addresses": 1200,
+    "instructions": 33124
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "f93e44d97986583e7c53c35238e53e1ebf8f83fe1a63e4104b8d1db9a724d9fe",
+    "raw_sha256": "6f89618505e1b49e1b4f6b44f99a0631f7897f5c10b4050ee284bdc3422db22e",
+    "addresses": 2458,
+    "instructions": 2924
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "b0b7bd92f567b1f03dbcf9672ef13ff848c179fd2b60362a82a362be6cd629d6",
+    "raw_sha256": "6f89618505e1b49e1b4f6b44f99a0631f7897f5c10b4050ee284bdc3422db22e",
+    "addresses": 2458,
+    "instructions": 2924
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "43d5e56ee02bca05cab65e0d0b47ff7392c7d56bfb898c93fec66e4b47cc08c4",
+    "raw_sha256": "e83f0525c234f0077ebc2263e23010907de440c7b166644e841949b1e4febd69",
+    "addresses": 2802,
+    "instructions": 57543
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "689dd73fe34f9de5d59acc500439ef85c32b3286079b0f97b39b25c7b1bce795",
+    "raw_sha256": "e83f0525c234f0077ebc2263e23010907de440c7b166644e841949b1e4febd69",
+    "addresses": 2802,
+    "instructions": 57543
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "8f844009c9700e145171b35c1c54671ac2f759c6e5fe7ac8b3797bd53690fc52",
+    "raw_sha256": "f862d84635efbb247ec0e95c9a7cff39d76a83b533fd75b8d5d3086a9f97f2aa",
+    "addresses": 2433,
+    "instructions": 3157
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "b7fbb55e7067c728302b2b7e77c324ea70bafaea5d0c250ef473ea20069200f5",
+    "raw_sha256": "f862d84635efbb247ec0e95c9a7cff39d76a83b533fd75b8d5d3086a9f97f2aa",
+    "addresses": 2433,
+    "instructions": 3157
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "1a54485960ca04a0239d87b5ae656e50feb3375c14a5e57ec88e9b849cc39854",
+    "raw_sha256": "3785485552e77a1c38478301992f8bc29c1bd62230da217628669c841925d00b",
+    "addresses": 2777,
+    "instructions": 57001
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-LPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "e2ec10ec8d9ea7397e81bf22520dff5a80330f0ae73f16afbecdd90b2536c16e",
+    "raw_sha256": "3785485552e77a1c38478301992f8bc29c1bd62230da217628669c841925d00b",
+    "addresses": 2777,
+    "instructions": 57001
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-1s-1-0--1.json.sites.gz",
+    "sha256": "e9ceca128053e47611d870cd746a2152f775113017a7b379d1d9841d477fbcaf",
+    "raw_sha256": "5154d653ff25b94883ea6226689f21019a8e06952b654be7c32bf70a4ad3af2d",
+    "addresses": 2731,
+    "instructions": 10010
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-1s-1-1--1.json.sites.gz",
+    "sha256": "bc6ac697d6e6237d95ae712280c169343124e6674650b246a3c74e6adc1bf355",
+    "raw_sha256": "945468ffdad67390f33a675eb5d0b8eadbfc91ab3dc223ca8279881e36ff5b22",
+    "addresses": 2751,
+    "instructions": 10030
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-1s-32-0--1.json.sites.gz",
+    "sha256": "cc36dd9755fd6a7a572319ea68213acde3e213df13e7501d96cd1c1fa079d3e0",
+    "raw_sha256": "c7e1dad028a21ad14351b9c2e673a44938fd102acc7a351b13027c26c0061641",
+    "addresses": 2740,
+    "instructions": 319142
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-1s-32-1--1.json.sites.gz",
+    "sha256": "324c537b6afda473d46a24060c50953dcb01e1fb7ae0148f9c92f22c4370e494",
+    "raw_sha256": "19a255fa2db347e19b66ca68f20ea034c85fb40d2ec2a76dc91eefa2271e8efa",
+    "addresses": 2760,
+    "instructions": 319782
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-2s-1-0--1.json.sites.gz",
+    "sha256": "6bfc92d7114b57c96f68f6c4a21ec137b0176d01f4e181fe830cc8778dca0f71",
+    "raw_sha256": "eb00cb0cce73dee9fea6f9acc593a36c9215450618d9f4a7bf341f033ac1ea90",
+    "addresses": 2731,
+    "instructions": 10010
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-2s-1-1--1.json.sites.gz",
+    "sha256": "b9cdcd5f1ab3497781262ed2004787c19bc200ebdeb1c9148caa97396605cbea",
+    "raw_sha256": "915b2d5211c15a77d5f2800b8a1d906aec8994a5d64a65eb787fa067cc80bbcf",
+    "addresses": 2751,
+    "instructions": 10030
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-2s-32-0--1.json.sites.gz",
+    "sha256": "eac780c03ac56e88f27763bf55e532572e511d537f928b53dba319946aaf4584",
+    "raw_sha256": "2fd2258816375acd871d7dac48b56a536fc616165bb1585140b7c686f7d33ead",
+    "addresses": 2740,
+    "instructions": 319142
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MGET-2s-32-1--1.json.sites.gz",
+    "sha256": "9cfd288414f515606979d50947b4dbb63b8c927bef56f941cb8e8115c0d1c07c",
+    "raw_sha256": "93fb3e55a2e6eb4dfb0661b8d75787f6a3a3c3111cdd2a8c5985f07c554062e9",
+    "addresses": 2760,
+    "instructions": 319782
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-1s-1-0--1.json.sites.gz",
+    "sha256": "edab40c72970bf7577e02c8bf978bae19433d3fc164fad0c0324cebc65812cb3",
+    "raw_sha256": "d8a9a44f5c06b3a4b9200cfa86b633b4314db41e4f60c9caffb5846908b33616",
+    "addresses": 2605,
+    "instructions": 10796
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-1s-1-1--1.json.sites.gz",
+    "sha256": "201c3b54f3ad8e7480e385e6f68a0a65d58c7c339fff1e2db31002cfc358370b",
+    "raw_sha256": "63ed25d041a9d7fe4e7397606f6493b9da4bc84a65b82579107aa0346935561c",
+    "addresses": 3540,
+    "instructions": 16370
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-1s-32-0--1.json.sites.gz",
+    "sha256": "fea8526f791729fc243dbb9bdf1d4b69ad4593933c63d7968683453624c61852",
+    "raw_sha256": "dd5e4b34a8c989f0481c6148a7441eef58bd7da8e3b5e8a6ddc6365c45fc6e5a",
+    "addresses": 2611,
+    "instructions": 345317
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-1s-32-1--1.json.sites.gz",
+    "sha256": "5df4c8084094d58b4e119665473e45e4bdbc963591a632c37a539beb706f4f5a",
+    "raw_sha256": "70971423cb1c14f7c65e65bfe7b62af180b2e9392e0d2f501a422c1c8af24af4",
+    "addresses": 3774,
+    "instructions": 899150
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-2s-1-0--1.json.sites.gz",
+    "sha256": "3523b79a6552b850474f62597ffd938f34ede678c9e8e46a3e211078089ac8f8",
+    "raw_sha256": "bada92de4d2f9711c44770addd6678eaf8b33997cc9b6b5cb019655bbd60181c",
+    "addresses": 2575,
+    "instructions": 10614
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-2s-1-1--1.json.sites.gz",
+    "sha256": "a855bd0f98698e2d5f21ae4bbfa91712ac05ad335062e49709cad3ab7f807c8a",
+    "raw_sha256": "c28bf07dcf0c42241d7c2254e60c2ee3ec53f29bd0009054236f304ec4cb4e92",
+    "addresses": 3515,
+    "instructions": 16038
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-2s-32-0--1.json.sites.gz",
+    "sha256": "0fafc571a75f6e6e84a3a78d1e68764ff709630f7662c2541de3d1c819976e33",
+    "raw_sha256": "c1d14592d256b86cc7ec8513ef5f9d4fd44a08bcd275bc5ee4118a1a4b10d9fe",
+    "addresses": 2581,
+    "instructions": 339493
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-MSET-2s-32-1--1.json.sites.gz",
+    "sha256": "235aada4307981a4d62cba0a7230d57da72cb76518ef444c212bd4c775523987",
+    "raw_sha256": "63460aa65c945ce6026896cfed31890c7ca8d84e8a1ef149645720d9ea42ebb5",
+    "addresses": 3749,
+    "instructions": 888526
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "45828bedad37afa9475bd1fa24bc07976cb4b965a0c70a1fc639e3311ab5ed25",
+    "raw_sha256": "480d9be38b72b7464dd94909918bd87f21d80a5e085dd45e57451925abc1b39d",
+    "addresses": 2234,
+    "instructions": 2762
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "6321fe5af815685c52d37b53cb0da527fc585d2ebbeecf46bf4c0b11dac03201",
+    "raw_sha256": "480d9be38b72b7464dd94909918bd87f21d80a5e085dd45e57451925abc1b39d",
+    "addresses": 2234,
+    "instructions": 2762
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "cf960ea3b671468f1d6ccf794681d03a3c1f6760befb676f9ee194bc933dfca5",
+    "raw_sha256": "a3598bae189e58aa722ecb22d326cd50a042e3eb001e356ec205b564bdc74aa6",
+    "addresses": 2557,
+    "instructions": 44110
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "9f6afb430aa11a2515a0d1fe2fdc27c3ee3e909549b37e17565291beb0ba5506",
+    "raw_sha256": "a3598bae189e58aa722ecb22d326cd50a042e3eb001e356ec205b564bdc74aa6",
+    "addresses": 2557,
+    "instructions": 44110
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "6f18ee1eed2c8bdf6e1f6d50a3b385b333766c510d3fe351e5a6f9ac2adc430e",
+    "raw_sha256": "adf24d21fcee616e2e0a51dc3f4e064035c28bafb34a6c98910bd7ceea7933af",
+    "addresses": 2209,
+    "instructions": 2995
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "ddc0f3cdf1a714e0a6777a54bd496105424e211948fd730c805a8339d3f29ec6",
+    "raw_sha256": "adf24d21fcee616e2e0a51dc3f4e064035c28bafb34a6c98910bd7ceea7933af",
+    "addresses": 2209,
+    "instructions": 2995
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "e00f79f72fd2e34249bbd9d2ac7273e050677248bccc2c636136945a4c322c68",
+    "raw_sha256": "74e522892bdded0665d0113aab8a10a7df02b70217f4425c92de6a8a24d40b32",
+    "addresses": 2532,
+    "instructions": 43568
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-RPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "4afeb9d5ec820a94fa9ac7d78f1b480ab849f3fc16899d81d7dd120e664f7060",
+    "raw_sha256": "74e522892bdded0665d0113aab8a10a7df02b70217f4425c92de6a8a24d40b32",
+    "addresses": 2532,
+    "instructions": 43568
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-1s-1-0--1.json.sites.gz",
+    "sha256": "f665966ae3994cd71b526535a7716eaa2886906fb5a75de88b117d1aabc23e1e",
+    "raw_sha256": "00cab84565c6f304e14bb57c4b5d56bb61596cb1b56e41fd1849ce95f8f6c02c",
+    "addresses": 853,
+    "instructions": 926
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-1s-1-1--1.json.sites.gz",
+    "sha256": "e8d38be6a28f437d3cd899116090f7407554fa61e2e6cf84482dc66eb83a8ac9",
+    "raw_sha256": "00cab84565c6f304e14bb57c4b5d56bb61596cb1b56e41fd1849ce95f8f6c02c",
+    "addresses": 853,
+    "instructions": 926
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-1s-32-0--1.json.sites.gz",
+    "sha256": "d72e17155cde62f4d80bf81b62f69345138281b4ae138d22bae6d45706445dbf",
+    "raw_sha256": "64d67663ba8938834277aa9e8072809a5398ec7199ec222d370cae7adf40338a",
+    "addresses": 855,
+    "instructions": 22161
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-1s-32-1--1.json.sites.gz",
+    "sha256": "eaa93cfc8bbd22ea746a6c3f61f347c60599b6847414e27695276304f064c69e",
+    "raw_sha256": "64d67663ba8938834277aa9e8072809a5398ec7199ec222d370cae7adf40338a",
+    "addresses": 855,
+    "instructions": 22161
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-2s-1-0--1.json.sites.gz",
+    "sha256": "8ac617be7707bd0a083db7642253c45b78d17b1f8fba3280caa0e06e2ae099b5",
+    "raw_sha256": "b11b424efcf46df530ffa4f91a2644c423cd02b0888819ab3660f1f7903650a0",
+    "addresses": 828,
+    "instructions": 1159
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "ed180178d069358520d6f8f597c72e79ed06fef6e2eb385a79fac45e537fa309",
+    "raw_sha256": "b11b424efcf46df530ffa4f91a2644c423cd02b0888819ab3660f1f7903650a0",
+    "addresses": 828,
+    "instructions": 1159
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-2s-32-0--1.json.sites.gz",
+    "sha256": "5ab7922b53fa0382bf9b33ca18297ac3486a26d5d5982e453d03786ffd40a103",
+    "raw_sha256": "3a48f3472cd4d15afeab042257c00486fc87ed6893424e371d6d19f88cf55ced",
+    "addresses": 830,
+    "instructions": 21619
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/db0-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "4a5654dbd3cff623a2a336d2460e3c67bc07ba153e7dd405da0b784100b8b1b5",
+    "raw_sha256": "3a48f3472cd4d15afeab042257c00486fc87ed6893424e371d6d19f88cf55ced",
+    "addresses": 830,
+    "instructions": 21619
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-1s-1-0--1.json.sites.gz",
+    "sha256": "436e0cdaacbdc118d8d03a5fea1f3e494a15d6d568ed6a2b029f397b33e0154d",
+    "raw_sha256": "0498fe4e33edada676f489886fb552d68b4e1f59bedc48d78cf65391a6c10ad8",
+    "addresses": 787,
+    "instructions": 936
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "3caa00efa07e01c2f3fdc6054f8182fc83605277980d07ed3c7568b973ec6964",
+    "raw_sha256": "0498fe4e33edada676f489886fb552d68b4e1f59bedc48d78cf65391a6c10ad8",
+    "addresses": 787,
+    "instructions": 936
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-1s-32-0--1.json.sites.gz",
+    "sha256": "3a90ae0a4fc92f98f7810f1fa03e19e5e362d3a484603057f24c631bf746262a",
+    "raw_sha256": "756b2235d34378e5b30853726bd229c701ddb01a7080328bc6c99f46af9d1af4",
+    "addresses": 789,
+    "instructions": 18482
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "eed38be0cb8899da5bc28268154c11297f44da7f45451f01b8b279a505f5fb2d",
+    "raw_sha256": "756b2235d34378e5b30853726bd229c701ddb01a7080328bc6c99f46af9d1af4",
+    "addresses": 789,
+    "instructions": 18482
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-2s-1-0--1.json.sites.gz",
+    "sha256": "6134a48488261c7ddc1021b3135c1467b646ed2543429a387b3721038b0c9c44",
+    "raw_sha256": "3e635a038d6efaeb01a4201ffa0a00d4d691fca3cc489f9bc656381d189f8774",
+    "addresses": 762,
+    "instructions": 1556
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "05dec3a182561244e9b0c855ea4ad9922037bba13589b02c3091c20907c407fd",
+    "raw_sha256": "3e635a038d6efaeb01a4201ffa0a00d4d691fca3cc489f9bc656381d189f8774",
+    "addresses": 762,
+    "instructions": 1556
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-2s-32-0--1.json.sites.gz",
+    "sha256": "dbbdc0bf7a596d89d7183bb0fb1d08bb8c8bff40f2bc791004ef7bf032b4609b",
+    "raw_sha256": "4713c06dd80f6b902a6b5f94c52e3a012e5b1f64d27a672b279381651ab448fd",
+    "addresses": 764,
+    "instructions": 18327
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "855a3bf66d2e322ce51d70cdc52e33000bb12af7a769a77ca89319a17d0ac6be",
+    "raw_sha256": "4713c06dd80f6b902a6b5f94c52e3a012e5b1f64d27a672b279381651ab448fd",
+    "addresses": 764,
+    "instructions": 18327
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-1s-1-0--1.json.sites.gz",
+    "sha256": "683acc2b64a9b090167dbcab34b9aa7c07e380e8d713ab7919c00d32d12dcd0c",
+    "raw_sha256": "d9c684c01e26a56c9296e479d9770380798665922c36702e77a0be28db541586",
+    "addresses": 1358,
+    "instructions": 1511
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-1s-1-1--1.json.sites.gz",
+    "sha256": "0d4461b970a3460ae6f15e62e89613aa3793168f604eac15d36d90dc2affe608",
+    "raw_sha256": "d9c684c01e26a56c9296e479d9770380798665922c36702e77a0be28db541586",
+    "addresses": 1358,
+    "instructions": 1511
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-1s-32-0--1.json.sites.gz",
+    "sha256": "22d22183d7ac0f31cd37882e713619397114ed96abc582d4f407d491dc9b90d4",
+    "raw_sha256": "8143c2304858fb858faa040c9da713e8d7f6230e7bbb899b6eb1453e9487fac2",
+    "addresses": 1360,
+    "instructions": 37411
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-1s-32-1--1.json.sites.gz",
+    "sha256": "b64a6cc55e80250e665c6a61b45983f36d12dfba7fb0b8c49f4ca7a2b6206eb2",
+    "raw_sha256": "8143c2304858fb858faa040c9da713e8d7f6230e7bbb899b6eb1453e9487fac2",
+    "addresses": 1360,
+    "instructions": 37411
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-2s-1-0--1.json.sites.gz",
+    "sha256": "f013a5dc62d532990db8e8d249ecbf88a644426716cf76eba5869cb530d57243",
+    "raw_sha256": "03b79943ad6a698c547f8448be7d4ba044e21fc1f24d7e9d3056f4a38a7c78d6",
+    "addresses": 1333,
+    "instructions": 2131
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "9f267a031fff31b42a2e79e12d636848991e79fdabb2ef26e9fe8e27807ebee9",
+    "raw_sha256": "03b79943ad6a698c547f8448be7d4ba044e21fc1f24d7e9d3056f4a38a7c78d6",
+    "addresses": 1333,
+    "instructions": 2131
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-2s-32-0--1.json.sites.gz",
+    "sha256": "38309279d24c8d17a54a70da8081249641392e4a08d72dbc1f47719da260eecb",
+    "raw_sha256": "8a418e8afdcfc6015e74fb92c3eba33681bf80770fb044762e8ed0012f88424d",
+    "addresses": 1335,
+    "instructions": 37256
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "e77c0e761f39ba2895a7a6deb77b671363ed4e4a803c356ab120bc74023d2891",
+    "raw_sha256": "8a418e8afdcfc6015e74fb92c3eba33681bf80770fb044762e8ed0012f88424d",
+    "addresses": 1335,
+    "instructions": 37256
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "c2f0b27565e2764569ef06d70548dd9928eb45d84a5f1535d25a95766cf0e22f",
+    "raw_sha256": "2e2cd20964d45907498d1c1509ec92fb4f7c18b74fc2d9142dd7b85671ef7a07",
+    "addresses": 2588,
+    "instructions": 3188
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "77b8cbc4e187a4f16684b63f61eda3f90eebd556d9fe7722587d846d223099f1",
+    "raw_sha256": "2e2cd20964d45907498d1c1509ec92fb4f7c18b74fc2d9142dd7b85671ef7a07",
+    "addresses": 2588,
+    "instructions": 3188
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "e7bba3f760944656e94381149334710ffbbd32de374a780c3c02867cc83fa359",
+    "raw_sha256": "3a9d31622bb2271d19226782b821a5c94b15c0fd43ebaef7c13d250f22c2c22c",
+    "addresses": 2931,
+    "instructions": 58830
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "8b706348b4a2ee6ac9fa4865e0cc21b70de645057262427980f32c82bc1df209",
+    "raw_sha256": "3a9d31622bb2271d19226782b821a5c94b15c0fd43ebaef7c13d250f22c2c22c",
+    "addresses": 2931,
+    "instructions": 58830
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "643b4cfa12dd50b01cb3018cc3560b7a427380d9b8e6a978fb0c6006066d72d3",
+    "raw_sha256": "8ae25d244d5aa9b39896094b8ccc05e5d1a7702f5a0e8743bf740593146fbb78",
+    "addresses": 2563,
+    "instructions": 3808
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "b639d254babfd94244f40e2263cbc938c77a9a66b7000f4c6af8d4c2b46715be",
+    "raw_sha256": "8ae25d244d5aa9b39896094b8ccc05e5d1a7702f5a0e8743bf740593146fbb78",
+    "addresses": 2563,
+    "instructions": 3808
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "9b5038546a37de8dd72314dd6275cf46d58617c9b601c5d216a1af47fc2e674d",
+    "raw_sha256": "a3fd258f5237744a3c8197b56320768eab461a0e4024357fab0b7650e254bc01",
+    "addresses": 2906,
+    "instructions": 58675
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-LPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "705b61e4f424ac8d13dc175a9036f0a84c591f2342cd4239b974639173b9d815",
+    "raw_sha256": "a3fd258f5237744a3c8197b56320768eab461a0e4024357fab0b7650e254bc01",
+    "addresses": 2906,
+    "instructions": 58675
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-1s-1-0--1.json.sites.gz",
+    "sha256": "2d4bae59763bdfd474be7761651ebdaea93b9114a179f4debe02204652357fb8",
+    "raw_sha256": "b2d98dd2a5d664b11b58c537781367f3d581dc478544e20a0730090d68e2f955",
+    "addresses": 2745,
+    "instructions": 10196
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-1s-1-1--1.json.sites.gz",
+    "sha256": "5fb440b863444a9c342957118abef358dbe05bbe5679db13bde33864681d360b",
+    "raw_sha256": "e8a410c9f3f1add6ba4ef72f16f3088b2d99f43f8341f00bd94151054c82d9cb",
+    "addresses": 2765,
+    "instructions": 10216
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-1s-32-0--1.json.sites.gz",
+    "sha256": "5dce151498527a7919388f1c05c53420e5b969ee804c169a1add6f7b4a523853",
+    "raw_sha256": "cfb007d887f9f8d3c850851939423595774045899324b81df6c1972b6c527195",
+    "addresses": 2754,
+    "instructions": 325094
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-1s-32-1--1.json.sites.gz",
+    "sha256": "f23afe5d994ac605f6065e5d7add0eb9366ef9442021df4434f3c7f7251f81dc",
+    "raw_sha256": "eda7f2fef7d43b35853dc21dfe0c3fb016d5632a548862bf280c52a8bff8753f",
+    "addresses": 2774,
+    "instructions": 325734
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-2s-1-0--1.json.sites.gz",
+    "sha256": "8316637813ac0e7909ddce2fc390826475a0085e71112da51268b24b6f29877c",
+    "raw_sha256": "4842c555e332d639accda5dd720cbca91dd00123b5922c0b6ca3df4f251fe68a",
+    "addresses": 2745,
+    "instructions": 10196
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-2s-1-1--1.json.sites.gz",
+    "sha256": "11dddc1e1c45f6a6758c5157e7098022d7fa3c83f6b09af7f3058eafa1c5e674",
+    "raw_sha256": "b50fe4dbd8ba777b7ec7cb67fab9330f37d6db8fd442864fa647545045ecf612",
+    "addresses": 2765,
+    "instructions": 10216
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-2s-32-0--1.json.sites.gz",
+    "sha256": "6d969843fce6c71102f8ebc41b19ee7a6e39cfabf7862cbad0a61e58e34278ac",
+    "raw_sha256": "c9857b5c26f66219b22c48485f12f8434661fdfdd8705981a98ca3bdfe1b53e2",
+    "addresses": 2754,
+    "instructions": 325094
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MGET-2s-32-1--1.json.sites.gz",
+    "sha256": "875c1b040bba68e2bd1603caee208c475ebd844c92344c2928e51749ca173e60",
+    "raw_sha256": "3e9f2f13bd946c95f299b3c97ede0eb2782090ec671a2b7e86253c592d91629f",
+    "addresses": 2774,
+    "instructions": 325734
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-1s-1-0--1.json.sites.gz",
+    "sha256": "bc0a95eead0d0b58216b7ba8b8a5398b526653415f2513a1caa9c0ce76585d16",
+    "raw_sha256": "a9dec895fe085db9aa28c4ddc0bb9ae91715aaacf300d42db60223ed1ff30529",
+    "addresses": 2571,
+    "instructions": 10731
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-1s-1-1--1.json.sites.gz",
+    "sha256": "64a5948400c8b3b2ab76392fd3d2df342a3a264e31537f5fcaa2c099a6500e02",
+    "raw_sha256": "c161b1d62d0d250c809b982c1ff554442d0ce5b8983a15a9e54a53446c67d3f5",
+    "addresses": 3568,
+    "instructions": 17022
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-1s-32-0--1.json.sites.gz",
+    "sha256": "be690465214adb54cfd29ab7ee804f985e12a87632da11fad0536fe918c0b345",
+    "raw_sha256": "d88f2efe388c20eefb16544a8e15fb490aef6efc1a5df02fb2b070ca108af840",
+    "addresses": 2577,
+    "instructions": 343237
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-1s-32-1--1.json.sites.gz",
+    "sha256": "2a6014c64afe5447f4c90433a09cc45197339f6d594a2ad01e66728c2751bb5a",
+    "raw_sha256": "741ca30c81a1d9101b91f3c2a7cdfc3fb8fa6e17d2a8753cabf7402c8667f7cf",
+    "addresses": 3793,
+    "instructions": 963166
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-2s-1-0--1.json.sites.gz",
+    "sha256": "2f7f1a5bddff1a311d8726f9e9143c009fc41ce953de347eaa6b05601fd4a7c9",
+    "raw_sha256": "39bbb9a128c67ce572a7b8fb12991ed63de52d8fa1ad10a7ad4564f50e38684e",
+    "addresses": 2541,
+    "instructions": 10549
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-2s-1-1--1.json.sites.gz",
+    "sha256": "cf486e7a98c3e74efcceca7cbd17bcbcde964624bf4912e3b01984848746418a",
+    "raw_sha256": "80ab4f1122539bdc88d3a5a43e0604a57f1c17299b24375462671809c6d791c1",
+    "addresses": 3543,
+    "instructions": 16690
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-2s-32-0--1.json.sites.gz",
+    "sha256": "be1166189045052fca5e17b52e68cbd24629ba6d4d7440284355ff1fb16faddb",
+    "raw_sha256": "faa5b9556604aca652f5c40eb2bdeceab9ccca812ddfca5d0e23316e4af4b8e5",
+    "addresses": 2547,
+    "instructions": 337413
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-MSET-2s-32-1--1.json.sites.gz",
+    "sha256": "3af6eecc4475ff1ef7bdc094f22715963a458ce80a19e6b8f0b7190ab3d5dddc",
+    "raw_sha256": "c63270ed53d2698b6084b5f4ddd80d403b15de0e2b50c619d360513d92a69cb6",
+    "addresses": 3768,
+    "instructions": 952542
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-1s-1-0--1.json.sites.gz",
+    "sha256": "c6737c0941f9b7cff03b396cb70cdc8e8fd6788c2a81db92a2e219553ed381b2",
+    "raw_sha256": "4b8e4b4ff29c68629c1808275c838e2889fa2288af5d6d2087564c1c1e3add97",
+    "addresses": 2364,
+    "instructions": 3026
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-1s-1-1--1.json.sites.gz",
+    "sha256": "640dd10cfc96537cd4a19624f5a08e3168a66cdc4408abb8c00c5db305f05ad1",
+    "raw_sha256": "4b8e4b4ff29c68629c1808275c838e2889fa2288af5d6d2087564c1c1e3add97",
+    "addresses": 2364,
+    "instructions": 3026
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-1s-32-0--1.json.sites.gz",
+    "sha256": "7b904c14186527e0c89d41c368ae9c9670528904cf847319cfbb79e1fc930bd1",
+    "raw_sha256": "65c62a367f6a034bf04e6e635d033f44e511fea6a3d6664dd671121525c14e13",
+    "addresses": 2686,
+    "instructions": 45397
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-1s-32-1--1.json.sites.gz",
+    "sha256": "80225567207f9a24987d50c4400049e375f0a0fe93313b85247c317392b1663d",
+    "raw_sha256": "65c62a367f6a034bf04e6e635d033f44e511fea6a3d6664dd671121525c14e13",
+    "addresses": 2686,
+    "instructions": 45397
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-2s-1-0--1.json.sites.gz",
+    "sha256": "ec4b2dbf6495de83e852d5503b9306210639ad567383210e8e72270dd0e31d0c",
+    "raw_sha256": "d5c60c94cb5755ea2c44caa2d1aa4c03332fef7c8951d69c76f547aaff863256",
+    "addresses": 2339,
+    "instructions": 3646
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-2s-1-1--1.json.sites.gz",
+    "sha256": "37e359b2d88042ee4ce2af6f7d2ea983606add2016aa21a040bf4ad35cae8735",
+    "raw_sha256": "d5c60c94cb5755ea2c44caa2d1aa4c03332fef7c8951d69c76f547aaff863256",
+    "addresses": 2339,
+    "instructions": 3646
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-2s-32-0--1.json.sites.gz",
+    "sha256": "7522343e26a0df6f2fcdb382c2f0af7e3651a6dc2432cc5ccf14709707bd3c93",
+    "raw_sha256": "51836f128337feed17ebb8b9e668cf715ee7dbbbe67d86d13ba292a1f6c1a7b0",
+    "addresses": 2661,
+    "instructions": 45242
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-RPUSH-2s-32-1--1.json.sites.gz",
+    "sha256": "e19e8d3151af81b23cd0a39f82ab37532edf5e4343502d05c4b0d72db33c3082",
+    "raw_sha256": "51836f128337feed17ebb8b9e668cf715ee7dbbbe67d86d13ba292a1f6c1a7b0",
+    "addresses": 2661,
+    "instructions": 45242
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-1s-1-0--1.json.sites.gz",
+    "sha256": "35d55902831f869dca3a017b6d46f762c2d90246b9428010729b5360e814032d",
+    "raw_sha256": "6fb1946deb3577b79ccc5a0dcf2695478f1f92872e1060a8b17c93119051ce42",
+    "addresses": 896,
+    "instructions": 1060
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-1s-1-1--1.json.sites.gz",
+    "sha256": "d6da2b80278d646698d12fe0ac5a2249fc859be72f3b74ff59fc312e487294f9",
+    "raw_sha256": "6fb1946deb3577b79ccc5a0dcf2695478f1f92872e1060a8b17c93119051ce42",
+    "addresses": 896,
+    "instructions": 1060
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-1s-32-0--1.json.sites.gz",
+    "sha256": "1fff7ee048420e3a4f826479a0734a730883cb1f182339d84ed990700651873d",
+    "raw_sha256": "294e7d67c532bad61154c056cdc873f366e8557b68e7fe7011cf214478e2052f",
+    "addresses": 898,
+    "instructions": 22450
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-1s-32-1--1.json.sites.gz",
+    "sha256": "57ca59ae0eab015a99935127ea09c582332c85c69f85ce3aea282221ab7d4c3d",
+    "raw_sha256": "294e7d67c532bad61154c056cdc873f366e8557b68e7fe7011cf214478e2052f",
+    "addresses": 898,
+    "instructions": 22450
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-2s-1-0--1.json.sites.gz",
+    "sha256": "bb08261a380cbfa13475dc1097038ac0e973eb8386b57144cfad6fc8ab3b8c74",
+    "raw_sha256": "8dededda6b7999524c272223ae2613290f6810463d764171572524fc268c5397",
+    "addresses": 871,
+    "instructions": 1680
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "96fbfa2589ee9c9dbe59e2e17431471d570fd6839860cb37cf84c623ff888a5b",
+    "raw_sha256": "8dededda6b7999524c272223ae2613290f6810463d764171572524fc268c5397",
+    "addresses": 871,
+    "instructions": 1680
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-2s-32-0--1.json.sites.gz",
+    "sha256": "19b0ab7edf4eaf4860e8d188c5ad5c9a69540e256c91f155a34b7f5edd81df5c",
+    "raw_sha256": "a9697b2f1108e5b24f2044d23c3a55cd2ea898b2e23d4e2dcf3a801d7a4f762f",
+    "addresses": 873,
+    "instructions": 22295
+  },
+  {
+    "path": "docs/wave14/instructions/pre-ordinary/normal-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "48f5c3a04417904347a9e33bb189c9f06406bdd7268002d87309cfa147f3944c",
+    "raw_sha256": "a9697b2f1108e5b24f2044d23c3a55cd2ea898b2e23d4e2dcf3a801d7a4f762f",
+    "addresses": 873,
+    "instructions": 22295
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-empty-1s-1-0--1.json.sites.gz",
+    "sha256": "b194bb371ab04aad74036362edaa43818d1849343f00379972000c2f3d77f817",
+    "raw_sha256": "5c46f6cb99d7ce16f41e77d6ca77ded6597b296a3d378dea0f88713b3605e476",
+    "addresses": 4288,
+    "instructions": 168322
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-empty-1s-1-1--1.json.sites.gz",
+    "sha256": "4bb65a7573d2f31ba09414921cd4413599f4fa7eb0829a4d0d5371de760ec5a8",
+    "raw_sha256": "5c46f6cb99d7ce16f41e77d6ca77ded6597b296a3d378dea0f88713b3605e476",
+    "addresses": 4288,
+    "instructions": 168322
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-empty-2s-1-0--1.json.sites.gz",
+    "sha256": "ed27dfd65752afc2f20f8ffd160b120a4d1f132092d2192bd5cf1f00118867f6",
+    "raw_sha256": "d4ea703fd9e0d6745dc73743b263e735b03a196d10f747cc361857dc606a0331",
+    "addresses": 4288,
+    "instructions": 167952
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-empty-2s-1-1--1.json.sites.gz",
+    "sha256": "143ae488b94f55facefd6f2db4d97ac6bd27cde9d3a87c3cfef9516ef3cd88da",
+    "raw_sha256": "d4ea703fd9e0d6745dc73743b263e735b03a196d10f747cc361857dc606a0331",
+    "addresses": 4288,
+    "instructions": 167952
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-small-1s-1-0--1.json.sites.gz",
+    "sha256": "1fa618defa8daf6e183c45d9e99c14b74e6b34e52fae988028bea73a21487fb1",
+    "raw_sha256": "d8d43ca9c1608be2b61e5652fe812a5c836224598785eb2d72b056f7438dad55",
+    "addresses": 4361,
+    "instructions": 168882
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-small-1s-1-1--1.json.sites.gz",
+    "sha256": "3536ba1ead41b59774769461d847b0a346b6b4021cef57b6db688995c7610b09",
+    "raw_sha256": "d8d43ca9c1608be2b61e5652fe812a5c836224598785eb2d72b056f7438dad55",
+    "addresses": 4361,
+    "instructions": 168882
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-small-2s-1-0--1.json.sites.gz",
+    "sha256": "2c695672196f04478c81fb88cfecfc0a6e19d9b20774c188c6253cb13a11a744",
+    "raw_sha256": "efc8149a87da3fb710e9981f3911fb93617d81f0fe9895b12dce2d395069684f",
+    "addresses": 4361,
+    "instructions": 168512
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-FLUSHALL-small-2s-1-1--1.json.sites.gz",
+    "sha256": "ae0a57d26057cd6d2d066421910cf7705aa1b7049fb615615064206ff86ad711",
+    "raw_sha256": "efc8149a87da3fb710e9981f3911fb93617d81f0fe9895b12dce2d395069684f",
+    "addresses": 4361,
+    "instructions": 168512
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-READLOCAL-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "0b10a4300df1d6283ecdfcabccce1c43352875093a8367ec943581152f074552",
+    "raw_sha256": "2c07cff7cc86df0a3ca41f9396ed1b66d29a784a7271ab8edbbe3c6b73d2d457",
+    "addresses": 1960,
+    "instructions": 2345
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/db0-READLOCAL-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "3f903f801959cf7a79950a0b08a1e84e8f8d881c280d6401f423b98471b628ea",
+    "raw_sha256": "d8582deaf000b3ae2f88dddb3a784750d3b64bf2f3b5600b2b2613f4ad485b7c",
+    "addresses": 1994,
+    "instructions": 45954
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-empty-1s-1-0--1.json.sites.gz",
+    "sha256": "144b1b73c79b3a534e1d3e3753bd7dda1ca902e88e2de843d72de80c28eebed0",
+    "raw_sha256": "75beaf189487cdfb915c69ba41cc642d268efce42c1e1a84e72461a0300d43ce",
+    "addresses": 4323,
+    "instructions": 201621
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-empty-1s-1-1--1.json.sites.gz",
+    "sha256": "35acacfe0209aaa406c988175302263fe4c3eec7ede2f9262d49553bbbcb7407",
+    "raw_sha256": "75beaf189487cdfb915c69ba41cc642d268efce42c1e1a84e72461a0300d43ce",
+    "addresses": 4323,
+    "instructions": 201621
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-empty-2s-1-0--1.json.sites.gz",
+    "sha256": "d78e9262ff991336986131ef966c3dcf160e55889b8629987adc1b4ac68f5a89",
+    "raw_sha256": "6b7aeb633d626454d6bf0360653e6b8933f733160723c08967719b6313ace7ba",
+    "addresses": 4323,
+    "instructions": 201251
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-empty-2s-1-1--1.json.sites.gz",
+    "sha256": "e6ad8c66ab23b626c957603c916aa8eff511704acb2787c40c218f63d49330b8",
+    "raw_sha256": "6b7aeb633d626454d6bf0360653e6b8933f733160723c08967719b6313ace7ba",
+    "addresses": 4323,
+    "instructions": 201251
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-small-1s-1-0--1.json.sites.gz",
+    "sha256": "3a0bb4cb86b51a2038049d8935a1140a142c0b7963ea505f1dd86c1d7be4104e",
+    "raw_sha256": "64e0deb1a010ec7c600b7733a7d5d3f156ff33f7da2cc42b91cc30b562312651",
+    "addresses": 4428,
+    "instructions": 202453
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-small-1s-1-1--1.json.sites.gz",
+    "sha256": "78c4541e05d574e3c377aba8e65e8ac0f3de671092b4898b4da6d49aed4d5c53",
+    "raw_sha256": "64e0deb1a010ec7c600b7733a7d5d3f156ff33f7da2cc42b91cc30b562312651",
+    "addresses": 4428,
+    "instructions": 202453
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-small-2s-1-0--1.json.sites.gz",
+    "sha256": "4ca15b661970395e00560dbbe5657e44193e00460759d9beebeb9d515051764e",
+    "raw_sha256": "ac49586d6d00f627c09bb91457fe2f195f94979f980cdd4178afb63c4eb48f80",
+    "addresses": 4428,
+    "instructions": 202083
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-FLUSHALL-small-2s-1-1--1.json.sites.gz",
+    "sha256": "2a946b1134bc3ef286d185f1fc66f2cdf4b23df0b9601c702b8877b64da5bfcd",
+    "raw_sha256": "ac49586d6d00f627c09bb91457fe2f195f94979f980cdd4178afb63c4eb48f80",
+    "addresses": 4428,
+    "instructions": 202083
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-READLOCAL-GET-1s-1-1--1.json.sites.gz",
+    "sha256": "a57b430190ac7ebc6ecf6e04f37ea252530e5b3c7de40d8147f4bc625b93e0bf",
+    "raw_sha256": "e9c800acfdea6eced4653726d06d31ab64f5f8917ecca09312496a1610b0f2ff",
+    "addresses": 2052,
+    "instructions": 2433
+  },
+  {
+    "path": "docs/wave14/instructions/pre-other/normal-READLOCAL-GET-1s-32-1--1.json.sites.gz",
+    "sha256": "bbf3a6eca1ecc183e5b0026eada5fbdd5668bd2a4e54b9bf7b0edf0c71206299",
+    "raw_sha256": "172996bde69745afc2616178b99ffc68b2ee9226604bbfb2c71c26cf992214b4",
+    "addresses": 2079,
+    "instructions": 49236
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-GET-1s-1-1-0.json.sites.gz",
+    "sha256": "1cc292ee11542d29958e6b2e7c2f8c54224054d1de4a99fb213f8ae347fbe73b",
+    "raw_sha256": "12f84ae7adfb3bc277346c8080fd63493ad9b2140dcbee8cb8eb980c40c2db34",
+    "addresses": 889,
+    "instructions": 1224
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-GET-1s-1-1-1.json.sites.gz",
+    "sha256": "1365ba3ee34054af6f01baf325d597e6bf7652e5da5b01c26b0458132c2803e5",
+    "raw_sha256": "66c35ab91fcaf3796c65f8515736b1d61e9b603809b3f1bc2d69c0f0688f4272",
+    "addresses": 1032,
+    "instructions": 1372
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-GET-1s-32-1-0.json.sites.gz",
+    "sha256": "094855c803826b785616876ae12f29a2e28b7b48c610fbe82c76c4b8a264a018",
+    "raw_sha256": "94a2bd12a7abece94e0472410ac679890149befe1c780aecd23e8c9b66403cf6",
+    "addresses": 877,
+    "instructions": 21205
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-GET-1s-32-1-1.json.sites.gz",
+    "sha256": "9091df292c138571650c3bf8ddf6a56b56067b7b8bba4eeeeb6ac44ad3e29ca7",
+    "raw_sha256": "e195c8233fa0ba96f6ff482a3986b5bddcac7fc833ba837778a8257eab918c42",
+    "addresses": 1057,
+    "instructions": 24423
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "389c4a107aa75b38c916d894032809590934de5db7f36d855b24215b5fd5cb05",
+    "raw_sha256": "5fe6a1bb1ddaae500138990a5ca7d3aff0207350ded333ee6eb8700a472dea76",
+    "addresses": 729,
+    "instructions": 1043
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "f831af15f31ef240c374b7ef720bf9bac946f79ef9ed1a47c8e4f31a26fb099a",
+    "raw_sha256": "b2dc332e81e179d144c6a3a49ae80bb20cb39c4dc5e1fbcb9f4a5e316a729bb7",
+    "addresses": 730,
+    "instructions": 18406
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-INCR-1s-1-1-0.json.sites.gz",
+    "sha256": "a2b3c3977e0d18e9edb2120b4cad7cc8c5a31cc3a4d77d0cceccf57626102705",
+    "raw_sha256": "42c8434fdaf051791bdb4ecc4cfc6124e5a01efda16b5709fad620cc4fc0e386",
+    "addresses": 889,
+    "instructions": 1224
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-INCR-1s-1-1-1.json.sites.gz",
+    "sha256": "b86c0afa4747ecc9f42c916540d22cce7f5cfad335f95a95081480fb8c8fa50f",
+    "raw_sha256": "0b55388b30120c5634db5539751901fe9762e94a9af1d31a1f6ab219c20f0465",
+    "addresses": 1014,
+    "instructions": 1354
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-INCR-1s-32-1-0.json.sites.gz",
+    "sha256": "144abebfc0d16dcb2dcbde5f45e4b96407d0f0ca5df86052e8a9e6c7ea1391f1",
+    "raw_sha256": "d6c69c872a39437f028f391e118f67f28c311416258fd322d8b667bbf22e568e",
+    "addresses": 877,
+    "instructions": 21205
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-INCR-1s-32-1-1.json.sites.gz",
+    "sha256": "89267cc66630d99993ba9a93c4336853cacd7127ee48c0b8067cc0ea9af17df2",
+    "raw_sha256": "340f7d97586514dec0e186f7afcebf546094cdf6f358ce5af31b89084004cc2f",
+    "addresses": 1002,
+    "instructions": 24963
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "9c7772cbec19b6aa2139283d45966939190e724b0cc053d198f23085170e9d25",
+    "raw_sha256": "7ed8f9c4e418a607a8e5e382a046ca1df7c719d082503fdb0f362318ac79d266",
+    "addresses": 729,
+    "instructions": 1043
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "dae30db3bc6d98e95e6537df7a65133028dff223f0b9e32373314a8a6491780f",
+    "raw_sha256": "9ed04e43775bf0cb9c143ae90b26496d370cb82efeda7fc743325d793367c4c7",
+    "addresses": 730,
+    "instructions": 18406
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-SET-1s-1-1-0.json.sites.gz",
+    "sha256": "57b495b7f942d0a23b6259f5aa9f7772d07d4f7f507fa4da453039334dcc12f7",
+    "raw_sha256": "8b04b687891f33ac206016bde252230d7ea125f2f0ce91eee1419514408dc355",
+    "addresses": 892,
+    "instructions": 1301
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-SET-1s-1-1-1.json.sites.gz",
+    "sha256": "1bfbde3a4ce4ff862bd9b2cdc13b8942028e8cfac9e8548ff11c2e8f8c286f52",
+    "raw_sha256": "69f668c6649ec3d879d8af15bcae153c6b5feeaec7ca58e687b694b0a6520418",
+    "addresses": 1017,
+    "instructions": 1431
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-SET-1s-32-1-0.json.sites.gz",
+    "sha256": "aca44257e2223aa465568fc171b373cc8f172e6dab8736fcc31c6c487063fc78",
+    "raw_sha256": "c2a9585a29120ea6d20e7fc3e36598ac180d8a4db681ef0b6a0ac328b5e08f92",
+    "addresses": 880,
+    "instructions": 23669
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-SET-1s-32-1-1.json.sites.gz",
+    "sha256": "e15267ec9907e91ef004875481317dbbf7995d3e53dd471f0294a720ee23c566",
+    "raw_sha256": "79d66d9cb5fcd56540e26dd3f7a2b72ee8d09ac3428e0b16e0c19e52f33c1500",
+    "addresses": 1005,
+    "instructions": 27427
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "a47491348e15c3f1a551a2878c33d753d44fb082426ff61cd40421aaa83654d3",
+    "raw_sha256": "b654a185a0934602e071a57df775bef2fe0ad91160a445a2b92039c2ad426f37",
+    "addresses": 725,
+    "instructions": 1113
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/db0-PARSE-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "4fa5d779dce9f71b05e9137e85a605e9b29e048a8eb56a51d6c5f8cbb1b2a54f",
+    "raw_sha256": "6642f435a2be2e59b9904c06fe7b9f998d7012158328cc5a2f6de518bc205d6f",
+    "addresses": 726,
+    "instructions": 20646
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-GET-1s-1-1-0.json.sites.gz",
+    "sha256": "a7067e6fcfcf9119e1ae7781748215f76859f7634af3be3715a923f3ae77d7f3",
+    "raw_sha256": "2a722558f98575cb7443bcb43d396fffacd8129f36c83f53b18d076fadd59d93",
+    "addresses": 973,
+    "instructions": 1305
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-GET-1s-1-1-1.json.sites.gz",
+    "sha256": "ae2586e9555edcd581f455c34e8de5c7eb5d7d3a504de8f0adbeb7760c09b33e",
+    "raw_sha256": "024e298322f975011619188f051da994f2da631bbe19420eb9a073aa90117bb7",
+    "addresses": 1111,
+    "instructions": 1448
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-GET-1s-32-1-0.json.sites.gz",
+    "sha256": "c91bbfc7b6163a883a76b338a6157bd315e6025a65cf80df07e88da0a85281e9",
+    "raw_sha256": "4b99562d44fbb85eb9d7a38a5fa681c614f3933526dc05c78f5363d0a7e0914c",
+    "addresses": 962,
+    "instructions": 23767
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-GET-1s-32-1-1.json.sites.gz",
+    "sha256": "445bedb5d87bbde03eead4ac71dbf3f1ffcc76baa2c976c926b9b58fee051d05",
+    "raw_sha256": "c624b0cffd7a4fad07621ca0fbd2961faac7d5bca8684c08184b5132d52f77df",
+    "addresses": 1130,
+    "instructions": 26887
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-GET-2s-1-1--1.json.sites.gz",
+    "sha256": "caa7a8c405b299047847f777e9fc4fc14449513eb552b1c656406fffb2c136e7",
+    "raw_sha256": "0db5a5e4ff28d7c223062f3061499100d2d1240ae9f3261acbbfa1c12f67ea2e",
+    "addresses": 818,
+    "instructions": 1121
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-GET-2s-32-1--1.json.sites.gz",
+    "sha256": "31769e59b08d1a3ab79033967ba50bc784b2647291a88d510254376787782582",
+    "raw_sha256": "1bf08d6d1807c9cbe5795b82cea0193f8293c320dadbe184b188028203e8531b",
+    "addresses": 819,
+    "instructions": 21095
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-INCR-1s-1-1-0.json.sites.gz",
+    "sha256": "45d521d3c28f88419be8190d7762137550a6754968a1624161ce6c078732a11a",
+    "raw_sha256": "ae7b4d7f6b315721f4ae3381429e5fdd42436e0317d9de4bcd266ec305b78372",
+    "addresses": 973,
+    "instructions": 1305
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-INCR-1s-1-1-1.json.sites.gz",
+    "sha256": "87cc153009b748e2c688579d7ad3e8ee563a19b8b5933695d873e0df97b55ef8",
+    "raw_sha256": "56594cd16b49c25891add2d6f9ac62d7bb828b1b7b95952c64615d80055db945",
+    "addresses": 1101,
+    "instructions": 1438
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-INCR-1s-32-1-0.json.sites.gz",
+    "sha256": "f8d5ab954944957ae271af98eb0bc398ae59f2db00f530ffada1bef0f1b53a5c",
+    "raw_sha256": "9bd79e566a8f7afd27d0c9fd25c28799bc0a0d1711ddd5e334e40717007ee191",
+    "addresses": 962,
+    "instructions": 23767
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-INCR-1s-32-1-1.json.sites.gz",
+    "sha256": "6613e5977d52fed04c3d1a246b320fe01a3b4411669cfa2aa070fa288a9278fa",
+    "raw_sha256": "da114df6abd62adb66f4dac07fb663ede884f71f9972cc56032b5ce2b877ce97",
+    "addresses": 1090,
+    "instructions": 27621
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-INCR-2s-1-1--1.json.sites.gz",
+    "sha256": "94de4363dc38448640d6cc0b09e17250ef47448969178c2776e0dbc16b96996a",
+    "raw_sha256": "5db9f6ed8b291924a05719ded32caa83c3c7a6a87560047404ca30c4489b5a24",
+    "addresses": 818,
+    "instructions": 1121
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-INCR-2s-32-1--1.json.sites.gz",
+    "sha256": "22d9c703faadf15b0a41a4f2e61110d0ddcae17041874c19a5c68588e515319d",
+    "raw_sha256": "b7385d57c4f92269b6bb4625f357303f8fff054468cdc4e8e1b29983dee8ec34",
+    "addresses": 819,
+    "instructions": 21095
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-SET-1s-1-1-0.json.sites.gz",
+    "sha256": "82927e59d23bcdd15002bb41ec880f40c505224e9a7fbb7c9b7400c22489f337",
+    "raw_sha256": "6092a6aa057531372ba6b086cdbc9cabac37120d58526d63dd3e2e1a8e9023cd",
+    "addresses": 976,
+    "instructions": 1379
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-SET-1s-1-1-1.json.sites.gz",
+    "sha256": "a2fefedda8e55aa12e2da29dd7615189ef351cedb223ebe2f918266b8a125417",
+    "raw_sha256": "426aeafed6906533e5c9fac1c956a16373ee58d57599b717949232c69fc1ecf2",
+    "addresses": 1104,
+    "instructions": 1512
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-SET-1s-32-1-0.json.sites.gz",
+    "sha256": "1ab4e706804bc3d46897ba3459987926d4f09517ce2bfc878ed07d875cf44757",
+    "raw_sha256": "422bc952bb1a5a4cc1309d6ec133b6359b23b778172e86829c50fea908f7d86f",
+    "addresses": 965,
+    "instructions": 26135
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-SET-1s-32-1-1.json.sites.gz",
+    "sha256": "3a18298beff04a05eac3de4e70a7c0a5230f4179a31aed523c73585782ed9dec",
+    "raw_sha256": "1f9c54ab3713455959a17993e638c69e8949dd3a8d214fec6b16360a80446f1e",
+    "addresses": 1093,
+    "instructions": 29989
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-SET-2s-1-1--1.json.sites.gz",
+    "sha256": "a1a60bc70f9da0d469e0a813d90952ab888a9eec5ede2c86574db5662039d3a6",
+    "raw_sha256": "8d3cab3061c5a390a66980227132697d0b4a021da45cd2b4d096e96bea2eac66",
+    "addresses": 814,
+    "instructions": 1188
+  },
+  {
+    "path": "docs/wave14/instructions/pre-parser/normal-PARSE-SET-2s-32-1--1.json.sites.gz",
+    "sha256": "67c45697c046cf646e1c3d7388d7ab10644a86a06eac0b8597c58a398732e356",
+    "raw_sha256": "643ae787bf7a4b5986953c9fbd573338c531037092bf3900d8cebf4232128c9e",
+    "addresses": 815,
+    "instructions": 23239
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "d067c89450bc100a1e5803aafef97392828eb7d476cabc19213cc8e6858ed6dd",
+    "raw_sha256": "8b34ddd99aa9438db872f5215e7323c63c1f664c8ce7860475b5e12865cd8ced",
+    "addresses": 10108,
+    "instructions": 38598
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "5c8c0c058d5b3d58c7c222ceebf2d0f238b7344a6be19043729895a39f9c8db7",
+    "raw_sha256": "d63514744e601bb5ccd64e5752b224e6ccc3a3e1bed3f76a4c4e74f52448851d",
+    "addresses": 10109,
+    "instructions": 38601
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "54cb7d69d19da51ab419cc09a6fdf2a3fdd8f09133808427a153394b0789bbeb",
+    "raw_sha256": "c5b2a4a6234345814cbc3d1102653b7493ea534f6fca8ccbb2b6c9a22a79f617",
+    "addresses": 10113,
+    "instructions": 38617
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "a5ce95ccf0c5550dfde02a209d5c5507953c73da2753e65bb27c59c6374e7206",
+    "raw_sha256": "3330a553a5cea64c24e9a608af8be47a3cc560e78bcb4bdfd18b9c21ed02dddb",
+    "addresses": 10108,
+    "instructions": 38610
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-single-1s-1-0--1.json.sites.gz",
+    "sha256": "d3965a4192132f4b9499c39829c59add49009ffa53103c219d4e8797ef968570",
+    "raw_sha256": "343b0dd28235acb483b6bc431cc9019f61128a9f2a397e470a7bed844c8c83b2",
+    "addresses": 5594,
+    "instructions": 14387
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-single-1s-1-1--1.json.sites.gz",
+    "sha256": "b80ffd08ea281001d26ab845f9224b2d6e6e0108cdd7be9a467b54a97caac29e",
+    "raw_sha256": "343b0dd28235acb483b6bc431cc9019f61128a9f2a397e470a7bed844c8c83b2",
+    "addresses": 5594,
+    "instructions": 14387
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-single-2s-1-0--1.json.sites.gz",
+    "sha256": "dd9a6600bbcae3c9515cc5283b444d29dec3871d044c46a5f43e8567b2b3f4a4",
+    "raw_sha256": "b2dafd1818e7b1b90271b59ad3de892b4340fb274611e6116154834a4402b21f",
+    "addresses": 5569,
+    "instructions": 14608
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVAL-single-2s-1-1--1.json.sites.gz",
+    "sha256": "c4a0624a8933dff417e0e8102fcb705dae462c67666716fc74b69c520670196e",
+    "raw_sha256": "110ecc487c59a3b952e2c6a08a3428e404e347b9b262553d27545532cff3fd55",
+    "addresses": 5566,
+    "instructions": 14603
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "8d91f2a55a9216c57f43a2fde118b3d5b55dfd618e5451f074e6fe863ed8d2db",
+    "raw_sha256": "509241ae5e48ac9781bc80bc168c3668d69b9cb8e9940d1cae8abcfc48e6ff19",
+    "addresses": 10073,
+    "instructions": 38507
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "b1277946bd01ece0027ca6fa2013743a792428731cc47a20dd60f42f3189b8dd",
+    "raw_sha256": "c03a539bdf9f6f36a4521ba8c90c23af6263d65ce159a838c3ccb1597f2f1104",
+    "addresses": 10068,
+    "instructions": 38500
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "8d76487c44c0692a87a5ea714989f8eb372d2f624c63cb793d755c91a60c86d2",
+    "raw_sha256": "96eb2d4953bc843b100c9ed137308fd1c477c9415a056ba032ff4d832d9456c4",
+    "addresses": 10072,
+    "instructions": 38516
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "ce2bf2e6b1a5a53c84dae863c4a7d30e2f94076a5733f7f5fb4c6879e1fc924d",
+    "raw_sha256": "6d4e05493b5a55779619e4194b86692fbc87e176cda97dc724bac0c146d9631d",
+    "addresses": 10070,
+    "instructions": 38514
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-single-1s-1-0--1.json.sites.gz",
+    "sha256": "f13413be5f80d1846e725dc77c88c04cad3bdcd4c64335babadb85a13d8d8e6d",
+    "raw_sha256": "b6823d85bb1b9eaacbeaa405bebf963119e86eff8298df0d0a1f876ff5ed182b",
+    "addresses": 5556,
+    "instructions": 14216
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-single-1s-1-1--1.json.sites.gz",
+    "sha256": "0f94cf9f8ca60fed28bd3018913dbb82914c20f9b4d98e41f1d0dc37e3fce54e",
+    "raw_sha256": "0c51ac16b74aabb218cdb2d4d50bf56402356d61741f0770a37a7d1d6d25f1b9",
+    "addresses": 5553,
+    "instructions": 14211
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-single-2s-1-0--1.json.sites.gz",
+    "sha256": "d06feac1090a8d175df30b2322de977ee9d2ae481565217130f992923e997f9b",
+    "raw_sha256": "5e92b49211850afd7e6538eb766eab979e91b308b4ca8fac5caa7e4dc2796365",
+    "addresses": 5528,
+    "instructions": 14432
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/db0-EVALSHA-single-2s-1-1--1.json.sites.gz",
+    "sha256": "0af2ac94fc160187190faa51bba5573adcaa53ec557d2a443bd8330abb874d9f",
+    "raw_sha256": "5e92b49211850afd7e6538eb766eab979e91b308b4ca8fac5caa7e4dc2796365",
+    "addresses": 5528,
+    "instructions": 14432
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "21484ac8d1580514b02ae8c31865f2deddd7e563f224533c08d4707ba2f335d1",
+    "raw_sha256": "08649f15ac96cae234b962d7f74fe667cce560cb07cc557b27cad43f5c1cd0ec",
+    "addresses": 9818,
+    "instructions": 40319
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "e65ccddfd6f206c9cebfb7163bf217b4cbe19e5d857e37fec6ddd99987c79f6e",
+    "raw_sha256": "80da5bbda7581376d0293947fc94c0c03b25de1e53824e59269d2aea95a42227",
+    "addresses": 9813,
+    "instructions": 40312
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "80c77f37ecdab465c3b9a083f5470ab3627a03ca93e6975de8ad92a741472063",
+    "raw_sha256": "ba3640b10689e1fa7dc42b4d6c9e33ce6e196ecfb8a7609dee87522a2c280095",
+    "addresses": 9817,
+    "instructions": 40328
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "9df473bb0a69ad60bbedbbe7febb91a02d6a155f2452092df480c80d1b8af6b5",
+    "raw_sha256": "4acdbc92c7e25cfa6db138e636f3aadad5e205840595ad9dbfd79300681194ac",
+    "addresses": 9818,
+    "instructions": 40331
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-single-1s-1-0--1.json.sites.gz",
+    "sha256": "070631593d8804f2f1f7aa4ec4465ccde44452604eb464c571ffbff4d5a057fe",
+    "raw_sha256": "3a7d4a9a48a22a44dffa77cf437efe22909d38cda819088b966699cfe7f30100",
+    "addresses": 5433,
+    "instructions": 13788
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-single-1s-1-1--1.json.sites.gz",
+    "sha256": "287c04775ff95729ced3dfe97012cb9b3da569e39e9578448b34ebc6c4540a94",
+    "raw_sha256": "5e08673539b9f75a4353e3f2cc87f4a9043bae49d9325d6a23d6e31f04761804",
+    "addresses": 5436,
+    "instructions": 13793
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-single-2s-1-0--1.json.sites.gz",
+    "sha256": "1e09cdc5ca029ade792d5a434ef35d11e0a40a58a06428221f64bbb3f117f21a",
+    "raw_sha256": "b5b3d9bc8c62ea9b8a31ef842546cdfeb3092e06db7cc77e3a56f35a834378af",
+    "addresses": 5408,
+    "instructions": 14327
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVAL-single-2s-1-1--1.json.sites.gz",
+    "sha256": "fe7cb9de9265db909c05ac9ee5af26cb30ba8021eef8c752a2c8ca56a28749f8",
+    "raw_sha256": "1042485fa9a6ba4b1a1e602acaf1129458d508fcae2b66859cfa3bc130f867ef",
+    "addresses": 5411,
+    "instructions": 14332
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "19bdd1cbc161d94b1be4cd5ed971f6e23a2e4be26065fa71af4706521236707f",
+    "raw_sha256": "5a99cf9930c08b3fbcb38d7190341309d38e38b141802e567e0ce9b2ed17658e",
+    "addresses": 9759,
+    "instructions": 40218
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "0a99f6874ba7d55e398a57d95e17eae2dff18c0eeb23613cbf616c7f366a09e4",
+    "raw_sha256": "063765642a199b5150915ac172329ff571b8dab2017b7a092265a9ebc86bcc41",
+    "addresses": 9754,
+    "instructions": 40211
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "efb89779e3e1e67f6e99f70bda751be1b628a6bf675f2aa2f5bdc7de7850d3c4",
+    "raw_sha256": "19dc81cba09917acba8b7b32d99c353b7d0161de9fc3b23d09c60df8a7295897",
+    "addresses": 9761,
+    "instructions": 40232
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "33e52b52c0874e756dee0897941d87866460bf7e43a08f7bcc150ca864f8471f",
+    "raw_sha256": "c84d3304d2be6b447c4d55cc7192f25a72be2d5b9d249bd763376de2d582469c",
+    "addresses": 9759,
+    "instructions": 40230
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-single-1s-1-0--1.json.sites.gz",
+    "sha256": "acce35f30483eb9d7f4a76aa8be4c0810ff944b7855963efb456f0cde84610ee",
+    "raw_sha256": "5fa882df5c9563c1999bc136dd99741df773dcc4308217e30a8d85f979af5ee2",
+    "addresses": 5377,
+    "instructions": 13612
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-single-1s-1-1--1.json.sites.gz",
+    "sha256": "7df1df8cccf26d59b434db53467f01235985c7ea6772af05cd27d029d7f753e0",
+    "raw_sha256": "5381f547db205ecc89c684d31eaff96fa9013f42a57eb6252057b8472d40bec0",
+    "addresses": 5374,
+    "instructions": 13607
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-single-2s-1-0--1.json.sites.gz",
+    "sha256": "9afe3c89429f188e37cc39a2133aac1c2c5a66e856299ae02b7964391cca80c8",
+    "raw_sha256": "f3b9e8c52ebc2b77cb91c109f5205ab406d5062b124f7be0a13c9efca4a7dbb4",
+    "addresses": 5349,
+    "instructions": 14146
+  },
+  {
+    "path": "docs/wave14/instructions/pre-scripts/normal-EVALSHA-single-2s-1-1--1.json.sites.gz",
+    "sha256": "e7d13ef2c7d23cfc5c7df077356f495ca7df8b6a47f1932a6b9f72321951f639",
+    "raw_sha256": "f3b9e8c52ebc2b77cb91c109f5205ab406d5062b124f7be0a13c9efca4a7dbb4",
+    "addresses": 5349,
+    "instructions": 14146
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "2325751cbaea98f9177fb82d65d82111982e897ba6c19abf976930083780846f",
+    "raw_sha256": "eb5a66fb2d824fe4afcb39f1741821cddfeeacd4af4a5544212f0a1b49f58239",
+    "addresses": 10392,
+    "instructions": 33494
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "c56a65701b49a12e8d2a6fcaa875f702bcc3ca9359806b92ea03f1a3848503db",
+    "raw_sha256": "177c5130f754e2a9f045cc4bf6f031f115a2742ae736c78803fe356b16c2fffb",
+    "addresses": 10395,
+    "instructions": 33497
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "b88f550891e0ffd699b34474b2d15ab1d577bc2277f01850b06967bd4b90d192",
+    "raw_sha256": "df23cd536cc4c14c02b59becd9c7d4cd3ffc4de86bf7d601a5f2962b139f9258",
+    "addresses": 10238,
+    "instructions": 32976
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "01941ef19816ad079e0be283176f1efe76d71860d36be8a432a56d28c522d554",
+    "raw_sha256": "cd2b2769c2e91a4b647942a30f0d50747a622b09e51356388051d869cc34ee85",
+    "addresses": 10241,
+    "instructions": 32979
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-single-1s-1-0--1.json.sites.gz",
+    "sha256": "f7ecb8851fff12be28fcde1972a3e0f3069b4c178d4942608952b7ec622acc02",
+    "raw_sha256": "e22595c2eff56e8a24587574aa64219fd134927f58568589abef1a8d82136f60",
+    "addresses": 10429,
+    "instructions": 29001
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-single-1s-1-1--1.json.sites.gz",
+    "sha256": "3fdaf1684aee4a311d38a69d136637ad861120a6c0e77a3607316ba68943d2b5",
+    "raw_sha256": "75e9035b0e50c2354da6629fc63662890cd234e884e97256a830e5da6f3dc500",
+    "addresses": 10432,
+    "instructions": 29004
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-single-2s-1-0--1.json.sites.gz",
+    "sha256": "227736de66d4091333f0a9b6ad44b3c6f0d1ef47ec6b221fecd84740d4487687",
+    "raw_sha256": "bc6affc18c234a547f86ed7a861326ed54d4a68cc9824a3af31545c2ddd6ce63",
+    "addresses": 10277,
+    "instructions": 28573
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/db0-EXEC-single-2s-1-1--1.json.sites.gz",
+    "sha256": "413a447358040cd52e958f00274f3c306c70530be56e3fb15a6b2b9e8bd400a5",
+    "raw_sha256": "30c450784e8a0468cea70502ade343d148ee851dcdc52dea853c33d3f2fdd390",
+    "addresses": 10280,
+    "instructions": 28576
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-cross-1s-1-0--1.json.sites.gz",
+    "sha256": "ac11e5f8f5edc8bb9498568f2bbdf0444920d87358e80b97691763896ecfaf33",
+    "raw_sha256": "aa5d5df2d7dfc76e201439b4b797e307eadfa65e916b18314992190b1c36932e",
+    "addresses": 10571,
+    "instructions": 35736
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-cross-1s-1-1--1.json.sites.gz",
+    "sha256": "08af0a5046026ad652784fb27816e735985bb36518e83b5cb3f1f9d3b5375502",
+    "raw_sha256": "a63e0a796cae2f51926fabc28973cf69363608a4245bbb4e7258fd90ed8b9115",
+    "addresses": 10574,
+    "instructions": 35739
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-cross-2s-1-0--1.json.sites.gz",
+    "sha256": "20fedcbc387244983e3d34068c9a8169eb0ca2de35d2b29c75a3974da6042e7a",
+    "raw_sha256": "bb59012a813c26d19e9f7fa8e9165ba9a0c79c4b1b411dff08ef9f0fd2238b57",
+    "addresses": 10439,
+    "instructions": 35232
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-cross-2s-1-1--1.json.sites.gz",
+    "sha256": "8b26fe32657e050a9307b55f6553ff43efd75505834dbe6bb8e9192abb6f2cc7",
+    "raw_sha256": "938205ba6882c989804843425af2da16cdec415bdee06b68d55d278e90ae9be8",
+    "addresses": 10442,
+    "instructions": 35235
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-single-1s-1-0--1.json.sites.gz",
+    "sha256": "caed19ec8205e150891e92e5feecb16da764094e5f5e177cd0a29fd171ba27c2",
+    "raw_sha256": "4794fa7c7ea2e19050cb20365e37bba30b93daebb80935a69a89cdee2576cfd6",
+    "addresses": 10589,
+    "instructions": 31061
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-single-1s-1-1--1.json.sites.gz",
+    "sha256": "e61ddf74f1aa556f8efaf43aa7907ab7d512bbee958bc648d689fd4c31619215",
+    "raw_sha256": "dac1c241c2e0c56ec8c071647d7e5c4b423e773214e159166c50872ac885e258",
+    "addresses": 10592,
+    "instructions": 31064
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-single-2s-1-0--1.json.sites.gz",
+    "sha256": "111bc385bf3d479289f26d29b3d6248bce4c053506660965660251c5abfb3999",
+    "raw_sha256": "3839cb1061303c218a155ecf682a4b42e5b76c795bdf19a143e701905bad8fc9",
+    "addresses": 10458,
+    "instructions": 30647
+  },
+  {
+    "path": "docs/wave14/instructions/pre-session/normal-EXEC-single-2s-1-1--1.json.sites.gz",
+    "sha256": "40b333a3d8a21a4e15cccc7f2a7f3ea4ae55ad51b0d2cf0779ace39f0b205d4b",
+    "raw_sha256": "c1e095596bc88f260e774108aa3c272d4a3b200f793f83529d518eb13b4a3ff6",
+    "addresses": 10461,
+    "instructions": 30650
+  }
+]
