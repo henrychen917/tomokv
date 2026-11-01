@@ -143,11 +143,12 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     if (op.spec && (op.spec->flags & CmdFlags::PreserveCaching)) return;
     const bool caching = state.caching_armed;
     state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
-    if (state.bcast) return;
     const CommandSpec* spec = op.spec;
     if (!spec) return;
     // Only genuine reads register. A write from the tracking connection is not a subscription.
     if (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write)) return;
+    // Writes consumed CACHING above, but cannot enroll in either tracking mode.
+    if (state.bcast) return;
     // OPTIN: register only when the previous command was CLIENT CACHING yes.
     // OPTOUT: register unless the previous command was CLIENT CACHING no.
     if (state.optin && !caching) return;
