@@ -1160,7 +1160,7 @@ plan_jobs(){
     # correctness jobs still run and retain their evidence.
     JOB_NAMES+=(differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence)
   fi
-  JOB_NAMES+=(rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
+  JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   local atomic mode section slot FM FR FO FQ FF
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
@@ -5580,6 +5580,14 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
 job_rootcore(){
   local root=$1 label="rootcore $1"
   row_begin "$label"
+  if [ "$root" = inbox ]; then
+    local revision=()
+    [ -z "${ROOTCORE_INBOX_REVISION:-}" ] || revision=(--revision "$ROOTCORE_INBOX_REVISION")
+    taskset -c "$CORES" python3 tools/rootcore_inbox.py --output "$TMPDIR/inbox" "${revision[@]}" \
+        >"$TMPDIR/rootcore-inbox.log" 2>&1 \
+        && ok "$label" || bad "$label" "see $TMPDIR/rootcore-inbox.log"
+    return
+  fi
   py tests/rootcore.py --case "$root" --binary "$CANDIDATE_BINARY" \
       --oracle-binary "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
       --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
@@ -6151,7 +6159,7 @@ if [ "${GATE_PARTIAL:-0}" = 1 ]; then
 fi
 # rootcore: six directed rows collected before the quick-tier exit (DQ=DF=+6).
 # EXPECT_QUICK / EXPECT_FULL are maintainer-owned.
-for root in eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
+for root in inbox eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
 collect_job release
 
 collect_job asan

@@ -1366,7 +1366,7 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         fail(error.c_str());
         return false;
     }
-    cleanup_unreferenced_files();
+    if (!quarantine_unreferenced_files(error)) { fail(error.c_str()); return false; }
     if (routing_upgrade_) {
         // Anchor even a manifest-less v1 file before creating a new segment.
         // A crash at any subsequent step leaves an intact, recoverable v1 set.
@@ -1424,31 +1424,44 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
     return true;
 }
 
-void AofManager::cleanup_unreferenced_files() {
+bool AofManager::quarantine_unreferenced_files(std::string& error) {
     DIR* directory = ::opendir(directory_path_.c_str());
-    if (!directory) return;
+    if (!directory) { error = "could not inspect AOF directory"; return false; }
     std::unordered_set<std::string> keep;
     if (!base_name_.empty()) keep.insert(base_name_);
     for (const auto& increment : increments_) keep.insert(increment.second);
-    uint64_t removed = 0;
-    while (dirent* entry = ::readdir(directory)) {
+    std::string quarantine;
+    bool ok = true;
+    for (;;) {
+        errno = 0;
+        dirent* entry = ::readdir(directory);
+        if (!entry) { ok = errno == 0; break; }
         const std::string name(entry->d_name);
         if (keep.count(name) || name.rfind(appendfilename_ + ".", 0) != 0) continue;
-        const bool segment = name.find(".base.tomo") != std::string::npos ||
-                             name.find(".incr.tomo") != std::string::npos;
-        if (!segment) continue;
-        if (::unlink((directory_path_ + "/" + name).c_str()) == 0) removed++;
+        if (name.find(".base.tomo") == std::string::npos &&
+            name.find(".incr.tomo") == std::string::npos) continue;
+        // Absence from the recovery plan is not proof of obsolete history.
+        // A private directory also prevents a later rewrite reusing the name
+        // from overwriting evidence left by an absent/incomplete manifest.
+        if (quarantine.empty()) {
+            quarantine = directory_path_ + "/quarantine.XXXXXX";
+            if (!::mkdtemp(quarantine.data())) { ok = false; break; }
+        }
+        if (::rename((directory_path_ + "/" + name).c_str(),
+                     (quarantine + "/" + name).c_str()) != 0) { ok = false; break; }
     }
     (void)::closedir(directory);
-    if (removed) {
-        history_unlinks_.fetch_add(removed, std::memory_order_relaxed);
-        const int directory_fd = ::open(directory_path_.c_str(),
-                                        O_RDONLY | O_DIRECTORY | O_CLOEXEC);
-        if (directory_fd >= 0) {
-            (void)::fsync(directory_fd);
-            (void)::close(directory_fd);
+    if (!quarantine.empty()) {
+        for (const auto& path : {quarantine, directory_path_}) {
+            const int fd = ::open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+            if (fd < 0) { ok = false; continue; }
+            if (::fsync(fd) != 0) ok = false;
+            if (::close(fd) != 0) ok = false;
         }
+        std::fprintf(stderr, "AOF unreferenced segments preserved in %s\n", quarantine.c_str());
     }
+    if (!ok) error = "could not quarantine unreferenced AOF segments";
+    return ok;
 }
 
 bool AofManager::persist_manifest(
@@ -3147,33 +3160,8 @@ bool aof_read_recovery(const Config& config, uint32_t expected_shards,
     bool manifest_exists = false;
     if (!read_manifest(manifest_path, manifest_exists, manifest, error)) return false;
     if (!manifest_exists) {
-        // Only the legacy single increment is self-describing without a
-        // manifest. Never infer that other segments are disposable history.
-        DIR* entries = ::opendir(directory.c_str());
-        if (!entries && errno != ENOENT) {
-            error = "could not inspect AOF directory without manifest";
-            return false;
-        }
-        if (entries) {
-            const std::string legacy = aof_segment_name(basename, 1);
-            bool unreferenced = false;
-            errno = 0;
-            while (dirent* entry = ::readdir(entries)) {
-                const std::string name = entry->d_name;
-                if (name != legacy && name.rfind(basename + ".", 0) == 0 &&
-                    (name.find(".base.tomo") != std::string::npos ||
-                     name.find(".incr.tomo") != std::string::npos)) {
-                    unreferenced = true;
-                    break;
-                }
-            }
-            const bool read_error = errno != 0;
-            ::closedir(entries);
-            if (unreferenced || read_error) {
-                error = "AOF manifest missing with unreferenced segments; files preserved";
-                return false;
-            }
-        }
+        // The legacy increment remains self-describing. Other segments are
+        // preserved by the writer's quarantine before any names are reused.
         bool exists = false;
         std::string local_warning;
         auto plan = aof_read_plan(aof_file_path(config).c_str(), expected_shards,

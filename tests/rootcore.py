@@ -112,9 +112,9 @@ def misconf(a):
     opts = ['--appendonly', 'yes', '--appendfsync', a.fsync]
     # A reversible per-process write limit opens a real ENOSPC-like failure;
     # the hard limit remains unchanged so prlimit can restore it afterwards.
-    with boot(a, 'failure', opts) as (p, c, data):
+    with boot(a, 'failure', opts, fsize=resource.RLIM_INFINITY) as (p, c, data):
         assert c.must('SET', 'rootcore:before', 'before') == b'OK'
-        wait(lambda: int(info(c, 'persistence')['aof_current_size']) > 100,
+        wait(lambda: int(info(c, 'persistence')['aof_current_size']) > 0,
              'initial AOF write')
         old = resource.prlimit(p.pid, resource.RLIMIT_FSIZE)
         # SIGXFSZ is ignored by TomoKV's AOF setup and Redis.

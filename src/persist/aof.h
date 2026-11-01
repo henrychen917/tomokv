@@ -401,7 +401,7 @@ private:
     void maybe_start_rewrite(ThreadCtx& writer, Ring& ring);
     void maybe_schedule_auto_rewrite();
     void maybe_pause_rewrite(AofRewriteDebugStage stage);
-    void cleanup_unreferenced_files();
+    bool quarantine_unreferenced_files(std::string& error);
     bool schedule_rewrite(bool automatic);
     bool complete_offline_rewrite(const std::string& base_path, uint64_t epoch);
 
