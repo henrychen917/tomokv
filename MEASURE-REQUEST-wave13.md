@@ -8,9 +8,11 @@ The three lane reports were read before their two-parent merges:
 Lane branches are unchanged. The maintainer's merit addendum excludes both
 execfifo2 and execfifo3; their FIFO behavior and fifteen rows are absent.
 
-All builds and authorized correctness work use CPUs 0–15, builds `-j16`,
-ports 20000–20099, and `LC_ALL=C` for every server/oracle boot. No performance
-benchmark, load generator or full gate iteration is authorized in this lane.
+Builds and authorized correctness work are confined to CPUs 0–15, builds `-j16`,
+and ports 20000–20099. The gate is invoked with `LC_ALL=C`. A historical
+datafix1 helper overrode it for 120 boots before the exception was discovered;
+those seven jobs are excluded from the valid-pass tally and documented below.
+No performance benchmark, load generator or full gate iteration is run here.
 
 ### Row and Tcl reconciliation
 
@@ -84,8 +86,9 @@ has 10,342 function groups: 9,038 equal headline, 1,021 changed groups equal an
 isolated lane POST, and 283 residual groups. Every changed group and its reason
 is listed in `docs/wave13/identity/changed-bodies.md`; every residual has exact
 instruction diffs against headline, flipfix6 and persistfmt. Independent field
-offsets/sizes and literal bytes explain 105 residual groups as displacement or
-switch-table-label changes; 178 retain other compiler/composition differences.
+offsets/sizes and literal bytes explain 137 residual groups as displacement or
+switch-table-label changes, including scale-4 shard-owner index arithmetic;
+146 retain other compiler/composition differences.
 Function snapshot save/load and AofManager::fail equal persistfmt in both
 namespaces; normal stream decoding equals it too. db0 stream decoding remains
 a compiler exception. The normal FLIP S2 helper differs from flipfix6 only in
@@ -149,6 +152,16 @@ contained binaries without headers; subsequent jobs use the complete checkout
 at `/home/user/Projects/redis`, whose 7.4.10 binary has the identical SHA-256
 `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
 Completed and failed attempts remain in `docs/wave13/jobs/`.
+
+The initial seven datafix1 jobs returned passing verdicts but their shared
+helper forced `LC_ALL=en_US.UTF-8` for 120 target/oracle boots. These outcomes
+**do not satisfy the requested C boot environment**;
+`docs/wave13/locale-pin-exception.json` records them without crediting coverage.
+Six locale-independent jobs will be rerun after pinning their helper to C and
+checking the owned server process environment. The seventh, `datafix1_locale`,
+deliberately requires a non-C inherited default to differ from C. Its assertion
+is retained: **NOT RUN under the required C environment**, because that
+precondition conflicts with the task constraint.
 
 ### Maintainer measurement request
 

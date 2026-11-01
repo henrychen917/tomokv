@@ -73,6 +73,23 @@ def main():
                             return '0x' + format(target, 'x')
                     return match[0]
                 replaced = re.sub(r'0x([0-9a-f]+)(?=\(%[a-z0-9]+[,)])', member, old)
+                # GCC can fold shard_owner_'s byte offset into the array index:
+                # add $field_offset/4,index; mov (server,index,4),owner. Require
+                # that exact unchanged consumer, the same instruction position,
+                # and independently inspected offsets for this uint32_t array.
+                bias = re.search(r'\badd \$0x([0-9a-f]+),(%[a-z0-9]+)$', old)
+                if bias and int(bias[1], 16) * 4 == before['shard_owner_']:
+                    index = pair['instruction_diff'].index('-' + old)
+                    consumer = pair['instruction_diff'][index + 2:index + 3]
+                    if (consumer and consumer[0].startswith(' ') and
+                            re.search(r'\bmov \(%[a-z0-9]+,' + re.escape(bias[2]) + r',4\),%[a-z0-9]+$', consumer[0]) and
+                            after['shard_owner_'] % 4 == 0 and
+                            pre_type['field_bytes']['shard_owner_'] == post_type['field_bytes']['shard_owner_'] == 1024):
+                        replaced = replaced.replace('$0x' + bias[1], '$0x' + format(after['shard_owner_'] // 4, 'x'))
+                        member_proof.append(dict(field='shard_owner_', field_bytes=1024,
+                                                 before=before['shard_owner_'], after=after['shard_owner_'],
+                                                 addressing='uint32 index bias; unchanged scale-4 load',
+                                                 consumer=consumer[0][1:]))
                 def table(line, arm):
                     def replace(match):
                         value = literal[arm].get(match[1])
@@ -137,7 +154,7 @@ def main():
             reason = ('No lane edits this logical body. Whole-unit inlining, emitted clone multiplicity, '
                       'register allocation or generated source-location constants propagate from the merged unit.')
         else:
-            reason = row['reason']
+            reason = row['reason'].split(' See residual-instruction-deltas.json.gz', 1)[0]
         row['reason'] = reason + ' See residual-instruction-deltas.json.gz for every reference diff; equal size is not an equivalence claim.'
         counts['other-residual'] += 1
     (IDENTITY / 'changed-bodies.json').write_text(json.dumps(rows, indent=2) + '\n')

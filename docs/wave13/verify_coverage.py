@@ -20,6 +20,11 @@ BUILD_ONLY = {
                      'without a consuming job. Its only consumer is the reserved inline '
                      'client-lb load-generator check. make all/freshness is recorded separately.',
 }
+CONSTRAINT_EXCLUSIONS = {
+    'datafix1_locale': 'NOT RUN under LC_ALL=C: the row requires an inherited '
+                       'non-C locale to differ from C. The assertion is retained; '
+                       'its initial nonconforming run is not credited.',
+}
 STREAM_MEMORY_BOUNDS = (
     'sustained exact trim reaches a memory plateau',
     'one-entry memory floor tracks ~140B design (well below 4.4KiB)',
@@ -48,7 +53,14 @@ def main():
         receipt = json.loads((ROOT / run['receipt']).read_text())
         assert receipt['binary_unchanged'] and receipt['source_tree_unchanged'], run['name']
         for job in run['jobs']:
-            passed = job.get('exit') == 0 and job.get('failed') == 0
+            gate_verdict_passed = job.get('exit') == 0 and job.get('failed') == 0
+            passed = gate_verdict_passed
+            locale_nonconforming = (run['name'] == 'landing-primary'
+                                    and job['name'].startswith('datafix1_'))
+            # The initial helper overrode LC_ALL=C. Preserve its raw outcomes,
+            # but never count them as satisfying this task's boot constraint.
+            if locale_nonconforming:
+                passed = False
             memory_lines = []
             if run['name'].startswith('landing-footprints-') and job['name'] in matrix['release_footprints_each_engine']:
                 atomic = job['name'].rsplit('-', 1)[1]
@@ -64,6 +76,8 @@ def main():
                                  atomic=run['env'].get('GATE_TXN_ATOMIC', '1'),
                                  release_footprints=run['env'].get('GATE_PROOF_NO_RATES') == '0',
                                  passed=passed, release_memory_bounds=memory_lines,
+                                 gate_verdict_passed=gate_verdict_passed,
+                                 locale_nonconforming=locale_nonconforming,
                                  details=job))
 
     requirements = []
@@ -160,6 +174,7 @@ def main():
                   satisfied_geometries=sum(r['passed'] for r in requirements),
                   registry_jobs=len(registry), completed_registry_jobs=len(registry & completed),
                   missing_required_registry_jobs=missing, not_run_performance=PERFORMANCE,
+                  constraint_exclusions=CONSTRAINT_EXCLUSIONS,
                   unselected_build_prerequisite=BUILD_ONLY,
                   declared_labels=len(expected), witnessed_declared_labels=len(expected) - len(remaining),
                   source_rows_witnessed_by_job_ledgers=ledger_rows,
