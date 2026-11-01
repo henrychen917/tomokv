@@ -221,3 +221,26 @@ order, and tracking fixes are not implemented. The maintainer's performance
 cells and full iteration are NOT RUN here under the task's runtime restriction.
 The atomic RYOW battery's rate assertions are also NOT RUN under that restriction
 (`GATE_PROOF_NO_RATES=1`); its correctness assertions remain enabled.
+
+### Additional finding stopped at the architecture boundary
+
+An exploratory attempt to expire a second stream while serving an XREADGROUP
+waiter could not arm: the existing parser accepts only one stream. A separate
+2s/atomic-0/io_uring control confirmed that valid
+`XREADGROUP GROUP g c STREAMS a b > >`, with both empty streams and group `g`
+created, returns a null array on Redis 7.4 but the same `ERR Unbalanced
+'xreadgroup' list of streams` on PRE and POST. The one-stream control returns
+a null array on all three arms. This is an additional pre-existing S1 wrong
+reply, outside the six reproduced items; it is not fixed or counted as passing.
+Evidence: `docs/blockfix4/xreadgroup-multi-control.json` and the retained
+`nested-expiry-*.log` attempts. The attempted recursive-expiry window was
+therefore NOT RUN on TomoKV: registration rejected it before any waiter parked.
+
+The smallest proposed follow-up is to generalize `StreamXreadGroupArgs` from
+one key/ID pair to ranges, register all group-stream keys, and execute their
+group/PEL mutations through the existing owner/scatter machinery. This needs
+a multi-stream group execution algorithm, so work stops here under the owner's
+algorithm freeze. The full mode/engine matrix for this additional finding is
+NOT RUN; only the diagnostic control above was run. The current single-stream
+registry service probes its own queue key; its recursion guard lets that probe
+observe expiry without invalidating the queue iterator.
