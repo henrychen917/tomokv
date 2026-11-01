@@ -67,6 +67,16 @@ def main():
                              ['differ-split-0', 'differ-split-1', 'differ-armed-0', 'differ-armed-1', 'differ-equivalence'],
                              '--engine', engine))
     elif a.phase == 'tcl':
+        # Scheduler selftests claim their slot's otherwise idle server CPUs.
+        # Run them alone, then the controller hold witness, before Tcl starts.
+        # Preserve the earlier overlapping attempts and keep every bound intact.
+        exits.append(run('landing-abba-selftest-isolated', ['abba_selftest'],
+                         '--root', str(ROOT / 'build/wave13/abba-final-copy'), '--port', '20050'))
+        if exits[-1]:
+            return 1
+        exits.append(run('landing-flipctl-epoll-isolated', ['flipctl'], '--engine', 'epoll'))
+        if exits[-1]:
+            return 1
         exits.append(run('landing-tcl-quiet', ['redis_tcl', 'compat2']))
     else:
         exits.append(run('landing-flush-idle', ['flushfix3']))
