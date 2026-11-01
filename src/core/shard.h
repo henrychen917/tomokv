@@ -173,7 +173,7 @@ public:
         if (notify_pending_) *notify_pending_ = true;
     }
     bool notify_output_pending() const {
-        return notify_state_ && !notify_state_->keyless.empty();
+        return notify_state_ && (!notify_state_->keyless.empty() || notify_state_->tracking_flush_pending);
     }
     Server* server() const { return server_; }
 

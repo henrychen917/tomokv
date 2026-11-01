@@ -533,10 +533,18 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
         slot.reset(new (std::nothrow) NotifyShardState);
         if (!slot) { server->notify_event_dropped(); return false; }
     }
-    if (slot->keyless.size() >= kNotifyKeylessCap) {
-        server->notify_event_dropped();
-        return false;
-    }
+    auto overflow = [&] {
+        // Pub/sub is bounded and may lose events; cache coherence may not.
+        // Coalesce excess tracking records into an allocation-free pending
+        // whole-cache invalidation, retried until every current IO accepts it.
+        if (routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) server->notify_event_dropped();
+        if (!(routes & NOTIFY_TRACKING)) return false;
+        slot->tracking_flush_pending = true;
+        shard.notify_output_created();
+        server->notify_event_fired();
+        return true;
+    };
+    if (slot->keyless.size() >= kNotifyKeylessCap) return overflow();
     try {
         NotifyOut out;
         out.routes = routes;
@@ -556,8 +564,7 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
         }
         slot->keyless.push_back(std::move(out));
     } catch (const std::bad_alloc&) {
-        server->notify_event_dropped();
-        return false;
+        return overflow();
     }
     shard.notify_output_created();
     server->notify_event_fired();
@@ -729,8 +736,27 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
                               ThreadCtx& thread, Ring& ring, LoopSignals& signals) {
     (void)thread;
     auto& slot = shard.notify_state_slot();
-    if (!slot || slot->keyless.empty()) return 0;
+    if (!slot) return 0;
     uint32_t work = 0;
+    if (slot->tracking_flush_pending) {
+        const ClimonIoMask io_mask = server.climon_tracking_io_mask();
+        for (uint32_t io : server.placement().ifid_threads()) {
+            if (!io_mask.contains(io)) continue;
+            auto event = std::unique_ptr<PubSubEvent>(new (std::nothrow) PubSubEvent);
+            if (!event) return work;
+            event->kind = PubSubEventKind::TrackingFlush;
+            event->target_io = io;
+            event->route_mask = io_mask;
+            server.pubsub_event_created();
+            if (!server.thread(io).post_pubsub_event_nonblocking(producer, event.get(), ring, signals)) {
+                server.pubsub_event_retired();
+                return work;
+            }
+            event.release();
+        }
+        slot->tracking_flush_pending = false;
+        ++work;
+    }
     while (work < kNotifyKeylessPass && !slot->keyless.empty()) {
         NotifyOut& out = slot->keyless.front();
         if (out.after_set && !out.after_set->load(std::memory_order_acquire)) break;
