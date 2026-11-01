@@ -1679,14 +1679,14 @@ __attribute__((always_inline)) inline bool execute_local_command(Server& server,
             if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, false)) return false;
         }
     }
-    if (function_is_fcall(*command.op)) {
+    if (command.op->spec->flags & CmdFlags::ScriptRoute) {
         WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
             &state.decision.aborted, &state.watch_refs, state.client);
         struct Context {
             Server& server; MultiExecState& state; MultiCommand& command;
             Shard& shard; uint32_t owner;
         } context{server, state, command, shard, owner_thread_id};
-        const bool completed = function_execute_exec(shard, *command.op, &context, [](void* raw) {
+        const bool completed = script_execute_exec(shard, *command.op, &context, [](void* raw) {
             auto& c = *static_cast<Context*>(raw);
             if (!prepare_local_write_keys(c.server, c.state, c.command, c.shard, c.owner))
                 return false;

@@ -79,7 +79,9 @@ def segments(a):
 
 def waitaof(a):
     with boot(a, 'waitaof', ['--appendonly', 'yes', '--appendfsync', a.fsync]) as (_, c, _):
-        assert c.must('WAITAOF', 0, 0, 1) == [1, 0]
+        emit('risky moment', case='AOF-enabled local durability query', hits=1)
+        result = c.must('WAITAOF', 0, 0, 1)
+        assert result == [1, 0], result
         assert c.must('SET', 'rootcore:key', 'value') == b'OK'
         emit('risky moment', case='WAITAOF after AOF write', hits=1, fsync=a.fsync)
         assert c.must('WAITAOF', 1, 0, 3000) == [1, 0]
@@ -112,8 +114,8 @@ def misconf(a):
     # the hard limit remains unchanged so prlimit can restore it afterwards.
     with boot(a, 'failure', opts) as (p, c, data):
         assert c.must('SET', 'rootcore:before', 'before') == b'OK'
-        wait(lambda: int(info(c, 'persistence')['aof_pending_bio_fsync']) == 0,
-             'initial fsync')
+        wait(lambda: int(info(c, 'persistence')['aof_current_size']) > 100,
+             'initial AOF write')
         old = resource.prlimit(p.pid, resource.RLIMIT_FSIZE)
         # SIGXFSZ is ignored by TomoKV's AOF setup and Redis.
         resource.prlimit(p.pid, resource.RLIMIT_FSIZE, (1, old[1]))
@@ -142,6 +144,7 @@ def main():
     p.add_argument('--ratio', default='6:2')
     p.add_argument('--output', type=Path, required=True)
     args = p.parse_args()
+    signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
     args.output.mkdir(parents=True, exist_ok=True)
     failures = []
     # The oracle has no native segment format. All other rows run it first.

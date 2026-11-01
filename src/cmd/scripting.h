@@ -123,6 +123,7 @@ bool function_metadata_write(const Op& op);
 bool script_metadata_write(const Op& op);
 // Execute one admitted callback after EXEC prepares its owner-private versions.
 // False means preparation parked; command errors complete normally with a reply.
+bool script_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*));
 bool function_execute_exec(Shard& shard, Op& op, void* context,
                            bool (*prepare)(void*));
 
