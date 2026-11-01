@@ -75,6 +75,15 @@ def main():
         mutant=dest/'tomokv';link[link.index('-o')+1]=str(mutant)
         with (dest/'link.log').open('w') as stream:subprocess.run(link,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT,check=True)
         row.update(binary_sha256=sha(mutant),link=link)
+        row['objects_before_prune'] = [dict(path=str(obj.relative_to(ROOT)), bytes=obj.stat().st_size,
+                                            sha256=sha(obj)) for obj in sorted(dest.glob('*.o'))]
+        files = [p for p in sorted(source.rglob('*')) if p.is_file()]
+        entries = [dict(path=str(p.relative_to(source)), bytes=p.stat().st_size, sha256=sha(p))
+                   for p in files]
+        manifest = dest / 'source-manifest.json'
+        save(manifest, entries)
+        row['source_before_prune'] = dict(files=len(entries), bytes=sum(e['bytes'] for e in entries),
+                                          manifest=str(manifest.relative_to(ROOT)), sha256=sha(manifest))
         shutil.rmtree(source)
         attempt=1+sum(r['root']==root for r in results)
         name='negative-'+root.lower()+('' if attempt==1 else '-'+str(attempt))
