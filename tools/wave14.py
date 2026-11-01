@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Wave14 selected gate jobs, source inventories, and linked identity receipts."""
+import argparse
+from collections import Counter
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+BUILD = ROOT / 'build/wave14'
+DOC = ROOT / 'docs/wave14'
+PRE = BUILD / 'pre-source'
+sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests'), str(ROOT / 'docs/wave9')]
+
+def sha(path):
+    with Path(path).open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+def save(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + '\n')
+
+def references():
+    import identity
+    identity.OUT = BUILD / 'identity-cache'
+    identity.REFS = {'headline': '/home/user/Projects/bench-bins/tomokv-headline-105c5818cc'}
+    for lane, digest in [('rootcore', 'd8cdb1df'), ('blockfix4', 'cb7a70bb'),
+                         ('rootcompat', 'f3511f86'), ('clientcompat', '346d035c'),
+                         ('execfifo3', '6f9af8cd')]:
+        identity.REFS[lane] = f'/home/user/Projects/bins/{lane}-post-{digest}'
+        base = 'e32b04a44' if lane == 'execfifo3' else '7d2f8a205'
+        identity.REFS['baseline_' + lane] = f'/home/user/Projects/bench-bins/tomokv-headline-{base}'
+    from wave12_normalize import install
+    install(identity.audit)
+    return identity
+
+def inventory():
+    from gate_ledger_fixture import source_labels
+    gate = (ROOT / 'tests/gate.sh').read_text()
+    first = gate.index('\nstart_workers\n')
+    quick = gate.index('\nif [ "$TIER" = quick ];', first)
+    end = gate.index('\n# Every worker has reaped', quick)
+    labels = source_labels(gate)
+    qlabels = source_labels(gate[:quick] + gate[end:])
+    original = subprocess.check_output(['git', 'show', '105c5818cc:tests/gate.sh'], text=True)
+    before = source_labels(original)
+    fixture = ROOT / 'tests/fixtures/nullrefresh-ledger-labels.json'
+    data = json.loads(fixture.read_text())
+    result = dict(quick=len(qlabels), full=len(labels),
+        quick_exit_line=gate[:quick].count('\n') + 1,
+        additions=list((Counter(labels) - Counter(before)).elements()),
+        removals=list((Counter(before) - Counter(labels)).elements()),
+        collectors=[dict(line=i, declaration=line.strip())
+                    for i, line in enumerate(gate.splitlines(), 1)
+                    if line.startswith('collect_job ') or 'collect_job "' in line],
+        missing_fixture=list((Counter(labels)-Counter(data['labels'])).elements()),
+        extra_fixture=list((Counter(data['labels'])-Counter(labels)).elements()),
+        gate_sha256=sha(ROOT / 'tests/gate.sh'))
+    save(DOC / 'row-inventory.json', result)
+    print(json.dumps(result, indent=2))
+
+def jobs(a):
+    import blockfix2_receipts as receipts
+    out = DOC / 'jobs'
+    out.mkdir(parents=True, exist_ok=True)
+    assert not (out / (a.tag + '.json')).exists(), 'never overwrite an attempt'
+    names = a.jobs or Path(a.jobs_file).read_text().strip()
+    assert names and not {'flip_saturated', 'atomic_floor'} & set(names.split())
+    binary = a.binary.resolve()
+    env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
+        GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis/src/redis-server',
+        GATE_PROOF_NO_RATES='1', GATE_NET_IO=a.engine, GATE_PROOF_NET_IO=a.engine,
+        GATE_DIFFER_NET_IO=a.engine, GATE_ONLY_JOBS=names,
+        GATE_LEDGER=str(out / a.tag), CXX='g++ -gz=zlib', CC='cc -gz=zlib')
+    if a.fused:
+        env['GATE_TXN_FUSED'] = '1'
+    command = ['taskset', '-c', '0-31', 'tests/gate.sh', 'full',
+        '--server-cores', a.server_cores, '--load-cores', a.load_cores,
+        '--server-smt', '', '--load-smt', '', '--ports', a.ports,
+        '--candidate-binary', str(binary)]
+    digest = sha(binary)
+    save(out / (a.tag + '-started.json'), dict(command=command, binary_sha256=digest,
+        env={k:v for k,v in env.items() if k.startswith(('GATE_', 'WAVE14_')) or
+             k in ('LC_ALL', 'REDIS74_ROOT', 'CXX', 'CC')}))
+    with (out / (a.tag + '.log')).open('w') as log:
+        result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
+    matches = re.findall(r'^  artifacts: (.+)$', (out / (a.tag + '.log')).read_text(), re.M)
+    assert len(matches) == 1, matches
+    run = Path(matches[0]).resolve()
+    assert run.parent == ROOT / 'build' and run.name.startswith('gate-run.')
+    old = receipts.selected
+    receipts.selected = lambda p, root: old(p, root) or p.suffix == '.jsonl'
+    record = receipts.collect(a.tag, run, out)
+    record.update(command=command, binary_sha256=digest, exit_code=result.returncode,
+                  run_directory=str(run), engine=a.engine, fused=a.fused)
+    assert sha(binary) == digest, 'candidate changed during proof'
+    save(out / (a.tag + '.json'), record)
+    failures = sum(job['failed'] for job in record['jobs'])
+    print(a.tag, result.returncode, sum(job['passed'] for job in record['jobs']), failures, flush=True)
+    return bool(result.returncode or failures)
+
+def main():
+    assert os.sched_getaffinity(0) <= set(range(32)), 'wave14 CPU boundary'
+    os.environ['LC_ALL'] = 'C'
+    BUILD.mkdir(parents=True, exist_ok=True)
+    DOC.mkdir(parents=True, exist_ok=True)
+    p = argparse.ArgumentParser()
+    sub = p.add_subparsers(dest='phase', required=True)
+    sub.add_parser('inventory')
+    ip = sub.add_parser('identity')
+    ip.add_argument('--binary', type=Path, default=ROOT/'build/tomokv')
+    ip.add_argument('--tag', default='identity')
+    jp = sub.add_parser('jobs')
+    jp.add_argument('--tag', required=True)
+    jp.add_argument('--engine', choices=('uring','epoll'), default='uring')
+    jp.add_argument('--jobs', default='')
+    jp.add_argument('--jobs-file')
+    jp.add_argument('--binary', type=Path, default=ROOT/'build/tomokv')
+    jp.add_argument('--fused', action='store_true')
+    jp.add_argument('--server-cores', default='0-23')
+    jp.add_argument('--load-cores', default='24-31')
+    jp.add_argument('--ports', default='20000-20089')
+    a = p.parse_args()
+    if a.phase == 'inventory': inventory()
+    elif a.phase == 'identity':
+        identity = references()
+        sys.argv = ['identity', str(a.binary), str(DOC/a.tag)]
+        identity.main()
+    elif a.phase == 'jobs': raise SystemExit(jobs(a))
+
+if __name__ == '__main__': main()
