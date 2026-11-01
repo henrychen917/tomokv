@@ -42,6 +42,25 @@
         }
       ],
       "live_legs_passed": 24
+    },
+    {
+      "job": "persistfmt",
+      "label": "persistfmt aof-failure (1s, epoll)",
+      "artifact": "build/gate-run.dQbZff/jobs/persistfmt",
+      "cause": "The added FLUSHALL check did not open the injected fail() diagnostic window within its unchanged four-second bound. The original scheduling twin can wait for a reply gate while holding a fused owner that FLUSH still needs.",
+      "evidence": "SET opened the window and exited 1 without a reply. FLUSHALL reached the 168-byte increment limit, then failed its arming assertion; teardown escalated the owned scheduling twin. No successful FLUSH reply was observed. The other 39 persistfmt rows passed.",
+      "correction": "Prepared trace markers and up to eight fresh-state attempts. Only a witnessed writer wait before any receipt gate may be retried; unexpected replies or other missing-window states fail. Every credited command still requires the actual blocked writer, no reply, and fatal exit 1. The traced rerun and never-armed negative control are pending.",
+      "rerun": "PENDING: full persistfmt and persistfmt_aof_error jobs after applying persistfmt-window.patch",
+      "failure_logs": [
+        {
+          "path": "build/gate-run.dQbZff/jobs/persistfmt/persistfmt-aof-failure-1s-epoll.log",
+          "sha256": "dbe4a0879002a07caf8768ac5b82ff01f891d1c6e6b0b637c0e5ae63e4f0830f"
+        },
+        {
+          "path": "build/gate-run.dQbZff/jobs/persistfmt/persistfmt-aof-failure-1s-epoll/events.jsonl",
+          "sha256": "36aecc4f811a3839b1e53cc14a24ccfc1f27c1baf195785dd0fb4faf2f5d830d"
+        }
+      ]
     }
   ]
 }

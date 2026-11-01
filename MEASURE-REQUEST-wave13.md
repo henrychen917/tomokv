@@ -171,6 +171,16 @@ and the checksum binding are now staged with hashes in
 `docs/wave13/candidate-companions.json`; both complete jobs await rerun.
 `docs/wave13/job-issues.json` preserves the failures and their causes.
 
+One added PS4.4 check failed to arm: fused/epoll FLUSHALL hit the exact
+168-byte increment limit but never opened the held diagnostic window. SET and
+the other three mode/engine cases passed; the whole persistfmt job is not
+credited. The injected writer wait can hold a fused owner still needed for
+FLUSH completion. A prepared harness patch records the writer and receipt-gate
+threads and permits at most eight fresh-state attempts only for that witnessed
+unarmed state. It retains the four-second arming bound, blocked-writer witness,
+no-reply assertions and fatal exit requirement. Full-job reruns and a removed
+pause-hook negative control are pending; no production change is proposed.
+
 The initial seven datafix1 jobs returned passing verdicts but their shared
 helper forced `LC_ALL=en_US.UTF-8` for 120 target/oracle boots. These outcomes
 **do not satisfy the requested C boot environment**;

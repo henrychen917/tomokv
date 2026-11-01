@@ -39,6 +39,8 @@ def main():
     elif a.phase == 'repairs':
         helper = (ROOT / 'tests/datafix1_common.py').read_text()
         assert 'boot_locale' in helper, 'Apply the reviewed C-locale helper patch first'
+        assert 'failure_window_unarmed' in (ROOT / 'tests/persistfmt.py').read_text()
+        exits.append(run('landing-persistfmt-window', ['persistfmt', 'persistfmt_aof_error']))
         exits.append(run('landing-blockfix-companions', ['blockfix2', 'blockfix_registry']))
         exits.append(run('landing-datafix1-C', [
             'datafix1_randscan', 'datafix1_hexpire', 'datafix1_bitfield',
