@@ -22,3 +22,9 @@ A complete fix needs a reviewed wide-string representation, with ownership, immu
 ## Tracking allocation failures
 
 Item 3 fixes queue-cap overflow and allocation failure while adding to an existing queue by retaining a whole-cache invalidation. The pre-existing failure to allocate the first `NotifyShardState` still returns failure and counts a dropped event. The cap witness does not inject that allocation failure. This separate OOM path is not claimed fixed by the cap proof.
+
+## Intermittent pub/sub reply counts observed during Tcl validation
+
+The first final 2s Tcl attempt reports PUBLISH count 1 after UNSUBSCRIBE and PUNSUBSCRIBE completed, where Redis's assertion requires 0. Both exact failures also reproduce on the frozen PRE binary, in separate controls: UNSUBSCRIBE in `proof/pre-tcl-control/`, and PUNSUBSCRIBE in attempt 2 of the eight fresh jobs under `proof/pre-pubsub-release/`. The latter bound uses 16 shards, ratio 6:2, CPUs 48–55, both modes; all eight 1s legs pass. The final isolated full Tcl subset passes in both modes. These baseline wrong-reply races remain unmodified and unskipped; the passing isolated run is not proof that they are repaired.
+
+The final POST diagnostic gate `CioCco` rechecks the large-string limit, HX-3 and absent generic error counters: all three remain red as described above and in `../../MEASURE-REQUEST-rootcompat.md` (the lane-root report). First-sidecar-allocation OOM remains uninjected.

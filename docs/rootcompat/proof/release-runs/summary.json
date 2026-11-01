@@ -220,6 +220,50 @@
     "failures": []
   },
   {
+    "name": "release-tcl-isolated",
+    "exit": 0,
+    "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.TbnQJy",
+    "passed": 3,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "name": "release-pad-post",
+    "exit": 0,
+    "sha256": "8b4d40ae2a99592a877796e49be9601d3f4d6b54570838a35d565a2aad1f7912",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.sIU51u",
+    "passed": 4,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "name": "release-pad-pre",
+    "exit": 1,
+    "sha256": "28077db134ff36628eb60b1d8ef27fcbf39677da9d69a01b31e985b3d04ebfea",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.7oVmxm",
+    "passed": 1,
+    "failed": 3,
+    "failures": [
+      "rootcompat replication vs Redis 7.4",
+      "rootcompat redact vs Redis 7.4",
+      "rootcompat hscan vs Redis 7.4"
+    ]
+  },
+  {
+    "name": "release-residuals",
+    "exit": 1,
+    "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.CioCco",
+    "passed": 1,
+    "failed": 3,
+    "failures": [
+      "rootcompat stringlimit vs Redis 7.4",
+      "rootcompat hx3 vs Redis 7.4",
+      "rootcompat errorstats vs Redis 7.4"
+    ]
+  },
+  {
     "name": "release-units",
     "exit": 0,
     "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",

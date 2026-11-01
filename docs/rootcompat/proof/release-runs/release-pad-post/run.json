@@ -1,0 +1,32 @@
+{
+  "name": "release-pad-post",
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20340-20349",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/release/POST-layout"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "rootcompat-replication rootcompat-hscan rootcompat-redact"
+  },
+  "exit": 0,
+  "seconds": 5.271,
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.sIU51u",
+  "sha256": "8b4d40ae2a99592a877796e49be9601d3f4d6b54570838a35d565a2aad1f7912"
+}

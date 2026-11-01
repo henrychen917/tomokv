@@ -1,0 +1,4 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	0.980000	rootcompat replication vs Redis 7.4
+FAIL	0.990000	rootcompat redact vs Redis 7.4
+FAIL	1.040000	rootcompat hscan vs Redis 7.4

@@ -1,0 +1,26 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-redis-db16 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "redis-redis-db16 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    }
+  ],
+  "slowlog": {}
+}

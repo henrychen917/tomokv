@@ -1,0 +1,10 @@
+{
+  "command": [
+    "ss",
+    "-ltnp",
+    "( sport >= 20300 and sport <= 20399 )"
+  ],
+  "stdout": "State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\n",
+  "stderr": "",
+  "own_build_executables": []
+}

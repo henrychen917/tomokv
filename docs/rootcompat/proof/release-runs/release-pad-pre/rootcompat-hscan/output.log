@@ -1,0 +1,2 @@
+  row budget: 900s; median=1.275s; correctness-plan-fallback; rootcompat hscan vs Redis 7.4
+  rootcompat hscan vs Redis 7.4                        FAIL (see /home/user/Projects/cx-rootcompat/build/gate-run.7oVmxm/jobs/rootcompat-hscan/rootcompat.log and proof)
