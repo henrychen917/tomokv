@@ -991,6 +991,7 @@ public:
     // Re-arms type-specific attention for an imported image, including atomic COPY/RENAME APPLY.
     // The type guard keeps hash-field machinery behind the hash-only branch.
     void note_loaded_object(uint64_t h, const KvObj* o) {
+        if (static_cast<Type>(o->type) == Type::String) return;
         // Imported images (COPY/RESTORE/*STORE/RENAME) create collections
         // without going through their native push handlers. Signal here, at
         // installation, so wake coverage follows the type rather than a list

@@ -2541,7 +2541,10 @@ ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool 
     const FlatStore::InsertResult inserted = notify
         ? shard.store_insert<true>(hash, object)
         : shard.store_insert<false>(hash, object);
-    if (inserted == FlatStore::InsertResult::Inserted) return ZsetOwnerResult::Ok;
+    if (inserted == FlatStore::InsertResult::Inserted) {
+        shard.store().note_loaded_object(hash, object);
+        return ZsetOwnerResult::Ok;
+    }
     kvobj_free(object);
     return inserted == FlatStore::InsertResult::MaxmemoryOom
         ? ZsetOwnerResult::Maxmemory : ZsetOwnerResult::InsertFailed;
