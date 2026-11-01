@@ -793,6 +793,10 @@ bool collect_config_updates(Op& op,
             error = "can't set immutable config";
         else if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename"))
             error = "can't set protected config";
+        if (!error && !std::strcmp(item->name, "appendonly") && g_server && g_server->loading()) {
+            reply_err(op.sink(), "LOADING Redis is loading the dataset in memory");
+            return false;
+        }
         if (!error) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2)

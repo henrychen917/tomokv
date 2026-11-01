@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """CONFIG oracle receipts; called by gate.sh's cfgfix job, with all engine/mode legs."""
 from contextlib import closing
+import ctypes
 import json
+import os
 from pathlib import Path
 import re
+import select
+import signal
 import socket
+import subprocess
 import time
 
 import _netfix as n
@@ -18,6 +23,73 @@ def plain(value):
     if isinstance(value, list):
         return [plain(v) for v in value]
     return value
+
+
+def process_trial(a, mode, engine, oracle):
+    label = f'process-{mode}-{engine}'
+    directory = (a.output / label).resolve()
+    directory.mkdir(parents=True, exist_ok=True)
+    logfile, pidfile = directory / 'configured.log', directory / 'configured.pid'
+    logfile.write_text('cfgfix append marker\n')
+    extra = ('--logfile', str(logfile), '--pidfile', str(pidfile), '--loglevel', 'notice',
+             '--syslog-enabled', 'no', '--syslog-ident', 'cfgfix', '--syslog-facility', 'local7')
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine, extra=extra) as child:
+        assert int(pidfile.read_text()) == child.pid
+        assert logfile.read_text().startswith('cfgfix append marker\n')
+        with closing(n.connect(a.port)) as c, closing(socket.socket()) as occupied:
+            occupied.bind(('127.0.0.1', a.port + 2)); occupied.listen()
+            before = logfile.stat().st_size
+            assert isinstance(c.cmd('CONFIG', 'SET', 'port', a.port + 2), n._lib.RespError)
+            assert logfile.stat().st_size > before, 'warning was not written to logfile'
+            c.must('CONFIG', 'SET', 'loglevel', 'nothing')
+            before = logfile.stat().st_size
+            assert isinstance(c.cmd('CONFIG', 'SET', 'port', a.port + 2), n._lib.RespError)
+            assert logfile.stat().st_size == before, 'loglevel nothing did not suppress diagnostics'
+    assert not pidfile.exists(), 'configured pidfile was not removed'
+
+    # A daemon's parent exits successfully. Bind cleanup to its pidfd before
+    # sending any signal, so PID reuse cannot target a different process.
+    # Adopt the daemon as well: even a broken pidfile implementation must not
+    # leave an unowned server behind when this assertion fails.
+    assert ctypes.CDLL(None, use_errno=True).prctl(36, 1, 0, 0, 0) == 0  # PR_SET_CHILD_SUBREAPER
+    args = json.loads((directory / 'command.json').read_text()) + ['--daemonize', 'yes']
+    with (directory / 'daemon-parent.log').open('w') as log:
+        parent = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)
+        assert parent.wait(timeout=15) == 0
+    children = Path(f'/proc/{os.getpid()}/task/{os.getpid()}/children').read_text().split()
+    assert len(children) == 1, children
+    pid = int(children[0])
+    pidfd = os.pidfd_open(pid)
+    try:
+        deadline = time.monotonic() + 15
+        while not pidfile.exists() and time.monotonic() < deadline:
+            time.sleep(.01)
+        assert pidfile.exists(), 'daemon never published its pid'
+        assert int(pidfile.read_text()) == pid
+        expected = Path(a.oracle if oracle else a.binary).resolve()
+        assert Path(f'/proc/{pid}/exe').resolve() == expected
+        while True:
+            try:
+                with closing(n.connect(a.port)) as c:
+                    assert c.must('PING') == b'PONG'
+                break
+            except OSError:
+                if time.monotonic() >= deadline: raise
+                time.sleep(.01)
+    finally:
+        try:
+            signal.pidfd_send_signal(pidfd, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        waiter = select.poll(); waiter.register(pidfd, select.POLLIN)
+        if not waiter.poll(15000):
+            signal.pidfd_send_signal(pidfd, signal.SIGKILL)
+            waiter.poll(5000)
+            raise AssertionError('daemon did not stop on SIGTERM')
+        os.close(pidfd)
+        _, status = os.waitpid(pid, 0)
+        assert os.waitstatus_to_exitcode(status) == 0, status
+    assert not pidfile.exists(), 'daemon pidfile was not removed'
 
 
 def test(a, port, certs, proc, oracle):
@@ -41,9 +113,9 @@ def test(a, port, certs, proc, oracle):
             json.dumps(explicit, indent=2))
         for args in (
             ('GET', 'key-load-delay'), ('GET', 'KEY-LOAD-DELAY'), ('GET', 'key-load-*'),
-            ('GET', 'MAXMEMORY', 'maxmemory', 'maxmem*'),
-            ('GET', 'maxmem*', 'MAXMEMORY'),
-            ('GET', 'HASH-MAX-ZIPLIST-ENTRIES', 'hash-max-listpack-entries', 'hash-max-*'),
+            ('GET', 'TIMEOUT', 'timeout', 'time*'),
+            ('GET', 'time*', 'TIMEOUT'),
+            ('GET', 'HASH-MAX-ZIPLIST-ENTRIES', 'hash-max-listpack-entries', 'hash-max-*pack-entries'),
             ('GET', 'key-load-delay', 'key-load-*', 'key-load-delay'),
             ('GET', 'daemonize', 'logfile', 'syslog-*', 'loglevel', 'supervised'),
             ('SET', 'daemonize', 'yes'), ('SET', 'logfile', 'anything'),
@@ -181,6 +253,7 @@ def test(a, port, certs, proc, oracle):
                                         'cfgfix:deleted-in-gap', 'cfgfix:gap', 'cfgfix:last')
                 assert result == [b'changed-while-off', b'written', None, b'new-while-off', b'durable'], result
                 replies.append([['AOF restart across OFF gap'], plain(result)])
+        process_trial(a, mode, engine, oracle)
         # Only sorted key/value pairs are compared; Redis hash-table order is unspecified.
         for args, result in replies:
             if args[:2] == ['CONFIG', 'GET'] and isinstance(result, list):
