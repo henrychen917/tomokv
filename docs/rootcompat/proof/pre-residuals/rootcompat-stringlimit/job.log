@@ -1,0 +1,25 @@
+FAIL 1s-uring-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 1s-uring-db1 above 32-bit representation APPEND 1
+FAIL 1s-uring-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+FAIL 1s-uring-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 1s-uring-db16 above 32-bit representation APPEND 1
+FAIL 1s-uring-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+FAIL 1s-epoll-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 1s-epoll-db1 above 32-bit representation APPEND 1
+FAIL 1s-epoll-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+FAIL 1s-epoll-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 1s-epoll-db16 above 32-bit representation APPEND 1
+FAIL 1s-epoll-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+FAIL 2s-uring-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 2s-uring-db1 above 32-bit representation APPEND 1
+FAIL 2s-uring-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+FAIL 2s-uring-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 2s-uring-db16 above 32-bit representation APPEND 1
+FAIL 2s-uring-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+FAIL 2s-epoll-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 2s-epoll-db1 above 32-bit representation APPEND 1
+FAIL 2s-epoll-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+FAIL 2s-epoll-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}
+FAIL 2s-epoll-db16 above 32-bit representation APPEND 1
+FAIL 2s-epoll-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}
+rootcompat stringlimit: 24 failed checks; evidence /home/user/Projects/cx-rootcompat/build/gate-run.ZaKB5C/jobs/rootcompat-stringlimit/proof

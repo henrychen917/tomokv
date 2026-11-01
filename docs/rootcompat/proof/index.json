@@ -1,0 +1,470 @@
+[
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-errorstats",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 5,
+    "failed": 0,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-errorstats/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-errorstats",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 40,
+    "failed": 16,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-errorstats/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-password",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 6,
+    "failed": 0,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-password/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-password",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 48,
+    "failed": 32,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-password/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-proc",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 2,
+    "failed": 0,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-proc/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-proc",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 8,
+    "failed": 8,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-proc/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-redact",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 2,
+    "failed": 0,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-redact/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-redact",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 16,
+    "failed": 16,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-redact/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-replication",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 13,
+    "failed": 0,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-replication/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-replication",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 24,
+    "failed": 8,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-replication/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-sort-acl",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 12,
+    "failed": 3,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-sort-acl/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-initial",
+    "job": "rootcompat-sort-acl",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 96,
+    "failed": 96,
+    "source": "build/gate-run.xt4zS1/jobs/rootcompat-sort-acl/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-hash-string",
+    "job": "rootcompat-hscan",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 2,
+    "failed": 0,
+    "source": "build/gate-run.NaaMgu/jobs/rootcompat-hscan/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-hash-string",
+    "job": "rootcompat-hscan",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 24,
+    "failed": 16,
+    "source": "build/gate-run.NaaMgu/jobs/rootcompat-hscan/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-hash-string",
+    "job": "rootcompat-setpast",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 6,
+    "failed": 0,
+    "source": "build/gate-run.NaaMgu/jobs/rootcompat-setpast/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-hash-string",
+    "job": "rootcompat-setpast",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 768,
+    "failed": 112,
+    "source": "build/gate-run.NaaMgu/jobs/rootcompat-setpast/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-tracking",
+    "job": "rootcompat-tracking",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 4,
+    "failed": 0,
+    "source": "build/gate-run.rFnHtY/jobs/rootcompat-tracking/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-tracking",
+    "job": "rootcompat-tracking",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 93,
+    "failed": 47,
+    "source": "build/gate-run.rFnHtY/jobs/rootcompat-tracking/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-tracking",
+    "job": "rootcompat-xsnotify",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 9,
+    "failed": 0,
+    "source": "build/gate-run.rFnHtY/jobs/rootcompat-xsnotify/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-tracking",
+    "job": "rootcompat-xsnotify",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 288,
+    "failed": 128,
+    "source": "build/gate-run.rFnHtY/jobs/rootcompat-xsnotify/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-residuals",
+    "job": "rootcompat-hx3",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 1,
+    "failed": 0,
+    "source": "build/gate-run.ZaKB5C/jobs/rootcompat-hx3/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-residuals",
+    "job": "rootcompat-hx3",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 8,
+    "failed": 8,
+    "source": "build/gate-run.ZaKB5C/jobs/rootcompat-hx3/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-residuals",
+    "job": "rootcompat-stringlimit",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 6,
+    "failed": 0,
+    "source": "build/gate-run.ZaKB5C/jobs/rootcompat-stringlimit/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-residuals",
+    "job": "rootcompat-stringlimit",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 48,
+    "failed": 24,
+    "source": "build/gate-run.ZaKB5C/jobs/rootcompat-stringlimit/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-password",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 7,
+    "failed": 0,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-password/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-password",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 56,
+    "failed": 40,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-password/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-redact",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 5,
+    "failed": 0,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-redact/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-redact",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 40,
+    "failed": 16,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-redact/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-sort-acl",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 12,
+    "failed": 0,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-sort-acl/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-sort-acl",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 96,
+    "failed": 96,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-sort-acl/proof/candidate/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-xsnotify",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 9,
+    "failed": 0,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-xsnotify/proof/oracle/results.json"
+  },
+  {
+    "arm": "pre-expanded",
+    "job": "rootcompat-xsnotify",
+    "who": "candidate",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "checks": 576,
+    "failed": 320,
+    "source": "build/gate-run.sqQVnr/jobs/rootcompat-xsnotify/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-errorstats",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 5,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-errorstats/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-errorstats",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 40,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-errorstats/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-hscan",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 2,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-hscan/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-hscan",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 24,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-hscan/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-password",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 6,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-password/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-password",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 48,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-password/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-proc",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 2,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-proc/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-proc",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 24,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-proc/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-redact",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 2,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-redact/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-redact",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 16,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-redact/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-replication",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 13,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-replication/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-replication",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 104,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-replication/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-setpast",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 6,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-setpast/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-setpast",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 768,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-setpast/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-sort-acl",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 12,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-sort-acl/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-sort-acl",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 96,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-sort-acl/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-xsnotify",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 9,
+    "failed": 0,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-xsnotify/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-initial",
+    "job": "rootcompat-xsnotify",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 280,
+    "failed": 1,
+    "source": "build/gate-run.W11roV/jobs/rootcompat-xsnotify/proof/candidate/results.json"
+  },
+  {
+    "arm": "post-nested-errors",
+    "job": "rootcompat-errorstats",
+    "who": "oracle",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "checks": 9,
+    "failed": 0,
+    "source": "build/gate-run.I7nDYc/jobs/rootcompat-errorstats/proof/oracle/results.json"
+  },
+  {
+    "arm": "post-nested-errors",
+    "job": "rootcompat-errorstats",
+    "who": "candidate",
+    "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+    "checks": 72,
+    "failed": 16,
+    "source": "build/gate-run.I7nDYc/jobs/rootcompat-errorstats/proof/candidate/results.json"
+  }
+]

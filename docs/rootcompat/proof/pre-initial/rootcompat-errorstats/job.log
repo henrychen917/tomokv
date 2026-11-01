@@ -1,0 +1,17 @@
+FAIL 1s-uring-db1 total errors b'1'
+FAIL 1s-uring-db1 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+FAIL 1s-uring-db16 total errors b'1'
+FAIL 1s-uring-db16 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+FAIL 1s-epoll-db1 total errors b'1'
+FAIL 1s-epoll-db1 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+FAIL 1s-epoll-db16 total errors b'1'
+FAIL 1s-epoll-db16 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+FAIL 2s-uring-db1 total errors b'1'
+FAIL 2s-uring-db1 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+FAIL 2s-uring-db16 total errors b'1'
+FAIL 2s-uring-db16 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+FAIL 2s-epoll-db1 total errors b'1'
+FAIL 2s-epoll-db1 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+FAIL 2s-epoll-db16 total errors b'1'
+FAIL 2s-epoll-db16 all prefixes {b'errorstat_NOGROUP': b'count=1'}
+rootcompat errorstats: 16 failed checks; evidence /home/user/Projects/cx-rootcompat/build/gate-run.xt4zS1/jobs/rootcompat-errorstats/proof

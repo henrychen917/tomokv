@@ -1,0 +1,41 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-redis-db16 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-redis-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-redis-db16 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "redis-redis-db16 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-redis-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-redis-db16 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    }
+  ],
+  "slowlog": {}
+}
