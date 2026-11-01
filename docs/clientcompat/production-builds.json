@@ -102,5 +102,16 @@
     ],
     "exit": 0,
     "reason": "Updated legacy AT15 subscription admission expectations; production source unchanged"
+  },
+  {
+    "command": [
+      "make",
+      "-j16",
+      "all"
+    ],
+    "exit": 0,
+    "source_commit": "fbbd5ddd76",
+    "reason": "Cold owner wake and TrackingOn-only 1 ms idle poll; no test timeout changed",
+    "log": "build/clientcompat/ack-wake-build.log"
   }
 ]
