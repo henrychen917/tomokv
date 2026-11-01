@@ -3259,7 +3259,7 @@ job_txnorder(){
 # execfair: one aggregate witness row before quick exit, DQ=DF=+1.
 # Both engines, modes and atomic settings must observe actual fast-lane polls.
 job_execfair(){
-  local label="EXEC fast-lane polls" passed=1 mode atomic engine boot_fn log
+  local label="EXEC fast-lane polls and wave6-wave10 interactions" passed=1 mode atomic engine boot_fn log
   row_begin "$label"
   for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
     boot_fn=boot

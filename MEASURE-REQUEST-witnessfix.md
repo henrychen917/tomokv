@@ -67,3 +67,9 @@ Removed BUSY/TRYAGAIN tolerance. Script activations require two-element replies;
 the shutdown worker now propagates assertion failures to the main test instead
 of merely printing a thread exception. Unanswered work at shutdown is still
 distinguished from an error reply already received. DQ=DF=0.
+
+### V21 — accurate interaction-row identity
+
+Renamed `job_execfair` and its ledger identity fixture to include the wave6-wave10
+interaction batteries it actually runs. DQ=DF=0; one label is renamed, no row
+is added or retired. This is reporting repair, not new concurrency evidence.

@@ -81,7 +81,7 @@
     "DUMP/RESTORE cross-restart round-trip",
     "DUMP/RESTORE prepare + native SAVE",
     "DUMP/RESTORE restart shutdown invariants",
-    "EXEC fast-lane polls",
+    "EXEC fast-lane polls and wave6-wave10 interactions",
     "EXECABORT releases WATCH reservation",
     "FLIP TTL + expiry events",
     "FLIP applies under saturated load",
