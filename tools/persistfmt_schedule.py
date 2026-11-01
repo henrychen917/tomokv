@@ -4,6 +4,8 @@
 The owner pauses after finish_completions' failed() guard, before the receipt gate.
 The faulting writer waits for that pause, then wakes it after changing failure state.
 The live row holds the writer's diagnostic on a full pipe until the reply is checked.
+Markers distinguish an armed S1 window from a fused FLUSH whose remaining owner
+work is held by the injected writer wait; only the latter may re-arm on fresh state.
 """
 from pathlib import Path
 import sys
@@ -17,6 +19,19 @@ bool persistfmt_armed() {
     const char* path = std::getenv("TOMO_PERSISTFMT_SCHEDULE");
     return path && ::access(path, F_OK) == 0;
 }
+bool persistfmt_marker(const char* suffix, uint32_t producer = UINT32_MAX) {
+    const char* base = std::getenv("TOMO_PERSISTFMT_SCHEDULE");
+    if (!base) std::abort();
+    const std::string path = std::string(base) + suffix;
+    const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+    if (fd < 0) { if (errno == EEXIST) return false; std::abort(); }
+    char bytes[96];
+    const int size = std::snprintf(bytes, sizeof(bytes), "%ld %u %u\\n",
+        static_cast<long>(::gettid()), producer, persistfmt_schedule.load());
+    if (size <= 0 || ::write(fd, bytes, static_cast<size_t>(size)) != size) std::abort();
+    if (::close(fd) != 0) std::abort();
+    return true;
+}
 }
 '''
 text = text.replace('namespace tomo {', 'namespace tomo {\n' + declaration, 1)
@@ -24,6 +39,7 @@ before_gate = '        if (!reply_gate_ready(front.target)) {'
 assert text.count(before_gate) == 1
 text = text.replace(before_gate, '''
         if (persistfmt_armed() && persistfmt_schedule.load() < 2) {
+            persistfmt_marker(".gate", producer);
             persistfmt_schedule.store(1);
             while (persistfmt_schedule.load() != 2) std::this_thread::yield();
         }
@@ -31,11 +47,14 @@ text = text.replace(before_gate, '''
 before_fail = 'void AofManager::fail(const char* message, int error) {'
 assert text.count(before_fail) == 1
 text = text.replace(before_fail, before_fail + '''
-    if (persistfmt_armed())
+    bool persistfmt_fault_writer = false;
+    if (persistfmt_armed()) {
+        persistfmt_fault_writer = persistfmt_marker(".fail");
         while (persistfmt_schedule.load() == 0) std::this_thread::yield();
+    }
 ''')
 diagnostic = '    std::fprintf(stderr, "AOF error: %s\\n", message ? message : "AOF failure");'
 assert text.count(diagnostic) == 1
-text = text.replace(diagnostic, '    if (persistfmt_armed()) persistfmt_schedule.store(2);\n' + diagnostic)
+text = text.replace(diagnostic, '    if (persistfmt_armed()) { persistfmt_schedule.store(2); if (persistfmt_fault_writer) persistfmt_marker(".diagnostic"); }\n' + diagnostic)
 destination.parent.mkdir(parents=True, exist_ok=True)
 destination.write_text(text)
