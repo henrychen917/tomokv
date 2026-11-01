@@ -3146,7 +3146,13 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(group_errors));
     }
     if (info_section(op, "CPU")) info_stats_cpu_fields(body);
-    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\nmaster_repl_offset:0\r\n";
+    if (info_section(op, "REPLICATION"))
+        appendf(body, "# Replication\r\nrole:master\r\nconnected_slaves:0\r\n"
+                "master_failover_state:no-failover\r\nmaster_replid:%s\r\n"
+                "master_replid2:0000000000000000000000000000000000000000\r\n"
+                "master_repl_offset:0\r\nsecond_repl_offset:-1\r\n"
+                "repl_backlog_active:0\r\nrepl_backlog_size:1048576\r\n"
+                "repl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n", info_run_id());
     if (want_commands) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
