@@ -1,6 +1,6 @@
 ## rootcompat
 
-Status: correctness proof in progress after a final redaction review. The shared HELLO redactor now uses a monotone cursor to avoid quadratic MONITOR work. The expanded redaction witness and all 80 instruction counts pass on the rebuilt arm; full job reruns are pending. Other table results currently refer to its preceding binary, with identical command mechanisms. No throughput measurement or claim. Do not merge this lane as fully closed: item 11 remains unresolved (32-bit value/slice representation). HX-3 is retained under the explicitly allowed S2 exception. Item 9 takes the authorized guard-removal fallback.
+Status: the final arm passes all nine directed compatibility jobs (1,816 candidate checks), both Tcl modes and all 80 instruction-count comparisons. Broader regression and differential proof is still running. No throughput measurement or claim. Do not merge this lane as fully closed: item 11 remains unresolved (32-bit value/slice representation), and the scheduler self-test retains one deadline failure. HX-3 is retained under the explicitly allowed S2 exception. Item 9 takes the authorized guard-removal fallback. Item 3's cap proof does not cover first-sidecar-allocation OOM; see `docs/rootcompat/residuals.md`.
 
 Branch `cx-rootcompat`; PRE `7d2f8a2051961a1942735fb6dc9b507d778e09d1`. All correctness servers, oracle boots, builds and finite command-scope counts are confined to CPUs 48–63 and ports 20300–20399, with `LC_ALL=C`. The full iteration and performance traffic remain maintainer-owned. No push.
 
@@ -19,7 +19,7 @@ Branch `cx-rootcompat`; PRE `7d2f8a2051961a1942735fb6dc9b507d778e09d1`. All corr
 | GUARD SETRANGE-CLAMP | Small configured limits match Redis; configured 5 GiB permits >4 GiB SETRANGE/APPEND/SETBIT on Redis and is rejected in all 8 Tomo legs (24 mismatches) | UNRESOLVED, no source change | `KvObj::vlen`, `Slice::n`, growth buffers and reply paths use 32-bit lengths. Removing the cap alone truncates lengths and permits out-of-bounds stores. Needs a representation change, beyond a check-only fix. Owner scope question pending |
 | HX-3 | An unrelated key in a versioned store expires during a held group; GET returns null without EXPIRED, all 8 legs | Retained S2 residual, no source change | Version resolution suppresses physical reaping for unrelated expired keys too. A notification predicate change alone can duplicate or invent events; correct repair changes resolver/reaping ownership, exceeding the one-function/no-algorithm exception |
 
-The initial SORT PRE assertion incorrectly used SORT_RO in the error text. Redis spells SORT in both errors; the corrected fresh PRE run fails all 96 checks, with all 12 oracle checks passing. Earlier tracking enrolment misses and script setup failures and the rejected unwitnessed escalation attempt are retained as failed attempts, not silently counted as passes. The final directed gate (`TKoZYl`) passes all nine jobs against the POST SHA below; raw candidate/oracle checks and lifecycle receipts are in `docs/rootcompat/proof/post-release/`. The corrected PRE escalation matrix is in `docs/rootcompat/proof/pre-escalated/`.
+The initial SORT PRE assertion incorrectly used SORT_RO in the error text. Redis spells SORT in both errors; the corrected fresh PRE run fails all 96 checks, with all 12 oracle checks passing. Earlier tracking enrolment misses and script setup failures and the rejected unwitnessed escalation attempt are retained as failed attempts, not silently counted as passes. The final directed/Tcl partial gate (`QQjXt6`) passes all 12 scored rows: release, two Tcl modes and nine directed jobs, against the POST SHA below. Raw candidate/oracle checks and lifecycle receipts are in `docs/rootcompat/proof/post-final/`. The predecessor arm results remain in `proof/post-release/`. The corrected PRE escalation matrix is in `docs/rootcompat/proof/pre-escalated/`.
 
 Final arms are built; SHA-256s are in `docs/rootcompat/arms.sha256`:
 
@@ -52,12 +52,13 @@ Validation in progress:
 
 | Proof | Final result / evidence |
 |---|---|
-| Nine directed jobs | PASS, 10/10 ledger rows including release; `proof/post-release/` |
+| Nine directed jobs | PASS, 1,816 candidate checks; combined directed/Tcl gate 12/12 scored rows; `proof/post-final/` |
+| Diagnostic residuals | Expected FAIL: stringlimit 24/48 mismatches, HX-3 8/8, unsupported error counters 56/72; `proof/final-runs/residuals-final/` |
 | Production units | All 51 primary targets and the four auxiliary readiness groups built; all required `make -q` checks return 0; `proof/build-final.json` |
 | Notification units | PASS, 17/17 rows; `proof/units-release/`. Earlier private-shard fixture failure and repair are recorded separately |
-| Tcl passing-subset job | PASS in 2s and 1s, 39 file jobs each, zero manifest validation errors; `proof/tcl-final/`. This preserves the manifest's existing known setup errors and skips |
-| Broader touched jobs | Running, both modes/engines |
-| Standard differential seeds | Running, both engines |
+| Tcl passing-subset job | PASS in 2s and 1s, 39 file jobs / 1,874 passing assertions each, five known setup errors and 433 skips each, zero manifest validation errors; `proof/tcl-final/`. This preserves the manifest's existing known setup errors and skips |
+| Broader touched jobs | Running, both modes/engines; `GATE_PROOF_NO_RATES=1` excludes performance checks |
+| Standard differential seeds | Running, both engines; uring split atomic 0/1 complete with zero mismatches |
 | `tests/gates_test.py` | FAIL: 82/83 on two isolated CPU allocations. The one-slot full-inventory fixture exceeds its unchanged 45 s bound; PRE control passes at 44.217 s, POST times out at 45.188 s after nine added jobs. All 293 POST jobs finalized in the first isolated failure. No deadline/assertion was weakened; `proof/gates-test-final.log`, `proof/scheduler-single-controls.json` |
 
 Tcl accounting: the XGROUP DESTROY/NOGROUP counter assertion is re-skipped after guard removal. The two Lua error_reply statistics assertions remain skipped. No other entire upstream test was made passing by these fixes: the combined SLOWLOG privacy test also requires unsupported replication/TLS configs, and the adjacent redaction test requires MIGRATE. Their fixed ACL assertions are covered by the new oracle-directed SLOWLOG/MONITOR job. The first Tcl attempt used the rejected counter prototype; a focused PRE control reproduced its intermittent 2s pubsub unsubscribe failure. Final POST passes the full checked-in manifest in both modes.
