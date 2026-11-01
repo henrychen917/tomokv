@@ -90,6 +90,16 @@ def main():
                 break
         return errors
 
+    def natural_check(s, records, server):
+        errors = []
+        if s['attempts'] != 128 or s['parked'] != 128 or not s['hits']:
+            errors.append(f"natural MVCC window: {s}")
+        if s['served'] != 128 or s['hit_defects'] or s['nonhit_defects']:
+            errors.append(f"natural script wake: {s}")
+        if any(r.get('eval') != '1' for r in records if 'eval' in r):
+            errors.append('natural script observed an intermediate pop')
+        return errors
+
     def creators_check(s, records, server):
         errors = []
         if set(s['results']) != set(CREATORS.split(',')):
@@ -132,6 +142,10 @@ def main():
                 for variant in ['plain'] + (['hold'] if server == 'tomokv' and atomic else []):
                     run(server, mode, rl, atomic, 'item1_script_push.py',
                         ['--attempts', '3', '--grace', '0.3', '--variant', variant, '--pusher', pusher], script_check)
+            if server == 'tomokv' and atomic:
+                for order in ['after', 'race']:
+                    run(server, mode, rl, atomic, 'item1_natural.py',
+                        ['--attempts', '128', '--order', order, '--grace', '0.3', '--long-wait', '0.3'], natural_check)
         elif a.case == 'moves':
             for placement in (['random'] if server == 'redis' else ['same-shard', 'same-owner', 'cross-owner']):
                 run(server, mode, rl, atomic, 'item2_move_nil.py',

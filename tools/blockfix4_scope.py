@@ -165,15 +165,17 @@ def main():
     p = argparse.ArgumentParser();p.add_argument("--build-only", action="store_true")
     p.add_argument("--trace-only", action="store_true");p.add_argument("--arms", default="pre,post")
     p.add_argument("--batches", default="1,32")
+    p.add_argument("--commands", default="GET,SET,INCR,MGET,MSET,LPUSH,RPUSH,EXEC,EXEC-cross,EVAL,EVAL-local")
+    p.add_argument("--namespaces", default="normal,db0")
     a = p.parse_args();arms=a.arms.split(",")
     if not a.trace_only:
         for arm in arms:
-            for ns in ("normal", "db0"):
+            for ns in a.namespaces.split(','):
                 build(arm, ns)
     if a.build_only:
         return
     cases = [(arm, ns, command, mode, batch, atomic, -1) for arm in arms
-             for ns in ("normal", "db0") for command in ("GET", "SET", "INCR", "MGET", "MSET", "LPUSH", "RPUSH", "EXEC", "EXEC-cross", "EVAL")
+             for ns in a.namespaces.split(',') for command in a.commands.split(',')
              for mode in ("1s", "2s") for batch in map(int, a.batches.split(','))
              for atomic in ((0, 1) if command in ("MSET", "EXEC", "EXEC-cross") else (1,))
              if not (command == "EVAL" and batch != 1)]

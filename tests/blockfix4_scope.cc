@@ -22,6 +22,9 @@ extern "C" void production_fused(void*, const Task*, unsigned)
 namespace tomo {
 struct CoreConcurrencyTest {
  static void need(bool v){if(!v)std::abort();}
+ [[gnu::noinline]] static void bind(Server& server,unsigned tid,Ring& ring){
+  blocking_bind_executor(&server,&server.thread(tid),&ring);
+ }
  template<bool Fused> static void run(const std::string& command,unsigned n,bool atomic,int64_t slowlog){
   Server server;
   cpu_set_t mask;CPU_ZERO(&mask);need(sched_getaffinity(0,sizeof(mask),&mask)==0);
@@ -52,7 +55,7 @@ struct CoreConcurrencyTest {
    std::string key="execfair-dispatch:"+std::to_string(k);Slice s(key.data(),key.size());
    if(server.router().shard_of(FlatStore::hash_key(s))==sid){keys.push_back(key);break;}
   }
-  const std::string value = (command == "INCR" || command.starts_with("EXEC")) ? "0" : std::string(64,'v');
+  const std::string value = (command == "INCR" || command == "EVAL-local" || command.starts_with("EXEC")) ? "0" : std::string(64,'v');
   for(const auto& key:keys){
    Op op;op.reset();need(op.push_arg(Slice(command=="LPUSH"||command=="RPUSH"?"LPUSH":"SET")));need(op.push_arg({key.data(),uint32_t(key.size())}));need(op.push_arg({value.data(),uint32_t(value.size())}));
    op.spec=command_lookup(op.arg(0));op.hash=FlatStore::hash_key(op.arg(1));op.spec->handler(server.shard(server.router().shard_of(op.hash)),op);
@@ -78,6 +81,7 @@ struct CoreConcurrencyTest {
     bool final=false;
     auto execute=[&](const Task& task){
      auto& shard=server.shard(task.shard);const auto owner=server.worker_of_shard(task.shard);
+     bind(server,owner,ring);
      need(!xshard_task_should_defer(server,shard,task,*op));
      need(xshard_execute(task,shard,*op,owner)==ScatterTaskResult::Complete);
      const auto done=Fused?xshard_complete_iofused(server,server.thread(owner),ring,task,*op)
@@ -112,15 +116,17 @@ struct CoreConcurrencyTest {
    };
    scope_begin();
    local("MULTI",nullptr);
-   for(unsigned i=0;i<n;i++)local("INCR",&keys[command=="EXEC-cross"?i:0]);
+   for(unsigned i=0;i<n;i++)local("INCR",&keys[command=="EXEC-cross"?i%keys.size():0]);
    MultiExecState* state=nullptr;
    need(multi_handle_io(server,client,*carrier,io,state)==MultiIoAction::Dispatch&&state);
    carrier->attach_multi_state(state);client.atomic_group_started();multi_dispatch_started(client,state);
    std::vector<int32_t> remaining;
+   Ring ring;
    for(unsigned i=0;i<multi_dispatch_count(state);i++)remaining.push_back(multi_dispatch_shard(state,i));
    for(unsigned pass=0;!remaining.empty()&&pass<128;pass++){
     for(size_t i=0;i<remaining.size();){
      const auto sid=remaining[i];const auto owner=server.worker_of_shard(sid);
+     bind(server,owner,ring);
      const auto result=multi_execute_task(server,multi_make_task(&client,0,sid,state),server.shard(sid),owner,0,nullptr);
      if(multi_task_retry(result))i++;else remaining.erase(remaining.begin()+i);
     }
@@ -137,7 +143,7 @@ struct CoreConcurrencyTest {
    multi_reap_deferred(deferred);need(deferred.empty());
    scope_end();
    std::string expected="*"+std::to_string(n)+"\r\n";
-   for(unsigned i=0;i<n;i++)expected+=":"+std::to_string(command=="EXEC-cross"?1:i+1)+"\r\n";
+   for(unsigned i=0;i<n;i++)expected+=":"+std::to_string(command=="EXEC-cross"?i/keys.size()+1:i+1)+"\r\n";
    need(std::string(carrier->reply.data(),carrier->reply.size())==expected);
 #ifdef TOMO_LATENCY_SCAN_WITNESS
    need(wave8b_tracking ? wave8b_scans > 0 : wave8b_scans == 0);
@@ -148,23 +154,34 @@ struct CoreConcurrencyTest {
        Fused?"1s":"2s",TOMO_SINGLE_DATABASE?"db0":"normal",int(atomic),n,int(wave8b_tracking),
        (unsigned long long)wave8b_scans,(unsigned long long)samples);
 #endif
-  }else if(command=="GET"||command=="SET"||command=="INCR"||command=="LPUSH"||command=="RPUSH"){
+  }else if(command=="GET"||command=="SET"||command=="INCR"||command=="LPUSH"||command=="RPUSH"||command=="EVAL-local"){
    Task tasks[32];need(n<=32);
+   const bool script=command=="EVAL-local";
+   const std::string code="return redis.call('INCR',KEYS[1])";
+   auto& loop=loops[server.worker_of_shard(0)];
+   bind(server,server.worker_of_shard(0),loop.ring_);
+   if(script){
+    const std::vector<std::string> args{"EVAL",code,"1",keys[0]};
+    Op warm;warm.reset();for(const auto& arg:args)need(warm.push_arg({arg.data(),uint32_t(arg.size())}));
+    warm.spec=command_lookup(warm.arg(0));warm.hash=FlatStore::hash_key(warm.arg(3));
+    warm.spec->handler(server.shard(0),warm);need(std::string(warm.reply.data(),warm.reply.size())==":1\r\n");
+   }
    for(unsigned i=0;i<n;i++){
-    auto* op=client.rob().template acquire<false>();need(op);need(op->push_arg({command.data(),uint32_t(command.size())}));
+    auto* op=client.rob().template acquire<false>();need(op);
+    if(script){need(op->push_arg(Slice("EVAL")));need(op->push_arg({code.data(),uint32_t(code.size())}));need(op->push_arg(Slice("1")));}
+    else need(op->push_arg({command.data(),uint32_t(command.size())}));
     need(op->push_arg({keys[0].data(),uint32_t(keys[0].size())}));
     if(command=="SET"||command=="LPUSH"||command=="RPUSH")need(op->push_arg({value.data(),uint32_t(value.size())}));
-    op->spec=command_lookup(op->arg(0));op->hash=FlatStore::hash_key(op->arg(1));op->shard=0;
+    op->spec=command_lookup(op->arg(0));op->hash=FlatStore::hash_key(op->arg(script?3:1));op->shard=0;
     op->state.store(OpState::Issued,std::memory_order_relaxed);tasks[i]=Task{&client,client.rob().dispatch_id(),-1,nullptr};client.rob().publish();
    }
-   auto& loop=loops[server.worker_of_shard(0)];
    scope_begin();
    if constexpr(Fused)production_fused(&loop,tasks,n);else production_split(&loop,tasks,n);
    scope_end();
    const std::string want=command=="SET"?"+OK\r\n":"$64\r\n"+value+"\r\n";
    unsigned completed = 0;
    need(client.rob().drain([&](Op& op){
-    const std::string expected = (command == "INCR" || command == "LPUSH" || command == "RPUSH") ? ":" + std::to_string(++completed + (command != "INCR")) + "\r\n" : want;
+    const std::string expected = (script || command == "INCR" || command == "LPUSH" || command == "RPUSH") ? ":" + std::to_string(++completed + (command != "INCR")) + "\r\n" : want;
     need(std::string(op.reply.data(),op.reply.size()) == expected);
    })==n);
   }else{
