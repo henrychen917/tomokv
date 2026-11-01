@@ -176,7 +176,7 @@
             if (__builtin_expect(sh.has_blocking_waiters(), false))
                 blocking_scatter_mutation_published(t, sh, op);
             if (__builtin_expect(aof_manager_ != nullptr, false)) {
-                AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
+                AofOwnerContext context{self_->id(), &ring_, &self_->sig(), t.client->id()};
                 xshard_aof_emit(t, sh, op, context);
             }
             sh.publish_size();
@@ -242,7 +242,7 @@
         }
         if (!t.scatter) note_lb_hash(sh, op.hash);
         if (!t.scatter && __builtin_expect(aof_manager_ != nullptr, false)) {
-            AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
+            AofOwnerContext context{self_->id(), &ring_, &self_->sig(), t.client->id()};
             if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);
             else                   aof_record_local_op(sh, op, context);
         }

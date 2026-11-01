@@ -6157,7 +6157,7 @@ if [ "${GATE_PARTIAL:-0}" = 1 ]; then
   partial_gate
   exit $?
 fi
-# rootcore: six directed rows collected before the quick-tier exit (DQ=DF=+6).
+# rootcore: seven directed rows collected before the quick-tier exit (DQ=DF=+7).
 # EXPECT_QUICK / EXPECT_FULL are maintainer-owned.
 for root in inbox eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
 collect_job release

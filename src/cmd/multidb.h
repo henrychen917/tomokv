@@ -102,7 +102,7 @@ public:
         if constexpr (kSingleDatabase) return false;
         return current_.load(std::memory_order_acquire) != nullptr;
     }
-    bool swap(uint8_t first, uint8_t second, AofProducer* journal = nullptr);
+    bool swap(uint8_t first, uint8_t second, AofProducer* journal = nullptr, uint64_t client_id = 0);
     bool prepare_publish(const Map& map, std::unique_ptr<Map>& prepared);
     void publish_prepared(std::unique_ptr<Map> prepared);
     bool restore(const uint8_t* bytes);
@@ -214,7 +214,7 @@ uint64_t multidb_random(uint64_t bound);
 bool multidb_prepare_move(Server& server, Op& op);
 Slice multidb_display_argument(const Op& op, uint32_t argument);
 bool multidb_validate_swap(Server& server, Op& op);
-bool multidb_commit_swap(Server& server, Shard& shard, Op& op);
+bool multidb_commit_swap(Server& server, Shard& shard, Op& op, uint64_t client_id = 0);
 struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0, subexpiry = 0; };
 using DatabaseStatsTable = std::array<DatabaseStats, 256>;
 void multidb_stats(Shard& shard, DatabaseStatsTable& stats);

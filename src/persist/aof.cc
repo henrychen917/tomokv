@@ -940,6 +940,8 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
         return false;
     }
 
+    if (context && kind != AofRecordKind::Timestamp && !receipt(context->client_id))
+        return false;
     if (large) {
         if (!build_) return false;
         build_->records = 1;
@@ -947,6 +949,10 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
     }
     build_->records++;
     return true;
+}
+
+bool AofProducer::receipt(uint64_t client_id) {
+    return !client_id || (build_ && manager_->attach_receipt(*build_, client_id));
 }
 
 bool AofProducer::record_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
@@ -1002,11 +1008,11 @@ bool AofProducer::record_delete(Slice key, uint64_t group) {
     return record_bytes(kind, 0, 0, key, -1, group, nullptr, 0, nullptr, nullptr, nullptr);
 }
 
-bool AofProducer::record_flush(int physical_db) {
+bool AofProducer::record_flush(int physical_db, uint64_t client_id) {
     if (!enabled()) return true;
     return record_bytes(AofRecordKind::Flush, physical_db >= 0 ? 1 : 0, 0,
                         Slice(nullptr, 0, physical_db >= 0 ? physical_db : 0), -1, 0,
-                        nullptr, 0, nullptr, nullptr, nullptr);
+                        nullptr, 0, nullptr, nullptr, nullptr) && receipt(client_id);
 }
 
 bool AofProducer::record_group_flush(int physical_db) {
@@ -1017,10 +1023,10 @@ bool AofProducer::record_group_flush(int physical_db) {
         nullptr, nullptr, nullptr, 0);
 }
 
-bool AofProducer::record_database_map(const uint8_t* mapping) {
+bool AofProducer::record_database_map(const uint8_t* mapping, uint64_t client_id) {
     if (!enabled()) return true;
     return record_bytes(AofRecordKind::DatabaseMap, 0, 0, Slice(), -1, 0,
-                        mapping, DatabaseMap::kPayloadBytes, nullptr, nullptr, nullptr);
+                        mapping, DatabaseMap::kPayloadBytes, nullptr, nullptr, nullptr) && receipt(client_id);
 }
 
 bool AofProducer::record_group_database_map(const uint8_t* mapping) {
@@ -1194,10 +1200,11 @@ void AofManager::drain_for_producer(uint32_t producer, Ring&) {
 }
 
 std::shared_ptr<AofGroupDecision> aof_create_group(
-        AofManager& manager, const std::vector<uint32_t>& participants) {
+        AofManager& manager, const std::vector<uint32_t>& participants, uint64_t client_id) {
     if (!manager.recording() || participants.empty()) return nullptr;
     try {
         auto group = std::make_shared<AofGroupDecision>();
+        group->client_id = client_id;
         group->participants = participants;
         std::sort(group->participants.begin(), group->participants.end());
         group->participants.erase(
@@ -1232,6 +1239,7 @@ bool aof_commit_group(AofManager& manager, const std::shared_ptr<AofGroupDecisio
         chunk->sid = -1;
         chunk->group = group;
         chunk->group_commit = true;
+        if (!manager.attach_receipt(*chunk, group->client_id)) return false;
     } catch (const std::bad_alloc&) {
         manager.fail("out of memory allocating AOF GCMT");
         return false;
@@ -1930,13 +1938,15 @@ void AofManager::append_function_journal(Slice payload) {
     snapshot_put_u64(record + 16, payload.n);
     snapshot_put_u64(record + 24, static_cast<uint64_t>(-1));
     std::memcpy(record + kRecordHeaderBytes, payload.p, payload.n);
+    uint64_t sequence = 0;
     {
         std::lock_guard<std::mutex> lock(chunk_in_[writer_tid_].function_journal_mu);
         chunk_in_[writer_tid_].function_journal.push_back(std::move(chunk));
-        chunk_in_[writer_tid_].function_journal.back()->post_sequence =
+        chunk_in_[writer_tid_].function_journal.back()->post_sequence = sequence =
             posted_sequence_.fetch_add(1, std::memory_order_acq_rel) + 1;
         pending_chunks_.fetch_add(1, std::memory_order_release);
     }
+    if (Client* client = command_local_client()) note_client_sequence(client->id(), sequence);
     ThreadCtx* producer = command_local_thread();
     Ring* target = writer_ring_.load(std::memory_order_acquire);
     if (producer && producer->ring() && target && producer->ring() != target) {
@@ -1956,8 +1966,11 @@ bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                          producer, static_cast<unsigned long long>(refused));
         return false;
     }
-    if (!chunk->post_sequence)
+    if (!chunk->post_sequence) {
         chunk->post_sequence = posted_sequence_.fetch_add(1, std::memory_order_acq_rel) + 1;
+        for (uint64_t id : chunk->receipt_clients)
+            note_client_sequence(id, chunk->post_sequence, true);
+    }
     AofChunk* raw = chunk.get();
     if (!chunk_in_[producer].push(raw, signals)) return false;
     chunk.release();
@@ -1967,6 +1980,63 @@ bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
         chunk_in_[producer].wake_edge(producer_ring, signals, target);
     }
     return true;
+}
+
+bool AofManager::attach_receipt(AofChunk& chunk, uint64_t client_id) {
+    if (!client_id || (!chunk.receipt_clients.empty() &&
+                      chunk.receipt_clients.back() == client_id)) return true;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    try {
+        auto& receipt = receipts.client_sequences[client_id];
+        chunk.receipt_clients.push_back(client_id);
+        ++receipt.buffered;
+        return true;
+    } catch (const std::bad_alloc&) {
+        fail("out of memory retaining AOF connection receipt");
+        return false;
+    }
+}
+
+void AofManager::note_client_sequence(uint64_t client_id, uint64_t sequence,
+                                       bool was_buffered) {
+    if (!client_id) return;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    try {
+        auto& receipt = receipts.client_sequences[client_id];
+        receipt.sequence = std::max(receipt.sequence, sequence);
+        if (was_buffered) {
+            if (!receipt.buffered) std::abort();
+            --receipt.buffered;
+            if (!receipt.buffered && receipt.closed) receipts.client_sequences.erase(client_id);
+        }
+    } catch (const std::bad_alloc&) {
+        fail("out of memory retaining AOF connection sequence");
+    }
+}
+
+bool AofManager::local_ack(uint64_t client_id) const {
+    if (!configured_ || !chunk_in_ || failed()) return false;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    const auto found = receipts.client_sequences.find(client_id);
+    if (found == receipts.client_sequences.end()) return true;
+    const auto& receipt = found->second;
+    return !receipt.buffered &&
+        durable_sequence_.load(std::memory_order_acquire) >= receipt.sequence;
+}
+
+void AofManager::forget_client(uint64_t client_id) {
+    if (!chunk_in_) return;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    const auto found = receipts.client_sequences.find(client_id);
+    if (found == receipts.client_sequences.end()) return;
+    // No/everysec may retire the Client before its owner's pass posts the last
+    // chunk. Retain only that pending receipt until the ordinary post assigns it.
+    if (found->second.buffered) found->second.closed = true;
+    else receipts.client_sequences.erase(found);
 }
 
 bool AofManager::reply_gate_ready(uint64_t target) const {

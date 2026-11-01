@@ -762,7 +762,7 @@ bool aof_prepare_scatter_group(ScatterState& state) {
         state.server->aof().fail("out of memory collecting AOF group participants");
         return false;
     }
-    state.aof_group = aof_create_group(state.server->aof(), participants);
+    state.aof_group = aof_create_group(state.server->aof(), participants, state.origin_conn_id);
     return state.aof_group != nullptr;
 }
 
@@ -2401,7 +2401,7 @@ void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& co
     if (state.kind == Kind::AllShards) {
         if (op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall"))
             (void)shard.store().aof().record_flush(op.cmd_name().eq_icase("flushdb")
-                ? op.physical_db : -1);
+                ? op.physical_db : -1, context.client_id);
         return;
     }
     if (state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof ||
@@ -2436,7 +2436,7 @@ void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
             return;
         }
         std::shared_ptr<AofGroupDecision> group =
-            aof_create_group(server->aof(), participants);
+            aof_create_group(server->aof(), participants, context.client_id);
         if (!group) return;
 
         AofProducer& producer = shard.store().aof();
@@ -3505,7 +3505,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     // its captured mapping throughout all owner freeze/mark/capture phases.
                     std::lock_guard lock(state.server->shape_transition_mutex());
                     if (state.server->snapshot().in_progress()) return ScatterTaskResult::Defer;
-                    state.swap_succeeded = multidb_commit_swap(*state.server, shard, op);
+                    state.swap_succeeded = multidb_commit_swap(*state.server, shard, op, state.origin_conn_id);
                     if (!state.swap_succeeded) group.error = WorkError::Oom;
                     state.swap_done.store(true, std::memory_order_release);
                 }

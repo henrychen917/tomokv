@@ -6,10 +6,9 @@ import hashlib
 from pathlib import Path
 import resource
 import signal
-import select
 import time
 
-from _lib import Conn, RespError, info
+from _lib import Conn, RespError, info, same_shard_pair
 from persistfix2 import boot, emit, wait, rewrite_done
 
 
@@ -97,7 +96,8 @@ def segments(a):
 
 
 def waitaof(a):
-    with boot(a, 'waitaof', ['--appendonly', 'yes', '--appendfsync', a.fsync]) as (_, c, _):
+    with boot(a, 'waitaof', ['--appendonly', 'yes', '--appendfsync', a.fsync,
+                             '--databases', str(a.databases)]) as (_, c, _):
         emit('risky moment', case='AOF-enabled local durability query', hits=1)
         result = c.must('WAITAOF', 0, 0, 1)
         assert result == [1, 0], result
@@ -121,6 +121,36 @@ def waitaof(a):
             assert c.must('MULTI') == b'OK'
             assert c.must('WAITAOF', 1, 1, 0) == b'QUEUED'
             assert c.must('EXEC') == [[1, 0]]
+            writes = [
+                ('large SET', ('SET', 'rootcore:large', 'x' * 70000)),
+                ('MSET', ('MSET', 'rootcore:one', '1', 'rootcore:two', '2')),
+                ('script group', ('EVAL', "return redis.call('SET',KEYS[1],'script')", 1, 'rootcore:script')),
+                ('function registry', ('FUNCTION', 'LOAD', "#!lua name=ack\nredis.register_function('ack',function() return 1 end)")),
+                ('FLUSHDB', ('FLUSHDB',)),
+            ]
+            if a.databases > 1:
+                writes.append(('SWAPDB', ('SWAPDB', 0, 1)))
+            for name, words in writes:
+                observer.must('CONFIG', 'SET', 'appendfsync', 'no')
+                c.must(*words)
+                assert c.must('WAITAOF', 0, 0, 1) == [0, 0], name
+                assert observer.must('WAITAOF', 0, 0, 1) == [1, 0], name
+                observer.must('CONFIG', 'SET', 'appendfsync', 'always')
+                assert c.must('WAITAOF', 1, 0, 3000) == [1, 0], name
+                emit('risky moment', case='connection receipt for ' + name, hits=1)
+            observer.must('CONFIG', 'SET', 'appendfsync', 'no')
+            assert c.must('MULTI') == b'OK'
+            assert c.must('SET', 'rootcore:exec', 'value') == b'QUEUED'
+            assert c.must('EXEC') == [b'OK']
+            assert c.must('WAITAOF', 0, 0, 1) == [0, 0]
+            observer.must('CONFIG', 'SET', 'appendfsync', 'always')
+            assert c.must('WAITAOF', 1, 0, 3000) == [1, 0]
+            emit('risky moment', case='connection receipt for EXEC', hits=1)
+            observer.must('CONFIG', 'SET', 'appendfsync', 'no')
+            observer.must('SET', 'rootcore:other-client', 'pending')
+            assert c.must('WAITAOF', 0, 0, 1) == [1, 0]
+            assert observer.must('WAITAOF', 0, 0, 1) == [0, 0]
+            emit('risky moment', case='unrelated later write does not revoke own fsync', hits=1)
         finally:
             observer.close()
 
@@ -133,8 +163,13 @@ def notify(a):
     with boot(a, 'write', opts) as (_, c, data):
         sub = Conn('127.0.0.1', a.port, timeout=3)
         assert sub.must('PSUBSCRIBE', '__keyevent@0__:*')[0] == b'psubscribe'
-        assert c.must('RPUSH', 'rootcore:{same}:source', 3, 1, 2) == 3
-        assert c.must('SORT', 'rootcore:{same}:source', 'STORE', 'rootcore:{same}:dest') == 3
+        if a.oracle:
+            source, dest, sid = 'rootcore:source', 'rootcore:dest', 'oracle'
+        else:
+            source, dest, sid = same_shard_pair(c, 'rootcore:sort:')
+        emit('placement', source=source, destination=dest, shard=sid)
+        assert c.must('RPUSH', source, 3, 1, 2) == 3
+        assert c.must('SORT', source, 'STORE', dest) == 3
         c.must('XADD', 'rootcore:stream', '1-0', 'field', 'value')
         c.must('XGROUP', 'CREATE', 'rootcore:stream', 'group', '0')
         result = c.must('XREADGROUP', 'GROUP', 'group', 'consumer', 'STREAMS', 'rootcore:stream', '>')
@@ -150,7 +185,7 @@ def notify(a):
         emit('risky moment', case='notifications with local SORT STORE and XREADGROUP',
              hits=2, pending=pending)
     with boot(a, 'read', opts, existing_data=data) as (_, c, _):
-        recovered = c.must('LRANGE', 'rootcore:{same}:dest', 0, -1)
+        recovered = c.must('LRANGE', dest, 0, -1)
         recovered_pending = c.must('XPENDING', 'rootcore:stream', 'group')
         emit('recovered post-images', sort=recovered, pending=recovered_pending)
         assert (recovered, recovered_pending) == ([b'1', b'2', b'3'], pending), (recovered, recovered_pending)
@@ -200,9 +235,10 @@ def main():
     if args.case != 'segments':
         endpoints.insert(0, (True, 'oracle', 'normal'))
     for oracle, mode, engine in endpoints:
-        for fsync in (('always', 'everysec') if args.case in ('functions', 'waitaof') else
+        for fsync in (('always', 'everysec', 'no') if args.case == 'functions' else
+                      ('always', 'everysec') if args.case == 'waitaof' else
                       ('everysec', 'no') if args.case == 'misconf' else ('always',)):
-            for databases in ((1, 16) if not oracle and args.case in ('eval', 'notify') else (1,)):
+            for databases in ((1, 16) if not oracle and args.case in ('eval', 'notify', 'waitaof') else (1,)):
                 for atomic in ((0, 1) if not oracle and args.case in ('eval', 'notify') else (0,)):
                     a = copy.copy(args)
                     a.oracle, a.mode, a.engine, a.fsync = oracle, mode, engine, fsync

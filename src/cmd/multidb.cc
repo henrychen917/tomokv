@@ -406,7 +406,7 @@ void DatabaseMap::reclaim([[maybe_unused]] Server& server) {
     }
 }
 
-bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {
+bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal, uint64_t client_id) {
     if constexpr (kSingleDatabase) return first == 0 && second == 0;
     if (first == second) return true;
     std::lock_guard lock(writer_);
@@ -421,10 +421,10 @@ bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {
         if (journal && DatabaseMapTestHooks::fault == DatabaseMapTestHooks::JournalOrder) {
             const auto bytes = *next;
             publish(std::move(next));
-            return journal->record_database_map(bytes.data());
+            return journal->record_database_map(bytes.data(), client_id);
         }
 #endif
-        if (journal && !journal->record_database_map(next->data())) return false;
+        if (journal && !journal->record_database_map(next->data(), client_id)) return false;
         publish(std::move(next));
         return true;
     } catch (const std::bad_alloc&) { return false; }
@@ -743,11 +743,11 @@ bool multidb_validate_swap(Server& server, Op& op) {
     return true;
 }
 
-bool multidb_commit_swap(Server& server, Shard& shard, Op& op) {
+bool multidb_commit_swap(Server& server, Shard& shard, Op& op, uint64_t client_id) {
     uint8_t first = 0, second = 0;
     if (!multidb_parse_index(op.arg(1), server.cfg().databases, first) ||
         !multidb_parse_index(op.arg(2), server.cfg().databases, second)) std::abort();
-    return server.databases().swap(first, second, &shard.store().aof());
+    return server.databases().swap(first, second, &shard.store().aof(), client_id);
 }
 
 void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {

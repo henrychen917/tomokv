@@ -649,7 +649,7 @@ bool IoLoop::climon_unblock_local(uint64_t id, bool error_flavor) {
             Op& waiting = c->rob().at(timer.op_id);
             if (error_flavor)
                 reply_err(waiting.sink(), "UNBLOCKED client unblocked via CLIENT UNBLOCK");
-            else server_tail_reply_wait(waiting);
+            else server_tail_reply_wait(waiting, c);
             waiting.state.store(OpState::Done, std::memory_order_release);
             c->set_blocked(false);
             c->set_last_interaction_s(cached_now_s_);

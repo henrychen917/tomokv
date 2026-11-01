@@ -10,6 +10,7 @@
 namespace tomo {
 
 class Op;
+class Client;
 struct CommandSpec;
 
 enum class WaitCommandResult : uint8_t { Error, Immediate, Unsatisfied };
@@ -17,8 +18,9 @@ enum class WaitCommandResult : uint8_t { Error, Immediate, Unsatisfied };
 // Validate WAIT's integer surface.  Unsatisfied means this standalone, replica-less server must
 // defer the reply for timeout_ms (zero means forever); MULTI calls the ordinary handler and turns
 // the same result into its required immediate integer element.
-WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms);
-void server_tail_reply_wait(Op& op);
+WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms, Client* client = nullptr);
+void server_tail_reply_wait(Op& op, Client* client = nullptr);
+bool server_tail_wait_ready(const Op& op, Client* client);
 
 // CONFIG subcommands owned by this file. Each returns false when `op` names a subcommand it does
 // not handle, leaving the caller's own dispatch (GET/SET) and error reply untouched.

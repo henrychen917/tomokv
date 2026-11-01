@@ -2386,7 +2386,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 session->clear_queue();
                 return MultiIoAction::LocalDone;
             }
-            state->aof_group = aof_create_group(server.aof(), participants);
+            state->aof_group = aof_create_group(server.aof(), participants, state->origin_conn_id);
             if (!state->aof_group) {
                 destroy_multi_state(state);
                 reply_err(op.sink(), "ERR out of memory");
@@ -2677,7 +2677,7 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
             std::vector<uint32_t> participants;
             for (const auto& write : next->write_keys) participants.push_back(write.shard);
             if (next->database_publish) participants.push_back(0);
-            next->aof_group = aof_create_group(server.aof(), participants);
+            next->aof_group = aof_create_group(server.aof(), participants, next->origin_conn_id);
             if (!next->aof_group) throw std::bad_alloc();
         }
     } catch (const std::bad_alloc&) {

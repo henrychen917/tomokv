@@ -3744,7 +3744,7 @@ subscriber_checks_done:
                     uint64_t timeout_ms = 0;
                     const uint64_t latency_started = __builtin_expect(srv_->latency_tracking(), false)
                         ? latency_tracking_start() : 0;
-                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms, c);
                     if (wait == WaitCommandResult::Unsatisfied) {
                         // Pending slices participate in CONFIG no's discard. Do not
                         // retain an old probe duration in the parked timer itself.
@@ -3771,7 +3771,7 @@ subscriber_checks_done:
                             break;
                         }
                     } else if (wait == WaitCommandResult::Immediate) {
-                        server_tail_reply_wait(*op);
+                        server_tail_reply_wait(*op, c);
                     }
                     // Error already carries its exact validation reply. Immediate already carries
                     // :0. Both retire through the ordinary local completion path below.
@@ -4759,7 +4759,8 @@ ordinary_shard_ready:
             const DeferredTimer timer = deferred_timers_[i];
             const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
                 ? srv_->debug_sleep_complete(timer.deadline_ms)
-                : timer.deadline_ms && now_ms >= timer.deadline_ms;
+                : (timer.deadline_ms && now_ms >= timer.deadline_ms) ||
+                  server_tail_wait_ready(timer.client->rob().at(timer.op_id), timer.client);
             if (!ready) {
                 i++;
                 continue;
@@ -4769,7 +4770,7 @@ ordinary_shard_ready:
             if (timer.kind == DeferredTimerKind::WaitZero) {
                 const uint64_t started = __builtin_expect(srv_->latency_tracking(), false)
                     ? latency_tracking_start() : 0;
-                server_tail_reply_wait(op);
+                server_tail_reply_wait(op, client);
                 if (started) {
                     latency_tracking_part(self_->id(), op, started);
                     latency_tracking_retire(self_->id(), op);
@@ -5060,6 +5061,7 @@ ordinary_shard_ready:
         client_work_fences_.erase(c);
         climon_untrack_client(c);
         command_client_disconnected(c);
+        srv_->aof().forget_client(c->id());
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
         wb_.teardown(*c);
