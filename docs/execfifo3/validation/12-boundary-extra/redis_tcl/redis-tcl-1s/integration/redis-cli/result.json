@@ -1,0 +1,753 @@
+{
+  "file": "integration/redis-cli",
+  "mode": "1s",
+  "passed": 45,
+  "failed": 0,
+  "skipped": 5,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 5.577215406112373,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/integration/redis-cli/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "integration/redis-cli",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/integration/redis-cli/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "912117",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find first search result in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find first search result",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find first search result in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find first search result",
+      "milliseconds": "242"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find and use the first search result in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find and use the first search result",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find and use the first search result in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find and use the first search result",
+      "milliseconds": "302"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should be ok if there is no result in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should be ok if there is no result",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should be ok if there is no result in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should be ok if there is no result",
+      "milliseconds": "121"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: upon submitting search, (reverse-i-search) prompt should go away in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: upon submitting search, (reverse-i-search) prompt should go away",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: upon submitting search, (reverse-i-search) prompt should go away in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: upon submitting search, (reverse-i-search) prompt should go away",
+      "milliseconds": "122"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find second search result if user presses ctrl+r again in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find second search result if user presses ctrl+r again",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find second search result if user presses ctrl+r again in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find second search result if user presses ctrl+r again",
+      "milliseconds": "301"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find second search result if user presses ctrl+s in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find second search result if user presses ctrl+s",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should find second search result if user presses ctrl+s in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should find second search result if user presses ctrl+s",
+      "milliseconds": "302"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses ctrl+g in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses ctrl+g",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses ctrl+g in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses ctrl+g",
+      "milliseconds": "181"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses up arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses up arrow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses up arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses up arrow",
+      "milliseconds": "182"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses right arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses right arrow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses right arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses right arrow",
+      "milliseconds": "181"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses down arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses down arrow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses down arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses down arrow",
+      "milliseconds": "181"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses left arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses left arrow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should exit reverse search if user presses left arrow in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should exit reverse search if user presses left arrow",
+      "milliseconds": "181"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should disable and persist line if user presses tab in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should disable and persist line if user presses tab",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should disable and persist line if user presses tab in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should disable and persist line if user presses tab",
+      "milliseconds": "232"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should disable and persist search result if user presses tab in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should disable and persist search result if user presses tab",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should disable and persist search result if user presses tab in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should disable and persist search result if user presses tab",
+      "milliseconds": "243"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should disable and persist line and move the cursor if user presses tab in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should disable and persist line and move the cursor if user presses tab",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: should disable and persist line and move the cursor if user presses tab in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: should disable and persist line and move the cursor if user presses tab",
+      "milliseconds": "302"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: INFO response should be printed raw in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: INFO response should be printed raw",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: INFO response should be printed raw in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: INFO response should be printed raw",
+      "milliseconds": "61"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Status reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Status reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Status reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Status reply",
+      "milliseconds": "60"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Integer reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Integer reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Integer reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Integer reply",
+      "milliseconds": "60"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Bulk reply",
+      "milliseconds": "60"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Multi-bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Multi-bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Multi-bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Multi-bulk reply",
+      "milliseconds": "60"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Parsing quotes in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Parsing quotes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Parsing quotes in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Parsing quotes",
+      "milliseconds": "424"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Subscribed mode in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Subscribed mode",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive CLI: Subscribed mode in tests/integration/redis-cli.tcl",
+      "data": "Interactive CLI: Subscribed mode",
+      "milliseconds": "594"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive non-TTY CLI: Subscribed mode in tests/integration/redis-cli.tcl",
+      "data": "Interactive non-TTY CLI: Subscribed mode",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Interactive non-TTY CLI: Subscribed mode in tests/integration/redis-cli.tcl",
+      "data": "Interactive non-TTY CLI: Subscribed mode",
+      "milliseconds": "414"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Status reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Status reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Status reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Status reply",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Integer reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Integer reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Integer reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Integer reply",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Multi-bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Multi-bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Multi-bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Multi-bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Read last argument from pipe in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Read last argument from pipe",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Read last argument from pipe in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Read last argument from pipe",
+      "milliseconds": "3"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Read last argument from file in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Read last argument from file",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Read last argument from file in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Read last argument from file",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Escape character in JSON mode in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Escape character in JSON mode",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive TTY CLI: Escape character in JSON mode in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive TTY CLI: Escape character in JSON mode",
+      "milliseconds": "7"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Status reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Status reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Status reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Status reply",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Integer reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Integer reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Integer reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Integer reply",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Bulk reply",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Multi-bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Multi-bulk reply",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Multi-bulk reply in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Multi-bulk reply",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "",
+      "data": "Non-interactive non-TTY CLI: ASK redirect test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Quoted input arguments in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Quoted input arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Quoted input arguments in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Quoted input arguments",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: No accidental unquoting of input arguments in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: No accidental unquoting of input arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: No accidental unquoting of input arguments in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: No accidental unquoting of input arguments",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Invalid quoted input arguments in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Invalid quoted input arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Invalid quoted input arguments in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Invalid quoted input arguments",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Read last argument from pipe in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Read last argument from pipe",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Read last argument from pipe in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Read last argument from pipe",
+      "milliseconds": "3"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Read last argument from file in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Read last argument from file",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Read last argument from file in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Read last argument from file",
+      "milliseconds": "2"
+    },
+    {
+      "status": "skip",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "",
+      "data": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Test command-line hinting - no server in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Test command-line hinting - no server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Test command-line hinting - no server in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Test command-line hinting - no server",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Test command-line hinting - old server in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Test command-line hinting - old server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Non-interactive non-TTY CLI: Test command-line hinting - old server in tests/integration/redis-cli.tcl",
+      "data": "Non-interactive non-TTY CLI: Test command-line hinting - old server",
+      "milliseconds": "4"
+    },
+    {
+      "status": "skip",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "",
+      "data": "Dumping an RDB - functions only: no",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "",
+      "data": "Dumping an RDB - functions only: yes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Scan mode in tests/integration/redis-cli.tcl",
+      "data": "Scan mode",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Scan mode in tests/integration/redis-cli.tcl",
+      "data": "Scan mode",
+      "milliseconds": "78"
+    },
+    {
+      "status": "skip",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "",
+      "data": "Connecting as a replica",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Piping raw protocol in tests/integration/redis-cli.tcl",
+      "data": "Piping raw protocol",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Piping raw protocol in tests/integration/redis-cli.tcl",
+      "data": "Piping raw protocol",
+      "milliseconds": "519"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Options -X with illegal argument in tests/integration/redis-cli.tcl",
+      "data": "Options -X with illegal argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "Options -X with illegal argument in tests/integration/redis-cli.tcl",
+      "data": "Options -X with illegal argument",
+      "milliseconds": "4"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "DUMP RESTORE with -x option in tests/integration/redis-cli.tcl",
+      "data": "DUMP RESTORE with -x option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "DUMP RESTORE with -x option in tests/integration/redis-cli.tcl",
+      "data": "DUMP RESTORE with -x option",
+      "milliseconds": "4"
+    },
+    {
+      "status": "testing",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "DUMP RESTORE with -X option in tests/integration/redis-cli.tcl",
+      "data": "DUMP RESTORE with -X option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "DUMP RESTORE with -X option in tests/integration/redis-cli.tcl",
+      "data": "DUMP RESTORE with -X option",
+      "milliseconds": "5"
+    },
+    {
+      "status": "done",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "",
+      "data": "integration/redis-cli",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/integration/redis-cli.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

@@ -1,0 +1,447 @@
+{
+  "file": "unit/other",
+  "mode": "2s",
+  "passed": 21,
+  "failed": 0,
+  "skipped": 9,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 1.270106759853661,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/other/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/other",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/other/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "880722",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Coverage: HELP commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "Coverage: MEMORY MALLOC-STATS in tests/unit/other.tcl",
+      "data": "Coverage: MEMORY MALLOC-STATS",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "Coverage: MEMORY MALLOC-STATS in tests/unit/other.tcl",
+      "data": "Coverage: MEMORY MALLOC-STATS",
+      "milliseconds": "6"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "Coverage: MEMORY PURGE in tests/unit/other.tcl",
+      "data": "Coverage: MEMORY PURGE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "Coverage: MEMORY PURGE in tests/unit/other.tcl",
+      "data": "Coverage: MEMORY PURGE",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "SAVE - make sure there are all the types as values in tests/unit/other.tcl",
+      "data": "SAVE - make sure there are all the types as values",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "SAVE - make sure there are all the types as values in tests/unit/other.tcl",
+      "data": "SAVE - make sure there are all the types as values",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "FUZZ stresser with data model binary in tests/unit/other.tcl",
+      "data": "FUZZ stresser with data model binary",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "FUZZ stresser with data model binary in tests/unit/other.tcl",
+      "data": "FUZZ stresser with data model binary",
+      "milliseconds": "220"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "FUZZ stresser with data model alpha in tests/unit/other.tcl",
+      "data": "FUZZ stresser with data model alpha",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "FUZZ stresser with data model alpha in tests/unit/other.tcl",
+      "data": "FUZZ stresser with data model alpha",
+      "milliseconds": "230"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "FUZZ stresser with data model compr in tests/unit/other.tcl",
+      "data": "FUZZ stresser with data model compr",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "FUZZ stresser with data model compr in tests/unit/other.tcl",
+      "data": "FUZZ stresser with data model compr",
+      "milliseconds": "217"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "BGSAVE in tests/unit/other.tcl",
+      "data": "BGSAVE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "BGSAVE in tests/unit/other.tcl",
+      "data": "BGSAVE",
+      "milliseconds": "53"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "SELECT an out of range DB in tests/unit/other.tcl",
+      "data": "SELECT an out of range DB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "SELECT an out of range DB in tests/unit/other.tcl",
+      "data": "SELECT an out of range DB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Check consistency of different data types after a reload",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Same dataset digest if saving/reloading as AOF?",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "EXPIRES after a reload (snapshot + append only file rewrite) in tests/unit/other.tcl",
+      "data": "EXPIRES after a reload (snapshot + append only file rewrite)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "EXPIRES after a reload (snapshot + append only file rewrite) in tests/unit/other.tcl",
+      "data": "EXPIRES after a reload (snapshot + append only file rewrite)",
+      "milliseconds": "53"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "EXPIRES after AOF reload (without rewrite)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "PIPELINING stresser (also a regression for the old epoll bug) in tests/unit/other.tcl",
+      "data": "PIPELINING stresser (also a regression for the old epoll bug)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "PIPELINING stresser (also a regression for the old epoll bug) in tests/unit/other.tcl",
+      "data": "PIPELINING stresser (also a regression for the old epoll bug)",
+      "milliseconds": "280"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "APPEND basics in tests/unit/other.tcl",
+      "data": "APPEND basics",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "APPEND basics in tests/unit/other.tcl",
+      "data": "APPEND basics",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "APPEND basics, integer encoded values in tests/unit/other.tcl",
+      "data": "APPEND basics, integer encoded values",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "APPEND basics, integer encoded values in tests/unit/other.tcl",
+      "data": "APPEND basics, integer encoded values",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "APPEND fuzzing in tests/unit/other.tcl",
+      "data": "APPEND fuzzing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "APPEND fuzzing in tests/unit/other.tcl",
+      "data": "APPEND fuzzing",
+      "milliseconds": "85"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "FLUSHDB in tests/unit/other.tcl",
+      "data": "FLUSHDB",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "FLUSHDB in tests/unit/other.tcl",
+      "data": "FLUSHDB",
+      "milliseconds": "9"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "Perform a final SAVE to leave a clean DB on disk in tests/unit/other.tcl",
+      "data": "Perform a final SAVE to leave a clean DB on disk",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "Perform a final SAVE to leave a clean DB on disk in tests/unit/other.tcl",
+      "data": "Perform a final SAVE to leave a clean DB on disk",
+      "milliseconds": "5"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears client state in tests/unit/other.tcl",
+      "data": "RESET clears client state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears client state in tests/unit/other.tcl",
+      "data": "RESET clears client state",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears MONITOR state in tests/unit/other.tcl",
+      "data": "RESET clears MONITOR state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears MONITOR state in tests/unit/other.tcl",
+      "data": "RESET clears MONITOR state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears and discards MULTI state in tests/unit/other.tcl",
+      "data": "RESET clears and discards MULTI state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears and discards MULTI state in tests/unit/other.tcl",
+      "data": "RESET clears and discards MULTI state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears Pub/Sub state in tests/unit/other.tcl",
+      "data": "RESET clears Pub/Sub state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears Pub/Sub state in tests/unit/other.tcl",
+      "data": "RESET clears Pub/Sub state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears authenticated state in tests/unit/other.tcl",
+      "data": "RESET clears authenticated state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "RESET clears authenticated state in tests/unit/other.tcl",
+      "data": "RESET clears authenticated state",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/other.tcl",
+      "test": "Subcommand syntax error crash (issue #10070) in tests/unit/other.tcl",
+      "data": "Subcommand syntax error crash (issue #10070)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/other.tcl",
+      "test": "Subcommand syntax error crash (issue #10070) in tests/unit/other.tcl",
+      "data": "Subcommand syntax error crash (issue #10070)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "unit/other",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/other.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

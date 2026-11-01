@@ -1,0 +1,151 @@
+{
+  "file": "unit/type/list-3",
+  "mode": "1s",
+  "passed": 2,
+  "failed": 1,
+  "skipped": 4,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 1,
+  "error": null,
+  "seconds": 0.26846135314553976,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/type/list-3/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/type/list-3",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/type/list-3/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "958731",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "Explicit regression for a list bug in tests/unit/type/list-3.tcl",
+      "data": "Explicit regression for a list bug",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "Explicit regression for a list bug in tests/unit/type/list-3.tcl",
+      "data": "Explicit regression for a list bug",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "Regression for quicklist #3343 bug in tests/unit/type/list-3.tcl",
+      "data": "Regression for quicklist #3343 bug",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "Regression for quicklist #3343 bug in tests/unit/type/list-3.tcl",
+      "data": "Regression for quicklist #3343 bug",
+      "milliseconds": "123"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "",
+      "data": "Check compression with recompress",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "",
+      "data": "Crash due to wrongly recompress after lrem",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "",
+      "data": "LINSERT correctly recompress full quicklistNode after inserting a element before it",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "",
+      "data": "LINSERT correctly recompress full quicklistNode after inserting a element after it",
+      "milliseconds": "0"
+    },
+    {
+      "status": "err",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "",
+      "data": "n option or number of arguments for CONFIG SET - 'list-compress-depth'\nERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'\n    while executing\n\"error $err\"\n    (procedure \"config_set\" line 16)\n    invoked from within\n\"config_set list-compress-depth $comp\"\n    (\"foreach\" body line 4)\n    invoked from within\n\"foreach comp {2 1 0} {\n    set cycles 1000\n    if {$::accurate} { set cycles 10000 }\n    config_set list-compress-depth $comp\n    \n    test \"Stress te...\"\n    (\"uplevel\" body line 81)\n    invoked from within\n\"uplevel 2 $code\"",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "",
+      "data": "unit/type/list-3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/type/list-3.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

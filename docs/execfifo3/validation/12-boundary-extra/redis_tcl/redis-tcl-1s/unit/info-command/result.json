@@ -1,0 +1,130 @@
+{
+  "file": "unit/info-command",
+  "mode": "1s",
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 0.16832223255187273,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/info-command/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/info-command",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/info-command/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "972021",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/info-command.tcl",
+      "test": "info command with at most one sub command in tests/unit/info-command.tcl",
+      "data": "info command with at most one sub command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/info-command.tcl",
+      "test": "info command with at most one sub command in tests/unit/info-command.tcl",
+      "data": "info command with at most one sub command",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/info-command.tcl",
+      "test": "info command with one sub-section in tests/unit/info-command.tcl",
+      "data": "info command with one sub-section",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/info-command.tcl",
+      "test": "info command with one sub-section in tests/unit/info-command.tcl",
+      "data": "info command with one sub-section",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/info-command.tcl",
+      "test": "info command with multiple sub-sections in tests/unit/info-command.tcl",
+      "data": "info command with multiple sub-sections",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/info-command.tcl",
+      "test": "info command with multiple sub-sections in tests/unit/info-command.tcl",
+      "data": "info command with multiple sub-sections",
+      "milliseconds": "1"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/info-command.tcl",
+      "test": "",
+      "data": "unit/info-command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/info-command.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

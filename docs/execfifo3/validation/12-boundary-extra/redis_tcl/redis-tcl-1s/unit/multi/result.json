@@ -1,0 +1,725 @@
+{
+  "file": "unit/multi",
+  "mode": "1s",
+  "passed": 28,
+  "failed": 0,
+  "skipped": 35,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 1.3701707776635885,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/multi/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/multi",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/multi/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "938705",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "MULTI / EXEC basics in tests/unit/multi.tcl",
+      "data": "MULTI / EXEC basics",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "MULTI / EXEC basics in tests/unit/multi.tcl",
+      "data": "MULTI / EXEC basics",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "DISCARD in tests/unit/multi.tcl",
+      "data": "DISCARD",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "DISCARD in tests/unit/multi.tcl",
+      "data": "DISCARD",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "Nested MULTI are not allowed in tests/unit/multi.tcl",
+      "data": "Nested MULTI are not allowed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "Nested MULTI are not allowed in tests/unit/multi.tcl",
+      "data": "Nested MULTI are not allowed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "MULTI where commands alter argc/argv in tests/unit/multi.tcl",
+      "data": "MULTI where commands alter argc/argv",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "MULTI where commands alter argc/argv in tests/unit/multi.tcl",
+      "data": "MULTI where commands alter argc/argv",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH inside MULTI is not allowed in tests/unit/multi.tcl",
+      "data": "WATCH inside MULTI is not allowed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH inside MULTI is not allowed in tests/unit/multi.tcl",
+      "data": "WATCH inside MULTI is not allowed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fails if there are errors while queueing commands #1 in tests/unit/multi.tcl",
+      "data": "EXEC fails if there are errors while queueing commands #1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fails if there are errors while queueing commands #1 in tests/unit/multi.tcl",
+      "data": "EXEC fails if there are errors while queueing commands #1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "EXEC fails if there are errors while queueing commands #2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "If EXEC aborts, the client MULTI state is cleared in tests/unit/multi.tcl",
+      "data": "If EXEC aborts, the client MULTI state is cleared",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "If EXEC aborts, the client MULTI state is cleared in tests/unit/multi.tcl",
+      "data": "If EXEC aborts, the client MULTI state is cleared",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC works on WATCHed key not modified in tests/unit/multi.tcl",
+      "data": "EXEC works on WATCHed key not modified",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC works on WATCHed key not modified in tests/unit/multi.tcl",
+      "data": "EXEC works on WATCHed key not modified",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on WATCHed key modified (1 key of 1 watched) in tests/unit/multi.tcl",
+      "data": "EXEC fail on WATCHed key modified (1 key of 1 watched)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on WATCHed key modified (1 key of 1 watched) in tests/unit/multi.tcl",
+      "data": "EXEC fail on WATCHed key modified (1 key of 1 watched)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on WATCHed key modified (1 key of 5 watched) in tests/unit/multi.tcl",
+      "data": "EXEC fail on WATCHed key modified (1 key of 5 watched)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on WATCHed key modified (1 key of 5 watched) in tests/unit/multi.tcl",
+      "data": "EXEC fail on WATCHed key modified (1 key of 5 watched)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on WATCHed key modified by SORT with STORE even if the result is empty in tests/unit/multi.tcl",
+      "data": "EXEC fail on WATCHed key modified by SORT with STORE even if the result is empty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on WATCHed key modified by SORT with STORE even if the result is empty in tests/unit/multi.tcl",
+      "data": "EXEC fail on WATCHed key modified by SORT with STORE even if the result is empty",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on lazy expired WATCHed key in tests/unit/multi.tcl",
+      "data": "EXEC fail on lazy expired WATCHed key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "EXEC fail on lazy expired WATCHed key in tests/unit/multi.tcl",
+      "data": "EXEC fail on lazy expired WATCHed key",
+      "milliseconds": "101"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH stale keys should not fail EXEC in tests/unit/multi.tcl",
+      "data": "WATCH stale keys should not fail EXEC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH stale keys should not fail EXEC in tests/unit/multi.tcl",
+      "data": "WATCH stale keys should not fail EXEC",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "Delete WATCHed stale keys should not fail EXEC in tests/unit/multi.tcl",
+      "data": "Delete WATCHed stale keys should not fail EXEC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "Delete WATCHed stale keys should not fail EXEC in tests/unit/multi.tcl",
+      "data": "Delete WATCHed stale keys should not fail EXEC",
+      "milliseconds": "3"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHDB while watching stale keys should not fail EXEC in tests/unit/multi.tcl",
+      "data": "FLUSHDB while watching stale keys should not fail EXEC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHDB while watching stale keys should not fail EXEC in tests/unit/multi.tcl",
+      "data": "FLUSHDB while watching stale keys should not fail EXEC",
+      "milliseconds": "2"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "After successful EXEC key is no longer watched in tests/unit/multi.tcl",
+      "data": "After successful EXEC key is no longer watched",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "After successful EXEC key is no longer watched in tests/unit/multi.tcl",
+      "data": "After successful EXEC key is no longer watched",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "After failed EXEC key is no longer watched in tests/unit/multi.tcl",
+      "data": "After failed EXEC key is no longer watched",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "After failed EXEC key is no longer watched in tests/unit/multi.tcl",
+      "data": "After failed EXEC key is no longer watched",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "It is possible to UNWATCH in tests/unit/multi.tcl",
+      "data": "It is possible to UNWATCH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "It is possible to UNWATCH in tests/unit/multi.tcl",
+      "data": "It is possible to UNWATCH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "UNWATCH when there is nothing watched works as expected in tests/unit/multi.tcl",
+      "data": "UNWATCH when there is nothing watched works as expected",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "UNWATCH when there is nothing watched works as expected in tests/unit/multi.tcl",
+      "data": "UNWATCH when there is nothing watched works as expected",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHALL is able to touch the watched keys in tests/unit/multi.tcl",
+      "data": "FLUSHALL is able to touch the watched keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHALL is able to touch the watched keys in tests/unit/multi.tcl",
+      "data": "FLUSHALL is able to touch the watched keys",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHALL does not touch non affected keys in tests/unit/multi.tcl",
+      "data": "FLUSHALL does not touch non affected keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHALL does not touch non affected keys in tests/unit/multi.tcl",
+      "data": "FLUSHALL does not touch non affected keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHDB is able to touch the watched keys in tests/unit/multi.tcl",
+      "data": "FLUSHDB is able to touch the watched keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHDB is able to touch the watched keys in tests/unit/multi.tcl",
+      "data": "FLUSHDB is able to touch the watched keys",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHDB does not touch non affected keys in tests/unit/multi.tcl",
+      "data": "FLUSHDB does not touch non affected keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "FLUSHDB does not touch non affected keys in tests/unit/multi.tcl",
+      "data": "FLUSHDB does not touch non affected keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "SWAPDB is able to touch the watched keys that exist: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "SWAPDB is able to touch the watched keys that do not exist: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "SWAPDB does not touch watched stale keys: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "SWAPDB does not touch non-existing key replaced with stale key: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "SWAPDB does not touch stale key replaced with another stale key: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "WATCH is able to remember the DB a key belongs to: Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH will consider touched keys target of EXPIRE in tests/unit/multi.tcl",
+      "data": "WATCH will consider touched keys target of EXPIRE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH will consider touched keys target of EXPIRE in tests/unit/multi.tcl",
+      "data": "WATCH will consider touched keys target of EXPIRE",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH will consider touched expired keys in tests/unit/multi.tcl",
+      "data": "WATCH will consider touched expired keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "WATCH will consider touched expired keys in tests/unit/multi.tcl",
+      "data": "WATCH will consider touched expired keys",
+      "milliseconds": "1104"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "DISCARD should clear the WATCH dirty flag on the client in tests/unit/multi.tcl",
+      "data": "DISCARD should clear the WATCH dirty flag on the client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "DISCARD should clear the WATCH dirty flag on the client in tests/unit/multi.tcl",
+      "data": "DISCARD should clear the WATCH dirty flag on the client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "DISCARD should UNWATCH all the keys in tests/unit/multi.tcl",
+      "data": "DISCARD should UNWATCH all the keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "DISCARD should UNWATCH all the keys in tests/unit/multi.tcl",
+      "data": "DISCARD should UNWATCH all the keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI / EXEC is not propagated (single write command)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI / EXEC is propagated correctly (multiple commands)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI / EXEC is propagated correctly (multiple commands with SELECT): Not supported on singledb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI / EXEC is propagated correctly (empty transaction)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI / EXEC is propagated correctly (read-only commands)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI / EXEC is propagated correctly (write command, no effect)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI / EXEC with REPLICAOF",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "DISCARD should not fail during OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI and script timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "EXEC and script timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI-EXEC body and script timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "just EXEC and script timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "exec with write commands and state change",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "exec with read commands and stale replica state change",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "EXEC with only read commands should not be rejected when OOM",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "EXEC with at least one use-memory command should fail",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/multi.tcl",
+      "test": "Blocking commands ignores the timeout in tests/unit/multi.tcl",
+      "data": "Blocking commands ignores the timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/multi.tcl",
+      "test": "Blocking commands ignores the timeout in tests/unit/multi.tcl",
+      "data": "Blocking commands ignores the timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI propagation of PUBLISH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI propagation of SCRIPT LOAD",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI propagation of EVAL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI propagation of SCRIPT FLUSH",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI propagation of XREADGROUP",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI with SAVE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI with SHUTDOWN",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI with BGREWRITEAOF: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI with config set appendonly: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "MULTI with config error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "Flushall while watching several keys by one client",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "unit/multi",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/multi.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

@@ -99,5 +99,16 @@
     ],
     "returncode": 1,
     "log": "docs/execfifo3/pmu-audit/llc-miss-probe.txt"
+  },
+  {
+    "name": "l1-alias",
+    "command": [
+      "perf",
+      "list",
+      "--details",
+      "L1-dcache-load-misses"
+    ],
+    "returncode": 0,
+    "log": "docs/execfifo3/pmu-audit/l1-alias.txt"
   }
 ]

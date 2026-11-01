@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Check completed selected-job groups and explicit live-leg inventories."""
-import hashlib,itertools,json,re
+import hashlib,itertools,json,re,subprocess,sys
 from pathlib import Path
 from execfifo3_validate import GROUPS
 ROOT=Path(__file__).resolve().parents[1]
@@ -9,7 +9,7 @@ rows=json.loads((OUT/'runs.json').read_text())
 sha=hashlib.sha256((ROOT/'build/execfifo3/POST').read_bytes()).hexdigest()
 latest={r['group']:r for r in rows if r['binary_sha256']==sha}
 missing=sorted(set(GROUPS)-set(latest));failed=[name for name,r in latest.items() if r['exit_code']]
-summary=dict(required_groups=sorted(GROUPS),missing_groups=missing,failed_latest_groups=failed,production_sha256=sha,attempts=len(rows),failed_attempts=[r['group'] for r in rows if r['exit_code']],groups=[],leg_inventories=[])
+summary=dict(required_groups=sorted(GROUPS),missing_groups=missing,failed_latest_groups=failed,production_sha256=sha,attempts=len(rows),failed_attempts=[r['group'] for r in rows if r['exit_code']],groups=[],leg_inventories=[],differ_plans=[])
 for name,r in sorted(latest.items()):
     ledger=Path(r['run_directory'])/'ledger.partial'
     scored=[line.split('\t',2) for line in ledger.read_text().splitlines()
@@ -52,6 +52,19 @@ for engine in ('uring','epoll'):
     if 'differ-'+engine not in latest:continue
     run=Path(latest['differ-'+engine]['run_directory'])
     plan=json.loads((run/'differ-plan.json').read_text())
+    permanent=[int(line.partition('#')[0].strip()) for line in
+               (ROOT/'tests/differ_seeds.txt').read_text().splitlines()
+               if line.partition('#')[0].strip()]
+    suites=subprocess.check_output([sys.executable,str(ROOT/'tests/differ.py'),
+                                    '--list-generators'],text=True).split()
+    manifest=plan['manifest']
+    expected_seeds=list(dict.fromkeys([*permanent,*manifest['failed'],manifest['rotating']]))
+    standard=(plan['suites']==suites and manifest['permanent']==permanent and
+              manifest['seeds']==expected_seeds and plan['repeats']==4 and
+              manifest['rotating'] not in permanent)
+    summary['differ_plans'].append(dict(engine=engine,passed=standard,
+        suites=len(suites),permanent=permanent,seeds=manifest['seeds'],
+        rotating=manifest['rotating'],multi_repeats=plan['repeats']))
     for mode in ('split','armed'):
         for atomic in (0,1):
             file=run/'jobs'/f'differ-{mode}-{atomic}'/'differ/legs.tsv'
@@ -61,7 +74,7 @@ for engine in ('uring','epoll'):
                 expected.update(('multi','1','19',str(repeat)) for repeat in range(1,plan['repeats']+1))
             observed={tuple(leg[:4]) for leg in legs}
             summary['leg_inventories'].append(dict(job=f'differ-{engine}-{mode}-{atomic}',expected=len(expected),actual=len(legs),seeds=plan['manifest']['seeds'],passed=observed==expected and len(legs)==len(expected) and all(leg[4]=='0' for leg in legs),source=str(file)))
-summary['passed']=not missing and not failed and all(r['passed_rows']>0 and r['failed_rows']==0 for r in summary['groups']) and all(r['passed'] for r in summary['leg_inventories'])
+summary['passed']=not missing and not failed and all(r['passed_rows']>0 and r['failed_rows']==0 for r in summary['groups']) and all(r['passed'] for r in summary['leg_inventories']) and all(r['passed'] for r in summary['differ_plans'])
 allocation=dict(logs_with_banners=0,ports=set(),server_cpus=set(),outside_allocation=[])
 for row in rows:
     for file in Path(row['run_directory']).rglob('*'):

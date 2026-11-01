@@ -1,0 +1,783 @@
+{
+  "file": "unit/bitops",
+  "mode": "2s",
+  "passed": 48,
+  "failed": 0,
+  "skipped": 3,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 1.1199106331914663,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/bitops/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/bitops",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/bitops/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "857595",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against wrong type in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against wrong type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against wrong type in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against wrong type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT returns 0 against non existing key in tests/unit/bitops.tcl",
+      "data": "BITCOUNT returns 0 against non existing key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT returns 0 against non existing key in tests/unit/bitops.tcl",
+      "data": "BITCOUNT returns 0 against non existing key",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT returns 0 with out of range indexes in tests/unit/bitops.tcl",
+      "data": "BITCOUNT returns 0 with out of range indexes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT returns 0 with out of range indexes in tests/unit/bitops.tcl",
+      "data": "BITCOUNT returns 0 with out of range indexes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT returns 0 with negative indexes where start > end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT returns 0 with negative indexes where start > end",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT returns 0 with negative indexes where start > end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT returns 0 with negative indexes where start > end",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #1 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #1 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #2 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #2 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #3 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #3 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #3",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #4 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #4",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #4 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #4",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #5 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #5",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against test vector #5 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against test vector #5",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT fuzzing without start/end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT fuzzing without start/end",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT fuzzing without start/end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT fuzzing without start/end",
+      "milliseconds": "122"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT fuzzing with start/end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT fuzzing with start/end",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT fuzzing with start/end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT fuzzing with start/end",
+      "milliseconds": "224"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT with start, end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT with start, end",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT with start, end in tests/unit/bitops.tcl",
+      "data": "BITCOUNT with start, end",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT with illegal arguments in tests/unit/bitops.tcl",
+      "data": "BITCOUNT with illegal arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT with illegal arguments in tests/unit/bitops.tcl",
+      "data": "BITCOUNT with illegal arguments",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against non-integer value in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against non-integer value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT against non-integer value in tests/unit/bitops.tcl",
+      "data": "BITCOUNT against non-integer value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT regression test for github issue #582 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT regression test for github issue #582",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT regression test for github issue #582 in tests/unit/bitops.tcl",
+      "data": "BITCOUNT regression test for github issue #582",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT misaligned prefix in tests/unit/bitops.tcl",
+      "data": "BITCOUNT misaligned prefix",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT misaligned prefix in tests/unit/bitops.tcl",
+      "data": "BITCOUNT misaligned prefix",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT misaligned prefix + full words + remainder in tests/unit/bitops.tcl",
+      "data": "BITCOUNT misaligned prefix + full words + remainder",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITCOUNT misaligned prefix + full words + remainder in tests/unit/bitops.tcl",
+      "data": "BITCOUNT misaligned prefix + full words + remainder",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP NOT (empty string) in tests/unit/bitops.tcl",
+      "data": "BITOP NOT (empty string)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP NOT (empty string) in tests/unit/bitops.tcl",
+      "data": "BITOP NOT (empty string)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP NOT (known string) in tests/unit/bitops.tcl",
+      "data": "BITOP NOT (known string)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP NOT (known string) in tests/unit/bitops.tcl",
+      "data": "BITOP NOT (known string)",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP where dest and target are the same key in tests/unit/bitops.tcl",
+      "data": "BITOP where dest and target are the same key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP where dest and target are the same key in tests/unit/bitops.tcl",
+      "data": "BITOP where dest and target are the same key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP AND|OR|XOR don't change the string with single input key in tests/unit/bitops.tcl",
+      "data": "BITOP AND|OR|XOR don't change the string with single input key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP AND|OR|XOR don't change the string with single input key in tests/unit/bitops.tcl",
+      "data": "BITOP AND|OR|XOR don't change the string with single input key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP missing key is considered a stream of zero in tests/unit/bitops.tcl",
+      "data": "BITOP missing key is considered a stream of zero",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP missing key is considered a stream of zero in tests/unit/bitops.tcl",
+      "data": "BITOP missing key is considered a stream of zero",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP shorter keys are zero-padded to the key with max length in tests/unit/bitops.tcl",
+      "data": "BITOP shorter keys are zero-padded to the key with max length",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP shorter keys are zero-padded to the key with max length in tests/unit/bitops.tcl",
+      "data": "BITOP shorter keys are zero-padded to the key with max length",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP and fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP and fuzzing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP and fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP and fuzzing",
+      "milliseconds": "124"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP or fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP or fuzzing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP or fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP or fuzzing",
+      "milliseconds": "126"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP xor fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP xor fuzzing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP xor fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP xor fuzzing",
+      "milliseconds": "85"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP NOT fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP NOT fuzzing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP NOT fuzzing in tests/unit/bitops.tcl",
+      "data": "BITOP NOT fuzzing",
+      "milliseconds": "9"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP with integer encoded source objects in tests/unit/bitops.tcl",
+      "data": "BITOP with integer encoded source objects",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP with integer encoded source objects in tests/unit/bitops.tcl",
+      "data": "BITOP with integer encoded source objects",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP with non string source key in tests/unit/bitops.tcl",
+      "data": "BITOP with non string source key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP with non string source key in tests/unit/bitops.tcl",
+      "data": "BITOP with non string source key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP with empty string after non empty string (issue #529) in tests/unit/bitops.tcl",
+      "data": "BITOP with empty string after non empty string (issue #529)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITOP with empty string after non empty string (issue #529) in tests/unit/bitops.tcl",
+      "data": "BITOP with empty string after non empty string (issue #529)",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS against wrong type in tests/unit/bitops.tcl",
+      "data": "BITPOS against wrong type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS against wrong type in tests/unit/bitops.tcl",
+      "data": "BITPOS against wrong type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS will illegal arguments in tests/unit/bitops.tcl",
+      "data": "BITPOS will illegal arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS will illegal arguments in tests/unit/bitops.tcl",
+      "data": "BITPOS will illegal arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS against non-integer value in tests/unit/bitops.tcl",
+      "data": "BITPOS against non-integer value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS against non-integer value in tests/unit/bitops.tcl",
+      "data": "BITPOS against non-integer value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 with empty key returns 0 in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 with empty key returns 0",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 with empty key returns 0 in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 with empty key returns 0",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 with empty key returns -1 in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 with empty key returns -1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 with empty key returns -1 in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 with empty key returns -1",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 with string less than 1 word works in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 with string less than 1 word works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 with string less than 1 word works in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 with string less than 1 word works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 with string less than 1 word works in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 with string less than 1 word works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 with string less than 1 word works in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 with string less than 1 word works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 starting at unaligned address in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 starting at unaligned address",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 starting at unaligned address in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 starting at unaligned address",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 starting at unaligned address in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 starting at unaligned address",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 starting at unaligned address in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 starting at unaligned address",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 unaligned+full word+reminder in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 unaligned+full word+reminder",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 unaligned+full word+reminder in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 unaligned+full word+reminder",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 unaligned+full word+reminder in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 unaligned+full word+reminder",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 unaligned+full word+reminder in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 unaligned+full word+reminder",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 returns -1 if string is all 0 bits in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 returns -1 if string is all 0 bits",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 returns -1 if string is all 0 bits in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 returns -1 if string is all 0 bits",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 works with intervals in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 works with intervals",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 works with intervals in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 works with intervals",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 works with intervals in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 works with intervals",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 works with intervals in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 works with intervals",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 changes behavior if end is given in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 changes behavior if end is given",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 changes behavior if end is given in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 changes behavior if end is given",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/bitops.tcl",
+      "test": "",
+      "data": "SETBIT/BITFIELD only increase dirty when the value changed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 fuzzy testing using SETBIT in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 fuzzy testing using SETBIT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=1 fuzzy testing using SETBIT in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=1 fuzzy testing using SETBIT",
+      "milliseconds": "75"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 fuzzy testing using SETBIT in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 fuzzy testing using SETBIT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS bit=0 fuzzy testing using SETBIT in tests/unit/bitops.tcl",
+      "data": "BITPOS bit=0 fuzzy testing using SETBIT",
+      "milliseconds": "118"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS/BITCOUNT fuzzy testing using SETBIT in tests/unit/bitops.tcl",
+      "data": "BITPOS/BITCOUNT fuzzy testing using SETBIT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/bitops.tcl",
+      "test": "BITPOS/BITCOUNT fuzzy testing using SETBIT in tests/unit/bitops.tcl",
+      "data": "BITPOS/BITCOUNT fuzzy testing using SETBIT",
+      "milliseconds": "78"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/bitops.tcl",
+      "test": "",
+      "data": "BIT pos larger than UINT_MAX: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/bitops.tcl",
+      "test": "",
+      "data": "SETBIT values larger than UINT32_MAX and lzf_compress/lzf_decompress correctly: large memory flag not provided",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/bitops.tcl",
+      "test": "",
+      "data": "unit/bitops",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/bitops.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

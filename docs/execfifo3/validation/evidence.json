@@ -1128,5 +1128,403 @@
         "evidence": "docs/execfifo3/validation/11-script-blocking-extra/streamfix"
       }
     ]
+  },
+  {
+    "group": "boundary-extra",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "compat2 aclfix bugs5",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/boundary-extra-1793506158894724989.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1",
+    "jobs_evidence": [
+      {
+        "name": "aclfix",
+        "returncode": 0,
+        "passed": 12,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/aclfix",
+        "evidence": "docs/execfifo3/validation/12-boundary-extra/aclfix"
+      },
+      {
+        "name": "bugs5",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/bugs5",
+        "evidence": "docs/execfifo3/validation/12-boundary-extra/bugs5"
+      },
+      {
+        "name": "compat2",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/compat2",
+        "evidence": "docs/execfifo3/validation/12-boundary-extra/compat2"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/production_units",
+        "evidence": "docs/execfifo3/validation/12-boundary-extra/production_units"
+      },
+      {
+        "name": "redis_tcl",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl",
+        "evidence": "docs/execfifo3/validation/12-boundary-extra/redis_tcl"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/release",
+        "evidence": "docs/execfifo3/validation/12-boundary-extra/release"
+      }
+    ]
+  },
+  {
+    "group": "features",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/features-1793506737007064907.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC",
+    "jobs_evidence": [
+      {
+        "name": "feature-cell-1s-0-0-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-0-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-0-0-0"
+      },
+      {
+        "name": "feature-cell-1s-0-0-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-0-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-0-0-1"
+      },
+      {
+        "name": "feature-cell-1s-0-0-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-0-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-0-1-0"
+      },
+      {
+        "name": "feature-cell-1s-0-0-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-0-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-0-1-1"
+      },
+      {
+        "name": "feature-cell-1s-0-1-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-1-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-1-0-0"
+      },
+      {
+        "name": "feature-cell-1s-0-1-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-1-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-1-0-1"
+      },
+      {
+        "name": "feature-cell-1s-0-1-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-1-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-1-1-0"
+      },
+      {
+        "name": "feature-cell-1s-0-1-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-0-1-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-0-1-1-1"
+      },
+      {
+        "name": "feature-cell-1s-1-0-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-0-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-0-0-0"
+      },
+      {
+        "name": "feature-cell-1s-1-0-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-0-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-0-0-1"
+      },
+      {
+        "name": "feature-cell-1s-1-0-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-0-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-0-1-0"
+      },
+      {
+        "name": "feature-cell-1s-1-0-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-0-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-0-1-1"
+      },
+      {
+        "name": "feature-cell-1s-1-1-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-1-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-1-0-0"
+      },
+      {
+        "name": "feature-cell-1s-1-1-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-1-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-1-0-1"
+      },
+      {
+        "name": "feature-cell-1s-1-1-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-1-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-1-1-0"
+      },
+      {
+        "name": "feature-cell-1s-1-1-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-1s-1-1-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-1s-1-1-1-1"
+      },
+      {
+        "name": "feature-cell-2s-0-0-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-0-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-0-0-0"
+      },
+      {
+        "name": "feature-cell-2s-0-0-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-0-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-0-0-1"
+      },
+      {
+        "name": "feature-cell-2s-0-0-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-0-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-0-1-0"
+      },
+      {
+        "name": "feature-cell-2s-0-0-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-0-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-0-1-1"
+      },
+      {
+        "name": "feature-cell-2s-0-1-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-1-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-1-0-0"
+      },
+      {
+        "name": "feature-cell-2s-0-1-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-1-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-1-0-1"
+      },
+      {
+        "name": "feature-cell-2s-0-1-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-1-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-1-1-0"
+      },
+      {
+        "name": "feature-cell-2s-0-1-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-0-1-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-0-1-1-1"
+      },
+      {
+        "name": "feature-cell-2s-1-0-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-0-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-0-0-0"
+      },
+      {
+        "name": "feature-cell-2s-1-0-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-0-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-0-0-1"
+      },
+      {
+        "name": "feature-cell-2s-1-0-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-0-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-0-1-0"
+      },
+      {
+        "name": "feature-cell-2s-1-0-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-0-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-0-1-1"
+      },
+      {
+        "name": "feature-cell-2s-1-1-0-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-1-0-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-1-0-0"
+      },
+      {
+        "name": "feature-cell-2s-1-1-0-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-1-0-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-1-0-1"
+      },
+      {
+        "name": "feature-cell-2s-1-1-1-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-1-1-0",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-1-1-0"
+      },
+      {
+        "name": "feature-cell-2s-1-1-1-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-2s-1-1-1-1",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-2s-1-1-1-1"
+      },
+      {
+        "name": "feature-cell-fused-home-max-nopin",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-fused-home-max-nopin",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-fused-home-max-nopin"
+      },
+      {
+        "name": "feature-cell-split-home-min",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-split-home-min",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-split-home-min"
+      },
+      {
+        "name": "feature-cell-split-shards-auto",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/feature-cell-split-shards-auto",
+        "evidence": "docs/execfifo3/validation/13-features/feature-cell-split-shards-auto"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC/jobs/release",
+        "evidence": "docs/execfifo3/validation/13-features/release"
+      }
+    ]
   }
 ]

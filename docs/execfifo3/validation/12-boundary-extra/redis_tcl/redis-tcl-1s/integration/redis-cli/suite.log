@@ -1,0 +1,62 @@
+Starting test server at port 20601
+[ready]: 912117
+[1;37;49mTesting integration/redis-cli[0m
+[[0;32;49mok[0m]: Interactive CLI: should find first search result (242 ms)
+[[0;32;49mok[0m]: Interactive CLI: should find and use the first search result (302 ms)
+[[0;32;49mok[0m]: Interactive CLI: should be ok if there is no result (121 ms)
+[[0;32;49mok[0m]: Interactive CLI: upon submitting search, (reverse-i-search) prompt should go away (122 ms)
+[[0;32;49mok[0m]: Interactive CLI: should find second search result if user presses ctrl+r again (301 ms)
+[[0;32;49mok[0m]: Interactive CLI: should find second search result if user presses ctrl+s (302 ms)
+[[0;32;49mok[0m]: Interactive CLI: should exit reverse search if user presses ctrl+g (181 ms)
+[[0;32;49mok[0m]: Interactive CLI: should exit reverse search if user presses up arrow (182 ms)
+[[0;32;49mok[0m]: Interactive CLI: should exit reverse search if user presses right arrow (181 ms)
+[[0;32;49mok[0m]: Interactive CLI: should exit reverse search if user presses down arrow (181 ms)
+[[0;32;49mok[0m]: Interactive CLI: should exit reverse search if user presses left arrow (181 ms)
+[[0;32;49mok[0m]: Interactive CLI: should disable and persist line if user presses tab (232 ms)
+[[0;32;49mok[0m]: Interactive CLI: should disable and persist search result if user presses tab (243 ms)
+[[0;32;49mok[0m]: Interactive CLI: should disable and persist line and move the cursor if user presses tab (302 ms)
+[[0;32;49mok[0m]: Interactive CLI: INFO response should be printed raw (61 ms)
+[[0;32;49mok[0m]: Interactive CLI: Status reply (60 ms)
+[[0;32;49mok[0m]: Interactive CLI: Integer reply (60 ms)
+[[0;32;49mok[0m]: Interactive CLI: Bulk reply (60 ms)
+[[0;32;49mok[0m]: Interactive CLI: Multi-bulk reply (60 ms)
+[[0;32;49mok[0m]: Interactive CLI: Parsing quotes (424 ms)
+[[0;32;49mok[0m]: Interactive CLI: Subscribed mode (594 ms)
+[[0;32;49mok[0m]: Interactive non-TTY CLI: Subscribed mode (414 ms)
+[[0;32;49mok[0m]: Non-interactive TTY CLI: Status reply (1 ms)
+[[0;32;49mok[0m]: Non-interactive TTY CLI: Integer reply (1 ms)
+[[0;32;49mok[0m]: Non-interactive TTY CLI: Bulk reply (0 ms)
+[[0;32;49mok[0m]: Non-interactive TTY CLI: Multi-bulk reply (0 ms)
+[[0;32;49mok[0m]: Non-interactive TTY CLI: Read last argument from pipe (3 ms)
+[[0;32;49mok[0m]: Non-interactive TTY CLI: Read last argument from file (2 ms)
+[[0;32;49mok[0m]: Non-interactive TTY CLI: Escape character in JSON mode (7 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Status reply (1 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Integer reply (1 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Bulk reply (1 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Multi-bulk reply (1 ms)
+[[0;33;49mskip[0m]: Non-interactive non-TTY CLI: ASK redirect test
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Quoted input arguments (1 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: No accidental unquoting of input arguments (2 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Invalid quoted input arguments (1 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Read last argument from pipe (3 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Read last argument from file (2 ms)
+[[0;33;49mskip[0m]: Non-interactive non-TTY CLI: Test command-line hinting - latest server
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Test command-line hinting - no server (2 ms)
+[[0;32;49mok[0m]: Non-interactive non-TTY CLI: Test command-line hinting - old server (4 ms)
+[[0;33;49mskip[0m]: Dumping an RDB - functions only: no
+[[0;33;49mskip[0m]: Dumping an RDB - functions only: yes
+[[0;32;49mok[0m]: Scan mode (78 ms)
+[[0;33;49mskip[0m]: Connecting as a replica
+[[0;32;49mok[0m]: Piping raw protocol (519 ms)
+[[0;32;49mok[0m]: Options -X with illegal argument (4 ms)
+[[0;32;49mok[0m]: DUMP RESTORE with -x option (4 ms)
+[[0;32;49mok[0m]: DUMP RESTORE with -X option (5 ms)
+[1/1 [0;33;49mdone[0m]: integration/redis-cli (5 seconds)
+
+                   The End
+
+Execution time of different units:
+  5 seconds - integration/redis-cli
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

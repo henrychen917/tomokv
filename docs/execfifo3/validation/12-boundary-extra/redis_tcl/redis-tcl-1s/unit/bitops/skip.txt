@@ -1,0 +1,1 @@
+SETBIT/BITFIELD only increase dirty when the value changed

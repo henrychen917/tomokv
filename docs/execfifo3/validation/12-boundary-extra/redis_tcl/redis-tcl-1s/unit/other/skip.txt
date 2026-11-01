@@ -1,0 +1,4 @@
+Check consistency of different data types after a reload
+Coverage: HELP commands
+EXPIRES after AOF reload (without rewrite)
+Same dataset digest if saving/reloading as AOF?
