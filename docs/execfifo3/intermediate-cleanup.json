@@ -95,5 +95,2189 @@
     "path": "build/execfifo3/budget-trial/build_src_core_genthread.o",
     "sha256": "b26e044f34167a04ebf3a9739f2e1cad84201acac22917bb41b5708e8d2472a0",
     "reason": "Compile-only intermediate; commands and IPA-size derivation retained."
+  },
+  {
+    "path": "build/execfifo3/FIFO-rebuilt",
+    "bytes": 225416448,
+    "sha256": "640421bd085e081f0f18ea96a14d36ca8989955164fd1ca0864ae3aafdd586a8",
+    "removed_ns": 1793500730905990851,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/pre-source/build/tomokv",
+    "bytes": 224567720,
+    "sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b",
+    "removed_ns": 1793500731169893557,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/fifo-source/build/tomokv",
+    "bytes": 225416448,
+    "sha256": "640421bd085e081f0f18ea96a14d36ca8989955164fd1ca0864ae3aafdd586a8",
+    "removed_ns": 1793500731658968442,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0/original-main.o",
+    "bytes": 27209640,
+    "sha256": "d4266827d54a861cbdd5b996e738a34ef411986afd3eb8cb87d76511cb7be9be",
+    "removed_ns": 1793500731723635097,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0/probe.o",
+    "bytes": 10721552,
+    "sha256": "4b99dc210b1ffcea1d33bbede33701bfece30abbdf7d85e734e75fb915688814",
+    "removed_ns": 1793500731748140018,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal/original-main.o",
+    "bytes": 26996520,
+    "sha256": "a0db9eed002bc13f4ce8f77e5dd84e4db6dc27ad0646ebab5e1e065e36fa512f",
+    "removed_ns": 1793500731797643043,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal/probe.o",
+    "bytes": 10266192,
+    "sha256": "56e66c0f15a08222383e0d9f36ab5ce31c9444c87e1220be81943743b9b6caf2",
+    "removed_ns": 1793500731820425538,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal/original-main.o",
+    "bytes": 27209640,
+    "sha256": "d4266827d54a861cbdd5b996e738a34ef411986afd3eb8cb87d76511cb7be9be",
+    "removed_ns": 1793500731871668769,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal/probe.o",
+    "bytes": 10630184,
+    "sha256": "08f8f1f42c8ce0b6e86da674ab501f78961202d8a0b11e6edd1ee173bcaf29ba",
+    "removed_ns": 1793500731893466591,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0/original-main.o",
+    "bytes": 26996520,
+    "sha256": "a0db9eed002bc13f4ce8f77e5dd84e4db6dc27ad0646ebab5e1e065e36fa512f",
+    "removed_ns": 1793500731943013756,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0/probe.o",
+    "bytes": 10359464,
+    "sha256": "339eac4ef9832b13cc79272fe39842e0a39bb49878aa980be81d43a9885dcf2a",
+    "removed_ns": 1793500732016168259,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-1s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732026032202,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MGET-1s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732038693244,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-2s-32-0--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732044103432,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-INCR-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732049871721,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-SET-1s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732055035988,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732060300306,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-INCR-1s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732065163792,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-SET-2s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732069863137,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-SET-2s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732074836764,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732080113601,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-2s-1-0--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732084995297,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732090286685,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MGET-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732095507272,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-SET-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732100805730,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-GET-1s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732105891847,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-INCR-1s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732110965154,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-2s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732115923040,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-GET-1s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732121348988,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-SET-1s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732126340985,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-MGET-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732131537302,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-2s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732136224328,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-SET-1s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732181290877,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MGET-2s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732190097127,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-GET-1s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732199360857,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-SET-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732207645755,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MGET-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732217869189,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-2s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732226509498,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-GET-2s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732234275353,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-1s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732239789382,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-GET-2s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732244561918,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732249298494,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MGET-1s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732254310230,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732259029446,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-1s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732264270133,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-1s-32-0--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732269386670,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-INCR-1s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732274034386,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-1s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732279092182,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732284005489,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-INCR-1s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732288653154,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-2s-1-0--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732293780481,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-1s-32-0--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732299320070,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-GET-2s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732304710608,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-1s-1-0--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732309547664,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-GET-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732315116272,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-1s-32-0--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732319707368,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-SET-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732324562164,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-INCR-1s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732329321059,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MGET-1s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732334183356,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732338859851,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-2s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732343875578,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-1s-1-0--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732349131065,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-2s-1-0--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732353809291,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-2s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732358996138,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-2s-32-0--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732363632243,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-2s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732368307389,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732373158345,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MGET-2s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732378186302,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-GET-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732383375199,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-SET-1s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732388183005,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-INCR-1s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732393044451,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732398170718,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-GET-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732402996104,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-1s-32-0--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732407860470,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732413238018,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-SET-2s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732418308035,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-SET-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732423454642,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-1s-1-0--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732428760570,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-GET-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732433631366,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-2s-1-0--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732438462202,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-GET-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732443569589,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-SET-1s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732448744526,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-GET-2s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732453425682,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MGET-1s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732458385368,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-INCR-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732463523305,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732468521762,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-1s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732473897400,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732478530165,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-SET-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732483723253,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-MGET-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732488669609,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MGET-2s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732494028637,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-SET-2s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732499265724,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-GET-2s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732504192441,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MSET-2s-32-0--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732509662119,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-GET-2s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732514353914,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-GET-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732519525361,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-1s-1-0--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732524218477,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-1s-1-0--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732529637485,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MSET-1s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732534666792,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-GET-1s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732539338297,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-SET-1s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732544389484,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MGET-1s-32-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732549875952,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-MGET-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732555279600,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MGET-2s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732560399257,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-1s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732564920982,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-MGET-1s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732570325780,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-GET-2s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732575594828,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-SET-1s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732580432804,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-SET-2s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732585083559,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-INCR-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732590138196,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732595223663,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-SET-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732600487850,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-SET-2s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732605289416,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-GET-1s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732610186673,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-INCR-1s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732615321330,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MGET-2s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732619983585,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-GET-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732625176963,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MGET-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732630272619,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-MGET-2s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732635188416,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-SET-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732640340113,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732645526620,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-1s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732650160246,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-SET-2s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732655151652,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MGET-2s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732657709931,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MGET-1s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732660230779,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-GET-1s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732664819494,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-2s-32-0--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732669405059,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-SET-1s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732674268675,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MGET-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732679337802,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-GET-2s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732684188848,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-GET-1s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732688826504,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-SET-2s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732693783251,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-GET-2s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732698690187,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-db0-GET-1s-1-1--1-ranges.json",
+    "bytes": 1652091,
+    "sha256": "5751d926c1f2c9659ab1c2ec5d0bce8f43a4af435cbc000d841a6aa49a425887",
+    "removed_ns": 1793500732703848154,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MSET-2s-1-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732708459549,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-2s-32-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732713047835,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MGET-1s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732717875911,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-2s-1-0--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732722850357,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-INCR-1s-1-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732727512552,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-SET-2s-1-1--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732732482149,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732737280875,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-normal-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1577141,
+    "sha256": "8791bb228e083b25ed54c67b6559eaed0fe516fc53fb6626101aa0af0bb4345d",
+    "removed_ns": 1793500732742459982,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-normal-MSET-1s-32-0--1-ranges.json",
+    "bytes": 1577481,
+    "sha256": "f442de8405f8127c8281bed45ee4d3a2948fa3552e024093d689280786f41ffb",
+    "removed_ns": 1793500732747317758,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/PRE-normal-MGET-2s-32-1--1-ranges.json",
+    "bytes": 1567233,
+    "sha256": "3683e03610dc5a49259535f46c2acc1b47cfb0253fb8b8aa946e9ec001648368",
+    "removed_ns": 1793500732752001304,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-MGET-1s-1-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732756783490,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-final-db0-MSET-2s-32-0--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "58af681284de57a033062377e1dc41e8a26bca6788bed19e7f4410af20ecc737",
+    "removed_ns": 1793500732761578366,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/commands-scopes/POST-db0-INCR-1s-32-1--1-ranges.json",
+    "bytes": 1665700,
+    "sha256": "1ba03acf44e88eb58749bec9c3f9275c4b0493c172a9a8a04d2d89786819f9a0",
+    "removed_ns": 1793500732766871323,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0/original-main.o",
+    "bytes": 27209640,
+    "sha256": "d4266827d54a861cbdd5b996e738a34ef411986afd3eb8cb87d76511cb7be9be",
+    "removed_ns": 1793500733030796990,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0/probe.o",
+    "bytes": 13674840,
+    "sha256": "900bdbf6670a0c55720ac34e855d9de741d684af481810c117dcaebd6a9ae2c0",
+    "removed_ns": 1793500733230297993,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0/original-main.o",
+    "bytes": 27209640,
+    "sha256": "d4266827d54a861cbdd5b996e738a34ef411986afd3eb8cb87d76511cb7be9be",
+    "removed_ns": 1793500733646028125,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0/probe.o",
+    "bytes": 13674336,
+    "sha256": "78531338b297c0ef26574953ae2edbe3bff72b52002cbf31414ead45a1f99b98",
+    "removed_ns": 1793500733690365792,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal/original-main.o",
+    "bytes": 27209640,
+    "sha256": "d4266827d54a861cbdd5b996e738a34ef411986afd3eb8cb87d76511cb7be9be",
+    "removed_ns": 1793500733739938897,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal/probe.o",
+    "bytes": 13559296,
+    "sha256": "3fe97ee28d03f344844766bcb7661f8b94f5d08218b1ec57870ba091198fd7bf",
+    "removed_ns": 1793500733767303028,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal/original-main.o",
+    "bytes": 26996520,
+    "sha256": "a0db9eed002bc13f4ce8f77e5dd84e4db6dc27ad0646ebab5e1e065e36fa512f",
+    "removed_ns": 1793500733819626802,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal/probe.o",
+    "bytes": 13166704,
+    "sha256": "469c070a0fb42f4c6c13254814e2100d52068232d8f6e5e9567adb299ab2d369",
+    "removed_ns": 1793500733846109840,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal/original-main.o",
+    "bytes": 27209640,
+    "sha256": "d4266827d54a861cbdd5b996e738a34ef411986afd3eb8cb87d76511cb7be9be",
+    "removed_ns": 1793500733896302747,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal/probe.o",
+    "bytes": 13558792,
+    "sha256": "ba9828a6a3453aa6bd3c3c6f723ed69fd47a62cccb92a419a6429e11b0c13a78",
+    "removed_ns": 1793500733923484347,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0/original-main.o",
+    "bytes": 26996520,
+    "sha256": "a0db9eed002bc13f4ce8f77e5dd84e4db6dc27ad0646ebab5e1e065e36fa512f",
+    "removed_ns": 1793500733974794337,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0/probe.o",
+    "bytes": 13281088,
+    "sha256": "106bcc474b9eb7998379f52a8a294cca92187f6358087007bba024a7af5240c1",
+    "removed_ns": 1793500734000179392,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-GET-1s-32-1-0-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734005542739,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-INCR-1s-1-1-0-ranges.json",
+    "bytes": 1649349,
+    "sha256": "dc761029b6c76e884e02b08e08cb8b845772800d9a4c591656cfdf94e11682ee",
+    "removed_ns": 1793500734016687076,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-GET-1s-32-1-0-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734022482576,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-SET-1s-32-1-1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734028178145,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734033233862,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734038374139,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734043300365,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-GET-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734048065661,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-SET-2s-32-1--1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734052851157,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-SET-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734057836073,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734063054791,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-GET-1s-32-1-0-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734068233598,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734073203915,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-GET-1s-32-1-1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734077871860,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734083175568,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-SET-2s-32-1--1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734088204734,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734093328861,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-GET-2s-32-1--1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734124615755,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/TRIAL-normal-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "bf783cccf91d09abe5037badce8d9395cb3de753904c80dc555c5041f258a346",
+    "removed_ns": 1793500734148695625,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-SET-1s-32-1-0-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734157924966,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-GET-2s-32-1--1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734166917926,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734175855356,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734187846216,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-SET-2s-1-1--1-ranges.json",
+    "bytes": 1664679,
+    "sha256": "1fc6a6686b7129c7dfa3d1a75c6791dfa8893bc10475b878a0a9875d028575e5",
+    "removed_ns": 1793500734193719285,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734198627201,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734203627598,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-GET-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734208665735,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-GET-2s-32-1--1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734213312270,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734218645858,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-SET-1s-1-1-0-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734224093226,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-GET-1s-32-1-0-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734229200343,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-SET-1s-32-1-1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734234577411,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-SET-1s-1-1-1-ranges.json",
+    "bytes": 1664679,
+    "sha256": "1fc6a6686b7129c7dfa3d1a75c6791dfa8893bc10475b878a0a9875d028575e5",
+    "removed_ns": 1793500734239728298,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734244508454,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734249447940,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-INCR-1s-1-1-0-ranges.json",
+    "bytes": 1664679,
+    "sha256": "1fc6a6686b7129c7dfa3d1a75c6791dfa8893bc10475b878a0a9875d028575e5",
+    "removed_ns": 1793500734254400167,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-GET-2s-32-1--1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734259721404,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1664679,
+    "sha256": "1fc6a6686b7129c7dfa3d1a75c6791dfa8893bc10475b878a0a9875d028575e5",
+    "removed_ns": 1793500734265159253,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734269896448,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734275366846,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734280349463,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734285247229,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-GET-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734290139056,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-SET-1s-32-1-0-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734294735301,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734299505587,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-GET-2s-32-1--1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734304300872,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/TRIAL-normal-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "bf783cccf91d09abe5037badce8d9395cb3de753904c80dc555c5041f258a346",
+    "removed_ns": 1793500734309414169,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734314276366,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-GET-1s-32-1-0-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734318966131,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-SET-1s-32-1-0-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734324224749,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734329295036,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734334676173,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-SET-1s-1-1-0-ranges.json",
+    "bytes": 1664679,
+    "sha256": "1fc6a6686b7129c7dfa3d1a75c6791dfa8893bc10475b878a0a9875d028575e5",
+    "removed_ns": 1793500734339727660,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/TRIAL-normal-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "bf783cccf91d09abe5037badce8d9395cb3de753904c80dc555c5041f258a346",
+    "removed_ns": 1793500734344745487,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734349638473,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734354961201,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-GET-1s-32-1-1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734360292569,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/TRIAL-normal-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "bf783cccf91d09abe5037badce8d9395cb3de753904c80dc555c5041f258a346",
+    "removed_ns": 1793500734365137825,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-GET-1s-32-1-1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734370218082,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734375477389,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-SET-1s-32-1-1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734380836427,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-GET-1s-32-1-1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734385832174,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734391090871,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734396242058,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734401148594,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-INCR-2s-1-1--1-ranges.json",
+    "bytes": 1649349,
+    "sha256": "dc761029b6c76e884e02b08e08cb8b845772800d9a4c591656cfdf94e11682ee",
+    "removed_ns": 1793500734406184941,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-GET-1s-32-1-0-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734411061387,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734415796483,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-SET-2s-1-1--1-ranges.json",
+    "bytes": 1649349,
+    "sha256": "dc761029b6c76e884e02b08e08cb8b845772800d9a4c591656cfdf94e11682ee",
+    "removed_ns": 1793500734420911190,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734425970927,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-SET-1s-1-1-1-ranges.json",
+    "bytes": 1649349,
+    "sha256": "dc761029b6c76e884e02b08e08cb8b845772800d9a4c591656cfdf94e11682ee",
+    "removed_ns": 1793500734430798533,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-GET-2s-32-1--1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734435897310,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-GET-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734440754426,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734446018383,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734451009340,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734456598839,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734461934247,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734467219404,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-GET-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734471880720,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-SET-2s-32-1--1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734477265087,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-SET-1s-1-1-0-ranges.json",
+    "bytes": 1649349,
+    "sha256": "dc761029b6c76e884e02b08e08cb8b845772800d9a4c591656cfdf94e11682ee",
+    "removed_ns": 1793500734482180404,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-SET-2s-32-1--1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734487002410,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-GET-1s-32-1-0-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734491896726,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734496973933,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734501928989,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734507088497,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734512401964,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734542011973,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734566741135,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-GET-1s-32-1-0-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734576165466,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-SET-2s-32-1--1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734585616887,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-GET-2s-32-1--1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734594188056,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-GET-1s-32-1-0-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734603717828,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734612284876,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-GET-1s-32-1-1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734617026772,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734622221319,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-GET-2s-32-1--1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734627475507,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-INCR-1s-1-1-1-ranges.json",
+    "bytes": 1664679,
+    "sha256": "1fc6a6686b7129c7dfa3d1a75c6791dfa8893bc10475b878a0a9875d028575e5",
+    "removed_ns": 1793500734632663804,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-GET-1s-32-1-1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734637626511,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-SET-1s-32-1-0-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734642975748,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734648294046,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734653339003,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-SET-1s-1-1-0-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734658398500,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734663731047,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-GET-1s-32-1-1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734668599283,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734674165442,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-SET-1s-1-1-0-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734679387629,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734684561586,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-SET-2s-32-1--1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734689783184,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734694488740,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-GET-1s-32-1-0-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734699731817,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-SET-1s-32-1-0-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734705205535,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-SET-1s-32-1-1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734710339842,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734715112588,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734720383215,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734726003914,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-GET-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734730946290,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734736343508,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734741227905,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-SET-1s-32-1-1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734745818190,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734750657046,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-INCR-1s-1-1-1-ranges.json",
+    "bytes": 1649349,
+    "sha256": "dc761029b6c76e884e02b08e08cb8b845772800d9a4c591656cfdf94e11682ee",
+    "removed_ns": 1793500734755739693,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-SET-2s-32-1--1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734760759340,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-GET-1s-32-1-1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734765686886,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-SET-1s-32-1-0-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500734771223084,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-SET-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734776352581,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-SET-1s-32-1-0-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734781409798,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-GET-2s-32-1--1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734786490145,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/TRIAL-normal-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "bf783cccf91d09abe5037badce8d9395cb3de753904c80dc555c5041f258a346",
+    "removed_ns": 1793500734791444782,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734796850949,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/TRIAL-normal-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "bf783cccf91d09abe5037badce8d9395cb3de753904c80dc555c5041f258a346",
+    "removed_ns": 1793500734801729926,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734806700402,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-GET-1s-32-1-1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734811374788,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-db0-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1667136,
+    "sha256": "00e054807dc5edee5352359520aba45e83c6fee86547c969677ebdc83a259b88",
+    "removed_ns": 1793500734816603115,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-PARSE-GET-2s-32-1--1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500734821435381,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-SET-1s-32-1-0-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734826376908,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-SET-1s-32-1-1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734831274734,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-PARSE-SET-1s-32-1-0-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734836350781,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-SET-1s-32-1-1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734841198207,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-PARSE-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500734871774949,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500734897583055,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500734906133693,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-db0-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1665936,
+    "sha256": "f36f91a323351d7bd4c663401902c0f96f1462426d468fe32fe9c069912ae073",
+    "removed_ns": 1793500734939803035,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500734992348839,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-normal-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1566600,
+    "sha256": "c38a561837a3ec3b356f2200ba7ca45b2f232d32700026eec4a83e004c4d9657",
+    "removed_ns": 1793500735024297085,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/PRE-db0-PARSE-SET-1s-32-1-1-ranges.json",
+    "bytes": 1652005,
+    "sha256": "d204d10a6fed7316964eba6777a2aeac8a81373eeeda9afce3d28e1483e5d78f",
+    "removed_ns": 1793500735031668130,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500735039636147,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500735049180238,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-INCR-1s-32-1-1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500735057536826,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-normal-PARSE-INCR-2s-32-1--1-ranges.json",
+    "bytes": 1576808,
+    "sha256": "f5623016e7a11dc8318023ff314919ef69948c4b60c234b4d17b4994b423a1ac",
+    "removed_ns": 1793500735064700450,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-final-db0-GET-1s-32-1-1-ranges.json",
+    "bytes": 1665937,
+    "sha256": "ca88c98d400ca6426104c9031d526f4ae5936c478950d16fb8d791f486fc2a0e",
+    "removed_ns": 1793500735070127578,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/FIFO-normal-INCR-1s-32-1-0-ranges.json",
+    "bytes": 1577854,
+    "sha256": "5767c67296f489e97f0f67d12ba0983554d93564d4489cac8d39095d1d9904c4",
+    "removed_ns": 1793500735075085105,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
+  },
+  {
+    "path": "build/execfifo3/memory-scopes/POST-normal-PARSE-SET-2s-32-1--1-ranges.json",
+    "bytes": 1577148,
+    "sha256": "09817a719f9c3c63c7eea5d4083ef00bae6520e14cb24fb8e781c56e145266e5",
+    "removed_ns": 1793500735079816450,
+    "reason": "Completed link/trace intermediate; final images, runnable probes, source archives and proof receipts retained"
   }
 ]

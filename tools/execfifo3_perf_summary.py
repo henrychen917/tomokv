@@ -25,7 +25,7 @@ def main():
     (OUT/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
     events=list(summary[0]['medians'])
     with (OUT/'medians.csv').open('w') as stream:
-        writer=csv.writer(stream)
+        writer=csv.writer(stream,lineterminator='\n')
         writer.writerow(['command','mode','read_local','threads','arm',*events])
         for row in summary:
             writer.writerow([row[k] for k in ('command','mode','read_local','threads','arm')]+
