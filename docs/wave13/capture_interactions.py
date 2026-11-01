@@ -113,10 +113,25 @@ def main():
     job('persistfmt_aof_error')
     job('trackorder')
     job('maxmemrace')
+    admission_controls = []
+    for case, modes in (('T6', ('1s', '2s')), ('T10', ('2s',))):
+        folder = job('at412-' + case)
+        path = folder / ('at412-' + case) / 'results.json'
+        rows = json.loads(path.read_text())
+        expected = {f'redis-redis-0-{command}' for command in ('EVAL', 'EVALSHA', 'FCALL')} | {
+            f'{mode}-{engine}-{atomic}-{command}' for mode, engine, atomic, command in
+            itertools.product(modes, ('uring', 'epoll'), (0, 1), ('EVAL', 'EVALSHA', 'FCALL'))}
+        assert len(rows) == len(expected) and {r['leg'] for r in rows} == expected
+        assert all(r.get('pass') for r in rows)
+        admission_controls.append(dict(case=case, passing_legs=sorted(expected),
+                                        results_sha256=sha(path),
+                                        mix='scripts, EXEC, WATCH/EXEC, plain writers' if case == 'T6'
+                                            else 'original T10 scripts/plain writers with FLIP; session storm is covered separately'))
     output = dict(binary_sha256=post, gate_jobs=used, sanitizer_units=units,
                   ping_probed_storm_legs=storms, moved_session_semantics=semantics,
                   flush_live_flip=siblings, function_flush_restart_boundaries=boundaries,
                   aof_failure_windows=failures,
+                  headline_admission_controls=admission_controls,
                   scheduled_aof_twin=dict(path='build/persistfmt/scheduled/tomokv',
                       sha256=sha(ROOT / 'build/persistfmt/scheduled/tomokv'),
                       production_aof_source_sha256=sha(ROOT / 'src/persist/aof.cc'),
