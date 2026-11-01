@@ -90,3 +90,11 @@ INFO-ERRORSTATS / INFO-CMDSTAT-FIELDS (D17a/D17b) and
 BLOCK-STREAM-REMOVED-NO-UNBLOCK. Rootcompat must remove the generic accounting
 guard before it is promoted again. This lane does not assume an unmerged fix.
 DQ=DF=0; one fewer required Tcl assertion per mode, one explicit known skip.
+
+### Compat 4.2 — ACL timeout after revocation
+
+Timeout cases expect Redis null frames (RESP2 `*-1`, RESP3 `_`). The existing
+retire-time NOPERM is explicitly ACL-REVOKED-TIMEOUT, a known difference listed
+in the audit, rather than a compatible pass. The whole-frame ECHO fence still
+rejects two replies, including the historical coded-null plus NOPERM defect.
+DQ=DF=0. Woken/permitted arms retain exact replies.
