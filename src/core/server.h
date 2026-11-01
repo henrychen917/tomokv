@@ -153,7 +153,7 @@ class Server {
     friend class IoLoop;
     friend struct FlipListenerState;
     friend bool fliplisten_reserve(Server&, std::string&);
-    friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&);
+    friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&, int);
     friend struct CoreConcurrencyTest;
     friend struct AtomicSurvivorsTest;
     friend struct LbPlannerTest;

@@ -107,18 +107,84 @@ struct FlipListenerState {
         std::array<int, kListeners> next;
         std::barrier<> join;
         std::atomic<bool> okay{true};
+        std::atomic<bool> pending{false};
         uint16_t port;
         std::string bind;
-        Rebind(Server& s, FlipListenerState& listeners, uint16_t p, std::string address)
-            : server(s), state(listeners), join(s.nthreads()), port(p), bind(std::move(address)) {
+        std::string error;
+        bool listeners, old_aof, want_aof;
+        uint32_t writer = UINT32_MAX;
+        Rebind(Server& s, FlipListenerState& state, uint16_t p, std::string address, int aof)
+            : server(s), state(state), join(s.nthreads()), port(p), bind(std::move(address)),
+              listeners(p != s.cfg().port || bind != s.cfg().bind_addr),
+              old_aof(s.aof().configured()), want_aof(aof < 0 ? old_aof : aof != 0) {
             next.fill(-1);
+            for (uint32_t tid = 0; tid < s.nthreads(); ++tid)
+                if (s.serves_clients(tid) && (!old_aof || s.aof().writer_is(tid))) writer = tid;
         }
         ~Rebind() { for (int fd : next) if (fd >= 0) ::close(fd); }
+        bool all_okay() {
+            join.arrive_and_wait();
+            const bool result = okay.load();
+            // Nobody may publish the next phase's result before all peers
+            // have sampled this phase, including a failing writer.
+            join.arrive_and_wait();
+            return result;
+        }
     };
+    static void aof_worker(Rebind& plan, IoLoop* loop, unsigned tid) {
+        if (plan.old_aof == plan.want_aof) return;
+        if (!plan.all_okay()) return;
+        auto& server = plan.server;
+        auto& manager = server.aof();
+        if (tid == 0 && (plan.writer == UINT32_MAX || server.atomic_inflight() ||
+                         server.atomic_apply_inflight())) {
+            plan.error = "AOF configuration requires completed atomic commands";
+            plan.okay.store(false);
+        }
+        if (!plan.all_okay()) return;
+        if (plan.want_aof) {
+            if (tid == plan.writer && !manager.runtime_enable(server.thread(tid), loop->ring_, plan.error))
+                plan.okay.store(false);
+        } else {
+            // Every owner flushes its own producer and completion queue. Only
+            // the elected IO touches persistence CQEs; ordinary client work
+            // remains parked. Keep the original bindings on any drain error.
+            const uint64_t deadline = now_ns() + 5000000000ull;
+            for (;;) {
+                if (tid == 0) plan.pending.store(false);
+                plan.join.arrive_and_wait();
+                if (tid == plan.writer) manager.runtime_pump(server.thread(tid), loop->ring_);
+                if (!cfgfix_executor_control(server, tid, 2)) plan.pending.store(true);
+                if (tid == plan.writer && manager.pending_chunks()) plan.pending.store(true);
+                plan.join.arrive_and_wait();
+                if (tid == 0 && (manager.failed() || now_ns() >= deadline)) {
+                    plan.error = "AOF producers could not drain";
+                    plan.okay.store(false);
+                }
+                plan.join.arrive_and_wait();
+                const bool again = plan.okay.load() && plan.pending.load();
+                plan.join.arrive_and_wait();
+                if (!again) break;
+            }
+            if (plan.okay.load() && tid == plan.writer &&
+                !manager.runtime_disable(server.thread(tid), loop->ring_, plan.error)) plan.okay.store(false);
+        }
+        if (!plan.all_okay()) return;
+        for (Shard* shard : server.thread(tid).shards())
+            shard->store().bind_aof(plan.want_aof ? &manager : nullptr, shard->id(), 0);
+        if (!cfgfix_executor_control(server, tid, plan.want_aof ? 1 : 0)) std::abort();
+        if (loop) loop->aof_bound_ = plan.want_aof;
+        if (tid == 0) const_cast<Config&>(server.cfg()).appendonly = plan.want_aof;
+        plan.join.arrive_and_wait();
+        // No owner can retain a channel or producer binding when it is freed.
+        if (!plan.want_aof && tid == plan.writer) manager.runtime_reset();
+        plan.join.arrive_and_wait();
+    }
     static void rebind_worker(void* context, unsigned tid) {
         auto& plan = *static_cast<Rebind*>(context);
         auto& state = plan.state;
         auto* loop = io(plan.server, tid);
+        if (!plan.listeners) { aof_worker(plan, loop, tid); return; }
         if (loop) {
             auto& own = state.local[tid];
             // Reserve epoll registrations without changing the old set.
@@ -168,6 +234,8 @@ struct FlipListenerState {
                 }
             }
         }
+        plan.join.arrive_and_wait();
+        aof_worker(plan, loop, tid);
         plan.join.arrive_and_wait();
         const bool commit = plan.okay.load();
         if (loop) {
@@ -226,14 +294,18 @@ struct FlipListenerState {
 };
 
 bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
-                   const std::string& bind, std::string& error) {
-    if (port == server.cfg().port && bind == server.cfg().bind_addr) return true;
+                   const std::string& bind, std::string& error, int appendonly) {
+    if (port == server.cfg().port && bind == server.cfg().bind_addr &&
+        (appendonly < 0 || (appendonly != 0) == server.aof().configured())) return true;
     if (!cfgfix_control_begin(server)) { error = "listener control path is busy"; return false; }
-    struct Finish { Server& server; ~Finish() { cfgfix_control_end(server); } } finish{server};
+    struct Finish {
+        Server& server; bool held = true;
+        ~Finish() { if (held) cfgfix_control_end(server); }
+    } finish{server};
     if (!fliplisten_reserve(server, error)) return false;
     auto& state = *server.flip_listeners_;
-    FlipListenerState::Rebind plan(server, state, port, bind);
-    for (unsigned i = 0; i < 3 * server.nthreads(); ++i) {
+    FlipListenerState::Rebind plan(server, state, port, bind, appendonly);
+    for (unsigned i = 0; plan.listeners && i < 3 * server.nthreads(); ++i) {
         auto& listener = state.listeners[i];
         if (listener.kind == UrKind::UnixAccept || listener.home >= server.nthreads()) continue;
         const bool tcp = listener.kind == UrKind::Accept;
@@ -249,7 +321,12 @@ bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
     if (!server.debug_sleep_coordinator().exclusive(caller, server.nthreads(), &plan, FlipListenerState::rebind_worker)) {
         error = "listener control rendezvous timed out"; return false;
     }
-    if (!plan.okay.load()) { error = "listener registration or cancellation failed"; return false; }
+    if (!plan.okay.load()) {
+        error = plan.error.empty() ? "listener registration or cancellation failed" : "appendonly: " + plan.error;
+        return false;
+    }
+    cfgfix_control_end(server); finish.held = false;
+    if (!plan.old_aof && plan.want_aof) server.aof().request_rewrite();
     return true;
 }
 

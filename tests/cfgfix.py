@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 import socket
+import time
 
 import _netfix as n
 
@@ -120,6 +121,56 @@ def test(a, port, certs, proc, oracle):
                 c.must('CONFIG', 'SET', 'port', str(port))
                 with closing(n.connect(port)) as fresh:
                     assert fresh.must('PING') == b'PONG'
+        # Runtime AOF must capture pre-existing keys, writes after activation,
+        # and an OFF gap. A fresh process then proves the final manifest recovers
+        # the current image, rather than silently replaying the stale old base.
+        def persistence():
+            return dict(line.split(':', 1) for line in c.must('INFO', 'persistence').decode().splitlines()
+                        if ':' in line)
+
+        def rewritten(target):
+            deadline = time.monotonic() + 20
+            while time.monotonic() < deadline:
+                fields = persistence()
+                if (int(fields['aof_rewrites']) >= target and
+                        fields['aof_rewrite_in_progress'] == fields['aof_rewrite_scheduled'] == '0'):
+                    assert fields['aof_last_bgrewrite_status'] == 'ok', fields
+                    selected = {key: fields[key] for key in (
+                        'aof_enabled', 'aof_rewrite_in_progress', 'aof_rewrite_scheduled',
+                        'aof_last_bgrewrite_status', 'aof_last_write_status', 'aof_rewrites')}
+                    replies.append([['INFO persistence after rewrite', target], selected])
+                    return
+                time.sleep(.02)
+            raise AssertionError(('AOF rewrite never completed', fields))
+
+        c.must('SET', 'cfgfix:before-aof', 'old')
+        c.must('SET', 'cfgfix:deleted-in-gap', 'old')
+        command('CONFIG', 'SET', 'appendonly', 'yes')
+        command('CONFIG', 'GET', 'appendonly')
+        c.must('SET', 'cfgfix:after-aof', 'written')
+        rewritten(1)
+        command('CONFIG', 'SET', 'appendonly', 'no')
+        command('CONFIG', 'GET', 'appendonly')
+        c.must('SET', 'cfgfix:before-aof', 'changed-while-off')
+        c.must('DEL', 'cfgfix:deleted-in-gap')
+        c.must('SET', 'cfgfix:gap', 'new-while-off')
+        command('CONFIG', 'SET', 'appendonly', 'yes')
+        rewritten(2)
+        c.must('SET', 'cfgfix:last', 'durable')
+        try:
+            c.cmd('SHUTDOWN', 'NOSAVE')
+        except (EOFError, ConnectionError, OSError):
+            pass
+        assert proc.wait(timeout=15) == 0
+        mode = 'oracle' if oracle else proc.args[proc.args.index('--thread-mode') + 1]
+        engine = 'oracle' if oracle else proc.args[proc.args.index('--net-io') + 1]
+        label = Path(proc.args[proc.args.index('--dir') + 1]).name
+        with n.server(a, label, oracle=oracle, mode=mode, engine=engine, extra=('--appendonly', 'yes')):
+            with closing(n.connect(port)) as recovered:
+                result = recovered.must('MGET', 'cfgfix:before-aof', 'cfgfix:after-aof',
+                                        'cfgfix:deleted-in-gap', 'cfgfix:gap', 'cfgfix:last')
+                assert result == [b'changed-while-off', b'written', None, b'new-while-off', b'durable'], result
+                replies.append([['AOF restart across OFF gap'], plain(result)])
         # Only sorted key/value pairs are compared; Redis hash-table order is unspecified.
         for args, result in replies:
             if args[:2] == ['CONFIG', 'GET'] and isinstance(result, list):

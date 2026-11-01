@@ -19,7 +19,7 @@ def inventory():
 
 
 # Deliberate existing lifetime/representation differences, exercised and recorded.
-IMMUTABLE = set('hll-sparse-max-bytes unixsocket unixsocketperm dir dbfilename appendonly '
+IMMUTABLE = set('hll-sparse-max-bytes unixsocket unixsocketperm dir dbfilename '
                 'net-io thread-mode read-local zc-min-read-local reorder wb-policy wb-small-pipe wb-complete-visits '
                 'key-lb key-lb-damping client-lb flip-auto appendfilename appenddirname tls-port '
                 'tls-cert-file tls-key-file tls-ca-cert-file tls-ca-cert-dir '
@@ -29,7 +29,7 @@ IMMUTABLE = set('hll-sparse-max-bytes unixsocket unixsocketperm dir dbfilename a
 
 # These controls are boot-only in TomoKV but mutable in Redis. All other
 # oracle-backed immutable/protected replies must match exactly, too.
-LIFETIME_DIFFERENCES = set('appendonly hll-sparse-max-bytes '
+LIFETIME_DIFFERENCES = set('hll-sparse-max-bytes '
                            'tls-ca-cert-dir tls-ca-cert-file tls-cert-file tls-ciphers '
                            'tls-ciphersuites tls-key-file tls-port tls-prefer-server-ciphers '
                            'tls-protocols tracking-table-max-keys'.split())

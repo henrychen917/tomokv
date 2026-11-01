@@ -15,5 +15,7 @@ bool cfgfix_control_busy(const Server&);
 bool cfgfix_control_begin(Server&);
 void cfgfix_control_end(Server&);
 bool cfgfix_rebind(Server&, uint32_t caller, uint16_t port, const std::string& bind,
-                   std::string& error);
+                   std::string& error, int appendonly = -1);
+void cfgfix_register_executor(Server*, uint32_t, void*, bool (*)(void*, int));
+bool cfgfix_executor_control(Server&, uint32_t, int);
 }

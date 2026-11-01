@@ -18,6 +18,8 @@ namespace {
 std::atomic<int32_t> load_delay{0};
 std::atomic<const Server*> control_server{nullptr};
 std::atomic<int> verbosity{2};
+struct ExecutorControl { Server* server = nullptr; void* loop = nullptr; bool (*action)(void*, int) = nullptr; };
+ExecutorControl executors[kMaxThreads];
 struct LogState {
     int fd = -1;
     bool use_syslog = false;
@@ -75,12 +77,21 @@ ssize_t write_log(void* cookie, const char* bytes, size_t size) {
 }
 }
 
+void cfgfix_register_executor(Server* server, uint32_t tid, void* loop, bool (*action)(void*, int)) {
+    executors[tid] = {server, loop, action};
+}
+bool cfgfix_executor_control(Server& server, uint32_t tid, int action) {
+    const auto& entry = executors[tid];
+    return entry.server == &server && entry.action && entry.action(entry.loop, action);
+}
+
 bool cfgfix_control_busy(const Server& server) {
     return control_server.load(std::memory_order_acquire) == &server;
 }
 bool cfgfix_control_begin(Server& server) {
     std::lock_guard lock(server.shape_transition_mutex());
-    if (server.flip_stage() != FlipStage::Idle || server.snapshot().in_progress() ||
+    if (server.flip_stage() != FlipStage::Idle || server.lb_stage() != LbStage::Idle ||
+        server.snapshot().in_progress() ||
         server.signal_shutdown_pending() || server.shutting_down().load(std::memory_order_relaxed)) return false;
     const Server* empty = nullptr;
     return control_server.compare_exchange_strong(empty, &server, std::memory_order_acq_rel);

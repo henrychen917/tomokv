@@ -21,6 +21,7 @@ namespace tomo {
 // Cold CONFIG/boot publication; SORT owns a locale snapshot for its whole comparison context.
 bool sort_locale_valid(const char* name);
 bool sort_locale_set(const char* name);
+void sort_locale_install(void* prepared);
 
 struct SortPattern {
     Slice raw;

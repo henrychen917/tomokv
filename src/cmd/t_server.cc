@@ -394,7 +394,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
-    g_config.push_back({"appendonly", ConfigKind::Bool, cfg.appendonly ? "yes" : "no", true});
+    g_config.push_back({"appendonly", ConfigKind::Bool, cfg.appendonly ? "yes" : "no", false});
     const char* appendfsync = cfg.appendfsync == AppendFsyncPolicy::Always ? "always" :
                               cfg.appendfsync == AppendFsyncPolicy::No ? "no" : "everysec";
     g_config.push_back({"appendfsync", ConfigKind::Enum, appendfsync});
@@ -1719,12 +1719,13 @@ struct ConfigApplyResult { const Op* op; std::string error; };
 std::vector<ConfigApplyResult> g_config_apply_results; // g_config_mu; retired at reply assembly
 
 bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
-    bool listeners = false, locale = false;
+    bool listeners = false, locale = false, aof = false;
     for (const auto& update : updates) {
         listeners |= !std::strcmp(update.first->name, "port") || !std::strcmp(update.first->name, "bind");
         locale |= !std::strcmp(update.first->name, "locale-collate");
+        aof |= !std::strcmp(update.first->name, "appendonly");
     }
-    if ((!listeners || !g_server) && !locale) return true;
+    if ((!(listeners || aof) || !g_server) && !locale) return true;
     for (const auto& result : g_config_apply_results)
         if (result.op == &op) return result.error.empty();
     // Reserve the shared verdict before any apply action. All fragments see
@@ -1735,6 +1736,7 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     uint16_t port = g_server ? g_server->cfg().port : 0;
     std::string bind = g_server ? g_server->cfg().bind_addr : "";
     const char* parameter = "port";
+    int appendonly = -1;
     struct PreparedLocale {
         locale_t value = nullptr;
         ~PreparedLocale() { if (value) freelocale(value); }
@@ -1742,6 +1744,7 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
     for (const auto& update : updates) {
         if (!std::strcmp(update.first->name, "port")) port = std::stoul(update.second);
         if (!std::strcmp(update.first->name, "bind")) { bind = update.second; parameter = "bind"; }
+        if (!std::strcmp(update.first->name, "appendonly")) appendonly = update.second == "yes";
         if (!std::strcmp(update.first->name, "locale-collate")) {
             prepared.value = newlocale(LC_COLLATE_MASK, update.second.c_str(), nullptr);
             if (!prepared.value) {
@@ -1752,15 +1755,17 @@ bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
         }
     }
     std::string reason;
-    if (!listeners || !g_server ||
-        cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason)) {
+    if (!(listeners || aof) || !g_server ||
+        cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason, appendonly)) {
         // No allocation or fallible apply remains after installing listeners.
         if (prepared.value) sort_locale_install(std::exchange(prepared.value, nullptr));
         return true;
     }
+    if (aof && (!listeners || reason.starts_with("appendonly:"))) parameter = "appendonly";
     std::fprintf(stderr, "CONFIG %s: %s\n", parameter, reason.c_str());
     result.error = std::string("ERR CONFIG SET failed (possibly related to argument '") + parameter +
-        "') - " + (!std::strcmp(parameter, "port") ? "Unable to listen on this port. Check server logs." :
+        "') - " + (!std::strcmp(parameter, "appendonly") ? "Unable to turn on AOF. Check server logs." :
+                  !std::strcmp(parameter, "port") ? "Unable to listen on this port. Check server logs." :
                                                    "Failed to bind to specified addresses.");
     if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
     return false;
