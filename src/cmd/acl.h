@@ -93,6 +93,7 @@ bool acl_channel_allowed_any(const AclPerm& permissions, Slice channel, bool lit
 AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
                                  const std::vector<std::string>& argv,
                                  uint32_t* denied_arg = nullptr);
+bool acl_reply_sort_option_denied(Op& op, AclDeniedReason reason, uint32_t denied_arg);
 // Live ACL check of a parked command, by whichever thread is about to run it (or retire a reply
 // it never executed for). True means it denied: the reply is now exactly that denial.
 bool acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread);

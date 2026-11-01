@@ -977,6 +977,10 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 state.client->acl_user_idx(), *command->queued.spec,
                 command->queued.argv, &acl_denied_arg);
             if (acl_denied != AclDeniedReason::None) {
+                command->kind = MultiCommandKind::Prebuilt;
+                command->key_args.clear();
+                command->key_shards.clear();
+                if (!acl_reply_sort_option_denied(*command->op, acl_denied, acl_denied_arg)) {
                 const char* reason = acl_denied == AclDeniedReason::Command
                     ? "no permission to execute the command or subcommand"
                     : acl_denied == AclDeniedReason::Key
@@ -988,9 +992,6 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     "NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: ";
                 message += reason;
                 reply_err(command->op->sink(), message.c_str());
-                command->kind = MultiCommandKind::Prebuilt;
-                command->key_args.clear();
-                command->key_shards.clear();
                 LoopSignals& signals = server.thread(state.owner_io).sig();
                 if (acl_denied == AclDeniedReason::Command) signals.acl_access_denied_cmd++;
                 else if (acl_denied == AclDeniedReason::Key) signals.acl_access_denied_key++;
@@ -1004,6 +1005,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     AclLogContext::Multi,
                     Slice(object.data(), static_cast<uint32_t>(object.size())),
                     Slice(username, static_cast<uint32_t>(std::strlen(username))));
+                }
             }
             if (command->kind != MultiCommandKind::Prebuilt &&
                 command->blocking_pop != MultiBlockingPop::None) {

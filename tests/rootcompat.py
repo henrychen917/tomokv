@@ -60,7 +60,7 @@ def sort_acl(c, run, label):
             run.check(label + ' queued ' + command + option,
                       c.cmd(command, 'source', option, pattern), b'QUEUED')
             run.check(label + ' EXEC ' + command + option, c.cmd('EXEC'),
-                      [{'error': f'ERR {option} option of {command} denied due to insufficient ACL permissions.'}])
+                      [{'error': f'ERR {option} option of SORT denied due to insufficient ACL permissions.'}])
     assert c.cmd('AUTH', 'default', '') == b'OK'
 
 
