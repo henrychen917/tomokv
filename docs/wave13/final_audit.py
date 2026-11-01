@@ -82,6 +82,13 @@ def main():
     assert gates['exit'] == 0 and gates['source_sha256'] == sha(ROOT / 'tests/gates_test.py')
     differential = read('differential-proof.json')
     assert len(differential) == 2 and all(row['passed'] for row in differential)
+    tcl = read('tcl-positive-proof.json')
+    assert tcl['passed'] and tcl['binary_sha256'] == post
+    assert tcl['manifest_sha256'] == sha(ROOT / 'tests/redis_tcl_passing.json')
+    assert tcl['runner_sha256'] == sha(ROOT / 'tests/redis_tcl.py')
+    assert set(tcl['modes']) == {'1s', '2s'}
+    assert all(row['passed'] and row['witnessed_occurrences'] == 1878
+               and row['named_skips'] == 211 for row in tcl['modes'].values())
     regressions = read('isolated-regressions.json')
     assert regressions and all(row['verified'] and row['post_sha256'] == post for row in regressions)
     assert all(row['manifest_sha256'] == sha(ROOT / 'tests/redis_tcl_passing.json') and
