@@ -29,3 +29,16 @@ accepting arbitrary errors. Other lane residuals remain explicit exclusions.
 Validation, semantic interactions, compile trials, command-scope counts,
 arm hashes, and maintainer measurement recipes are pending. No completed
 proof or throughput claim is made by this initial record.
+
+### FUNCTION rewrite interaction (confirmed and fixed)
+
+The forced capture witness on the unmodified merge acknowledged library version 2,
+then replayed version 1 after restart. It pauses immediately after the registry
+image copy, replaces the library on another IO, and requires the window to open.
+The old order copied libraries before `rewrite_mark()` drained the old increment;
+the journaled replacement was therefore deleted with that increment. Library
+capture now follows increment rotation while all shard owners remain frozen.
+Every later mutation is journaled in the retained increment. Earlier duplicate
+full-registry postimages replay in their original order. The scheduling wrapper
+is linked only into the witness twin; the release binary contains no hook.
+The negative receipt is `docs/wave14/jobs/function-capture-before.json`.

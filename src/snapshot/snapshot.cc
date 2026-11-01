@@ -470,22 +470,6 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         std::this_thread::yield();
     }
     if (phase() == Phase::Freeze) {
-        // Libraries are process-wide and protected by their registry mutex. Take
-        // one immutable source image at the cut, never one image per shard/key.
-        function_metadata_.clear();
-        std::vector<uint8_t> functions;
-        if (!function_snapshot_save(functions, error)) {
-            fail(next_epoch, error.c_str());
-        } else if (!functions.empty()) {
-            try {
-                if (functions.size() > UINT32_MAX - kFileHeaderBytes - DatabaseMap::kPayloadBytes)
-                    throw std::bad_alloc();
-                function_metadata_.assign(database_map_.begin(), database_map_.end());
-                function_metadata_.insert(function_metadata_.end(), functions.begin(), functions.end());
-            } catch (const std::bad_alloc&) { fail(next_epoch, "out of memory saving functions"); }
-        }
-    }
-    if (phase() == Phase::Freeze) {
         // All owners are frozen and the atomic-group drain is complete, so this is the stable
         // commit watermark that defines the snapshot cut.  Keep it latched after the save ends so
         // INFO can report this exact cut rather than a live watermark that continues to advance.
@@ -507,6 +491,27 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     if (phase() == Phase::Mark && rewrite_ &&
         !rewrite_->rewrite_mark(writer, writer_ring, next_epoch, cut_ms(), error)) {
         fail(next_epoch, error.empty() ? "could not rotate AOF at snapshot mark" : error.c_str());
+    }
+
+    if (phase() == Phase::Mark) {
+        // Rotate the AOF increment BEFORE copying the process-wide libraries.
+        // FUNCTION is IO-local: freezing shard owners does not stop it. A change
+        // after the copy must land in the retained new increment, never in the
+        // old increment that rewrite_complete removes. Earlier changes may be
+        // in both the base and the new increment; full registry postimages replay
+        // in order and are idempotent. Shards remain frozen throughout this cut.
+        function_metadata_.clear();
+        std::vector<uint8_t> functions;
+        if (!function_snapshot_save(functions, error)) {
+            fail(next_epoch, error.c_str());
+        } else if (!functions.empty()) {
+            try {
+                if (functions.size() > UINT32_MAX - kFileHeaderBytes - DatabaseMap::kPayloadBytes)
+                    throw std::bad_alloc();
+                function_metadata_.assign(database_map_.begin(), database_map_.end());
+                function_metadata_.insert(function_metadata_.end(), functions.begin(), functions.end());
+            } catch (const std::bad_alloc&) { fail(next_epoch, "out of memory saving functions"); }
+        }
     }
 
     if (phase() != Phase::Mark) {
