@@ -119,3 +119,12 @@ Both servers now expect `[0]` for reads of a missing value at the large offset.
 The 32-bit representation error is recorded as CD4.10 / NETFIX-POST-2 with Redis
 and target replies in the receipt. No multi-gigabyte allocation is required.
 DQ=DF=0.
+
+### Compat 4.2 — string growth above 4 GiB
+
+SETRANGE/SETBIT/BITFIELD now state Redis success values and label the documented
+representation clamp NETFIX-POST-2. Exact clamp errors remain a bounded known
+difference; different errors fail. An eventual compatible implementation is
+accepted and cleaned up. Oracle allocations above 4 GiB: NOT RUN (the known
+architectural difference is named, not presented as oracle-verified parity).
+DQ=DF=0.
