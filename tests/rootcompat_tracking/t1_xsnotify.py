@@ -96,7 +96,43 @@ def run(geom, port, attempts, out, force=False):
                 act0 = 0 if is_redis else stat(admin, "script_crossshard_activations")
                 esc0 = 0 if is_redis else stat(admin, 'script_escalations')
                 val = "v%d" % i
-                r = w.call("EVAL", SCRIPT, "2", k1, k2, val)
+                if force and not is_redis and shape != 'same_shard':
+                    # FORCE escalates a real conflict; it does not create one.
+                    # Pin the lead READ and change that key while the other
+                    # shard is parked, including two shards on the same owner.
+                    stage0 = stat(admin, 'script_stage_owner_tasks')
+                    run0 = stat(admin, 'script_run_attempts')
+                    assert admin.call('DEBUG', 'SCRIPT-STAGE-DEFER', 1000000) == 'OK'
+                    w.send('EVAL', SCRIPT, 2, k1, k2, val)
+                    deadline = time.monotonic() + 0.5
+                    while stat(admin, 'script_stage_owner_tasks') == stage0 and time.monotonic() < deadline:
+                        time.sleep(0.001)
+                    assert stat(admin, 'script_stage_owner_tasks') == stage0 + 1, 'lead READ window did not open'
+                    assert stat(admin, 'script_run_attempts') == run0, 'window already closed'
+                    assert admin.call('SET', k1, 'rival') == 'OK'
+                    # Consume the rival's actual events/invalidation before
+                    # enrolling again. A failed attempt must publish nothing.
+                    rival_events, rival_keys = [], set()
+                    deadline = time.monotonic() + 0.25
+                    while time.monotonic() < deadline:
+                        for f in sub.poll_pushes(0.005):
+                            f = b2s(f)
+                            if isinstance(f, list) and f and f[0] == 'pmessage':
+                                rival_events.append((f[2], f[3]))
+                        for f in trk.poll_pushes(0.005):
+                            if isinstance(f, Push):
+                                f = b2s(f)
+                                if f[0] == 'invalidate': rival_keys.update(f[1] or [])
+                        if len(rival_events) == 2 and k1 in rival_keys: break
+                    assert rival_events == [('__keyspace@0__:' + k1, 'set'), ('__keyevent@0__:set', k1)], rival_events
+                    assert k1 in rival_keys, rival_keys
+                    assert b2s(trk.call('GET', k1)) == 'rival'
+                    trk.pushes.clear()
+                    assert stat(admin, 'script_run_attempts') == run0, 'rival missed held READ window'
+                    assert admin.call('DEBUG', 'SCRIPT-STAGE-DEFER', 0) == 'OK'
+                    r = w.read()
+                else:
+                    r = w.call("EVAL", SCRIPT, "2", k1, k2, val)
                 # collect up to 1 s, stop early once everything expected arrived
                 deadline = time.monotonic() + 1.0
                 events = []
@@ -165,7 +201,7 @@ def run(geom, port, attempts, out, force=False):
     with open(out, "a") as f:
         f.write(json.dumps(res) + "\n")
     brief = {s: {k: v for k, v in st.items() if k != "examples"} for s, st in res["shapes"].items()}
-    print(geom, json.dumps(brief))
+    print(geom, 'escalated' if force else 'staged', json.dumps(brief), flush=True)
 
 
 if __name__ == "__main__":
