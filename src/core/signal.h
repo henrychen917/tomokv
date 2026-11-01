@@ -49,7 +49,7 @@ inline uint64_t now_ns() {
 // that one is CLOCK_MONOTONIC, so its "milliseconds" are milliseconds since boot and sit roughly
 // five orders of magnitude below any real deadline. A monotonic value used as an expiry cut does
 // not skew the answer, it disables expiry outright.
-inline int64_t now_realtime_ms() {
+[[gnu::always_inline]] inline int64_t now_realtime_ms() {
     timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;

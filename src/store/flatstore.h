@@ -1673,6 +1673,11 @@ public:
     // during capture for the same reason admission is (victims are not pre-imaged).
     bool budget_admit(Slice protected_key) {
         if (!__builtin_expect(maxmemory_enabled_, false)) return true;
+        return budget_admit_over_limit(protected_key);
+    }
+    // Stream-retirement context belongs to the armed eviction path. Keep its
+    // register saves behind the existing maxmemory gate for ordinary writes.
+    [[gnu::noinline, gnu::cold]] bool budget_admit_over_limit(Slice protected_key) {
         if (snapshot_active_) return true;
         // NOT make_room_for: projected_bytes subtracts the protected key's own size (replacement
         // semantics), so the very key being grown always "fits". The gate asks the raw question:
@@ -2783,7 +2788,8 @@ private:
                 }
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
-                retire_obj(o, replacement);
+                if (replacement) retire_obj(o, replacement);
+                else retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
                 live_[t]--; tombs_[t]++;
                 return true;
@@ -3631,7 +3637,10 @@ private:
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
     // The header is decoded once: the class computed for accounting is the sized-free length.
-    void retire_obj(KvObj* o, const KvObj* replacement = nullptr) {
+    // Keep replacement context inside the external-value branch. Outlining this
+    // wrapper passes an otherwise unused extra argument for inline integers.
+    void retire_obj(KvObj* o) { retire_obj(o, nullptr); }
+    [[gnu::always_inline]] void retire_obj(KvObj* o, const KvObj* replacement) {
         const size_t capacity = kvobj_capacity(o);
         const size_t bytes = capacity + retiring_external_bytes(o, replacement);
         obj_bytes_ -= bytes;
