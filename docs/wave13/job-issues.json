@@ -49,7 +49,7 @@
       "artifact": "build/gate-run.dQbZff/jobs/persistfmt",
       "cause": "The added FLUSHALL check did not open the injected fail() diagnostic window within its unchanged four-second bound. The original scheduling twin can wait for a reply gate while holding a fused owner that FLUSH still needs.",
       "evidence": "SET opened the window and exited 1 without a reply. FLUSHALL reached the 168-byte increment limit, then failed its arming assertion; teardown escalated the owned scheduling twin. No successful FLUSH reply was observed. The other 39 persistfmt rows passed.",
-      "correction": "Prepared trace markers and up to eight fresh-state attempts. Only a witnessed writer wait before any receipt gate may be retried; unexpected replies or other missing-window states fail. Every credited command still requires the actual blocked failure logger, no reply, and fatal exit 1. The traced rerun and never-armed negative control are pending.",
+      "correction": "The first trace/rearm patch exposed additional stderr-lock and fused-owner latch cases. The final scheduling twin delays writer IO without blocking owner progress, identifies every diagnostic logger, and permits at most eight fresh attempts for witnessed setup deadlocks. Every credited command still requires an armed pipe_write diagnostic, no reply, and fatal exit 1; the deadline is unchanged. See subsequent attempt records and the verified negative control.",
       "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control verified: all four rows fail after eight attempts each, overall gate exit 1.",
       "failure_logs": [
         {
