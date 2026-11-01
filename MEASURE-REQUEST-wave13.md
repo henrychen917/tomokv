@@ -161,6 +161,9 @@ contained binaries without headers; subsequent jobs use the complete checkout
 at `/home/user/Projects/redis`, whose 7.4.10 binary has the identical SHA-256
 `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
 Completed and failed attempts remain in `docs/wave13/jobs/`.
+The independent `python3 tests/gates_test.py` run passed all 83 main-suite tests
+(and its nested persistence-helper checks); `docs/wave13/gates-test.json` binds
+the log, source, C environment and fixed port 20098.
 
 The primary attempt also exposed candidate packaging omissions: blockfix2 could
 not find its two serverless refusal units beside the frozen POST, and the
