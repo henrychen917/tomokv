@@ -23,9 +23,10 @@ public:
     // pending check, so ordinary commands acquire no new branch or load.
     // The callback runs on each physical issuer after every worker has parked.
     // No callback may depend on normal command execution during this interval.
-    bool exclusive(unsigned origin, void* context, void (*action)(void*, unsigned)) {
+    bool exclusive(unsigned origin, unsigned participants, void* context, void (*action)(void*, unsigned)) {
         Lock lock(mutex_);
-        if (pending() || origin >= Workers || !workers_.test(origin)) return false;
+        if (pending() || origin >= Workers || !workers_.test(origin) ||
+            workers_.count() != participants) return false;
         Control control{this, context, action, {}, {}, {}};
         Control* empty = nullptr;
         if (!control_.compare_exchange_strong(empty, &control)) return false;

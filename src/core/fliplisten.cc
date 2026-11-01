@@ -246,7 +246,7 @@ bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
             server.cfg().tcp_backlog, !tcp);
         if (plan.next[i] < 0) { error = std::strerror(errno); return false; }
     }
-    if (!server.debug_sleep_coordinator().exclusive(caller, &plan, FlipListenerState::rebind_worker)) {
+    if (!server.debug_sleep_coordinator().exclusive(caller, server.nthreads(), &plan, FlipListenerState::rebind_worker)) {
         error = "listener control rendezvous timed out"; return false;
     }
     if (!plan.okay.load()) { error = "listener registration or cancellation failed"; return false; }

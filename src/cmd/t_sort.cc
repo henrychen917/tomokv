@@ -70,10 +70,14 @@ bool sort_locale_valid(const char* name) {
 bool sort_locale_set(const char* name) {
     locale_t value = newlocale(LC_COLLATE_MASK, name, nullptr);
     if (!value) return false;
+    sort_locale_install(value);
+    return true;
+}
+
+void sort_locale_install(void* prepared) {
     std::lock_guard<std::mutex> lock(g_collate.mutex);
     if (g_collate.locale) freelocale(g_collate.locale);
-    g_collate.locale = value;
-    return true;
+    g_collate.locale = static_cast<locale_t>(prepared);
 }
 
 void sort_pattern_parse(Slice pattern, SortPattern& out) {

@@ -1719,29 +1719,50 @@ struct ConfigApplyResult { const Op* op; std::string error; };
 std::vector<ConfigApplyResult> g_config_apply_results; // g_config_mu; retired at reply assembly
 
 bool config_apply_listeners(Shard& sh, Op& op, const ConfigUpdates& updates) {
-    bool listeners = false;
-    for (const auto& update : updates)
+    bool listeners = false, locale = false;
+    for (const auto& update : updates) {
         listeners |= !std::strcmp(update.first->name, "port") || !std::strcmp(update.first->name, "bind");
-    if (!listeners || !g_server) return true;
+        locale |= !std::strcmp(update.first->name, "locale-collate");
+    }
+    if ((!listeners || !g_server) && !locale) return true;
     for (const auto& result : g_config_apply_results)
         if (result.op == &op) return result.error.empty();
     // Reserve the shared verdict before any apply action. All fragments see
     // this verdict before publishing scalar settings from the same SET.
-    g_config_apply_results.push_back({&op, {}});
-    auto& result = g_config_apply_results.back();
-    uint16_t port = g_server->cfg().port;
-    std::string bind = g_server->cfg().bind_addr;
+    ConfigApplyResult standalone{&op, {}};
+    if (op.has_scatter_state()) g_config_apply_results.push_back({&op, {}});
+    auto& result = op.has_scatter_state() ? g_config_apply_results.back() : standalone;
+    uint16_t port = g_server ? g_server->cfg().port : 0;
+    std::string bind = g_server ? g_server->cfg().bind_addr : "";
     const char* parameter = "port";
+    struct PreparedLocale {
+        locale_t value = nullptr;
+        ~PreparedLocale() { if (value) freelocale(value); }
+    } prepared;
     for (const auto& update : updates) {
         if (!std::strcmp(update.first->name, "port")) port = std::stoul(update.second);
         if (!std::strcmp(update.first->name, "bind")) { bind = update.second; parameter = "bind"; }
+        if (!std::strcmp(update.first->name, "locale-collate")) {
+            prepared.value = newlocale(LC_COLLATE_MASK, update.second.c_str(), nullptr);
+            if (!prepared.value) {
+                result.error = "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name";
+                if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
+                return false;
+            }
+        }
     }
     std::string reason;
-    if (cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason)) return true;
+    if (!listeners || !g_server ||
+        cfgfix_rebind(*g_server, g_server->worker_of_shard(sh.id()), port, bind, reason)) {
+        // No allocation or fallible apply remains after installing listeners.
+        if (prepared.value) sort_locale_install(std::exchange(prepared.value, nullptr));
+        return true;
+    }
     std::fprintf(stderr, "CONFIG %s: %s\n", parameter, reason.c_str());
     result.error = std::string("ERR CONFIG SET failed (possibly related to argument '") + parameter +
         "') - " + (!std::strcmp(parameter, "port") ? "Unable to listen on this port. Check server logs." :
                                                    "Failed to bind to specified addresses.");
+    if (!op.has_scatter_state()) reply_err(op.sink(), result.error.c_str());
     return false;
 }
 
@@ -1873,11 +1894,6 @@ void cmd_config(Shard& sh, Op& op) {
                         if (!std::strcmp(update.first->name, "latency-tracking") &&
                             update.second == "yes") latency_enable_start = now_ns();
                 for (auto& update : updates) {
-                    if (!std::strcmp(update.first->name, "locale-collate") &&
-                        !sort_locale_set(update.second.c_str())) {
-                        reply_err(op.sink(), "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name");
-                        return;
-                    }
                     // The maxmemory family's entries belong to its single publication above.
                     if (!config_memory_parameter(*update.first)) {
                         if (update.first->kind == ConfigKind::NotifyFlags) {

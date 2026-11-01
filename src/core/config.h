@@ -81,6 +81,7 @@ inline int cfg_process_find(Slice name) {
 inline bool cfg_process_normalize(int index, Slice input, std::string& out, std::string& error) {
     const auto& spec = process_configs[index];
     if (!spec.choices) { out.assign(input.p, strnlen(input.p, input.n)); return true; }
+    if (std::strcmp(spec.choices, "integer")) input.n = strnlen(input.p, input.n);
     if (!std::strcmp(spec.choices, "integer")) {
         // Redis string2ll accepts only canonical decimal, including a minus
         // sign but excluding +, leading zeroes, whitespace and embedded NUL.

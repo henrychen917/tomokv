@@ -80,7 +80,8 @@ bool cfgfix_control_busy(const Server& server) {
 }
 bool cfgfix_control_begin(Server& server) {
     std::lock_guard lock(server.shape_transition_mutex());
-    if (server.flip_stage() != FlipStage::Idle || server.snapshot().in_progress()) return false;
+    if (server.flip_stage() != FlipStage::Idle || server.snapshot().in_progress() ||
+        server.signal_shutdown_pending() || server.shutting_down().load(std::memory_order_relaxed)) return false;
     const Server* empty = nullptr;
     return control_server.compare_exchange_strong(empty, &server, std::memory_order_acq_rel);
 }

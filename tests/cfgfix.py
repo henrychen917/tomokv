@@ -60,6 +60,11 @@ def test(a, port, certs, proc, oracle):
             ('SET', 'shutdown-on-sigterm', 'default'),
             ('SET', 'tls-auth-clients', 'optional'),
             ('GET', 'tls-auth-clients'), ('SET', 'tls-auth-clients', 'yes'),
+            ('SET', 'loglevel', 'warning\0ignored'), ('GET', 'loglevel'),
+            ('SET', 'loglevel', 'notice'), ('SET', 'loglevel', 'invalid'),
+            ('SET', 'key-load-delay', '01'), ('SET', 'key-load-delay', '2147483648'),
+            ('SET', 'maxmemory', '12345678', 'locale-collate', 'no_such_locale'),
+            ('GET', 'maxmemory', 'locale-collate'),
         ):
             command('CONFIG', *args)
         for flags in ('AKEn', 'nAKE', 'AKE', 'AKEmn', 'n', 'g$lnKE', ''):
