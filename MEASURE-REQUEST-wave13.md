@@ -156,6 +156,15 @@ at `/home/user/Projects/redis`, whose 7.4.10 binary has the identical SHA-256
 `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
 Completed and failed attempts remain in `docs/wave13/jobs/`.
 
+The primary attempt also exposed candidate packaging omissions: blockfix2 could
+not find its two serverless refusal units beside the frozen POST, and the
+following registry row could not find its candidate-specific cost checksum.
+All six blockfix2 live rows and all 24 registry live legs passed, but neither
+whole job is credited from that attempt. Ten matching production companions
+and the checksum binding are now staged with hashes in
+`docs/wave13/candidate-companions.json`; both complete jobs await rerun.
+`docs/wave13/job-issues.json` preserves the failures and their causes.
+
 The initial seven datafix1 jobs returned passing verdicts but their shared
 helper forced `LC_ALL=en_US.UTF-8` for 120 target/oracle boots. These outcomes
 **do not satisfy the requested C boot environment**;

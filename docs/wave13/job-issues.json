@@ -7,7 +7,25 @@
       "cause": "gate.sh resolves the matching serverless refusal units beside CANDIDATE_BINARY; the frozen POST directory lacked the two binaries already built in build/.",
       "evidence": "All four namespace/mode unit logs report taskset: failed to execute ... No such file or directory. The six live rows passed.",
       "correction": "Matching production companions copied beside the frozen POST, with SHA-256s in candidate-companions.json. No production or gate assertion change.",
-      "rerun": "PENDING: complete blockfix2 job through gate.sh"
+      "rerun": "PENDING: complete blockfix2 job through gate.sh",
+      "failure_logs": [
+        {
+          "path": "build/gate-run.dQbZff/jobs/blockfix2/blockfix2-db0-unit-1s.log",
+          "sha256": "ac1f4ff004524541783fb623883f4e13d753077fd34f95312acd15cb1d0d6c4c"
+        },
+        {
+          "path": "build/gate-run.dQbZff/jobs/blockfix2/blockfix2-db0-unit-2s.log",
+          "sha256": "ac1f4ff004524541783fb623883f4e13d753077fd34f95312acd15cb1d0d6c4c"
+        },
+        {
+          "path": "build/gate-run.dQbZff/jobs/blockfix2/blockfix2-unit-1s.log",
+          "sha256": "9815fa5dcc0c551e70496597269c5d45186ca99e94a0bc626c4cc3571af42f53"
+        },
+        {
+          "path": "build/gate-run.dQbZff/jobs/blockfix2/blockfix2-unit-2s.log",
+          "sha256": "9815fa5dcc0c551e70496597269c5d45186ca99e94a0bc626c4cc3571af42f53"
+        }
+      ]
     },
     {
       "job": "blockfix_registry",
@@ -16,7 +34,14 @@
       "cause": "The following job started before candidate companion packaging completed; its candidate-specific cost binding file was absent.",
       "evidence": "cost-binding.log reports the missing tomokv-POST.blockfix-cost.sha256; instructions.log was not created.",
       "correction": "The original build/tomokv cost binding was verified; an equivalent binding now names the frozen POST and matching copied blockfix-cost.",
-      "rerun": "PENDING: complete blockfix_registry job through gate.sh"
+      "rerun": "PENDING: complete blockfix_registry job through gate.sh",
+      "failure_logs": [
+        {
+          "path": "build/gate-run.dQbZff/jobs/blockfix_registry/cost-binding.log",
+          "sha256": "630ddacfefc1f62176ba13eab1e9595e911d6280642037d9f44d3c66a3b6c564"
+        }
+      ],
+      "live_legs_passed": 24
     }
   ]
 }
