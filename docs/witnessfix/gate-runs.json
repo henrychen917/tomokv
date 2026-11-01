@@ -75,9 +75,127 @@
     "archive_sha256": "37f936f39fd0d49960fdd70e7524592023af074e13244dc916c6aa514c0fe6c9"
   },
   {
+    "log": "at412-freeze-mutant.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.OJxKL4",
+    "complete": true,
+    "counts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "jobs": {
+      "at412-T10": {
+        "ok": 0,
+        "FAIL": 1
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/at412-freeze-mutant.tar.gz",
+    "archive_sha256": "c70da8ec04dbfdb6da2981b1294f3544fbdeefc07f58e2b62a57908055521092"
+  },
+  {
     "log": "at412-rest-script-bounds.log",
     "run": "/home/user/Projects/cx-witnessfix/build/gate-run.vxNJ6f",
-    "complete": false
+    "complete": true,
+    "counts": {
+      "ok": 18,
+      "FAIL": 0
+    },
+    "jobs": {
+      "at412-T11b": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T4": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T15": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T3": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "script_bounds": {
+        "ok": 2,
+        "FAIL": 0
+      },
+      "at412-T12": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T14": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T11a": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T5": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T13": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T1": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T6": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T9": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T10": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T2": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "at412-T16": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/at412-rest-script-bounds.tar.gz",
+    "archive_sha256": "af27ea7dd70747257eebbbbf74001202aa27f260ae5ecbf9532947824376b55d"
+  },
+  {
+    "log": "at412-strict-final.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.X3Xo6L",
+    "complete": true,
+    "counts": {
+      "ok": 2,
+      "FAIL": 0
+    },
+    "jobs": {
+      "at412-T10": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/at412-strict-final.tar.gz",
+    "archive_sha256": "51c460828af96f865a3fbfab22c7b9bfe8f3c7bc11be4dd08fb78706b88ef502"
   },
   {
     "log": "compat-corrections-gate.log",
@@ -779,6 +897,27 @@
     },
     "archive": "docs/witnessfix/gates/remaining-core-gate.tar.gz",
     "archive_sha256": "2eea894cd73d1701c60fec8db83b16efef32824a1facf4f570daae81ed66c234"
+  },
+  {
+    "log": "script-bounds-fused.log",
+    "run": "/home/user/Projects/cx-witnessfix/build/gate-run.lt8x49",
+    "complete": true,
+    "counts": {
+      "ok": 3,
+      "FAIL": 0
+    },
+    "jobs": {
+      "script_bounds": {
+        "ok": 2,
+        "FAIL": 0
+      },
+      "release": {
+        "ok": 1,
+        "FAIL": 0
+      }
+    },
+    "archive": "docs/witnessfix/gates/script-bounds-fused.tar.gz",
+    "archive_sha256": "20a927116bd41a3a8f4137c0079ea770af4d35c140e8b7e6e72e9a2b58bf8cdd"
   },
   {
     "log": "snapfix-refusal-pre-gate.log",

@@ -1,0 +1,95 @@
+{
+  "binary_sha256": "9f6fce6c2ba9719b4d50f364eb0dac2b11514fb427cc3454f454249f79aaff6a",
+  "rows": [
+    {
+      "leg": "redis-redis-0-EVAL",
+      "passed": true,
+      "freeze_hits": 0,
+      "error": null
+    },
+    {
+      "leg": "redis-redis-0-EVALSHA",
+      "passed": true,
+      "freeze_hits": 0,
+      "error": null
+    },
+    {
+      "leg": "redis-redis-0-FCALL",
+      "passed": true,
+      "freeze_hits": 0,
+      "error": null
+    },
+    {
+      "leg": "2s-uring-0-EVAL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-uring-0-EVALSHA",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-uring-0-FCALL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-uring-1-EVAL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-uring-1-EVALSHA",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-uring-1-FCALL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-epoll-0-EVAL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-epoll-0-EVALSHA",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-epoll-0-FCALL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-epoll-1-EVAL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-epoll-1-EVALSHA",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    },
+    {
+      "leg": "2s-epoll-1-FCALL",
+      "passed": false,
+      "freeze_hits": 1,
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 1025, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 985, in run_case\n    result = storm(c, port, keys, call, oracle, args.seconds,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/at412.py\", line 479, in storm\n    reply = flipper.cmd('FLIP', io, 8-io)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-witnessfix/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+    }
+  ]
+}

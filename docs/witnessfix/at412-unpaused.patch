@@ -1,0 +1,38 @@
+--- tests/at412.py
++++ diagnostic/at412-unpaused.py
+@@ -413,7 +413,7 @@
+         try:
+             # A FLIP may hold dispatch up to its own 5 s deadline before it refuses; an
+             # operation waiting through it is not a stall (flip_under_load uses 15 s too).
+-            with contextlib.closing(Conn('127.0.0.1', port, timeout=15 if flip else 5)) as client:
++            with contextlib.closing(Conn('127.0.0.1', port, timeout=4 if flip else 5)) as client:
+                 start.wait(timeout=10)
+                 while not stop.is_set() and enabled(i):
+                     # FLIP transfers only quiescent connections (no in-flight op, no WATCH or
+@@ -458,7 +458,7 @@
+     flip_refusals = []
+     flip_target = [4]
+     flip_seconds = []
+-    flipper = Conn('127.0.0.1', port, timeout=30) if flip and not oracle else None
++    flipper = Conn('127.0.0.1', port, timeout=4) if flip and not oracle else None
+     try:
+         while time.monotonic() < deadline and not stop.is_set():
+             now = time.monotonic()
+@@ -485,7 +485,7 @@
+                     # A FLIP may legally refuse (for example when its drain cannot finish in
+                     # time); only a completed FLIP counts, and at least one must complete.
+                     began = time.monotonic()
+-                    hold.set()
++                    pass  # diagnostic: keep producers running during FLIP
+                     try:
+                         reply = flipper.cmd('FLIP', io, 8-io)
+                     except TimeoutError:
+@@ -499,7 +499,7 @@
+                         flip_target[0] = 6 if io == 4 else 4  # move only after a real change
+                     else:
+                         assert isinstance(reply, RespError), reply
+-                        flip_refusals.append(str(reply))
++                        raise AssertionError(('IO4.3 / D18 unpaused FLIP refusal', str(reply)))
+                 next_flip += 1
+             time.sleep(.1)
+     finally:

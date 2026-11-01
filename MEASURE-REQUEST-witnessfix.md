@@ -215,9 +215,16 @@ cannot pass. Valid computed FLIP shapes must not be refused. Existing per-worker
 progress before/after an observed completed FLIP remains mandatory. This is a
 liveness bound, not a throughput measurement. The planted five-second freeze reaches one pause per process: the old battery
 passes and the repaired battery fails in both engines (freeze-control.json).
-The separate AT4.12 T10 storm still pauses producers during FLIP and accepts
-refusals; its passing row is not a five-second-stall witness. This V16 repair
-is limited to flip_under_load, and the T10 weakness remains open. DQ=DF=0.
+AT4.12 T10 now also keeps producers running, uses four-second client/FLIP
+deadlines, and rejects a valid-shape refusal. Its actual completed-FLIP and
+client-transfer counters remain required. The old T10 passes four target legs
+with one witnessed five-second freeze each; the repaired gate rejects all 12
+target legs of that same defect, while its three oracle legs pass. The mix
+passes all 15 baseline legs through the gate, with 29 successful FLIPs per
+target leg and a maximum observed FLIP duration of 49 ms. These are liveness
+receipts, not performance measurements. The mix
+still excludes clients that entered MULTI; this does not close the separate
+FLIP-EXEC-TRANSFER-TIMEOUT production defect or the V15 coverage gap. DQ=DF=0.
 
 ### Compat 4.2 — failed foreground SAVE telemetry
 
@@ -551,6 +558,9 @@ lottery memtier exception and fix are recorded under V14.
 | differ-split0-final / tATR7A | Split atomic 0 passes all 235 legs in 8m57s under the original 900s deadline. Permanent seeds 7/19/20/23 plus the runner-selected rotating seed 22; the earlier run used rotating seed 21. |
 | mpop-exact-positive / z6Bgep | List job passes all 12 geometries with 136 exact MPOP error comparisons per leg (RESP2/RESP3). |
 | geo-count-positive / EEpVC2 | GEO job passes all 12 geometries with 20 direct-oracle COUNT centers per leg. |
+| at412-rest-script-bounds / vxNJ6f | 18 rows pass: remaining AT4.12 cases and split script limit/window controls. Its T10 used the old pause behavior and is superseded by the strict T10 run below. T6 completes all 27 legs in 812.61s. |
+| at412-strict-final / X3Xo6L | 2 rows pass: release and repaired T10. All 15 legs pass in 451.80s, covering Redis plus both target engines/atomics and EVAL/EVALSHA/FCALL; each target leg completes 29 FLIPs and asserts actual client transfers. |
+| script-bounds-fused / lt8x49 | 3 rows pass: release plus the two controls with armed fused mode. |
 | mover-conservation-gate / ntf5Ys | 9 rows pass (release plus eight geometry legs), including the final two-mover probe/push/claim unit and EXEC coverage. Earlier Q1ikt4 used the superseded, overstrict single-mover expectation and is not the final proof. |
 
 Each archive in `docs/witnessfix/gates/` preserves the canonical partial ledger,
@@ -575,6 +585,7 @@ run the full tier's performance phases.
 | Enabled histogram | Always-empty mutant fails all four mode/engine legs; baseline passes. |
 | INFO CPU | Constant-zero mutant fails the new advancing-CPU assertions in all eight target geometry legs (both RESP versions); baseline passes. |
 | CONFIG errors | Unrelated-error mutant fails the exact allowlist check; baseline passes all mode/engine legs. |
+| AT4.12 T10 freeze | Old test passes all four engine/atomic EVAL controls despite one five-second freeze each. Repaired gate fails all 12 target command/engine/atomic legs on their four-second timeout, with exactly one freeze hit per process; oracle passes. |
 | MPOP full errors | Prefix-preserving suffix mutation fails 12/12 geometry legs; all 144 changed replies would match the old Tcl pattern. |
 | GEO COUNT | Missing implicit ASC and reversed shared ordering each fail 12/12 legs. The reversed comparator still passes both old self-comparison cases in 1s/2s (4/4), proving their blind spot. |
 
@@ -615,6 +626,10 @@ binaries, but their earlier port selection was outside the requested range.
 `build/` briefly reached approximately 19 GiB during unit/control rebuilds;
 deleting copied controls and stripping unit debug sections reduced it below
 15 GiB. No production source or production Makefile byte changed.
+Final cleanup finds no owned correctness server and no listener on ports
+20500-20599. All planted source/binary copies are deleted; the frozen positive
+binary and small control recipes/receipts remain. `build/` is 12.97 GiB
+(`docs/witnessfix/cleanup.json`).
 
 Static verification: `make -q` returns 0; production-path diff is empty;
 44 changed Python files parse; shell syntax and the implementation whitespace
@@ -624,7 +639,7 @@ context lines. The untouched EXPECT values and frozen baseline hash are in
 
 ### Compat 4.1 follow-up — MPOP errors and GEO COUNT
 
-The existing list gate job now compares all four MPOP verbs' illegal-argument
+`MPOP-ARG-ERROR-TEXT`: the existing list gate job compares all four verbs' illegal-argument
 and wrong-type replies byte-for-byte with Redis, in verified RESP2/RESP3. The
 GEO job now compares every no-order COUNT query directly with Redis across 20
 centers and checks stored membership as well as replies. Neither uses the

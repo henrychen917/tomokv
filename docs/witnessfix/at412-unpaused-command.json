@@ -1,0 +1,24 @@
+{
+  "command": [
+    "python3",
+    "/home/user/Projects/cx-witnessfix/build/witnessfix/at412-unpaused/at412-unpaused.py",
+    "--binary",
+    "/home/user/Projects/cx-witnessfix/build/witnessfix/tomokv-7d2f8a205",
+    "--oracle",
+    "/home/user/Projects/redis/src/redis-server",
+    "--cores",
+    "80-87",
+    "--port",
+    "20570",
+    "--output",
+    "/home/user/Projects/cx-witnessfix/build/witnessfix/at412-unpaused/runs",
+    "--case",
+    "T10",
+    "--commands",
+    "EVAL",
+    "--seconds",
+    "6"
+  ],
+  "exit": 0,
+  "source_sha256": "71e11eb859ec4f9763e061d0caad3a4421b1dbcff12bdef6c061bef31accca93"
+}
