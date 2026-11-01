@@ -214,6 +214,15 @@ all 77 selected/prerequisite jobs: **544 passing rows, 11 failed rows**. Those
 failures are maxmemrace, nine original AOF rows discussed below, and notify_order.
 The epoll and supplementary phase results will be appended when complete.
 
+The main-epoll `txnorder-fused-1` job has also failed. Its non-AOF cases and
+serverless survivors pass, but the AOF storm (`1s`, atomic=1, databases=16,
+read-local=1, appendfsync=no, shards=16, CPUs 16–23) reaches a client timeout;
+subsequent shutdown aborts at the database worker watchdog (2703 ms, bound
+900 ms, all eight participants unacknowledged). The log does not establish a
+specific producer or completed storm count. Two PRE and two POST controls at
+the same gate geometry are queued. This is an unresolved S1 observation, not
+attributed to a fixture or to a production change without those controls.
+
 The standard differential matrix is complete on both engines. These are the
 runner's reported passing-check counts; every part reports zero failures.
 
