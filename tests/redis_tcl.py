@@ -315,14 +315,17 @@ def main():
         probes = json.loads(args.probe_tests.read_text())
         if not probes or any(unit not in inventory or not names for unit, names in probes.items()):
             raise ValueError('empty or unknown probe inventory')
+        probe_manifest = load_manifest(ROOT/'tests/redis_tcl_passing.json', args.redis_root, inventory)
         for unit, names in probes.items():
+            spec = probe_manifest['files'][unit]
             for name in names:
                 for attempt in range(1, 4):
                     child = copy.copy(args)
                     child.output = args.output / 'probes' / hashlib.sha256((unit+name).encode()).hexdigest()[:16] / str(attempt)
-                    row = run_file(child, tree, unit, only=[name])
+                    row = run_file(child, tree, unit, only=[name],
+                                   extra=spec.get('extra_args', ()), server_args=spec.get('server_args', ()))
                     expected = [name+' in tests/'+unit+'.tcl']
-                    try: validate_passing(row, expected)
+                    try: validate_passing(row, expected, spec.get('known_setup_errors', ()))
                     except ValueError as error:
                         row['error'] = '; '.join(filter(None, (row['error'], str(error))))
                     row.update(probe=name, attempt=attempt)
