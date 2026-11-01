@@ -70,7 +70,7 @@ under `docs/blockfix4/legacy-receipts/`; none is counted as passing evidence.
 
 The broad io_uring gate proof passed 334/334 rows; the additional fused debug
 jobs passed 33/33, and fused blocking/atomic/notification jobs passed 19/19
-on each engine. Remaining epoll and PAD-A receipts are pending.
+on each engine. Remaining epoll receipts are pending.
 The production-unit proof passed 30/30 rows. `make all` and all 51 targets in the first
 `job_production_units` make command built; its two MDBQSBR control servers,
 blockfix cost target and both blockfix2 unit targets also built. All five
@@ -172,6 +172,8 @@ registry layout and total `.text` size. It preserves PRE mechanisms, including
 the failing witnesses. `tools/blockfix4_pad.py` produces it and the manifest.
 It controls total text size and registry layout; it does not claim identical
 function addresses or alignment. All eight public layout locks remain fixed.
+The complete PAD-A witness job failed all five rows, as expected for PRE
+behavior (`gate-receipts/pad-a-negative.json`, `pad-negative-summary.json`).
 
 ### Maintainer measurements
 
