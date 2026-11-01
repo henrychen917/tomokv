@@ -197,6 +197,21 @@ passed 83/83 tests in 145.378 seconds. The broad selected-job campaign is
 running on the sealed final binary. The 160/128 instruction census is complete
 with zero ordinary increases.
 
+One final-SHA PAUSE matrix reported an early FUNCTION LIST reply in one
+2s epoll geometry. That original row did not record elapsed time, so its
+180 ms pause window was uncertified; no root cause is attributed. The failure
+is retained in `validation/pause-window-before.json`. The revised witness
+keeps the 180 ms pause and 35 ms observation, certifies completion within
+150 ms of arming, and requires an observed window within 12 fresh attempts.
+The complete replacement POST job passed all 32 geometries / 1,536 candidate
+observations, all on attempt zero (maximum 35.235 ms). Redis passed all 48
+observations. PRE failed all 32 geometries at WRITE-mode XGROUP HELP being
+incorrectly postponed. `pause-window-{POST,PRE}.json` retains the certificates;
+PAD-A is being checked with the same witness. The other four POST witness
+matrices passed all 128 geometries. The full tracking-order product passed
+20,736 candidate cases plus 864 oracle cases in 290.39 seconds. Both Tcl modes
+passed all 78 file runs and all six promotion events on this final binary.
+
 Older broad, Tcl, differential, tracking-order and PAD receipts are retained
 as superseded evidence and are not claimed for the final SHA above. Final
 delivery requires all 150 requested jobs plus prerequisites, every declared

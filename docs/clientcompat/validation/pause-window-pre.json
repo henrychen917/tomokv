@@ -1,0 +1,56 @@
+{
+  "run": "build/gate-run.Ng1WJa",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t48.710000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/pause-window-pre.json.gz",
+  "archive_sha256": "9352472124c43ead82b1e640cc73a0d868f563b5b0e05b448d30124bf8286422",
+  "passed": 1,
+  "failed": 1,
+  "arm": {
+    "source_commit": "7d2f8a205",
+    "binary": "build/clientcompat/PRE/tomokv",
+    "sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "engine": null,
+    "arm": "PRE",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/PRE/tomokv"
+    ],
+    "started": 1793522422.6898382,
+    "pid": 1369590,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "clientcompat-pause"
+    ]
+  }
+}

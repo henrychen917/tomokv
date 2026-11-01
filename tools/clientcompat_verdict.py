@@ -38,6 +38,52 @@ def check_at412_product(run):
     return product
 
 
+def check_pause_windows(run, arm):
+    """Verify every accepted window and the full declared geometry product."""
+    root = Path(run) / "jobs/clientcompat-pause/clientcompat-pause"
+    summary = []
+    expected_legs = {f"{mode}-{engine}-db{db}-a{atomic}-r{local}"
+                     for mode, engine, db, atomic, local in itertools.product(
+                         ("1s", "2s"), ("uring", "epoll"), (1, 16), (0, 1), (0, 1))}
+    digest = hashlib.sha256((Path("build/clientcompat") / arm / "tomokv").read_bytes()).hexdigest()
+    for side in ("oracle", "candidate"):
+        results = json.loads((root / side / "results.json").read_text())
+        assert len(results["checks"]) == (1 if side == "oracle" else 32)
+        assert {r["label"] for r in results["checks"]} == (
+            {"redis-oracle-db16-a1-r0"} if side == "oracle" else expected_legs)
+        if side == "candidate":
+            assert results["sha256"] == digest
+        for result in results["checks"]:
+            rows = json.loads((root / side / (result["label"] + ".json")).read_text())
+            attempts = [r for r in rows if "pause_window" in r]
+            accepted = [r for r in attempts if r["pause_window"]]
+            assert accepted and all(r["elapsed_seconds"] < .150 for r in accepted)
+            assert max(r["attempt"] for r in attempts) < 12
+            failure = None
+            if side == "oracle" or arm == "POST":
+                assert result["passed"] and len(accepted) == 48, (side, result)
+                assert len({(r["pause_mode"], tuple(r["command"])) for r in accepted}) == 48
+            else:
+                last = accepted[-1]
+                expected = (last["pause_mode"] == "ALL" or last["command"][0] in
+                            {"SET", "INCR", "PFCOUNT", "PUBLISH", "SPUBLISH", "EVAL"} or
+                            last["command"][:2] == ["FUNCTION", "LOAD"])
+                assert not result["passed"] and last["held"] != expected
+                failure = dict(mode=last["pause_mode"], command=last["command"],
+                               held=last["held"], expected=expected)
+            summary.append(dict(side=side, leg=result["label"], accepted=len(accepted),
+                                attempts=len(attempts),
+                                maximum_seconds=max(r["elapsed_seconds"] for r in accepted),
+                                expired=[r for r in attempts if not r["pause_window"]],
+                                passed=result["passed"], failed_classification=failure))
+    proof = dict(run=run, arm=arm, rows=summary)
+    (VALIDATION / ("pause-window-" + arm + ".json")).write_text(json.dumps(proof, indent=2) + "\n")
+    return dict(arm=arm, candidate_geometries=32, oracle_geometries=1,
+                accepted_windows=sum(r["accepted"] for r in summary),
+                unopened_windows=sum(len(r["expired"]) for r in summary),
+                maximum_seconds=max(r["maximum_seconds"] for r in summary))
+
+
 def main():
     post_sha = hashlib.sha256(Path("build/clientcompat/POST/tomokv").read_bytes()).hexdigest()
     pad_sha = hashlib.sha256(Path("build/clientcompat/PAD-A/tomokv").read_bytes()).hexdigest()
@@ -154,6 +200,8 @@ def main():
                r["sha256"] == post_sha for r in tcl["summary"])
     assert len(tcl["promotions"]) == 6 and all(r["event"]["status"] == "ok" for r in tcl["promotions"])
     at412 = check_at412_product(read("regression-final")["run"])
+    pause_windows = [check_pause_windows(read(receipt)["run"], arm) for arm, receipt in
+                     (("POST", "pause-window-final"), ("PRE", "pause-window-pre"), ("PAD-A", "final-pad"))]
     verdict = dict(partial=True, full_gate_receipt=False, sources=sources,
                    requested_jobs=len(expected), completed_jobs=len(chosen),
                    passed_rows=sum(j["passed"] for j in chosen.values()), failed_rows=0,
@@ -162,7 +210,7 @@ def main():
                    differential=differential,
                    freshness_checks=len(fresh), instructions=instruction,
                    post_sha256=post_sha, pad_sha256=pad_sha, gates_tests=83,
-                   tcl_runs=78, tcl_promotions=6, at412_legs=423)
+                   tcl_runs=78, tcl_promotions=6, at412_legs=423, pause_windows=pause_windows)
     (VALIDATION / "final-verdict.json").write_text(json.dumps(verdict, indent=2) + "\n")
     print(json.dumps({k: verdict[k] for k in
           ("requested_jobs", "completed_jobs", "passed_rows", "failed_rows", "freshness_checks")}, indent=2))

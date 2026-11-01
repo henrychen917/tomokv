@@ -1,0 +1,336 @@
+{
+  "run": "build/gate-run.7HXA9s",
+  "arm": "POST",
+  "rows": [
+    {
+      "side": "oracle",
+      "leg": "redis-oracle-db16-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.0351197449490428,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.0351405143737793,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035143664106726646,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03512666281312704,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03514211159199476,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03512965328991413,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035131621174514294,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03519360162317753,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035228402353823185,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035229602828621864,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03520321287214756,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03518522251397371,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03523497097194195,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03514950070530176,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03517821151763201,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03522979002445936,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03521349932998419,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03520393930375576,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03519746009260416,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03518926911056042,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035210249945521355,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03516337834298611,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03521387837827206,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03521113749593496,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035217978060245514,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035199337638914585,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03518892731517553,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.0352040184661746,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03516779839992523,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a0-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03523166850209236,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a0-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.0351981557905674,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.035203367471694946,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a1-r1",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03518733661621809,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    }
+  ]
+}

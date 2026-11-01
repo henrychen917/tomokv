@@ -1,0 +1,56 @@
+{
+  "run": "build/gate-run.7HXA9s",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t207.640000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/pause-window-final.json.gz",
+  "archive_sha256": "4da5c4b860ebfa43d2c4ccb1552cd7aa2d1a93ef01f8d03c51d8b564f29543e7",
+  "passed": 2,
+  "failed": 0,
+  "arm": {
+    "source_commit": "694fae5c73",
+    "binary": "build/clientcompat/POST/tomokv",
+    "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+    "engine": null,
+    "arm": "POST",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/POST/tomokv"
+    ],
+    "started": 1793522212.6212144,
+    "pid": 1349240,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "clientcompat-pause"
+    ]
+  }
+}

@@ -2,8 +2,8 @@
   {
     "arm": "POST",
     "case": "pause",
-    "run": "T3awpO",
-    "ledger": "ok\t207.800000\tclientcompat pause\n",
+    "run": "7HXA9s",
+    "ledger": "ok\t207.640000\tclientcompat pause\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -12,20 +12,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
+        "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-pause.json.gz",
-    "archive_sha256": "29d979c040f71ed046375f2c78a09b32bd8b63ad25b887cb575702ee2d07b54b"
+    "archive_sha256": "d62299da1229a447c082ef3eccc172fa878956877475596cae02de63d6f2d3cc"
   },
   {
     "arm": "POST",
     "case": "disconnect",
-    "run": "T3awpO",
-    "ledger": "ok\t4.820000\tclientcompat disconnect\n",
+    "run": "KJHFq9",
+    "ledger": "ok\t4.690000\tclientcompat disconnect\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -34,20 +34,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
+        "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-disconnect.json.gz",
-    "archive_sha256": "ff80596c9c8f30be3c3e5c6c560303155be30e77d62b687aef9759e79d146aaa"
+    "archive_sha256": "4eb6ad74600be1209a72537e87de28703c5e6e986f056bba5c0b243137c47749"
   },
   {
     "arm": "POST",
     "case": "multi-tracking",
-    "run": "T3awpO",
-    "ledger": "ok\t163.380000\tclientcompat multi-tracking\n",
+    "run": "KJHFq9",
+    "ledger": "ok\t162.800000\tclientcompat multi-tracking\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -56,20 +56,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
+        "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-multi-tracking.json.gz",
-    "archive_sha256": "889db1fe68519695b892a506cd069307fe88972f1114caa7bc6991ac805c90ca"
+    "archive_sha256": "b4e5a199a37e9826fbe7b0cf689a68b9237b348e55ee405862a2a3559d94f97d"
   },
   {
     "arm": "POST",
     "case": "multi-controls",
-    "run": "T3awpO",
-    "ledger": "ok\t203.130000\tclientcompat multi-controls\n",
+    "run": "KJHFq9",
+    "ledger": "ok\t438.850000\tclientcompat multi-controls\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -78,20 +78,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
+        "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-multi-controls.json.gz",
-    "archive_sha256": "b4487ec83a22a598129e2233eb9923d7d353937ab24deac9fb872e03184a201c"
+    "archive_sha256": "2731f6857f8f7ec16ace2b0f455576ec3991a9f094bba81f21d95d53a81af24f"
   },
   {
     "arm": "POST",
     "case": "enable-race",
-    "run": "T3awpO",
-    "ledger": "ok\t80.150000\tclientcompat enable-race\n",
+    "run": "KJHFq9",
+    "ledger": "ok\t79.020000\tclientcompat enable-race\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -100,14 +100,14 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
+        "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-enable-race.json.gz",
-    "archive_sha256": "fbbe8443a9fbad53d6e20585a6205dbde6e7795d5235e43237a2616afa185f6f"
+    "archive_sha256": "7ecb0ea034b688b4271e3eac0c77290cd6e1d44d038518c76adfdebce9bd26a8"
   },
   {
     "arm": "PAD-A",
