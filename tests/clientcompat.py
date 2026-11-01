@@ -99,7 +99,9 @@ def probe(case, port, rows, oracle, mode=None):
                 ('SPUBLISH', 'cc:channel', 'v'), ('SUBSCRIBE', 'cc:channel'),
                 ('CONFIG', 'GET', 'hz'), ('ACL', 'WHOAMI'), ('INFO', 'clients'),
                 ('SCRIPT', 'LOAD', 'return 1'), ('EVAL', 'return 1', 0),
-                ('EVAL_RO', 'return 1', 0), ('MULTI',),
+                ('EVAL_RO', 'return 1', 0), ('MULTI',), ('XGROUP', 'HELP'),
+                ('FUNCTION', 'LIST'), ('FUNCTION', 'LOAD', 'REPLACE',
+                    '#!lua name=cc_pause\nredis.register_function(\'cc_pause\', function() return 1 end)'),
             ]
             writes = {'SET', 'INCR', 'PFCOUNT', 'PUBLISH', 'SPUBLISH', 'EVAL'}
             for mode, command in itertools.product(('WRITE', 'ALL'), commands):
@@ -107,7 +109,8 @@ def probe(case, port, rows, oracle, mode=None):
                 check('pause armed', a.cmd('CLIENT', 'PAUSE', 180, mode), b'OK')
                 b.send(*command)
                 held = not bool(select.select([b.sock], [], [], .035)[0])
-                check(f'{mode} {command}: postponed', held, mode == 'ALL' or command[0] in writes)
+                check(f'{mode} {command}: postponed', held, mode == 'ALL' or command[0] in writes or
+                      command[:2] == ('FUNCTION', 'LOAD'))
                 value = b.response()
                 rows.append(dict(command=command, reply=clean(value)))
                 assert not isinstance(value, RespError), (command, value)
@@ -129,6 +132,28 @@ def probe(case, port, rows, oracle, mode=None):
                 for v in victims:
                     v.close()
         elif case == 'multi-tracking':
+            # Enrollment and invalidation follow child execution order, even
+            # when a later read re-enrolls a key changed by this same EXEC.
+            for reread, noloop in itertools.product((False, True), (False, True)):
+                t = peer(3)
+                check('ordered tracking on', t.cmd('CLIENT', 'TRACKING', 'ON',
+                      *(['NOLOOP'] if noloop else [])), b'OK')
+                key = f'cc:ordered:{reread}:{noloop}'.encode()
+                check('ordered seed', a.cmd('SET', key, 'v0'), b'OK')
+                check('ordered multi', t.cmd('MULTI'), b'OK')
+                commands = [('GET', key), ('SET', key, 'v1')]
+                if reread:
+                    commands.append(('GET', key))
+                for command in commands:
+                    check('ordered queued', t.cmd(*command), b'QUEUED')
+                check('ordered queued silence', keys(t.drain()), [])
+                check('ordered exec', t.cmd('EXEC'), [b'v0', b'OK'] + ([b'v1'] if reread else []))
+                during = keys(t.drain())
+                check('ordered post-write', a.cmd('SET', key, 'v2'), b'OK')
+                later = keys(t.drain(.3))
+                check('ordered invalidation and re-enrollment', [during, later],
+                      [[] if noloop else [key], [key] if reread else []])
+                t.close()
             for shape, option, redirect in itertools.product(
                     ('foreign_write_between', 'own_write_first', 'plain_control', 'exec_only'),
                     ('default', 'OPTIN', 'OPTOUT', 'NOLOOP', 'BCAST'), (False, True)):

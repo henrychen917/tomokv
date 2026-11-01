@@ -743,6 +743,17 @@ bool command_pause_write(const Op& op) {
     if (!op.spec) return false;
     if (op.spec->flags & CmdFlags::ScriptRoute)
         return function_is_fcall(op) ? function_metadata_write(op) : script_metadata_write(op);
+    // Containers expose subcommand flags in Redis. XGROUP HELP is read-only;
+    // FUNCTION's library mutations are WRITE even though FUNCTION itself has
+    // no root flags. The other supported containers have no WRITE children.
+    if (clientcompat_post() && op.argc() >= 2) {
+        if (op.cmd_name().eq_icase("xgroup") && op.arg(1).eq_icase("help")) return false;
+        if (op.cmd_name().eq_icase("function")) {
+            const Slice sub = op.arg(1);
+            return sub.eq_icase("load") || sub.eq_icase("flush") ||
+                   sub.eq_icase("restore") || sub.eq_icase("delete");
+        }
+    }
     // Redis's MAY_REPLICATE flag is deliberately absent from COMMAND INFO.
     return (op.spec->flags & CmdFlags::Write) || op.cmd_name().eq_icase("pfcount") ||
         op.cmd_name().eq_icase("publish") || op.cmd_name().eq_icase("spublish");
