@@ -1408,8 +1408,7 @@ bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice k
                 g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
             ready = false;
         } else if (entry.origin_conn_id != state.origin_conn_id &&
-                   epoch > server.atomic_snapshot() &&
-                   !(server.atomic_publish_quiescent() && epoch <= server.atomic_snapshot())) {
+                   epoch > server.atomic_snapshot()) {
             server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::Waits);
             ready = false;
         }

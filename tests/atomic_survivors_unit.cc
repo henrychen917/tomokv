@@ -45,19 +45,6 @@ void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
 void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
 void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
-namespace tomo {
-struct AtomicSurvivorsTest {
-    static void publish_stale_sample(Server& server, uint64_t drawn) {
-        // Exactly the last half of A's publication, after B reserved and
-        // published between A's sequence load and A's decrement.
-        if (server.atomic_commit_inflight_.fetch_sub(1, std::memory_order_acq_rel) != 1)
-            std::abort();
-        uint64_t safe = server.atomic_commit_safe_.load(std::memory_order_relaxed);
-        while (safe < drawn && !server.atomic_commit_safe_.compare_exchange_weak(
-                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
-    }
-};
-}
 
 using namespace tomo;
 namespace {
@@ -556,17 +543,19 @@ void txn_help(Server& server) {
         store.atomic_install_plain(FlatStore::hash_key(slice(key)), slice(key), entry, tombstone, last);
         store.atomic_clear_read_epoch();
         server.atomic_commit_publish();
-        AtomicSurvivorsTest::publish_stale_sample(server, first);
-        require(server.atomic_snapshot() == first, "completed commit left a conservative watermark");
+        require(server.atomic_snapshot() < first, "open publication bracket holds the watermark");
         Client client{-1}; client.set_id(889);
         auto* state = fixture_allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "Rule P attempt allocated");
         state->read_only = false;
+        require(!multi_touch_key(*state, shard, FlatStore::hash_key(slice(key)), slice(key), false),
+                "Rule P waits while a real publisher still holds the bracket");
+        server.atomic_commit_publish();
         require(multi_touch_key(*state, shard, FlatStore::hash_key(slice(key)), slice(key), false),
-                "Rule P advances a quiescent watermark instead of waiting forever");
+                "Rule P resumes after the last publisher catches up");
         require(server.atomic_snapshot() == last, "quiescent publication caught up");
         (void)server.atomic_commit_reserve();
-        require(!server.atomic_publish_quiescent() && server.atomic_snapshot() == last,
+        require(server.atomic_snapshot() == last,
                 "Rule P cannot advance across an open commit bracket");
         server.atomic_commit_publish();
         finalize_reservations(*state, shard);
