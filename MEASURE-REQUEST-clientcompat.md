@@ -7,7 +7,7 @@ job's declared geometry. No performance benchmark, load generator, or full
 iteration gate was run. Correctness receipts below are partial job receipts,
 not a full gate claim.
 
-### Sealed arms
+### Prior sealed arms (cold acknowledgement wake correction in progress)
 
 | Arm | Path | SHA-256 |
 |---|---|---|
@@ -166,7 +166,10 @@ The additional atomic-unit and all AT4.12 jobs are listed in
 `supplement-jobs.txt`; these add no public gate rows. Production bytes did not
 change for these assertion updates.
 
-Final execution is in progress. This section will be replaced with completed
+Final execution is in progress. The tracking FLUSH-order run exposed idle
+acknowledgement waits; the cold owner-wake/poll correction requires new POST
+and PAD-A arms and repeated validation. Earlier receipts remain archived.
+This section will be replaced with completed
 receipts before delivery. The sealed POST passed **160/160** candidate legs across all five new
 witnesses; every oracle leg passed. PAD-A failed all five gate rows as intended:
 pause 32/32, disconnect 26/32, multi-tracking 32/32, multi-controls 32/32 and

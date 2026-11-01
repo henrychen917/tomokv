@@ -31,6 +31,18 @@ IoLoop::ClimonStartResult IoLoop::tracking_ack_enable(Client* client, Op& op) {
         client->rob().publish();
         barrier_arm(client, BarrierOwner::PubSub);
         mark_active(client);
+        // An idle owner otherwise applies the publication only after its
+        // periodic park timeout. Wake each physical owner once through the
+        // existing ring doorbell; role changes retain their usual backstop.
+        std::array<bool, kMaxThreads> notified{};
+        for (uint32_t sid = 0; sid < srv_->nshards(); ++sid) {
+            const uint32_t owner = srv_->worker_of_shard(sid);
+            if (owner == self_->id() || notified[owner]) continue;
+            notified[owner] = true;
+            if (Ring* target = srv_->thread(owner).ring())
+                if (ring_.msg_to(*target, ur_tag(UrKind::Wake, nullptr)))
+                    self_->sig().wakes_sent++;
+        }
         return ClimonStartResult::Async;
     }
     reply_ok(op.sink());

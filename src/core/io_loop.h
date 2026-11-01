@@ -4893,6 +4893,10 @@ ordinary_shard_ready:
         for (const auto& timer : deferred_timers_)
             if (timer.kind == DeferredTimerKind::WaitZero && timer.deadline_ms)
                 deadline = std::min(deadline, timer.deadline_ms);
+            else if (timer.kind == DeferredTimerKind::TrackingOn)
+                // Owner acknowledgements publish a mailbox word, not an IO
+                // completion. Only this cold control wait needs a short poll.
+                deadline = std::min(deadline, now_ms + 1);
         return deadline > now_ms ? static_cast<unsigned>(deadline - now_ms) : 0;
     }
 
