@@ -101,6 +101,7 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
              '--save','','--appendonly','no','--dir',str(data),'--enable-debug-command','yes']
     if args.mode!='redis':
         command+=['--thread-mode',args.mode,'--shards','16','--databases','16']
+        command+=['--net-io',os.environ.get('GATE_NET_IO', 'uring')]
         if args.mode=='2s': command+=['--ratio', getattr(args, 'ratio', '6:2')]
     else: command+=['--enable-module-command','yes']
     command += list(server_args)

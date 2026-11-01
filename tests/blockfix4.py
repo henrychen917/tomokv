@@ -56,8 +56,18 @@ def main():
 
     def script_check(s, records, server):
         errors = []
-        if s['hits'] != 3 or s['served'] != 3:
-            errors.append(f"wake: hits={s['hits']}/3 served={s['served']}/3")
+        served = 0
+        for r in records:
+            if 'i' not in r:
+                continue
+            ready = r.get('served_within_grace', False)
+            # ATOMIC-COMMIT-HOLD also holds the resumed atomic BLMOVE's
+            # commit. It must complete upon release, without a rescue push.
+            if s['variant'] == 'hold' and r.get('kind') == 'BLMOVE':
+                ready |= r.get('served_after_hold_release', False)
+            served += bool(ready)
+        if s['hits'] != 3 or served != 3:
+            errors.append(f"wake: hits={s['hits']}/3 served={served}/3")
         if s['mid_llen'] != {'1': 3}:
             errors.append(f"script completion: LLEN={s['mid_llen']}")
         return errors
