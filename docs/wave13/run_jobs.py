@@ -43,7 +43,7 @@ os.sched_setaffinity(0, set(range(0,16)))
 output=ROOT/'docs/wave13/jobs';output.mkdir(parents=True,exist_ok=True)
 log=output/(a.name+'.log'); assert not log.exists(), 'preserve the earlier attempt'
 binary=(ROOT/a.binary).resolve()
-env=dict(os.environ,LANG='C',LC_ALL='C',REDIS74_ROOT='/home/user/Projects/redis74',
+env=dict(os.environ,LANG='C',LC_ALL='C',REDIS74_ROOT='/home/user/Projects/redis',
     GATE_ONLY_JOBS=' '.join(a.jobs),GATE_NET_IO=a.engine,GATE_PROOF_NET_IO=a.engine,
     GATE_ZC_NET_IO=a.engine,GATE_SHUTDOWN_NET_IO=a.engine,GATE_DIFFER_NET_IO=a.engine,
     GATE_TXN_FUSED=str(int(a.fused)),GATE_TEST_PORT='20098',
@@ -57,7 +57,7 @@ if a.asan_binary is not None:
 argv=['bash','tests/gate.sh','full','--server-cores',server_cores,
     '--server-smt','','--load-cores',load_cores,'--load-smt','',
     '--ports',f'{a.port}-{a.port+9}','--candidate-binary',str(binary)]
-receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.startswith('GATE_') or k in ('LANG','REDIS74_ROOT')},
+receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.startswith('GATE_') or k in ('LANG','LC_ALL','REDIS74_ROOT')},
     binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
     source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
     source_diff_sha256=hashlib.sha256(subprocess.check_output(['git','diff','HEAD'],cwd=ROOT)).hexdigest(),

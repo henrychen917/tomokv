@@ -232,17 +232,31 @@ def functions():
             # Wave13: keyspace FLUSH preserves libraries; FUNCTION FLUSH preserves keys.
             # Run the same boundary against the Redis oracle before each restart path.
             assert c.cmd('SET', 'flush-boundary', 'live') == b'OK'
+            tracker, listener = s.client(), s.client()
+            redirect = listener.cmd('CLIENT', 'ID')
+            assert listener.cmd('SUBSCRIBE', '__redis__:invalidate') == [
+                b'subscribe', b'__redis__:invalidate', 1]
+            assert tracker.cmd('CLIENT', 'TRACKING', 'ON', 'REDIRECT', redirect) == b'OK'
+            assert tracker.cmd('GET', 'flush-boundary') == b'live'
             assert c.cmd('FLUSHALL', 'SYNC') == b'OK'
+            invalidation = listener.read()
+            assert invalidation == [b'message', b'__redis__:invalidate', None], invalidation
             assert c.cmd('GET', 'flush-boundary') is None
             assert libraries(c) == expected
             assert c.cmd('SET', 'function-boundary', 'live') == b'OK'
+            assert tracker.cmd('GET', 'function-boundary') == b'live'
             assert c.cmd('FUNCTION', 'FLUSH') == b'OK'
             assert libraries(c) == []
             assert c.cmd('GET', 'function-boundary') == b'live'
+            # PING is a reply fence: an unexpected key invalidation is an extra
+            # frame and must fail rather than being drained or ignored.
+            assert listener.cmd('PING') == [b'pong', b'']
+            assert tracker.cmd('CLIENT', 'TRACKING', 'OFF') == b'OK'
             for source in SOURCES:
                 assert c.cmd('FUNCTION', 'LOAD', source) in (b'one', b'two')
             assert libraries(c) == expected
-            h.emit('wave13_flush_function_boundary', oracle=oracle, case=case)
+            h.emit('wave13_flush_function_boundary', oracle=oracle, case=case,
+                   invalidation=invalidation, function_flush_invalidates=False)
             assert c.cmd('SET', 'sentinel', 'saved') == b'OK'
             if case == 'save':
                 assert c.cmd('SAVE') == b'OK'

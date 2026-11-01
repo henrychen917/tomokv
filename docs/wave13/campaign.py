@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / 'docs/wave13'
 MATRIX = json.loads((DOC / 'correctness-matrix.json').read_text())
 RESERVED = {'flip_saturated', 'efficiency', 'tailgen_build'}
+BUILD_ONLY = {'production_units', 'core_tsan_build', 'waits_tsan_build'}
 DEFERRED = {'abba_selftest', 'redis_tcl', 'compat2', 'flushfix3'}
 
 
@@ -30,7 +31,7 @@ def main():
     a = parser.parse_args()
     exits = []
     if a.phase == 'primary':
-        jobs = [j for j in job_names() if j not in RESERVED | DEFERRED and not j.startswith('differ-')]
+        jobs = [j for j in job_names() if j not in RESERVED | DEFERRED | BUILD_ONLY and not j.startswith('differ-')]
         exits.append(run('landing-primary', jobs))
     elif a.phase == 'supplements':
         exits.append(run('landing-epoll', sorted(set(MATRIX['each_engine'] + MATRIX['each_mode_engine'])), '--engine', 'epoll'))
