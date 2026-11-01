@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check the final selected-job verdict, preserving superseded failures."""
 import hashlib
+import itertools
 import json
 from pathlib import Path
 
@@ -11,6 +12,30 @@ VALIDATION = DOC / "validation"
 
 def read(name):
     return json.loads((VALIDATION / (name + ".json")).read_text())
+
+
+def check_at412_product(run):
+    """Recheck raw legs, including the three oracle script forms per case."""
+    cases = []
+    forms = ("EVAL", "EVALSHA", "FCALL")
+    names = ["T" + str(n) for n in range(1, 17) if n != 11] + ["T11a", "T11b"]
+    for name in names:
+        modes = ("2s",) if name in ("T3", "T10", "T11a") else ("1s", "2s")
+        expected = {f"redis-redis-0-{form}" for form in forms}
+        expected.update(f"{mode}-{engine}-{atomic}-{form}" for mode, engine, atomic, form
+                        in itertools.product(modes, ("uring", "epoll"), (0, 1), forms))
+        path = Path(run) / "jobs" / ("at412-" + name) / ("at412-" + name) / "results.json"
+        rows = json.loads(path.read_text())
+        assert len(rows) == len(expected) and {r["leg"] for r in rows} == expected, name
+        assert all(r["pass"] and r["case"] == name for r in rows), name
+        cases.append(dict(case=name, legs=len(rows), oracle_legs=len(forms), modes=list(modes),
+                          engines=["uring", "epoll"], atomics=[0, 1], forms=list(forms),
+                          sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    product = dict(source="tests/at412.py declared matrix", run=run, cases=cases,
+                   total_legs=sum(c["legs"] for c in cases), complete=True)
+    assert product["total_legs"] == 423
+    (VALIDATION / "at412-product.json").write_text(json.dumps(product, indent=2) + "\n")
+    return product
 
 
 def main():
@@ -81,9 +106,7 @@ def main():
     assert all(r["files"] == 37 and r["runs"] == 39 and r["manifest_errors"] == 0 and
                r["sha256"] == post_sha for r in tcl["summary"])
     assert len(tcl["promotions"]) == 6 and all(r["event"]["status"] == "ok" for r in tcl["promotions"])
-    at412 = read("at412-product")
-    assert at412["complete"] and at412["total_legs"] == 423
-    assert at412["run"] == read("regression-final")["run"]
+    at412 = check_at412_product(read("regression-final")["run"])
     verdict = dict(partial=True, full_gate_receipt=False, sources=sources,
                    requested_jobs=len(expected), completed_jobs=len(chosen),
                    passed_rows=sum(j["passed"] for j in chosen.values()), failed_rows=0,
