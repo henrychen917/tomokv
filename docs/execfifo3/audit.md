@@ -34,9 +34,30 @@ New accesses when the slow path is active:
   `service_multi_retries` finds a nonempty retry queue. Their no-transaction
   fast return reads the same count as PRE.
 
-Instruction counts alone do not prove cache-line identity. Linked-image
-memory traces, read-local scopes, and finite one/two-thread perf fixtures
-will test the source conclusion. Compiler changes outside the former command
-scope remain possible. The prior common-image PAD preserves the complete
-ELF layout, but selects different PRE and POST functions; it does not put
-their executed instructions at identical addresses.
+The missing path was the parser. The original command scopes begin after
+parsing. A linked-production parser scope at batch 32 finds db0 fused SET
+at 23,669 -> 25,045 instructions (read-local off) and 27,427 -> 28,803
+(read-local on). INCR adds 1,280 instructions per batch. The added calls are
+`parse_len_crlf` and its caller, `resp_parse_t<false,true>`; SET adds 704
+explicit memory operands per batch, INCR 608. The recorded Server, Shard,
+ExLoop, ThreadCtx, IoLoop and Client accesses remain identical. A compiler
+change therefore caused work outside the previously counted owner scope.
+
+FIFO/C1 enlarges each fused translation unit's initial GCC IPA size by 2,031
+instructions. Its unchanged `large-unit-insns` ceiling reduces the allowance
+for inlining existing code. Raising each of the two fused ceilings by exactly
+2,031 restores the parser scopes above to PRE counts, including memory
+operands. The extended trace also finds +44 instructions and three explicit
+memory operands per batch in the multi-database split parser, including an
+outlined `Client::nothing_to_write`. Restoring that unit's 1,646-size-unit
+allowance removes this delta as well. The production change is three Makefile
+values. All FIFO
+predicates, queue links, promotion rules and boundary code remain byte-for-byte
+unchanged in source. Final linked-image scopes and perf receipts qualify the
+result; no server throughput improvement is inferred.
+
+The prior common-image PAD preserves the complete ELF layout, but selects
+different PRE and POST functions; it does not put their executed instructions
+at identical addresses. It cannot distinguish this compiler inlining change
+from an intentional FIFO data-access change. The new PAD has the same explicit
+limitation; compare the release arms as well.

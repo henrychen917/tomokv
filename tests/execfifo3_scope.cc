@@ -22,6 +22,8 @@ extern "C" int production_fused_parse(void*, Client*)
     asm("_ZN" NSM "6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE");
 extern "C" int production_split_parse(void*, Client*)
     asm("_ZN" NSM "6IoLoop18parse_and_dispatchILb0ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE");
+extern "C" unsigned production_local_drain(void*, unsigned)
+    asm("_ZN" NSM "7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjj");
 struct Region { const char* name; const void* address; size_t size; };
 Region scope_regions[40]{};
 unsigned scope_region_count = 0;
@@ -81,6 +83,11 @@ struct CoreConcurrencyTest {
         IoLoop reader;reader.srv_=&server;reader.self_=&server.thread(io);
         if constexpr(Fused)reader.fused_executor_=&loops[io];
         reader.refresh_notify_config();
+        if constexpr(Fused) if(parse&&local&&command=="GET") {
+            server.thread(io).publish_read_local_tick(server.read_local_epoch());
+            server.thread(io).set_read_local_lane_active(true);
+            loops[io].bind_fused_completion(nullptr,[](void*,Client*){});
+        }
         region("IoLoop",&reader,sizeof(reader));
         region("IoThread",&server.thread(io),sizeof(ThreadCtx));
         std::unique_ptr<Client> clients[2];std::string keys[2];int32_t shards[2]{};
@@ -134,7 +141,12 @@ struct CoreConcurrencyTest {
                     need(client.rpos()==wire.size());unsigned count=0;
                     server.thread(server.worker_of_shard(shards[w])).drain_tasks_unmasked([&](const Task& task) {
                         need(count<batch);tasks[count++]=task;
-                    });need(count==batch);
+                    });
+                    if constexpr(Fused) {
+                        if(local&&command=="GET") {
+                            need(count==0);need(production_local_drain(&loops[io],batch)==batch);
+                        } else need(count==batch);
+                    } else need(count==batch);
                 } else for(unsigned i=0;i<batch;++i) {
                     auto* op=client.rob().template acquire<false>();need(op);
                     need(op->push_arg(Slice(command.data(),command.size())));
@@ -147,8 +159,9 @@ struct CoreConcurrencyTest {
                 }
                 // In a traced run there is exactly one turn and one owner.
                 if(!parse)scope_begin();
-                if constexpr(Fused)production_fused(&loop,tasks,batch);
-                else production_split(&loop,tasks,batch);
+                if constexpr(Fused) {
+                    if(!(parse&&local&&command=="GET"))production_fused(&loop,tasks,batch);
+                } else production_split(&loop,tasks,batch);
                 if(!parse)scope_end();
                 need(client.rob().drain([&](Op& op) {
                     const std::string want=command=="INCR"?":"+std::to_string(++completed)+"\r\n"

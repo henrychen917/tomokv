@@ -21,7 +21,8 @@ regions=[]
 for i in range(int(gdb.parse_and_eval('scope_region_count'))):
  r=gdb.parse_and_eval('scope_regions[%d]'%i)
  regions.append((int(r['address']),int(r['size']),r['name'].string()))
-memory=Counter();unknown=Counter();code_lines=set();accesses=0
+memory=Counter();unknown=Counter();code_lines=set();accesses=0;stack_lines=set()
+stack_top=int(gdb.parse_and_eval('$rsp'))
 def reg(r):
  return int(gdb.parse_and_eval('$'+decoder.reg_name(r))) if r else 0
 def memory_step(pc):
@@ -37,10 +38,14 @@ def memory_step(pc):
   addr&=(1<<64)-1;accesses+=1
   for base,size,name in regions:
    if base<=addr<base+size:
-    for line in range((addr-base)//64,(addr-base+operand.size-1)//64+1):
+    for line in range(addr//64-base//64,(addr+operand.size-1)//64-base//64+1):
      memory['%s+%d access=%d'%(name,line*64,operand.access)]+=1
     break
-  else:unknown[str(operand.access)]+=1
+  else:
+   if stack_top-65536<=addr<=stack_top+8192:
+    unknown['stack/'+str(operand.access)]+=1
+    stack_lines.update(range(addr//64,(addr+operand.size-1)//64+1))
+   else:unknown[str(operand.access)]+=1
 '''
 
 def instrument():
@@ -52,7 +57,7 @@ def instrument():
             text=text.replace('start.delete();gdb.execute',setup+'\nstart.delete();gdb.execute')
             text=text.replace('  counts[fn[3]]+=1','  memory_step(pc)\n  counts[fn[3]]+=1')
             text=text.replace('dict(total=sum(counts.values()),',
-                'dict(memory=dict(memory),unknown_memory=dict(unknown),memory_operands=accesses,'
+                'dict(memory=dict(memory),unknown_memory=dict(unknown),memory_operands=accesses,stack_cache_lines=len(stack_lines),'
                 'instruction_cache_lines=len(code_lines),regions=[dict(name=n,size=s,alignment=b%64) for b,s,n in regions],total=sum(counts.values()),')
             path.write_text(text)
         return original(command,*args,**kwargs)
@@ -67,14 +72,22 @@ def main():
     p.add_argument('--namespaces',default='normal,db0');p.add_argument('--batches',default='1,32')
     p.add_argument('--commands',default='')
     p.add_argument('--overrides',type=Path)
+    p.add_argument('--fresh',action='store_true',help='recount even an identical linked image')
     a=p.parse_args();assert os.sched_getaffinity(0)<=set(range(96,112))
     scope.OUT=ROOT/'docs/execfifo3'/a.kind;scope.OUT.mkdir(parents=True,exist_ok=True)
     scope.BUILD=BASE/(a.kind+'-scopes');scope.BUILD.mkdir(parents=True,exist_ok=True)
     scope.ARMS={arm:(BASE/(arm.lower()+'-source'),BASE/(arm.lower()+'-source')/'build') for arm in ('PRE','FIFO')}
     scope.ARMS['POST']=(ROOT,ROOT/'build');scope.SYMBOL_PREFIXES={}
+    scope.ARMS['POST-final']=(ROOT,ROOT/'build')
+    scope.ARMS['TRIAL']=(ROOT,ROOT/'build')
     if a.overrides:scope.OBJECT_OVERRIDES=json.loads(a.overrides.read_text())
     if a.kind=='memory':scope.FIXTURE=ROOT/'tests/execfifo3_scope.cc';instrument()
     arms=a.arms.split(',');namespaces=a.namespaces.split(',')
+    if a.fresh:
+        for arm in arms:
+            for ns in namespaces:
+                for path in scope.OUT.glob(arm+'-'+ns+'-*.log'):
+                    if not path.name.endswith('-build.log'):path.unlink()
     if not a.trace_only:
         for arm in arms:
             for ns in namespaces:scope.build(arm,ns)
@@ -99,8 +112,16 @@ def main():
                                   if row['memory'].get(k,0)!=pre['memory'].get(k,0)}
             pair['operand_delta']=row['memory_operands']-pre['memory_operands']
             pair['code_lines']=[pre['instruction_cache_lines'],row['instruction_cache_lines']]
+            old_lines={k.split(' access=')[0] for k in pre['memory']}
+            new_lines={k.split(' access=')[0] for k in row['memory']}
+            pair['added_object_lines']=sorted(new_lines-old_lines)
         pairs.append(pair)
     scope.save(scope.OUT/('comparison-'+a.arms+'.json'),pairs)
     print('Comparisons',len(pairs),'positive instruction deltas',sum(r['delta']>0 for r in pairs))
+    candidate=[r for r in pairs if r['arm'].startswith('POST')]
+    assert all(r['delta']<=0 for r in candidate),'POST adds production-scope instructions'
+    if a.kind=='memory':
+        assert all(r['operand_delta']<=0 and not r['added_object_lines'] for r in candidate),\
+            'POST adds explicit memory operands or an object line'
 
 if __name__=='__main__':main()
