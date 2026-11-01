@@ -61,7 +61,7 @@
 # testing nothing is worse than no gate.
 set -u
 # Make every ordinary server/oracle child independent of the caller's locale.
-# Locale-specific batteries (CD4.6) explicitly override their child environment.
+# Locale-specific batteries (CD4.6) arm other collations through CONFIG.
 export LC_ALL=C
 cd "$(dirname "$0")/.."
 # The observation campaign remains outside landing counts and performance tiers.

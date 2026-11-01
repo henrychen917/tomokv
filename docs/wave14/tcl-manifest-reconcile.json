@@ -1,0 +1,42 @@
+{
+  "headline_required": 1878,
+  "merged_required": 1876,
+  "headline_named_skips": 211,
+  "merged_named_skips": 213,
+  "added": [
+    [
+      "unit/introspection",
+      "CLIENT KILL SKIPME YES/NO will kill all clients in tests/unit/introspection.tcl"
+    ],
+    [
+      "unit/pause",
+      "Test old pause-all takes precedence over new pause-write (less restrictive) in tests/unit/pause.tcl"
+    ],
+    [
+      "unit/pubsub",
+      "unsubscribe inside multi, and publish to self in tests/unit/pubsub.tcl"
+    ]
+  ],
+  "retired": [
+    [
+      "unit/introspection",
+      "MONITOR log blocked command only once in tests/unit/introspection.tcl"
+    ],
+    [
+      "unit/pubsub",
+      "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments in tests/unit/pubsub.tcl"
+    ],
+    [
+      "unit/type/list",
+      "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl"
+    ],
+    [
+      "unit/type/list",
+      "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl"
+    ],
+    [
+      "unit/type/stream-cgroups",
+      "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "arm": "pre",
+  "kind": "ordinary",
+  "namespace": "normal",
+  "server_sha256": "eb46b9718b4642fc78d3139f9e903c934bd0f47f3867267ea003af3f30ef5814",
+  "probe_sha256": "a6066137c76b4756bd60b44530b5fcd2c33c06816eee640179d1547306f75c0b",
+  "entered_groups": 126,
+  "matched": 126,
+  "unmatched": []
+}
