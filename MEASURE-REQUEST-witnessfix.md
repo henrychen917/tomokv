@@ -295,3 +295,14 @@ of owner tasks drained between snapshot-control passes is still needed to
 claim a bounded scheduler witness. No performance conclusion is drawn.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V8 — blocking producer gaps remain open
+
+UNREPAIRED: the atomic-1 RENAME/move controls remain conservation smoke checks,
+not negative-control evidence for the atomic-0 missing-wake fix. COPY, RESTORE,
+Z*STORE and GEOSEARCHSTORE wake omissions are unfixed production paths; adding
+an always-green assertion would hide the defect. The stream-removal boundary
+still covers only DEL/UNLINK. NOT RUN: new producer and removal matrices or
+planted-defect proofs for them. These remain blocking/hang inputs for rootcompat.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
