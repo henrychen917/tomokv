@@ -1,7 +1,9 @@
 """CD4.6: environment default, live locale-collate, and binary STORE ordering."""
 from concurrent.futures import ThreadPoolExecutor
+import json
 import threading
-from datafix1_common import main, Conn
+from datafix1_common import main, Conn, plain
+from known_difference import expect
 
 
 def battery(p):
@@ -13,21 +15,32 @@ def battery(p):
     for i, value in enumerate(values):
         p.cmd('SET', 'weight:'+value, value)
         p.cmd('ZADD', 'z', i, value)
-    # The common boot helper explicitly sets en_US.UTF-8 for both processes.
-    # Prove that the empty setting follows that environment even when the gate
-    # itself exports C; comparing two accidentally C-pinned boots would be vacuous.
+    # Every server boots in C. Explicit non-C collation must still differ,
+    # and resetting the setting must restore the inherited C order.
     inherited = p.cmd('SORT_RO', 'l', 'ALPHA')
     p.cmd('CONFIG', 'SET', 'locale-collate', 'C')
     binary = p.cmd('SORT_RO', 'l', 'ALPHA')
     p.cmd('CONFIG', 'SET', 'locale-collate', 'en_US.UTF-8')
     explicit = p.cmd('SORT_RO', 'l', 'ALPHA')
-    p.check(inherited == explicit and all(a != b for a, b in zip(inherited, binary)),
-            ('environment default must be en_US.UTF-8, distinct from C', inherited, binary, explicit))
+    p.check(inherited == binary and all(a != b for a, b in zip(explicit, binary)),
+            ('inherited C must differ from explicitly armed en_US.UTF-8', inherited, binary, explicit))
     p.cmd('CONFIG', 'SET', 'locale-collate', '')
     p.check(p.cmd('SORT_RO', 'l', 'ALPHA') == inherited, 'empty locale restores environment')
     for locale in ('', 'C', 'en_US.UTF-8', 'C.UTF-8', 'not_a_locale', 'C\x00suffix', ''):
         p.cmd('CONFIG', 'SET', 'locale-collate', locale)
         p.cmd('CONFIG', 'GET', 'locale-collate')
+        lua = ('EVAL', "local t={'b','A','a','B','é'}; table.sort(t); return {('a'<'B') and 1 or 0,t}", 0)
+        if locale == 'en_US.UTF-8':
+            oracle = p.oracle.cmd(*lua)
+            target = p.target.cmd(*lua) if p.target else oracle
+            p.check(oracle == [1, [b'a', b'A', b'b', b'B', 'é'.encode()]],
+                    ('Redis non-C Lua collation armed', oracle))
+            compatible = expect(target, oracle, root='CD4.6-LUA-COLLATION (compat audit 6.12)',
+                                known=[0, [b'A', b'B', b'a', b'b', 'é'.encode()]])
+            p.receipt.write(json.dumps(plain(dict(argv=lua, oracle=oracle, target=target,
+                known_difference=None if compatible else 'CD4.6-LUA-COLLATION'))) + '\n')
+        else:
+            p.cmd(*lua)
         for source in ('l', 's', 'z'):
             for command in ('SORT', 'SORT_RO'):
                 p.cmd(command, source, 'ALPHA')

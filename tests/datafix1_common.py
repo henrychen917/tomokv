@@ -19,7 +19,7 @@ def boot(binary, port, cores, directory, flags=()):
     argv = ['taskset', '-c', cores, str(Path(binary).resolve()), '--bind', '127.0.0.1',
             '--port', str(port), '--dir', str(directory.resolve()), '--save', '',
             '--appendonly', 'no', '--enable-debug-command', 'yes', *flags]
-    env = dict(os.environ, LANG='en_US.UTF-8', LC_ALL='en_US.UTF-8')
+    env = dict(os.environ, LANG='C', LC_ALL='C')
     with (directory / 'server.log').open('w') as log:
         p = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT, env=env)
     print(json.dumps(dict(start=argv, pid=p.pid)), flush=True)
@@ -78,7 +78,9 @@ class Pair:
 def main(feature, battery, *, multi=False, flags=()):
     p = argparse.ArgumentParser()
     p.add_argument('--binary', default='build/tomokv')
-    p.add_argument('--oracle', default='/home/user/Projects/redis74/src/redis-server')
+    p.add_argument('--oracle', default=os.environ.get('GATE_DIFFER_ORACLE_BIN',
+                   str(Path(os.environ.get('REDIS74_ROOT', '/home/user/Projects/redis74')) /
+                       'src/redis-server')))
     p.add_argument('--port', type=int, default=int(os.environ.get('GATE_PORT', 29800)))
     p.add_argument('--cores', default=os.environ.get('GATE_CORES', '48-55'))
     p.add_argument('--ratio', default='6:2')

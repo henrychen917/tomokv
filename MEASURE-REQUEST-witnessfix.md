@@ -183,3 +183,11 @@ known PS7 count/SV9 background-status differences. The gated INFO missing-field
 battery also forces this error path with a directory at dbfilename and requires
 an error plus one recorded hit. It never turns a successful SAVE into evidence
 of an error path. DQ=DF=0.
+
+### Compat 4.1 — CD4.6 locale coverage and boot discipline
+
+All datafix1 servers now boot with LC_ALL=C, including direct invocation. The
+locale battery proves explicit en_US.UTF-8 differs from inherited C and compares
+Lua sorting/comparison with the oracle while changing locale-collate. Non-C
+ambient server startup is NOT RUN because this task requires every boot in C.
+DQ=DF=0.
