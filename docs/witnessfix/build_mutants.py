@@ -21,6 +21,11 @@ private = 'if (!state.multi_child) store.atomic_set_read_context(UINT64_MAX, sta
 assert movers.count(private) == 1
 arms.append(('exec-private-view', 'src/cmd/xshard.cc', '#include "xshard_movers.inc"',
              movers.replace(private, 'store.atomic_set_read_context(UINT64_MAX, state.origin_conn_id); // planted lost EXEC overlay')))
+mpop = Path('src/cmd/xshard_commands.inc').read_text()
+assert mpop.count('ERR numkeys should be greater than 0') == 1
+arms.append(('mpop-error-suffix', 'src/cmd/xshard.cc', '#include "xshard_commands.inc"',
+             mpop.replace('ERR numkeys should be greater than 0',
+                          'ERR numkeys planted unrelated suffix')))
 selected = set(sys.argv[1:]) or {name for name, *_ in arms}
 assert selected <= {name for name, *_ in arms}, selected
 for name,source,old,new in arms:
