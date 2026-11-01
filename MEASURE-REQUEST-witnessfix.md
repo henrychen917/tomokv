@@ -199,3 +199,12 @@ existing rows aggregate both as well. Per-runtime argv and replies have distinct
 receipt directories. This closes the db0-only setup gap without changing the
 number of public rows (DQ=DF=0). Geometry coverage alone is not a new defect
 negative control.
+
+### Compat 4.2 — DBSIZE command substitution
+
+The multidb differential now sends plain DBSIZE to both servers before the
+separate NOW exact-count property. Nonnegative but unequal published counts
+are explicitly DBSIZE-PUBLICATION-LAG (owner decision 12), excluded from parity
+and counted. Invalid frames still fail; the existing final nonzero population
+must converge within its bound. NOW no longer impersonates compatibility with
+Redis DBSIZE. DQ=DF=0.

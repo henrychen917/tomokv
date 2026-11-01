@@ -6161,10 +6161,9 @@ def gen_multidb(rng):
         elif choice == 7:
             ops.append(["FLUSHDB"])
         elif choice == 8:
-            # gen_edgetime deliberately excludes batch-published DBSIZE/INFO.
-            # Preserve this command position, but compare NOW to Redis DBSIZE
-            # as an exact-count property in the runner below.
-            ops.append(["DBSIZE", "NOW"])
+            # Compare Redis's command first. NOW is a separate TomoKV exact-count
+            # property; it must not silently replace the compatibility probe.
+            ops += [["DBSIZE"], ["DBSIZE", "NOW"]]
         elif choice == 9:
             ops.append(["KEYS", "mdb:*"])
         elif choice == 10:
@@ -6173,7 +6172,7 @@ def gen_multidb(rng):
             ops += [["MULTI"], ["SELECT", str(rng.randrange(4))], ["SET", key, "txn"],
                     ["GET", key], ["SELECT", str(rng.randrange(4))], ["GET", key], ["EXEC"]]
     for db in range(4):
-        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE", "NOW"]]
+        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE"], ["DBSIZE", "NOW"]]
     # Leave a known nonzero population for the publication check after the last
     # reply. A publisher stuck at zero must fail, even if the random tail is empty.
     ops += [["SELECT", "0"], ["FLUSHALL"], ["SET", "mdb:publication", "live"]]
@@ -6917,6 +6916,7 @@ BATCH = (1 if SUITE == "script" else
          16 if SUITE in ("hll", "cgaps", "cmdgap2") else
          512 if SUITE in ("storeorder", "multidb") else 64)
 dbsize_positions_checked = 0
+dbsize_compat_checked = dbsize_known_lag = 0
 ttl_deadlines = (TtlDeadlines(), TtlDeadlines())
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
@@ -6960,6 +6960,21 @@ for i in range(0, len(ops), BATCH):
         coverage.note(o)
         for state, reply, window in zip(ttl_deadlines, (a, b), (target_window, oracle_window)):
             state.observe(o, reply, window)
+        if SUITE == "multidb" and o == ["DBSIZE"]:
+            dbsize_compat_checked += 1
+            try:
+                valid = dbsize_integer(a) >= 0 and dbsize_integer(b) >= 0
+            except ValueError:
+                valid = False
+            if not valid:
+                diffs += 1
+                print("  DBSIZE invalid reply: target=%r oracle=%r" % (a, b))
+            elif a != b:
+                dbsize_known_lag += 1
+                if dbsize_known_lag <= 4:
+                    print("  KNOWN DIFFERENCE DBSIZE-PUBLICATION-LAG (owner decision 12): "
+                          "op %d target=%r Redis=%r; excluded from parity" % (i + j, a, b))
+            continue
         if SUITE == "multidb" and o == ["DBSIZE", "NOW"]:
             dbsize_positions_checked += 1
             try:
@@ -7016,6 +7031,10 @@ if SUITE == "multidb":
     expected_positions = sum(o == ["DBSIZE", "NOW"] for o in ops)
     if not expected_positions or dbsize_positions_checked != expected_positions:
         raise RuntimeError("DBSIZE exact-count positions were not all checked")
+    if dbsize_compat_checked != expected_positions:
+        raise RuntimeError("DBSIZE compatibility positions were not all checked")
+    print("  DBSIZE compatibility positions=%d known_publication_lag=%d" %
+          (dbsize_compat_checked, dbsize_known_lag))
     ts.sendall(enc(["DBSIZE", "NOW"])); os_.sendall(enc(["DBSIZE"]))
     exact = dbsize_integer(read_reply(tf))
     oracle = dbsize_integer(read_reply(of))
