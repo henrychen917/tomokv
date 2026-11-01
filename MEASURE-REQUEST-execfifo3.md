@@ -89,15 +89,21 @@ and `PAD-A`. [SHA256SUMS](docs/execfifo3/SHA256SUMS) and the
 
 | Arm | SHA-256 |
 | --- | --- |
-| PRE | `15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b` |
+| PRE (unchanged) | `735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca` |
 | FIFO (unchanged) | `ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a` |
 | POST | `6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8` |
 | POST-layout | `c3512ef049bd02e5fcf9ef4da31a32b1909cd21ae2a8136303f488029903aa25` |
 | PAD-A | `47c757dca7ceacff91b512c52b6aafdeecbaa6b217ab7636c7774b8d6507e7c4` |
 
-PRE was rebuilt from e32b04a44; its executable `.text` is identical to
-execfifo2's frozen PRE (full-file differences include build/debug provenance).
-FIFO is byte-identical to execfifo2's frozen POST. POST's `.text` is 8,759,831
+PRE and FIFO are byte-identical to execfifo2's frozen PRE and POST.
+The reconstructed e32 PRE used for linked fixture objects and the common-image
+PRE body is retained as `PRE-rebuilt.gz`. Its `.text` and allocated section
+layouts match the original; the allocated byte differences are the ELF build ID
+and two INFO revision strings naming the build checkout (`0461be76` instead of
+`e32b04a4`). [The full comparison](docs/execfifo3/pre-loadable-comparison.json)
+binds both hashes and the exact differing bytes. Existing fixture receipts
+remain bound to that reconstruction. Native measurements use the original PRE.
+POST's `.text` is 8,759,831
 bytes, +20,432 versus FIFO. The intermediate two-budget candidate and its own
 PAD-A/common-image pair remain losslessly archived in `build/execfifo3/stage1/`
 with separate receipts and [restoration instructions](docs/execfifo3/reproduce.md);

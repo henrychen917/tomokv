@@ -2,10 +2,11 @@
   {
     "arm": "PRE",
     "path": "build/execfifo3/PRE",
-    "sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b",
+    "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
     "bytes": 224567720,
     "text_bytes": 8729431,
-    "text_sha256": "2b3989a3f6e2ead05a90f22220602aa6ae947f062341c99d5d96212539a7a544"
+    "text_sha256": "2b3989a3f6e2ead05a90f22220602aa6ae947f062341c99d5d96212539a7a544",
+    "source": "byte-identical execfifo2 PRE, source e32b04a44"
   },
   {
     "arm": "FIFO",
@@ -44,5 +45,11 @@
     "path": "build/execfifo3/original-artifacts/PRE",
     "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
     "text_equal_to_rebuild": true
+  },
+  {
+    "arm": "PRE-rebuilt-reference",
+    "path": "build/execfifo3/PRE-rebuilt",
+    "sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b",
+    "text_equal_to_original": true
   }
 ]

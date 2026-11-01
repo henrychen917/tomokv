@@ -30,7 +30,9 @@ def main():
                                                if row['arm']=='PRE-original-reference')
     expected[BASE/'original-artifacts/FIFO']=next(row['sha256'] for row in final
                                                 if row['arm']=='FIFO')
-    assert len(expected)==5
+    expected[BASE/'PRE-rebuilt']=next(row['sha256'] for row in final
+                                    if row['arm']=='PRE-rebuilt-reference')
+    assert len(expected)==6
     rows=json.loads(RECORD.read_text()) if RECORD.exists() else []
     saved=0
     for path,sha in expected.items():

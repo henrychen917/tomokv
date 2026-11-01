@@ -1,11 +1,12 @@
 [
   {
     "arm": "PRE",
-    "path": "build/execfifo3/PRE",
+    "path": "build/execfifo3/PRE-rebuilt",
     "sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b",
     "bytes": 224567720,
     "text_bytes": 8729431,
-    "text_sha256": "2b3989a3f6e2ead05a90f22220602aa6ae947f062341c99d5d96212539a7a544"
+    "text_sha256": "2b3989a3f6e2ead05a90f22220602aa6ae947f062341c99d5d96212539a7a544",
+    "archival_note": "This stage used the reconstructed e32 baseline; the final native PRE is execfifo2's original image."
   },
   {
     "arm": "FIFO",

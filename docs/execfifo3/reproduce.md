@@ -10,7 +10,14 @@ Production code is the three-value Makefile change at `4248cfd40`; later commits
 contain evidence and tooling. The release candidate is `build/execfifo3/POST`.
 `POST-final` in fixture filenames denotes that same final production link.
 
-The superseded stage-1 images and original reference copies are retained as
+The native PRE is byte-identical to execfifo2's original; the reconstructed PRE
+used to link fixtures and the common-image control is retained separately as
+`PRE-rebuilt.gz`. Its text is identical, but its INFO revision strings identify
+the build checkout. `pre-loadable-comparison.json` records every allocated-section
+difference. The recorded fixture counters are unchanged by the native-baseline
+selection.
+
+The superseded stage-1 images, reconstructed PRE and original reference copies are retained as
 `.gz` files to leave room for sanitizer builds. `image-archives.json` records
 their compressed and original hashes. The five final arms remain uncompressed
 and are the entries in `SHA256SUMS`. The archived original PRE also has its

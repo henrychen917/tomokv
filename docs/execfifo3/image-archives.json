@@ -43,5 +43,14 @@
     "bytes": 225416448,
     "archive_bytes": 95462494,
     "mode": 509
+  },
+  {
+    "path": "build/execfifo3/PRE-rebuilt",
+    "archive": "build/execfifo3/PRE-rebuilt.gz",
+    "sha256": "15faa04036c682eba596d520925bedd55f337d0802029db893fd5cb25d523c3b",
+    "archive_sha256": "9a9546e94ae74063ae303d59a883015892a2ce0bb136b734c52383f4f186b0e0",
+    "bytes": 224567720,
+    "archive_bytes": 95147513,
+    "mode": 509
   }
 ]
