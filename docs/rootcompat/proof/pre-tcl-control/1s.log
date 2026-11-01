@@ -1,0 +1,5 @@
+1s unit/pubsub: 32 pass 0 fail 15 skip rc=0 complete=True
+1s unit/scripting: 158 pass 2 fail 88 skip rc=1 complete=True
+1s unit/type/list: 242 pass 1 fail 47 skip rc=1 complete=True
+1s unit/type/list-3: 2 pass 1 fail 4 skip rc=1 complete=True
+1s unit/type/stream-cgroups: 49 pass 1 fail 5 skip rc=1 complete=True
