@@ -270,7 +270,11 @@ every mode/engine/database leg, alongside the donor controls. Exact delivery,
 no duplicate or missing members and post-drain state are required; no blind
 counter substitutes for those checks. DQ=DF=0. Baseline passed all eight mode/engine/database legs. The available
 woundfix PRE also passes the added EXEC sub-battery, despite other mover rows
-failing; that PRE is not a negative control for this addition.
+failing; that PRE is not a negative control for this addition. A second control
+removed the mover helper's private-read-context preservation, but all eight
+EXEC sub-batteries still passed; that attempted control is also excluded.
+**V10 remains coverage-only, not a closed regression witness.** Both attempted
+controls are recorded; their temporary binaries/source copies were removed.
 
 ### V11 — both list-push namespace publishers
 
@@ -495,3 +499,78 @@ No new fixtures or binaries were built for this inventory.
 - CD4.19's GEO COUNT form and NT4.17 remain only partly covered. Round 5 should
   isolate their wrong-reply/protocol paths rather than treating neighboring
   forms or the smaller inline battery as equivalent coverage.
+
+### Validation inventory and limits
+
+Frozen candidate: `build/witnessfix/tomokv-7d2f8a205`; SHA256 is in
+`docs/witnessfix/baseline.sha256`. Every live positive job below selected that
+binary. Rebuilt production-body units and lottery instruments use the unchanged
+baseline source. The requested Redis oracle and the historical redis74 path
+have identical SHA256 (see `oracle-binaries.sha256`); TLS uses its existing
+separate TLS-enabled oracle. All server boot commands inherited `LC_ALL=C`.
+
+The gate's own partial interface was used with server cores 80-87, client cores
+88-95 and dedicated three-port ranges inside 20500-20599. `GATE_PROOF_NO_RATES=1`
+prevents optional rate checks in the selected jobs; no full iteration or gate
+receipt is claimed. Gate logs explicitly identify partial execution. The
+lottery memtier exception and fix are recorded under V14.
+
+| Final positive run | Result / scope |
+|---|---|
+| V1-tcl-info-final-gate / KNbncV | 5 rows pass: ACLKEYS3 (88 schedules), touched Tcl files in both modes, INFO compatibility missing fields. |
+| compat-corrections-gate / wnjTzl | 15 rows pass: ACL runtime/capacity, locale, exact CONFIG errors. |
+| compat-rest-gate / PtFRDq | Auth's five rows and the remaining datafix1/netfix rows pass. Its initial locale and ACL capacity failures are preserved; corrected runs above supersede those two test states. |
+| compat-strengthened-gate / fh6Dke | WATCH and histogram jobs pass. Its initial excessive Lua CPU-loop budget failed; corrected INFO runs use 10,000 iterations and pass. |
+| core-gate / VrEKcy | Snapshot shutdown/script/EXEC and EXEC interaction rows pass. Its old atomic-0 xmove detector failed; final debug runs below supersede that test state. |
+| remaining-core-gate / 9Xkxyg | 49 rows pass: atomic units including storesize, movers, txn groups in both modes, exec1s, wound controls and at412 owner/T7/T8. |
+| debug-final-split / C8Qe5S | 33 rows pass, both atomic settings; every battery starts with an asserted live flag. |
+| debug-final-fused / BUEmU9 | 33 rows pass with GATE_TXN_FUSED=1 and read-local armed, both atomic settings. |
+| features-gate / O3MRN4 | 139 rows pass, split/armed-fused × atomic 0/1, including all netcmd legs. |
+| flip-list-final / qaKgTE | 11 rows pass: strict FLIP checks in both engines and the new list namespace unit. |
+| mover-final-gate / Q1ikt4 | 9 rows pass (release plus eight geometry legs), including the new probe/push/claim unit cases and EXEC coverage. |
+
+Each archive in `docs/witnessfix/gates/` preserves the canonical partial ledger,
+job ledgers and small stdout/JSON receipts. `gate-runs.json` retains earlier
+failures and non-discriminating controls instead of presenting only the final
+green runs. Reproduction entry point: `GATE_ONLY_JOBS='<job names>' LC_ALL=C
+GATE_PROOF_NO_RATES=1 taskset -c 80-95 tests/gate.sh quick --server-cores 80-87
+--load-cores 88-95 --load-smt '' --ports 20500-20502 --candidate-binary
+"$PWD/build/witnessfix/tomokv-7d2f8a205"`. Differential jobs use `full` with the
+same partial selector and `REDIS74_ROOT=/home/user/Projects/redis`; they do not
+run the full tier's performance phases.
+
+| Repaired witness | Discriminating result |
+|---|---|
+| ACLKEYS3 | No-wake and no-hold controls: 16/16 selected legs fail; baseline 88/88 pass. |
+| TM4.1 restoration | Removed restore: four mode/atomic settings fail the live flag assertion; restoration passes all four. |
+| Replacement mover push schedule | Stale phase-one selection: four unit legs fail the claimed-value assertion; baseline passes with 16 actual schedule hits. |
+| List namespace publishers | Namespace zero at each of the two call sites fails exactly that branch; baseline reaches both branches/edges in namespaces 1/15/255. |
+| FLIP five-second freeze | One witnessed pause per process: old battery passes in both engines, repaired battery fails with client 4s timeouts in both. |
+| Snapshot script refusal | at412 PRE: all eight target shutdown legs fail on received TRYAGAIN; oracle and baseline legs pass. The PRE BGSAVE-script failures occur while arming BGSAVE and are not credited to the new refusal check. |
+| Same-shard SMOVE WATCH | multifix PRE: 24/24 target legs fail the added unchanged-destination WATCH assertion; baseline passes. |
+| Enabled histogram | Always-empty mutant fails all four mode/engine legs; baseline passes. |
+| INFO CPU | Constant-zero mutant fails the new advancing-CPU assertions in all eight target geometry legs (both RESP versions); baseline passes. |
+| CONFIG errors | Unrelated-error mutant fails the exact allowlist check; baseline passes all mode/engine legs. |
+
+Anti-witness conversions, label repairs and deleted dead-counter checks are not
+counted as new defect controls. Named known differences remain exclusions from
+Redis compatibility evidence. Every unproved core/compatibility flag is listed
+above; this lane does **not** claim that all audit flags are closed.
+
+Row accounting: **DQ=+2, DF=+2**. `collect_job aclkeys_wake` and
+`collect_job list_namespace` occur at lines 6253/6254 of this gate revision,
+before the quick exit at line 6499. No row is retired. The execfair label changes
+identity text only; expanded internal matrices add no public rows. The five Tcl
+demotions affect assertion counts inside existing jobs, not gate rows.
+`EXPECT_QUICK=999` and `EXPECT_FULL=1016` remain untouched; the maintainer should
+set **1001 / 1018** after accepting these two additions.
+
+Scheduler self-test resource correction: the fixed 45-second outer process cap
+repeatedly expired in the complete-inventory one-slot fixture (the other 76
+checks passed with compilation stopped). This is not a Redis latency or race
+window assertion. The fixture now derives its outer resource budget as 45s
+setup/teardown plus 0.5s per source-declared job per slot. It still executes the
+entire inventory and all real budget/watchdog/history helpers, and every
+failure-injection assertion remains. Real gate row deadlines, latency limits,
+arming thresholds and retry policy are unchanged. Earlier timeout receipts are
+retained. This correction is not offered as a production performance result.

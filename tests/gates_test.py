@@ -911,9 +911,9 @@ collect_job(){
         probe = cls('test_one_slot_uses_the_same_queue_without_losing_coverage')
         # This control deliberately serializes the complete inventory, including
         # every real budget/watchdog/history process. Three other full fixtures
-        # beside it made that serial critical path exceed 45s after wave9's
-        # inventory grew. Run it first on owned CPUs; retain its deadline, all
-        # rows and every concurrently scheduled negative control below. Waiting
+        # beside it made that serial critical path exceed its resource budget
+        # after the inventory grew. Run it first on owned CPUs; retain all rows
+        # and every concurrently scheduled negative control below. Waiting
         # through exception() preserves a failure for its test without skipping
         # the remaining scenarios.
         single_slot = pool.submit(probe._run_scheduler, slots=1, _cpus=cpus[-4:])
@@ -1198,10 +1198,17 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             def preserve_failure(stdout='', stderr=''):
                 saved = preserve_scheduler_failure(root, directory, script, stdout, stderr)
                 return f'\nScheduler failure artifacts: {saved}\n'
+            # This is a resource cap for walking the complete mocked inventory,
+            # not a command latency oracle. Each row still runs the real budget,
+            # watchdog and history helpers. Keep 45s setup/teardown slack and
+            # 0.5s per scheduled job per slot as the inventory grows. The gate's
+            # real row deadlines and every fault assertion remain unchanged.
+            row_count = len(canonical) + len(helpers)
+            fixture_timeout = 45 + (row_count + 2 * count - 1) // (2 * count)
             try:
-                result = subprocess.run(['timeout', '--kill-after=2', '45', 'taskset', '-c', cpu_list,
+                result = subprocess.run(['timeout', '--kill-after=2', str(fixture_timeout), 'taskset', '-c', cpu_list,
                                          'bash', str(script_path)], cwd=root, env=env,
-                                        text=True, capture_output=True, timeout=50)
+                                        text=True, capture_output=True, timeout=fixture_timeout + 5)
             except subprocess.TimeoutExpired as exc:
                 def as_text(value):
                     return value.decode(errors='replace') if isinstance(value, bytes) else value or ''
