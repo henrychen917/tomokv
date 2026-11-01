@@ -33,7 +33,8 @@ for line in output.splitlines():
     rows.append(dict(command=name, script=bool(int(script)), held=int(held),
                      expected=expected, **ref))
 mismatches=[row for row in rows if not row['script'] and bool(row['held']) != row['expected']]
-result=dict(probe_sha256=census.sha(binary), rows=rows, mismatches=mismatches,
+result=dict(probe_sha256=census.sha(binary), server_sha256=census.sha(ROOT/'build/tomokv'),
+            rows=rows, mismatches=mismatches,
             dynamic_scripts=[row['command'] for row in rows if row['script']])
 census.save(census.DOC/'registry.json', result)
 print(json.dumps(dict(audited=len(rows), mismatches=mismatches,

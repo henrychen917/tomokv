@@ -1,0 +1,67 @@
+{
+  "run": "build/gate-run.T3awpO",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-disconnect",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.820000\tclientcompat disconnect"
+      ]
+    },
+    {
+      "job": "clientcompat-enable-race",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t80.150000\tclientcompat enable-race"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t203.130000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-tracking",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t163.380000\tclientcompat multi-tracking"
+      ]
+    },
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t207.800000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/final-witnesses.json.gz",
+  "archive_sha256": "a8b2f54089d6ee0c530e28bb384c422151627df39f028d10946360b932d5c89d",
+  "passed": 6,
+  "failed": 0
+}

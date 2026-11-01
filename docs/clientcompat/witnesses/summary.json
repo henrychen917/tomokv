@@ -2,8 +2,8 @@
   {
     "arm": "POST",
     "case": "pause",
-    "run": "mzKGBQ",
-    "ledger": "ok\t207.690000\tclientcompat pause\n",
+    "run": "T3awpO",
+    "ledger": "ok\t207.800000\tclientcompat pause\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -12,20 +12,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-pause.json.gz",
-    "archive_sha256": "de892152b55923b14d665c9cdb15384c5012c165c92df71fdbd560c71278a13a"
+    "archive_sha256": "29d979c040f71ed046375f2c78a09b32bd8b63ad25b887cb575702ee2d07b54b"
   },
   {
     "arm": "POST",
     "case": "disconnect",
-    "run": "mzKGBQ",
-    "ledger": "ok\t9.870000\tclientcompat disconnect\n",
+    "run": "T3awpO",
+    "ledger": "ok\t4.820000\tclientcompat disconnect\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -34,20 +34,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-disconnect.json.gz",
-    "archive_sha256": "23743da5d555bcc274d567f571ab25e5d28ac00c0b265b0b1526ae66e7df6998"
+    "archive_sha256": "ff80596c9c8f30be3c3e5c6c560303155be30e77d62b687aef9759e79d146aaa"
   },
   {
     "arm": "POST",
     "case": "multi-tracking",
-    "run": "mzKGBQ",
-    "ledger": "ok\t266.310000\tclientcompat multi-tracking\n",
+    "run": "T3awpO",
+    "ledger": "ok\t163.380000\tclientcompat multi-tracking\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -56,20 +56,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-multi-tracking.json.gz",
-    "archive_sha256": "1bb0de46094a7cc7936cb0af27bb9bb6c758055229eafe7d7f250961a93fc8a4"
+    "archive_sha256": "889db1fe68519695b892a506cd069307fe88972f1114caa7bc6991ac805c90ca"
   },
   {
     "arm": "POST",
     "case": "multi-controls",
-    "run": "3vXlFL",
-    "ledger": "ok\t204.240000\tclientcompat multi-controls\n",
+    "run": "T3awpO",
+    "ledger": "ok\t203.130000\tclientcompat multi-controls\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -78,22 +78,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-multi-controls.json.gz",
-    "archive_sha256": "56032099699a57c4d9bdcc72ff8e8af3a1510a48f5ed535afbad4c47989773c0",
-    "earlier_archive": "docs/clientcompat/witnesses/POST-multi-controls-before-at15.json.gz",
-    "earlier_archive_sha256": "4b41556768adb0dc9f5ca9ccce6096479427d6a30b318e1bcfdf100d99f25c4b"
+    "archive_sha256": "b4487ec83a22a598129e2233eb9923d7d353937ab24deac9fb872e03184a201c"
   },
   {
     "arm": "POST",
     "case": "enable-race",
-    "run": "mzKGBQ",
-    "ledger": "ok\t659.040000\tclientcompat enable-race\n",
+    "run": "T3awpO",
+    "ledger": "ok\t80.150000\tclientcompat enable-race\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -102,20 +100,20 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
         "total": 32,
         "passed": 32,
         "failed": []
       }
     },
     "archive": "docs/clientcompat/witnesses/POST-enable-race.json.gz",
-    "archive_sha256": "5e139bfb1f63da8a752b2cdffaa50eedd0dbecda9ec389f2940472a8474f04d4"
+    "archive_sha256": "fbbe8443a9fbad53d6e20585a6205dbde6e7795d5235e43237a2616afa185f6f"
   },
   {
     "arm": "PAD-A",
     "case": "pause",
-    "run": "ljOY8G",
-    "ledger": "FAIL\t48.760000\tclientcompat pause\n",
+    "run": "bLHsm0",
+    "ledger": "FAIL\t48.810000\tclientcompat pause\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -124,7 +122,7 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
         "total": 32,
         "passed": 0,
         "failed": [
@@ -164,13 +162,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-pause.json.gz",
-    "archive_sha256": "db6c1c4ff5dffbab1a570774ce596379b15c78c82c95a2b87c97d67c68fb0a78"
+    "archive_sha256": "8c110a0c8dab0f3e7aff2fc25d676f783c4fc531f52a19f6cf61bd90f5b785de"
   },
   {
     "arm": "PAD-A",
     "case": "disconnect",
-    "run": "ljOY8G",
-    "ledger": "FAIL\t3.830000\tclientcompat disconnect\n",
+    "run": "bLHsm0",
+    "ledger": "FAIL\t3.760000\tclientcompat disconnect\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -179,9 +177,9 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
         "total": 32,
-        "passed": 6,
+        "passed": 8,
         "failed": [
           "1s-uring-db1-a0-r0",
           "1s-uring-db1-a0-r1",
@@ -191,14 +189,12 @@
           "1s-uring-db16-a0-r1",
           "1s-uring-db16-a1-r0",
           "1s-uring-db16-a1-r1",
-          "1s-epoll-db1-a0-r0",
-          "1s-epoll-db1-a0-r1",
-          "1s-epoll-db1-a1-r0",
           "1s-epoll-db1-a1-r1",
           "1s-epoll-db16-a0-r0",
           "1s-epoll-db16-a0-r1",
           "1s-epoll-db16-a1-r0",
           "1s-epoll-db16-a1-r1",
+          "2s-uring-db1-a0-r0",
           "2s-uring-db1-a1-r0",
           "2s-uring-db1-a1-r1",
           "2s-uring-db16-a0-r0",
@@ -213,13 +209,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-disconnect.json.gz",
-    "archive_sha256": "04b2814ec65655343059d1784067f0f5547f988b27f0b260d9a2aebf0ef45cdb"
+    "archive_sha256": "c4685424545da332725111b418043c144996ea7f7d80ae84aec2f7e87429add8"
   },
   {
     "arm": "PAD-A",
     "case": "multi-tracking",
-    "run": "ljOY8G",
-    "ledger": "FAIL\t41.380000\tclientcompat multi-tracking\n",
+    "run": "bLHsm0",
+    "ledger": "FAIL\t41.460000\tclientcompat multi-tracking\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -228,7 +224,7 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
         "total": 32,
         "passed": 0,
         "failed": [
@@ -268,13 +264,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-multi-tracking.json.gz",
-    "archive_sha256": "efd75e4ce8c397b6eea3608162a5af0eb3bc05bea46411152577057eef53d41b"
+    "archive_sha256": "a7fd0527cd1eb47fa551faa4c71104a03b506d2508cc38acf27e5bd772ce9b44"
   },
   {
     "arm": "PAD-A",
     "case": "multi-controls",
-    "run": "ljOY8G",
-    "ledger": "FAIL\t3.390000\tclientcompat multi-controls\n",
+    "run": "bLHsm0",
+    "ledger": "FAIL\t3.430000\tclientcompat multi-controls\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -283,7 +279,7 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
         "total": 32,
         "passed": 0,
         "failed": [
@@ -323,13 +319,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-multi-controls.json.gz",
-    "archive_sha256": "18f96f84380cd2d80b05df556ec7fb62c915e04d0406018fa1ee4b68e12802d9"
+    "archive_sha256": "d1922f3aa964b86163f1e7ffbc3e820da04eb0c3a608bddf0dc0587d0b1522b3"
   },
   {
     "arm": "PAD-A",
     "case": "enable-race",
-    "run": "ljOY8G",
-    "ledger": "FAIL\t75.400000\tclientcompat enable-race\n",
+    "run": "bLHsm0",
+    "ledger": "FAIL\t98.270000\tclientcompat enable-race\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -338,14 +334,13 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
         "total": 32,
-        "passed": 13,
+        "passed": 3,
         "failed": [
           "1s-uring-db1-a0-r0",
           "1s-uring-db1-a0-r1",
           "1s-uring-db1-a1-r0",
-          "1s-uring-db1-a1-r1",
           "1s-uring-db16-a0-r0",
           "1s-uring-db16-a0-r1",
           "1s-uring-db16-a1-r0",
@@ -354,17 +349,28 @@
           "1s-epoll-db1-a0-r1",
           "1s-epoll-db1-a1-r0",
           "1s-epoll-db1-a1-r1",
-          "1s-epoll-db16-a0-r1",
+          "1s-epoll-db16-a0-r0",
           "1s-epoll-db16-a1-r0",
           "1s-epoll-db16-a1-r1",
           "2s-uring-db1-a0-r0",
+          "2s-uring-db1-a0-r1",
+          "2s-uring-db1-a1-r0",
           "2s-uring-db1-a1-r1",
+          "2s-uring-db16-a0-r0",
+          "2s-uring-db16-a0-r1",
+          "2s-uring-db16-a1-r0",
           "2s-uring-db16-a1-r1",
-          "2s-epoll-db1-a1-r0"
+          "2s-epoll-db1-a0-r0",
+          "2s-epoll-db1-a0-r1",
+          "2s-epoll-db1-a1-r0",
+          "2s-epoll-db1-a1-r1",
+          "2s-epoll-db16-a0-r1",
+          "2s-epoll-db16-a1-r0",
+          "2s-epoll-db16-a1-r1"
         ]
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-enable-race.json.gz",
-    "archive_sha256": "1983a7d03f74b99d4cc2eabf6523ddf82eba6e57123649c1981419f147172b92"
+    "archive_sha256": "3446bb3aa794b4799aa9f4e1b5e38c2ce80cd516fa83b6b748e7e4a7cdcb7e8e"
   }
 ]

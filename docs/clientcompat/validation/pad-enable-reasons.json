@@ -1,0 +1,9 @@
+{
+  "run": "build/gate-run.bLHsm0/jobs/clientcompat-enable-race/clientcompat-enable-race/candidate",
+  "failed": 29,
+  "total": 32,
+  "reasons": {
+    "occupied invalidation": 29
+  },
+  "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c"
+}

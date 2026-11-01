@@ -1,0 +1,67 @@
+{
+  "run": "build/gate-run.bLHsm0",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": true,
+  "jobs": [
+    {
+      "job": "clientcompat-disconnect",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t3.760000\tclientcompat disconnect"
+      ]
+    },
+    {
+      "job": "clientcompat-enable-race",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t98.270000\tclientcompat enable-race"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-controls",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t3.430000\tclientcompat multi-controls"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-tracking",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t41.460000\tclientcompat multi-tracking"
+      ]
+    },
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t48.810000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/final-pad.json.gz",
+  "archive_sha256": "691957fdfdc42d009ed7907e4317768eb5d2da8813cc7635d79d08d50708bf92",
+  "passed": 1,
+  "failed": 5
+}

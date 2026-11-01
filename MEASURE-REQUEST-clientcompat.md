@@ -172,12 +172,15 @@ change for these assertion updates.
 Final execution is in progress. The tracking FLUSH-order run exposed idle
 acknowledgement waits; the corrected POST/PAD-A arms above are built and their
 complete 160/128-row instruction products retain exactly the reported counts.
-Correctness validation is being repeated. Earlier receipts remain archived.
+Correctness validation is being repeated. All five new POST witness jobs now
+pass on the final SHA (160 candidate legs plus every oracle). The complete
+FLUSH-order job also passes: 24 geometries × 864 exact-wire cases, in 288.72 s
+under the unchanged 900 s watchdog. Earlier receipts remain archived.
 This section will be replaced with completed
 receipts before delivery. The sealed POST passed **160/160** candidate legs across all five new
 witnesses; every oracle leg passed. PAD-A failed all five gate rows as intended:
-pause 32/32, disconnect 26/32, multi-tracking 32/32, multi-controls 32/32 and
-enable-race 19/32 failing candidate legs. `docs/clientcompat/witnesses/summary.json`
+pause 32/32, disconnect 24/32, multi-tracking 32/32, multi-controls 32/32 and
+enable-race 29/32 failing candidate legs. `docs/clientcompat/witnesses/summary.json`
 and its compressed raw assertions retain both halves of this control. The sealed broad selection is
 `docs/clientcompat/final-regression-jobs.txt`; its 120 selected jobs and required
 prerequisites include the complete requested command families, Tcl both modes,
@@ -225,7 +228,8 @@ Five new `clientcompat-*` rows are collected before the quick-tier exit:
 
 **NOT RUN:** full `tests/gate.sh iteration`, ABBA/performance tiers,
 `flip_saturated`, the inline tailgen workload, and release-only stream/xmove
-rate/size-ratio assertions omitted by `GATE_PROOF_NO_RATES=1`. Those start performance
+rate/size-ratio assertions and the atomic RYOW rate comparison omitted by
+`GATE_PROOF_NO_RATES=1`. Those start performance
 benchmarks/load generators reserved to the maintainer by this task. They are
 not included in the partial correctness verdict.
 

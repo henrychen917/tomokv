@@ -1,9 +1,4 @@
 pubtrackfix
-clientcompat-pause
-clientcompat-disconnect
-clientcompat-multi-tracking
-clientcompat-multi-controls
-clientcompat-enable-race
 multifix-1s-uring
 climonfix4-1s-uring
 multifix-1s-epoll

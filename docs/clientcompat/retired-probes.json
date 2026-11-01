@@ -205,5 +205,23 @@
     "sha256": "83955edcca1bb5a843494a264bac4045ff1312b46c93a1ce9f35c24f5eb9d244",
     "bytes": 13433488,
     "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "6f73f6ed58e6ca9fd30ba8d89b223aadd32e70852907401496fd01a9ff0dd705",
+    "bytes": 26983472,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "75e060f5e4e2ec07b56a994f3ded0389db8f76dcf2637156144437faa65df02e",
+    "bytes": 230156016,
+    "source_commit": "fbbd5ddd76"
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "ca9e3e60b4aeae0f180c1318feebff601d204c783b95a953e75f74a8f66afbd6",
+    "bytes": 313632,
+    "source_commit": "fbbd5ddd76"
   }
 ]
