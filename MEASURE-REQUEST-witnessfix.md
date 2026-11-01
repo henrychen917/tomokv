@@ -273,3 +273,14 @@ implemented. NOT RUN: a planted-defect proof for case c; its 30-second duration
 is not a hit counter. It must not be cited as evidence that this window opened.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V6 — producer-to-inbox race remains unproved
+
+UNREPAIRED: the existing reflag/sweep and stranded-state fixtures do not
+observe the producer store versus ready-bit take. No deterministic live
+producer latch was added. A notification after reconstructing stranded state
+is not proof of the original producer race. NOT RUN: a no-sweep live negative
+control; the audit's roughly 1% detection rate is not accepted as closure.
+A production observable or a separately scoped scheduler fixture is needed.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
