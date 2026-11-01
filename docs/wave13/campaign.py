@@ -11,12 +11,15 @@ ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / 'docs/wave13'
 MATRIX = json.loads((DOC / 'correctness-matrix.json').read_text())
 RESERVED = {'flip_saturated', 'efficiency', 'tailgen_build'}
+# The original nonconforming attempt is retained, but must never be repeated
+# by this C-only campaign. Its assertion is unchanged and remains NOT RUN.
+CONSTRAINT_EXCLUSIONS = {'datafix1_locale'}
 BUILD_ONLY = {'production_units', 'core_tsan_build', 'waits_tsan_build'}
 DEFERRED = {'abba_selftest', 'redis_tcl', 'compat2', 'flushfix3'}
 
 
 def run(name, jobs, *options, env=None):
-    assert not set(jobs) & RESERVED
+    assert not set(jobs) & (RESERVED | CONSTRAINT_EXCLUSIONS)
     command = ['python3', str(DOC / 'run_jobs.py'), name, *jobs,
                '--binary', 'build/wave13/tomokv-POST', '--single-slot', *options]
     result = subprocess.run(command, cwd=ROOT, env=env)
@@ -27,12 +30,19 @@ def run(name, jobs, *options, env=None):
 def main():
     assert os.sched_getaffinity(0) <= set(range(16))
     parser = argparse.ArgumentParser()
-    parser.add_argument('phase', choices=['primary', 'supplements', 'differ', 'tcl', 'idle'])
+    parser.add_argument('phase', choices=['primary', 'repairs', 'supplements', 'differ', 'tcl', 'idle'])
     a = parser.parse_args()
     exits = []
     if a.phase == 'primary':
-        jobs = [j for j in job_names() if j not in RESERVED | DEFERRED | BUILD_ONLY and not j.startswith('differ-')]
+        jobs = [j for j in job_names() if j not in RESERVED | CONSTRAINT_EXCLUSIONS | DEFERRED | BUILD_ONLY and not j.startswith('differ-')]
         exits.append(run('landing-primary', jobs))
+    elif a.phase == 'repairs':
+        helper = (ROOT / 'tests/datafix1_common.py').read_text()
+        assert 'boot_locale' in helper, 'Apply the reviewed C-locale helper patch first'
+        exits.append(run('landing-blockfix-companions', ['blockfix2', 'blockfix_registry']))
+        exits.append(run('landing-datafix1-C', [
+            'datafix1_randscan', 'datafix1_hexpire', 'datafix1_bitfield',
+            'datafix1_lists', 'datafix1_spop', 'datafix1_geo']))
     elif a.phase == 'supplements':
         exits.append(run('landing-epoll', sorted(set(MATRIX['each_engine'] + MATRIX['each_mode_engine'])), '--engine', 'epoll'))
         for engine in ('uring', 'epoll'):
