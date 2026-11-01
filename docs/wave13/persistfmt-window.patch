@@ -81,7 +81,8 @@
 -    schedule = ARGS.artifacts / ('armed-' + command)
 -    schedule.unlink(missing_ok=True)
 +    schedule = ARGS.artifacts / f'armed-{command}-try{attempt}'
-+    assert not schedule.exists(), 'AOF fault attempt must have fresh state'
++    data = ARGS.artifacts / f'failure-{command}-try{attempt}'
++    assert not schedule.exists() and not data.exists(), 'AOF fault attempt must have fresh state'
      os.environ['TOMO_PERSISTFMT_SCHEDULE'] = str(schedule)
 +
 +    def markers():
@@ -100,8 +101,7 @@
      rfd, wfd = os.pipe()
      try:
 -        with server(extra=h.aof('always'), data=ARGS.artifacts / ('failure-' + command),
-+        with server(extra=h.aof('always'),
-+                    data=ARGS.artifacts / f'failure-{command}-try{attempt}',
++        with server(extra=h.aof('always'), data=data,
                      fsize=128 * 1024, stderr_fd=wfd) as (s, _):
              c = h.off_writer(s)
              assert c.cmd('SET', 'before', 'ok') == b'OK'
