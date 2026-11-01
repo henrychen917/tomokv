@@ -500,7 +500,7 @@ public:
         if (!pushed) return false;
         // Publish the bit FIRST, wake only if we are the producer that raised it. Order matters more
         // than it looks -- see Channel::push/wake.
-        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
+        if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
         return true;
     }
 
@@ -542,7 +542,7 @@ public:
     bool post_iofused_task(uint32_t from, const Task& task, Ring& my_ring,
                            LoopSignals& sig) {
         if (!post_iofused_task_quiet(from, task, sig)) return false;
-        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
+        if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
         return true;
     }
     bool post_iofused_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count,
@@ -571,10 +571,11 @@ public:
         });
     }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
-        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
+        if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
     }
     bool post_client(uint32_t from, Client* c, Ring& my_ring, LoopSignals& sig) {
         if (!client_in_[from].push(c, sig)) return false;
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         if (client_notify_.set(from)) client_in_[from].wake(my_ring, sig, ring());
         return true;
     }
@@ -586,6 +587,7 @@ public:
     bool post_client_transfer(uint32_t from, const ClientTransfer& transfer,
                               Ring& my_ring, LoopSignals& sig) {
         if (!transfer_in_[from].push(transfer, sig)) return false;
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         if (transfer_notify_.set(from)) transfer_in_[from].wake(my_ring, sig, ring());
         return true;
     }
@@ -1140,15 +1142,6 @@ public:
         if (ring_ && parked_.load(std::memory_order_acquire)) {
             my_ring.msg_to(*ring_, ur_tag(UrKind::Wake, nullptr));
             sig.wakes_sent++;
-        }
-    }
-
-    // FLIP-only (IoLoop::flip_reflag_inbound): flag every IO inbox that holds an item, so the
-    // owner's next masked drain takes it even when the producer skipped its notify RMW.
-    void flag_pending_io_inbound() {
-        for (uint32_t p = 0; p < nchan_; p++) {
-            if (client_in_[p].depth()) client_notify_.set(p);
-            if (transfer_in_[p].depth()) transfer_notify_.set(p);
         }
     }
 

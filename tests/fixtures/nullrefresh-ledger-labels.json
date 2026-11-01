@@ -1065,7 +1065,14 @@
     "zc borrow battery under ASAN",
     "zc fired (zc_sends=N)",
     "zsetops battery (atomic 0)",
-    "zsetops battery (atomic 1)"
+    "zsetops battery (atomic 1)",
+    "rootcore inbox",
+    "rootcore eval",
+    "rootcore segments",
+    "rootcore notify",
+    "rootcore functions",
+    "rootcore waitaof",
+    "rootcore misconf"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
@@ -1493,5 +1500,20 @@
     "required_full": 1063,
     "quick_exit_line": 6562,
     "note": "All 47 added rows are collected before the quick exit. Integration subchecks add no rows. Labels retain their original alphabetical format and duplicate multiplicity. EXPECT constants remain maintainer-owned and unchanged."
+  },
+  "rootcore_supplement": {
+    "added": [
+      "rootcore inbox",
+      "rootcore eval",
+      "rootcore segments",
+      "rootcore notify",
+      "rootcore functions",
+      "rootcore waitaof",
+      "rootcore misconf"
+    ],
+    "removed": [],
+    "DQ": 7,
+    "DF": 7,
+    "basis": "Seven source-declared rootcore jobs collected at tests/gate.sh line 6162, before the quick-tier exit at line 6491. Reviewed labels only, not execution evidence. Required quick/full counts 1006/1023; EXPECT remains maintainer-owned."
   }
 }

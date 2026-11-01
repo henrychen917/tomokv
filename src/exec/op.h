@@ -443,16 +443,22 @@ public:
         zc_shard = -1;
     }
 
-    // Notifications deliberately consume no negative marker.  Bit 15 on shard-routed command
-    // specs makes a non-borrow zc pointer unambiguous; special commands keep their batch inside
-    // their already-marked heap state instead.
+    // Notifications have two local slots: the ordinary non-borrow pointer and
+    // the local-crossing marker plus pointer. The route marker is immutable
+    // through attachment and abort; AOF, Rule-P and snapshot consumers still
+    // need it after handlers emit their first event. No Op bit or byte grows.
     bool has_notify_state() const {
-        return zc_ptr != nullptr && zc_shard == -1;
+        return zc_ptr != nullptr && (zc_shard == -1 || zc_shard == kLocalXshardMarker);
     }
     void attach_notify_state(void* state_) {
         zc_ptr = static_cast<const char*>(state_);
         zc_len = 0;
-        zc_shard = -1;
+        if (!local_xshard()) zc_shard = -1;
+    }
+    void detach_notify_state() {
+        zc_ptr = nullptr;
+        zc_len = 0;
+        if (!local_xshard()) zc_shard = -1;
     }
     void* notify_state() const {
         return has_notify_state() ? const_cast<char*>(zc_ptr) : nullptr;

@@ -1834,16 +1834,6 @@ private:
                srv_->flip_acked(unix_owner, FlipStage::IoDrain);
     }
 
-    // A live FLIP never parks this loop (flip_control_pass reports work every pass), so the
-    // mask-independent sweep the idle path runs before parking never runs either. NotifyMask::set
-    // skips its RMW when it still sees its bit, so a consumer can take that bit before the
-    // producer's item is visible; the item then waits with no bit. The FLIP stages wait on exactly
-    // these inboxes (connection transfers; client/pub-sub markers): a stranded transfer held
-    // ClientInstall forever in a POST epoll stress run. While live, re-flag every inbox that holds
-    // an item; this loop's next masked drains take it. Out of line and opaque (`noipa`), so the
-    // units that instantiate flip_control_pass keep their inlining decisions.
-    __attribute__((noinline, noipa)) void flip_reflag_inbound() { self_->flag_pending_io_inbound(); }
-
     static bool flip_stage_holds_closes(FlipStage stage) {
         return stage >= FlipStage::Planning && stage <= FlipStage::Rollback;
     }
@@ -2186,7 +2176,6 @@ private:
         }
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
-        flip_reflag_inbound();
         fliplisten_resume();
         // A pinned close may have refused this epoch earlier in this IO pass.
         // Do not drop/unpin it in ClientPrepare before rollback retires the FLIP.
@@ -3783,7 +3772,7 @@ subscriber_checks_done:
                     uint64_t timeout_ms = 0;
                     const uint64_t latency_started = __builtin_expect(srv_->latency_tracking(), false)
                         ? latency_tracking_start() : 0;
-                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms, c);
                     if (wait == WaitCommandResult::Unsatisfied) {
                         // Pending slices participate in CONFIG no's discard. Do not
                         // retain an old probe duration in the parked timer itself.
@@ -3810,7 +3799,7 @@ subscriber_checks_done:
                             break;
                         }
                     } else if (wait == WaitCommandResult::Immediate) {
-                        server_tail_reply_wait(*op);
+                        server_tail_reply_wait(*op, c);
                     }
                     // Error already carries its exact validation reply. Immediate already carries
                     // :0. Both retire through the ordinary local completion path below.
@@ -4798,7 +4787,8 @@ ordinary_shard_ready:
             const DeferredTimer timer = deferred_timers_[i];
             const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
                 ? srv_->debug_sleep_complete(timer.deadline_ms)
-                : timer.deadline_ms && now_ms >= timer.deadline_ms;
+                : (timer.deadline_ms && now_ms >= timer.deadline_ms) ||
+                  server_tail_wait_ready(timer.client->rob().at(timer.op_id), timer.client);
             if (!ready) {
                 i++;
                 continue;
@@ -4808,7 +4798,7 @@ ordinary_shard_ready:
             if (timer.kind == DeferredTimerKind::WaitZero) {
                 const uint64_t started = __builtin_expect(srv_->latency_tracking(), false)
                     ? latency_tracking_start() : 0;
-                server_tail_reply_wait(op);
+                server_tail_reply_wait(op, client);
                 if (started) {
                     latency_tracking_part(self_->id(), op, started);
                     latency_tracking_retire(self_->id(), op);
@@ -5099,6 +5089,7 @@ ordinary_shard_ready:
         client_work_fences_.erase(c);
         climon_untrack_client(c);
         command_client_disconnected(c);
+        srv_->aof().forget_client(c->id());
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
         wb_.teardown(*c);

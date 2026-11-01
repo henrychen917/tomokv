@@ -437,6 +437,29 @@ def increment_files():
     return paths
 
 
+def validate_function_journal(payload):
+    if len(payload) < 20 or payload[:8] != b"TOMOFUN1":
+        raise AssertionError("invalid AOF FUNCTION dump header")
+    checksum = 1469598103934665603
+    for byte in payload[:-8]:
+        checksum = ((checksum ^ byte) * 1099511628211) & 0xFFFFFFFFFFFFFFFF
+    if checksum != int.from_bytes(payload[-8:], "little"):
+        raise AssertionError("invalid AOF FUNCTION dump checksum")
+    count = int.from_bytes(payload[8:12], "little")
+    pos, end = 12, len(payload) - 8
+    if count > (end - pos) // 4:
+        raise AssertionError("invalid AOF FUNCTION library count")
+    for _ in range(count):
+        if pos + 4 > end:
+            raise AssertionError("truncated AOF FUNCTION source length")
+        length = int.from_bytes(payload[pos:pos + 4], "little")
+        pos += 4 + length
+        if pos > end:
+            raise AssertionError("truncated AOF FUNCTION source")
+    if pos != end:
+        raise AssertionError("trailing AOF FUNCTION dump bytes")
+
+
 def committed_group_tickets(data):
     if len(data) < 80 or data[:8] != b"TOMOAOF\0":
         raise AssertionError("invalid AOF increment header")
@@ -460,10 +483,19 @@ def committed_group_tickets(data):
                 key_len = int.from_bytes(data[record + 8:record + 12], "little")
                 payload_len = int.from_bytes(data[record + 16:record + 24], "little")
                 ticket = int.from_bytes(data[record + 32:record + 40], "little")
+                next_record = record + 40 + key_len + payload_len
+                if next_record > end:
+                    raise AssertionError("AOF control record crosses its frame")
+                if kind == 11 and key_len == 0 and ticket == 0:
+                    # FUNCTION registry post-images share the control stream;
+                    # they are not group decisions and cannot satisfy a GCMT.
+                    validate_function_journal(data[record + 40:next_record])
+                    record = next_record
+                    continue
                 if kind != 7 or key_len != 0 or ticket == 0:
                     raise AssertionError("invalid AOF group commit record")
                 tickets.add(ticket)
-                record += 40 + payload_len
+                record = next_record
             if record != end:
                 raise AssertionError("AOF control record crosses its frame")
         pos = end

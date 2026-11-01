@@ -1722,26 +1722,28 @@ __attribute__((noinline)) bool compile_eval(lua_State* state, Op& op, const Scri
     return true;
 }
 
-void run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, bool readonly) {
+template <typename Prepare>
+bool run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, bool readonly,
+              Prepare&& prepare) {
     const ScriptSource& source = *owner;
     uint32_t key_first = 0, key_count = 0;
     if (!command_script_key_range(op, key_first, key_count)) {
         reply_text_error(op, "ERR", "invalid script key declaration");
-        return;
+        return true;
     }
     const uint32_t flags = source.flags;
     if (!(flags & (EvalLegacy | EvalNoWrites)) && readonly) {
         reply_text_error(op, "ERR", "Can not execute a script with write flag using *_ro command.");
-        return;
+        return true;
     }
     if (!(flags & (EvalLegacy | EvalNoWrites | EvalAllowOom)) &&
         !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
         reply_text_error(op, "OOM", "allow-oom flag is not set on the script, "
                                    "can not run it when used memory > 'maxmemory'");
-        return;
+        return true;
     }
     lua_State* state = script_thread_state();
-    if (!state) { reply_text_error(op, "ERR", "out of memory"); return; }
+    if (!state) { reply_text_error(op, "ERR", "out of memory"); return true; }
 
     // The source cache computed the digest/flags once, before ordered routing.
     const Slice sha(source.sha);
@@ -1750,7 +1752,7 @@ void run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, b
     lua_pushlightuserdata(state, const_cast<ScriptSource*>(&source));
     lua_rawget(state, -2);
     if (lua_isnil(state, -1)) {
-        if (!compile_eval(state, op, owner)) return;
+        if (!compile_eval(state, op, owner)) return true;
     } else {
         g_compile_hits.fetch_add(1, std::memory_order_relaxed);
     }
@@ -1765,16 +1767,25 @@ void run_eval(Shard& shard, Op& op, const ScriptSourceRef& owner, bool notify, b
     call.notify = notify;
     call.chunk = "user_script";
     call.tag = sha;
-    script_execute(shard, op, call);
+    if constexpr (!std::is_same_v<Prepare, std::nullptr_t>) {
+        // Keep the selected source alive across admission, EXEC preparation and
+        // execution. A concurrent SCRIPT FLUSH cannot change this decision.
+        FunctionMemoryScope memory_scope(shard.store(), call.memory_admitted);
+        if (!prepare()) { lua_settop(state, 0); return false; }
+        script_execute(shard, op, call);
+    } else {
+        script_execute(shard, op, call);
+    }
+    return true;
 }
 
-template <bool kNotify, bool kSha, bool kReadonly>
-void cmd_eval(Shard& shard, Op& op) {
+template <bool kNotify, bool kSha, bool kReadonly, typename Prepare>
+bool invoke_eval(Shard& shard, Op& op, Prepare&& prepare) {
     auto source = kSha ? g_scripts.find(op.arg(1)) : g_scripts.source(op.arg(1));
     if (!source) {
         if constexpr (kSha) {
             reply_text_error(op, "NOSCRIPT", "No matching script. Please use EVAL.");
-            return;
+            return true;
         } else {
             // Direct handler callers and a concurrent SCRIPT FLUSH may have no
             // store entry. Compile privately: only ordered IO routing may publish
@@ -1782,19 +1793,24 @@ void cmd_eval(Shard& shard, Op& op) {
             std::string error;
             uint32_t flags = 0, offset = 0;
             if (!validate_source(op.arg(1), error, flags, offset)) {
-                reply_text_error(op, "ERR", error); return;
+                reply_text_error(op, "ERR", error); return true;
             }
             try {
                 source = std::make_shared<ScriptSource>(ScriptSource{
                     std::string(op.arg(1).p, op.arg(1).n), sha1_hex(op.arg(1)), flags, offset});
             } catch (const std::bad_alloc&) {
-                reply_text_error(op, "ERR", "out of memory"); return;
+                reply_text_error(op, "ERR", "out of memory"); return true;
             }
         }
     }
     // WATCH observes writes independently of notification/monitor routing.
     const bool notify = kNotify && (op.spec->flags & CmdFlags::NotifySelected);
-    run_eval(shard, op, source, notify, kReadonly);
+    return run_eval(shard, op, source, notify, kReadonly, std::forward<Prepare>(prepare));
+}
+
+template <bool kNotify, bool kSha, bool kReadonly>
+void cmd_eval(Shard& shard, Op& op) {
+    (void)invoke_eval<kNotify, kSha, kReadonly>(shard, op, nullptr);
 }
 
 void reply_script_wrong_args(Op& op, const char* sub) {
@@ -2024,6 +2040,19 @@ bool command_validate_script_route(Op& op, uint32_t& first, uint32_t& count) {
     // After the numkeys grammar, before routing: Redis reports a bad key count ahead of a compile
     // error, and this keeps that precedence.
     return script_route_store(op);
+}
+
+bool script_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*)) {
+    if (function_is_fcall(op)) return function_execute_exec(shard, op, context, prepare);
+    auto before_callback = [&] { return prepare(context); };
+    const bool sha = op.cmd_name().eq_icase("evalsha") || op.cmd_name().eq_icase("evalsha_ro");
+    const bool readonly = op.cmd_name().eq_icase("eval_ro") || op.cmd_name().eq_icase("evalsha_ro");
+    if (sha) return readonly
+        ? invoke_eval<true, true, true>(shard, op, before_callback)
+        : invoke_eval<true, true, false>(shard, op, before_callback);
+    return readonly
+        ? invoke_eval<true, false, true>(shard, op, before_callback)
+        : invoke_eval<true, false, false>(shard, op, before_callback);
 }
 
 bool command_prepare_script_route(Server& server, Op& op) {

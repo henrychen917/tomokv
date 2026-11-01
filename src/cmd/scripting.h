@@ -118,6 +118,7 @@ FunctionStats function_stats();
 // the registry, so corrupt input cannot expose a partially restored library set.
 bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error);
 bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& error);
+bool function_restore_journal(Slice payload, std::string& error);
 
 // Whether argv[0] of this op is one of the FCALL forms. Routing shares EVAL's numkeys grammar but
 // Redis reports a different message for a malformed count.
@@ -128,6 +129,7 @@ bool function_metadata_write(const Op& op);
 bool script_metadata_write(const Op& op);
 // Execute one admitted callback after EXEC prepares its owner-private versions.
 // False means preparation parked; command errors complete normally with a reply.
+bool script_execute_exec(Shard& shard, Op& op, void* context, bool (*prepare)(void*));
 bool function_execute_exec(Shard& shard, Op& op, void* context,
                            bool (*prepare)(void*));
 

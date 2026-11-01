@@ -1410,8 +1410,7 @@ bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice k
                 g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
             ready = false;
         } else if (entry.origin_conn_id != state.origin_conn_id &&
-                   epoch > server.atomic_snapshot() &&
-                   !(server.atomic_publish_quiescent() && epoch <= server.atomic_snapshot())) {
+                   epoch > server.atomic_snapshot()) {
             server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::Waits);
             ready = false;
         }
@@ -1681,14 +1680,14 @@ __attribute__((always_inline)) inline bool execute_local_command(Server& server,
             if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, false)) return false;
         }
     }
-    if (function_is_fcall(*command.op)) {
+    if (command.op->spec->flags & CmdFlags::ScriptRoute) {
         WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
             &state.decision.aborted, &state.watch_refs, state.client);
         struct Context {
             Server& server; MultiExecState& state; MultiCommand& command;
             Shard& shard; uint32_t owner;
         } context{server, state, command, shard, owner_thread_id};
-        const bool completed = function_execute_exec(shard, *command.op, &context, [](void* raw) {
+        const bool completed = script_execute_exec(shard, *command.op, &context, [](void* raw) {
             auto& c = *static_cast<Context*>(raw);
             if (!prepare_local_write_keys(c.server, c.state, c.command, c.shard, c.owner))
                 return false;
@@ -2389,7 +2388,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 session->clear_queue();
                 return MultiIoAction::LocalDone;
             }
-            state->aof_group = aof_create_group(server.aof(), participants);
+            state->aof_group = aof_create_group(server.aof(), participants, state->origin_conn_id);
             if (!state->aof_group) {
                 destroy_multi_state(state);
                 reply_err(op.sink(), "ERR out of memory");
@@ -2680,7 +2679,7 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
             std::vector<uint32_t> participants;
             for (const auto& write : next->write_keys) participants.push_back(write.shard);
             if (next->database_publish) participants.push_back(0);
-            next->aof_group = aof_create_group(server.aof(), participants);
+            next->aof_group = aof_create_group(server.aof(), participants, next->origin_conn_id);
             if (!next->aof_group) throw std::bad_alloc();
         }
     } catch (const std::bad_alloc&) {

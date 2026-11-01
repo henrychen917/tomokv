@@ -1,5 +1,6 @@
 #include "routing_compat.h"
 #include "aof.h"
+#include "../cmd/scripting.h"
 #include "../cmd/xshard.h"
 
 #include <algorithm>
@@ -939,6 +940,8 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
         return false;
     }
 
+    if (context && kind != AofRecordKind::Timestamp && !receipt(context->client_id))
+        return false;
     if (large) {
         if (!build_) return false;
         build_->records = 1;
@@ -946,6 +949,10 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
     }
     build_->records++;
     return true;
+}
+
+bool AofProducer::receipt(uint64_t client_id) {
+    return !client_id || (build_ && manager_->attach_receipt(*build_, client_id));
 }
 
 bool AofProducer::record_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
@@ -1001,11 +1008,11 @@ bool AofProducer::record_delete(Slice key, uint64_t group) {
     return record_bytes(kind, 0, 0, key, -1, group, nullptr, 0, nullptr, nullptr, nullptr);
 }
 
-bool AofProducer::record_flush(int physical_db) {
+bool AofProducer::record_flush(int physical_db, uint64_t client_id) {
     if (!enabled()) return true;
     return record_bytes(AofRecordKind::Flush, physical_db >= 0 ? 1 : 0, 0,
                         Slice(nullptr, 0, physical_db >= 0 ? physical_db : 0), -1, 0,
-                        nullptr, 0, nullptr, nullptr, nullptr);
+                        nullptr, 0, nullptr, nullptr, nullptr) && receipt(client_id);
 }
 
 bool AofProducer::record_group_flush(int physical_db) {
@@ -1016,10 +1023,10 @@ bool AofProducer::record_group_flush(int physical_db) {
         nullptr, nullptr, nullptr, 0);
 }
 
-bool AofProducer::record_database_map(const uint8_t* mapping) {
+bool AofProducer::record_database_map(const uint8_t* mapping, uint64_t client_id) {
     if (!enabled()) return true;
     return record_bytes(AofRecordKind::DatabaseMap, 0, 0, Slice(), -1, 0,
-                        mapping, DatabaseMap::kPayloadBytes, nullptr, nullptr, nullptr);
+                        mapping, DatabaseMap::kPayloadBytes, nullptr, nullptr, nullptr) && receipt(client_id);
 }
 
 bool AofProducer::record_group_database_map(const uint8_t* mapping) {
@@ -1193,10 +1200,11 @@ void AofManager::drain_for_producer(uint32_t producer, Ring&) {
 }
 
 std::shared_ptr<AofGroupDecision> aof_create_group(
-        AofManager& manager, const std::vector<uint32_t>& participants) {
+        AofManager& manager, const std::vector<uint32_t>& participants, uint64_t client_id) {
     if (!manager.recording() || participants.empty()) return nullptr;
     try {
         auto group = std::make_shared<AofGroupDecision>();
+        group->client_id = client_id;
         group->participants = participants;
         std::sort(group->participants.begin(), group->participants.end());
         group->participants.erase(
@@ -1231,6 +1239,7 @@ bool aof_commit_group(AofManager& manager, const std::shared_ptr<AofGroupDecisio
         chunk->sid = -1;
         chunk->group = group;
         chunk->group_commit = true;
+        if (!manager.attach_receipt(*chunk, group->client_id)) return false;
     } catch (const std::bad_alloc&) {
         manager.fail("out of memory allocating AOF GCMT");
         return false;
@@ -1366,7 +1375,7 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         fail(error.c_str());
         return false;
     }
-    cleanup_unreferenced_files();
+    if (!quarantine_unreferenced_files(error)) { fail(error.c_str()); return false; }
     if (routing_upgrade_) {
         // Anchor even a manifest-less v1 file before creating a new segment.
         // A crash at any subsequent step leaves an intact, recoverable v1 set.
@@ -1424,31 +1433,44 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
     return true;
 }
 
-void AofManager::cleanup_unreferenced_files() {
+bool AofManager::quarantine_unreferenced_files(std::string& error) {
     DIR* directory = ::opendir(directory_path_.c_str());
-    if (!directory) return;
+    if (!directory) { error = "could not inspect AOF directory"; return false; }
     std::unordered_set<std::string> keep;
     if (!base_name_.empty()) keep.insert(base_name_);
     for (const auto& increment : increments_) keep.insert(increment.second);
-    uint64_t removed = 0;
-    while (dirent* entry = ::readdir(directory)) {
+    std::string quarantine;
+    bool ok = true;
+    for (;;) {
+        errno = 0;
+        dirent* entry = ::readdir(directory);
+        if (!entry) { ok = errno == 0; break; }
         const std::string name(entry->d_name);
         if (keep.count(name) || name.rfind(appendfilename_ + ".", 0) != 0) continue;
-        const bool segment = name.find(".base.tomo") != std::string::npos ||
-                             name.find(".incr.tomo") != std::string::npos;
-        if (!segment) continue;
-        if (::unlink((directory_path_ + "/" + name).c_str()) == 0) removed++;
+        if (name.find(".base.tomo") == std::string::npos &&
+            name.find(".incr.tomo") == std::string::npos) continue;
+        // Absence from the recovery plan is not proof of obsolete history.
+        // A private directory also prevents a later rewrite reusing the name
+        // from overwriting evidence left by an absent/incomplete manifest.
+        if (quarantine.empty()) {
+            quarantine = directory_path_ + "/quarantine.XXXXXX";
+            if (!::mkdtemp(quarantine.data())) { ok = false; break; }
+        }
+        if (::rename((directory_path_ + "/" + name).c_str(),
+                     (quarantine + "/" + name).c_str()) != 0) { ok = false; break; }
     }
     (void)::closedir(directory);
-    if (removed) {
-        history_unlinks_.fetch_add(removed, std::memory_order_relaxed);
-        const int directory_fd = ::open(directory_path_.c_str(),
-                                        O_RDONLY | O_DIRECTORY | O_CLOEXEC);
-        if (directory_fd >= 0) {
-            (void)::fsync(directory_fd);
-            (void)::close(directory_fd);
+    if (!quarantine.empty()) {
+        for (const auto& path : {quarantine, directory_path_}) {
+            const int fd = ::open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+            if (fd < 0) { ok = false; continue; }
+            if (::fsync(fd) != 0) ok = false;
+            if (::close(fd) != 0) ok = false;
         }
+        std::fprintf(stderr, "AOF unreferenced segments preserved in %s\n", quarantine.c_str());
     }
+    if (!ok) error = "could not quarantine unreferenced AOF segments";
+    return ok;
 }
 
 bool AofManager::persist_manifest(
@@ -1903,6 +1925,37 @@ void AofManager::rewrite_abort() {
     rewrite_history_.clear();
 }
 
+void AofManager::append_function_journal(Slice payload) {
+    if (!recording()) return;
+    auto chunk = std::make_unique<AofChunk>();
+    chunk->group_commit = true; // ordered control frame, no shard sequence
+    chunk->bytes.resize(kRecordHeaderBytes + payload.n);
+    uint8_t* record = chunk->bytes.data();
+    snapshot_put_u32(record, kRecordTag);
+    record[4] = static_cast<uint8_t>(AofRecordKind::FunctionRestore);
+    record[7] = 1;
+    snapshot_put_u32(record + 12, kRecordHeaderBytes);
+    snapshot_put_u64(record + 16, payload.n);
+    snapshot_put_u64(record + 24, static_cast<uint64_t>(-1));
+    std::memcpy(record + kRecordHeaderBytes, payload.p, payload.n);
+    uint64_t sequence = 0;
+    {
+        std::lock_guard<std::mutex> lock(chunk_in_[writer_tid_].function_journal_mu);
+        chunk_in_[writer_tid_].function_journal.push_back(std::move(chunk));
+        chunk_in_[writer_tid_].function_journal.back()->post_sequence = sequence =
+            posted_sequence_.fetch_add(1, std::memory_order_acq_rel) + 1;
+        pending_chunks_.fetch_add(1, std::memory_order_release);
+    }
+    if (Client* client = command_local_client()) note_client_sequence(client->id(), sequence);
+    ThreadCtx* producer = command_local_thread();
+    Ring* target = writer_ring_.load(std::memory_order_acquire);
+    if (producer && producer->ring() && target && producer->ring() != target) {
+        while (!producer->ring()->msg_to(*target, ur_tag(UrKind::Wake, nullptr)))
+            producer->ring()->submit_and_reap();
+        producer->sig().wakes_sent++;
+    }
+}
+
 bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                             Ring& producer_ring, LoopSignals& signals) {
     if (!chunk || producer >= nthreads_ || !chunk_in_) return false;
@@ -1913,8 +1966,11 @@ bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                          producer, static_cast<unsigned long long>(refused));
         return false;
     }
-    if (!chunk->post_sequence)
+    if (!chunk->post_sequence) {
         chunk->post_sequence = posted_sequence_.fetch_add(1, std::memory_order_acq_rel) + 1;
+        for (uint64_t id : chunk->receipt_clients)
+            note_client_sequence(id, chunk->post_sequence, true);
+    }
     AofChunk* raw = chunk.get();
     if (!chunk_in_[producer].push(raw, signals)) return false;
     chunk.release();
@@ -1924,6 +1980,63 @@ bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
         chunk_in_[producer].wake_edge(producer_ring, signals, target);
     }
     return true;
+}
+
+bool AofManager::attach_receipt(AofChunk& chunk, uint64_t client_id) {
+    if (!client_id || (!chunk.receipt_clients.empty() &&
+                      chunk.receipt_clients.back() == client_id)) return true;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    try {
+        auto& receipt = receipts.client_sequences[client_id];
+        chunk.receipt_clients.push_back(client_id);
+        ++receipt.buffered;
+        return true;
+    } catch (const std::bad_alloc&) {
+        fail("out of memory retaining AOF connection receipt");
+        return false;
+    }
+}
+
+void AofManager::note_client_sequence(uint64_t client_id, uint64_t sequence,
+                                       bool was_buffered) {
+    if (!client_id) return;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    try {
+        auto& receipt = receipts.client_sequences[client_id];
+        receipt.sequence = std::max(receipt.sequence, sequence);
+        if (was_buffered) {
+            if (!receipt.buffered) std::abort();
+            --receipt.buffered;
+            if (!receipt.buffered && receipt.closed) receipts.client_sequences.erase(client_id);
+        }
+    } catch (const std::bad_alloc&) {
+        fail("out of memory retaining AOF connection sequence");
+    }
+}
+
+bool AofManager::local_ack(uint64_t client_id) const {
+    if (!configured_ || !chunk_in_ || failed()) return false;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    const auto found = receipts.client_sequences.find(client_id);
+    if (found == receipts.client_sequences.end()) return true;
+    const auto& receipt = found->second;
+    return !receipt.buffered &&
+        durable_sequence_.load(std::memory_order_acquire) >= receipt.sequence;
+}
+
+void AofManager::forget_client(uint64_t client_id) {
+    if (!chunk_in_) return;
+    auto& receipts = chunk_in_[writer_tid_];
+    std::lock_guard<std::mutex> lock(receipts.receipt_mu);
+    const auto found = receipts.client_sequences.find(client_id);
+    if (found == receipts.client_sequences.end()) return;
+    // No/everysec may retire the Client before its owner's pass posts the last
+    // chunk. Retain only that pending receipt until the ordinary post assigns it.
+    if (found->second.buffered) found->second.closed = true;
+    else receipts.client_sequences.erase(found);
 }
 
 bool AofManager::reply_gate_ready(uint64_t target) const {
@@ -2180,7 +2293,7 @@ void AofManager::on_io_complete(ThreadCtx& writer, Ring& ring, void* opaque, int
             }
             records_written_.fetch_add(chunk->group_commit ? 1 : chunk->records,
                                        std::memory_order_relaxed);
-            if (chunk->group_commit)
+            if (chunk->group_commit && chunk->group)
                 groups_committed_.fetch_add(1, std::memory_order_relaxed);
         }
         current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
@@ -2301,6 +2414,7 @@ bool AofManager::group_dependencies_ready(const AofGroupDecision& group) const {
 
 bool AofManager::prepare_group_commit(const OpenStreamToken&, AofChunk& chunk,
                                       uint8_t* header) {
+    if (chunk.group) {
     if (!chunk.group || !group_dependencies_ready(*chunk.group)) return false;
     const uint64_t ticket = chunk.group->ticket.load(std::memory_order_acquire);
     if (!ticket || chunk.group->aborted.load(std::memory_order_acquire)) return false;
@@ -2322,6 +2436,8 @@ bool AofManager::prepare_group_commit(const OpenStreamToken&, AofChunk& chunk,
         snapshot_put_u32(record + pos, dependency.sid);
         snapshot_put_u32(record + pos + 4, dependency.sequence);
         pos += 8;
+    }
+
     }
 
     snapshot_put_u32(header, kFrameTag);
@@ -2347,7 +2463,7 @@ bool AofManager::write_group_commit_normal(const OpenStreamToken& stream, AofChu
     last_good_offset_ = file_offset_;
     current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
     records_written_.fetch_add(1, std::memory_order_relaxed);
-    groups_committed_.fetch_add(1, std::memory_order_relaxed);
+    if (chunk.group) groups_committed_.fetch_add(1, std::memory_order_relaxed);
     return true;
 }
 
@@ -2443,7 +2559,7 @@ uint32_t AofManager::drain_pending_commits(const OpenStreamToken& stream, uint32
     uint32_t written = 0;
     for (size_t index = 0; index < pending_commits_.size() && budget;) {
         AofChunk& chunk = *pending_commits_[index];
-        if (!group_dependencies_ready(*chunk.group)) { index++; continue; }
+        if (chunk.group && !group_dependencies_ready(*chunk.group)) { index++; continue; }
         const bool ok = engine_ == PersistIoEngine::Normal
             ? write_group_commit_normal(stream, chunk)
             : submit_group_commit_uring(stream, std::move(pending_commits_[index]),
@@ -2536,6 +2652,14 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) 
     if (engine_ == PersistIoEngine::Uring &&
         fsync_policy() == AppendFsyncPolicy::Everysec && io_inflight_ &&
         monotonic_ms() - last_fsync_ms_ >= 1000) return 0;
+    {
+        std::lock_guard<std::mutex> lock(chunk_in_[writer_tid_].function_journal_mu);
+        while (!chunk_in_[writer_tid_].function_journal.empty()) {
+            try { pending_commits_.push_back(std::move(chunk_in_[writer_tid_].function_journal.front())); }
+            catch (const std::bad_alloc&) { fail("out of memory staging FUNCTION journal"); return 0; }
+            chunk_in_[writer_tid_].function_journal.erase(chunk_in_[writer_tid_].function_journal.begin());
+        }
+    }
     if (!chunk_in_[writer_tid_].sealing_on_writer) {
         maybe_schedule_auto_rewrite();
         maybe_start_rewrite(writer, ring);
@@ -3065,6 +3189,16 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
         if (!parse_record_bounds(plan->control_section, control_pos, kind, type, encoding,
                                  key_len, payload_len, expire, group, next, error)) return nullptr;
         const size_t payload_pos = control_pos + kRecordHeaderBytes + key_len;
+        if (kind == AofRecordKind::FunctionRestore) {
+            if (key_len || group || payload_len > UINT32_MAX) {
+                error = "invalid AOF FUNCTION record"; return nullptr;
+            }
+            plan->function_journal.emplace_back(
+                reinterpret_cast<const char*>(plan->control_section.data() + payload_pos), payload_len);
+            plan->replayed_records++;
+            control_pos = next;
+            continue;
+        }
         if (kind != AofRecordKind::GroupCommit || key_len != 0 || !group || payload_len < 4) {
             error = "invalid AOF GCMT record";
             return nullptr;
@@ -3147,33 +3281,8 @@ bool aof_read_recovery(const Config& config, uint32_t expected_shards,
     bool manifest_exists = false;
     if (!read_manifest(manifest_path, manifest_exists, manifest, error)) return false;
     if (!manifest_exists) {
-        // Only the legacy single increment is self-describing without a
-        // manifest. Never infer that other segments are disposable history.
-        DIR* entries = ::opendir(directory.c_str());
-        if (!entries && errno != ENOENT) {
-            error = "could not inspect AOF directory without manifest";
-            return false;
-        }
-        if (entries) {
-            const std::string legacy = aof_segment_name(basename, 1);
-            bool unreferenced = false;
-            errno = 0;
-            while (dirent* entry = ::readdir(entries)) {
-                const std::string name = entry->d_name;
-                if (name != legacy && name.rfind(basename + ".", 0) == 0 &&
-                    (name.find(".base.tomo") != std::string::npos ||
-                     name.find(".incr.tomo") != std::string::npos)) {
-                    unreferenced = true;
-                    break;
-                }
-            }
-            const bool read_error = errno != 0;
-            ::closedir(entries);
-            if (unreferenced || read_error) {
-                error = "AOF manifest missing with unreferenced segments; files preserved";
-                return false;
-            }
-        }
+        // The legacy increment remains self-describing. Other segments are
+        // preserved by the writer's quarantine before any names are reused.
         bool exists = false;
         std::string local_warning;
         auto plan = aof_read_plan(aof_file_path(config).c_str(), expected_shards,
@@ -3258,6 +3367,8 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                     std::string& error) {
     const uint32_t sid = static_cast<uint32_t>(shard.id());
     if (sid >= plan.sections.size()) { error = "AOF shard section is missing"; return false; }
+    if (sid == 0) for (const auto& payload : plan.function_journal)
+        if (!function_restore_journal(Slice(payload), error)) return false;
     const int64_t now = now_realtime_ms();
     shard.set_cached_now_ms(now);
     const RecoverySections sources(plan.routing_version, plan.shard_count, shard);
@@ -3349,9 +3460,8 @@ bool aof_record_local_op(Shard& shard, Op& op, AofOwnerContext& context) {
                                           : static_cast<uint32_t>(op.spec->last_key);
     uint32_t step = static_cast<uint32_t>(op.spec->key_step);
     if (op.spec->flags & CmdFlags::ScriptRoute) {
-        // A notification batch uses the local op's zc marker too. The immutable
-        // command metadata still identifies the script after that attachment;
-        // route its effects through the same grouped writer as the local path.
+        // Script metadata also covers callers without a local routing marker.
+        // Preserve the same grouped journal contract at this entry point.
         xshard_aof_emit_local(shard, op, context);
         return !shard.server() || !shard.server()->aof().failed();
     }

@@ -662,7 +662,7 @@ MDBQSBR_ASAN_OBJ += $(LUA_HELPER_SRC:%.c=build/mdbqsbr-asan/%.o)
 MDBQSBR_TSAN_OBJ += $(LUA_HELPER_SRC:%.c=build/mdbqsbr-tsan/%.o)
 MDBQSBR_FLAGS := -std=c++20 -O1 -g -Wall -Wextra -march=native -pthread \
   -fno-omit-frame-pointer -no-pie -DTOMO_MDBQSBR_TEST -DTOMO_CORE_CONCURRENCY_TEST -I.
-MDBQSBR_WRAP := -Wl,--wrap=_ZN4tomo11AofProducer19record_database_mapEPKh
+MDBQSBR_WRAP := -Wl,--wrap=_ZN4tomo11AofProducer19record_database_mapEPKhm
 build/mdbqsbr-asan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=address,undefined -c $< -o $@

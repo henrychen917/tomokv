@@ -2494,7 +2494,7 @@ subscriber_checks_done:
                 uint64_t timeout_ms = 0;
                 const uint64_t latency_started = __builtin_expect(srv_->latency_tracking(), false)
                     ? latency_tracking_start() : 0;
-                const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms, c);
                 if (wait == WaitCommandResult::Unsatisfied) {
                     // Pending slices participate in CONFIG no's discard. Do not
                     // retain an old probe duration in the parked timer itself.
@@ -2522,7 +2522,7 @@ subscriber_checks_done:
                         break;
                     }
                 } else if (wait == WaitCommandResult::Immediate) {
-                    server_tail_reply_wait(*op);
+                    server_tail_reply_wait(*op, c);
                 }
                 // Error already carries its exact validation reply. Immediate already carries
                 // :0. Both retire through the ordinary local completion path below.

@@ -1,0 +1,4 @@
+/home/user/Projects/cx-rootcore/build/rootcore/counts/trace /home/user/Projects/cx-rootcore/build/rootcore/counts/scopes/POST-db0/probe /home/user/Projects/cx-rootcore/build/rootcore/counts/scopes/POST-db0/complete.ranges 8a43b0 8a43c0 000000000002bb30 MSET 2s 1 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 10564

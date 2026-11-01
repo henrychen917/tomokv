@@ -33,7 +33,8 @@ RECORD_TAG = 0x43524F41  # "AORC"
 CONTROL_SID = 0xFFFFFFFF
 LARGE_BEGIN = 1 << 0
 LARGE_END = 1 << 1
-KIND_NAMES = {1: "PUT", 2: "DEL", 3: "FLUSH", 4: "TS", 5: "GPUT", 6: "GDEL", 7: "GCMT"}
+KIND_NAMES = {1: "PUT", 2: "DEL", 3: "FLUSH", 4: "TS", 5: "GPUT", 6: "GDEL", 7: "GCMT",
+              11: "FUNCTION"}
 
 
 def u32(data, pos):
@@ -94,6 +95,9 @@ class Frame:
         if self.control:
             parts = []
             for kind, _key, payload_len, ticket, pos in self.records():
+                if kind == 11:
+                    parts.append("FUNCTION len=%d" % payload_len)
+                    continue
                 names = []
                 base = pos + RECORD_HEADER_BYTES
                 count = u32(self.payload, base) if payload_len >= 4 else 0

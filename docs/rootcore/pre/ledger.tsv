@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=rootcore-eval rootcore-functions rootcore-segments rootcore-notify rootcore-waitaof; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	2.160000	rootcore eval
+FAIL	1.080000	rootcore segments
+FAIL	3.480000	rootcore notify
+FAIL	2.400000	rootcore functions
+FAIL	1.370000	rootcore waitaof

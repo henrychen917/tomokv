@@ -131,6 +131,8 @@ void reply_bulk_string(Op& op, const std::string& value) {
 
 enum class AddResult { Ok, LibraryExists, FunctionExists, Oom };
 
+thread_local bool t_function_replay = false;
+
 class FunctionRegistry {
 public:
     uint64_t generation() const { return generation_.load(std::memory_order_acquire); }
@@ -232,7 +234,7 @@ public:
     }
 
 private:
-    void bump() { generation_.fetch_add(1, std::memory_order_release); }
+    void bump();
 
     AddResult add_locked(LibraryDef&& library, bool replace, std::string& detail,
                          bool defer_bump = false) {
@@ -937,6 +939,34 @@ void function_dump(Op& op) {
     reply_bulk_string(op, payload);
 }
 
+// Called with the registry mutex held, before the new generation is visible.
+// A full post-image makes replay idempotent when a rewrite's base also captured
+// the mutation. Increment records retain registry order and share the AOF's
+// writer and durability frontier with key records.
+void FunctionRegistry::bump() {
+    Server* server = command_server();
+    if (!t_function_replay && server && server->aof().recording()) {
+        try {
+            std::string payload(kDumpMagic, sizeof(kDumpMagic));
+            put_u32(payload, static_cast<uint32_t>(libraries_.size()));
+            for (const auto& [name, library] : libraries_) {
+                put_u32(payload, static_cast<uint32_t>(library.code.size()));
+                payload.append(library.code);
+            }
+            uint8_t trailer[8];
+            snapshot_put_u64(trailer, snapshot_checksum(
+                reinterpret_cast<const uint8_t*>(payload.data()), payload.size()));
+            payload.append(reinterpret_cast<const char*>(trailer), sizeof(trailer));
+            if (payload.size() > UINT32_MAX - 40)
+                server->aof().fail("FUNCTION journal record is too large");
+            else server->aof().append_function_journal(Slice(payload));
+        } catch (const std::bad_alloc&) {
+            server->aof().fail("out of memory journaling FUNCTION registry");
+        }
+    }
+    generation_.fetch_add(1, std::memory_order_release);
+}
+
 bool decode_dump(Slice payload, std::vector<std::string>& sources) {
     if (payload.n < sizeof(kDumpMagic) + 4 + 8) return false;
     if (std::memcmp(payload.p, kDumpMagic, sizeof(kDumpMagic)) != 0) return false;
@@ -1170,6 +1200,29 @@ bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& 
         }
         return g_functions.replace_all(std::move(incoming), flush, replace, error) == AddResult::Ok;
     } catch (const std::bad_alloc&) { error = "out of memory loading functions"; return false; }
+}
+
+bool function_restore_journal(Slice payload, std::string& error) {
+    std::vector<std::string> sources;
+    if (!decode_dump(payload, sources)) { error = "invalid AOF FUNCTION payload"; return false; }
+    std::vector<LibraryDef> incoming;
+    try {
+        for (const auto& source : sources) {
+            LibraryDef library;
+            if (!compile_library(Slice(source), library, error)) return false;
+            incoming.push_back(std::move(library));
+        }
+    } catch (const std::bad_alloc&) { error = "out of memory replaying FUNCTION"; return false; }
+    struct ReplayScope {
+        bool previous = t_function_replay;
+        ReplayScope() { t_function_replay = true; }
+        ~ReplayScope() { t_function_replay = previous; }
+    } scope;
+    if (g_functions.replace_all(std::move(incoming), true, true, error) != AddResult::Ok) {
+        if (error.empty()) error = "could not restore AOF FUNCTION registry";
+        return false;
+    }
+    return true;
 }
 
 FunctionStats function_stats() {

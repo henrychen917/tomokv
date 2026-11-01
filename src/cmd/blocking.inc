@@ -751,7 +751,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
             state.acl_checked = false;  // nothing ran; the waiter parks again
             return false;
         }
-        AofOwnerContext context{self.id(), &ring, &self.sig()};
+        AofOwnerContext context{self.id(), &ring, &self.sig(), state.client->id()};
         for (const auto& stream : state.keys)
             if (stream.shard == shard.id())
                 (void)shard.store().aof().record_post_image(
@@ -800,7 +800,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         shard.watch_write_committed(key_slice);
         // Parked completions bypass ExLoop's ordinary command epilogue. Journal
         // the selected physical key before Done, including after a map remap.
-        AofOwnerContext context{self.id(), &ring, &self.sig()};
+        AofOwnerContext context{self.id(), &ring, &self.sig(), state.client->id()};
         (void)shard.store().aof().record_post_image(shard.store(), key.hash, key_slice, context);
     }
     if (result == XshardPopResult::WrongType) {

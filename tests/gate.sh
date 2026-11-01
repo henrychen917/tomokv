@@ -1011,6 +1011,7 @@ job_body(){
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
+    rootcore-*) job_rootcore "${name#rootcore-}";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
     multidb-*) job_multidb "$name";;
@@ -1164,6 +1165,7 @@ plan_jobs(){
     # correctness jobs still run and retain their evidence.
     JOB_NAMES+=(differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence)
   fi
+  JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   local atomic mode section slot FM FR FO FQ FF
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
@@ -5069,6 +5071,7 @@ py tests/aof.py 127.0.0.1 $PORT populate "$AOF_STATE" >$TMPDIR/gate-aof-$NET_IO-
            "see $TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt"
 row_begin "AOF writer fired (records=N)"
 AOF_PRE_MODEL=$(py tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>$TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt)
+printf '%s\n' "$AOF_PRE_MODEL" >"$AOF_DIR/pre-snapshot-model.txt"
 AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
     | tr -d '\r' | sed -n 's/^aof_records_written://p')
 [ -n "$AOF_WRITTEN" ] && [ "$AOF_WRITTEN" -gt 0 ] \
@@ -5087,6 +5090,7 @@ py tests/aof.py 127.0.0.1 $PORT verify "$AOF_STATE" >>$TMPDIR/gate-aof-$NET_IO-$
            "see $TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt"
 row_begin "AOF native snapshot streams byte-exact"
 AOF_POST_MODEL=$(py tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>$TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt)
+printf '%s\n' "$AOF_POST_MODEL" >"$AOF_DIR/post-snapshot-model.txt"
 [ -n "$AOF_PRE_MODEL" ] && [ "$AOF_PRE_MODEL" = "$AOF_POST_MODEL" ] \
     && ok "AOF native snapshot streams byte-exact" || bad "AOF native snapshot streams byte-exact"
 row_begin "AOF replay fired (records=N skipped=N)"
@@ -5700,6 +5704,24 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
 # multifix: six directed roots in each mode/engine, before the quick exit.
 # Each row retains both atomic settings, both read-local settings and both
 # compiled namespace variants. DQ=DF=+24; EXPECT remains owner-owned.
+job_rootcore(){
+  local root=$1 label="rootcore $1"
+  row_begin "$label"
+  if [ "$root" = inbox ]; then
+    local revision=()
+    [ -z "${ROOTCORE_INBOX_REVISION:-}" ] || revision=(--revision "$ROOTCORE_INBOX_REVISION")
+    taskset -c "$CORES" python3 tools/rootcore_inbox.py --output "$TMPDIR/inbox" --kinds "${ROOTCORE_INBOX_KINDS:-client,transfer,task,fused,flush}" "${revision[@]}" \
+        >"$TMPDIR/rootcore-inbox.log" 2>&1 \
+        && ok "$label" || bad "$label" "see $TMPDIR/rootcore-inbox.log"
+    return
+  fi
+  py tests/rootcore.py --case "$root" --binary "$CANDIDATE_BINARY" \
+      --oracle-binary "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+      --output "$TMPDIR/rootcore-$root" >"$TMPDIR/rootcore-$root.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/rootcore-$root.log"
+}
+
 job_multifix(){
   local prefix mode engine root label atomic read_local databases passed boot_fn
   IFS=- read -r prefix mode engine <<< "$1"
@@ -6262,6 +6284,9 @@ if [ "${GATE_PARTIAL:-0}" = 1 ]; then
   partial_gate
   exit $?
 fi
+# rootcore: seven directed rows collected before the quick-tier exit (DQ=DF=+7).
+# EXPECT_QUICK / EXPECT_FULL are maintainer-owned.
+for root in inbox eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
 collect_job release
 
 collect_job asan

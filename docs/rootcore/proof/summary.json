@@ -1,0 +1,529 @@
+[
+  {
+    "name": "aof-final-fused",
+    "engine": "uring",
+    "fused": 1,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:37:51.629787+00:00",
+    "ended": "2026-11-01T05:39:59.445778+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.JUohlE",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "7cb0bc4cd0866bbf01632750f4718aade2bfbd0aa462dfc1244846683acee6cc"
+  },
+  {
+    "name": "aof-final-split",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:35:28.332515+00:00",
+    "ended": "2026-11-01T05:37:37.187568+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.UlNaeh",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "52d5ac43e47eb811275214616081daefefb5ea2675e8dbe08c1fba8abf466a4d"
+  },
+  {
+    "name": "aof-pre-fused",
+    "engine": "uring",
+    "fused": 1,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:33:05.730677+00:00",
+    "ended": "2026-11-01T05:35:14.599446+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.sGXBWi",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "8ce24966d7aaf34a0df5694e2790ce63f8fc3badbab7284f345d7b2b7f2d4d25"
+  },
+  {
+    "name": "aof-pre-split",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:30:36.512083+00:00",
+    "ended": "2026-11-01T05:32:52.159045+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.iUApaL",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "5a516f2a6a7ca6447ca669c3a9bace92a6f1654eea4fa58957dcb3da8508a23a"
+  },
+  {
+    "name": "directed",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T02:47:11.006534+00:00",
+    "ended": "2026-11-01T02:48:49.378199+00:00",
+    "exit_code": 1,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.Uqirde",
+    "passed_rows": 6,
+    "failed_rows": [
+      "rootcore waitaof",
+      "rootcore misconf"
+    ],
+    "notices": [
+      "GATE_ONLY_JOBS=rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "42a01965809cfafeb80978a5d7ee8e86542657c31081d8160eb0c44b21c3364b"
+  },
+  {
+    "name": "fused-epoll",
+    "engine": "epoll",
+    "fused": 1,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T05:20:09.813033+00:00",
+    "ended": "2026-11-01T05:23:57.976506+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.lOImR8",
+    "passed_rows": 47,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=release_batteries atomic_batteries debug-0 debug-1 script_bounds; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/debug-0/gate-lbsignals-0.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-lbsignals-1.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ]
+    },
+    "archive_sha256": "98c6dec0cf72cce3d6ceb217e2bf3b92b6b47cc6a6c7743f014d5fb8ed451ba7"
+  },
+  {
+    "name": "fused-uring",
+    "engine": "uring",
+    "fused": 1,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T05:16:20.796967+00:00",
+    "ended": "2026-11-01T05:20:09.741905+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.vrQUWY",
+    "passed_rows": 47,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=release_batteries atomic_batteries debug-0 debug-1 script_bounds; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/debug-0/gate-lbsignals-0.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-lbsignals-1.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ]
+    },
+    "archive_sha256": "a01327e93a2ac9778800ecd77b5f2ca7225ba83e82277ca2f5b230bf4966d667"
+  },
+  {
+    "name": "main-epoll",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T04:15:45.493443+00:00",
+    "ended": "2026-11-01T05:16:20.726030+00:00",
+    "exit_code": 1,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.GnyYHs",
+    "passed_rows": 270,
+    "failed_rows": [
+      "txnorder battery (fused, atomic 1)"
+    ],
+    "notices": [
+      "GATE_ONLY_JOBS=feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 release_batteries atomic_batteries debug-0 debug-1 flip fliplisten lb-stationary-1s lb-stationary-2s blockfix_structure blockfix_mkstream multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 script_bounds scriptfix lualibs aof_frame aoforder atomic_floor differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {
+      "differ-armed-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040817 recorded comparison witnesses, 230 legs)",
+        "DIFFER GATE: pass=231 fail=0 runtime=8m47s"
+      ],
+      "differ-armed-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1058133 recorded comparison witnesses, 234 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m48s"
+      ],
+      "differ-equivalence": [
+        "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
+      ],
+      "differ-split-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1064163 recorded comparison witnesses, 235 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m51s"
+      ],
+      "differ-split-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081179 recorded comparison witnesses, 239 legs)",
+        "DIFFER GATE: pass=239 fail=0 runtime=8m51s"
+      ]
+    },
+    "declared_omissions": {
+      "atomic_floor": [
+        "NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)"
+      ],
+      "differ-armed-0": [
+        "  differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=24)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "differ-armed-1": [
+        "  differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=24)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/atomic_batteries/gate-atomic-torn.txt": [
+        "  SKIP OFF control exposes impossible SINTERSTORE image clean run, no mixed image in 36423 reads (kernel-timing geometry)",
+        "  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)",
+        "  SKIP OFF control exposes COPY losing race clean run, losing race never manifested (kernel-timing geometry)"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/feature-armed-0/gate-fusedarmed-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-armed-1/gate-fusedarmed-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-0/gate-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-1/gate-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    "archive_sha256": "287bd99942d297daed87f0ecd6b86fd163f98fa955f3306b0bf4878c25c8c298"
+  },
+  {
+    "name": "main-uring",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T02:48:49.448946+00:00",
+    "ended": "2026-11-01T04:15:45.422176+00:00",
+    "exit_code": 1,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.YtFHZQ",
+    "passed_rows": 544,
+    "failed_rows": [
+      "maxmemrace CONFIG SET maxmemory reaches every owner before +OK",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+      "AOF process-restart script replay (epoll, atomic 0)",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+      "AOF process-restart script replay (epoll, atomic 1)",
+      "AOF native snapshot streams byte-exact",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+      "AOF process-restart script replay (uring, atomic 0)",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+      "AOF process-restart script replay (uring, atomic 1)",
+      "keyspace lazy-expiry order vs Redis 7.4"
+    ],
+    "notices": [
+      "GATE_ONLY_JOBS=feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 release_batteries atomic_batteries debug-0 debug-1 flip fliplisten lb-stationary-1s lb-stationary-2s blockfix_structure blockfix_mkstream multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 script_bounds scriptfix lualibs aof_frame aoforder atomic_floor flip_unit lbplanner_units atomic_units core_units blockfix_registry blockfix2 txnorder_index txnorder_wound txnorder2 txnorder_wake execfair exec1s maxmemrace netio-1s netio-2s persistfix_units persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-uring aof-epoll snapshot-uring snapshot-epoll snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables scriptfix2 notify notify_order notify_aof serverfix_waitaof differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {
+      "differ-armed-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040947 recorded comparison witnesses, 230 legs)",
+        "DIFFER GATE: pass=231 fail=0 runtime=8m43s"
+      ],
+      "differ-armed-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1058221 recorded comparison witnesses, 234 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m44s"
+      ],
+      "differ-equivalence": [
+        "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
+      ],
+      "differ-split-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1064125 recorded comparison witnesses, 235 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m48s"
+      ],
+      "differ-split-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081219 recorded comparison witnesses, 239 legs)",
+        "DIFFER GATE: pass=239 fail=0 runtime=8m50s"
+      ]
+    },
+    "declared_omissions": {
+      "atomic_floor": [
+        "NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)"
+      ],
+      "differ-armed-0": [
+        "  differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "differ-armed-1": [
+        "  differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/atomic_batteries/gate-atomic-torn.txt": [
+        "  SKIP OFF control exposes impossible SINTERSTORE image clean run, no mixed image in 35837 reads (kernel-timing geometry)",
+        "  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)",
+        "  SKIP OFF control exposes COPY losing race clean run, losing race never manifested (kernel-timing geometry)"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/feature-armed-0/gate-fusedarmed-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-armed-1/gate-fusedarmed-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-0/gate-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-1/gate-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    "archive_sha256": "099af4339df97722f9d2a0c50d942db67719b505894104785f4661b217b2418c"
+  },
+  {
+    "name": "notify-order-post",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:29:16.793602+00:00",
+    "ended": "2026-11-01T05:30:29.760187+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.71pzUp",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=notify_order; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "6489b4edb8c72c41ee866e6e732ef53e0feda017ee8fb5c2c37cb48ea0c0937b"
+  },
+  {
+    "name": "notify-order-pre",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:27:55.316789+00:00",
+    "ended": "2026-11-01T05:29:10.179689+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.afH98K",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=notify_order; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "1702fbe1e5f707ca6fdb23e0cc24e9b129bdb43560fa8f168a2b74985a6db394"
+  },
+  {
+    "name": "txnorder-post-1",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:24:57.540678+00:00",
+    "ended": "2026-11-01T05:25:50.038432+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.95i5Sh",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "302098210b6728bab401d2de4040a90534a0e65e9a5b6840b92fe96ddb72f872"
+  },
+  {
+    "name": "txnorder-post-2",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:26:56.036609+00:00",
+    "ended": "2026-11-01T05:27:48.536385+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.yUkePF",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "c9871347124c426f9c4b8adda9c3bf7deaef441db236ca99d897e2b9334d9a57"
+  },
+  {
+    "name": "txnorder-pre-1",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:23:58.319442+00:00",
+    "ended": "2026-11-01T05:24:50.874827+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.wptkEr",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "2e727ccbab1013c741cb06aa2b9fc8ea8a8b82ab5de117892d99d355057b9cba"
+  },
+  {
+    "name": "txnorder-pre-2",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:25:56.911138+00:00",
+    "ended": "2026-11-01T05:26:49.349864+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.wRDqbp",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "c6b59e48ba24d5882325ec661d103dbda8775f5008294edbd6f761e2d0424d57"
+  }
+]

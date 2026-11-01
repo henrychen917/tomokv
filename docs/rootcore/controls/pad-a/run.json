@@ -1,0 +1,21 @@
+{
+  "name": "pad-a",
+  "arm": "PAD-A",
+  "jobs": "rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--ports",
+    "20190-20199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcore/build/rootcore/PAD-A"
+  ],
+  "started": "2026-11-01T02:30:12.619451+00:00",
+  "ended": "2026-11-01T02:30:36.233025+00:00",
+  "exit_code": 1,
+  "sha256": "1728de4bc8e377581be39e1c554e0edd893c9f90c67aba3f57e55790ff26c38e"
+}

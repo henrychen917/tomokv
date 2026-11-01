@@ -1,0 +1,88 @@
+{
+  "name": "notify-order-post",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--ports",
+    "20100-20199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcore/build/tomokv"
+  ],
+  "jobs": {
+    "notify_order": {
+      "done": "0\t1\t0",
+      "ledger": "ok\t71.490000\tkeyspace lazy-expiry order vs Redis 7.4\n"
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "ledger": "ok\t0.000000\trelease build (+footprint locks)\n"
+    }
+  },
+  "engine": "uring",
+  "fused": 0,
+  "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+  "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+  "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+  "started": "2026-11-01T05:29:16.793602+00:00",
+  "ended": "2026-11-01T05:30:29.760187+00:00",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.71pzUp",
+  "passed_rows": 2,
+  "failed_rows": [],
+  "notices": [
+    "GATE_ONLY_JOBS=notify_order; NOT A RECEIPT"
+  ],
+  "missing_jobs": [],
+  "differential": {},
+  "declared_omissions": {},
+  "differential_plan": null,
+  "archive_sha256": "6489b4edb8c72c41ee866e6e732ef53e0feda017ee8fb5c2c37cb48ea0c0937b",
+  "archive_files": [
+    "families.tsv",
+    "jobs/notify_order/done",
+    "jobs/notify_order/family.tsv",
+    "jobs/notify_order/gate-srv-fused.2BcRvx",
+    "jobs/notify_order/gate-srv-fused.LSJc9N",
+    "jobs/notify_order/gate-srv-fused.Tcz2mL",
+    "jobs/notify_order/gate-srv-fused.k9YQ0d",
+    "jobs/notify_order/gate-srv-fused.mfzBa4",
+    "jobs/notify_order/gate-srv-fused.uk8MfC",
+    "jobs/notify_order/gate-srv-fused.yD1lJy",
+    "jobs/notify_order/gate-srv-fused.yYntzc",
+    "jobs/notify_order/gate-srv-main.DMFroU",
+    "jobs/notify_order/gate-srv-main.IAwTQC",
+    "jobs/notify_order/gate-srv-main.j3oThR",
+    "jobs/notify_order/gate-srv-main.y86YMm",
+    "jobs/notify_order/ledger",
+    "jobs/notify_order/oracle.log",
+    "jobs/notify_order/order-1s-epoll-a0-rl0.log",
+    "jobs/notify_order/order-1s-epoll-a0-rl1.log",
+    "jobs/notify_order/order-1s-epoll-a1-rl0.log",
+    "jobs/notify_order/order-1s-epoll-a1-rl1.log",
+    "jobs/notify_order/order-1s-uring-a0-rl0.log",
+    "jobs/notify_order/order-1s-uring-a0-rl1.log",
+    "jobs/notify_order/order-1s-uring-a1-rl0.log",
+    "jobs/notify_order/order-1s-uring-a1-rl1.log",
+    "jobs/notify_order/order-2s-epoll-a0-rl0.log",
+    "jobs/notify_order/order-2s-epoll-a1-rl0.log",
+    "jobs/notify_order/order-2s-uring-a0-rl0.log",
+    "jobs/notify_order/order-2s-uring-a1-rl0.log",
+    "jobs/notify_order/output.log",
+    "jobs/release/done",
+    "jobs/release/family.tsv",
+    "jobs/release/ledger",
+    "jobs/release/output.log",
+    "ledger.partial",
+    "ledger.partial.timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "requested_jobs": [
+    "notify_order"
+  ]
+}

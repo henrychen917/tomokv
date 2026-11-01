@@ -229,8 +229,7 @@ bool txn_group_touch(ScatterState& state, Shard& shard, uint64_t hash, Slice key
         if (!epoch) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::OrderViolations);
             ready = false;
-        } else if (entry.origin_conn_id != state.origin_conn_id && epoch > state.server->atomic_snapshot() &&
-                   !(state.server->atomic_publish_quiescent() && epoch <= state.server->atomic_snapshot())) {
+        } else if (entry.origin_conn_id != state.origin_conn_id && epoch > state.server->atomic_snapshot()) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::Waits);
             ready = false;
         }
