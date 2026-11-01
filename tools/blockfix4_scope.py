@@ -22,6 +22,8 @@ BUILD.mkdir(parents=True, exist_ok=True)
 ARMS = {"pre": (ROOT / "build/blockfix4/pre-source", ROOT / "build/blockfix4/pre-source/build"),
         "post": (ROOT, ROOT / "build"), "final": (ROOT, ROOT / "build"),
         "verified": (ROOT, ROOT / "build"), "land": (ROOT, ROOT / "build")}
+ARMS["pre-script"] = ARMS["pre"]
+ARMS["post-script"] = ARMS["post"]
 
 
 def save(path, value):
@@ -70,8 +72,10 @@ def trace(case):
             symbols.append([int(fields[0], 16), int(fields[0], 16) + int(fields[1], 16), fields[3]])
     names = subprocess.check_output(["c++filt"], input="\n".join(row[2] for row in symbols), text=True).splitlines()
     prefix = "tomo::" if ns == "normal" else "tomo_db0::"
+    callbacks = command.startswith(("EVAL", "EXEC"))
     ranges = [row + [name] for row, name in zip(symbols, names)
-              if prefix in name and "CoreConcurrencyTest::" not in name]
+              if ((prefix in name or '::' not in name) if callbacks else
+                  prefix in name and "CoreConcurrencyTest::" not in name)]
     ranges_file = BUILD / (label + "-ranges.json")
     save(ranges_file, ranges)
     anchor = next(row[0] for row in symbols if row[2] == "_Z11scope_beginv")
@@ -81,6 +85,7 @@ def trace(case):
     log_text = existing_log.read_text() if existing_log.exists() else (
         gzip.open(compressed_log, "rt").read() if compressed_log.exists() else "")
     if (output.exists() and "COUNT " in log_text and
+            json.loads(output.read_text()).get("trace_version", 1) == (2 if callbacks else 1) and
             json.loads(output.read_text()).get("binary_sha256") == binary_sha256):
         row = dict(zip(("arm", "namespace", "command", "mode", "batch", "atomic", "threshold"), case))
         row.update(json.loads(output.read_text()))
@@ -91,6 +96,7 @@ set confirm off
 set auto-load off
 set print thread-events off
 set disable-randomization on
+set print frame-arguments none
 python
 import gdb,json,bisect,re
 from collections import Counter
@@ -110,7 +116,9 @@ for step in range(2000000):
  pc=int(gdb.parse_and_eval('$pc'))
  if pc==end_pc:break
  fn=at(pc);ins=arch.disassemble(pc,count=1)[0]['asm']
- if fn:
+ if fn and 'CoreConcurrencyTest::bind(' in fn[3]:
+  gdb.execute('finish',to_string=True);continue
+ if fn and {prefix!r} in fn[3] and 'CoreConcurrencyTest::' not in fn[3]:
   counts[fn[3]]+=1
   bodies[hex(fn[0]-delta)+' '+fn[3]]+=1
  if ins.startswith('call') and 'clock_gettime' in ins:
@@ -134,7 +142,10 @@ for step in range(2000000):
  else:gdb.execute('stepi',to_string=True)
 else:raise RuntimeError('bounded instruction trace exhausted')
 assert sum(counts.values()) > 0, 'named production scope did not fire'
-json.dump(dict(total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks,binary_sha256={binary_sha256!r}),open({str(output)!r},'w'),indent=2)
+if {callbacks!r} and {command!r}.startswith('EVAL'):
+ assert any('script_execute(' in name for name in counts),'Lua activation was skipped'
+ assert any('redis_generic_command' in name or 'redis_call' in name for name in counts),'Lua callback was skipped'
+json.dump(dict(total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks,trace_version={2 if callbacks else 1},binary_sha256={binary_sha256!r}),open({str(output)!r},'w'),indent=2)
 end.delete();gdb.execute('continue',to_string=True)
 assert int(gdb.parse_and_eval('$_exitcode'))==0,'fixture exact-data assertion failed'
 print('COUNT',sum(counts.values()))

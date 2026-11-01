@@ -161,6 +161,10 @@ struct CoreConcurrencyTest {
    auto& loop=loops[server.worker_of_shard(0)];
    bind(server,server.worker_of_shard(0),loop.ring_);
    if(script){
+    const std::vector<std::string> load_args{"SCRIPT","LOAD",code};
+    Op load;load.reset();for(const auto& arg:load_args)need(load.push_arg({arg.data(),uint32_t(arg.size())}));
+    load.spec=command_lookup(load.arg(0));load.spec->handler(server.shard(0),load);
+    need(std::string(load.reply.data(),load.reply.size()).starts_with("$40\r\n"));
     const std::vector<std::string> args{"EVAL",code,"1",keys[0]};
     Op warm;warm.reset();for(const auto& arg:args)need(warm.push_arg({arg.data(),uint32_t(arg.size())}));
     warm.spec=command_lookup(warm.arg(0));warm.hash=FlatStore::hash_key(warm.arg(3));
