@@ -1562,6 +1562,12 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
                 op.state.store(OpState::Done, std::memory_order_release);
                 return true;
             }
+            if (block->deadline_ms && now_realtime_ms() >= block->deadline_ms) {
+                blocking_reply_timeout(op, block->kind);
+                block->phase.store(BlockingPhase::Completed, std::memory_order_release);
+                op.state.store(OpState::Done, std::memory_order_release);
+                return true;
+            }
             // Every old owner has dropped its alias. Rebuild routes on the owning IO,
             // retaining the original deadline and resolved XREAD cursors (including '$').
             if constexpr (!kSingleDatabase) multidb_stamp(server, op, block->logical_db);

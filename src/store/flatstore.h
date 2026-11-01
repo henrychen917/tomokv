@@ -1741,7 +1741,7 @@ public:
         // and the key resurrects — see the header.
         if (rehashing()) {
             bool expired = false;
-            if (erase_in(1, h, o->key(), &expired) && expired && expired_counter_)
+            if (erase_in(1, h, o->key(), &expired, o) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
         return insert_into(0, h, o, true) ? InsertResult::Inserted : InsertResult::Failed;
@@ -2766,9 +2766,10 @@ private:
             sink->emit(sink->context, cls, event, key);
     }
 
-    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr,
+                  const KvObj* replacement = nullptr) {
         if (__builtin_expect(read_local_enabled_, false))
-            return erase_in_read_local(t, h, key, was_expired);
+            return erase_in_read_local(t, h, key, was_expired, replacement);
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -2782,7 +2783,7 @@ private:
                 }
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
-                retire_obj(o);
+                retire_obj(o, replacement);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
                 live_[t]--; tombs_[t]++;
                 return true;
@@ -3006,7 +3007,7 @@ private:
         ReadLocalTableGuard table_move(*this, moves_from_old);
         if (rehashing()) {
             bool expired = false;
-            if (erase_in_read_local(1, h, o->key(), &expired) && expired && expired_counter_)
+            if (erase_in_read_local(1, h, o->key(), &expired, o) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
         return insert_into_read_local(0, h, o, true)
@@ -3234,7 +3235,8 @@ private:
         return false;
     }
 
-    bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+    bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr,
+                             const KvObj* replacement = nullptr) {
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -3249,7 +3251,7 @@ private:
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
                 read_local_slot_store(&tab_[t][i], kTombBit);
-                retire_obj_read_local(o);
+                retire_obj_read_local(o, replacement);
                 live_[t]--; tombs_[t]++;
                 return true;
             }
