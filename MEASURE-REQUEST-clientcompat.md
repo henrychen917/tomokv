@@ -175,7 +175,11 @@ and its compressed raw assertions retain both halves of this control. The sealed
 `docs/clientcompat/final-regression-jobs.txt`; its 120 selected jobs and required
 prerequisites include the complete requested command families, Tcl both modes,
 all feature-matrix geometries and multidb/FLIP/LB/transaction ordering jobs.
-Standard differential seeds are running through the gate jobs on both engines.
+Standard differential seeds completed on io_uring: 235/239 split legs,
+230/234 armed-fused legs (atomic 0/1), plus all 16 equivalence cells; zero
+differences and all completion artifacts present. The epoll run is in progress.
+The AT15-expanded multi-controls witness also passed all 32 candidate legs and
+the Redis oracle. See `validation/differential-uring.json`.
 The sealed PAD-A negative controls are complete.
 
 `make all`, all 51 explicitly enumerated production-unit targets, live MDBQSBR

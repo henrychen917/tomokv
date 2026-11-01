@@ -91,5 +91,16 @@
       "build/blockfix2-db0-unit"
     ],
     "exit": 0
+  },
+  {
+    "command": [
+      "make",
+      "-j16",
+      "all",
+      "build/at15-unit",
+      "build/at15-db0-unit"
+    ],
+    "exit": 0,
+    "reason": "Updated legacy AT15 subscription admission expectations; production source unchanged"
   }
 ]
