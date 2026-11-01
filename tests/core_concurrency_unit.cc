@@ -1057,6 +1057,7 @@ struct CoreConcurrencyTest {
 #include "flipfix5_checks.inc"
 #include "flipfix6_checks.inc"
 #include "wave13_checks.inc"
+#include "wave14_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1223,6 +1224,7 @@ int main(int argc, char** argv) {
             T::flipfix6_watch(db);
             for (auto atomic : {0u, 1u}) {
                 T::wave13_flush_unpublished(db, atomic);
+                T::wave14_placed_exec_flip(db, atomic);
                 for (bool converting : {false, true})
                     T::flipfix6_s2(db, atomic, converting, false, true);
             }

@@ -1630,9 +1630,11 @@ if unit_ready core-concurrency-unit && \
     taskset -c "$CORES" ./build/core-concurrency-unit flipfix6 >"$TMPDIR/flipfix6.txt" 2>&1 && \
     [ "$(grep -c '^ARMED flipfix6 ' "$TMPDIR/flipfix6.txt")" = 54 ] && \
     [ "$(grep -c '^ARMED wave13 ' "$TMPDIR/flipfix6.txt")" = 12 ] && \
+    [ "$(grep -c '^ARMED wave14 ' "$TMPDIR/flipfix6.txt")" = 4 ] && \
     tsan_unit "$CORE_TSAN" core-concurrency-tsan \
         "PASS core concurrency flipfix6 (state assertions fired)" flipfix6 && \
-    [ "$(grep -c '^ARMED wave13 ' "$TMPDIR/tsan-core-concurrency-tsan-flipfix6.log")" = 12 ]; then
+    [ "$(grep -c '^ARMED wave13 ' "$TMPDIR/tsan-core-concurrency-tsan-flipfix6.log")" = 12 ] && \
+    [ "$(grep -c '^ARMED wave14 ' "$TMPDIR/tsan-core-concurrency-tsan-flipfix6.log")" = 4 ]; then
   ok "FLIP session handover S2 and close fences (ASAN+TSAN)"
 else
   bad "FLIP session handover S2 and close fences (ASAN+TSAN)" "see $TMPDIR/flipfix6.txt and TSAN log"
