@@ -9,6 +9,7 @@ import subprocess
 p=argparse.ArgumentParser()
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--revision')
+p.add_argument('--kinds', default='client,transfer,task,fused,flush')
 a=p.parse_args()
 a.output.mkdir(parents=True,exist_ok=True)
 source=a.output/'source'
@@ -27,7 +28,7 @@ subprocess.run(['g++','-std=c++20','-O2','-g','-march=native','-pthread',
                 '-I'+str(source),'-I.','tests/rootcore_inbox.cc','-o',str(binary),
                 '-luring'],check=True)
 failed=False
-for kind in ('client','transfer','task','fused','flush'):
+for kind in a.kinds.split(','):
     result=subprocess.run([str(binary),kind],check=False)
     failed|=result.returncode!=0
 raise SystemExit(int(failed))

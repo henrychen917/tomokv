@@ -5583,7 +5583,7 @@ job_rootcore(){
   if [ "$root" = inbox ]; then
     local revision=()
     [ -z "${ROOTCORE_INBOX_REVISION:-}" ] || revision=(--revision "$ROOTCORE_INBOX_REVISION")
-    taskset -c "$CORES" python3 tools/rootcore_inbox.py --output "$TMPDIR/inbox" "${revision[@]}" \
+    taskset -c "$CORES" python3 tools/rootcore_inbox.py --output "$TMPDIR/inbox" --kinds "${ROOTCORE_INBOX_KINDS:-client,transfer,task,fused,flush}" "${revision[@]}" \
         >"$TMPDIR/rootcore-inbox.log" 2>&1 \
         && ok "$label" || bad "$label" "see $TMPDIR/rootcore-inbox.log"
     return
