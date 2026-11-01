@@ -1,0 +1,13 @@
+{
+  "make_q": 0,
+  "production_diff": 0,
+  "expect_unchanged": true,
+  "expect": [
+    "EXPECT_QUICK=999",
+    "EXPECT_FULL=1016                 # ABBA reports only; self-test remains counted."
+  ],
+  "python_ast_files": 44,
+  "bash_syntax": 0,
+  "implementation_diff_check": 0,
+  "baseline_sha256": "eb939ec42d53e2fe05f97962fad313b92d8e08a07f9529d028215cd608b70853"
+}

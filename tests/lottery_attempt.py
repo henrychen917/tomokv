@@ -35,6 +35,14 @@ def run(argv, directory, name, env):
 
 
 def attempt(row, args):
+    family, job = row['family'], row['job']
+    if family == 'xmove':
+        raise ValueError('NOT RUN: D2/V4 live inter-hop witness retired; '
+                         'the moverfix unit proves probe/push/claim conservation, '
+                         'but does not provide a candidate-binary W6 hit')
+    if family == 'flip saturated' and os.environ.get('GATE_PROOF_NO_RATES') == '1':
+        raise ValueError('NOT RUN: saturated FLIP uses memtier; '
+                         'correctness-only authorization excludes load generators')
     os.sched_setaffinity(0, cpus(args.client_cpus))
     directory = args.output.resolve()
     mask = sum(1 << int(p[1:]) for p in set(row['primitives']))
@@ -43,7 +51,6 @@ def attempt(row, args):
                GATE_LOAD_CORES=args.client_cpus, GATE_CANDIDATE_BINARY=str(args.binary),
                GATE_SPARE_PORT=str(args.port + 2), PYTHONUNBUFFERED='1',
                TMPDIR=str(directory))
-    family, job = row['family'], row['job']
     mode = 'fused' if job.startswith(('fused-', 'feature-armed-')) else 'split'
     atomic = int(job.rsplit('-', 1)[-1]) if job[-1:] in ('0', '1') else 0
     if family in ('atomic_torn', 'atomic_hazards'):
@@ -109,15 +116,13 @@ def attempt(row, args):
         # flakeaudit2 keeps the other 40 suites DETERMINISTIC). Every permanent
         # seed plus one fresh rotating seed, both atomics, the row's geometry.
         # Only the Python driver boundary changes, to insert observation markers.
-        original = (ROOT / 'tests/differ_gate.sh').read_text()
-        anchor = 'cd "$(dirname "$0")/.."'
-        if original.count(anchor) != 1 or original.count('python3 tests/differ.py') != 2:
-            raise ValueError('changed differ_gate.sh driver boundary; review the adapter')
-        shell = original.replace(anchor, f'cd {__import__("shlex").quote(str(ROOT))}')
-        shell = shell.replace('python3 tests/differ.py',
-                              'python3 tests/lottery_test_driver.py tests/differ.py')
-        script = directory / 'differ.sh'
-        script.write_text(shell)
+        # Use the matrix's supported focused-driver boundary. Text replacement
+        # of its old command line stopped working when that interface landed.
+        driver = directory / 'differ_driver.py'
+        driver.write_text('import runpy, sys\n'
+                          + f'sys.path.insert(0, {str(ROOT / "tests")!r})\n'
+                          + f'sys.argv.insert(1, {str(ROOT / "tests/differ.py")!r})\n'
+                          + f'runpy.run_path({str(ROOT / "tests/lottery_test_driver.py")!r}, run_name="__main__")\n')
         suites, seeds = directory / 'suites.txt', directory / 'seeds.txt'
         suites.write_text('s6fix\nclimon\npsfix\nstream\n')
         sys.path.insert(0, str(ROOT / 'tests'))
@@ -135,8 +140,9 @@ def attempt(row, args):
                    GATE_DIFFER_OUT=str(directory / 'matrix'),
                    GATE_DIFFER_PROOF_SUITES=str(suites), GATE_DIFFER_PROOF_SEEDS=str(seeds),
                    GATE_DIFFER_HISTORY=str(directory / 'history'),
-                   REDIS74_ROOT='/home/user/Projects/redis74')
-        passed, log = run(['bash', str(script), str(binary), str(args.port),
+                   GATE_DIFFER_DRIVER=str(driver),
+                   REDIS74_ROOT=os.environ.get('REDIS74_ROOT', '/home/user/Projects/redis74'))
+        passed, log = run(['bash', str(ROOT / 'tests/differ_gate.sh'), str(binary), str(args.port),
                            str(args.port + 1), args.server_cpus, '6:2'], directory, 'matrix', env)
         counters = {k: 0 for k in row['requires']}
         suite_counts = {}
@@ -209,7 +215,7 @@ def attempt(row, args):
             passed, log = run(['bash', str(script)], directory, 'row', env)
         else:
             arguments = ['127.0.0.1', args.port]
-            if family in ('atomic_torn', 'xmove') and row['id'] != '503':
+            if family in ('atomic_torn', 'xmove') and row['id'] != '503' and env.get('GATE_PROOF_NO_RATES') != '1':
                 arguments += ['--release-build']
             if family == 'servertail':
                 # The gate's throwaway boots use the first four slot CPUs (GATE_CORES).

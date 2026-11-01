@@ -1,0 +1,43 @@
+{
+  "attempts": 1,
+  "bound_assumption": "independent, stationary witnessed attempts; per row",
+  "bound_fixed_k": false,
+  "errors": 0,
+  "estimated_attempts_for_k": 20.0,
+  "estimated_seconds_for_k": 15358.515360411257,
+  "failures": 0,
+  "hit_failures": 0,
+  "hit_rate": 1.0,
+  "hits": 1,
+  "incomplete": 0,
+  "mean_attempt_seconds": 767.9257680205628,
+  "row": {
+    "family": "differential matrix",
+    "id": "516",
+    "job": "differ-armed",
+    "name": "Redis 7.4 differential matrix (armed fused + read-local)",
+    "observable": "witness",
+    "primitives": [
+      "W3",
+      "W13",
+      "W14",
+      "W15"
+    ],
+    "requires": [
+      "W3",
+      "W13",
+      "W14",
+      "W15"
+    ]
+  },
+  "seconds": 767.9257680205628,
+  "target_hits": 20,
+  "upper_95": 0.95,
+  "verdict": "INSUFFICIENT",
+  "witness_attempts": {
+    "W13": 1,
+    "W14": 1,
+    "W15": 1,
+    "W3": 1
+  }
+}

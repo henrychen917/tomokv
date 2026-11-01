@@ -4,6 +4,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 import difflib
 import json
+import os
 from pathlib import Path
 import re
 import shlex
@@ -22,6 +23,7 @@ def command(target, source):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('controls', nargs='+', choices=('no-wake', 'no-acl', 'no-hold'))
+    p.add_argument('--cores', default=','.join(map(str, sorted(os.sched_getaffinity(0)))))
     args = p.parse_args()
     original = (ROOT / 'src/cmd/blocking.inc').read_text()
     debug_original = (ROOT / 'src/cmd/blocking_debug.cc').read_text()
@@ -76,7 +78,7 @@ def main():
     def compile_one(job):
         path, cmd = job
         with path.open('w') as log:
-            subprocess.run(['taskset', '-c', '112-127', *cmd], cwd=ROOT,
+            subprocess.run(['taskset', '-c', args.cores, *cmd], cwd=ROOT,
                            stdout=log, stderr=subprocess.STDOUT, check=True)
         return cmd
     with ThreadPoolExecutor(max_workers=4) as pool:

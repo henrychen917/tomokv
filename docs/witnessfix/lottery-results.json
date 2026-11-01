@@ -1,0 +1,2025 @@
+[
+  {
+    "attempts": 20,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": true,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 30.777394065633416,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 20,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.5388697032816707,
+    "row": {
+      "family": "spinprobe",
+      "id": "122",
+      "job": "release_batteries",
+      "name": "idle loop ceiling (LBSIGNALS, 1s)",
+      "observable": "existing",
+      "primitives": [
+        "W10"
+      ],
+      "requires": [
+        "W10.idle"
+      ]
+    },
+    "seconds": 30.777394065633416,
+    "target_hits": 20,
+    "upper_95": 0.13910834066826516,
+    "verdict": "PASS",
+    "witness_attempts": {
+      "W10.idle": 20
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 776.9146055541933,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 1,
+    "incomplete": 0,
+    "mean_attempt_seconds": 38.84573027770966,
+    "row": {
+      "family": "atomic_torn",
+      "id": "126",
+      "job": "atomic_batteries",
+      "name": "atomic torn/window battery",
+      "observable": "witness",
+      "primitives": [
+        "W2"
+      ],
+      "requires": [
+        "W2.fanout"
+      ]
+    },
+    "seconds": 38.84573027770966,
+    "target_hits": 20,
+    "upper_95": 0.95,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W2.fanout": 1
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 12.760419081586102,
+    "row": {
+      "family": "atomic_hazards",
+      "id": "128",
+      "job": "atomic_batteries",
+      "name": "atomic owner-local hazard battery",
+      "observable": "witness",
+      "primitives": [
+        "W2"
+      ],
+      "requires": [
+        "W2.pin_flush",
+        "W2.ryow"
+      ]
+    },
+    "seconds": 38.28125724475831,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W2.pin_flush": 0,
+      "W2.ryow": 3
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 255.69387800370654,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 3,
+    "incomplete": 0,
+    "mean_attempt_seconds": 12.784693900185326,
+    "row": {
+      "family": "s6",
+      "id": "130",
+      "job": "feature-split-0",
+      "name": "s6 battery (atomic 0)",
+      "observable": "existing",
+      "primitives": [
+        "W3"
+      ],
+      "requires": [
+        "W3"
+      ]
+    },
+    "seconds": 38.35408170055598,
+    "target_hits": 20,
+    "upper_95": 0.6315968501359612,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W3": 3
+    }
+  },
+  {
+    "attempts": 10,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 62.40945973433554,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 10,
+    "incomplete": 0,
+    "mean_attempt_seconds": 3.120472986716777,
+    "row": {
+      "family": "multi_exec",
+      "id": "131",
+      "job": "feature-split-0",
+      "name": "multi_exec battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W16"
+      ],
+      "requires": [
+        "W16"
+      ]
+    },
+    "seconds": 31.20472986716777,
+    "target_hits": 20,
+    "upper_95": 0.2588655508930522,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W16": 10
+    }
+  },
+  {
+    "attempts": 16,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 40.23136350209825,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 16,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.0115681751049124,
+    "row": {
+      "family": "blocking",
+      "id": "132",
+      "job": "feature-split-0",
+      "name": "blocking battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W1",
+        "W5"
+      ],
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ]
+    },
+    "seconds": 32.1850908016786,
+    "target_hits": 20,
+    "upper_95": 0.1707497229824809,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W1": 16,
+      "W5.timeout": 16
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 318.80800127983093,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 15.940400063991547,
+    "row": {
+      "family": "limits",
+      "id": "139",
+      "job": "feature-split-0",
+      "name": "limits battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W5"
+      ],
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ]
+    },
+    "seconds": 31.880800127983093,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W5.exempt": 2,
+      "W5.idle": 2,
+      "W5.soft": 2
+    }
+  },
+  {
+    "attempts": 20,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": true,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 21.62138480693102,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 20,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.081069240346551,
+    "row": {
+      "family": "servertail",
+      "id": "149",
+      "job": "feature-split-0",
+      "name": "servertail battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W1"
+      ],
+      "requires": [
+        "W1"
+      ]
+    },
+    "seconds": 21.62138480693102,
+    "target_hits": 20,
+    "upper_95": 0.13910834066826516,
+    "verdict": "PASS",
+    "witness_attempts": {
+      "W1": 20
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 52.69063959270716,
+    "row": {
+      "family": "expwide",
+      "id": "159",
+      "job": "feature-split-0",
+      "name": "expwide battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W4"
+      ],
+      "requires": [
+        "W4"
+      ]
+    },
+    "seconds": 52.69063959270716,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W4": 0
+    }
+  },
+  {
+    "attempts": 12,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 54.29446185473353,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 12,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.7147230927366763,
+    "row": {
+      "family": "s6",
+      "id": "164",
+      "job": "feature-split-1",
+      "name": "s6 battery (atomic 1)",
+      "observable": "existing",
+      "primitives": [
+        "W3"
+      ],
+      "requires": [
+        "W3"
+      ]
+    },
+    "seconds": 32.576677112840116,
+    "target_hits": 20,
+    "upper_95": 0.22092219194555585,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W3": 12
+    }
+  },
+  {
+    "attempts": 10,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 25.0,
+    "estimated_seconds_for_k": 75.75149354990572,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.8,
+    "hits": 8,
+    "incomplete": 0,
+    "mean_attempt_seconds": 3.0300597419962285,
+    "row": {
+      "family": "multi_exec",
+      "id": "165",
+      "job": "feature-split-1",
+      "name": "multi_exec battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W16"
+      ],
+      "requires": [
+        "W16"
+      ]
+    },
+    "seconds": 30.300597419962287,
+    "target_hits": 20,
+    "upper_95": 0.3123439780663678,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W16": 8
+    }
+  },
+  {
+    "attempts": 15,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 42.17927670230468,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 15,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.108963835115234,
+    "row": {
+      "family": "blocking",
+      "id": "166",
+      "job": "feature-split-1",
+      "name": "blocking battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W1",
+        "W5"
+      ],
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ]
+    },
+    "seconds": 31.63445752672851,
+    "target_hits": 20,
+    "upper_95": 0.18103627252208462,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W1": 15,
+      "W5.timeout": 15
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 302.1819660253823,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 15.109098301269114,
+    "row": {
+      "family": "limits",
+      "id": "173",
+      "job": "feature-split-1",
+      "name": "limits battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W5"
+      ],
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ]
+    },
+    "seconds": 30.218196602538228,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W5.exempt": 2,
+      "W5.idle": 2,
+      "W5.soft": 2
+    }
+  },
+  {
+    "attempts": 20,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": true,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 16.424620325677097,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 20,
+    "incomplete": 0,
+    "mean_attempt_seconds": 0.8212310162838549,
+    "row": {
+      "family": "servertail",
+      "id": "183",
+      "job": "feature-split-1",
+      "name": "servertail battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W1"
+      ],
+      "requires": [
+        "W1"
+      ]
+    },
+    "seconds": 16.424620325677097,
+    "target_hits": 20,
+    "upper_95": 0.13910834066826516,
+    "verdict": "PASS",
+    "witness_attempts": {
+      "W1": 20
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 68.74555101431906,
+    "row": {
+      "family": "expwide",
+      "id": "193",
+      "job": "feature-split-1",
+      "name": "expwide battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W4"
+      ],
+      "requires": [
+        "W4"
+      ]
+    },
+    "seconds": 68.74555101431906,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W4": 0
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 328.9982385933399,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 16.449911929666996,
+    "row": {
+      "family": "s6",
+      "id": "199",
+      "job": "fused-0",
+      "name": "fused s6 battery (atomic 0)",
+      "observable": "existing",
+      "primitives": [
+        "W3"
+      ],
+      "requires": [
+        "W3"
+      ]
+    },
+    "seconds": 32.89982385933399,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W3": 2
+    }
+  },
+  {
+    "attempts": 11,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 56.10987373543057,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 11,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.8054936867715283,
+    "row": {
+      "family": "multi_exec",
+      "id": "200",
+      "job": "fused-0",
+      "name": "fused multi_exec battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W16"
+      ],
+      "requires": [
+        "W16"
+      ]
+    },
+    "seconds": 30.86043055448681,
+    "target_hits": 20,
+    "upper_95": 0.2384041903808526,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W16": 11
+    }
+  },
+  {
+    "attempts": 13,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 48.361971803869196,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 13,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.4180985901934595,
+    "row": {
+      "family": "spinprobe",
+      "id": "203",
+      "job": "fused-0",
+      "name": "fused spinprobe battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W10"
+      ],
+      "requires": [
+        "W10"
+      ]
+    },
+    "seconds": 31.435281672514975,
+    "target_hits": 20,
+    "upper_95": 0.20581666518655062,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W10": 13
+    }
+  },
+  {
+    "attempts": 20,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": true,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 26.97930353321135,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 20,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.3489651766605675,
+    "row": {
+      "family": "s6",
+      "id": "206",
+      "job": "fused-1",
+      "name": "fused s6 battery (atomic 1)",
+      "observable": "existing",
+      "primitives": [
+        "W3"
+      ],
+      "requires": [
+        "W3"
+      ]
+    },
+    "seconds": 26.97930353321135,
+    "target_hits": 20,
+    "upper_95": 0.13910834066826516,
+    "verdict": "PASS",
+    "witness_attempts": {
+      "W3": 20
+    }
+  },
+  {
+    "attempts": 11,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 55.916605573147535,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 11,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.7958302786573768,
+    "row": {
+      "family": "multi_exec",
+      "id": "207",
+      "job": "fused-1",
+      "name": "fused multi_exec battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W16"
+      ],
+      "requires": [
+        "W16"
+      ]
+    },
+    "seconds": 30.754133065231144,
+    "target_hits": 20,
+    "upper_95": 0.2384041903808526,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W16": 11
+    }
+  },
+  {
+    "attempts": 13,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 48.36032674289667,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 13,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.4180163371448335,
+    "row": {
+      "family": "spinprobe",
+      "id": "210",
+      "job": "fused-1",
+      "name": "fused spinprobe battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W10"
+      ],
+      "requires": [
+        "W10"
+      ]
+    },
+    "seconds": 31.434212382882833,
+    "target_hits": 20,
+    "upper_95": 0.20581666518655062,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W10": 13
+    }
+  },
+  {
+    "attempts": 16,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 39.2923208407592,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 16,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.9646160420379601,
+    "row": {
+      "family": "s6",
+      "id": "213",
+      "job": "feature-armed-0",
+      "name": "fused+armed s6 battery (atomic 0)",
+      "observable": "existing",
+      "primitives": [
+        "W3"
+      ],
+      "requires": [
+        "W3"
+      ]
+    },
+    "seconds": 31.433856672607362,
+    "target_hits": 20,
+    "upper_95": 0.1707497229824809,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W3": 16
+    }
+  },
+  {
+    "attempts": 13,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 48.30467072530435,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 13,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.4152335362652173,
+    "row": {
+      "family": "multi_exec",
+      "id": "214",
+      "job": "feature-armed-0",
+      "name": "fused+armed multi_exec battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W16"
+      ],
+      "requires": [
+        "W16"
+      ]
+    },
+    "seconds": 31.398035971447825,
+    "target_hits": 20,
+    "upper_95": 0.20581666518655062,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W16": 13
+    }
+  },
+  {
+    "attempts": 17,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 37.327663761508816,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 17,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.8663831880754407,
+    "row": {
+      "family": "blocking",
+      "id": "215",
+      "job": "feature-armed-0",
+      "name": "fused+armed blocking battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W1",
+        "W5"
+      ],
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ]
+    },
+    "seconds": 31.728514197282493,
+    "target_hits": 20,
+    "upper_95": 0.16156611126074005,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W1": 17,
+      "W5.timeout": 17
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 307.7400073129684,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 15.387000365648419,
+    "row": {
+      "family": "limits",
+      "id": "222",
+      "job": "feature-armed-0",
+      "name": "fused+armed limits battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W5"
+      ],
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ]
+    },
+    "seconds": 30.774000731296837,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W5.exempt": 2,
+      "W5.idle": 2,
+      "W5.soft": 2
+    }
+  },
+  {
+    "attempts": 20,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": true,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 17.11385461408645,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 20,
+    "incomplete": 0,
+    "mean_attempt_seconds": 0.8556927307043225,
+    "row": {
+      "family": "servertail",
+      "id": "232",
+      "job": "feature-armed-0",
+      "name": "fused+armed servertail battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W1"
+      ],
+      "requires": [
+        "W1"
+      ]
+    },
+    "seconds": 17.11385461408645,
+    "target_hits": 20,
+    "upper_95": 0.13910834066826516,
+    "verdict": "PASS",
+    "witness_attempts": {
+      "W1": 20
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 48.434213465079665,
+    "row": {
+      "family": "expwide",
+      "id": "242",
+      "job": "feature-armed-0",
+      "name": "fused+armed expwide battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W4"
+      ],
+      "requires": [
+        "W4"
+      ]
+    },
+    "seconds": 48.434213465079665,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W4": 0
+    }
+  },
+  {
+    "attempts": 12,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 52.03128983887533,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 12,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.601564491943767,
+    "row": {
+      "family": "s6",
+      "id": "248",
+      "job": "feature-armed-1",
+      "name": "fused+armed s6 battery (atomic 1)",
+      "observable": "existing",
+      "primitives": [
+        "W3"
+      ],
+      "requires": [
+        "W3"
+      ]
+    },
+    "seconds": 31.2187739033252,
+    "target_hits": 20,
+    "upper_95": 0.22092219194555585,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W3": 12
+    }
+  },
+  {
+    "attempts": 13,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 47.820113168026396,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 13,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.3910056584013195,
+    "row": {
+      "family": "multi_exec",
+      "id": "249",
+      "job": "feature-armed-1",
+      "name": "fused+armed multi_exec battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W16"
+      ],
+      "requires": [
+        "W16"
+      ]
+    },
+    "seconds": 31.083073559217155,
+    "target_hits": 20,
+    "upper_95": 0.20581666518655062,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W16": 13
+    }
+  },
+  {
+    "attempts": 17,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 37.05650930128553,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 17,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.8528254650642766,
+    "row": {
+      "family": "blocking",
+      "id": "250",
+      "job": "feature-armed-1",
+      "name": "fused+armed blocking battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W1",
+        "W5"
+      ],
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ]
+    },
+    "seconds": 31.498032906092703,
+    "target_hits": 20,
+    "upper_95": 0.16156611126074005,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W1": 17,
+      "W5.timeout": 17
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 308.16986080259085,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 15.408493040129542,
+    "row": {
+      "family": "limits",
+      "id": "257",
+      "job": "feature-armed-1",
+      "name": "fused+armed limits battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W5"
+      ],
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ]
+    },
+    "seconds": 30.816986080259085,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W5.exempt": 2,
+      "W5.idle": 2,
+      "W5.soft": 2
+    }
+  },
+  {
+    "attempts": 20,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": true,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 25.317454592324793,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 20,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.2658727296162398,
+    "row": {
+      "family": "servertail",
+      "id": "267",
+      "job": "feature-armed-1",
+      "name": "fused+armed servertail battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W1"
+      ],
+      "requires": [
+        "W1"
+      ]
+    },
+    "seconds": 25.317454592324793,
+    "target_hits": 20,
+    "upper_95": 0.13910834066826516,
+    "verdict": "PASS",
+    "witness_attempts": {
+      "W1": 20
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 37.09380292147398,
+    "row": {
+      "family": "expwide",
+      "id": "277",
+      "job": "feature-armed-1",
+      "name": "fused+armed expwide battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W4"
+      ],
+      "requires": [
+        "W4"
+      ]
+    },
+    "seconds": 37.09380292147398,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W4": 0
+    }
+  },
+  {
+    "attempts": 18,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 33.51079710138341,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 18,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.6755398550691705,
+    "row": {
+      "family": "slowlog",
+      "id": "300",
+      "job": "debug-0",
+      "name": "slowlog battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W1"
+      ],
+      "requires": [
+        "W1"
+      ]
+    },
+    "seconds": 30.159717391245067,
+    "target_hits": 20,
+    "upper_95": 0.1533175539572782,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W1": 18
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 360.1159657537937,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 18.005798287689686,
+    "row": {
+      "family": "execatomic",
+      "id": "303",
+      "job": "debug-0",
+      "name": "execatomic battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W2"
+      ],
+      "requires": [
+        "W2.fanout"
+      ]
+    },
+    "seconds": 36.01159657537937,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W2.fanout": 2
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 289.16679633781314,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 3,
+    "incomplete": 0,
+    "mean_attempt_seconds": 14.458339816890657,
+    "row": {
+      "family": "execiso",
+      "id": "304",
+      "job": "debug-0",
+      "name": "execiso battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W2"
+      ],
+      "requires": [
+        "W2.fanout"
+      ]
+    },
+    "seconds": 43.37501945067197,
+    "target_hits": 20,
+    "upper_95": 0.6315968501359612,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W2.fanout": 3
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 89.76197874173522,
+    "failures": 1,
+    "hit_failures": 1,
+    "hit_rate": 1.0,
+    "hits": 1,
+    "incomplete": 0,
+    "mean_attempt_seconds": 4.488098937086761,
+    "row": {
+      "family": "xmove",
+      "id": "310",
+      "job": "debug-0",
+      "name": "xmove battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W6"
+      ],
+      "requires": [
+        "W6.left",
+        "W6.right"
+      ]
+    },
+    "seconds": 4.488098937086761,
+    "target_hits": 20,
+    "upper_95": 1.0,
+    "verdict": "FAIL",
+    "witness_attempts": {
+      "W6.left": 1,
+      "W6.right": 1
+    }
+  },
+  {
+    "attempts": 14,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 45.63354437904699,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 14,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.2816772189523493,
+    "row": {
+      "family": "slowlog",
+      "id": "314",
+      "job": "debug-1",
+      "name": "slowlog battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W1"
+      ],
+      "requires": [
+        "W1"
+      ]
+    },
+    "seconds": 31.94348106533289,
+    "target_hits": 20,
+    "upper_95": 0.19263617565013527,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W1": 14
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 346.30412510596216,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 17.315206255298108,
+    "row": {
+      "family": "execatomic",
+      "id": "317",
+      "job": "debug-1",
+      "name": "execatomic battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W2"
+      ],
+      "requires": [
+        "W2.fanout"
+      ]
+    },
+    "seconds": 34.630412510596216,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W2.fanout": 2
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 284.2331242064635,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 3,
+    "incomplete": 0,
+    "mean_attempt_seconds": 14.211656210323175,
+    "row": {
+      "family": "execiso",
+      "id": "318",
+      "job": "debug-1",
+      "name": "execiso battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W2"
+      ],
+      "requires": [
+        "W2.fanout"
+      ]
+    },
+    "seconds": 42.634968630969524,
+    "target_hits": 20,
+    "upper_95": 0.6315968501359612,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W2.fanout": 3
+    }
+  },
+  {
+    "attempts": 17,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.83369049928425,
+    "row": {
+      "family": "xmove",
+      "id": "324",
+      "job": "debug-1",
+      "name": "xmove battery (atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W6"
+      ],
+      "requires": [
+        "W6.left",
+        "W6.right"
+      ]
+    },
+    "seconds": 31.172738487832248,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W6.left": 0,
+      "W6.right": 0
+    }
+  },
+  {
+    "attempts": 9,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 3.600817885974215,
+    "row": {
+      "family": "debug",
+      "id": "339",
+      "job": "auth",
+      "name": "DEBUG toggle/reload battery",
+      "observable": "witness",
+      "primitives": [
+        "W7"
+      ],
+      "requires": [
+        "W7.progress",
+        "W7.cancel"
+      ]
+    },
+    "seconds": 32.407360973767936,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W7.cancel": 0,
+      "W7.progress": 0
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 203.17520963648954,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 3,
+    "incomplete": 0,
+    "mean_attempt_seconds": 10.158760481824478,
+    "row": {
+      "family": "snapshot capture/reload",
+      "id": "341",
+      "job": "snapshot-epoll",
+      "name": "snapshot concurrent cut (epoll)",
+      "observable": "existing",
+      "primitives": [
+        "W8"
+      ],
+      "requires": [
+        "W8"
+      ]
+    },
+    "seconds": 30.476281445473433,
+    "target_hits": 20,
+    "upper_95": 0.6315968501359612,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W8": 3
+    }
+  },
+  {
+    "attempts": 5,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 135.3068227879703,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 5,
+    "incomplete": 0,
+    "mean_attempt_seconds": 6.765341139398515,
+    "row": {
+      "family": "snapshot capture/reload",
+      "id": "342",
+      "job": "snapshot-epoll",
+      "name": "snapshot cut reload (epoll)",
+      "observable": "existing",
+      "primitives": [
+        "W8"
+      ],
+      "requires": [
+        "W8"
+      ]
+    },
+    "seconds": 33.826705696992576,
+    "target_hits": 20,
+    "upper_95": 0.450719728346941,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W8": 5
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 239.35151966288686,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 3,
+    "incomplete": 0,
+    "mean_attempt_seconds": 11.967575983144343,
+    "row": {
+      "family": "snapshot groups",
+      "id": "343",
+      "job": "snapshot-epoll",
+      "name": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W9"
+      ],
+      "requires": [
+        "W9"
+      ]
+    },
+    "seconds": 35.90272794943303,
+    "target_hits": 20,
+    "upper_95": 0.6315968501359612,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W9": 3
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 30.0,
+    "estimated_seconds_for_k": 423.523205537349,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.6666666666666666,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 14.1174401845783,
+    "row": {
+      "family": "snapshot groups",
+      "id": "344",
+      "job": "snapshot-epoll",
+      "name": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W9"
+      ],
+      "requires": [
+        "W9"
+      ]
+    },
+    "seconds": 42.3523205537349,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W9": 2
+    }
+  },
+  {
+    "attempts": 4,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 26.666666666666668,
+    "estimated_seconds_for_k": 257.467219332854,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.75,
+    "hits": 3,
+    "incomplete": 0,
+    "mean_attempt_seconds": 9.655020724982023,
+    "row": {
+      "family": "snapshot capture/reload",
+      "id": "349",
+      "job": "snapshot-uring",
+      "name": "snapshot concurrent cut (uring)",
+      "observable": "existing",
+      "primitives": [
+        "W8"
+      ],
+      "requires": [
+        "W8"
+      ]
+    },
+    "seconds": 38.62008289992809,
+    "target_hits": 20,
+    "upper_95": 0.6315968501359612,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W8": 3
+    }
+  },
+  {
+    "attempts": 5,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 25.0,
+    "estimated_seconds_for_k": 155.34583900589496,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.8,
+    "hits": 4,
+    "incomplete": 0,
+    "mean_attempt_seconds": 6.213833560235798,
+    "row": {
+      "family": "snapshot capture/reload",
+      "id": "350",
+      "job": "snapshot-uring",
+      "name": "snapshot cut reload (uring)",
+      "observable": "existing",
+      "primitives": [
+        "W8"
+      ],
+      "requires": [
+        "W8"
+      ]
+    },
+    "seconds": 31.069167801178992,
+    "target_hits": 20,
+    "upper_95": 0.527129195498412,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W8": 4
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 223.13468169420958,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 3,
+    "incomplete": 0,
+    "mean_attempt_seconds": 11.156734084710479,
+    "row": {
+      "family": "snapshot groups",
+      "id": "351",
+      "job": "snapshot-uring",
+      "name": "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+      "observable": "witness",
+      "primitives": [
+        "W9"
+      ],
+      "requires": [
+        "W9"
+      ]
+    },
+    "seconds": 33.470202254131436,
+    "target_hits": 20,
+    "upper_95": 0.6315968501359612,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W9": 3
+    }
+  },
+  {
+    "attempts": 3,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 30.0,
+    "estimated_seconds_for_k": 328.8574348203838,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.6666666666666666,
+    "hits": 2,
+    "incomplete": 0,
+    "mean_attempt_seconds": 10.961914494012793,
+    "row": {
+      "family": "snapshot groups",
+      "id": "352",
+      "job": "snapshot-uring",
+      "name": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W9"
+      ],
+      "requires": [
+        "W9"
+      ]
+    },
+    "seconds": 32.88574348203838,
+    "target_hits": 20,
+    "upper_95": 0.776393202250021,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W9": 2
+    }
+  },
+  {
+    "attempts": 10,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 25.0,
+    "estimated_seconds_for_k": 75.81451992271468,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.8,
+    "hits": 8,
+    "incomplete": 0,
+    "mean_attempt_seconds": 3.0325807969085874,
+    "row": {
+      "family": "multi_exec",
+      "id": "357",
+      "job": "notify",
+      "name": "MULTI feature battery",
+      "observable": "witness",
+      "primitives": [
+        "W16"
+      ],
+      "requires": [
+        "W16"
+      ]
+    },
+    "seconds": 30.325807969085872,
+    "target_hits": 20,
+    "upper_95": 0.3123439780663678,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W16": 8
+    }
+  },
+  {
+    "attempts": 17,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 36.92387431421701,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 17,
+    "incomplete": 0,
+    "mean_attempt_seconds": 1.8461937157108503,
+    "row": {
+      "family": "blocking",
+      "id": "358",
+      "job": "notify",
+      "name": "blocking feature battery",
+      "observable": "witness",
+      "primitives": [
+        "W1",
+        "W5"
+      ],
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ]
+    },
+    "seconds": 31.385293167084455,
+    "target_hits": 20,
+    "upper_95": 0.16156611126074005,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W1": 17,
+      "W5.timeout": 17
+    }
+  },
+  {
+    "attempts": 11,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 59.23584910956296,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 11,
+    "incomplete": 0,
+    "mean_attempt_seconds": 2.961792455478148,
+    "row": {
+      "family": "spinprobe",
+      "id": "366",
+      "job": "flip",
+      "name": "partial-frame conn parks (no io spin)",
+      "observable": "witness",
+      "primitives": [
+        "W10"
+      ],
+      "requires": [
+        "W10"
+      ]
+    },
+    "seconds": 32.57971701025963,
+    "target_hits": 20,
+    "upper_95": 0.2384041903808526,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W10": 11
+    }
+  },
+  {
+    "attempts": 5,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 25.0,
+    "estimated_seconds_for_k": 180.90030388906598,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.8,
+    "hits": 4,
+    "incomplete": 0,
+    "mean_attempt_seconds": 7.236012155562639,
+    "row": {
+      "family": "flip saturated",
+      "id": "368",
+      "job": "flip_saturated",
+      "name": "FLIP applies under saturated load",
+      "observable": "witness",
+      "primitives": [
+        "W11"
+      ],
+      "requires": [
+        "W11"
+      ]
+    },
+    "seconds": 36.180060777813196,
+    "target_hits": 20,
+    "upper_95": 0.527129195498412,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W11": 4
+    }
+  },
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 18.367516222409904,
+    "row": {
+      "family": "TLS partial handshake/teardown",
+      "id": "443",
+      "job": "tls",
+      "name": "TLS pipeline/torn-record/coexistence battery",
+      "observable": "witness",
+      "primitives": [
+        "W12"
+      ],
+      "requires": [
+        "W12.handshake",
+        "W12.record",
+        "W12.parser"
+      ]
+    },
+    "seconds": 36.73503244481981,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W12.handshake": 0,
+      "W12.parser": 0,
+      "W12.record": 2
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": 20.0,
+    "estimated_seconds_for_k": 835.0147374719381,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 1.0,
+    "hits": 1,
+    "incomplete": 0,
+    "mean_attempt_seconds": 41.75073687359691,
+    "row": {
+      "family": "atomic_torn",
+      "id": "503",
+      "job": "asan_batteries",
+      "name": "atomic torn/window under ASAN",
+      "observable": "witness",
+      "primitives": [
+        "W2"
+      ],
+      "requires": [
+        "W2.fanout"
+      ]
+    },
+    "seconds": 41.75073687359691,
+    "target_hits": 20,
+    "upper_95": 0.95,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W2.fanout": 1
+    }
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 1,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 1,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 0.11504109669476748,
+    "row": {
+      "family": "differential matrix",
+      "id": "515",
+      "job": "differ-split",
+      "name": "Redis 7.4 differential matrix",
+      "observable": "witness",
+      "primitives": [
+        "W3",
+        "W13",
+        "W14",
+        "W15"
+      ],
+      "requires": [
+        "W3",
+        "W13",
+        "W14",
+        "W15"
+      ]
+    },
+    "seconds": 0.11504109669476748,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "ERROR",
+    "witness_attempts": {}
+  },
+  {
+    "attempts": 1,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 1,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 1,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 0.1150139169767499,
+    "row": {
+      "family": "differential matrix",
+      "id": "516",
+      "job": "differ-armed",
+      "name": "Redis 7.4 differential matrix (armed fused + read-local)",
+      "observable": "witness",
+      "primitives": [
+        "W3",
+        "W13",
+        "W14",
+        "W15"
+      ],
+      "requires": [
+        "W3",
+        "W13",
+        "W14",
+        "W15"
+      ]
+    },
+    "seconds": 0.1150139169767499,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "ERROR",
+    "witness_attempts": {}
+  }
+]

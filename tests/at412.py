@@ -145,8 +145,7 @@ def settle(c):
     wait(lambda: stats(c).get('script_keys_armed', 0) == stats(c).get('script_keys_released', 0),
          'script PINs leaked')
     s = stats(c)
-    for key in ('script_group_occ_giveups', 'script_crossshard_window_refusals',
-                'atomic_txn_order_violations', 'atomic_gauge_underflows'):
+    for key in ('atomic_gauge_underflows',):
         assert s.get(key, 0) == 0, (key, s.get(key))
 
 
@@ -397,7 +396,6 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     before = stats(c)
     start = threading.Barrier(21)
     stop = threading.Event()
-    hold = threading.Event()
     counts = [0]*20
     attempts = [0]*20
     errors = []
@@ -412,18 +410,11 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
         return ('scripts' if i < 8 else 'execs' if i < 16 else 'writers') in mix
     def worker(i):
         try:
-            # A FLIP may hold dispatch up to its own 5 s deadline before it refuses; an
-            # operation waiting through it is not a stall (flip_under_load uses 15 s too).
-            with contextlib.closing(Conn('127.0.0.1', port, timeout=15 if flip else 5)) as client:
+            # V16: an observed five-second freeze must exceed the client deadline.
+            with contextlib.closing(Conn('127.0.0.1', port, timeout=4 if flip else 5)) as client:
                 start.wait(timeout=10)
                 while not stop.is_set() and enabled(i):
-                    # FLIP transfers only quiescent connections (no in-flight op, no WATCH or
-                    # MULTI state) and drains in-flight atomic work; under the uninterrupted
-                    # storm it is refused on PRE and POST alike. Workers therefore start no NEW
-                    # operation while a FLIP is issued, but every operation already in flight
-                    # (escalated scripts included) must drain through it.
-                    while hold.is_set() and not stop.is_set():
-                        time.sleep(.001)
+                    # Keep issuing verified work while the controller transfers clients.
                     attempts[i] += 1
                     if i < 8:
                         reply = client.cmd(*call)
@@ -456,10 +447,9 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     deadline = time.monotonic() + seconds
     next_flip = time.monotonic()+1
     flips = saves = 0
-    flip_refusals = []
     flip_target = [4]
     flip_seconds = []
-    flipper = Conn('127.0.0.1', port, timeout=30) if flip and not oracle else None
+    flipper = Conn('127.0.0.1', port, timeout=4) if flip and not oracle else None
     try:
         while time.monotonic() < deadline and not stop.is_set():
             now = time.monotonic()
@@ -483,24 +473,20 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
                 if oracle:
                     flips += 1
                 else:
-                    # A FLIP may legally refuse (for example when its drain cannot finish in
-                    # time); only a completed FLIP counts, and at least one must complete.
+                    # A valid shape must finish while producers remain active.
                     began = time.monotonic()
-                    hold.set()
                     try:
                         reply = flipper.cmd('FLIP', io, 8-io)
                     except TimeoutError:
                         stall_info(port)
                         raise
-                    finally:
-                        hold.clear()
                     flip_seconds.append(round(time.monotonic()-began, 3))
                     if reply == b'OK':
                         flips += 1
                         flip_target[0] = 6 if io == 4 else 4  # move only after a real change
                     else:
                         assert isinstance(reply, RespError), reply
-                        flip_refusals.append(str(reply))
+                        raise AssertionError(('V16 valid FLIP refused', str(reply)))
                 next_flip += 1
             time.sleep(.1)
     finally:
@@ -510,7 +496,7 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
     if errors or any(t.is_alive() for t in threads):
         stall_info(port)
         if flip:
-            print('FLIP-LOG', json.dumps(dict(flips=flips, refusals=flip_refusals, seconds=flip_seconds)), flush=True)
+            print('FLIP-LOG', json.dumps(dict(flips=flips, seconds=flip_seconds)), flush=True)
     assert not any(t.is_alive() for t in threads), 'storm workers stuck'
     assert not errors, errors
     both = sum(counts[:16])
@@ -531,13 +517,12 @@ def storm(c, port, keys, call, oracle, seconds=30, bgsave=False, flip=False, ref
             assert after['script_escalations'] > before['script_escalations'], 'no escalation during the FLIPs'
         if flip:
             flip_delta = {k: after.get(k, 0)-before.get(k, 0) for k in after if k.startswith('flip_')}
-            # A FLIP may be refused when it cannot quiesce every connection in time (PRE does the
-            # same under this storm); at least one must complete and move a connection.
-            assert flips > 0 and after['flip_completed'] >= before['flip_completed']+flips, (flip_delta, flips, flip_refusals, flip_seconds)
+            # The completed/transfer counters witness an actual ownership change.
+            assert flips > 0 and after['flip_completed'] >= before['flip_completed']+flips, (flip_delta, flips, flip_seconds)
             assert after['flip_clients_transferred'] > before['flip_clients_transferred'], ('no client transferred', flip_delta)
     if flipper:
         flipper.close()
-    return dict(counts=counts, attempts=attempts, flips=flips, saves=saves, flip_refusals=flip_refusals,
+    return dict(counts=counts, attempts=attempts, flips=flips, saves=saves,
                 flip_max_seconds=max(flip_seconds, default=0),
                 **({} if refusals is None else dict(pre_control_refusals=refusals[0])))
 

@@ -21,39 +21,20 @@ class Controls(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 validate_passing(dict(row, **change), [], setup_only=True)
 
-    def test_monitor_retry_is_named_bounded_and_requires_a_complete_pass(self):
+    def test_failed_assertion_is_never_replaced_by_a_retry(self):
         from types import SimpleNamespace
         from unittest.mock import patch
         import redis_tcl
-        order_tests = [(unit, name) for unit, names in redis_tcl.ORDER_TESTS.items()
-                       for name in ((names,) if isinstance(names, str) else names)]
-        for unit, name in order_tests:
-            original = dict(events=[dict(status='err', test=name)], failed=1, passed=0,
-                            error=None, complete=True, exit_code=1, seconds=0)
-            good = dict(events=[dict(status='ok', test=name)], failed=0, passed=1,
-                        error=None, complete=True, exit_code=0, seconds=0)
-            with tempfile.TemporaryDirectory(dir=ROOT/'build') as directory:
-                args=SimpleNamespace(output=Path(directory))
-                (args.output/unit).mkdir(parents=True)
-                for result in (good, original, {**good, 'events': []},
-                               {**good, 'complete': False},
-                               {**good, 'events': good['events'] * 2}):
-                    with patch.object(redis_tcl, 'run_file', return_value=copy.deepcopy(result)) as run:
-                        row=redis_tcl.retry_monitor_order(args, Path(directory), unit,
-                                                         copy.deepcopy(original), [])
-                    self.assertEqual(run.call_count, 1)
-                    self.assertEqual(run.call_args.kwargs['only'], [name.split(' in tests/')[0]])
-                    self.assertIn('original_failure', row['monitor_order_retry'])
-                    if result is good: validate_passing(row, [name])
-                    else:
-                        with self.assertRaises(ValueError): validate_passing(row, [name])
-                for change in ({'complete': False}, {'error': 'timeout'}, {'failed': 2},
-                               {'events': [dict(status='err', test='another assertion')]},
-                               {'events': []}):
-                    with patch.object(redis_tcl, 'run_file') as run:
-                        row=redis_tcl.retry_monitor_order(args, Path(directory), unit,
-                                                         dict(original, **change), [])
-                    run.assert_not_called()
+        name = 'MONITOR log blocked command only once in tests/unit/introspection.tcl'
+        failed = dict(events=[dict(status='err', test=name)], failed=1, passed=0,
+                      error=None, complete=True, exit_code=1, seconds=0)
+        with patch.object(redis_tcl, 'run_file', return_value=failed) as run:
+            row = redis_tcl.run_manifest_file(SimpleNamespace(), Path('/unused'),
+                                              'unit/introspection', {}, [], [])
+        self.assertIs(row, failed)
+        self.assertEqual(run.call_count, 1)
+        with self.assertRaises(ValueError):
+            validate_passing(row, [name])
 
     def test_fresh_assertion_requires_its_own_complete_successful_receipt(self):
         from types import SimpleNamespace

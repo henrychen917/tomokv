@@ -9,6 +9,7 @@ import sys
 import time
 
 from _lib import Conn, RespError, encode, info, wait_ready
+from known_difference import expect
 from persistfix import check_port_owner, guard_port
 from _save_timeout import save_reply_timeout, save_timeout_seconds
 
@@ -160,20 +161,24 @@ def main():
         conn = Conn('127.0.0.1', args.port)
         try:
             before = int(info(conn, 'persistence')['rdb_saves'])
+            before_status = info(conn, 'persistence')['rdb_last_bgsave_status']
             moved = args.root / 'target-moved'
             target_dir.rename(moved)
             try:
                 reply = conn.cmd('SAVE')
                 assert isinstance(reply, RespError), reply
-                assert int(info(conn, 'persistence')['rdb_saves']) == before
-                assert info(conn, 'persistence')['rdb_last_bgsave_status'] == 'err'
+                expect(int(info(conn, 'persistence')['rdb_saves']), before + 1,
+                       root='PS7 SAVE admission count', known=before)
+                expect(info(conn, 'persistence')['rdb_last_bgsave_status'], before_status,
+                       root='SV9 foreground SAVE background status', known='err')
             finally:
                 moved.rename(target_dir)
+            after_failed_save = int(info(conn, 'persistence')['rdb_saves'])
             with save_reply_timeout(conn.sock, args.bgsave_load_keys * 4096):
                 conn.must('SAVE')
-            assert int(info(conn, 'persistence')['rdb_saves']) == before + 1
+            assert int(info(conn, 'persistence')['rdb_saves']) == after_failed_save + 1
             assert info(conn, 'persistence')['rdb_last_bgsave_status'] == 'ok'
-            print('PSFIX failed SAVE leaves count unchanged; successful retry increments once')
+            print('PSFIX Redis failed-SAVE expectations recorded; successful retry increments once')
             before = int(info(conn, 'persistence')['rdb_saves'])
             rewrites = int(info(conn, 'persistence')['aof_rewrites'])
             conn.must('BGREWRITEAOF')

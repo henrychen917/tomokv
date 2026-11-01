@@ -39,7 +39,7 @@ HOST, PORT = sys.argv[1], int(sys.argv[2])
 SECONDS = float(sys.argv[3]) if len(sys.argv) > 3 else 30.0
 NWRITERS = 8
 KEYS_PER_WRITER = 400
-CLIENT_TIMEOUT = 15
+CLIENT_TIMEOUT = 4  # V16: a five-second client freeze must fail.
 COUNTERS = ("connected_clients", "total_connections_received", "rejected_connections",
             "client_output_buffer_limit_disconnections", "flip_completed",
             "flip_clients_transferred", "flip_last_transfers", "flip_in_progress")
@@ -271,31 +271,40 @@ for t in threads:
     t.start()
 deadline = time.monotonic() + SECONDS
 post_flip = None
-while time.monotonic() < deadline:
-    with lock:
-        progress = worker_ops[:]
-        failed = bool(errors)
-    if failed:
-        break
-    if all(progress):
-        load_ready.set()
-    published = counters(admin)
-    if int(published["flip_completed"]) > int(before["flip_completed"]):
-        if post_flip is None:
-            post_flip = progress
-        elif all(now > then for now, then in zip(progress, post_flip)):
+try:
+    while time.monotonic() < deadline:
+        with lock:
+            progress = worker_ops[:]
+            failed = bool(errors)
+        if failed:
             break
-    time.sleep(.005)
-else:
-    fail("no completed FLIP bracketed by every worker's verified progress before deadline")
-stop.set()
-for t in threads:
-    t.join(timeout=30)
-if any(t.is_alive() for t in threads):
-    fail("load/FLIP worker did not stop")
+        if all(progress):
+            load_ready.set()
+        published = counters(admin)
+        if int(published["flip_completed"]) > int(before["flip_completed"]):
+            if post_flip is None:
+                post_flip = progress
+            elif all(now > then for now, then in zip(progress, post_flip)):
+                break
+        time.sleep(.005)
+    else:
+        fail("no completed FLIP bracketed by every worker's verified progress before deadline")
+except Exception as exc:
+    fail("counter observer: %s: %r" % (classify(exc), exc))
+finally:
+    stop.set()
+    for t in threads:
+        t.join(timeout=30)
+    if any(t.is_alive() for t in threads):
+        fail("load/FLIP worker did not stop")
 
-after = counters(admin)
-admin.close()
+try:
+    after = counters(admin)
+except Exception as exc:
+    after = {}
+    fail("final counter observer: %s: %r" % (classify(exc), exc))
+finally:
+    admin.close()
 
 
 def delta(key):
@@ -316,6 +325,9 @@ if errors:
     sys.exit(1)
 if flips_ok[0] == 0:
     print("FAIL: no flip was ever applied -- the test proved nothing")
+    sys.exit(1)
+if flips_refused[0] != 0:
+    print("FAIL: requested valid FLIP was refused")
     sys.exit(1)
 if busy[0] != 0:
     print("FAIL: ordinary commands received BUSY during FLIP")

@@ -1,0 +1,86 @@
+[
+  {
+    "command": [
+      "python3",
+      "tests/clientfix.py",
+      "--binary",
+      "build/witnessfix/mutants/geo-order-reversed/tomokv",
+      "--port",
+      "20550",
+      "--cores",
+      "80-87",
+      "--ratio",
+      "6:2",
+      "--mode",
+      "1s",
+      "--case",
+      "geo-count"
+    ],
+    "exit": 0,
+    "stdout": "{\"command\": [\"taskset\", \"-c\", \"80-87\", \"/home/user/Projects/cx-witnessfix/build/witnessfix/mutants/geo-order-reversed/tomokv\", \"--bind\", \"127.0.0.1\", \"--port\", \"20550\", \"--save\", \"\", \"--appendonly\", \"no\", \"--dir\", \"/home/user/Projects/cx-witnessfix/build/clientfix/runtime/clientfix-zjo6tupt\", \"--databases\", \"1\", \"--shards\", \"16\", \"--thread-mode\", \"1s\", \"--read-local\", \"0\", \"--atomic\", \"0\", \"--flip-auto\", \"0\", \"--enable-debug-command\", \"yes\"], \"lifecycle\": \"start\", \"load\": \"25.34 24.60 34.01 29/4029 3192889\", \"pid\": 3192889}\n{\"case\": \"geo-count\", \"centers\": 20, \"failures\": 0, \"sample\": []}\n{\"exit\": 0, \"lifecycle\": \"stop\", \"load\": \"25.34 24.60 34.01 31/4026 3192979\", \"pid\": 3192889}\n{\"axes\": [[0, 0]], \"case\": \"geo-count\", \"mode\": \"1s\", \"result\": \"PASS\"}\n",
+    "sha256": "4689c44951aa35fdae5b2243dc9f2f85d68dbd8b4ad168c3257937ba6c40612d"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/clientfix.py",
+      "--binary",
+      "build/witnessfix/mutants/geo-order-reversed/tomokv",
+      "--port",
+      "20550",
+      "--cores",
+      "80-87",
+      "--ratio",
+      "6:2",
+      "--mode",
+      "1s",
+      "--case",
+      "geo-store"
+    ],
+    "exit": 0,
+    "stdout": "{\"command\": [\"taskset\", \"-c\", \"80-87\", \"/home/user/Projects/cx-witnessfix/build/witnessfix/mutants/geo-order-reversed/tomokv\", \"--bind\", \"127.0.0.1\", \"--port\", \"20550\", \"--save\", \"\", \"--appendonly\", \"no\", \"--dir\", \"/home/user/Projects/cx-witnessfix/build/clientfix/runtime/clientfix-vvtg3e_1\", \"--databases\", \"1\", \"--shards\", \"16\", \"--thread-mode\", \"1s\", \"--read-local\", \"0\", \"--atomic\", \"0\", \"--flip-auto\", \"0\", \"--enable-debug-command\", \"yes\"], \"lifecycle\": \"start\", \"load\": \"25.34 24.60 34.01 23/4019 3194140\", \"pid\": 3194140}\n{\"case\": \"geo-store\", \"centers\": 20, \"failures\": 0, \"sample\": []}\n{\"exit\": 0, \"lifecycle\": \"stop\", \"load\": \"25.34 24.60 34.01 39/4036 3194469\", \"pid\": 3194140}\n{\"axes\": [[0, 0]], \"case\": \"geo-store\", \"mode\": \"1s\", \"result\": \"PASS\"}\n",
+    "sha256": "4689c44951aa35fdae5b2243dc9f2f85d68dbd8b4ad168c3257937ba6c40612d"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/clientfix.py",
+      "--binary",
+      "build/witnessfix/mutants/geo-order-reversed/tomokv",
+      "--port",
+      "20550",
+      "--cores",
+      "80-87",
+      "--ratio",
+      "6:2",
+      "--mode",
+      "2s",
+      "--case",
+      "geo-count"
+    ],
+    "exit": 0,
+    "stdout": "{\"command\": [\"taskset\", \"-c\", \"80-87\", \"/home/user/Projects/cx-witnessfix/build/witnessfix/mutants/geo-order-reversed/tomokv\", \"--bind\", \"127.0.0.1\", \"--port\", \"20550\", \"--save\", \"\", \"--appendonly\", \"no\", \"--dir\", \"/home/user/Projects/cx-witnessfix/build/clientfix/runtime/clientfix-8wwd7dcs\", \"--databases\", \"1\", \"--shards\", \"16\", \"--thread-mode\", \"2s\", \"--read-local\", \"0\", \"--atomic\", \"0\", \"--flip-auto\", \"0\", \"--enable-debug-command\", \"yes\", \"--ratio\", \"6:2\"], \"lifecycle\": \"start\", \"load\": \"26.35 24.83 34.03 29/4031 3195810\", \"pid\": 3195810}\n{\"case\": \"geo-count\", \"centers\": 20, \"failures\": 0, \"sample\": []}\n{\"exit\": 0, \"lifecycle\": \"stop\", \"load\": \"26.35 24.83 34.03 34/4030 3196063\", \"pid\": 3195810}\n{\"axes\": [[0, 0]], \"case\": \"geo-count\", \"mode\": \"2s\", \"result\": \"PASS\"}\n",
+    "sha256": "4689c44951aa35fdae5b2243dc9f2f85d68dbd8b4ad168c3257937ba6c40612d"
+  },
+  {
+    "command": [
+      "python3",
+      "tests/clientfix.py",
+      "--binary",
+      "build/witnessfix/mutants/geo-order-reversed/tomokv",
+      "--port",
+      "20550",
+      "--cores",
+      "80-87",
+      "--ratio",
+      "6:2",
+      "--mode",
+      "2s",
+      "--case",
+      "geo-store"
+    ],
+    "exit": 0,
+    "stdout": "{\"command\": [\"taskset\", \"-c\", \"80-87\", \"/home/user/Projects/cx-witnessfix/build/witnessfix/mutants/geo-order-reversed/tomokv\", \"--bind\", \"127.0.0.1\", \"--port\", \"20550\", \"--save\", \"\", \"--appendonly\", \"no\", \"--dir\", \"/home/user/Projects/cx-witnessfix/build/clientfix/runtime/clientfix-o6jgsha_\", \"--databases\", \"1\", \"--shards\", \"16\", \"--thread-mode\", \"2s\", \"--read-local\", \"0\", \"--atomic\", \"0\", \"--flip-auto\", \"0\", \"--enable-debug-command\", \"yes\", \"--ratio\", \"6:2\"], \"lifecycle\": \"start\", \"load\": \"26.35 24.83 34.03 41/4047 3197062\", \"pid\": 3197061}\n{\"case\": \"geo-store\", \"centers\": 20, \"failures\": 0, \"sample\": []}\n{\"exit\": 0, \"lifecycle\": \"stop\", \"load\": \"26.35 24.83 34.03 25/4035 3197394\", \"pid\": 3197061}\n{\"axes\": [[0, 0]], \"case\": \"geo-store\", \"mode\": \"2s\", \"result\": \"PASS\"}\n",
+    "sha256": "4689c44951aa35fdae5b2243dc9f2f85d68dbd8b4ad168c3257937ba6c40612d"
+  }
+]

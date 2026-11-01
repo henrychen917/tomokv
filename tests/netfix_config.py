@@ -3,6 +3,7 @@ from contextlib import closing
 import json
 import time
 import _netfix as n
+from known_difference import expect
 
 
 def cases():
@@ -63,16 +64,20 @@ def test(a, port, certs, proc, oracle):
             # Representation bound, not oracle parity: Redis would allocate a >4 GiB
             # string here. 32-bit string values must refuse it instead of narrowing a
             # length (PRE refused the limit itself; the unbounded growth checks aborted).
-            for args, error in (
-                    (('SETRANGE', 'netfix-wide', '4294967296', 'x'),
+            for args, redis, error in (
+                    (('SETRANGE', 'netfix-wide', '4294967296', 'x'), 4294967297,
                      'ERR string exceeds maximum allowed size (proto-max-bulk-len)'),
-                    (('SETBIT', 'netfix-wide', '34359738368', '1'),
+                    (('SETBIT', 'netfix-wide', '34359738368', '1'), 0,
                      'ERR bit offset is not an integer or out of range'),
-                    (('BITFIELD', 'netfix-wide', 'SET', 'u8', '34359738368', '1'),
+                    (('BITFIELD', 'netfix-wide', 'SET', 'u8', '34359738368', '1'), [0],
                      'ERR bit offset is not an integer or out of range')):
                 result = admin.cmd(*args)
-                assert isinstance(result, n._lib.RespError) and str(result) == error, (args, result)
-            assert admin.cmd('EXISTS', 'netfix-wide') == 0
+                compatible = expect(result, redis, root='NETFIX-POST-2 32-bit string growth',
+                                    known=n._lib.RespError(error))
+                if compatible:
+                    admin.cmd('DEL', 'netfix-wide')
+                else:
+                    assert admin.cmd('EXISTS', 'netfix-wide') == 0
             assert admin.cmd('PING') == b'PONG'
     label = 'tls' if certs else 'tcp'
     path = a.output / ('oracle-' + label + '.json')

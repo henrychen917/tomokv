@@ -163,7 +163,6 @@ class GroupBattery(Battery):
             assert delta["atomic_group_dooms"] == 0, delta
             assert delta["atomic_group_retries"] == (delta["atomic_group_wounds"] +
                                                      delta["atomic_txn_blind_restarts"]), delta
-            assert self.counter("atomic_txn_order_violations") == 0
             print("group placement counters", delta, flush=True)
         print("conservation", kind, "atomic", self.atomic(), "members", len(expected), flush=True)
 

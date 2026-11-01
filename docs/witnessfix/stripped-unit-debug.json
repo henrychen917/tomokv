@@ -1,0 +1,417 @@
+[
+  {
+    "file": "build/storesize-unit",
+    "before": 210968432,
+    "after": 11340656,
+    "exit": 0
+  },
+  {
+    "file": "build/aclkeys-wake-db0-unit",
+    "before": 210050168,
+    "after": 11208528,
+    "exit": 0
+  },
+  {
+    "file": "build/wb-rule-phase-unit",
+    "before": 112439680,
+    "after": 6228304,
+    "exit": 0
+  },
+  {
+    "file": "build/txnorder-watch-db0-unit",
+    "before": 205607464,
+    "after": 14085448,
+    "exit": 0
+  },
+  {
+    "file": "build/publishfix-unit",
+    "before": 107862464,
+    "after": 6103888,
+    "exit": 0
+  },
+  {
+    "file": "build/exbatch-unit",
+    "before": 106511760,
+    "after": 6035832,
+    "exit": 0
+  },
+  {
+    "file": "build/core-concurrency-unit",
+    "before": 336376112,
+    "after": 168700416,
+    "exit": 0
+  },
+  {
+    "file": "build/exbatch-db0-unit",
+    "before": 209307344,
+    "after": 11156128,
+    "exit": 0
+  },
+  {
+    "file": "build/flushfix-unit",
+    "before": 210591304,
+    "after": 11172856,
+    "exit": 0
+  },
+  {
+    "file": "build/multidb-boundary-unit",
+    "before": 112840720,
+    "after": 6316320,
+    "exit": 0
+  },
+  {
+    "file": "build/shutdown-unit",
+    "before": 110661696,
+    "after": 6156536,
+    "exit": 0
+  },
+  {
+    "file": "build/lbplanner-unit",
+    "before": 111806656,
+    "after": 6218512,
+    "exit": 0
+  },
+  {
+    "file": "build/at15-unit",
+    "before": 107575280,
+    "after": 6112616,
+    "exit": 0
+  },
+  {
+    "file": "build/txnorder-index-unit",
+    "before": 108993840,
+    "after": 6342944,
+    "exit": 0
+  },
+  {
+    "file": "build/aclkeys-wake-unit",
+    "before": 107255104,
+    "after": 6083648,
+    "exit": 0
+  },
+  {
+    "file": "build/atomic-survivors-unit",
+    "before": 108156240,
+    "after": 6279720,
+    "exit": 0
+  },
+  {
+    "file": "build/ktls-lifetime-unit",
+    "before": 109773888,
+    "after": 6105872,
+    "exit": 0
+  },
+  {
+    "file": "build/moverfix-unit",
+    "before": 106538552,
+    "after": 6096096,
+    "exit": 0
+  },
+  {
+    "file": "build/execabort-watch-db0-unit",
+    "before": 210061168,
+    "after": 11198488,
+    "exit": 0
+  },
+  {
+    "file": "build/txnorder-watch-unit",
+    "before": 103071792,
+    "after": 8937144,
+    "exit": 0
+  },
+  {
+    "file": "build/netcap-unit",
+    "before": 109462480,
+    "after": 6112520,
+    "exit": 0
+  },
+  {
+    "file": "build/moverfix-db0-unit",
+    "before": 209037112,
+    "after": 11200080,
+    "exit": 0
+  },
+  {
+    "file": "build/netcmd-unit",
+    "before": 121089504,
+    "after": 7222176,
+    "exit": 0
+  },
+  {
+    "file": "build/rltopo-unit",
+    "before": 316793096,
+    "after": 158441472,
+    "exit": 0
+  },
+  {
+    "file": "build/execabort-watch-unit",
+    "before": 107275272,
+    "after": 6078128,
+    "exit": 0
+  },
+  {
+    "file": "build/wb-rule-db0-phase-unit",
+    "before": 215224296,
+    "after": 11345728,
+    "exit": 0
+  },
+  {
+    "file": "build/expire-notify-unit",
+    "before": 106019312,
+    "after": 5999816,
+    "exit": 0
+  },
+  {
+    "file": "build/encodingfix-unit",
+    "before": 106633720,
+    "after": 6034760,
+    "exit": 0
+  },
+  {
+    "file": "build/txnorder-wound-unit",
+    "before": 103233400,
+    "after": 9025888,
+    "exit": 0
+  },
+  {
+    "file": "build/txnorder-index-db0-unit",
+    "before": 211474872,
+    "after": 11447912,
+    "exit": 0
+  },
+  {
+    "file": "build/slotless-drop-unit",
+    "before": 107098720,
+    "after": 6052296,
+    "exit": 0
+  },
+  {
+    "file": "build/at15-db0-unit",
+    "before": 210331016,
+    "after": 11229256,
+    "exit": 0
+  },
+  {
+    "file": "build/multidb-unit",
+    "before": 214970888,
+    "after": 11472072,
+    "exit": 0
+  },
+  {
+    "file": "build/exec1s-unit",
+    "before": 109927608,
+    "after": 6346072,
+    "exit": 0
+  },
+  {
+    "file": "build/rehash-waits-unit",
+    "before": 107579816,
+    "after": 6074880,
+    "exit": 0
+  },
+  {
+    "file": "build/reorder-engagement-unit",
+    "before": 112180720,
+    "after": 6246488,
+    "exit": 0
+  },
+  {
+    "file": "build/txnorder-wound-db0-unit",
+    "before": 205757280,
+    "after": 14162232,
+    "exit": 0
+  },
+  {
+    "file": "build/mdbqsbr-unit",
+    "before": 332133072,
+    "after": 166600384,
+    "exit": 0
+  },
+  {
+    "file": "build/slotless-unit",
+    "before": 107151624,
+    "after": 6056440,
+    "exit": 0
+  },
+  {
+    "file": "build/persistfix-unit",
+    "before": 106560280,
+    "after": 6034720,
+    "exit": 0
+  },
+  [
+    "build/storesize-unit",
+    210968432,
+    11340656
+  ],
+  [
+    "build/wb-rule-phase-unit",
+    112439680,
+    6228304
+  ],
+  [
+    "build/txnorder-watch-db0-unit",
+    205607464,
+    14085448
+  ],
+  [
+    "build/publishfix-unit",
+    107862464,
+    6103888
+  ],
+  [
+    "build/exbatch-unit",
+    106511760,
+    6035832
+  ],
+  [
+    "build/core-concurrency-unit",
+    336376112,
+    168700416
+  ],
+  [
+    "build/exbatch-db0-unit",
+    209307344,
+    11156128
+  ],
+  [
+    "build/flushfix-unit",
+    210591304,
+    11172856
+  ],
+  [
+    "build/multidb-boundary-unit",
+    112840720,
+    6316320
+  ],
+  [
+    "build/blockfix2-db0-unit",
+    210702432,
+    11388752
+  ],
+  [
+    "build/txnorder-index-unit",
+    108993840,
+    6342944
+  ],
+  [
+    "build/list-namespace-unit",
+    105763272,
+    6004448
+  ],
+  [
+    "build/atomic-survivors-unit",
+    108156240,
+    6279720
+  ],
+  [
+    "build/ktls-lifetime-unit",
+    109773888,
+    6105872
+  ],
+  [
+    "build/blockfix2-unit",
+    108209784,
+    6283912
+  ],
+  [
+    "build/moverfix-unit",
+    106538552,
+    6096096
+  ],
+  [
+    "build/execabort-watch-db0-unit",
+    210061168,
+    11198488
+  ],
+  [
+    "build/txnorder-watch-unit",
+    103071792,
+    8937144
+  ],
+  [
+    "build/netcap-unit",
+    109462480,
+    6112520
+  ],
+  [
+    "build/moverfix-db0-unit",
+    209037112,
+    11200080
+  ],
+  [
+    "build/netcmd-unit",
+    121089504,
+    7222176
+  ],
+  [
+    "build/rltopo-unit",
+    316793096,
+    158441472
+  ],
+  [
+    "build/wb-rule-db0-phase-unit",
+    215224296,
+    11345728
+  ],
+  [
+    "build/expire-notify-unit",
+    106019312,
+    5999816
+  ],
+  [
+    "build/encodingfix-unit",
+    106633720,
+    6034760
+  ],
+  [
+    "build/txnorder-wound-unit",
+    103233400,
+    9025888
+  ],
+  [
+    "build/txnorder-index-db0-unit",
+    211474872,
+    11447912
+  ],
+  [
+    "build/slotless-drop-unit",
+    107098720,
+    6052296
+  ],
+  [
+    "build/multidb-unit",
+    214970888,
+    11472072
+  ],
+  [
+    "build/exec1s-unit",
+    109927608,
+    6346072
+  ],
+  [
+    "build/rehash-waits-unit",
+    107579816,
+    6074880
+  ],
+  [
+    "build/txnorder-wound-db0-unit",
+    205757280,
+    14162232
+  ],
+  [
+    "build/mdbqsbr-unit",
+    332133072,
+    166600384
+  ],
+  [
+    "build/slotless-unit",
+    107151624,
+    6056440
+  ],
+  [
+    "build/persistfix-unit",
+    106560280,
+    6034720
+  ]
+]

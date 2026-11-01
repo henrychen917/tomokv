@@ -64,6 +64,11 @@ set -u
 # Locale-specific batteries (CD4.6) explicitly override their child environment.
 export LC_ALL=C
 cd "$(dirname "$0")/.."
+# The observation campaign remains outside landing counts and performance tiers.
+if [ "${1:-}" = lottery ]; then
+  shift
+  exec tests/lottery_nightly.sh "$@"
+fi
 GATE_SELF_TEST=0
 for gate_arg in "$@"; do
   case "$gate_arg" in
@@ -1150,7 +1155,7 @@ plan_jobs(){
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
-              production_units source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
+              production_units aclkeys_wake list_namespace source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -2239,6 +2244,26 @@ for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof
 done
 }
 
+job_aclkeys_wake(){
+  local label="ACLKEYS3 last-owner-task wake" log="$TMPDIR/aclkeys-wake.log"
+  row_begin "$label"
+  # V1: both database images, split/fused, atomic 0/1 and all eleven schedules.
+  # The unit asserts latch stages 1/2/3 and the final ready-mask notification.
+  taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/aclkeys-wake-unit build/aclkeys-wake-db0-unit \
+      >"$log" 2>&1 \
+      && taskset -c "$CORES" python3 tools/aclkeys3_verify.py "$TMPDIR/aclkeys-wake" \
+          --rounds 1 --cores "$CORES" >>"$log" 2>&1 \
+      && ok "$label" || bad "$label" "see $log"
+}
+
+job_list_namespace(){
+  local label="AT4.5 list publisher physical namespaces" log="$TMPDIR/list-namespace.log"
+  row_begin "$label"
+  taskset -c "$BUILD_CORES" make -f Makefile -f tests/list_namespace.mk -j"$BUILD_JOBS" build/list-namespace-unit >"$log" 2>&1 \
+      && taskset -c "$CORES" build/list-namespace-unit >>"$log" 2>&1 \
+      && ok "$label" || bad "$label" "see $log"
+}
+
 job_atomic_units(){
 # publishfix: one deterministic row collected before quick exit (DQ=+1, DF=+1).
 row_begin "atomic commit publication catches up at quiescence"
@@ -2756,7 +2781,7 @@ job_moverfix(){
         py tests/txn_movers.py 127.0.0.1 "$PORT" --only "$family" \
           >"$TMPDIR/live-$mode-$engine-$databases-$family.log" 2>&1 || rc=1
       done
-      for family in T05 G5; do
+      for family in T05 G5 EXEC; do
         py tests/moverfix.py 127.0.0.1 "$PORT" --only "$family" \
           >"$TMPDIR/live-$mode-$engine-$databases-$family.log" 2>&1 || rc=1
       done
@@ -3027,18 +3052,19 @@ job_aclfix(){
 # GATE_RATIO, 1s with read-local 1. Expectations are Redis 7.4.10 replies; the woken rows also
 # require the element/PEL state the denial must leave. A row stays under 60 s (capacity's
 # 65535 create/delete pairs plus the live-slot ceiling are about 8 s here).
-  local mode case label
+  local mode case label databases passed
   for mode in 1s 2s; do
     for case in sort streams-name save-load capacity wake-pop wake-scatter; do
       label="aclfix $case ($mode)"
       row_begin "$label"
-      if py tests/aclfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-          --mode "$mode" --ratio "$GATE_RATIO" --case "$case" \
-          --output "$TMPDIR/aclfix-$case-$mode" >"$TMPDIR/aclfix-$case-$mode.log" 2>&1; then
-        ok "$label"
-      else
-        bad "$label" "see $TMPDIR/aclfix-$case-$mode.log"
-      fi
+      passed=1
+      for databases in 1 16; do
+        py tests/aclfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+            --mode "$mode" --ratio "$GATE_RATIO" --case "$case" --databases "$databases" \
+            --output "$TMPDIR/aclfix-$case-$mode-db$databases" \
+            >"$TMPDIR/aclfix-$case-$mode-db$databases.log" 2>&1 || passed=0
+      done
+      [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/aclfix-$case-$mode-db*.log"
     done
   done
 }
@@ -3215,6 +3241,13 @@ local AT=${1##*-} mode=2s
     FEATURE_ARGS=()
     [ "$t" = xmove ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
+    # TM4.1: earlier batteries change this live flag. Every label must describe
+    # the next battery's actual starting configuration, including txniso.
+    if ! py tests/atomic_mode.py 127.0.0.1 "$PORT" "$AT" \
+        >"$TMPDIR/gate-$t-$AT-atomic.txt" 2>&1; then
+      bad "$t battery (atomic $AT)" "TM4.1: see $TMPDIR/gate-$t-$AT-atomic.txt"
+      continue
+    fi
     if [ "$t" = txniso ]; then
       txniso_checks "$mode" "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
           && ok "txniso battery (atomic $AT)" \
@@ -3288,7 +3321,7 @@ job_txnorder(){
 # execfair: one aggregate witness row before quick exit, DQ=DF=+1.
 # Both engines, modes and atomic settings must observe actual fast-lane polls.
 job_execfair(){
-  local label="EXEC fast-lane polls" passed=1 mode atomic engine boot_fn log
+  local label="EXEC fast-lane polls and wave6-wave10 interactions" passed=1 mode atomic engine boot_fn log
   row_begin "$label"
   for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
     boot_fn=boot
@@ -6311,6 +6344,8 @@ collect_job splitlocal_units
 collect_job storage_units
 
 collect_job atomic_units
+collect_job aclkeys_wake
+collect_job list_namespace
 
 collect_job netcmd_units
 

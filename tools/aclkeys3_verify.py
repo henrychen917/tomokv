@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -16,6 +17,7 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--rounds', type=int, default=6)
     parser.add_argument('--controls', action='store_true')
+    parser.add_argument('--cores', default=','.join(map(str, sorted(os.sched_getaffinity(0)))))
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     rows = []
@@ -25,7 +27,7 @@ def main():
     def run(binary, mode, atomic, case, label, failure=None):
         if str(binary) not in binaries:
             binaries[str(binary)] = hashlib.sha256(binary.read_bytes()).hexdigest()
-        command = ['taskset', '-c', '112-119', str(binary), mode, str(atomic), case]
+        command = ['taskset', '-c', args.cores, str(binary), mode, str(atomic), case]
         process = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, timeout=10)
         (args.output / (label + '.txt')).write_text(process.stdout)

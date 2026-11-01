@@ -1,0 +1,163 @@
+LOTTERY battery sha256=f20d95702a8dd81e789b929203fe3950711bd3d3870d091e199afdb03671a62a markers_only=1
+  ok   geometry source-shard=0 destination-shard=1 owners=6/7
+xmove directed battery atomic=0
+  ok   clean slate
+  ok   LMOVE empty setup
+  ok   LMOVE empty source outranks wrong destination
+  ok   LMOVE single setup
+  ok   LMOVE single cross-owner reply
+  ok   LMOVE single deletes source
+  ok   LMOVE single creates destination
+  ok   LMOVE selected element
+  ok   LMOVE source mutation
+  ok   LMOVE destination mutation
+  ok   LMOVE wrong destination
+  ok   LMOVE wrong destination leaves source
+  ok   RPOPLPUSH empty source
+  ok   RPOPLPUSH single cross-owner reply
+  ok   RPOPLPUSH single deletes source
+  ok   RPOPLPUSH pushes destination left
+  ok   SMOVE wrong destination
+  ok   SMOVE wrong destination leaves source
+  ok   SMOVE empty source
+  ok   SMOVE single cross-owner reply
+  ok   SMOVE single deletes source
+  ok   SMOVE destination contains both members
+  ok   LMOVE same-key reply
+  ok   LMOVE same-key rotation
+  ok   RPOPLPUSH same-key reply
+  ok   RPOPLPUSH same-key rotation
+  ok   SMOVE same-key hit
+  ok   SMOVE same-key miss
+  ok   correctness mechanisms fired {'lmove': 3, 'rpoplpush': 2, 'smove': 2, 'errors': 2, 'same': 4}
+  ok   timing source size N=100
+  ok   timing destination size N=100
+  ok   timing source size N=10000
+  ok   timing destination size N=10000
+  info LMOVE N=100 1604.6 us N=10000 234.4 us ratio=0.15
+  ok   atomic-off LMOVE size ratio < 5.0
+  ok   concurrent detector control move
+  ok   concurrent detector control source
+  ok   concurrent detector control destination
+  ok   concurrent detector control push
+  ok   concurrent detector negative control reported zero
+  ok   concurrent LMOVE reply
+  ok   destination-owner hold scanned without mutation
+  ok   targeted source removal retains concurrent push source
+  ok   targeted source removal retains concurrent push destination
+  ok   concurrent push completed between hops
+  ok   forced inter-hop window fired and retained the unrelated write
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 1: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 2: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 3: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 4: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 5: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 6: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 7: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 8: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 9: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 10: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 11: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 12: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 13: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 14: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 15: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 16: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 17: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 18: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 19: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+  ok   same-edge destination-owner hold fired
+  ok   same-edge push before hop one
+  ok   same-edge push before hop one source
+  ok   same-edge push before hop one destination
+  ok   attempt 20: same-edge push ran before LMOVE's first hop; replies and lists match that serial order, retrying
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-witnessfix/tests/lottery_test_driver.py", line 88, in <module>
+    main()
+  File "/home/user/Projects/cx-witnessfix/tests/lottery_test_driver.py", line 78, in main
+    exec(compile(source, str(path), 'exec'), dict(__name__='__main__', __file__=str(path),
+  File "/home/user/Projects/cx-witnessfix/tests/xmove.py", line 416, in <module>
+    main()
+  File "/home/user/Projects/cx-witnessfix/tests/xmove.py", line 411, in main
+    concurrent_push_cell(admin, source, destination, blocker, atomic)
+  File "/home/user/Projects/cx-witnessfix/tests/xmove.py", line 397, in concurrent_push_cell
+    until_witnessed(label, cell)
+  File "/home/user/Projects/cx-witnessfix/tests/xmove.py", line 288, in until_witnessed
+    raise AssertionError(f"{label}: interleaving not witnessed in {CONCURRENT_ATTEMPTS} attempts")
+AssertionError: same-edge inter-hop window: interleaving not witnessed in 20 attempts
