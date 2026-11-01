@@ -548,19 +548,21 @@ bool slowlog_validate_container_subcommand(Op& op, bool slowlog) {
 // Redis 7.4 redacts diagnostic arguments independently of successful authentication. Mark only
 // visible positions, before copying or truncating; neither the password nor its original length
 // enters the capture. Command execution continues to consume the original Op arguments.
-__attribute__((noipa)) bool diagnostic_redact_argument(const Op& op, uint32_t index) {
+__attribute__((noipa)) bool diagnostic_redact_argument(const Op& op, uint32_t index,
+                                                      uint32_t& hello_cursor) {
     const uint32_t argc = op.argc();
     if (!index || index >= argc) return false;
     if (eq_icase(op.cmd_name(), "AUTH") && argc <= 3) {
         return true;
     } else if (eq_icase(op.cmd_name(), "HELLO")) {
-        for (uint32_t i = 2; i < argc;) {
+        while (hello_cursor < argc && hello_cursor <= index) {
+            const uint32_t i = hello_cursor;
             if (eq_icase(op.arg(i), "AUTH") && i + 2 < argc) {
-                if (index == i + 1 || index == i + 2) return true;
-                i += 3;
+                if (index <= i + 2) return index > i;
+                hello_cursor += 3;
             } else if (eq_icase(op.arg(i), "SETNAME") && i + 1 < argc) {
-                i += 2;
-            } else break;
+                hello_cursor += 2;
+            } else { hello_cursor = argc; break; }
         }
     } else if (eq_icase(op.cmd_name(), "CONFIG") && argc >= 4 &&
                argc % 2 == 0 && eq_icase(op.arg(1), "SET")) {
@@ -614,8 +616,9 @@ std::shared_ptr<const SlowlogIdentity> slowlog_capture(
     out.used = 0;
     // Reserve the last visible slot for the "N more arguments" marker when there is an overflow.
     const uint32_t limit = argc > kSlowlogMaxArgs ? kSlowlogMaxArgs - 1 : argc;
+    uint32_t hello_cursor = 2;
     for (uint32_t i = 0; i < limit; i++) {
-        const Slice arg = diagnostic_redact_argument(op, i)
+        const Slice arg = diagnostic_redact_argument(op, i, hello_cursor)
             ? Slice("(redacted)", 10) : multidb_display_argument(op, i);
         const uint32_t take = arg.n < kSlowlogMaxArgBytes ? arg.n : kSlowlogMaxArgBytes;
         if (out.used + take > sizeof(out.bytes)) break;

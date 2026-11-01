@@ -41,7 +41,9 @@ struct SlowlogArm {
 inline constexpr uint32_t kSlowlogMaxArgs = 32;
 inline constexpr uint32_t kSlowlogMaxArgBytes = 128;
 // Shared with MONITOR; accepts every argument index, including beyond SLOWLOG's cap.
-bool diagnostic_redact_argument(const Op& op, uint32_t index);
+// Visit arguments in increasing order, with hello_cursor initially 2. The
+// cursor keeps repeated HELLO options linear even for an untruncated MONITOR.
+bool diagnostic_redact_argument(const Op& op, uint32_t index, uint32_t& hello_cursor);
 
 // A snapshot of one command's arguments, taken BEFORE completion publication.
 //

@@ -783,9 +783,10 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
                   static_cast<long long>(ts.tv_nsec / 1000),
                   client->session().db_index, addr.c_str());
     out.assign(head);
+    uint32_t hello_cursor = 2;
     for (uint32_t i = 0; i < op.argc(); i++) {
         out.push_back(' ');
-        if (diagnostic_redact_argument(op, i)) {
+        if (diagnostic_redact_argument(op, i, hello_cursor)) {
             out += "\"(redacted)\"";
             continue;
         }

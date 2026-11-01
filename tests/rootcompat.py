@@ -83,6 +83,10 @@ def redact(c, run, label):
         assert monitor.cmd('MONITOR') == b'OK'
         c.cmd('ACL', 'GETUSER', 'monitor-secret')
         c.cmd('ACL', 'DELUSER', 'monitor-secret', 'monitor-secret-2')
+        # SETNAME's literal AUTH is not an option. Repeated options exercise
+        # the shared parser beyond SLOWLOG's visible argument limit as well.
+        hello = ['HELLO', 2] + ['SETNAME', 'AUTH', 'AUTH', 'default', ''] * 200
+        assert isinstance(c.cmd(*hello), list)
         assert c.cmd('PING', 'rootcompat-monitor-end') == b'rootcompat-monitor-end'
         feed = []
         for _ in range(8):
