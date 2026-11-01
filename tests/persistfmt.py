@@ -9,6 +9,7 @@ import argparse
 from contextlib import contextmanager
 import os
 import re
+import resource
 from pathlib import Path
 import select
 import signal
@@ -228,6 +229,20 @@ def functions():
                 assert c.cmd('FUNCTION', 'LOAD', source) in (b'one', b'two')
             expected = libraries(c)
             assert len(expected) == 2
+            # Wave13: keyspace FLUSH preserves libraries; FUNCTION FLUSH preserves keys.
+            # Run the same boundary against the Redis oracle before each restart path.
+            assert c.cmd('SET', 'flush-boundary', 'live') == b'OK'
+            assert c.cmd('FLUSHALL', 'SYNC') == b'OK'
+            assert c.cmd('GET', 'flush-boundary') is None
+            assert libraries(c) == expected
+            assert c.cmd('SET', 'function-boundary', 'live') == b'OK'
+            assert c.cmd('FUNCTION', 'FLUSH') == b'OK'
+            assert libraries(c) == []
+            assert c.cmd('GET', 'function-boundary') == b'live'
+            for source in SOURCES:
+                assert c.cmd('FUNCTION', 'LOAD', source) in (b'one', b'two')
+            assert libraries(c) == expected
+            h.emit('wave13_flush_function_boundary', oracle=oracle, case=case)
             assert c.cmd('SET', 'sentinel', 'saved') == b'OK'
             if case == 'save':
                 assert c.cmd('SAVE') == b'OK'
@@ -284,19 +299,29 @@ def functions():
             assert c.cmd('FCALL_RO', 'f_two', 0) == 2
 
 
-def aof_failure():
+def aof_failure(command="SET"):
+    h.emit("aof_failure_command", command=command)
     # Reuse the exact existing RLIMIT_FSIZE fault. Fill stderr's pipe after boot
     # to hold fail() at its first diagnostic: PRE has already cleared recording_.
     # A connection on another IO thread must remain gated throughout that window.
     ARGS.binary = ARGS.scheduled_binary.resolve()
     h.ARGS.binary = ARGS.binary
-    schedule = ARGS.artifacts / 'armed'
+    schedule = ARGS.artifacts / ('armed-' + command)
+    schedule.unlink(missing_ok=True)
     os.environ['TOMO_PERSISTFMT_SCHEDULE'] = str(schedule)
     rfd, wfd = os.pipe()
     try:
-        with server(extra=h.aof('always'), fsize=128 * 1024, stderr_fd=wfd) as (s, _):
+        with server(extra=h.aof('always'), data=ARGS.artifacts / ('failure-' + command),
+                    fsize=128 * 1024, stderr_fd=wfd) as (s, _):
             c = h.off_writer(s)
             assert c.cmd('SET', 'before', 'ok') == b'OK'
+            if command != 'SET':
+                increments = list((s.data / 'appendonlydir').glob('*.incr.tomo'))
+                assert len(increments) == 1, increments
+                size = increments[0].stat().st_size
+                assert size > 80, 'preloaded increment did not persist'
+                resource.prlimit(s.p.pid, resource.RLIMIT_FSIZE, (size, size))
+                h.emit('wave13_flush_aof_limit', command=command, bytes=size)
             schedule.touch()
             os.set_blocking(wfd, False)
             try:
@@ -305,7 +330,10 @@ def aof_failure():
             except BlockingIOError:
                 pass
             os.set_blocking(wfd, True)
-            c.send('SET', 'full', b'z' * 200000)
+            if command == 'SET':
+                c.send('SET', 'full', b'z' * 200000)
+            else:
+                c.send(command, 'SYNC')
             try:
                 deadline = time.monotonic() + 4
                 while True:
@@ -372,7 +400,8 @@ if __name__ == '__main__':
                 '--cores', ARGS.cores, '--mode', ARGS.mode, '--engine', ARGS.engine,
                 '--ratio', ARGS.ratio], check=True)
     elif ARGS.case == 'aof-failure':
-        aof_failure()
+        for command in ("SET", "FLUSHALL", "FLUSHDB"):
+            aof_failure(command)
     elif ARGS.case == 'aof-repeat':
         root = ARGS.artifacts
         for n in range(ARGS.repeats):

@@ -1056,6 +1056,7 @@ struct CoreConcurrencyTest {
 #include "flipfix_checks.inc"
 #include "flipfix5_checks.inc"
 #include "flipfix6_checks.inc"
+#include "wave13_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1220,6 +1221,11 @@ int main(int argc, char** argv) {
     else if (row == "flipfix6") {
         for (auto db : {1u, 16u}) {
             T::flipfix6_watch(db);
+            for (auto atomic : {0u, 1u}) {
+                T::wave13_flush_unpublished(db, atomic);
+                for (bool converting : {false, true})
+                    T::flipfix6_s2(db, atomic, converting, false, true);
+            }
             for (auto atomic : {0u, 1u}) for (bool converting : {false, true})
                 for (bool watch_pending : {false, true}) T::flipfix6_s2(db, atomic, converting, watch_pending);
             for (bool converting : {false, true}) T::flipfix6_close_fence(db, converting);

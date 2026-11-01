@@ -1,0 +1,490 @@
+[
+  {
+    "path": "build/src/main.o",
+    "sha256": "ce66db57cbc194399983e765e2a8c2d9c5780d2fec9581316798940e033a6f1b"
+  },
+  {
+    "path": "build/src/persist/aof_frame_debug.o",
+    "sha256": "c201358366cf3d9e8493d498dba873a059760e9840fceaeb746d03a19fbd6442"
+  },
+  {
+    "path": "build/src/persist/aof.o",
+    "sha256": "39d0886a5f0a68628dcc735221c79d348fa48ef0cd3711b55d73c0d45e74374c"
+  },
+  {
+    "path": "build/src/snapshot/snapshot.o",
+    "sha256": "775aedab62d5bb8a0f3ad86d4970fa5c779d5b7dfd066076f29eb553e63ca197"
+  },
+  {
+    "path": "build/src/net/tls.o",
+    "sha256": "c9850c7f7393de09e7d3d58144a3d25221c953dad46e2af431c0f670e4494bc6"
+  },
+  {
+    "path": "build/src/store/flush.o",
+    "sha256": "0f95fd3ab8e467640a10f887943889e94453db97f10523f96cae09cec1411122"
+  },
+  {
+    "path": "build/src/cmd/hll.o",
+    "sha256": "2151f67f0f8372ecc878a0fb19884f1a0ab179b9b181587e3a2cb6f65ba493bf"
+  },
+  {
+    "path": "build/src/cmd/t_set.o",
+    "sha256": "305a18316b0486c1abbd853f3e024d4f00caf4a26437b054cd9adb2a965b8fa1"
+  },
+  {
+    "path": "build/src/cmd/tracking.o",
+    "sha256": "8f8d831d5e18e3b8ee48ccbf0c478d6a5b943cd407ba0466304f973ebc86c228"
+  },
+  {
+    "path": "build/src/cmd/geo_store.o",
+    "sha256": "72f192cf7703788f14d1a129cfd1e8712a8f22ea827e973136daa151d26c22a2"
+  },
+  {
+    "path": "build/src/cmd/t_sort.o",
+    "sha256": "0a13e845f71fa81642a3ca83a306e08dfe725dfd2b1e26f6075c8ee89cc534c9"
+  },
+  {
+    "path": "build/src/cmd/acl.o",
+    "sha256": "c6e14112bba9b17e7c6cdb08509e7eac89e60699d235c6968b7c5ad17dbeab12"
+  },
+  {
+    "path": "build/src/cmd/t_zset_ops.o",
+    "sha256": "e2ec5b06acb15b6d1679aa1e0f33b8cfa496904f6e5e2b310d92ab14a5576122"
+  },
+  {
+    "path": "build/src/cmd/info_stats.o",
+    "sha256": "c7451bc696f13d17dfff51bbd048c9f5078134f2cd54dcdfe81f93f843b9c609"
+  },
+  {
+    "path": "build/src/cmd/l4prebuild.o",
+    "sha256": "bcd65c20c11fc0928f2ac812ffb049ed3435ebdb3332e0df19f3b16b89d885f0"
+  },
+  {
+    "path": "build/src/cmd/xshard.o",
+    "sha256": "4e0a8ddeb3d312efe4a92164e6b1cae19147bc29621801add9a8f12cb80d63d6"
+  },
+  {
+    "path": "build/src/cmd/lcs.o",
+    "sha256": "2ed880541548b19cc2407ca156a2f6e5eae8355a75e5ba47b74b476f48eb03d6"
+  },
+  {
+    "path": "build/src/cmd/server_tail.o",
+    "sha256": "6a1b6393159e5ba68b669b800315c759298f94f93898bc4c07960ecc2afa3c2d"
+  },
+  {
+    "path": "build/src/cmd/autharity.o",
+    "sha256": "72c7ea691790fc5e2c92b77c12e19a1e72c269801e0d3051e6ca6d4b954939be"
+  },
+  {
+    "path": "build/src/cmd/multidb.o",
+    "sha256": "1628a68fd05d0e6e55552955e5834a5c3c6ae7501bbc6fa51c208cf052653c32"
+  },
+  {
+    "path": "build/src/cmd/cmdgap.o",
+    "sha256": "651e13149632125811a743ea22da744192cefa5043410bbc0d512b46829b6e44"
+  },
+  {
+    "path": "build/src/cmd/storesize.o",
+    "sha256": "ab0349f2f21d9b95d250589ef2c7a43fabe63317bfe2704c329294104157e3bd"
+  },
+  {
+    "path": "build/src/cmd/hexpread.o",
+    "sha256": "86ca20971f098513dee7854bcb9dccc8c8cea8f0414b233ee050ab350f495213"
+  },
+  {
+    "path": "build/src/cmd/pfdebug.o",
+    "sha256": "99fd18c3c01130f7fdee8556a52e86b744da8f17ac4954d00c48406ea2b18e08"
+  },
+  {
+    "path": "build/src/cmd/t_string.o",
+    "sha256": "b0e30208c24bb1601fa1910769bb2599e70d69d43e9827006301cdcda566657c"
+  },
+  {
+    "path": "build/src/cmd/multi_admin.o",
+    "sha256": "7d803a6e75c968eede5be475653fe48734a0f6e817d2a8281ee6e37379af2806"
+  },
+  {
+    "path": "build/src/cmd/aclkeys.o",
+    "sha256": "27b727f8da3e6e745d9875d343ae6fed38c2e4d456a8e7320c55c5fc3f5981fa"
+  },
+  {
+    "path": "build/src/cmd/latency_tracking.o",
+    "sha256": "1bbc76c9d3a1a83ce83e0fcba81d6edb4186d565b5d23a88d747aa10751ec8eb"
+  },
+  {
+    "path": "build/src/cmd/commands.o",
+    "sha256": "9a7a9b4bba4a2735f7f64b741d57b1a5d15afffdd6a21ac6c2f9c7f1bffe387c"
+  },
+  {
+    "path": "build/src/cmd/serialize.o",
+    "sha256": "9e2d03253aa6a0814944192e91ff7fc1eb0002771cb7a24d5ce60ae174d99a47"
+  },
+  {
+    "path": "build/src/cmd/geo.o",
+    "sha256": "ed4344b0a88f829511473cd21379a7d027f6bd0fa8bfb7edaf7ea15a5fc908e2"
+  },
+  {
+    "path": "build/src/cmd/t_hash_ttl.o",
+    "sha256": "6f11d43f8271ed1886469a72f3b4d7f442fa8a2f0cdaab22aadf5ba77630b19c"
+  },
+  {
+    "path": "build/src/cmd/t_list.o",
+    "sha256": "7fc9abdc9739fcee14f6ac8c2a052fe606a572e27833db9b6e7d6527069a56f1"
+  },
+  {
+    "path": "build/src/cmd/t_zset.o",
+    "sha256": "6397f53af9ac16e038855b6a9547d473353d1f075dbb2676a50eb4f0cda79a8d"
+  },
+  {
+    "path": "build/src/cmd/glob.o",
+    "sha256": "d354016c841701254fc9434b1d2071144269246b332a72b80beb144710fbac6a"
+  },
+  {
+    "path": "build/src/cmd/t_stream.o",
+    "sha256": "993784cf5335dd5d4b68833b0334644244337881a2115f83c1bdb60d9d42b4f9"
+  },
+  {
+    "path": "build/src/cmd/cmdmeta.o",
+    "sha256": "f379de4205e0e070613de04e44f6b4614a44f75abc8e3ac66d1b515669af772f"
+  },
+  {
+    "path": "build/src/cmd/t_string_notify.o",
+    "sha256": "a9d601b5fcec864b5d5cf44791eb65b4d3a2216f68345730efba92f40433cbf6"
+  },
+  {
+    "path": "build/src/cmd/climon.o",
+    "sha256": "46c42ef60140bd1076ff63aade5e2992ac00b03d40dec0fb1595d0ce18519ceb"
+  },
+  {
+    "path": "build/src/cmd/t_stream_groups.o",
+    "sha256": "4d70be1a9c64a2b852a7d1ac6c10f4f121c4d79cc0a98037be80d0f51f0d9d3f"
+  },
+  {
+    "path": "build/src/cmd/slowlog.o",
+    "sha256": "5f0dc6a3fc840964b7c5fd1d8fb2eae6c561783a08e7e13136868436e78b164e"
+  },
+  {
+    "path": "build/src/cmd/objectpread.o",
+    "sha256": "2261f6c87791dd4311ec37a248d720b5b7f9d76f619941b33bc97b62dc1a1499"
+  },
+  {
+    "path": "build/src/cmd/t_hash.o",
+    "sha256": "e246d9ca7370b59d4ece1a020db73305f5d6faf025fb965bc85a77cee22dab2d"
+  },
+  {
+    "path": "build/src/cmd/eviction.o",
+    "sha256": "1006688b74dd6f45441f90db99b608a373a68a0892e402bebb311cb6f2ac2958"
+  },
+  {
+    "path": "build/src/cmd/t_server.o",
+    "sha256": "47659cd7fd5ffd04487de181910832e898cc61afb23f783ed40fd1e8558fa22b"
+  },
+  {
+    "path": "build/src/cmd/blocking_debug.o",
+    "sha256": "418c6f47844d0059079d3c418e4ef425f39adece80ab30aec7e25b356b60b7d9"
+  },
+  {
+    "path": "build/src/cmd/scripting.o",
+    "sha256": "bad39fcba4c0e7dcac33968fd037daa99c0009d075d9d8a0de99a43711b00eba"
+  },
+  {
+    "path": "build/src/cmd/lbsignals.o",
+    "sha256": "c7e4550bd3c4e3599f45db61173b16e35e74bdb3ffea4eafe609edb92e0d4bb9"
+  },
+  {
+    "path": "build/src/cmd/functions.o",
+    "sha256": "09c8e2b4db490b4fd4f7a44d3842df923cddb916b172d66661c869f31bc2af62"
+  },
+  {
+    "path": "build/src/core/fliplisten.o",
+    "sha256": "8f31daf6d24a794bbc6c2982d36c46ba3ed07dde65f00db6f7bb274757707ec7"
+  },
+  {
+    "path": "build/src/core/genthread.o",
+    "sha256": "ab71270a01b068336852cb240b7bba7aaaa408be9b3f443a73f9e08b0a12745f"
+  },
+  {
+    "path": "build/src/core/lbplanner.o",
+    "sha256": "04ace547c2b257fb65179844960c5283c1986db19233fff8794f76ed75740fee"
+  },
+  {
+    "path": "build/src/core/flipctl.o",
+    "sha256": "cbb6aa81fb84c381c32023e1cefa4476adf5908fd18ef6a3285b48fda3e01679"
+  },
+  {
+    "path": "build/src/core/reorder.o",
+    "sha256": "97dcc2de20a431fa4dd200d18c7b7823343e370acaaa0e11c848d4ee0ce6c44b"
+  },
+  {
+    "path": "build/src/core/rl2s.o",
+    "sha256": "67109cc1fd5056e758e003adbc465924e1a1b4959172b4cb778c2bc3ccc7e106"
+  },
+  {
+    "path": "build/src/core/shutdown.o",
+    "sha256": "def591f68d45a24f27e5f58d2be18bc00fb291ab12f72c4d3e9ec4784f4367bc"
+  },
+  {
+    "path": "build/src/core/version.o",
+    "sha256": "a3a0b9dd5f266155702ebdba22b7e70074298f5606d129e41686615bf194f88f"
+  },
+  {
+    "path": "build/src/core/lbstall.o",
+    "sha256": "fd64b2743407deb9a404c569d54eb000acec810c658013d274ffea6121d0df99"
+  },
+  {
+    "path": "build/db0/src/main.o",
+    "sha256": "a52ad559b438383588329743bea67bf36d89c35bda900acc8fb5f64d9090ae8f"
+  },
+  {
+    "path": "build/db0/src/persist/aof_frame_debug.o",
+    "sha256": "a881bcd44dba94639278cd2d7a20f275be9388fe7ac9266987417284dd9e1643"
+  },
+  {
+    "path": "build/db0/src/persist/aof.o",
+    "sha256": "00c4ea52104fe16cbf3af572b43abe74226739c0fe3e0aa4a08087e300b67d1e"
+  },
+  {
+    "path": "build/db0/src/snapshot/snapshot.o",
+    "sha256": "8421ed8a1c3854c0b39bd62c11594c86c7246c7a626cf59086c41c73e1f99581"
+  },
+  {
+    "path": "build/db0/src/net/tls.o",
+    "sha256": "e2acfdc6eabb3b15ec0308503d741771e14b6a2c77dfb105915e64fbcd0be62b"
+  },
+  {
+    "path": "build/db0/src/store/flush.o",
+    "sha256": "a145cb8f1a6af2fa42b3bd1077ede56c9d0bbb9052216ec12f66c936e101eea2"
+  },
+  {
+    "path": "build/db0/src/cmd/hll.o",
+    "sha256": "3453c60f62e71d75457269d4e2081246abde37ff63b77be9b55fe60cebc0986a"
+  },
+  {
+    "path": "build/db0/src/cmd/t_set.o",
+    "sha256": "bdcbbd4bdf0123d0bf64cc0619d254feba18026832218b85dcfccba6df3c4303"
+  },
+  {
+    "path": "build/db0/src/cmd/tracking.o",
+    "sha256": "8a3b340d8f93a1f63202f6e441086006745897be30385b2ff8782017273fdd51"
+  },
+  {
+    "path": "build/db0/src/cmd/geo_store.o",
+    "sha256": "fd7069ebc0b2d5f721603e385c22b5feb68c81d94349a4bf7489d7ab395c8c1b"
+  },
+  {
+    "path": "build/db0/src/cmd/t_sort.o",
+    "sha256": "9c1d7e25da5b00d2a3a1fd0ea8b7b5cbb12085c25f7a99303f7ca2f04373eb47"
+  },
+  {
+    "path": "build/db0/src/cmd/acl.o",
+    "sha256": "87811c358f39777b32938a2a67290c2a7ae8bea802dcd83bff3fb5baa12478f9"
+  },
+  {
+    "path": "build/db0/src/cmd/t_zset_ops.o",
+    "sha256": "a6d49865443cb1511bb1068c4e4bae0202ee1289de255005239f23369ec756f6"
+  },
+  {
+    "path": "build/db0/src/cmd/info_stats.o",
+    "sha256": "437c674e31f848fc14c95d2c52f097749ec413b6a74bd6f74359623ed955d7a4"
+  },
+  {
+    "path": "build/db0/src/cmd/l4prebuild.o",
+    "sha256": "212e12c2a62427407c17eab5856d9f222e13511162493d2e82d1492542a6930b"
+  },
+  {
+    "path": "build/db0/src/cmd/xshard.o",
+    "sha256": "b4f090e1dfb1784916191938e2a0f3cdbce7a24b3b6fa1e6ef39693501acfabd"
+  },
+  {
+    "path": "build/db0/src/cmd/lcs.o",
+    "sha256": "842a56789cbc449a9c88ca70ff0e66dc3bc386d07febbe01cab6b56c81344f0a"
+  },
+  {
+    "path": "build/db0/src/cmd/server_tail.o",
+    "sha256": "53a18ae96a56be76b984f4048606cf233fdf1c6b37686e8c6691468fd35fbdcc"
+  },
+  {
+    "path": "build/db0/src/cmd/autharity.o",
+    "sha256": "9c44313596f9722fe903f10d9f1f3d770924d2e6ef8b47d6902c011c01982cec"
+  },
+  {
+    "path": "build/db0/src/cmd/multidb.o",
+    "sha256": "1263f1d398107b652acc780b463473601d3f1cf171c96261d73f29a7a56997d0"
+  },
+  {
+    "path": "build/db0/src/cmd/cmdgap.o",
+    "sha256": "ed389e8609c0deec7af170bbc532d2a1fcd35f010ed1e98850d1acbad1ce66b5"
+  },
+  {
+    "path": "build/db0/src/cmd/storesize.o",
+    "sha256": "d7d1b8cb77e2bcca17a83c88f4ec562246bc77e7dd10b060ecc8091d4a4f684d"
+  },
+  {
+    "path": "build/db0/src/cmd/hexpread.o",
+    "sha256": "6cb0fffbaa3e242ecc3619c07d85076862a287170cab0a4e5eee12052a577b14"
+  },
+  {
+    "path": "build/db0/src/cmd/pfdebug.o",
+    "sha256": "89c0f966c7102ce7e060abef35590e8a61146abe320b5c942597912ef43dd39a"
+  },
+  {
+    "path": "build/db0/src/cmd/t_string.o",
+    "sha256": "998aacb985676201092dd98d3af1bd77a95550112b71be986b370771ff6f884f"
+  },
+  {
+    "path": "build/db0/src/cmd/multi_admin.o",
+    "sha256": "29c804167d8b3b5c5177de0b22e7ebf00c6f13300ff8bce5f351e12f0b9f39ce"
+  },
+  {
+    "path": "build/db0/src/cmd/aclkeys.o",
+    "sha256": "e237f76b4414ee4113aafe0131a56dea05918b2114302652559d45b06eb60128"
+  },
+  {
+    "path": "build/db0/src/cmd/latency_tracking.o",
+    "sha256": "ab24eb6cfc1b10ce7d795c04620080d313b090130cc76d8eb3454e83d8fa12d9"
+  },
+  {
+    "path": "build/db0/src/cmd/commands.o",
+    "sha256": "b5c3214b2cb7ddde9465274f990fb057410c3f1cfc96ea6a321a77f5d311fd5c"
+  },
+  {
+    "path": "build/db0/src/cmd/serialize.o",
+    "sha256": "813a255cdcb5c41d106fc96eceb140c4866502487f1e8e90830e7f8debee336a"
+  },
+  {
+    "path": "build/db0/src/cmd/geo.o",
+    "sha256": "05e79dd1859f13aa21a1f5e4cf0e129745f0bed8ed58b60aab7a062b0d022456"
+  },
+  {
+    "path": "build/db0/src/cmd/t_hash_ttl.o",
+    "sha256": "2ecffb87b3b27c3be884905a51e9df29fa8ec397824263c3ecc6a003943324db"
+  },
+  {
+    "path": "build/db0/src/cmd/t_list.o",
+    "sha256": "84ea7d0abd9d84170c47c9253deb794422332e3e2aa5f6aec2d78557b10dfbc5"
+  },
+  {
+    "path": "build/db0/src/cmd/t_zset.o",
+    "sha256": "65522b71fd59c05c3f2c93cec293d9916e18701b861970ab40dcc26f8b8f2ce8"
+  },
+  {
+    "path": "build/db0/src/cmd/glob.o",
+    "sha256": "d08ee67f4f43995f9e4b3fb9a48691c4594eec2d55c5bf81de7365abd8b8ee7c"
+  },
+  {
+    "path": "build/db0/src/cmd/t_stream.o",
+    "sha256": "dbdba1d9486c47ced762f68dd475d829ca7b90f1f819be3eee52e428c531c409"
+  },
+  {
+    "path": "build/db0/src/cmd/cmdmeta.o",
+    "sha256": "88aeba16235bcd64c0fb035b27ed5be42d0d80383fa907db59aa64f0cf0813c5"
+  },
+  {
+    "path": "build/db0/src/cmd/t_string_notify.o",
+    "sha256": "0df64659b4fb2e9ce2144a13e49341a4b08ba57d2abb859e6a5efee1465460ca"
+  },
+  {
+    "path": "build/db0/src/cmd/climon.o",
+    "sha256": "e771373ecafadca3fe4ddf67dcdcab49519ea67a6e0a57e3fe20d8f94866539c"
+  },
+  {
+    "path": "build/db0/src/cmd/t_stream_groups.o",
+    "sha256": "51ad39044995bc1756a12477087f1d9727a93e51a5d61ab4578a8a8cd726caac"
+  },
+  {
+    "path": "build/db0/src/cmd/slowlog.o",
+    "sha256": "acb6ea39d6887486848e507c7c26236e9814e7f00a96d5f9fa348c2fea3dc797"
+  },
+  {
+    "path": "build/db0/src/cmd/objectpread.o",
+    "sha256": "6e0971e232cd4fa5da9c08d2e342a11d1f8e41c69f9b53fe3176c8f9302e7c8d"
+  },
+  {
+    "path": "build/db0/src/cmd/t_hash.o",
+    "sha256": "a7953c7009d116d7a32d2edb53ac5358af48653f847d7207f786a3e0cb6aa13e"
+  },
+  {
+    "path": "build/db0/src/cmd/eviction.o",
+    "sha256": "2445893928f20babea6bbd7fa84ce3bf87c3d93b20e4e42cfbf4659150f7ccf4"
+  },
+  {
+    "path": "build/db0/src/cmd/t_server.o",
+    "sha256": "5a1da929dcb76f609fb7cc3cdeabd867d64966e018194801ff747c0c7593a803"
+  },
+  {
+    "path": "build/db0/src/cmd/blocking_debug.o",
+    "sha256": "68ee1b9fa24da2769a6b1ab44525f00bf4c38002b87a0bc93c314a0c101712f3"
+  },
+  {
+    "path": "build/db0/src/cmd/scripting.o",
+    "sha256": "6106476961d0e05a9b041eae71e030273eb37e17cc09af699961beda307fccbf"
+  },
+  {
+    "path": "build/db0/src/cmd/lbsignals.o",
+    "sha256": "5e3c16da0042527a64cc2d90bda85427b34e42cbc7b48bb4d5f502a3fe630314"
+  },
+  {
+    "path": "build/db0/src/cmd/functions.o",
+    "sha256": "a763652d97cc4de30eea82e03dbe5f8c8cc8cf300c37ae347c3660c220ad09df"
+  },
+  {
+    "path": "build/db0/src/core/fliplisten.o",
+    "sha256": "fab31a553915a0f8d6aa70b471e68f4fc2b4623547fd081d51ac3c0f1677b7ea"
+  },
+  {
+    "path": "build/db0/src/core/genthread.o",
+    "sha256": "b4cb225bb912c67b0614c571610047d94cfd9d9f378d7b4bdb35996db1fbe084"
+  },
+  {
+    "path": "build/db0/src/core/lbplanner.o",
+    "sha256": "f3c4d21d49b90fd11556c210722455d2c10902dfdceb915e471c97740b98156e"
+  },
+  {
+    "path": "build/db0/src/core/flipctl.o",
+    "sha256": "30850574c26af995a31e0bb9ac886b852f1d508041e9409e9278bde68b3dbfac"
+  },
+  {
+    "path": "build/db0/src/core/reorder.o",
+    "sha256": "476ab2f1d9d23d62cbf0ccde65590bb018d73e7c39a8f0506124e00baab6a769"
+  },
+  {
+    "path": "build/db0/src/core/rl2s.o",
+    "sha256": "cfcb867bced3abc0208bf3af8114adfba631f9bf82db68e0fa5f4611675c85eb"
+  },
+  {
+    "path": "build/db0/src/core/shutdown.o",
+    "sha256": "26714c5a81c4954cf0552f15b65b49a237389365db009baf5871bf099d8cd791"
+  },
+  {
+    "path": "build/db0/src/core/version.o",
+    "sha256": "0905e7e9f8bd955b2f9987dba6fb9730a3e4dcd869ab6a158eed4b3c89579817"
+  },
+  {
+    "path": "build/db0/src/core/lbstall.o",
+    "sha256": "1aa914bb0bcf1eee38329cfd5a51d80727f605b03855175e4148977c17b596df"
+  },
+  {
+    "path": "build/third_party/lua/helpers/lua_cjson.o",
+    "sha256": "de2199e617328fc336af0f9ba40c16ba8d95eabac9d2ff61168979b904883e9c"
+  },
+  {
+    "path": "build/third_party/lua/helpers/lua_cmsgpack.o",
+    "sha256": "db878299a28f256f2344e6a9070501f0332d160bd3884d2b9a0bd1d76271a2b1"
+  },
+  {
+    "path": "build/third_party/lua/helpers/lua_bit.o",
+    "sha256": "b6de4112dbaffcb28479ec324d782f49c031abc1e183feb3e66098d55c04cb0f"
+  },
+  {
+    "path": "build/third_party/lua/helpers/strbuf.o",
+    "sha256": "b0aa8efc527e9e507a760c65c708e9c5c8f285cc9154306e97106c6bbd65cdaf"
+  },
+  {
+    "path": "build/third_party/lua/helpers/fpconv.o",
+    "sha256": "c84c9f3390e39733c5bb3c4f12f43325a25e2ee629324eea89ff269160855540"
+  },
+  {
+    "path": "build/third_party/lua/helpers/lua_struct.o",
+    "sha256": "53265ca4638d0b2edd33fe59d033e777f5f6fb343450eafe817fee284374021d"
+  }
+]

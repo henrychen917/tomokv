@@ -1,5 +1,17 @@
 # CRLF reply-site audit
 
+Wave13 review: [all added/moved reply and error sites](wave13-added-sites.json)
+cover flipfix6 and persistfmt relative to `7d2f8a205`. FLIP's two refusal messages
+are fixed strings stored in `flip_error_` and returned by the existing central
+`reply_err` path. DEBUG RELOAD's grammar, missing-owner, save-busy/failure and
+load-failure replies all use central `reply_err`, with fixed public messages.
+Snapshot parsing/remapping and FUNCTION2 compilation return internal error
+strings to existing persistence diagnostics; DEBUG RELOAD never writes those
+bytes as a raw RESP line. Stream decoders return failure to the existing
+RESTORE envelope/body error builders. The S1 change only reorders the recording
+flag after the fatal exit; it introduces no reply builder. No raw error/status
+writer is added. Existing crlffix jobs remain required on the merged binary.
+
 The complete source inventory is [reply-sites.tsv](reply-sites.tsv), with the
 same 966 definitions/call sites in [reply-sites.json](reply-sites.json). Each
 entry records the exact file, line, expression and disposition; fixed replies

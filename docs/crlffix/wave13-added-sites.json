@@ -1,0 +1,72 @@
+[
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1151,
+    "expression": "        error = \"function library image too large\";"
+  },
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1152,
+    "expression": "    } catch (const std::bad_alloc&) { error = \"out of memory saving functions\"; }"
+  },
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1159,
+    "expression": "        if (!decode_function_records(image, sources)) { error = \"invalid FUNCTION2 records\"; return false; }"
+  },
+  {
+    "file": "src/cmd/functions.cc",
+    "line": 1172,
+    "expression": "    } catch (const std::bad_alloc&) { error = \"out of memory loading functions\"; return false; }"
+  },
+  {
+    "file": "src/core/server.h",
+    "line": 992,
+    "expression": "        flip_error_ = s2 ? \"ERR FLIP refused: prepared but unpublished MULTI/WATCH state\""
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1209,
+    "expression": "                if (shard.store().find(hash, key)) { error = \"duplicate snapshot key\"; return false; }"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1258,
+    "expression": "                    error = \"truncated record\"; return false;"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1266,
+    "expression": "                    error = \"invalid record lengths or namespace\"; return false;"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1272,
+    "expression": "                    error = \"snapshot key is in the wrong shard section\"; return false;"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1289,
+    "expression": "        error = \"out of memory remapping snapshot namespaces\"; return false;"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1301,
+    "expression": "            reply_err(op.sink(), \"ERR DEBUG RELOAD only supports the MERGE, NOFLUSH and NOSAVE options.\");"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1307,
+    "expression": "    if (!ring) { reply_err(op.sink(), \"ERR snapshot command has no IO owner\"); return false; }"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1312,
+    "expression": "            reply_err(op.sink(), saved == SnapshotManager::StartResult::Busy"
+  },
+  {
+    "file": "src/snapshot/snapshot.cc",
+    "line": 1325,
+    "expression": "    reply_err(op.sink(), \"ERR Error trying to load the RDB dump, check server logs.\");"
+  }
+]

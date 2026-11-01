@@ -40,7 +40,7 @@ def semantics(args, directory, engine, atomic):
         with contextlib.closing(s.connect(b.port, args.stall, io=0)) as control:
             db = 7 if args.databases == 16 else 0
             control.must('SELECT', db)
-            for case in ('watch-clean', 'watch-dirty', 'queue', 'queue-error', 'discard', 'reset'):
+            for case in ('watch-clean', 'watch-dirty', 'watch-flushall', 'watch-flushdb', 'watch-config', 'queue', 'queue-error', 'discard', 'reset'):
                 with contextlib.closing(s.connect(b.port, args.stall, io=5)) as c:
                     c.must('SELECT', db)
                     pair, _ = s.keys_for(control, 'flipfix6:semantics:' + case, False, 2)
@@ -63,12 +63,17 @@ def semantics(args, directory, engine, atomic):
                         'flip_session_clients_transferred']
                     assert moved == 1, (case, 'session did not move exactly once', moved)
                     if case.startswith('watch'):
+                        if case in ('watch-flushall', 'watch-flushdb'):
+                            assert control.must(case.removeprefix('watch-').upper(), 'SYNC') == b'OK'
+                        if case == 'watch-config':
+                            assert control.must('CONFIG', 'SET', 'maxmemory', '0') == b'OK'
+                            assert control.must('CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lru') == b'OK'
                         if case == 'watch-dirty':
                             assert control.must('INCR', pair[0]) == 1
                         assert c.must('MULTI') == b'OK'
                         assert c.must('INCR', pair[1]) == b'QUEUED'
                         reply = c.must('EXEC')
-                        assert reply == (None if case == 'watch-dirty' else [1]), (case, reply)
+                        assert reply == (None if case in ('watch-dirty', 'watch-flushall', 'watch-flushdb') else [1]), (case, reply)
                     elif case == 'queue':
                         assert c.must('INCR', pair[1]) == b'QUEUED'
                         assert c.must('EXEC') == [1, 1]

@@ -89,19 +89,24 @@
         require(call({Slice("MULTI")}) == "+OK\r\n", "MULTI completed");
         require(call({Slice("DISCARD")}) == "+OK\r\n", "DISCARD completed");
         flipfix6_pins(client, 0);
-        for (const unsigned outcome : {0u, 1u, 2u}) {
+        for (const unsigned outcome : {0u, 1u, 2u, 3u, 4u}) {
             watch();
             // Same stable Client now belongs to a different IO. Registry invalidation
             // must still reach it; all new preparation uses this destination's identity.
             client.set_ifid_thread(1);
             if (outcome == 1) f.server.shard(f.sid()).watch_write_committed(slice(key));
-            require(client.watch_dirty() == (outcome == 1), "foreign write finds moved Client");
+            if (outcome >= 3)
+                require(f.server.shard(f.sid()).watch_flush(outcome == 3 ? -1 : 0),
+                        "wave13 touchAllWatchedKeys on moved Client");
+            const bool dirty = outcome == 1 || outcome >= 3;
+            require(client.watch_dirty() == dirty, "foreign write/FLUSH finds moved Client");
+            flipfix6_pins(client, databases);
             require(call({Slice("MULTI")}) == "+OK\r\n", "MULTI after handover");
             require(call({Slice("INCR"), slice(key)}) == "+QUEUED\r\n", "queued write");
             if (outcome == 2) multi_mark_queue_error(client);
             const auto reply = call({Slice("EXEC")});
             require(outcome == 0 ? reply == "*1\r\n:1\r\n" :
-                    outcome == 1 ? reply == "*-1\r\n" : reply.starts_with("-EXECABORT "),
+                    dirty ? reply == "*-1\r\n" : reply.starts_with("-EXECABORT "),
                     "EXEC success/nil/EXECABORT after move");
             flipfix6_pins(client, 0);
             client.set_ifid_thread(f.io_id);
@@ -120,7 +125,7 @@
         std::printf("ARMED flipfix6 pins db%u: WATCH repeat UNWATCH DISCARD EXEC success/nil/abort RESET/close\n", databases);
     }
 
-    static void flipfix6_s2(unsigned databases, unsigned atomic, bool converting, bool watch_pending) {
+    static void flipfix6_s2(unsigned databases, unsigned atomic, bool converting, bool watch_pending, bool flush_child = false) {
         Fixture f(false, 8, 16, databases, 6, false, -1, atomic);
         command_bind_server(&f.server);
         std::string acl_error;
@@ -150,6 +155,7 @@
             prepare({Slice("MULTI")}, MultiIoAction::LocalDone);
             prepare({Slice("INCR"), slice(left)}, MultiIoAction::LocalDone);
             prepare({Slice("INCR"), slice(right)}, MultiIoAction::LocalDone);
+            if (flush_child) prepare({Slice("FLUSHALL")}, MultiIoAction::LocalDone);
             pending = prepare({Slice("EXEC")}, MultiIoAction::Dispatch);
         }
         const unsigned credits = watch_pending ? 0 : 1;
@@ -177,14 +183,14 @@
                     "same WATCH S2 resumes and replies exactly once after rollback");
             flipfix6_pins(client, databases);
             require(flipfix6_command(f, client, {Slice("UNWATCH")}) == "+OK\r\n", "resumed S2 cleans all aliases");
-        } else require(flipfix6_command(f, client, {Slice("EXEC")}) == "*2\r\n:1\r\n:1\r\n",
+        } else require(flipfix6_command(f, client, {Slice("EXEC")}) == (flush_child ? "*3\r\n:1\r\n:1\r\n+OK\r\n" : "*2\r\n:1\r\n:1\r\n"),
                        "same EXEC S2 resumes and replies exactly once after rollback");
         require(!client.flip_session_pending() && f.server.atomic_inflight() == 0 &&
                 f.server.atomic_apply_inflight() == 0, "S2 retires all original credits");
         f.io.self_->remove_client(&client); f.io.self_->release_wb_slot(client.wb_slot());
         f.server.client_released(); acl_shutdown(); command_bind_server(nullptr);
-        std::printf("ARMED flipfix6 S2 db%u atomic%u %s %s: refused at IoDrain, same state resumed\n",
-                    databases, atomic, converting ? "converting" : "surviving", watch_pending ? "WATCH" : "EXEC");
+        std::printf("ARMED %s S2 db%u atomic%u %s %s: refused at IoDrain, same state resumed\n",
+                    flush_child ? "wave13 EXEC-FLUSH" : "flipfix6", databases, atomic, converting ? "converting" : "surviving", watch_pending ? "WATCH" : "EXEC");
     }
 
     static void flipfix6_close_fence(unsigned databases, bool converting) {
