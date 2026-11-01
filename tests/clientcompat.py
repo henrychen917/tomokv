@@ -317,6 +317,7 @@ def probe(case, port, rows, oracle, mode=None):
                         assert time.monotonic() < deadline, 'subscription close marker never committed'
                     window = not bool(select.select([closing.sock], [], [], 0)[0])
                     opened |= window
+                    rows.append(dict(subscription_close_window=window, attempt=attempt, oracle=oracle))
                     closing.close()
                     deadline = time.monotonic() + 2
                     while True:
@@ -325,7 +326,6 @@ def probe(case, port, rows, oracle, mode=None):
                             break
                         time.sleep(.01)
                     check('closed EXEC leaves no subscriptions', counts, [0] * len(channels))
-                    rows.append(dict(subscription_close_window=window, attempt=attempt, oracle=oracle))
                     if oracle or opened:
                         break
                 if not oracle:
