@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run the round4 black-box repros as non-vacuous gate witnesses, without rates."""
 import argparse
+import hashlib
 import itertools
 import json
 import os
@@ -30,6 +31,13 @@ def main():
     env = dict(os.environ, LC_ALL='C', BLOCKFIX4_BINARY=str(Path(a.binary).resolve()),
                BLOCKFIX4_ORACLE=str(Path(a.oracle).resolve()), BLOCKFIX4_CORES=a.cores,
                BLOCKFIX4_ENGINE=a.engine)
+    sources = [Path(__file__), *sorted((ROOT / 'blockfix4_repro').rglob('*.py'))]
+    (a.output / 'witness.json').write_text(json.dumps(dict(
+        case=a.case, engine=a.engine, cores=a.cores, port=a.port,
+        databases=int(env.get('BLOCKFIX4_DATABASES', '1')),
+        sources={str(f.relative_to(ROOT)): hashlib.sha256(f.read_bytes()).hexdigest() for f in sources},
+        binary_sha256=hashlib.sha256(Path(a.binary).read_bytes()).hexdigest(),
+        oracle_sha256=hashlib.sha256(Path(a.oracle).read_bytes()).hexdigest()), indent=2) + '\n')
     results = []
     creator_oracle = {}
 
