@@ -26,6 +26,15 @@ struct ScriptWindow;
 void script_window_forget(Server&, uint32_t, Client&);
 void script_window_resume(Server&, ScatterArenaPool&, uint32_t, Client&);
 struct MultiExecState;
+struct MultiTrackingView {
+    uint64_t snapshot;
+    bool execute;
+    bool committed;
+};
+MultiTrackingView multi_tracking_view(const MultiExecState&);
+void multi_tracking_children(MultiExecState&, void*,
+    void (*)(void*, Op&, bool prebuilt, bool io_local, bool acl,
+             bool& io_effect_done, uint32_t order));
 struct MultiSession;
 struct Task;
 struct MultiOwnerRetryNode;

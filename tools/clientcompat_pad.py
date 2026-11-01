@@ -22,7 +22,8 @@ def main():
     elf = Elf(args.post)
     data = bytearray(elf.data)
     patches = []
-    symbols = [s for s in elf.symbols if 'clientcompat_postEv' in s['name']]
+    symbols = [s for s in elf.symbols if s['name'].startswith('_ZN')
+               and s['name'].endswith('clientcompat_postEv')]
     assert len(symbols) == 2, symbols
     for symbol in symbols:
         section = elf.sections[symbol['sec']]
@@ -31,7 +32,8 @@ def main():
         if data[offset:offset+4] == bytes.fromhex('f3 0f 1e fa'):
             offset += 4
             pc += 4
-        assert data[offset:offset+6] == bytes.fromhex('b8 01 00 00 00 c3')
+        assert (data[offset:offset+3] == bytes.fromhex('b0 01 c3') or
+                data[offset:offset+6] == bytes.fromhex('b8 01 00 00 00 c3'))
         original = bytes(data[offset:offset+3])
         data[offset:offset+3] = bytes.fromhex('31 c0 c3')
         patches.append(dict(symbol=symbol['name'], pc=hex(pc), offset=offset,

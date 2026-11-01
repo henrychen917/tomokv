@@ -2585,52 +2585,20 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
     return true;
 }
 
-void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
-    if (!clientcompat_post()) return;
-    auto* tracking = climon_conn_find(client.id());
-    if (!tracking || !tracking->tracking_on || state.kind != MultiStateKind::Execute) return;
-    const bool saved = tracking->caching_armed;
-    bool caching = saved;
-    for (const auto& command : state.commands) {
-        Op& child = *command->op;
-        if (child.cmd_name().eq_icase("client") && child.argc() == 3 &&
-            child.arg(1).eq_icase("caching")) {
-            if ((tracking->optin && child.arg(2).eq_icase("yes")) ||
-                (tracking->optout && child.arg(2).eq_icase("no"))) caching = true;
-        }
-        if (command->kind == MultiCommandKind::Prebuilt) continue;
-        tracking->caching_armed = caching;
-        tracking_register_read(&client, *tracking, child);
-        auto receipt = tracking->tracking_reads.find(&child);
-        if (receipt != tracking->tracking_reads.end()) {
-            receipt->second->flags |= CmdFlags::NotifySelected;
-            if (state.snapshot != UINT64_MAX) child.set_read_cut(state.snapshot);
-        }
-    }
-    tracking->caching_armed = saved;
+MultiTrackingView multi_tracking_view(const MultiExecState& state) {
+    return {state.snapshot, state.kind == MultiStateKind::Execute,
+        state.kind == MultiStateKind::Execute && state.final_reply == MultiFinalReply::Exec &&
+        !state.watch_failed.load(std::memory_order_acquire) &&
+        !state.decision.aborted.load(std::memory_order_acquire)};
 }
 
-void IoLoop::tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch) {
-    if (!clientcompat_post()) return;
-    const bool committed = state.kind == MultiStateKind::Execute &&
-        state.final_reply == MultiFinalReply::Exec &&
-        !state.watch_failed.load(std::memory_order_acquire) &&
-        !state.decision.aborted.load(std::memory_order_acquire);
-    for (const auto& command : state.commands) {
-        Op& child = *command->op;
-        if (committed && command->kind == MultiCommandKind::IoLocal &&
-            child.cmd_name().eq_icase("client") &&
-            tracking_client_subcommand(&client, child) == ClimonStartResult::Sync)
-            command->io_effect_done = true;
-        if (committed && command->kind == MultiCommandKind::IoLocal &&
-            command->queued.verb == MultiVerb::V_acl && !command->io_effect_done) {
-            acl_command_entry(*this, client, child);
-            command->io_effect_done = true;
-        }
-        tracking_retire_exec_read(client, child, batch, command->notify_order_base, committed);
-    }
-    if (committed)
-        if (auto* tracking = climon_conn_find(client.id())) tracking->caching_armed = false;
+void multi_tracking_children(MultiExecState& state, void* context,
+        void (*visit)(void*, Op&, bool, bool, bool, bool&, uint32_t)) {
+    for (const auto& command : state.commands)
+        visit(context, *command->op, command->kind == MultiCommandKind::Prebuilt,
+              command->kind == MultiCommandKind::IoLocal,
+              command->queued.verb == MultiVerb::V_acl,
+              command->io_effect_done, command->notify_order_base);
 }
 
 template <bool IofusedPrivateQueue>

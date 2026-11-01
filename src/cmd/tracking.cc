@@ -199,44 +199,6 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     state.tracking_reads[&op] = std::move(read);
 }
 
-void IoLoop::tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batch,
-                                      uint32_t order, bool committed) {
-    auto* state = climon_conn_find(client.id());
-    if (!state) return;
-    auto found = state->tracking_reads.find(&op);
-    if (found == state->tracking_reads.end()) return;
-    TrackingRead& read = *found->second;
-    if (!committed && !read.canceled) {
-        // An internal EXEC retry abandons only this attempt's memberships.
-        // OFF/RESET instead clear the entire table and mark receipts canceled.
-        for (const auto& key : read.keys) {
-            auto pending = state->tracking_pending.find(key);
-            if (pending == state->tracking_pending.end()) std::abort();
-            auto& members = pending->second.reads;
-            auto member = std::find(members.begin(), members.end(), &op);
-            if (member == members.end()) std::abort();
-            members.erase(member);
-            if (members.empty()) state->tracking_pending.erase(pending);
-        }
-    }
-    read.canceled |= !committed;
-    if (committed) {
-        std::vector<uint64_t> observed;
-        observed.reserve(read.keys.size());
-        for (size_t i = 0; i < read.keys.size(); ++i) {
-            const auto& key = read.keys[i];
-            const uint64_t own = notify_tracking_read_stamp(batch,
-                Slice(key.data(), static_cast<uint32_t>(key.size())), order);
-            observed.push_back(own ? own : read.observed[read.shards[i]]);
-        }
-        read.observed.swap(observed);
-        for (size_t i = 0; i < read.keys.size(); ++i) read.shards[i] = i;
-    }
-    // The transaction still uses the child's registry spec while assembling
-    // replies and recording timing; its tracking receipt ends here.
-    op.spec = read.original;
-    tracking_retire_read(client, op);
-}
 
 void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_t stamp) {
     const Slice key(name.data(), static_cast<uint32_t>(name.size()));
