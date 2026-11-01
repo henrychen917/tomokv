@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import blockfix2_receipts as receipts
 
@@ -39,13 +40,16 @@ def main():
                '--server-cores', '32-39', '--load-cores', '40-47',
                '--server-smt', '', '--load-smt', '', '--ports', a.ports,
                '--candidate-binary', str(binary)]
-    before = set((ROOT / 'build').glob('gate-run.*'))
     digest = hashlib.sha256(binary.read_bytes()).hexdigest()
     with (OUT / (a.tag + '.log')).open('w') as log:
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
-    created = set((ROOT / 'build').glob('gate-run.*')) - before
-    assert len(created) == 1, created
-    record = receipts.collect(a.tag, created.pop(), OUT)
+    # A separate, disjoint-port proof may create another run while this one is
+    # active. The gate's own banner identifies this invocation unambiguously.
+    matches = re.findall(r'^  artifacts: (.+)$', (OUT / (a.tag + '.log')).read_text(), re.M)
+    assert len(matches) == 1, matches
+    run = Path(matches[0]).resolve()
+    assert run.parent == ROOT / 'build' and run.name.startswith('gate-run.'), run
+    record = receipts.collect(a.tag, run, OUT)
     record.update(command=command, env={k: v for k, v in env.items()
                   if k.startswith('GATE_') or k in ('LC_ALL', 'REDIS74_ROOT')},
                   binary_sha256=digest, exit_code=result.returncode)
