@@ -264,6 +264,7 @@
       "job": "asan",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -271,6 +272,7 @@
       "job": "rldbg",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -341,6 +343,7 @@
       "job": "acl_recheck",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -369,6 +372,7 @@
       "job": "rlcache",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -565,6 +569,7 @@
       "job": "bplus",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -873,6 +878,7 @@
       "job": "readonly",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1034,6 +1040,7 @@
       "job": "evict-lfu-split-0",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1041,6 +1048,7 @@
       "job": "evict-lfu-armed-0",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1048,6 +1056,7 @@
       "job": "evict-lruclock-split-0",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1055,6 +1064,7 @@
       "job": "evict-lruclock-armed-0",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1062,6 +1072,7 @@
       "job": "evict-lfu-split-1",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1069,6 +1080,7 @@
       "job": "evict-lfu-armed-1",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1076,6 +1088,7 @@
       "job": "evict-lruclock-split-1",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1083,6 +1096,7 @@
       "job": "evict-lruclock-armed-1",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1410,6 +1424,7 @@
       "job": "globcase",
       "passed": true,
       "receipts": [
+        "landing-epoll",
         "landing-primary"
       ]
     },
@@ -1665,8 +1680,10 @@
     {
       "job": "feature-split-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "feature-split-1",
@@ -1679,8 +1696,10 @@
     {
       "job": "feature-split-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "feature-armed-0",
@@ -1693,8 +1712,10 @@
     {
       "job": "feature-armed-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "feature-armed-1",
@@ -1707,8 +1728,10 @@
     {
       "job": "feature-armed-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "fused-0",
@@ -1721,8 +1744,10 @@
     {
       "job": "fused-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "fused-1",
@@ -1735,8 +1760,10 @@
     {
       "job": "fused-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "txn_group_fused",
@@ -1749,8 +1776,10 @@
     {
       "job": "txn_group_fused",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "txn_group_split",
@@ -1763,8 +1792,10 @@
     {
       "job": "txn_group_split",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "txnorder-fused-0",
@@ -1777,8 +1808,10 @@
     {
       "job": "txnorder-fused-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "txnorder-fused-1",
@@ -1791,8 +1824,10 @@
     {
       "job": "txnorder-fused-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "txnorder-split-0",
@@ -1805,8 +1840,10 @@
     {
       "job": "txnorder-split-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "txnorder-split-1",
@@ -1819,8 +1856,10 @@
     {
       "job": "txnorder-split-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "wb_policy",
@@ -1833,8 +1872,10 @@
     {
       "job": "wb_policy",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-1s-0-0",
@@ -1847,8 +1888,10 @@
     {
       "job": "multidb-1s-0-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-1s-0-1",
@@ -1861,8 +1904,10 @@
     {
       "job": "multidb-1s-0-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-1s-1-0",
@@ -1875,8 +1920,10 @@
     {
       "job": "multidb-1s-1-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-1s-1-1",
@@ -1889,8 +1936,10 @@
     {
       "job": "multidb-1s-1-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-2s-0-0",
@@ -1903,8 +1952,10 @@
     {
       "job": "multidb-2s-0-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-2s-0-1",
@@ -1917,8 +1968,10 @@
     {
       "job": "multidb-2s-0-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-2s-1-0",
@@ -1931,8 +1984,10 @@
     {
       "job": "multidb-2s-1-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "multidb-2s-1-1",
@@ -1945,8 +2000,10 @@
     {
       "job": "multidb-2s-1-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "respcompat",
@@ -1959,8 +2016,10 @@
     {
       "job": "respcompat",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "flip",
@@ -1973,8 +2032,10 @@
     {
       "job": "flip",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "fliplisten",
@@ -1987,8 +2048,10 @@
     {
       "job": "fliplisten",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "flipctl",
@@ -2015,8 +2078,10 @@
     {
       "job": "atomic_floor",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lruclock-split-0",
@@ -2029,8 +2094,10 @@
     {
       "job": "evict-lruclock-split-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lruclock-armed-0",
@@ -2043,8 +2110,10 @@
     {
       "job": "evict-lruclock-armed-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lruclock-split-1",
@@ -2057,8 +2126,10 @@
     {
       "job": "evict-lruclock-split-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lruclock-armed-1",
@@ -2071,8 +2142,10 @@
     {
       "job": "evict-lruclock-armed-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lfu-split-0",
@@ -2085,8 +2158,10 @@
     {
       "job": "evict-lfu-split-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lfu-armed-0",
@@ -2099,8 +2174,10 @@
     {
       "job": "evict-lfu-armed-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lfu-split-1",
@@ -2113,8 +2190,10 @@
     {
       "job": "evict-lfu-split-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "evict-lfu-armed-1",
@@ -2127,8 +2206,10 @@
     {
       "job": "evict-lfu-armed-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "readonly",
@@ -2141,8 +2222,10 @@
     {
       "job": "readonly",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "bplus",
@@ -2155,8 +2238,10 @@
     {
       "job": "bplus",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "acl_recheck",
@@ -2169,8 +2254,10 @@
     {
       "job": "acl_recheck",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "rlcache",
@@ -2183,22 +2270,26 @@
     {
       "job": "rlcache",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
-    },
-    {
-      "job": "globcase",
-      "engine": "uring",
       "passed": true,
       "receipts": [
-        "landing-primary"
+        "landing-epoll"
       ]
     },
     {
       "job": "globcase",
+      "engine": "uring",
+      "passed": true,
+      "receipts": [
+        "landing-primary"
+      ]
+    },
+    {
+      "job": "globcase",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "debug-0",
@@ -2227,8 +2318,10 @@
       "job": "debug-0",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "debug-1",
@@ -2257,8 +2350,10 @@
       "job": "debug-1",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "script_bounds",
@@ -2291,8 +2386,10 @@
       "mode": "2s",
       "engine": "epoll",
       "atomic": "1",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "notify",
@@ -2321,8 +2418,10 @@
       "job": "notify",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "asan_batteries",
@@ -2351,8 +2450,10 @@
       "job": "asan_batteries",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "atomic_batteries",
@@ -2381,8 +2482,10 @@
       "job": "atomic_batteries",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "release_batteries",
@@ -2411,8 +2514,10 @@
       "job": "release_batteries",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "dump_restore",
@@ -2441,8 +2546,10 @@
       "job": "dump_restore",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "sort",
@@ -2471,8 +2578,10 @@
       "job": "sort",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "auth",
@@ -2501,8 +2610,10 @@
       "job": "auth",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "aof_frame",
@@ -2531,8 +2642,10 @@
       "job": "aof_frame",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "replyoff",
@@ -2561,8 +2674,10 @@
       "job": "replyoff",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "zc",
@@ -2591,8 +2706,10 @@
       "job": "zc",
       "mode": "2s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-epoll"
+      ]
     },
     {
       "job": "script_bounds",
@@ -2762,13 +2879,13 @@
     },
     {
       "job": "abba_selftest",
-      "run": "landing-abba-selftest-final",
+      "run": "landing-abba-selftest-isolated",
       "passed": false,
       "receipts": []
     }
   ],
   "required_geometries": 392,
-  "satisfied_geometries": 283,
+  "satisfied_geometries": 334,
   "registry_jobs": 288,
   "completed_registry_jobs": 275,
   "missing_required_registry_jobs": [
@@ -2877,15 +2994,15 @@
   ],
   "canonical_job_receipts": {
     "acl_metadata": "landing-primary",
-    "acl_recheck": "landing-primary",
+    "acl_recheck": "landing-epoll",
     "acl_subcommands": "landing-primary",
     "aclfix": "landing-primary",
     "aof-epoll": "landing-primary",
     "aof-uring": "landing-primary",
-    "aof_frame": "landing-primary",
+    "aof_frame": "landing-epoll",
     "aoforder": "landing-primary",
-    "asan": "landing-primary",
-    "asan_batteries": "landing-primary",
+    "asan": "landing-epoll",
+    "asan_batteries": "landing-epoll",
     "at412-T1": "landing-primary",
     "at412-T10": "landing-primary",
     "at412-T11a": "landing-primary",
@@ -2906,17 +3023,17 @@
     "at412-owner": "landing-primary",
     "atomfix5_accounting": "landing-primary",
     "atomfix5_watch": "landing-primary",
-    "atomic_batteries": "landing-primary",
-    "atomic_floor": "landing-primary",
+    "atomic_batteries": "landing-epoll",
+    "atomic_floor": "landing-epoll",
     "atomic_units": "landing-primary",
-    "auth": "landing-primary",
+    "auth": "landing-epoll",
     "authfix": "landing-primary",
     "blockfix2": "landing-blockfix-companions",
     "blockfix_mkstream": "landing-primary",
     "blockfix_registry": "landing-blockfix-companions",
     "blockfix_structure": "landing-primary",
     "boot_grammar": "landing-primary",
-    "bplus": "landing-primary",
+    "bplus": "landing-epoll",
     "bugs5": "landing-primary",
     "clientfix": "landing-primary",
     "climonfix": "landing-primary",
@@ -2942,26 +3059,26 @@
     "datafix2_subkeys": "landing-primary",
     "datafix2_watch": "landing-primary",
     "dbdefault": "landing-primary",
-    "debug-0": "landing-primary",
-    "debug-1": "landing-primary",
+    "debug-0": "landing-epoll",
+    "debug-1": "landing-epoll",
     "dispatch_arity": "landing-primary",
     "dispatch_children": "landing-primary",
     "dispatch_errors": "landing-primary",
-    "dump_restore": "landing-primary",
-    "evict-lfu-armed-0": "landing-primary",
-    "evict-lfu-armed-1": "landing-primary",
-    "evict-lfu-split-0": "landing-primary",
-    "evict-lfu-split-1": "landing-primary",
-    "evict-lruclock-armed-0": "landing-primary",
-    "evict-lruclock-armed-1": "landing-primary",
-    "evict-lruclock-split-0": "landing-primary",
-    "evict-lruclock-split-1": "landing-primary",
+    "dump_restore": "landing-epoll",
+    "evict-lfu-armed-0": "landing-epoll",
+    "evict-lfu-armed-1": "landing-epoll",
+    "evict-lfu-split-0": "landing-epoll",
+    "evict-lfu-split-1": "landing-epoll",
+    "evict-lruclock-armed-0": "landing-epoll",
+    "evict-lruclock-armed-1": "landing-epoll",
+    "evict-lruclock-split-0": "landing-epoll",
+    "evict-lruclock-split-1": "landing-epoll",
     "exbatch_live": "landing-primary",
     "exbatch_units": "landing-primary",
     "exec1s": "landing-primary",
     "execfair": "landing-primary",
-    "feature-armed-0": "landing-primary",
-    "feature-armed-1": "landing-primary",
+    "feature-armed-0": "landing-epoll",
+    "feature-armed-1": "landing-epoll",
     "feature-cell-1s-0-0-0-0": "landing-primary",
     "feature-cell-1s-0-0-0-1": "landing-primary",
     "feature-cell-1s-0-0-1-0": "landing-primary",
@@ -2997,10 +3114,10 @@
     "feature-cell-fused-home-max-nopin": "landing-primary",
     "feature-cell-split-home-min": "landing-primary",
     "feature-cell-split-shards-auto": "landing-primary",
-    "feature-split-0": "landing-primary",
-    "feature-split-1": "landing-primary",
+    "feature-split-0": "landing-epoll",
+    "feature-split-1": "landing-epoll",
     "filter_unit": "landing-primary",
-    "flip": "landing-primary",
+    "flip": "landing-epoll",
     "flip_unit": "landing-primary",
     "flipctl": "landing-primary",
     "flipfix5": "landing-primary",
@@ -3008,13 +3125,13 @@
     "flipfix6": "landing-primary",
     "flipfix6_units": "landing-primary",
     "flipfix_units": "landing-primary",
-    "fliplisten": "landing-primary",
+    "fliplisten": "landing-epoll",
     "flushfix2": "landing-primary",
     "flushfix2_units": "landing-primary",
     "flushfix3_units": "landing-primary",
-    "fused-0": "landing-primary",
-    "fused-1": "landing-primary",
-    "globcase": "landing-primary",
+    "fused-0": "landing-epoll",
+    "fused-1": "landing-epoll",
+    "globcase": "landing-epoll",
     "hexpread": "landing-primary",
     "infofix_compat-docs": "landing-primary",
     "infofix_compat-loadaof": "landing-primary",
@@ -3034,14 +3151,14 @@
     "lualibs": "landing-primary",
     "maxmemrace": "landing-primary",
     "moverfix": "landing-primary",
-    "multidb-1s-0-0": "landing-primary",
-    "multidb-1s-0-1": "landing-primary",
-    "multidb-1s-1-0": "landing-primary",
-    "multidb-1s-1-1": "landing-primary",
-    "multidb-2s-0-0": "landing-primary",
-    "multidb-2s-0-1": "landing-primary",
-    "multidb-2s-1-0": "landing-primary",
-    "multidb-2s-1-1": "landing-primary",
+    "multidb-1s-0-0": "landing-epoll",
+    "multidb-1s-0-1": "landing-epoll",
+    "multidb-1s-1-0": "landing-epoll",
+    "multidb-1s-1-1": "landing-epoll",
+    "multidb-2s-0-0": "landing-epoll",
+    "multidb-2s-0-1": "landing-epoll",
+    "multidb-2s-1-0": "landing-epoll",
+    "multidb-2s-1-1": "landing-epoll",
     "multifix-1s-epoll": "landing-primary",
     "multifix-1s-uring": "landing-primary",
     "multifix-2s-epoll": "landing-primary",
@@ -3055,7 +3172,7 @@
     "netfix_unix": "landing-primary",
     "netio-1s": "landing-primary",
     "netio-2s": "landing-primary",
-    "notify": "landing-primary",
+    "notify": "landing-epoll",
     "notify_aof": "landing-primary",
     "notify_order": "landing-primary",
     "notifycompat": "landing-primary",
@@ -3076,15 +3193,15 @@
     "racefix_climon": "landing-primary",
     "racefix_counters": "landing-primary",
     "racefix_tsan_build": "landing-primary",
-    "readonly": "landing-primary",
+    "readonly": "landing-epoll",
     "release": "landing-blockfix-companions",
-    "release_batteries": "landing-primary",
+    "release_batteries": "landing-epoll",
     "reorder_bounds": "landing-primary",
     "reorder_engagement": "landing-primary",
     "reorder_identity": "landing-primary",
     "reorder_sync": "landing-primary",
-    "replyoff": "landing-primary",
-    "respcompat": "landing-primary",
+    "replyoff": "landing-epoll",
+    "respcompat": "landing-epoll",
     "respresume-cpu-1s-epoll": "landing-primary",
     "respresume-cpu-1s-uring": "landing-primary",
     "respresume-cpu-2s-epoll": "landing-primary",
@@ -3098,13 +3215,13 @@
     "respresume-neighbour-2s-epoll": "landing-primary",
     "respresume-neighbour-2s-uring": "landing-primary",
     "ring_unit": "landing-primary",
-    "rlcache": "landing-primary",
-    "rldbg": "landing-primary",
+    "rlcache": "landing-epoll",
+    "rldbg": "landing-epoll",
     "rlfix3_info": "landing-primary",
     "rlfix3_zc": "landing-primary",
     "rob_portable": "landing-primary",
     "router_uniform": "landing-primary",
-    "script_bounds": "landing-primary",
+    "script_bounds": "landing-epoll",
     "scriptfix": "landing-primary",
     "scriptfix2": "landing-primary",
     "serverfix_acllog": "landing-primary",
@@ -3122,7 +3239,7 @@
     "snapfix_shutdown": "landing-primary",
     "snapshot-epoll": "landing-primary",
     "snapshot-uring": "landing-primary",
-    "sort": "landing-primary",
+    "sort": "landing-epoll",
     "source_identity": "landing-primary",
     "splitlocal_units": "landing-primary",
     "storage_units": "landing-primary",
@@ -3132,12 +3249,12 @@
     "trackfix_order": "landing-primary",
     "tracking_redirect": "landing-primary",
     "trackorder": "landing-primary",
-    "txn_group_fused": "landing-primary",
-    "txn_group_split": "landing-primary",
-    "txnorder-fused-0": "landing-primary",
-    "txnorder-fused-1": "landing-primary",
-    "txnorder-split-0": "landing-primary",
-    "txnorder-split-1": "landing-primary",
+    "txn_group_fused": "landing-epoll",
+    "txn_group_split": "landing-epoll",
+    "txnorder-fused-0": "landing-epoll",
+    "txnorder-fused-1": "landing-epoll",
+    "txnorder-split-0": "landing-epoll",
+    "txnorder-split-1": "landing-epoll",
     "txnorder2": "landing-primary",
     "txnorder_index": "landing-primary",
     "txnorder_wake": "landing-primary",
@@ -3146,11 +3263,11 @@
     "waits_tsan_build": "landing-primary",
     "wave8b_off": "landing-primary",
     "wb_mixed": "landing-primary",
-    "wb_policy": "landing-primary",
+    "wb_policy": "landing-epoll",
     "wb_rule_units": "landing-primary",
     "wbland_units": "landing-primary",
     "witness_contracts": "landing-primary",
-    "zc": "landing-primary"
+    "zc": "landing-epoll"
   },
   "unwitnessed_declared_labels": [
     {
@@ -3236,6 +3353,36 @@
   ],
   "release_stream_memory_bounds": [],
   "failed_attempts": [
+    {
+      "run": "landing-abba-selftest-final",
+      "job": "abba_selftest",
+      "mode": "2s",
+      "engine": "uring",
+      "atomic": "1",
+      "release_footprints": false,
+      "passed": false,
+      "release_memory_bounds": [],
+      "gate_verdict_passed": false,
+      "stable_harness": true,
+      "locale_nonconforming": false,
+      "exit": 0,
+      "failed": 1
+    },
+    {
+      "run": "landing-epoll",
+      "job": "flipctl",
+      "mode": "2s",
+      "engine": "epoll",
+      "atomic": "1",
+      "release_footprints": false,
+      "passed": false,
+      "release_memory_bounds": [],
+      "gate_verdict_passed": false,
+      "stable_harness": true,
+      "locale_nonconforming": false,
+      "exit": 0,
+      "failed": 1
+    },
     {
       "run": "landing-persistfmt-window-v2",
       "job": "persistfmt",
