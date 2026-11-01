@@ -5,85 +5,85 @@
     "risky_hits": 68
   },
   "rootcore-functions": {
-    "pass_legs": 15,
+    "pass_legs": 27,
     "failed_legs": 0,
-    "risky_hits": 75
+    "risky_hits": 135
   },
   "rootcore-inbox": {
+    "pass_legs": 10,
+    "failed_legs": 0,
     "diagnostic_passes": [
       {
         "kind": "client",
         "attempts": 200000,
-        "first_misses": 66761,
+        "first_misses": 96486,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "client",
         "attempts": 200000,
-        "first_misses": 85686,
+        "first_misses": 62280,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "transfer",
         "attempts": 200000,
-        "first_misses": 49360,
+        "first_misses": 49867,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "transfer",
         "attempts": 200000,
-        "first_misses": 72764,
+        "first_misses": 45881,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "task",
         "attempts": 200000,
-        "first_misses": 49593,
+        "first_misses": 62738,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "task",
         "attempts": 200000,
-        "first_misses": 97081,
+        "first_misses": 82091,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "fused",
         "attempts": 200000,
-        "first_misses": 57197,
+        "first_misses": 77531,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "fused",
         "attempts": 200000,
-        "first_misses": 94064,
+        "first_misses": 32101,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "flush",
         "attempts": 200000,
-        "first_misses": 93798,
+        "first_misses": 89705,
         "stranded_hits": 0,
         "consumed": 200000
       },
       {
         "kind": "flush",
         "attempts": 200000,
-        "first_misses": 65115,
+        "first_misses": 85434,
         "stranded_hits": 0,
         "consumed": 200000
       }
-    ],
-    "pass_legs": 10,
-    "failed_legs": 0
+    ]
   },
   "rootcore-misconf": {
     "pass_legs": 2,
@@ -101,8 +101,8 @@
     "risky_hits": 8
   },
   "rootcore-waitaof": {
-    "pass_legs": 34,
-    "failed_legs": 0,
-    "risky_hits": 356
+    "pass_legs": 2,
+    "failed_legs": 32,
+    "risky_hits": 390
   }
 }

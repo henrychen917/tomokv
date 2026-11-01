@@ -1,8 +1,8 @@
 ok	0.000000	release build (+footprint locks)
-ok	4.820000	rootcore inbox
-ok	9.370000	rootcore eval
-ok	1.780000	rootcore segments
-ok	5.360000	rootcore notify
-ok	13.060000	rootcore functions
-ok	12.260000	rootcore waitaof
-FAIL	42.100000	rootcore misconf
+ok	4.330000	rootcore inbox
+ok	8.480000	rootcore eval
+ok	1.640000	rootcore segments
+ok	4.830000	rootcore notify
+ok	22.040000	rootcore functions
+FAIL	11.470000	rootcore waitaof
+FAIL	41.760000	rootcore misconf

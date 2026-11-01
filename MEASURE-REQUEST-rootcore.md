@@ -73,7 +73,7 @@ from target counts. PRE logs are in `docs/rootcore/pre`; frozen POST logs are in
 | 9 flagged EVAL in EXEC | 16/16 target legs abort the first allow-oom child; 16 target hits; four oracle variants pass | 16/16 target legs × EVAL/EVALSHA × allow-oom/no-writes pass (64 target hits), plus four oracle hits | All ScriptRoute EXEC children enter script preparation inside flag-aware memory admission, as FCALL does | No execution algorithm replacement |
 | 10 MISCONF | 8/8 target legs remain failed for the five-second recovery bound; both oracle policies recover and replay the failed write | Still 8/8 fail; two oracle legs pass | **STOPPED** under the algorithm freeze, detailed below | S1 remains; retrying discarded bytes needs a recovery state machine |
 | 11 WAITAOF | Final PRE matrix: 32/32 target legs return the wrong fresh local ack; two oracle legs pass | Original fsync/receipt checks pass all 32 target legs. Expanded row fails all 32 targets on rejected SET NX; both oracle legs pass | AOF-only per-connection buffered-record/sequence receipts; local ack follows durable frontier; existing timer wait polls fsync readiness | **Partial, S1 remains:** redundant native post-images advance the receipt on a non-mutation; see the freeze boundary below |
-| 12 FUNCTION journal | Expanded PRE: 24/24 target legs lose FUNCTION LOAD after rewrite; 24 target hits; three oracle policy legs pass | Initial 12/12 targets and three oracle legs pass; expanded POST proof pending | Full registry post-images enter the ordered native increment control stream; replay restores each mutation in journal order | Snapshot/rewrite registry capture deliberately untouched for persistfmt integration |
+| 12 FUNCTION journal | Expanded PRE: 24/24 target legs lose FUNCTION LOAD after rewrite; 24 target hits; three oracle policy legs pass | 24/24 targets and three oracle legs pass; five mutation/restart hits per leg (135 total) | Full registry post-images enter the ordered native increment control stream; replay restores each mutation in journal order | Snapshot/rewrite registry capture deliberately untouched for persistfmt integration |
 
 Items 6–8 remain assigned to blockfix4. No blocking wake mechanism is changed.
 The two edits in `blocking.inc` only supply the originating client ID to AOF
@@ -101,6 +101,9 @@ and consume for cleanup. Each attempt must consume exactly one item. Store
 pressure and bounded pauses vary the window. This is not a TSan proof or a
 probability bound for all possible executions. POST counting and hard-assert
 passes each use 200,000 fresh attempts for each of the five producer paths.
+The final diagnostic also fails if none of those attempts reaches an empty
+first drain. Its PRE rerun still fails on all five producers and POST passes
+all ten counting/assertion legs (`docs/rootcore/inbox-arming`).
 
 NO-A5's notification subscribers must observe `sortstore` and
 `xgroup-createconsumer`; unsubscribed boots would not prove attachment occurred.
@@ -119,6 +122,13 @@ these key restorations commute with registry restoration before startup
 visibility. This is not a new globally sequential key replay algorithm. Costs
 are O(registry size) serialization per FUNCTION mutation and AOF-only cold queue
 storage. The frame kind is new; old binaries cannot replay these new records.
+
+Read-only notification audit: `post_release` and `SnapshotManager::post_chunk`
+also retain a read-first hint without this new producer fence. Their unmasked
+lookers run on idle/drain-all paths. Busy-thread liveness for those paths was
+**NOT RUN** (zero attempts, no measured hits); it is not presented as a reproduced
+S1 or changed outside the assigned task/client/transfer producers. Snapshot work
+outside this lane remains deferred to its owner.
 
 ### Instruction and layout accounting
 
@@ -184,7 +194,7 @@ selected correctness jobs run, with `GATE_PROOF_NO_RATES=1`; this is not a full
 gate pass or full iteration. The first frozen directed phase, before extending
 WAITAOF with its non-mutation edge, reports seven passing rows including release
 and one red MISCONF row. The later `rootcore-waitaof` job is red on the newly
-witnessed residual below. Broader phase results will be appended when complete.
+witnessed residual below. The final directed phase has six passing rows (including release) and two red rows: MISCONF and WAITAOF. Broader phase results will be appended when complete.
 
 `python3 tests/gates_test.py` has been run twice. Each attempt has 82 passing
 tests and one failure: the complete single-slot scheduler fixture reaches its
@@ -200,6 +210,22 @@ is a harness/inventory failure, not a reproduced server hang. It is documented
 under the owner's rule to leave non-S1 work for later; neither the deadline nor
 the mandatory inventory was weakened. `tools/rootcore_scheduler.py` and
 `docs/rootcore/scheduler` retain the comparison.
+
+The final release and all targets in the production-unit build list build with
+exit 0 (`docs/rootcore/rebuild.json`). The ordinary gate helper additionally
+builds both live MDBQSBR arms and the blockfix cost/refusal targets. All **57**
+`make -q` checks pass, including those concrete recursive build roots and extra
+makefiles (`docs/rootcore/freshness.json`). The initial build's stale mangled
+wrapper name was corrected in the unit and linker flag; its journal-refusal
+negative control remains intact. The interrupted initial broader run is kept
+in `docs/rootcore/proof-initial`, not counted as a completed proof phase.
+
+The maxmemrace job is red on both PRE and POST because its Redis oracle's setup
+expects OOM after `CONFIG SET maxmemory 1`, but receives `+OK`. The later keeper
+thread's bad-fd exception is cleanup noise following that primary assertion.
+All 48 target legs pass on each arm. The oracle's failure is retained rather
+than changing its assumption/tolerance in this lane (`docs/rootcore/maxmem-pre`
+and the final main-uring archive).
 
 ### Item 11 — remaining non-mutation receipt boundary
 

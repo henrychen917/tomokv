@@ -81,5 +81,10 @@ int main(int argc,char** argv) {
     producer.join();
     std::printf("%s attempts=%u first_misses=%u stranded_hits=%u consumed=%u\n",
                 kind.c_str(),rounds,first_misses,losses,taken);
+    if (!first_misses) {
+        std::fprintf(stderr, "%s: no empty first drain in %u fresh attempts\n",
+                     kind.c_str(), rounds);
+        return 2;
+    }
     return losses?1:0;
 }
