@@ -410,5 +410,134 @@
     "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/features-1793506737007064907.log",
     "exit_code": 0,
     "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.Vw4BRC"
+  },
+  {
+    "group": "ownership-extra-uring",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/ownership-extra-uring-1793506794699506016.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.yrxrTp"
+  },
+  {
+    "group": "atomic-controls-uring",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "atomic_floor",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/atomic-controls-uring-1793507897148725206.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.Ox4LYQ"
+  },
+  {
+    "group": "readlocal-extra-uring",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "bplus ring_unit filter_unit acl_recheck",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/readlocal-extra-uring-1793507900445327370.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.lnwtcT"
+  },
+  {
+    "group": "notify-fused-uring",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "notify",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/notify-fused-uring-1793507931058755558.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.7bHqUn"
   }
 ]

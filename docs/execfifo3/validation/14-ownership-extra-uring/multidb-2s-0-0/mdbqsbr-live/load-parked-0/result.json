@@ -1,0 +1,49 @@
+{
+  "case": "load",
+  "arm": "parked",
+  "mode": "2s",
+  "read_local": 0,
+  "atomic": 0,
+  "grace_seconds": 0.9,
+  "shutdown_seconds": 2.7,
+  "participants": {
+    "1281669": "t6",
+    "1281670": "t7",
+    "1281671": "t0",
+    "1281672": "t1",
+    "1281673": "t2",
+    "1281674": "t3",
+    "1281675": "t4",
+    "1281676": "t5"
+  },
+  "parked": {
+    "1281670": "io_cqring_wait",
+    "1281672": "io_cqring_wait",
+    "1281673": "io_cqring_wait",
+    "1281674": "io_cqring_wait",
+    "1281675": "io_cqring_wait",
+    "1281676": "io_cqring_wait"
+  },
+  "parked_before_1": {
+    "1281672": "io_cqring_wait",
+    "1281673": "io_cqring_wait",
+    "1281674": "io_cqring_wait",
+    "1281675": "io_cqring_wait",
+    "1281676": "io_cqring_wait"
+  },
+  "parked_before_2": {
+    "1281671": "io_cqring_wait",
+    "1281672": "io_cqring_wait",
+    "1281673": "io_cqring_wait",
+    "1281674": "io_cqring_wait",
+    "1281675": "io_cqring_wait",
+    "1281676": "io_cqring_wait"
+  },
+  "reply_seconds": [
+    0.0001526903361082077,
+    8.082110434770584e-05,
+    7.406994700431824e-05
+  ],
+  "load_batches": 1042,
+  "shutdown_elapsed_seconds": 0.0031426092609763145
+}
