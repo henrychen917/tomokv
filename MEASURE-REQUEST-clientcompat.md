@@ -177,10 +177,14 @@ prerequisites include the complete requested command families, Tcl both modes,
 all feature-matrix geometries and multidb/FLIP/LB/transaction ordering jobs.
 Standard differential seeds completed on io_uring: 235/239 split legs,
 230/234 armed-fused legs (atomic 0/1), plus all 16 equivalence cells; zero
-differences and all completion artifacts present. The epoll run is in progress.
+differences and all completion artifacts present. The same complete matrix also passed on epoll; see
+`validation/differential-epoll.json`.
 The AT15-expanded multi-controls witness also passed all 32 candidate legs and
 the Redis oracle. See `validation/differential-uring.json`.
 The sealed PAD-A negative controls are complete.
+`coverage-extra-jobs.txt` adds the existing tracking-off EXEC, delivery-mask,
+core notification, netcmd notification, MULTI/debug, blocking MULTI, snapshot
+EXEC and INFO-input jobs found during the final coverage audit.
 
 `make all`, all 51 explicitly enumerated production-unit targets, live MDBQSBR
 arms and blockfix control/unit targets built successfully. See
