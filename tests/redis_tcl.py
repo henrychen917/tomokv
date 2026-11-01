@@ -297,6 +297,8 @@ def main():
     p.add_argument('--controller-port', type=int)
     p.add_argument('--ratio', default='6:2')
     p.add_argument('--arm-smove', action='store_true')
+    p.add_argument('--probe-tests', type=Path,
+                   help='diagnostic named assertions, three fresh attempts each; never retries a verdict')
     args=p.parse_args();args.output=args.output.resolve();args.binary=args.binary.resolve();args.output.mkdir(parents=True,exist_ok=True)
     tree=args.output/'checkout';prepare(args.redis_root,tree,controller_port=args.controller_port)
     files=sorted([*args.redis_root.glob('tests/unit/**/*.tcl'),*args.redis_root.glob('tests/integration/**/*.tcl')])
@@ -307,6 +309,28 @@ def main():
         manifest=load_manifest(args.manifest, args.redis_root, inventory); units=list(manifest['files'])
     report=dict(mode=args.mode,binary_sha256=sha(args.binary),redis_version=(args.redis_root/'src/version.h').read_text(),
                 inventory=inventory,rows=[])
+    if args.probe_tests:
+        if args.manifest or args.resume or args.only_files:
+            raise ValueError('isolated probes cannot use a passing manifest or resumed receipt')
+        probes = json.loads(args.probe_tests.read_text())
+        if not probes or any(unit not in inventory or not names for unit, names in probes.items()):
+            raise ValueError('empty or unknown probe inventory')
+        for unit, names in probes.items():
+            for name in names:
+                for attempt in range(1, 4):
+                    child = copy.copy(args)
+                    child.output = args.output / 'probes' / hashlib.sha256((unit+name).encode()).hexdigest()[:16] / str(attempt)
+                    row = run_file(child, tree, unit, only=[name])
+                    expected = [name+' in tests/'+unit+'.tcl']
+                    try: validate_passing(row, expected)
+                    except ValueError as error:
+                        row['error'] = '; '.join(filter(None, (row['error'], str(error))))
+                    row.update(probe=name, attempt=attempt)
+                    report['rows'].append(row)
+                    (args.output/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
+                    print(f"{args.mode} {unit} {name} attempt {attempt}: pass={row['passed']} fail={row['failed']} error={row['error']}", flush=True)
+        if sha(args.binary) != report['binary_sha256']: raise ValueError('candidate changed during probes')
+        return int(any(row['error'] for row in report['rows']))
     for unit in units:
         path=args.output/unit/'result.json'
         extra=[]

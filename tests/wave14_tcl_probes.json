@@ -1,0 +1,40 @@
+{
+  "unit/introspection": [
+    "CLIENT KILL SKIPME YES/NO will kill all clients",
+    "MONITOR log blocked command only once"
+  ],
+  "unit/multi": [
+    "DISCARD should not fail during OOM",
+    "EXEC with at least one use-memory command should fail"
+  ],
+  "unit/pause": [
+    "Test old pause-all takes precedence over new pause-write (less restrictive)"
+  ],
+  "unit/pubsub": [
+    "PUBLISH/SUBSCRIBE after UNSUBSCRIBE without arguments",
+    "unsubscribe inside multi, and publish to self"
+  ],
+  "unit/scripting": [
+    "LUA redis.error_reply API",
+    "LUA redis.error_reply API with empty string"
+  ],
+  "unit/slowlog": [
+    "SLOWLOG - GET optional argument to limit output len works",
+    "SLOWLOG - Rewritten commands are logged as their original command",
+    "SLOWLOG - can clean older entries",
+    "SLOWLOG - get all slow logs",
+    "SLOWLOG - logged entry sanity check",
+    "SLOWLOG - max entries is correctly handled"
+  ],
+  "unit/type/list": [
+    "BLMPOP with multiple blocked clients",
+    "BRPOPLPUSH does not affect WATCH while still blocked",
+    "Circular BRPOPLPUSH",
+    "Command being unblocked cause another command to get unblocked execution order test",
+    "Linked LMOVEs",
+    "PUSH resulting from BRPOPLPUSH affect WATCH"
+  ],
+  "unit/type/stream-cgroups": [
+    "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP"
+  ]
+}
