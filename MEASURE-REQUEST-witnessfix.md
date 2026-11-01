@@ -104,3 +104,11 @@ DQ=DF=0. Woken/permitted arms retain exact replies.
 Overflow creations now expect Redis OK. The documented 65,535-user limit is
 explicitly CC4.24 / ACL-LIVE-USER-CAP. Churn/reuse, stale handles and clean
 shutdown remain strict regression assertions. DQ=DF=0.
+
+### Compat 4.1/4.2 — SO4.5 full-walk anti-witness
+
+Removed the requirement to route INFO through every shard and visit the hash.
+The unit retains exact subexpiry/state assertions and reports any census walk
+as known difference SO4.5. A correct constant-work implementation can now pass.
+No timing or merit claim is made; TTL cost measurement stays with the maintainer.
+DQ=DF=0.
