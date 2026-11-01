@@ -362,3 +362,13 @@ Its two atomic jobs are included in the final validation inventory. NOT RUN:
 a reproduced original large-frame defect/negative control.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V22 — latency assertions retain their limits
+
+These rows are load-sensitive, not vacuous. No bounds were relaxed and no
+performance run was requested or accepted as evidence. NOT RUN: PS4.7 merit,
+PFDATATY.1 merit, or a quiet-box rate comparison; those remain the maintainer's
+instrument. Existing correctness jobs that contain latency assertions report
+their ordinary pass/fail outcome only.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
