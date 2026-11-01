@@ -189,8 +189,13 @@ The subscription/PING and subscription/keyspace witnesses first failed on all
 32 preceding candidate geometries, while Redis passed. Their fixes pass all
 32 geometries. The final disconnect witness also failed in all 32 geometries
 on `1076280569`, with every pending-EXEC window certified; Redis passed. The
-corrected `694fae5c73` witness and production-unit rebuild are in progress.
-The 160/128 instruction census is complete with zero ordinary increases.
+corrected `694fae5c73` witness passes all 32 geometries and both protocols:
+all 64 pending-EXEC windows opened on attempt zero, with zero subscriptions
+remaining after each disconnect. `make all`, all 51 production-unit targets,
+and the additional declared build variants passed. The isolated harness
+passed 83/83 tests in 145.378 seconds. The broad selected-job campaign is
+running on the sealed final binary. The 160/128 instruction census is complete
+with zero ordinary increases.
 
 Older broad, Tcl, differential, tracking-order and PAD receipts are retained
 as superseded evidence and are not claimed for the final SHA above. Final
