@@ -3813,5 +3813,148 @@
         "evidence": "docs/execfifo3/validation/39-asan-epoll-1/asan_batteries"
       }
     ]
+  },
+  {
+    "group": "batteries-epoll-1",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 release_batteries atomic_batteries script_bounds",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/batteries-epoll-1-1793518648286953313.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX",
+    "jobs_evidence": [
+      {
+        "name": "atomic_batteries",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX/jobs/atomic_batteries",
+        "evidence": "docs/execfifo3/validation/40-batteries-epoll-1/atomic_batteries"
+      },
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX/jobs/debug-0",
+        "evidence": "docs/execfifo3/validation/40-batteries-epoll-1/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX/jobs/debug-1",
+        "evidence": "docs/execfifo3/validation/40-batteries-epoll-1/debug-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX/jobs/production_units",
+        "evidence": "docs/execfifo3/validation/40-batteries-epoll-1/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX/jobs/release",
+        "evidence": "docs/execfifo3/validation/40-batteries-epoll-1/release"
+      },
+      {
+        "name": "release_batteries",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX/jobs/release_batteries",
+        "evidence": "docs/execfifo3/validation/40-batteries-epoll-1/release_batteries"
+      },
+      {
+        "name": "script_bounds",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.zaHjtX/jobs/script_bounds",
+        "evidence": "docs/execfifo3/validation/40-batteries-epoll-1/script_bounds"
+      }
+    ]
+  },
+  {
+    "group": "scriptbounds-epoll-1-a0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "script_bounds",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1",
+      "GATE_TXN_ATOMIC": "0"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/scriptbounds-epoll-1-a0-1793518879362231754.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.xmN7cy",
+    "jobs_evidence": [
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.xmN7cy/jobs/release",
+        "evidence": "docs/execfifo3/validation/41-scriptbounds-epoll-1-a0/release"
+      },
+      {
+        "name": "script_bounds",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.xmN7cy/jobs/script_bounds",
+        "evidence": "docs/execfifo3/validation/41-scriptbounds-epoll-1-a0/script_bounds"
+      }
+    ]
   }
 ]

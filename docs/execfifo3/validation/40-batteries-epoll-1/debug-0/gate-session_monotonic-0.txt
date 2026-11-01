@@ -1,0 +1,9 @@
+geometry freshness floor: 8 fresh keys over physical owners [1, 6]
+freshness floor    rounds=4000     acked-write-not-visible: cross-conn=0 own-conn=0
+geometry unarmed attempt 1: 8 fresh keys over physical owners [5, 6]
+unarmed                batches=787885    writes=401252   violations=0       torn=0       [groups+401252 read_cuts_held+47 commit_holds+1 watch_fallback+0 local_hits+0]
+geometry read-delay 20us attempt 1: 8 fresh keys over physical owners [2, 3]
+read-delay 20us        batches=187621    writes=94284    violations=0       torn=0       [groups+94284 read_cuts_held+603 commit_holds+13 watch_fallback+0 local_hits+0]
+geometry commit-delay 100us attempt 1: 8 fresh keys over physical owners [1, 2]
+commit-delay 100us     batches=71712     writes=35728    violations=0       torn=0       [groups+35728 read_cuts_held+71191 commit_holds+71317 watch_fallback+0 local_hits+0]
+session_monotonic: PASS

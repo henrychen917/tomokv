@@ -40,7 +40,7 @@ writes instead. The [access table](docs/execfifo3/accesses.md) identifies the
 lines and their writers, including the separate multi-database split case.
 There is no new unconditional FIFO cache-line access to gate away.
 
-Final evidence so far:
+Final evidence:
 
 * **48/48 owner-command comparisons exactly equal PRE**, GET/SET/INCR/MGET/MSET,
   both modes and namespaces, batches 1/32, both MSET atomic settings.
@@ -67,8 +67,11 @@ Final evidence so far:
 * **160/160 F1–F10 legs**, **16/16 C1 legs**, and **423/423 AT4.12 legs**
   passed. All **16/16 live FIFO fairness legs** ran for the full 60 seconds:
   every one-second window contains progress from all 68 clients, final data
-  match exactly, and FIFO-wait counters are positive. The broader selected-job
-  matrix is running.
+  match exactly, and FIFO-wait counters are positive.
+* **42/42 selected-job groups passed**, with **1,375 passing public row
+  executions and zero failures**. This includes repeated mode/engine rows;
+  it is not a full-iteration receipt. The [verification record](docs/execfifo3/verification.md)
+  links all groups, exact leg inventories, commands, allocations and raw results.
 * **12/12 deliberate break controls** detected their intended assertion, and
   **16/16 common-image smoke cells** passed EXEC, WATCH, EVAL and FCALL checks.
 * Both standard Redis differential matrices passed **938/938 suite legs**
@@ -79,8 +82,13 @@ Final evidence so far:
   including the final **76/76** group, with deadlines unchanged. The initial
   scheduler-fixture timeout and all artifacts are retained.
 * `make all`, the complete `job_production_units` build, and **60/60 make -q
-  freshness queries** passed. Debug-only unit compression preserves `.text`;
-  the five aggregate stamps affected by changed mtimes were rebuilt and rechecked.
+  freshness queries** passed, including all 55 direct production targets and
+  the recursive MDB/QSBR and blockfix builds. Debug-only unit compression
+  preserves `.text`; affected aggregate stamps were rebuilt and rechecked.
+* [Final integrity](docs/execfifo3/final-integrity.json) verifies all five
+  delivered images, 16 lossless archives, proof-input hashes and negative-control
+  units. `build/` occupies **19.965 GiB**. No worktree executable remains running
+  and no listener remains on ports 20600–20699.
 
 ### Gate accounting
 

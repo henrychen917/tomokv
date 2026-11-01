@@ -99,6 +99,12 @@ caches and generated exbatch control copies after their jobs completed. The
 required root unit binaries remain available. The exbatch checker regenerates
 missing control copies from those units; gate jobs `rldbg` and `core_tsan_build`
 regenerate their compiler caches through `tests/parbuild.sh`.
+After all four sanitizer groups passed, their compiler cache was also removed;
+`final-cache-cleanup.json` records each discarded file. The sanitizer executable
+and result logs remain. The selected `asan_batteries` job regenerates that cache.
+The final five native images, all 16 archived images/probes, proof inputs and
+negative-control units were rehashed in `final-integrity.json`; archived bytes
+were streamed through gzip and checked without restoring duplicate files.
 
 Captured compiler/GDB/protocol logs are retained verbatim, including meaningful
 trailing spaces. Source whitespace checks exclude `docs/execfifo3/validation/`;
