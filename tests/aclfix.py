@@ -357,7 +357,7 @@ def listener(args):
                "--port", str(args.port), "--save", "", "--appendonly", "no",
                "--dir", str(args.output.resolve()), "--aclfile", str(args.aclfile)]
     if not args.oracle:
-        command += ["--databases", "1", "--shards", "16", "--thread-mode", args.mode,
+        command += ["--databases", str(args.databases), "--shards", "16", "--thread-mode", args.mode,
                     "--read-local", "1" if args.mode == "1s" else "0"]
         if args.mode == "2s":
             command += ["--ratio", args.ratio]
@@ -400,6 +400,7 @@ def main():
     parser.add_argument("--cores", required=True)
     parser.add_argument("--mode", choices=("1s", "2s"), default="2s")
     parser.add_argument("--ratio", default="6:2", help="2s io:ex ratio (the gate's GATE_RATIO)")
+    parser.add_argument("--databases", type=int, choices=(1, 16), default=1)
     parser.add_argument("--capacity-seconds", type=float, default=45,
                         help="capacity case bound (raise only for sanitizer builds)")
     parser.add_argument("--stop-seconds", type=float, default=8,

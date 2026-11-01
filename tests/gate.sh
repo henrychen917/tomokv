@@ -2991,18 +2991,19 @@ job_aclfix(){
 # GATE_RATIO, 1s with read-local 1. Expectations are Redis 7.4.10 replies; the woken rows also
 # require the element/PEL state the denial must leave. A row stays under 60 s (capacity's
 # 65535 create/delete pairs plus the live-slot ceiling are about 8 s here).
-  local mode case label
+  local mode case label databases passed
   for mode in 1s 2s; do
     for case in sort streams-name save-load capacity wake-pop wake-scatter; do
       label="aclfix $case ($mode)"
       row_begin "$label"
-      if py tests/aclfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-          --mode "$mode" --ratio "$GATE_RATIO" --case "$case" \
-          --output "$TMPDIR/aclfix-$case-$mode" >"$TMPDIR/aclfix-$case-$mode.log" 2>&1; then
-        ok "$label"
-      else
-        bad "$label" "see $TMPDIR/aclfix-$case-$mode.log"
-      fi
+      passed=1
+      for databases in 1 16; do
+        py tests/aclfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+            --mode "$mode" --ratio "$GATE_RATIO" --case "$case" --databases "$databases" \
+            --output "$TMPDIR/aclfix-$case-$mode-db$databases" \
+            >"$TMPDIR/aclfix-$case-$mode-db$databases.log" 2>&1 || passed=0
+      done
+      [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/aclfix-$case-$mode-db*.log"
     done
   done
 }

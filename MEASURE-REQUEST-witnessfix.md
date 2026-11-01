@@ -191,3 +191,11 @@ locale battery proves explicit en_US.UTF-8 differs from inherited C and compares
 Lua sorting/comparison with the oracle while changing locale-collate. Non-C
 ambient server startup is NOT RUN because this task requires every boot in C.
 DQ=DF=0.
+
+### Compat 4.1 — ACL/auth default database runtime
+
+Every authfix case now owns both database-runtime boots (1 and 16); aclfix's
+existing rows aggregate both as well. Per-runtime argv and replies have distinct
+receipt directories. This closes the db0-only setup gap without changing the
+number of public rows (DQ=DF=0). Geometry coverage alone is not a new defect
+negative control.

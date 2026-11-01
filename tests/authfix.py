@@ -88,7 +88,7 @@ class Server:
         self.args += ['--bind', '127.0.0.1', '--port', str(self.port), '--save', '',
                       '--appendonly', 'no', '--dir', str(self.directory), '--protected-mode', 'no']
         if not run.oracle:
-            self.args += ['--databases', '1', '--thread-mode', mode, '--shards', '16']
+            self.args += ['--databases', str(getattr(run.args, 'databases', 1)), '--thread-mode', mode, '--shards', '16']
             if mode == '2s':
                 self.args += ['--ratio', run.args.ratio]
         self.args += list(extra)
@@ -312,21 +312,26 @@ def main():
     parser.add_argument('--port', required=True, type=int)
     parser.add_argument('--cores', required=True)
     parser.add_argument('--ratio', default='6:2')
+    parser.add_argument('--databases', type=int, nargs='+', choices=(1, 16), default=[1, 16])
     parser.add_argument('--case', required=True, choices=['config-nul', 'arity', 'rewrite', 'slowlog-1s', 'slowlog-2s'])
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
     failures = 0
-    for binary, oracle in ([(args.oracle, True)] if args.oracle else []) + [(args.binary, False)]:
-        run = Run(args, binary, oracle)
-        try:
-            if args.case.startswith('slowlog-'):
-                run.slowlog('redis' if oracle else args.case.split('-')[1])
-            else:
-                getattr(run, args.case.replace('-', '_'))()
-        finally:
-            failures += run.finish()
+    output, databases = args.output, args.databases
+    for database_count in databases:
+        args.databases = database_count
+        args.output = output / f'db{database_count}'
+        for binary, oracle in ([(args.oracle, True)] if args.oracle else []) + [(args.binary, False)]:
+            run = Run(args, binary, oracle)
+            try:
+                if args.case.startswith('slowlog-'):
+                    run.slowlog('redis' if oracle else args.case.split('-')[1])
+                else:
+                    getattr(run, args.case.replace('-', '_'))()
+            finally:
+                failures += run.finish()
     print(f'authfix {args.case}: {failures} failed checks; evidence {args.output}', flush=True)
     return bool(failures)
 
