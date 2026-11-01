@@ -259,6 +259,27 @@ def probe(case, port, rows, oracle, mode=None):
                 check('exec self-publish', b.cmd('EXEC'), [
                     [b'subscribe', b'cc:self', 1], 1, [b'unsubscribe', b'cc:self', 0]])
                 check('self-publish delivery', b.drain(), [[b'message', b'cc:self', b'msg']])
+                check('keyspace notifications on', a.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'K$'), b'OK')
+                key = f'cc:sub-keyspace:{proto}'.encode()
+                channel = b'__keyspace@0__:' + key
+                check('keyspace control subscribe', b.cmd('SUBSCRIBE', channel), [b'subscribe', channel, 1])
+                check('keyspace control write', a.cmd('SET', key, 'seed'), b'OK')
+                check('keyspace control delivered', b.drain(.3), [[b'message', channel, b'set']])
+                check('keyspace control unsubscribe', b.cmd('UNSUBSCRIBE', channel), [b'unsubscribe', channel, 0])
+                for before in (True, False):
+                    check('multi keyspace subscription', b.cmd('MULTI'), b'OK')
+                    subscribe = ('SUBSCRIBE', channel)
+                    write = ('SET', key, str(before))
+                    commands = [subscribe, write] if before else [write, subscribe]
+                    commands.append(('UNSUBSCRIBE', channel))
+                    for command in commands:
+                        check('queue keyspace subscription', b.cmd(*command), b'QUEUED')
+                    replies = [[b'subscribe', channel, 1], b'OK'] if before else [b'OK', [b'subscribe', channel, 1]]
+                    replies.append([b'unsubscribe', channel, 0])
+                    check('exec keyspace subscription', b.cmd('EXEC'), replies)
+                    check('ordered keyspace subscription delivery', b.drain(.3),
+                          [[b'message', channel, b'set']] if before else [])
+                check('keyspace notifications off', a.cmd('CONFIG', 'SET', 'notify-keyspace-events', ''), b'OK')
                 user = f'cc-acl-{proto}'
                 check('create ACL caller', a.cmd('ACL', 'SETUSER', user, 'on', 'nopass',
                                                '~*', '&*', '+@all'), b'OK')
