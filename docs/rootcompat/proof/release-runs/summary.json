@@ -11,6 +11,88 @@
     ]
   },
   {
+    "name": "release-differ-uring",
+    "exit": 0,
+    "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.4F4Z4c",
+    "passed": 6,
+    "failed": 0,
+    "failures": [],
+    "differential_parts": [
+      {
+        "schema": 1,
+        "part": "armed-0",
+        "run": "push:gate-run.4F4Z4c",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "comparisons": 230,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "armed-1",
+        "run": "push:gate-run.4F4Z4c",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "comparisons": 234,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "equivalence",
+        "run": "push:gate-run.4F4Z4c",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "comparisons": 16,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "split-0",
+        "run": "push:gate-run.4F4Z4c",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "comparisons": 235,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "split-1",
+        "run": "push:gate-run.4F4Z4c",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "comparisons": 239,
+        "complete": true
+      }
+    ],
+    "comparisons": 954
+  },
+  {
     "name": "release-units",
     "exit": 0,
     "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
