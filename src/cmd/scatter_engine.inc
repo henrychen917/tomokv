@@ -2718,6 +2718,15 @@ struct ScriptAccessScope {
     ~ScriptAccessScope() { script_cross_access_end(); }
 };
 
+// Keep notification selection and its RAII carrier inside the script-only
+// call. Its stack and unwind state must not spill into ordinary scatter work.
+[[gnu::noinline]] void script_run_with_observers(Shard& work, Op& op) {
+    const CommandSpec* spec = (work.notify_mask() || work.server()->climon_monitors())
+        ? command_notify_variant(op.spec) : op.spec;
+    NotifyExecutionScope notifications(work, op, spec->flags & CmdFlags::NotifySelected);
+    spec->handler(work, op);
+}
+
 ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
     ScatterState& state = *task.scatter;
     ShardGroup* group = group_for(state, shard.id());
@@ -2810,10 +2819,7 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             const uint64_t workbench_misses = work->stats().misses;
             {
                 ScriptAccessScope access(op, state.status, state.key_count);
-                const CommandSpec* spec = (work->notify_mask() || state.server->climon_monitors())
-                    ? command_notify_variant(op.spec) : op.spec;
-                NotifyExecutionScope notifications(*work, op, spec->flags & CmdFlags::NotifySelected);
-                spec->handler(*work, op);
+                script_run_with_observers(*work, op);
             }
             // The workbench is intentionally absent from Server::shards(), so forward the nested
             // command's read-lookup counters to the real coordinator shard before it is reused.

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Compile-only rootcompat inline-budget controls; no workload/rate measurements."""
-import argparse, concurrent.futures, json, re, shlex, subprocess
+import argparse, concurrent.futures, json, os, re, shlex, subprocess
 from pathlib import Path
 from lbstall_artifacts import Elf, HOT
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'docs/rootcompat/budgets'; OUT.mkdir(exist_ok=True,parents=True)
-BUILD=ROOT/'build/rootcompat/budgets'; BUILD.mkdir(exist_ok=True,parents=True)
+ROUND=os.environ.get('ROOTCOMPAT_BUDGET_ROUND', 'budgets')
+OUT=ROOT/'docs/rootcompat'/ROUND; OUT.mkdir(exist_ok=True,parents=True)
+BUILD=ROOT/'build/rootcompat'/ROUND; BUILD.mkdir(exist_ok=True,parents=True)
 UNITS=[prefix+suffix for prefix in ['src/','db0/src/'] for suffix in ['cmd/xshard.o']]
 def recipes(root):
     text=subprocess.check_output(['make','-n','-W','Makefile','all'],cwd=root,text=True).replace('\\\n',' ')
@@ -34,7 +35,7 @@ def run(item):
     names=list(old); labels=subprocess.check_output(['c++filt'],input='\n'.join(names),text=True).splitlines()
     changed=[];total=0
     for symbol,name in zip(names,labels):
-        if not HOT.search(name) and not re.search(r'xshard_(prepare|execute)\(',name):continue
+        if not HOT.search(name) and not re.search(r'xshard_(prepare|execute|destroy)\(',name):continue
         total+=1
         if symbol not in new or a.canonical(old[symbol])!=b.canonical(new[symbol]):changed.append(name)
     row=dict(arm=arm,unit=unit,budget=oldbudget if value is None else value,initial=initial,command=cmd,output=str(output),changed=changed,total=total)
