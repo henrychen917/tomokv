@@ -4,6 +4,8 @@
 
 Baseline: `7d2f8a2051961a1942735fb6dc9b507d778e09d1` (`origin/cpp` at lane creation).
 Worktree/branch: `/home/user/Projects/cx-blockfix4`, `cx-blockfix4`. No push.
+The final production source is commit `d6d435ece`; later commits contain only
+tests, proof tools and documentation. Every final receipt uses the POST hash below.
 Correctness processes and builds are restricted to CPUs 32–47; TomoKV, oracle
 and Tcl control boots use ports 20200–20299. Every server inherits `LC_ALL=C`. No performance benchmark or full
 iteration is run by this lane.
@@ -46,6 +48,11 @@ ASYNC FLUSHALL and MSET replacement to the original five cases.
 retained in `post-uring-summary.json` (560 removal hits, 1,019 MVCC windows).
 The complete job also passed with `--databases 16`, exercising the normal
 namespace in addition to the default DB0 specialization.
+The final epoll DB0 job also passed all 116 legs with the same complete
+inventory and counts: 1,024 natural-MVCC attempts opened 1,021 windows;
+108 script pushes, 720 move windows, 480 creator wakes, 640 exact stream
+errors and 51,200 non-null pops all passed. The normal io_uring run opened
+1,009 natural-MVCC windows. `final-witness-summary.json` records these runs.
 
 The expanded PRE gate run, including natural-MVCC witnesses, failed all five
 aggregate rows again.
@@ -85,8 +92,9 @@ An initial attempt to select `production_units` alone was rejected by the
 gate because it is a build-only prerequisite; the successful run selected
 its consuming jobs. That rejected invocation is retained too.
 
-The existing Tcl manifest already requires the relevant removed/renamed-stream
-assertions. Its remaining list skips describe D11 ordering, statistics,
+New Tcl promotions: zero; the existing passing-subset manifest already
+requires the relevant removed/renamed-stream assertions. Its remaining list
+skips describe D11 ordering (including Circular BRPOPLPUSH), statistics,
 replication or quicklist behavior; its script-blocking skips concern blocking
 commands *inside* Lua. None is silently promoted on the strength of these fixes.
 `tests/redis_tcl.py` now forwards the requested gate network engine to its
@@ -103,6 +111,8 @@ socket-only fixtures. The final run pins those fixtures with
 
 The complete final io_uring Tcl rerun passed both modes: 39 manifest files and
 1,875 passing assertions per mode (`gate-receipts/tcl-uring-repeat.json`).
+The final epoll job passed the same 39 files and 1,875 assertions in each mode
+(`gate-receipts/functional-epoll.json`).
 The first run timed out in Lua's script-loading GC test while compilation and
 tracing were active, and also hit the pub/sub unsubscribe assertion in 1s.
 A focused PRE control reproduced that exact pub/sub assertion in 2s;
@@ -122,6 +132,10 @@ its two earlier Tcl failures; the separate complete Tcl rerun supplies the
 passing Tcl result. Its first archive collector found concurrent run folders;
 the recovered receipt names only the gate's own banner directory and records
 that collection error.
+The epoll differential job also passed 938 comparisons, both activity checks
+and mode equivalence, using standard seeds 7, 19, 20, 23 and 25 (the suite's
+rotating seed advanced between engine runs). Its combined functional job
+finished with 13 passing rows and no failures.
 
 ### Cost and arms
 
