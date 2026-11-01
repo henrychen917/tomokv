@@ -1,5 +1,5 @@
 {
-  "run": "build/gate-run.ZigKsB",
+  "run": "build/gate-run.Eiqakx",
   "partial": true,
   "full_gate_receipt": false,
   "complete": true,
@@ -10,7 +10,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t605.400000\tRedis 7.4 differential part (armed fused, atomic 0)"
+        "ok\t519.490000\tRedis 7.4 differential part (armed fused, atomic 0)"
       ],
       "differential_legs": 230
     },
@@ -20,7 +20,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t533.440000\tRedis 7.4 differential part (armed fused, atomic 1)"
+        "ok\t522.000000\tRedis 7.4 differential part (armed fused, atomic 1)"
       ],
       "differential_legs": 234
     },
@@ -30,7 +30,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t21.570000\tmode equivalence part (all execution modes and knobs)"
+        "ok\t21.300000\tmode equivalence part (all execution modes and knobs)"
       ],
       "differential_legs": 0
     },
@@ -40,7 +40,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t554.380000\tRedis 7.4 differential part (split, atomic 0)"
+        "ok\t523.800000\tRedis 7.4 differential part (split, atomic 0)"
       ],
       "differential_legs": 235
     },
@@ -50,7 +50,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t536.040000\tRedis 7.4 differential part (split, atomic 1)"
+        "ok\t538.520000\tRedis 7.4 differential part (split, atomic 1)"
       ],
       "differential_legs": 239
     },
@@ -66,7 +66,37 @@
   ],
   "missing": [],
   "archive": "docs/clientcompat/validation/differential-uring.json.gz",
-  "archive_sha256": "54c7ae728385ceb3e153e6ce1d0f90b38a9d0cca64601f65987bb46cf1d2b156",
+  "archive_sha256": "a5b583bbb3eb3b7a18153fba135d80bf9d7cd4a5f1592d083839469117a32c42",
   "passed": 6,
-  "failed": 0
+  "failed": 0,
+  "arm": {
+    "source_commit": "694fae5c73",
+    "binary": "build/clientcompat/POST/tomokv",
+    "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+    "engine": "uring",
+    "arm": "POST",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/POST/tomokv"
+    ],
+    "started": 1793522768.895022,
+    "pid": 1509163,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "release",
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence"
+    ]
+  }
 }
