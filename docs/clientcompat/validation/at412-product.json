@@ -1,0 +1,396 @@
+{
+  "source": "tests/at412.py declared matrix",
+  "run": "build/gate-run.3vXlFL",
+  "cases": [
+    {
+      "case": "T1",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "b350967d197c1446434994dc375810cce6ce07916cc393aa43615ed121a75d74"
+    },
+    {
+      "case": "T2",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "3f576a4f1fcded312e4859fde9fe446683d3d30d288c6d180c522cf73ec60c48"
+    },
+    {
+      "case": "T3",
+      "legs": 15,
+      "oracle_legs": 3,
+      "modes": [
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "43082dded4f2de33a2fe10f67141e8ddeb33ada78561ddf63ed3c719d8764c7f"
+    },
+    {
+      "case": "T4",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "1f9de317f072a236783ed869606d667b545174bc7a41d9be74f7e480eaff14a3"
+    },
+    {
+      "case": "T5",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "65e1fd97bb69a1d8b23fdc256da2396bcae498f3b395776e695c2e91dcf1c32d"
+    },
+    {
+      "case": "T6",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "41717f9725123b87ef737af7f669ac183eeb85bd0f4ae2e7b21b980ec3bbd2e6"
+    },
+    {
+      "case": "T7",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "b1c929159f0266c9b70da8d47df46e8fa08f3604523126a104aa8feb38527e62"
+    },
+    {
+      "case": "T8",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "d2636fdafe55916c2b0ac73d3d22f61d56245f04b9459ee773e5f076bfcee3fa"
+    },
+    {
+      "case": "T9",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "06fa2cf26d8d55c667c35e49aec551524f9dab165c61a1ac6f4bdbf671988ae1"
+    },
+    {
+      "case": "T10",
+      "legs": 15,
+      "oracle_legs": 3,
+      "modes": [
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "01064415abd4883aadc513d0ceee84fa9ef1c549bfff0dbbffbd74b67b83a2db"
+    },
+    {
+      "case": "T12",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "34e394cb6f3cb6790e068eb7b984cb140a78fcc8fd0098e6341c34c7262c6ac8"
+    },
+    {
+      "case": "T13",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "cf3f3ae36bab4d7f8822589cc6f4f79225ba0dbddd433a2fa9e816981e71753f"
+    },
+    {
+      "case": "T14",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "c9cefc351ad279525c65f0a9e4ec3e3829f89942a75d6467c8c1950059598433"
+    },
+    {
+      "case": "T15",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "335a8ba9aa0ce2ab4617dbd8fc4a43753d104b51eb4e335be462b63dc3b22a5e"
+    },
+    {
+      "case": "T16",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "6eae4cde76d3583713029609398d271908d1ee3e7afe51c8654e2e7d4bc4c9fe"
+    },
+    {
+      "case": "T11a",
+      "legs": 15,
+      "oracle_legs": 3,
+      "modes": [
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "3a934ec378700cdff7511cd27230d58863cdad5948ec012adfe0c1ff8e6e5b8b"
+    },
+    {
+      "case": "T11b",
+      "legs": 27,
+      "oracle_legs": 3,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "forms": [
+        "EVAL",
+        "EVALSHA",
+        "FCALL"
+      ],
+      "sha256": "f55c464a3ea13161e00f568d370803964e85c5c7deb6eeafd8cf921989149e7d"
+    }
+  ],
+  "total_legs": 423,
+  "complete": true
+}
