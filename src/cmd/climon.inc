@@ -176,6 +176,10 @@
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);
     void tracking_retire_read(Client& client, Op& op);
+    void tracking_prepare_multi(Client& client, MultiExecState& state);
+    void tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch);
+    void tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batch,
+                                   uint32_t order, bool committed);
     bool tracking_retire_plain(Client* client);
     void tracking_register_key(uint64_t id, const std::string& key, uint64_t stamp);
     void tracking_forget_client(uint64_t id, ClimonConn& state);

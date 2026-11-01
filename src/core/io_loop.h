@@ -132,6 +132,8 @@ public:
                 latency_blocking_retire(*loop->srv_, client, op, *loop->self_);
             } else if (op.has_multi_state()) {
                 notifications = notify_take_batch(op);
+                loop->tracking_finish_multi(client,
+                    *static_cast<MultiExecState*>(op.multi_state()), notifications);
                 latency_multi_retire(*loop, client, op);
             } else if (__builtin_expect(op.has_notify_state(), false)) {
                 notifications = notify_take_batch(op);

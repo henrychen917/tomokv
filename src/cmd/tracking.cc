@@ -137,6 +137,8 @@ void IoLoop::tracking_note_prefix_registered(const std::string& prefix, bool add
 // at all -- its prefix registry is the whole subscription -- so only default (per-key
 // remembering) mode registers here.
 void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
+    // QUEUED is not an execution. CACHING survives the whole transaction too.
+    if (multi_session_active(*client) || op.cmd_name().eq_icase("multi")) return;
     // Redis preserves CACHING across every CLIENT command, including introspection and errors.
     // Consuming it before TRACKINGINFO both hides the flag and loses the following OPTIN read's
     // invalidation (or wrongly subscribes an exempted OPTOUT read). CLIENT has no keys to enroll.
@@ -184,9 +186,34 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
         track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
     read->handler_notify = tracking_read_marker;
-    // QUEUED stores the registry spec beyond this ROB slot's lifetime.
-    if (!multi_session_active(*client)) op.spec = read.get();
+    op.spec = read.get();
     state.tracking_reads[&op] = std::move(read);
+}
+
+void IoLoop::tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batch,
+                                      uint32_t order, bool committed) {
+    auto* state = climon_conn_find(client.id());
+    if (!state) return;
+    auto found = state->tracking_reads.find(&op);
+    if (found == state->tracking_reads.end()) return;
+    TrackingRead& read = *found->second;
+    read.canceled |= !committed;
+    if (committed) {
+        std::vector<uint64_t> observed;
+        observed.reserve(read.keys.size());
+        for (size_t i = 0; i < read.keys.size(); ++i) {
+            const auto& key = read.keys[i];
+            const uint64_t own = notify_tracking_read_stamp(batch,
+                Slice(key.data(), static_cast<uint32_t>(key.size())), order);
+            observed.push_back(own ? own : read.observed[read.shards[i]]);
+        }
+        read.observed.swap(observed);
+        for (size_t i = 0; i < read.keys.size(); ++i) read.shards[i] = i;
+    }
+    // The transaction still uses the child's registry spec while assembling
+    // replies and recording timing; its tracking receipt ends here.
+    op.spec = read.original;
+    tracking_retire_read(client, op);
 }
 
 void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_t stamp) {

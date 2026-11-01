@@ -306,6 +306,7 @@ void notify_execute_enter(Shard& shard, Op& carrier, Op& source, uint32_t order_
 }
 
 void notify_execute_source(Shard& shard, Op& source, uint32_t order_base) {
+    tracking_observe_read(shard, source);
     shard.set_notify_context(shard.notify_carrier(), &source, order_base);
 }
 
@@ -853,6 +854,22 @@ void notify_tracking_commit(Op& op) {
     if (auto* slot = notify_special_slot(op)) batch = slot->load(std::memory_order_acquire);
     else if (op.has_notify_state()) batch = static_cast<NotifyBatch*>(op.notify_state());
     notify_tracking_seal(batch);
+}
+
+uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t order) {
+    if (!batch || !batch->tracking_stamp) return 0;
+    bool before = false, after = false;
+    const auto inspect = [&](const NotifyRecordImpl& record) {
+        if (!(record.routes & NOTIFY_TRACKING) || record.event == NotifyEventId::Keymiss ||
+            !record.key.key_mem_eq(key)) return;
+        before |= record.order < order;
+        after |= record.order >= order;
+    };
+    for (uint32_t i = 0; i < batch->inline_size; ++i) inspect(batch->inline_records[i]);
+    for (const auto& record : batch->spill) inspect(record);
+    // A read of our own earlier write includes that publication. A later
+    // mutation in the same EXEC must still invalidate its intermediate result.
+    return before && !after ? batch->tracking_stamp : 0;
 }
 
 NotifyBatch* notify_take_batch(Op& op) {

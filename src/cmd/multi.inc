@@ -2564,6 +2564,47 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
     return true;
 }
 
+void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
+    auto* tracking = climon_conn_find(client.id());
+    if (!tracking || !tracking->tracking_on || state.kind != MultiStateKind::Execute) return;
+    const bool saved = tracking->caching_armed;
+    bool caching = saved;
+    for (const auto& command : state.commands) {
+        Op& child = *command->op;
+        if (child.cmd_name().eq_icase("client") && child.argc() == 3 &&
+            child.arg(1).eq_icase("caching")) {
+            if ((tracking->optin && child.arg(2).eq_icase("yes")) ||
+                (tracking->optout && child.arg(2).eq_icase("no"))) caching = true;
+        }
+        if (command->kind == MultiCommandKind::Prebuilt) continue;
+        tracking->caching_armed = caching;
+        tracking_register_read(&client, *tracking, child);
+        auto receipt = tracking->tracking_reads.find(&child);
+        if (receipt != tracking->tracking_reads.end()) {
+            receipt->second->flags |= CmdFlags::NotifySelected;
+            if (state.snapshot != UINT64_MAX) child.set_read_cut(state.snapshot);
+        }
+    }
+    tracking->caching_armed = saved;
+}
+
+void IoLoop::tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch) {
+    const bool committed = state.kind == MultiStateKind::Execute &&
+        state.final_reply == MultiFinalReply::Exec &&
+        !state.watch_failed.load(std::memory_order_acquire) &&
+        !state.decision.aborted.load(std::memory_order_acquire);
+    for (const auto& command : state.commands) {
+        Op& child = *command->op;
+        if (committed && command->kind == MultiCommandKind::IoLocal &&
+            child.cmd_name().eq_icase("client") &&
+            tracking_client_subcommand(&client, child) == ClimonStartResult::Sync)
+            command->io_effect_done = true;
+        tracking_retire_exec_read(client, child, batch, command->notify_order_base, committed);
+    }
+    if (committed)
+        if (auto* tracking = climon_conn_find(client.id())) tracking->caching_armed = false;
+}
+
 template <bool IofusedPrivateQueue>
 bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
     // RESET is immediate even inside MULTI. Use the existing owner-routed
@@ -2603,6 +2644,7 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     if (!multi_dispatch_attempt<IofusedPrivateQueue>(
             *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, dispatch, op_id,
             loop.touched_, loop.touched_list_, loop.ntouched_, [&] {
+                if (loop.climon_local_trackers_) loop.tracking_prepare_multi(client, *dispatch);
                 client.atomic_group_started();
                 client.rob().publish();
             })) return true;
@@ -2818,7 +2860,12 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             previous->admitted = false;
             if (!multi_dispatch_attempt<IofusedPrivateQueue>(
                     *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, next,
-                    previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
+                    previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [&] {
+                        if (loop.climon_local_trackers_) {
+                            loop.tracking_finish_multi(client, *previous, nullptr);
+                            loop.tracking_prepare_multi(client, *next);
+                        }
+                    })) {
                 previous->admitted = next->admitted;
                 next->admitted = false;
                 destroy_multi_state(next);
