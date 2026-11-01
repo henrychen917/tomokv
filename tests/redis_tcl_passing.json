@@ -1088,7 +1088,9 @@
         "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
         "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
         "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
+        "LUA redis.error_reply API in tests/unit/scripting.tcl",
         "LUA redis.error_reply API with CRLF injection attempt in tests/unit/scripting.tcl",
+        "LUA redis.error_reply API with empty string in tests/unit/scripting.tcl",
         "LUA redis.status_reply API in tests/unit/scripting.tcl",
         "LUA test pcall in tests/unit/scripting.tcl",
         "LUA test pcall with error in tests/unit/scripting.tcl",
@@ -1200,9 +1202,7 @@
         "Timedout script link is still usable after Lua returns": "failed on TomoKV 2s in the survey",
         "allow-oom shebang flag": "scriptfix2: shebang/flags parsed; test also needs global OOM admission and SCRIPT-UNDECLARED-KEY owner change.",
         "not enough good replicas": "failed on TomoKV 2s in the survey",
-        "reject script do not cause a Lua stack leak": "scriptfix2: global maxmemory admission is an owner/architecture decision; current admission is per-shard object memory.",
-        "LUA redis.error_reply API": "scriptfix2: helper wire behavior fixed; remaining assertion requires INFO-ERRORSTATS (outside this lane).",
-        "LUA redis.error_reply API with empty string": "scriptfix2: helper wire behavior fixed; remaining assertion requires INFO-ERRORSTATS (outside this lane)."
+        "reject script do not cause a Lua stack leak": "scriptfix2: global maxmemory admission is an owner/architecture decision; current admission is per-shard object memory."
       }
     },
     "unit/slowlog": {
@@ -2105,7 +2105,6 @@
         "XGROUP CREATE: with ENTRIESREAD parameter in tests/unit/type/stream-cgroups.tcl",
         "XGROUP CREATECONSUMER: create consumer if does not exist in tests/unit/type/stream-cgroups.tcl",
         "XGROUP CREATECONSUMER: group must exist in tests/unit/type/stream-cgroups.tcl",
-        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
         "XINFO FULL output in tests/unit/type/stream-cgroups.tcl",
         "XPENDING can return single consumer items in tests/unit/type/stream-cgroups.tcl",
         "XPENDING is able to return pending items in tests/unit/type/stream-cgroups.tcl",
@@ -2126,7 +2125,8 @@
       "skip_tests": {
         "Consumer seen-time and active-time": "failed on TomoKV 2s in the survey",
         "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
-        "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey"
+        "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey",
+        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "rootcompat: removed the NOGROUP-only cmdstat timing/failed_calls guard. Generic total_error_replies and errorstats are covered by rootcompat-errorstats; generic per-command failed_calls remains unimplemented."
       }
     },
     "unit/type/string": {
