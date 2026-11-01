@@ -104,19 +104,41 @@ def probe(case, port, rows, oracle, mode=None):
                     '#!lua name=cc_pause\nredis.register_function(\'cc_pause\', function() return 1 end)'),
             ]
             writes = {'SET', 'INCR', 'PFCOUNT', 'PUBLISH', 'SPUBLISH', 'EVAL'}
-            for mode, command in itertools.product(('WRITE', 'ALL'), commands):
-                b = peer()
-                check('pause armed', a.cmd('CLIENT', 'PAUSE', 180, mode), b'OK')
-                b.send(*command)
-                held = not bool(select.select([b.sock], [], [], .035)[0])
-                check(f'{mode} {command}: postponed', held, mode == 'ALL' or command[0] in writes or
-                      command[:2] == ('FUNCTION', 'LOAD'))
-                value = b.response()
-                rows.append(dict(command=command, reply=clean(value)))
-                assert not isinstance(value, RespError), (command, value)
-                b.close()
-                # In ALL, UNPAUSE itself must wait for expiry.
-                check('pause released', a.cmd('CLIENT', 'UNPAUSE'), b'OK')
+            for index, (pause_mode, command) in enumerate(
+                    itertools.product(('WRITE', 'ALL'), commands)):
+                for attempt in range(12):
+                    # A descheduled driver may outlive the pause before it
+                    # observes the socket. Certify the original 180 ms window;
+                    # re-arm fresh state, bounded, if it was not observed.
+                    control, b = peer(), peer()
+                    prefix = f'cc:pause:{index}:{attempt}:'
+                    actual_command = tuple(arg.replace('cc:', prefix).replace(
+                        'cc_pause', f'cc_pause_{index}_{attempt}')
+                        if isinstance(arg, str) else arg for arg in command)
+                    started = time.monotonic()
+                    check('pause armed', control.cmd('CLIENT', 'PAUSE', 180, pause_mode), b'OK')
+                    b.send(*actual_command)
+                    held = not bool(select.select([b.sock], [], [], .035)[0])
+                    elapsed = time.monotonic() - started
+                    # Leave 30 ms before expiry; neither the pause duration nor
+                    # the 35 ms postponement observation is widened.
+                    opened = elapsed < .150
+                    rows.append(dict(pause_mode=pause_mode, command=command, attempt=attempt,
+                                     pause_window=opened, elapsed_seconds=elapsed, held=held))
+                    if opened:
+                        check(f'{pause_mode} {command}: postponed', held,
+                              pause_mode == 'ALL' or command[0] in writes or
+                              command[:2] == ('FUNCTION', 'LOAD'))
+                    value = b.response()
+                    rows.append(dict(command=actual_command, reply=clean(value)))
+                    assert not isinstance(value, RespError), (actual_command, value)
+                    b.close()
+                    # In ALL, UNPAUSE itself must wait for expiry.
+                    check('pause released', control.cmd('CLIENT', 'UNPAUSE'), b'OK')
+                    control.close()
+                    if opened:
+                        break
+                check(f'{pause_mode} {command}: pause window opened', opened, True)
         elif case == 'disconnect':
             # The KILL acknowledgement is the observable disconnect boundary.
             # Pipeline INFO immediately behind it to expose delayed reclamation.

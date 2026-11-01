@@ -46,7 +46,7 @@ def main():
     sources = []
     # Every winning job uses the final binary, including the separately
     # completed full FLUSH-order job. Preserve earlier failures separately.
-    for name in ("regression-final", "final-witnesses"):
+    for name in ("regression-final", "final-witnesses", "pause-window-final"):
         receipt = read(name)
         assert receipt["complete"] and not receipt["full_gate_receipt"], name
         assert receipt["arm"]["sha256"] == post_sha, name
@@ -54,6 +54,9 @@ def main():
         assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["archive_sha256"]
         sources.append(dict(receipt=name, archive_sha256=receipt["archive_sha256"]))
         for job in receipt["jobs"]:
+            if name == "final-witnesses" and job["job"] == "clientcompat-pause":
+                assert job["failed"] == job["exit"] == 1
+                continue  # The complete replacement job supplies this winner.
             assert job["exit"] == job["failed"] == 0, (name, job)
             chosen[job["job"]] = dict(receipt=name, **job)
     for name in ("before-ack-wake-regression", "before-ack-wake-extra"):
@@ -88,6 +91,12 @@ def main():
                 assert job["job"] == "clientcompat-multi-controls" and job["failed"] == 1
                 history.append(dict(receipt=name, **job))
     assert sum(j["failed"] for j in history) == 11
+    for job in read("pause-window-before")["jobs"]:
+        if job["failed"]:
+            assert job["job"] == "clientcompat-pause" and job["failed"] == 1
+            history.append(dict(receipt="pause-window-before", **job))
+    assert sum(j["failed"] for j in history) == 12
+    assert chosen["clientcompat-pause"]["receipt"] == "pause-window-final"
     interrupted = [dict(receipt="before-subscription-ping-epoll", **job)
                    for job in read("before-subscription-ping-epoll")["jobs"] if job["failed"]]
     assert len(interrupted) == 1 and interrupted[0]["job"] == "differ-armed-1"

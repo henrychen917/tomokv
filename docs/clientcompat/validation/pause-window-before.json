@@ -1,0 +1,88 @@
+{
+  "run": "build/gate-run.KJHFq9",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": false,
+  "jobs": [
+    {
+      "job": "clientcompat-disconnect",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.690000\tclientcompat disconnect"
+      ]
+    },
+    {
+      "job": "clientcompat-multi-tracking",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t162.800000\tclientcompat multi-tracking"
+      ]
+    },
+    {
+      "job": "clientcompat-pause",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1,
+      "ledger": [
+        "FAIL\t207.180000\tclientcompat pause"
+      ]
+    },
+    {
+      "job": "core_tsan_build",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.010000\trelease build (+footprint locks)"
+      ]
+    }
+  ],
+  "missing": [],
+  "archive": "docs/clientcompat/validation/pause-window-before.json.gz",
+  "archive_sha256": "1b29fb21cf586f96f02828361645b8c795557789ed0ac4e50ec6ce2d20dc8c00",
+  "passed": 3,
+  "failed": 1,
+  "arm": {
+    "source_commit": "694fae5c73",
+    "binary": "build/clientcompat/POST/tomokv",
+    "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+    "engine": null,
+    "arm": "POST",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/POST/tomokv"
+    ],
+    "started": 1793521010.781371,
+    "pid": 1233513,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "release",
+      "clientcompat-pause",
+      "clientcompat-disconnect",
+      "clientcompat-multi-tracking",
+      "clientcompat-multi-controls",
+      "clientcompat-enable-race",
+      "trackorder",
+      "core_units"
+    ]
+  }
+}
