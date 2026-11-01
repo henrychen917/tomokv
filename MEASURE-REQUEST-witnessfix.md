@@ -284,3 +284,14 @@ control; the audit's roughly 1% detection rate is not accepted as closure.
 A production observable or a separately scoped scheduler fixture is needed.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V7 — snapshot storm is still load-shaped
+
+UNREPAIRED as a deterministic starvation witness. The baseline snapshot EXEC
+and script jobs passed; the at412 PRE script job fails while waiting for BGSAVE,
+which is not proof that this particular 5-second EXEC starvation assertion
+discriminates on faster hardware. The existing bound was not widened. A count
+of owner tasks drained between snapshot-control passes is still needed to
+claim a bounded scheduler witness. No performance conclusion is drawn.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
