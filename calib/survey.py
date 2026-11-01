@@ -713,8 +713,8 @@ def memtier(args, conn, folder, cell):
                         fields = path.read_text().rsplit(')', 1)[1].split()
                         ticks = int(fields[11]) + int(fields[12])
                         cpu_samples.setdefault(path.parent.name, []).append((now, ticks))
-                    except FileNotFoundError:
-                        pass
+                    except (FileNotFoundError, ProcessLookupError):
+                        pass  # a memtier thread exited between glob and read (ESRCH on /proc/<pid>/task/<tid>/stat)
                 time.sleep(.05)
             require(process.returncode == 0, f'memtier failed: {folder}/client.log')
         after = fm.info(conn)
