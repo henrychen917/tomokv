@@ -153,6 +153,19 @@ the sealed server SHA-256s; retained build recipes reproduce the probes.
 
 ### Correctness validation
 
+The first split/armed feature runs rejected two legacy test expectations:
+CLIENT UNPAUSE bypassing PAUSE ALL, and refusing SSUBSCRIBE at MULTI queue time.
+`climon2.py` now independently proves WRITE unpause and ALL postponement;
+`pubsub.py` checks QUEUED followed by the exact DENY BLOCKING EXEC error and
+absence of a subscription. Their complete replacement jobs pass **34/34 split
+and 35/35 armed-fused rows**. The original four failures remain in the broad
+ledger; `validation/feature-expectations-corrected.json` supplies the replacement
+receipts. AT15's legacy refusal control is also replaced by admission checks
+and its exact wire assertion is reused by the oracle-judged multi-controls row.
+The additional atomic-unit and all AT4.12 jobs are listed in
+`supplement-jobs.txt`; these add no public gate rows. Production bytes did not
+change for these assertion updates.
+
 Final execution is in progress. This section will be replaced with completed
 receipts before delivery. The sealed POST passed **160/160** candidate legs across all five new
 witnesses; every oracle leg passed. PAD-A failed all five gate rows as intended:
