@@ -2177,93 +2177,27 @@ class FlushMeritSelfTests(unittest.TestCase):
         self.run_instrument('mget-under-exec-merit.py')
 
 
-class TclOrderRetryFailures(unittest.TestCase):
-    """Known setup errors cannot hide a missing or still-failing assertion."""
-    def setUp(self):
+class TclOrderFailurePreservation(unittest.TestCase):
+    """A known setup failure cannot excuse or replace a real assertion failure."""
+    def test_named_order_failures_are_never_retried(self):
         import redis_tcl
-        self.tcl = redis_tcl
-        self.folder = tempfile.TemporaryDirectory()
-        self.addCleanup(self.folder.cleanup)
-        self.args = SimpleNamespace(output=Path(self.folder.name))
-        self.unit = 'unit/type/list'
-        (self.args.output / self.unit).mkdir(parents=True)
-        self.known = [dict(command='r config set list-compress-depth 2',
-                           reply='ERR unsupported fixture setting', count=1)]
-        self.setup = dict(status='err', test='', data=(
+        known = [dict(command='r config set list-compress-depth 2',
+                      reply='ERR unsupported fixture setting', count=1)]
+        setup = dict(status='err', test='', data=(
             'ERR unsupported fixture setting\nwhile executing\n'
             '"r config set list-compress-depth 2"'))
-
-    def row(self, name, passed=False):
-        return dict(events=[copy.deepcopy(self.setup), dict(
-            status='ok' if passed else 'err', test=name, data='order witness')],
-            error=None, complete=True, exit_code=1, failed=1 if passed else 2,
-            passed=int(passed), seconds=0.1)
-
-    def invoke(self, row, part):
-        with patch.object(self.tcl, 'run_file', return_value=part) as run:
-            result = self.tcl.retry_monitor_order(self.args, Path(self.folder.name),
-                self.unit, row, [], self.known)
-        return result, run
-
-    def test_each_named_order_assertion_rearms_once_and_keeps_setup_error(self):
-        for name in self.tcl.ORDER_TESTS[self.unit]:
-            with self.subTest(name=name):
-                result, run = self.invoke(self.row(name), self.row(name, True))
-                self.assertEqual(run.call_count, 1)
-                self.assertEqual(run.call_args.kwargs['only'], [name.split(' in tests/')[0]])
-                self.tcl.validate_passing(result, [name], self.known)
-                self.assertEqual(result['failed'], 1)
-                self.assertEqual(result['exit_code'], 1)
-                self.assertTrue((self.args.output/self.unit/'before-monitor-retry.json').exists())
-
-    def test_failed_fresh_assertion_stays_failed(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        result, run = self.invoke(self.row(name), self.row(name))
-        self.assertEqual(run.call_count, 1)
-        self.assertEqual(result['failed'], 2)
-        self.assertFalse(result['monitor_order_retry']['passed'])
-
-    def test_missing_or_duplicate_fresh_assertion_cannot_pass(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        for count in (0, 2):
-            part = self.row(name, True)
-            part['events'] = [self.setup] + [part['events'][1]]*count
-            part['passed'] = count
-            result, _ = self.invoke(self.row(name), part)
-            self.assertFalse(result['monitor_order_retry']['passed'])
-
-    def test_unrelated_assertion_does_not_retry(self):
-        result, run = self.invoke(self.row('unrelated assertion'), {})
-        run.assert_not_called()
-        self.assertEqual(result['failed'], 2)
-
-    def test_two_failed_assertions_do_not_retry(self):
-        names = self.tcl.ORDER_TESTS[self.unit]
-        row = self.row(names[0])
-        row['events'].append(self.row(names[1])['events'][1])
-        row['failed'] += 1
-        _, run = self.invoke(row, {})
-        run.assert_not_called()
-
-    def test_unknown_or_missing_setup_error_does_not_retry(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        for missing in (False, True):
-            row = self.row(name)
-            if missing:
-                row['events'].pop(0)
-                row['failed'] -= 1
-            else:
-                row['events'][0]['data'] = 'ERR different setup failure'
-            _, run = self.invoke(row, {})
-            run.assert_not_called()
-
-    def test_incomplete_timeout_or_wrong_exit_does_not_retry(self):
-        name = self.tcl.ORDER_TESTS[self.unit][0]
-        for field, value in (('complete',False),('error','TIMEOUT'),('exit_code',124)):
-            row = self.row(name)
-            row[field] = value
-            _, run = self.invoke(row, {})
-            run.assert_not_called()
+        for name in ('MONITOR log blocked command only once',
+                     'BRPOPLPUSH does not affect WATCH while still blocked',
+                     'PUSH resulting from BRPOPLPUSH affect WATCH', 'unrelated assertion'):
+            row = dict(events=[setup, dict(status='err', test=name, data='failure')],
+                       error=None, complete=True, exit_code=1, failed=2, passed=0, seconds=0.1)
+            with patch.object(redis_tcl, 'run_file', return_value=row) as run:
+                result = redis_tcl.run_manifest_file(SimpleNamespace(), Path('/unused'),
+                    'unit/type/list', dict(known_setup_errors=known), [], [])
+            self.assertEqual(run.call_count, 1)
+            self.assertIs(result, row)
+            with self.assertRaises(ValueError):
+                redis_tcl.validate_passing(result, [name], known)
 
 
 if __name__ == '__main__':

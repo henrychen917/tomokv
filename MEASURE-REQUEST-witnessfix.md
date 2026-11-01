@@ -49,3 +49,14 @@ Campaign command: `LC_ALL=C LOTTERY_CPUS=80-95 LOTTERY_JOBS=16 taskset -c 80-95
 tests/gate.sh lottery --server-cpus 80-87 --client-cpus 88-95 --port 20590
 --output build/witnessfix/lottery`. Results pending; no hit is inferred from
 an attempted command or an empty trace.
+
+### V17 — Tcl retries and root names
+
+Removed the retry implementation, including its dead SLOWLOG entry. MONITOR
+blocked-once and both BRPOPLPUSH/WATCH assertions become named known differences
+(MONITOR-BLOCKED-ONCE, BRPOPLPUSH-WATCH-ORDER / D11). Failed receipts can no longer
+be replaced with a later pass. The SLOWLOG skip now names EXEC retirement order,
+not generic cross-connection order. Remaining OOM/block-chain skips name D10/D11.
+Several survey cascades were already promoted between the audit and this base;
+no historical promotion is inferred to be a new witness here.
+DQ=DF=0; Tcl required assertions decrease by three per mode, with explicit skips.

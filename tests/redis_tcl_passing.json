@@ -530,7 +530,6 @@
         "MONITOR can log commands issued by the scripting engine in tests/unit/introspection.tcl",
         "MONITOR can log executed commands in tests/unit/introspection.tcl",
         "MONITOR correctly handles multi-exec cases in tests/unit/introspection.tcl",
-        "MONITOR log blocked command only once in tests/unit/introspection.tcl",
         "PING in tests/unit/introspection.tcl",
         "RESET does NOT clean library name in tests/unit/introspection.tcl"
       ],
@@ -550,7 +549,8 @@
         "CONFIG SET with multiple args": "failed on TomoKV 2s in the survey",
         "CONFIG sanity": "failed on TomoKV 2s in the survey",
         "MONITOR can log commands issued by functions": "failed on TomoKV 2s in the survey",
-        "MONITOR supports redacting command arguments": "failed on TomoKV 2s in the survey"
+        "MONITOR supports redacting command arguments": "failed on TomoKV 2s in the survey",
+        "MONITOR log blocked command only once": "MONITOR-BLOCKED-ONCE: cross-connection completion ordering remains unresolved; V17 removes the one-fresh-server retry. Named known difference, not regression evidence."
       }
     },
     "unit/introspection-2": {
@@ -747,10 +747,10 @@
       },
       "sha256": "f994cb2f460e1478036f9b151db9e80d06af57d58e4173bb411580be35d3ce2b",
       "skip_tests": {
-        "DISCARD should not fail during OOM": "failed on TomoKV 2s in the survey",
+        "DISCARD should not fail during OOM": "MULTI-OOM-QUEUE / MULTI-OOM-EXEC (D10): failed on TomoKV 2s in the survey",
         "EXEC and script timeout": "failed on TomoKV 2s in the survey",
         "EXEC fails if there are errors while queueing commands #2": "failed on TomoKV 2s in the survey",
-        "EXEC with at least one use-memory command should fail": "failed on TomoKV 2s in the survey",
+        "EXEC with at least one use-memory command should fail": "MULTI-OOM-QUEUE / MULTI-OOM-EXEC (D10): failed on TomoKV 2s in the survey",
         "MULTI / EXEC is not propagated (single write command)": "failed on TomoKV 2s in the survey",
         "MULTI / EXEC is propagated correctly (empty transaction)": "failed on TomoKV 2s in the survey",
         "MULTI / EXEC is propagated correctly (multiple commands)": "failed on TomoKV 2s in the survey",
@@ -1233,7 +1233,7 @@
         "SLOWLOG - get all slow logs": "failed on TomoKV 2s in the survey",
         "SLOWLOG - logged entry sanity check": "failed or hung on TomoKV 2s in an earlier builder run (round 0)",
         "SLOWLOG - max entries is correctly handled": "failed on TomoKV 2s in the survey",
-        "SLOWLOG - Rewritten commands are logged as their original command": "cross-connection order: a BLPOP woken by an EXEC can be served and logged before that EXEC's queued SLOWLOG RESET retires, which then erases it (REGISTER SLOWLOG-EXEC-BLOCKED-ORDER; owner design review D11). About 8% of fresh 1s runs on 393d6ceb1, more often with exec1s-d"
+        "SLOWLOG - Rewritten commands are logged as their original command": "SLOWLOG-EXEC-BLOCKED-ORDER (D11): EXEC retirement ordering can log its waking BLPOP before queued SLOWLOG RESET erases it. Real execution-order defect; no retry."
       },
       "fresh_tests": [
         "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl"
@@ -1602,7 +1602,6 @@
         "BRPOP: with zero timeout should block indefinitely in tests/unit/type/list.tcl",
         "BRPOPLPUSH - listpack in tests/unit/type/list.tcl",
         "BRPOPLPUSH - quicklist in tests/unit/type/list.tcl",
-        "BRPOPLPUSH does not affect WATCH while still blocked in tests/unit/type/list.tcl",
         "BRPOPLPUSH inside a transaction in tests/unit/type/list.tcl",
         "BRPOPLPUSH maintains order of elements after failure in tests/unit/type/list.tcl",
         "BRPOPLPUSH timeout in tests/unit/type/list.tcl",
@@ -1743,7 +1742,6 @@
         "MULTI/EXEC is isolated from the point of view of BLPOP in tests/unit/type/list.tcl",
         "Mass RPOP/LPOP - listpack in tests/unit/type/list.tcl",
         "Mass RPOP/LPOP - listpack in tests/unit/type/list.tcl",
-        "PUSH resulting from BRPOPLPUSH affect WATCH in tests/unit/type/list.tcl",
         "RPOP/LPOP with the optional count argument - listpack in tests/unit/type/list.tcl",
         "RPOP/LPOP with the optional count argument - quicklist in tests/unit/type/list.tcl",
         "RPOPLPUSH against non existing key in tests/unit/type/list.tcl",
@@ -1775,17 +1773,17 @@
       "sha256": "d6561e1a61fcf7648b3a36b714c016a053394c85b461b3e2681a8da67c26bcc1",
       "skip_tests": {
         "BLMPOP propagate as pop with count command to replica": "failed on TomoKV 2s in the survey",
-        "BLMPOP with multiple blocked clients": "failed on TomoKV 2s in the survey",
+        "BLMPOP with multiple blocked clients": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
         "BLPOP/BLMOVE should increase dirty": "failed on TomoKV 2s in the survey",
         "Blocking command accounted only once in commandstats": "failed on TomoKV 2s in the survey",
         "Blocking command accounted only once in commandstats after timeout": "failed on TomoKV 2s in the survey",
         "Blocking timeout following PAUSE should honor the timeout": "failed on TomoKV 2s in the survey",
-        "Circular BRPOPLPUSH": "failed on TomoKV 2s in the survey",
-        "Command being unblocked cause another command to get unblocked execution order test": "failed on TomoKV 2s in the survey",
+        "Circular BRPOPLPUSH": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
+        "Command being unblocked cause another command to get unblocked execution order test": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
         "Crash due to delete entry from a compress quicklist node": "failed on TomoKV 2s in the survey",
         "Crash due to split quicklist node wrongly": "failed on TomoKV 2s in the survey",
         "LMPOP propagate as pop with count command to replica": "failed on TomoKV 2s in the survey",
-        "Linked LMOVEs": "failed on TomoKV 2s in the survey",
+        "Linked LMOVEs": "BLOCK-WAKE-ORDER-MULTI / BLOCK-CHAIN-ASYNC (D11): failed on TomoKV 2s in the survey",
         "List invalid list-max-listpack-size config": "failed on TomoKV 2s in the survey",
         "List listpack -> quicklist encoding conversion": "failed on TomoKV 2s in the survey",
         "Test LINDEX and LINSERT on plain nodes": "failed on TomoKV 2s in the survey",
@@ -1796,7 +1794,9 @@
         "Test LSET with packed / plain combinations": "failed on TomoKV 2s in the survey",
         "Test LSET with packed consist only one item": "failed on TomoKV 2s in the survey",
         "Test LSET with packed is split in the middle": "failed on TomoKV 2s in the survey",
-        "Test LTRIM on plain nodes": "failed on TomoKV 2s in the survey"
+        "Test LTRIM on plain nodes": "failed on TomoKV 2s in the survey",
+        "BRPOPLPUSH does not affect WATCH while still blocked": "BRPOPLPUSH-WATCH-ORDER / D11: cross-connection completion ordering remains unresolved; V17 removes the one-fresh-server retry. Named known difference, not regression evidence.",
+        "PUSH resulting from BRPOPLPUSH affect WATCH": "BRPOPLPUSH-WATCH-ORDER / D11: cross-connection completion ordering remains unresolved; V17 removes the one-fresh-server retry. Named known difference, not regression evidence."
       }
     },
     "unit/type/list-2": {
