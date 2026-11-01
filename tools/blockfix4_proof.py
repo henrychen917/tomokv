@@ -51,7 +51,7 @@ def main():
     assert run.parent == ROOT / 'build' and run.name.startswith('gate-run.'), run
     record = receipts.collect(a.tag, run, OUT)
     record.update(command=command, env={k: v for k, v in env.items()
-                  if k.startswith('GATE_') or k in ('LC_ALL', 'REDIS74_ROOT')},
+                  if k.startswith(('GATE_', 'BLOCKFIX4_')) or k in ('LC_ALL', 'REDIS74_ROOT')},
                   binary_sha256=digest, exit_code=result.returncode)
     assert digest == hashlib.sha256(binary.read_bytes()).hexdigest(), 'candidate changed during proof'
     (OUT / (a.tag + '.json')).write_text(json.dumps(record, indent=2) + '\n')
