@@ -53,7 +53,7 @@
   },
   {
     "path": "build/src/cmd/info_stats.o",
-    "sha256": "c7451bc696f13d17dfff51bbd048c9f5078134f2cd54dcdfe81f93f843b9c609"
+    "sha256": "6d4d33860a9ae2b17f145144a5dd8705c3651751263204bbe9c70bb8da8ccd41"
   },
   {
     "path": "build/src/cmd/l4prebuild.o",
@@ -285,7 +285,7 @@
   },
   {
     "path": "build/db0/src/cmd/info_stats.o",
-    "sha256": "437c674e31f848fc14c95d2c52f097749ec413b6a74bd6f74359623ed955d7a4"
+    "sha256": "baa43eab4831919b2563df8b42ca74e3eb0992182dc67e3b1c1e8d8bea0bb6d2"
   },
   {
     "path": "build/db0/src/cmd/l4prebuild.o",

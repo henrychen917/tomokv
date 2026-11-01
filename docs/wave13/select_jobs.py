@@ -19,7 +19,7 @@ FAMILIES = {
     'eviction': re.compile(r'evict', re.I),
     'config': re.compile(r'''\bCONFIG\b['"]?\s*,?\s*['"]?(?:SET|GET|REWRITE|RESETSTAT)|'CONFIG'|"CONFIG"|config_set|config set''', re.I),
     'denyoom': re.compile(r'denyoom|OOM command|-OOM', re.I),
-    'wave13': re.compile(r'flush|snapshot|bgsave|aof|shutdown|txnorder|script|flip|multidb|atomic|tracking|keyspace', re.I),
+    'wave13': re.compile(r'flush|snapshot|bgsave|aof|shutdown|txnorder|script|flip|multidb|atomic|tracking|keyspace|execfair|multirace|watch|function|stream|dump|restore|persistfmt|lbplanner|client_lb|key_lb', re.I),
     'copy-build': re.compile(r'build.py|build_from|copytree|git archive|source.*build|source_identity|production_units', re.I),
     'pubsub': re.compile(r'\b[PS]?SUBSCRIBE\b|\bPUBLISH\b|\bSPUBLISH\b|pubsub|keyspace notification|notify-keyspace', re.I),
 }

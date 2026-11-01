@@ -1605,8 +1605,10 @@ if unit_ready core-concurrency-unit && \
     ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
     taskset -c "$CORES" ./build/core-concurrency-unit flipfix6 >"$TMPDIR/flipfix6.txt" 2>&1 && \
     [ "$(grep -c '^ARMED flipfix6 ' "$TMPDIR/flipfix6.txt")" = 54 ] && \
+    [ "$(grep -c '^ARMED wave13 ' "$TMPDIR/flipfix6.txt")" = 12 ] && \
     tsan_unit "$CORE_TSAN" core-concurrency-tsan \
-        "PASS core concurrency flipfix6 (state assertions fired)" flipfix6; then
+        "PASS core concurrency flipfix6 (state assertions fired)" flipfix6 && \
+    [ "$(grep -c '^ARMED wave13 ' "$TMPDIR/tsan-core-concurrency-tsan-flipfix6.log")" = 12 ]; then
   ok "FLIP session handover S2 and close fences (ASAN+TSAN)"
 else
   bad "FLIP session handover S2 and close fences (ASAN+TSAN)" "see $TMPDIR/flipfix6.txt and TSAN log"
@@ -1626,12 +1628,21 @@ job_flipfix6(){
 # Approved S2/close refusals must match their counters and return below one second;
 # all other FLIPs complete. Every transaction reply and final value is checked.
 row_begin "FLIP MULTI WATCH session storm (all legs)"
+local databases sibling_ok=1
+for databases in 16 1; do
+  py tests/flushfix2_siblings.py --case live-flip --databases "$databases" \
+      --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --cores "$CORES" --port "$PORT" --seconds 4 --modes 2s \
+      --output "$TMPDIR/flush-live-flip-db$databases" \
+      >"$TMPDIR/flush-live-flip-db$databases.log" 2>&1 || sibling_ok=0
+done
 if py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
     --cases exec p1 p2 p3 watch semantics exec-close --seconds 6 \
     --output "$TMPDIR/flipfix6" >"$TMPDIR/flipfix6.log" 2>&1 && \
     py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
     --cases exec exec-close --clients-per-io 8 --seconds 6 \
-    --output "$TMPDIR/flipfix6-scale" >"$TMPDIR/flipfix6-scale.log" 2>&1; then
+    --output "$TMPDIR/flipfix6-scale" >"$TMPDIR/flipfix6-scale.log" 2>&1 && \
+    [ "$sibling_ok" = 1 ]; then
   ok "FLIP MULTI WATCH session storm (all legs)"
 else
   bad "FLIP MULTI WATCH session storm (all legs)" "see $TMPDIR/flipfix6*.log"

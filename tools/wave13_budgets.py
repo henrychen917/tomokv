@@ -80,7 +80,7 @@ def main():
  elif phase=='select':
   rows=json.loads((DOC/'scan.json').read_text());unique={}
   for row in rows:unique.setdefault((row['object'],row['code_digest']),row)
-  with ProcessPoolExecutor(max_workers=4) as pool:scores=list(pool.map(score,unique.values()))
+  with ProcessPoolExecutor(max_workers=16) as pool:scores=list(pool.map(score,unique.values()))
   by={(r['object'],r['code_digest']):r for r in scores};choices=[]
   for obj,value in new.items():
    opts=[dict(r,score=by[r['object'],r['code_digest']]['score']) for r in rows if r['object']==obj]
