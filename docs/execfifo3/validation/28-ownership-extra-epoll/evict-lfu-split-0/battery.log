@@ -1,0 +1,8 @@
+  allkeys-lfu: eviction FIRED                          ok evicted=10532
+  allkeys-lfu: the hot 20 ALL survive                  ok 20/20 alive
+  allkeys-lfu: hot counters stay clear of the cold band (median OBJECT FREQ >= 8) ok median=12 freqs=[8, 9, 9, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 15, 16]
+  allkeys-lfu: fresh key starts at OBJECT FREQ 5       ok b':5'
+  allkeys-lfu: CLIENT NO-TOUCH ON                      ok 
+  allkeys-lfu: 20 NO-TOUCH reads leave OBJECT FREQ at 5 ok b':5'
+  allkeys-lfu: 20 ordinary reads raise OBJECT FREQ above 5 ok 6
+SECTION lfu: 7 ok, 0 FAIL

@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "g++",
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "ld",
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "GNU ld (GNU Binutils for Ubuntu) 2.42\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) a later version.\nThis program has absolutely no warranty.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "perf",
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "perf version 7.0.12\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "Python 3.12.3\n",
+    "stderr": ""
+  }
+]

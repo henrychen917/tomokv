@@ -1,0 +1,9 @@
+SMOVE basics - from intset to regular set
+SMOVE basics - from regular set to intset
+SMOVE from intset to non existing destination set
+SMOVE from regular set to non existing destination set
+SMOVE non existing key
+SMOVE non existing src set
+SMOVE wrong dst key type
+SPOP new implementation: code path #1 propagate as DEL or UNLINK
+SRANDMEMBER with a dict containing long chain

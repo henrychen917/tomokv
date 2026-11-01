@@ -1,0 +1,5 @@
+ok	0.040000	release build (+footprint locks)
+ok	54.820000	read-local ownership-invariant build
+ok	1.020000	splitlocal template forwarding + old-argument controls
+ok	25.120000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants

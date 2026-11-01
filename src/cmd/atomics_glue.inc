@@ -748,7 +748,7 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     // Keep its retry off xshard_retries_: that queue stops incoming waves,
     // including the unit's next wave that releases this writer.
     if ((op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
-        shard.has_watches() && !multi_plain_write_ready(shard, op)) return true;
+        shard.has_watches() && !multi_plain_write_probe(shard, op)) return true;
     if (!store.atomic_has_records()) return false;
     bool own_undecided = false;
     auto check_own = [&](uint64_t hash, Slice key) {

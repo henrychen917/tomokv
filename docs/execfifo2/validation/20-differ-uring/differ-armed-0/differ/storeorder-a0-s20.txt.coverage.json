@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "commands": {
+    "BITOP": 35,
+    "COPY": 37,
+    "DEL": 769,
+    "EXISTS": 1146,
+    "GEOADD": 1,
+    "GEOSEARCHSTORE": 53,
+    "GET": 131,
+    "LMOVE": 47,
+    "LRANGE": 133,
+    "LTRIM": 142,
+    "MSETNX": 49,
+    "PFADD": 144,
+    "PFMERGE": 47,
+    "RENAME": 19,
+    "RENAMENX": 28,
+    "RPOPLPUSH": 48,
+    "RPUSH": 145,
+    "SADD": 179,
+    "SCARD": 210,
+    "SDIFFSTORE": 45,
+    "SET": 198,
+    "SINTERSTORE": 42,
+    "SMISMEMBER": 128,
+    "SMOVE": 41,
+    "SORT": 38,
+    "SUNIONSTORE": 41,
+    "TYPE": 37,
+    "ZADD": 165,
+    "ZCARD": 53,
+    "ZDIFFSTORE": 43,
+    "ZINTERSTORE": 47,
+    "ZRANGE": 251,
+    "ZRANGESTORE": 76,
+    "ZUNIONSTORE": 32
+  },
+  "kinds": {
+    "BITOP": [
+      "reply"
+    ],
+    "COPY": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GEOADD": [
+      "reply"
+    ],
+    "GEOSEARCHSTORE": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "LMOVE": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "LTRIM": [
+      "reply"
+    ],
+    "MSETNX": [
+      "reply"
+    ],
+    "PFADD": [
+      "reply"
+    ],
+    "PFMERGE": [
+      "reply"
+    ],
+    "RENAME": [
+      "reply"
+    ],
+    "RENAMENX": [
+      "reply"
+    ],
+    "RPOPLPUSH": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SCARD": [
+      "reply"
+    ],
+    "SDIFFSTORE": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SINTERSTORE": [
+      "reply"
+    ],
+    "SMISMEMBER": [
+      "reply"
+    ],
+    "SMOVE": [
+      "reply"
+    ],
+    "SORT": [
+      "reply"
+    ],
+    "SUNIONSTORE": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZCARD": [
+      "reply"
+    ],
+    "ZDIFFSTORE": [
+      "reply"
+    ],
+    "ZINTERSTORE": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ],
+    "ZRANGESTORE": [
+      "reply"
+    ],
+    "ZUNIONSTORE": [
+      "reply"
+    ]
+  }
+}

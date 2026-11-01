@@ -101,7 +101,8 @@ enum class TxnCounter : uint8_t {
     Attempts, Retries, Dooms, Wounds, Waits, Intents, IntentsLive,
     GroupDooms, GroupRetries, GroupBarriers,
     Executed, PlaceWaits, WriterWaits, WriterMarks, BlindRestarts, Readonly,
-    OrderViolations, GroupWounds, FastPolls, PollSkips, Count
+    OrderViolations, GroupWounds, FastPolls, PollSkips,
+    FifoWaits, FifoPasses, WriterPromotions, Count
 };
 // DEBUG-only witness arming; no per-operation state on ordinary commands.
 void txn_barrier_witness(bool armed);
@@ -166,6 +167,7 @@ inline bool multi_task_retry(MultiTaskResult result) {
 struct MultiRetryPromoter {
     void* context;
     void (*promote)(void*, MultiOwnerRetryNode&);
+    void (*promote_writer)(void*, const void*, int32_t) = nullptr;
 };
 
 // Called after lookup/arity validation.  Transaction controls are handled here; while MULTI is
@@ -197,6 +199,9 @@ void multi_abandon_unpublished(MultiExecState* state);
 
 // Low-bit tagging reuses Task::scatter without changing the 32-byte queue item.
 bool multi_task_tagged(const Task& task);
+bool multi_task_markless(const Task& task);
+bool multi_task_continuation(const Task& task);
+bool txn_task_markless(const Task& task);
 // Does `group_epoch` belong to this fragment's OWN logical unit? The transaction's plain per-key
 // installs publish through its own epoch word; every cross-shard command lowered inside the same
 // EXEC keeps its own ScatterState and publishes through that one. A caller asking "is there an
@@ -234,6 +239,8 @@ uint32_t multi_last_attempts(const Client& client);
 // Ordinary owner-local write hook.  The false result means an EXEC still holds a WATCH validation
 // reservation on one of this command's keys and the task must be retried, not executed early.
 bool multi_plain_write_ready(Shard& shard, Op& op);
+// Dispatch rechecks retain A' marks until the final owner execution gate.
+bool multi_plain_write_probe(Shard& shard, Op& op);
 
 // Post-join shutdown only (IoLoop::shutdown_clients_after_join), for a Done transaction that its
 // IO thread never retired. No worker remains, so no command may run and no owner can consume a

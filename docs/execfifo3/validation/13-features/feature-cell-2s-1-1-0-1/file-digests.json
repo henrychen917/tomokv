@@ -1,0 +1,27 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 68,
+    "sha256": "f72ddf89e8be376ffb360be77d7321e206ddb6129bb8ce1fb1dd87e608be7ac8"
+  },
+  {
+    "path": "ledger",
+    "bytes": 31,
+    "sha256": "bc058de89a6bfcee4217ae9517e62487ba2c8e41fe288de302098ef95b05e492"
+  },
+  {
+    "path": "output.log",
+    "bytes": 141,
+    "sha256": "ce2cc91b2255c14b2c5970652129b1542f2ad24c4d8f8085ee65c0cc7b4ea0a7"
+  },
+  {
+    "path": "timings",
+    "bytes": 31,
+    "sha256": "bc058de89a6bfcee4217ae9517e62487ba2c8e41fe288de302098ef95b05e492"
+  }
+]

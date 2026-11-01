@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 1,
+    "DEL": 238,
+    "EXISTS": 77,
+    "GET": 1,
+    "HDEL": 237,
+    "HEXISTS": 209,
+    "HGET": 232,
+    "HGETALL": 83,
+    "HINCRBY": 238,
+    "HINCRBYFLOAT": 221,
+    "HKEYS": 74,
+    "HLEN": 278,
+    "HMGET": 223,
+    "HRANDFIELD": 9,
+    "HSET": 878,
+    "HSETNX": 246,
+    "HSTRLEN": 163,
+    "HVALS": 70,
+    "SET": 1,
+    "TYPE": 66
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "HDEL": [
+      "reply"
+    ],
+    "HEXISTS": [
+      "reply"
+    ],
+    "HGET": [
+      "reply"
+    ],
+    "HGETALL": [
+      "reply"
+    ],
+    "HINCRBY": [
+      "reply"
+    ],
+    "HINCRBYFLOAT": [
+      "reply"
+    ],
+    "HKEYS": [
+      "reply"
+    ],
+    "HLEN": [
+      "reply"
+    ],
+    "HMGET": [
+      "reply"
+    ],
+    "HRANDFIELD": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "HSETNX": [
+      "reply"
+    ],
+    "HSTRLEN": [
+      "reply"
+    ],
+    "HVALS": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ]
+  }
+}

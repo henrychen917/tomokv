@@ -1,0 +1,20 @@
+  row budget: 900s; median=0.09s; correctness-plan-fallback; txnorder FIFO F1
+  txnorder FIFO F1                                     ok
+  row budget: 900s; median=0.08s; correctness-plan-fallback; txnorder FIFO F2
+  txnorder FIFO F2                                     ok
+  row budget: 900s; median=0.085s; correctness-plan-fallback; txnorder FIFO F3
+  txnorder FIFO F3                                     ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; txnorder FIFO F4
+  txnorder FIFO F4                                     ok
+  row budget: 900s; median=0.075s; correctness-plan-fallback; txnorder FIFO F5
+  txnorder FIFO F5                                     ok
+  row budget: 900s; median=0.185s; correctness-plan-fallback; txnorder FIFO F6
+  txnorder FIFO F6                                     ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; txnorder FIFO F7
+  txnorder FIFO F7                                     ok
+  row budget: 900s; median=0.085s; correctness-plan-fallback; txnorder FIFO F8
+  txnorder FIFO F8                                     ok
+  row budget: 900s; median=0.08s; correctness-plan-fallback; txnorder FIFO F9
+  txnorder FIFO F9                                     ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; txnorder FIFO F10
+  txnorder FIFO F10                                    ok

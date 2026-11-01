@@ -1,0 +1,1000 @@
+{
+  "file": "unit/expire",
+  "mode": "2s",
+  "passed": 60,
+  "failed": 0,
+  "skipped": 10,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 7.478628882206976,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/expire/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/expire",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-2s/unit/expire/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "857642",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - set timeouts multiple times in tests/unit/expire.tcl",
+      "data": "EXPIRE - set timeouts multiple times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - set timeouts multiple times in tests/unit/expire.tcl",
+      "data": "EXPIRE - set timeouts multiple times",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - It should be still possible to read 'x' in tests/unit/expire.tcl",
+      "data": "EXPIRE - It should be still possible to read 'x'",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - It should be still possible to read 'x' in tests/unit/expire.tcl",
+      "data": "EXPIRE - It should be still possible to read 'x'",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - After 2.1 seconds the key should no longer be here in tests/unit/expire.tcl",
+      "data": "EXPIRE - After 2.1 seconds the key should no longer be here",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - After 2.1 seconds the key should no longer be here in tests/unit/expire.tcl",
+      "data": "EXPIRE - After 2.1 seconds the key should no longer be here",
+      "milliseconds": "2101"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - write on expire should work in tests/unit/expire.tcl",
+      "data": "EXPIRE - write on expire should work",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE - write on expire should work in tests/unit/expire.tcl",
+      "data": "EXPIRE - write on expire should work",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIREAT - Check for EXPIRE alike behavior in tests/unit/expire.tcl",
+      "data": "EXPIREAT - Check for EXPIRE alike behavior",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIREAT - Check for EXPIRE alike behavior in tests/unit/expire.tcl",
+      "data": "EXPIREAT - Check for EXPIRE alike behavior",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Set + Expire combo operation. Check for TTL in tests/unit/expire.tcl",
+      "data": "SETEX - Set + Expire combo operation. Check for TTL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Set + Expire combo operation. Check for TTL in tests/unit/expire.tcl",
+      "data": "SETEX - Set + Expire combo operation. Check for TTL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Check value in tests/unit/expire.tcl",
+      "data": "SETEX - Check value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Check value in tests/unit/expire.tcl",
+      "data": "SETEX - Check value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Overwrite old key in tests/unit/expire.tcl",
+      "data": "SETEX - Overwrite old key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Overwrite old key in tests/unit/expire.tcl",
+      "data": "SETEX - Overwrite old key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Wait for the key to expire in tests/unit/expire.tcl",
+      "data": "SETEX - Wait for the key to expire",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Wait for the key to expire in tests/unit/expire.tcl",
+      "data": "SETEX - Wait for the key to expire",
+      "milliseconds": "1100"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Wrong time parameter in tests/unit/expire.tcl",
+      "data": "SETEX - Wrong time parameter",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SETEX - Wrong time parameter in tests/unit/expire.tcl",
+      "data": "SETEX - Wrong time parameter",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PERSIST can undo an EXPIRE in tests/unit/expire.tcl",
+      "data": "PERSIST can undo an EXPIRE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PERSIST can undo an EXPIRE in tests/unit/expire.tcl",
+      "data": "PERSIST can undo an EXPIRE",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PERSIST returns 0 against non existing or non volatile keys in tests/unit/expire.tcl",
+      "data": "PERSIST returns 0 against non existing or non volatile keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PERSIST returns 0 against non existing or non volatile keys in tests/unit/expire.tcl",
+      "data": "PERSIST returns 0 against non existing or non volatile keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE precision is now the millisecond in tests/unit/expire.tcl",
+      "data": "EXPIRE precision is now the millisecond",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE precision is now the millisecond in tests/unit/expire.tcl",
+      "data": "EXPIRE precision is now the millisecond",
+      "milliseconds": "1102"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PSETEX can set sub-second expires in tests/unit/expire.tcl",
+      "data": "PSETEX can set sub-second expires",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PSETEX can set sub-second expires in tests/unit/expire.tcl",
+      "data": "PSETEX can set sub-second expires",
+      "milliseconds": "103"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIRE can set sub-second expires in tests/unit/expire.tcl",
+      "data": "PEXPIRE can set sub-second expires",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIRE can set sub-second expires in tests/unit/expire.tcl",
+      "data": "PEXPIRE can set sub-second expires",
+      "milliseconds": "102"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIREAT can set sub-second expires in tests/unit/expire.tcl",
+      "data": "PEXPIREAT can set sub-second expires",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIREAT can set sub-second expires in tests/unit/expire.tcl",
+      "data": "PEXPIREAT can set sub-second expires",
+      "milliseconds": "201"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "TTL returns time to live in seconds in tests/unit/expire.tcl",
+      "data": "TTL returns time to live in seconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "TTL returns time to live in seconds in tests/unit/expire.tcl",
+      "data": "TTL returns time to live in seconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PTTL returns time to live in milliseconds in tests/unit/expire.tcl",
+      "data": "PTTL returns time to live in milliseconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PTTL returns time to live in milliseconds in tests/unit/expire.tcl",
+      "data": "PTTL returns time to live in milliseconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -1 if key has no expire in tests/unit/expire.tcl",
+      "data": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -1 if key has no expire",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -1 if key has no expire in tests/unit/expire.tcl",
+      "data": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -1 if key has no expire",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -2 if key does not exit in tests/unit/expire.tcl",
+      "data": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -2 if key does not exit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -2 if key does not exit in tests/unit/expire.tcl",
+      "data": "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -2 if key does not exit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRETIME returns absolute expiration time in seconds in tests/unit/expire.tcl",
+      "data": "EXPIRETIME returns absolute expiration time in seconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRETIME returns absolute expiration time in seconds in tests/unit/expire.tcl",
+      "data": "EXPIRETIME returns absolute expiration time in seconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIRETIME returns absolute expiration time in milliseconds in tests/unit/expire.tcl",
+      "data": "PEXPIRETIME returns absolute expiration time in milliseconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIRETIME returns absolute expiration time in milliseconds in tests/unit/expire.tcl",
+      "data": "PEXPIRETIME returns absolute expiration time in milliseconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "Redis should actively expire keys incrementally in tests/unit/expire.tcl",
+      "data": "Redis should actively expire keys incrementally",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "Redis should actively expire keys incrementally in tests/unit/expire.tcl",
+      "data": "Redis should actively expire keys incrementally",
+      "milliseconds": "602"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "Redis should lazy expire keys in tests/unit/expire.tcl",
+      "data": "Redis should lazy expire keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "Redis should lazy expire keys in tests/unit/expire.tcl",
+      "data": "Redis should lazy expire keys",
+      "milliseconds": "1002"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE should not resurrect keys (issue #1026) in tests/unit/expire.tcl",
+      "data": "EXPIRE should not resurrect keys (issue #1026)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE should not resurrect keys (issue #1026) in tests/unit/expire.tcl",
+      "data": "EXPIRE should not resurrect keys (issue #1026)",
+      "milliseconds": "1001"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "5 keys in, 5 keys out in tests/unit/expire.tcl",
+      "data": "5 keys in, 5 keys out",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "5 keys in, 5 keys out in tests/unit/expire.tcl",
+      "data": "5 keys in, 5 keys out",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with empty string as TTL should report an error in tests/unit/expire.tcl",
+      "data": "EXPIRE with empty string as TTL should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with empty string as TTL should report an error in tests/unit/expire.tcl",
+      "data": "EXPIRE with empty string as TTL should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET with EX with big integer should report an error in tests/unit/expire.tcl",
+      "data": "SET with EX with big integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET with EX with big integer should report an error in tests/unit/expire.tcl",
+      "data": "SET with EX with big integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET with EX with smallest integer should report an error in tests/unit/expire.tcl",
+      "data": "SET with EX with smallest integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET with EX with smallest integer should report an error in tests/unit/expire.tcl",
+      "data": "SET with EX with smallest integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "GETEX with big integer should report an error in tests/unit/expire.tcl",
+      "data": "GETEX with big integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "GETEX with big integer should report an error in tests/unit/expire.tcl",
+      "data": "GETEX with big integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "GETEX with smallest integer should report an error in tests/unit/expire.tcl",
+      "data": "GETEX with smallest integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "GETEX with smallest integer should report an error in tests/unit/expire.tcl",
+      "data": "GETEX with smallest integer should report an error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with big integer overflows when converted to milliseconds in tests/unit/expire.tcl",
+      "data": "EXPIRE with big integer overflows when converted to milliseconds",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with big integer overflows when converted to milliseconds in tests/unit/expire.tcl",
+      "data": "EXPIRE with big integer overflows when converted to milliseconds",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIRE with big integer overflow when basetime is added in tests/unit/expire.tcl",
+      "data": "PEXPIRE with big integer overflow when basetime is added",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIRE with big integer overflow when basetime is added in tests/unit/expire.tcl",
+      "data": "PEXPIRE with big integer overflow when basetime is added",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with big negative integer in tests/unit/expire.tcl",
+      "data": "EXPIRE with big negative integer",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with big negative integer in tests/unit/expire.tcl",
+      "data": "EXPIRE with big negative integer",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIREAT with big integer works in tests/unit/expire.tcl",
+      "data": "PEXPIREAT with big integer works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIREAT with big integer works in tests/unit/expire.tcl",
+      "data": "PEXPIREAT with big integer works",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIREAT with big negative integer works in tests/unit/expire.tcl",
+      "data": "PEXPIREAT with big negative integer works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "PEXPIREAT with big negative integer works in tests/unit/expire.tcl",
+      "data": "PEXPIREAT with big negative integer works",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "All TTL in commands are propagated as absolute timestamp in replication stream",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET command will remove expire in tests/unit/expire.tcl",
+      "data": "SET command will remove expire",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET command will remove expire in tests/unit/expire.tcl",
+      "data": "SET command will remove expire",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET - use KEEPTTL option, TTL should not be removed in tests/unit/expire.tcl",
+      "data": "SET - use KEEPTTL option, TTL should not be removed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "SET - use KEEPTTL option, TTL should not be removed in tests/unit/expire.tcl",
+      "data": "SET - use KEEPTTL option, TTL should not be removed",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "SET - use KEEPTTL option, TTL should not be removed after loadaof",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "GETEX use of PERSIST option should remove TTL in tests/unit/expire.tcl",
+      "data": "GETEX use of PERSIST option should remove TTL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "GETEX use of PERSIST option should remove TTL in tests/unit/expire.tcl",
+      "data": "GETEX use of PERSIST option should remove TTL",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "GETEX use of PERSIST option should remove TTL after loadaof",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "GETEX propagate as to replica as PERSIST, DEL, or nothing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with NX option on a key with ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with NX option on a key with ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with NX option on a key with ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with NX option on a key with ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with NX option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with NX option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with NX option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with NX option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with XX option on a key with ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with XX option on a key with ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with XX option on a key with ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with XX option on a key with ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with XX option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with XX option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with XX option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with XX option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with GT option on a key with lower ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with GT option on a key with lower ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with GT option on a key with lower ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with GT option on a key with lower ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with GT option on a key with higher ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with GT option on a key with higher ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with GT option on a key with higher ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with GT option on a key with higher ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with GT option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with GT option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with GT option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with GT option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT option on a key with higher ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT option on a key with higher ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT option on a key with higher ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT option on a key with higher ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT option on a key with lower ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT option on a key with lower ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT option on a key with lower ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT option on a key with lower ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT and XX option on a key with ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT and XX option on a key with ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT and XX option on a key with ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT and XX option on a key with ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT and XX option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT and XX option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with LT and XX option on a key without ttl in tests/unit/expire.tcl",
+      "data": "EXPIRE with LT and XX option on a key without ttl",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: LT GT in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: LT GT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: LT GT in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: LT GT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: NX GT in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: NX GT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: NX GT in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: NX GT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: NX LT in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: NX LT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: NX LT in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: NX LT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: NX XX in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: NX XX",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with conflicting options: NX XX in tests/unit/expire.tcl",
+      "data": "EXPIRE with conflicting options: NX XX",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with unsupported options in tests/unit/expire.tcl",
+      "data": "EXPIRE with unsupported options",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with unsupported options in tests/unit/expire.tcl",
+      "data": "EXPIRE with unsupported options",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with unsupported options in tests/unit/expire.tcl",
+      "data": "EXPIRE with unsupported options",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with unsupported options in tests/unit/expire.tcl",
+      "data": "EXPIRE with unsupported options",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with negative expiry in tests/unit/expire.tcl",
+      "data": "EXPIRE with negative expiry",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with negative expiry in tests/unit/expire.tcl",
+      "data": "EXPIRE with negative expiry",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with negative expiry on a non-valitale key in tests/unit/expire.tcl",
+      "data": "EXPIRE with negative expiry on a non-valitale key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with negative expiry on a non-valitale key in tests/unit/expire.tcl",
+      "data": "EXPIRE with negative expiry on a non-valitale key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with non-existed key in tests/unit/expire.tcl",
+      "data": "EXPIRE with non-existed key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/expire.tcl",
+      "test": "EXPIRE with non-existed key in tests/unit/expire.tcl",
+      "data": "EXPIRE with non-existed key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "Redis should not propagate the read command on lazy expire",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "SCAN: Lazy-expire should not be wrapped in MULTI/EXEC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "RANDOMKEY: Lazy-expire should not be wrapped in MULTI/EXEC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "unit/expire",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/expire.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

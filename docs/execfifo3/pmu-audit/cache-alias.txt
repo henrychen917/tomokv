@@ -1,0 +1,8 @@
+
+legacy hardware:
+  cache-misses
+       [Cache misses. Usually this indicates Last Level Cache misses; this is
+        intended to be used in conjunction with the
+        PERF_COUNT_HW_CACHE_REFERENCES event to calculate cache miss rates.
+        Unit: cpu]
+        cpu/event=0x64,umask=0x09/

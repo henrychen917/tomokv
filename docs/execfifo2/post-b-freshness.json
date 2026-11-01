@@ -1,0 +1,12 @@
+{
+  "source": "e0f0e0ff5",
+  "command": [
+    "make",
+    "-C",
+    "build/execfifo2/B-source",
+    "-q",
+    "all"
+  ],
+  "returncode": 0,
+  "recorded_ns": 1793440124336516110
+}

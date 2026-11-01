@@ -1,0 +1,5 @@
+atomic boundary entry=1
+ok: protocol, suppression, stream bounds, Lua conversion/budget
+ok: whole-command reception and runtime string/bitmap limits
+ok: XREAD tracking without BCAST or a prior static-key read
+atomic boundary restored=1

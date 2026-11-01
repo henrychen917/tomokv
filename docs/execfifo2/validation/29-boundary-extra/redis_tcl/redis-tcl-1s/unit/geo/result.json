@@ -1,0 +1,984 @@
+{
+  "file": "unit/geo",
+  "mode": "1s",
+  "passed": 64,
+  "failed": 0,
+  "skipped": 0,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 32.06220923922956,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/geo/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/geo",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/geo/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3920446",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO with wrong type src key in tests/unit/geo.tcl",
+      "data": "GEO with wrong type src key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO with wrong type src key in tests/unit/geo.tcl",
+      "data": "GEO with wrong type src key",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO with non existing src key in tests/unit/geo.tcl",
+      "data": "GEO with non existing src key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO with non existing src key in tests/unit/geo.tcl",
+      "data": "GEO with non existing src key",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO BYLONLAT with empty search in tests/unit/geo.tcl",
+      "data": "GEO BYLONLAT with empty search",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO BYLONLAT with empty search in tests/unit/geo.tcl",
+      "data": "GEO BYLONLAT with empty search",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO BYMEMBER with non existing member in tests/unit/geo.tcl",
+      "data": "GEO BYMEMBER with non existing member",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEO BYMEMBER with non existing member in tests/unit/geo.tcl",
+      "data": "GEO BYMEMBER with non existing member",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD create in tests/unit/geo.tcl",
+      "data": "GEOADD create",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD create in tests/unit/geo.tcl",
+      "data": "GEOADD create",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update in tests/unit/geo.tcl",
+      "data": "GEOADD update",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update in tests/unit/geo.tcl",
+      "data": "GEOADD update",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with CH option in tests/unit/geo.tcl",
+      "data": "GEOADD update with CH option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with CH option in tests/unit/geo.tcl",
+      "data": "GEOADD update with CH option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with NX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with NX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with NX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with NX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with XX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with XX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with XX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with XX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with CH NX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with CH NX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with CH NX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with CH NX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with CH XX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with CH XX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with CH XX option in tests/unit/geo.tcl",
+      "data": "GEOADD update with CH XX option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with XX NX option will return syntax error in tests/unit/geo.tcl",
+      "data": "GEOADD update with XX NX option will return syntax error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with XX NX option will return syntax error in tests/unit/geo.tcl",
+      "data": "GEOADD update with XX NX option will return syntax error",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with invalid option in tests/unit/geo.tcl",
+      "data": "GEOADD update with invalid option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD update with invalid option in tests/unit/geo.tcl",
+      "data": "GEOADD update with invalid option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD invalid coordinates in tests/unit/geo.tcl",
+      "data": "GEOADD invalid coordinates",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD invalid coordinates in tests/unit/geo.tcl",
+      "data": "GEOADD invalid coordinates",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD multi add in tests/unit/geo.tcl",
+      "data": "GEOADD multi add",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOADD multi add in tests/unit/geo.tcl",
+      "data": "GEOADD multi add",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "Check geoset values in tests/unit/geo.tcl",
+      "data": "Check geoset values",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "Check geoset values in tests/unit/geo.tcl",
+      "data": "Check geoset values",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUS simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUS simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUS_RO simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUS_RO simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEOSEARCH simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEOSEARCH simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH FROMLONLAT and FROMMEMBER cannot exist at the same time in tests/unit/geo.tcl",
+      "data": "GEOSEARCH FROMLONLAT and FROMMEMBER cannot exist at the same time",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH FROMLONLAT and FROMMEMBER cannot exist at the same time in tests/unit/geo.tcl",
+      "data": "GEOSEARCH FROMLONLAT and FROMMEMBER cannot exist at the same time",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH FROMLONLAT and FROMMEMBER one must exist in tests/unit/geo.tcl",
+      "data": "GEOSEARCH FROMLONLAT and FROMMEMBER one must exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH FROMLONLAT and FROMMEMBER one must exist in tests/unit/geo.tcl",
+      "data": "GEOSEARCH FROMLONLAT and FROMMEMBER one must exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH BYRADIUS and BYBOX cannot exist at the same time in tests/unit/geo.tcl",
+      "data": "GEOSEARCH BYRADIUS and BYBOX cannot exist at the same time",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH BYRADIUS and BYBOX cannot exist at the same time in tests/unit/geo.tcl",
+      "data": "GEOSEARCH BYRADIUS and BYBOX cannot exist at the same time",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH BYRADIUS and BYBOX one must exist in tests/unit/geo.tcl",
+      "data": "GEOSEARCH BYRADIUS and BYBOX one must exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH BYRADIUS and BYBOX one must exist in tests/unit/geo.tcl",
+      "data": "GEOSEARCH BYRADIUS and BYBOX one must exist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH with STOREDIST option in tests/unit/geo.tcl",
+      "data": "GEOSEARCH with STOREDIST option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH with STOREDIST option in tests/unit/geo.tcl",
+      "data": "GEOSEARCH with STOREDIST option",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUS withdist (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUS withdist (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+      "data": "GEOSEARCH withdist (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+      "data": "GEOSEARCH withdist (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with COUNT in tests/unit/geo.tcl",
+      "data": "GEORADIUS with COUNT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with COUNT in tests/unit/geo.tcl",
+      "data": "GEORADIUS with COUNT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+      "data": "GEORADIUS with multiple WITH* tokens",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+      "data": "GEORADIUS with multiple WITH* tokens",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with ANY not sorted by default in tests/unit/geo.tcl",
+      "data": "GEORADIUS with ANY not sorted by default",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with ANY not sorted by default in tests/unit/geo.tcl",
+      "data": "GEORADIUS with ANY not sorted by default",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with ANY sorted by ASC in tests/unit/geo.tcl",
+      "data": "GEORADIUS with ANY sorted by ASC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with ANY sorted by ASC in tests/unit/geo.tcl",
+      "data": "GEORADIUS with ANY sorted by ASC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with ANY but no COUNT in tests/unit/geo.tcl",
+      "data": "GEORADIUS with ANY but no COUNT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with ANY but no COUNT in tests/unit/geo.tcl",
+      "data": "GEORADIUS with ANY but no COUNT",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with COUNT but missing integer argument in tests/unit/geo.tcl",
+      "data": "GEORADIUS with COUNT but missing integer argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with COUNT but missing integer argument in tests/unit/geo.tcl",
+      "data": "GEORADIUS with COUNT but missing integer argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with COUNT DESC in tests/unit/geo.tcl",
+      "data": "GEORADIUS with COUNT DESC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS with COUNT DESC in tests/unit/geo.tcl",
+      "data": "GEORADIUS with COUNT DESC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS HUGE, issue #2767 in tests/unit/geo.tcl",
+      "data": "GEORADIUS HUGE, issue #2767",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS HUGE, issue #2767 in tests/unit/geo.tcl",
+      "data": "GEORADIUS HUGE, issue #2767",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER_RO simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER_RO simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER search areas contain satisfied points in oblique direction in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER search areas contain satisfied points in oblique direction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER search areas contain satisfied points in oblique direction in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER search areas contain satisfied points in oblique direction",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER crossing pole search in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER crossing pole search",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER crossing pole search in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER crossing pole search",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH FROMMEMBER simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEOSEARCH FROMMEMBER simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH FROMMEMBER simple (sorted) in tests/unit/geo.tcl",
+      "data": "GEOSEARCH FROMMEMBER simple (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+      "data": "GEOSEARCH vs GEORADIUS",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+      "data": "GEOSEARCH vs GEORADIUS",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH non square, long and narrow in tests/unit/geo.tcl",
+      "data": "GEOSEARCH non square, long and narrow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH non square, long and narrow in tests/unit/geo.tcl",
+      "data": "GEOSEARCH non square, long and narrow",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH corner point test in tests/unit/geo.tcl",
+      "data": "GEOSEARCH corner point test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH corner point test in tests/unit/geo.tcl",
+      "data": "GEOSEARCH corner point test",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER withdist (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER withdist (sorted)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOHASH is able to return geohash strings in tests/unit/geo.tcl",
+      "data": "GEOHASH is able to return geohash strings",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOHASH is able to return geohash strings in tests/unit/geo.tcl",
+      "data": "GEOHASH is able to return geohash strings",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOHASH with only key as argument in tests/unit/geo.tcl",
+      "data": "GEOHASH with only key as argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOHASH with only key as argument in tests/unit/geo.tcl",
+      "data": "GEOHASH with only key as argument",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOPOS simple in tests/unit/geo.tcl",
+      "data": "GEOPOS simple",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOPOS simple in tests/unit/geo.tcl",
+      "data": "GEOPOS simple",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOPOS missing element in tests/unit/geo.tcl",
+      "data": "GEOPOS missing element",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOPOS missing element in tests/unit/geo.tcl",
+      "data": "GEOPOS missing element",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOPOS with only key as argument in tests/unit/geo.tcl",
+      "data": "GEOPOS with only key as argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOPOS with only key as argument in tests/unit/geo.tcl",
+      "data": "GEOPOS with only key as argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEODIST simple & unit in tests/unit/geo.tcl",
+      "data": "GEODIST simple & unit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEODIST simple & unit in tests/unit/geo.tcl",
+      "data": "GEODIST simple & unit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEODIST missing elements in tests/unit/geo.tcl",
+      "data": "GEODIST missing elements",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEODIST missing elements in tests/unit/geo.tcl",
+      "data": "GEODIST missing elements",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS STORE option: syntax error in tests/unit/geo.tcl",
+      "data": "GEORADIUS STORE option: syntax error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUS STORE option: syntax error in tests/unit/geo.tcl",
+      "data": "GEORADIUS STORE option: syntax error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCHSTORE STORE option: syntax error in tests/unit/geo.tcl",
+      "data": "GEOSEARCHSTORE STORE option: syntax error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCHSTORE STORE option: syntax error in tests/unit/geo.tcl",
+      "data": "GEOSEARCHSTORE STORE option: syntax error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STORE option: incompatible options in tests/unit/geo.tcl",
+      "data": "GEORANGE STORE option: incompatible options",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STORE option: incompatible options in tests/unit/geo.tcl",
+      "data": "GEORANGE STORE option: incompatible options",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STORE option: plain usage in tests/unit/geo.tcl",
+      "data": "GEORANGE STORE option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STORE option: plain usage in tests/unit/geo.tcl",
+      "data": "GEORANGE STORE option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+      "data": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCHSTORE STORE option: plain usage in tests/unit/geo.tcl",
+      "data": "GEOSEARCHSTORE STORE option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCHSTORE STORE option: plain usage in tests/unit/geo.tcl",
+      "data": "GEOSEARCHSTORE STORE option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+      "data": "GEORANGE STOREDIST option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+      "data": "GEORANGE STOREDIST option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+      "data": "GEOSEARCHSTORE STOREDIST option: plain usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+      "data": "GEOSEARCHSTORE STOREDIST option: plain usage",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STOREDIST option: COUNT ASC and DESC in tests/unit/geo.tcl",
+      "data": "GEORANGE STOREDIST option: COUNT ASC and DESC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEORANGE STOREDIST option: COUNT ASC and DESC in tests/unit/geo.tcl",
+      "data": "GEORANGE STOREDIST option: COUNT ASC and DESC",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH the box spans -180\u00b0 or 180\u00b0 in tests/unit/geo.tcl",
+      "data": "GEOSEARCH the box spans -180\u00b0 or 180\u00b0",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH the box spans -180\u00b0 or 180\u00b0 in tests/unit/geo.tcl",
+      "data": "GEOSEARCH the box spans -180\u00b0 or 180\u00b0",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH with small distance in tests/unit/geo.tcl",
+      "data": "GEOSEARCH with small distance",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH with small distance in tests/unit/geo.tcl",
+      "data": "GEOSEARCH with small distance",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH fuzzy test - byradius in tests/unit/geo.tcl",
+      "data": "GEOSEARCH fuzzy test - byradius",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH fuzzy test - byradius in tests/unit/geo.tcl",
+      "data": "GEOSEARCH fuzzy test - byradius",
+      "milliseconds": "16165"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+      "data": "GEOSEARCH fuzzy test - bybox",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+      "data": "GEOSEARCH fuzzy test - bybox",
+      "milliseconds": "15721"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH box edges fuzzy test in tests/unit/geo.tcl",
+      "data": "GEOSEARCH box edges fuzzy test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/geo.tcl",
+      "test": "GEOSEARCH box edges fuzzy test in tests/unit/geo.tcl",
+      "data": "GEOSEARCH box edges fuzzy test",
+      "milliseconds": "13"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/geo.tcl",
+      "test": "",
+      "data": "unit/geo",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/geo.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

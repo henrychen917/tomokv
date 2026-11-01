@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/owner-scopes/PRE-normal-OWNER-single-1s-4-0--1.log
+SHA-256: 3e1694e4ac95917fc95cd893ce8d1a6ee6618022f41a0a230f13d2953b736224
+Exit: 0
+0x0000555555ddfc99	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddfca1	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::DoneTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS linked owner EXEC, exact replies and final values
+&&turn<64;++turn)
+0x0000555555ddfcac	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+293	      load(memory_order __m = memory_order_seq_cst) const noexcept
+0x0000555555ddfcb8 in std::atomic<tomo::OpState>::load (__m=std::memory_order::seq_cst, this=0x7ffff6362750) at /usr/include/c++/13/atomic:297
+297		__atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0x0000555555ddfcbb	297		__atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0x0000555555ddfcc2 in tomo::CoreConcurrencyTest::run<true> (cross=<optimized out>, cross@entry=false, children=<optimized out>, children@entry=4, atomic=atomic@entry=false) at /home/user/Projects/cx-execfifo2/tests/execfifo2_owner_scope.cc:95
+95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddfcc6	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddfccc	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555ddfcce	95	        for(unsigned turn=0;carriers[0]->state.load()!=OpState::Done&&turn<64;++turn)
+0x0000555555de05d0	99	        scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/execfifo2_owner_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 882238) exited normally]
+COUNT 26358

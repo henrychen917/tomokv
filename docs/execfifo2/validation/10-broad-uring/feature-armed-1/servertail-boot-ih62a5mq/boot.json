@@ -1,0 +1,25 @@
+{
+  "port": 20105,
+  "cores": "8,9,10,11",
+  "config": "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/feature-armed-1/tomokv-servertail-8y3islsm/rewrite.conf",
+  "binary": "/home/user/Projects/cx-execfifo2/build/tomokv",
+  "reason": "ready",
+  "argv": [
+    "taskset",
+    "-c",
+    "8,9,10,11",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/feature-armed-1/tomokv-servertail-8y3islsm/rewrite.conf",
+    "--databases",
+    "1",
+    "--port",
+    "20105",
+    "--bind",
+    "127.0.0.1",
+    "--enable-debug-command",
+    "yes",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.Bb94BO/jobs/feature-armed-1/tomokv-servertail-8y3islsm"
+  ],
+  "pid": 2712609
+}

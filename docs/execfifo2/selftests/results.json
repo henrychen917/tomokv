@@ -1,0 +1,17 @@
+{
+  "command": "taskset -c 0-31 env LC_ALL=C GATE_TEST_PORT=20199 python3 tests/gates_test.py",
+  "initial": {
+    "exit_code": 1,
+    "tests": 76,
+    "failures": 5,
+    "reason": "45-second scheduler fixture timeouts while lane builds and instruction traces ran; original evidence retained"
+  },
+  "quiet_rerun": {
+    "exit_code": 0,
+    "tests": 76,
+    "elapsed_seconds": 141.437,
+    "deadlines_and_checks_unchanged": true
+  },
+  "gate_sha256": "edf86280993f8f8221e642a66b05ce0fe884cedb8e1e13417cc1da80fabadb63",
+  "test_sha256": "cfd5179300b0175e6817e8bace282d57e0817b069cef7052483e63daa3bd5fc0"
+}

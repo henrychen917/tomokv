@@ -1,0 +1,3 @@
+Change hll-sparse-max-bytes
+HyperLogLogs are promote from sparse to dense
+Hyperloglog promote to dense well in different hll-sparse-max-bytes

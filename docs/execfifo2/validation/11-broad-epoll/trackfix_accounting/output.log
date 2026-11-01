@@ -1,0 +1,2 @@
+  row budget: 900s; median=56.29s; correctness-plan-fallback; tracking-only delivery/drop accounting vs Redis 7.4
+  tracking-only delivery/drop accounting vs Redis 7.4  ok

@@ -1,0 +1,16 @@
+  row budget: 900s; median=-s; no-history-conservative-default; B+ held-group GET/MGET filter battery
+  B+ held-group GET/MGET filter battery                ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local lane admission battery
+  read-local lane admission battery                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local MGET fence battery (1s)
+  read-local MGET fence battery (1s)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local GET miss battery (1s)
+  read-local GET miss battery (1s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local one-key delete battery (1s)
+  read-local one-key delete battery (1s)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local MGET fence battery (2s)
+  read-local MGET fence battery (2s)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local GET miss battery (2s)
+  read-local GET miss battery (2s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local one-key delete battery (2s)
+  read-local one-key delete battery (2s)               ok

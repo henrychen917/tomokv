@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/commands-budget-scopes/POST-db0-MGET-2s-1-1--1.log
+SHA-256: 9f185baecebaf94b0a66b124ef2e86e6551ffbb1f1d0adff6a20844b562ca0e4
+Exit: 0
+0x00005555556be85d in tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) ()
+0x00005555556be85e in tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) ()
+0x00005555556be860 in tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) ()
+0x00005555556be862 in tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) ()
+0x00005555556be864 in tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) ()
+0x0000555555de4e22 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:152
+152	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+135	   for(unsigned i=0;i<n;i++){
+0x0000555555de4e2e	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de4e35	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de4e3d	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de4e44	135	   for(unsigned i=0;i<n;i++){
+0x0000555555de4e4a	155	   std::string want="+OK\r\n";
+0x0000555555de4e51	155	   std::string want="+OK\r\n";
+0x0000555555de4e58	154	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 158855) exited normally]
+COUNT 10325

@@ -1,0 +1,47 @@
+[
+  {
+    "path": "climon-mask-old.log",
+    "bytes": 64,
+    "sha256": "ca95f1b5234993a1c673771aad8cd72f26ec79e6faa22a35811cd426beeecb0b"
+  },
+  {
+    "path": "climon-mask.log",
+    "bytes": 231,
+    "sha256": "aaef5e92a375a2c4f7cf4fac1aee5a01e4cf774c1e07f4ac4541542b8fb3ac02"
+  },
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "1c4cef242c036c52235f9d13ca6456ed50b03be51b5fbc532bf959a063ba9bbb"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 54,
+    "sha256": "535dde320afbcebfdd7deed306b332a33a755f44de6c82b90b59fd93494435c4"
+  },
+  {
+    "path": "gate-ring-unit.txt",
+    "bytes": 1852,
+    "sha256": "33ede8c2e1fca7f1bb031277e0d75bef090bdadf940be3f75fee004103f19a07"
+  },
+  {
+    "path": "gate-rlfence-unit.txt",
+    "bytes": 619,
+    "sha256": "2f755b99c6c9ea73dd274ebef8282ae49eb9ffd5924576287653a2e8abe4225c"
+  },
+  {
+    "path": "ledger",
+    "bytes": 149,
+    "sha256": "83adc9b21a4c0a3e6abd44d8200a09bac109476bc1dd69e11dd77bdecc950394"
+  },
+  {
+    "path": "output.log",
+    "bytes": 470,
+    "sha256": "f2f3e2e683ea53fc70951845823b6cdea706398ca0d9a8ef2ce78949bac62dd6"
+  },
+  {
+    "path": "timings",
+    "bytes": 149,
+    "sha256": "83adc9b21a4c0a3e6abd44d8200a09bac109476bc1dd69e11dd77bdecc950394"
+  }
+]

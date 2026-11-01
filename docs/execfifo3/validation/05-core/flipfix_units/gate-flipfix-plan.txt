@@ -1,0 +1,3 @@
+ARMED flipfix-plan-lifetime: 2 planned connections closed during FLIP 5 3, dropped and reaped
+ARMED flipfix-plan-race: 2 planned connections closed during FLIP 5 3, dropped and reaped
+PASS core concurrency flipfix-plan (state assertions fired)

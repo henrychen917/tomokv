@@ -1,0 +1,2 @@
+  row budget: 900s; median=39.12s; correctness-plan-fallback; blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+  blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4 ok

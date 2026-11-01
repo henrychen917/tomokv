@@ -1,0 +1,5 @@
+ORACLE 7.4.10
+ORACLE [[{"bytes": "424c504f50"}, {"bytes": "6c697374"}, {"bytes": "30"}]]
+GEOMETRY {"thread_mode": "2s", "net_io": "epoll", "atomic": "0", "read_local": "0", "shards": "16"}
+TARGET [[{"bytes": "424c504f50"}, {"bytes": "6c697374"}, {"bytes": "30"}]]
+PASS slowlog

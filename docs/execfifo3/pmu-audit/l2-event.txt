@@ -1,0 +1,6 @@
+
+cache:
+  l2_cache_req_stat.ic_dc_miss_in_l2
+       [Core to L2 cache requests (not including L2 prefetch) for data and
+        instruction cache misses. Unit: cpu]
+        cpu/event=0x64,umask=9/

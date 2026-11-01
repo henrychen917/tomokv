@@ -1,0 +1,16 @@
+Keyspace notifications: hash events test (listpackex)
+psubscribe  fails with OOM when memory limit exceeded
+psubscribe succeeds with small pattern but fails with large pattern due to OOM
+psubscribe with 2 clients fails with OOM when memory limit exceeded
+psubscribe with large pattern name fails due to OOM
+publish to self inside multi
+publish to self inside script
+ssubscribe  fails with OOM when memory limit exceeded
+ssubscribe succeeds with small channel but fails with large channel due to OOM
+ssubscribe with 2 clients fails with OOM when memory limit exceeded
+ssubscribe with large shard channel name fails due to OOM
+subscribe  fails with OOM when memory limit exceeded
+subscribe succeeds with small channel but fails with large channel due to OOM
+subscribe with 2 clients fails with OOM when memory limit exceeded
+subscribe with large channel name fails due to OOM
+unsubscribe inside multi, and publish to self

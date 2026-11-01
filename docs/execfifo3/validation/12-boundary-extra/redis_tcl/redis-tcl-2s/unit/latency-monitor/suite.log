@@ -1,0 +1,27 @@
+Starting test server at port 20601
+[ready]: 880238
+[1;37;49mTesting unit/latency-monitor[0m
+[[0;32;49mok[0m]: LATENCY HISTOGRAM with empty histogram (0 ms)
+[[0;32;49mok[0m]: LATENCY HISTOGRAM all commands (1 ms)
+[[0;32;49mok[0m]: LATENCY HISTOGRAM sub commands (0 ms)
+[[0;32;49mok[0m]: LATENCY HISTOGRAM with a subset of commands (0 ms)
+[[0;32;49mok[0m]: LATENCY HISTOGRAM command (1 ms)
+[[0;32;49mok[0m]: LATENCY HISTOGRAM with wrong command name skips the invalid one (0 ms)
+[[0;32;49mok[0m]: Test latency events logging (3402 ms)
+[[0;32;49mok[0m]: LATENCY HISTORY output is ok (0 ms)
+[[0;32;49mok[0m]: LATENCY LATEST output is ok (0 ms)
+[[0;32;49mok[0m]: LATENCY GRAPH can output the event graph (1 ms)
+[[0;33;49mskip[0m]: LATENCY of expire events are correctly collected
+[[0;32;49mok[0m]: LATENCY HISTORY / RESET with wrong event name is fine (0 ms)
+[[0;32;49mok[0m]: LATENCY DOCTOR produces some output (0 ms)
+[[0;32;49mok[0m]: LATENCY RESET is able to reset events (0 ms)
+[[0;32;49mok[0m]: LATENCY HELP should not have unexpected options (0 ms)
+[1/1 [0;33;49mdone[0m]: unit/latency-monitor (3 seconds)
+
+                   The End
+
+Execution time of different units:
+  3 seconds - unit/latency-monitor
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

@@ -1,0 +1,40 @@
+Starting test server at port 20104
+[ready]: 3873214
+[1;37;49mTesting unit/dump[0m
+[[0;32;49mok[0m]: DUMP / RESTORE are able to serialize / unserialize a simple key (1 ms)
+[[0;32;49mok[0m]: RESTORE can set an arbitrary expire to the materialized key (0 ms)
+[[0;32;49mok[0m]: RESTORE can set an expire that overflows a 32 bit integer (0 ms)
+[[0;32;49mok[0m]: RESTORE can set an absolute expire (0 ms)
+[[0;33;49mskip[0m]: RESTORE with ABSTTL in the past
+[[0;33;49mskip[0m]: RESTORE can set LRU
+[[0;33;49mskip[0m]: RESTORE can set LFU
+[[0;32;49mok[0m]: RESTORE returns an error of the key already exists (0 ms)
+[[0;32;49mok[0m]: RESTORE can overwrite an existing key with REPLACE (0 ms)
+[[0;32;49mok[0m]: RESTORE can detect a syntax error for unrecognized options (0 ms)
+[[0;33;49mskip[0m]: RESTORE should not store key that are already expired, with REPLACE will propagate it as DEL or UNLINK
+[[0;33;49mskip[0m]: RESTORE fail with invalid payload size
+[[0;32;49mok[0m]: DUMP of non existing key returns nil (0 ms)
+[[0;36;49mignore[0m]: MIGRATE is caching connections: Not supported on external server
+[[0;33;49mskip[0m]: MIGRATE cached connections are released after some time
+[[0;36;49mignore[0m]: MIGRATE is able to migrate a key between two instances: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE is able to copy a key between two instances: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE will not overwrite existing keys, unless REPLACE is used: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE propagates TTL correctly: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE can correctly transfer large values: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE can correctly transfer hashes: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE timeout actually works: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE can migrate multiple keys at once: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE with multiple keys must have empty key arg: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE with multiple keys migrate just existing ones: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE with multiple keys: stress command rewriting: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE with multiple keys: delete just ack keys: Not supported on external server
+[[0;36;49mignore[0m]: MIGRATE AUTH: correct and wrong password cases: Not supported on external server
+[1/1 [0;33;49mdone[0m]: unit/dump (0 seconds)
+
+                   The End
+
+Execution time of different units:
+  0 seconds - unit/dump
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

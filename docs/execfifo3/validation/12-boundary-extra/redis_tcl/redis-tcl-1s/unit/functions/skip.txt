@@ -1,0 +1,11 @@
+FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread
+FUNCTION - deny oom
+FUNCTION - test debug reload different options
+FUNCTION - test debug reload with nosave and noflush
+FUNCTION - test function kill
+FUNCTION - test function kill not working on eval
+FUNCTION - test script kill not working on function
+FUNCTION - verify OOM on function load and function restore
+FUNCTION - verify allow-omm allows running any command
+LIBRARIES - load timeout
+LIBRARIES - test shared function can access default globals

@@ -729,6 +729,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         for (const auto& stream : state.keys)
             if (stream.shard == shard.id() && !shard.watch_write_ready(blocking_key_slice(stream))) {
                 state.acl_checked = false;
+                shard.note_txn_boundary(Shard::TxnServeNote);
                 return false;
             }
         for (const auto& stream : state.keys) {
@@ -760,6 +761,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         return true;
     }
     if (!shard.watch_write_ready(key_slice)) {
+        shard.note_txn_boundary(Shard::TxnServeNote);
         state.acl_checked = false;
         return false;
     }

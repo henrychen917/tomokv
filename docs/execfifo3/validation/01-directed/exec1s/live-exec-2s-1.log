@@ -1,0 +1,1 @@
+{"case": "exec", "counters": {"blind_clear": 323, "clients_live": 0, "clients_peak": 64, "eager_collapses": 1, "ex_enters": 450, "ex_waits": 13, "extra_passes": 0, "io_enters": 882, "io_waits": 293, "owner_passes": 45003, "record_visits": 0, "wb_exec_holds": 0}, "mode": "2s"}

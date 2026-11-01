@@ -1,0 +1,47 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 56,
+    "sha256": "6cd3376e6d831678581775e33fab9e6ba04370ee19aa5942292eb285cc87ba38"
+  },
+  {
+    "path": "gate-aclreply-1s.txt",
+    "bytes": 732,
+    "sha256": "b68e3961b1da01f6fd7488238c718f2bb1198186e488b091a1f4faea0f4f5b9e"
+  },
+  {
+    "path": "gate-aclreply-2s.txt",
+    "bytes": 732,
+    "sha256": "b68e3961b1da01f6fd7488238c718f2bb1198186e488b091a1f4faea0f4f5b9e"
+  },
+  {
+    "path": "gate-srv-fused.GWZq4U",
+    "bytes": 10778,
+    "sha256": "bfed978c2feaf3e69f8d2a0cf23a99b24eacb5ed1587b3c9a016bc29f43334f3"
+  },
+  {
+    "path": "gate-srv-main.aRC4Uv",
+    "bytes": 9841,
+    "sha256": "7da508246b4053ec9dad0ee6fa809f54edf2c389c8c0731a57fb283c133d07f4"
+  },
+  {
+    "path": "ledger",
+    "bytes": 94,
+    "sha256": "84a8238fe082601f09a1be60794fcb095c5e39f93cfc66e1dd02b418653746f9"
+  },
+  {
+    "path": "output.log",
+    "bytes": 306,
+    "sha256": "0c5771a313e64ca5be7cdcc6ecb7ca08a6c8968d6b169e8ca0beaa7fb62516c4"
+  },
+  {
+    "path": "timings",
+    "bytes": 94,
+    "sha256": "84a8238fe082601f09a1be60794fcb095c5e39f93cfc66e1dd02b418653746f9"
+  }
+]

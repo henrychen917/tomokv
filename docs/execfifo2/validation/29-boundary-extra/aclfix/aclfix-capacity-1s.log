@@ -1,0 +1,5 @@
+{"command": ["taskset", "-c", "0-7", "/home/user/Projects/cx-execfifo2/build/tomokv", "--bind", "127.0.0.1", "--port", "20100", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/aclfix/aclfix-capacity-1s", "--aclfile", "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/aclfix/aclfix-capacity-1s/users.acl", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "1"], "case": "capacity"}
+65535 create/delete pairs; extra creations: b'OK' b'OK'
+live-slot boundary: two exact RespError(b'ERR out of memory') replies
+SIGTERM exit 0
+aclfix capacity PASS (2.007s)

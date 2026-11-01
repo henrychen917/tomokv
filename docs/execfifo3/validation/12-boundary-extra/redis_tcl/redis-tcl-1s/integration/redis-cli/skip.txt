@@ -1,0 +1,5 @@
+Connecting as a replica
+Dumping an RDB - functions only: no
+Dumping an RDB - functions only: yes
+Non-interactive non-TTY CLI: ASK redirect test
+Non-interactive non-TTY CLI: Test command-line hinting - latest server

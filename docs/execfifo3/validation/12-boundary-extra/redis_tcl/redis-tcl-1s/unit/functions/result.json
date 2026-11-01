@@ -1,0 +1,1390 @@
+{
+  "file": "unit/functions",
+  "mode": "1s",
+  "passed": 86,
+  "failed": 0,
+  "skipped": 14,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 0.21910547837615013,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--port",
+    "20600",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/functions/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20602",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/functions",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.Lft6D1/jobs/redis_tcl/redis-tcl-1s/unit/functions/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "917467",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Basic usage in tests/unit/functions.tcl",
+      "data": "FUNCTION - Basic usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Basic usage in tests/unit/functions.tcl",
+      "data": "FUNCTION - Basic usage",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Load with unknown argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - Load with unknown argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Load with unknown argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - Load with unknown argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create an already exiting library raise error in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create an already exiting library raise error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create an already exiting library raise error in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create an already exiting library raise error",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create an already exiting library raise error (case insensitive) in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create an already exiting library raise error (case insensitive)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create an already exiting library raise error (case insensitive) in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create an already exiting library raise error (case insensitive)",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create a library with wrong name format in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create a library with wrong name format",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create a library with wrong name format in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create a library with wrong name format",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create library with unexisting engine in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create library with unexisting engine",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Create library with unexisting engine in tests/unit/functions.tcl",
+      "data": "FUNCTION - Create library with unexisting engine",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Test uncompiled script in tests/unit/functions.tcl",
+      "data": "FUNCTION - Test uncompiled script",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - Test uncompiled script in tests/unit/functions.tcl",
+      "data": "FUNCTION - Test uncompiled script",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test replace argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test replace argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test replace argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test replace argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function case insensitive in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function case insensitive",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function case insensitive in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function case insensitive",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test replace argument with failure keeps old libraries in tests/unit/functions.tcl",
+      "data": "FUNCTION - test replace argument with failure keeps old libraries",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test replace argument with failure keeps old libraries in tests/unit/functions.tcl",
+      "data": "FUNCTION - test replace argument with failure keeps old libraries",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function delete in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function delete",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function delete in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function delete",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall bad arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall bad arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall bad arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall bad arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall bad number of keys arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall bad number of keys arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall bad number of keys arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall bad number of keys arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall negative number of keys in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall negative number of keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall negative number of keys in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall negative number of keys",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test delete on not exiting library in tests/unit/functions.tcl",
+      "data": "FUNCTION - test delete on not exiting library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test delete on not exiting library in tests/unit/functions.tcl",
+      "data": "FUNCTION - test delete on not exiting library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function kill when function is not running in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function kill when function is not running",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function kill when function is not running in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function kill when function is not running",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test wrong subcommand in tests/unit/functions.tcl",
+      "data": "FUNCTION - test wrong subcommand",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test wrong subcommand in tests/unit/functions.tcl",
+      "data": "FUNCTION - test wrong subcommand",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test loading from rdb in tests/unit/functions.tcl",
+      "data": "FUNCTION - test loading from rdb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test loading from rdb in tests/unit/functions.tcl",
+      "data": "FUNCTION - test loading from rdb",
+      "milliseconds": "1"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - test debug reload different options",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - test debug reload with nosave and noflush",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test flushall and flushdb do not clean functions in tests/unit/functions.tcl",
+      "data": "FUNCTION - test flushall and flushdb do not clean functions",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test flushall and flushdb do not clean functions in tests/unit/functions.tcl",
+      "data": "FUNCTION - test flushall and flushdb do not clean functions",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore with flush argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore with flush argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore with flush argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore with flush argument",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore with append argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore with append argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore with append argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore with append argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore with replace argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore with replace argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function dump and restore with replace argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function dump and restore with replace argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function restore with bad payload do not drop existing functions in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function restore with bad payload do not drop existing functions",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function restore with bad payload do not drop existing functions in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function restore with bad payload do not drop existing functions",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function restore with wrong number of arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function restore with wrong number of arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function restore with wrong number of arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function restore with wrong number of arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall_ro with write command in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall_ro with write command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall_ro with write command in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall_ro with write command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall_ro with read only commands in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall_ro with read only commands",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test fcall_ro with read only commands in tests/unit/functions.tcl",
+      "data": "FUNCTION - test fcall_ro with read only commands",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test keys and argv in tests/unit/functions.tcl",
+      "data": "FUNCTION - test keys and argv",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test keys and argv in tests/unit/functions.tcl",
+      "data": "FUNCTION - test keys and argv",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test command get keys on fcall in tests/unit/functions.tcl",
+      "data": "FUNCTION - test command get keys on fcall",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test command get keys on fcall in tests/unit/functions.tcl",
+      "data": "FUNCTION - test command get keys on fcall",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test command get keys on fcall_ro in tests/unit/functions.tcl",
+      "data": "FUNCTION - test command get keys on fcall_ro",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test command get keys on fcall_ro in tests/unit/functions.tcl",
+      "data": "FUNCTION - test command get keys on fcall_ro",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - test function kill",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - test script kill not working on function",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - test function kill not working on eval",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function flush in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function flush",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function flush in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function flush",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function wrong argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function wrong argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function wrong argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function wrong argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION can processes create, delete and flush commands in AOF when doing \"debug loadaof\" in read-only slaves: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "LIBRARIES - test shared function can access default globals",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - usage and code sharing in tests/unit/functions.tcl",
+      "data": "LIBRARIES - usage and code sharing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - usage and code sharing in tests/unit/functions.tcl",
+      "data": "LIBRARIES - usage and code sharing",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration failure revert the entire load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration failure revert the entire load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration failure revert the entire load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration failure revert the entire load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration function name collision in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration function name collision",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration function name collision in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration function name collision",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration function name collision on same library in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration function name collision on same library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration function name collision on same library in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration function name collision on same library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with no argument in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with no argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with no argument in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with no argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with only name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with only name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with only name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with only name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with to many arguments in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with to many arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with to many arguments in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with to many arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with no string name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with no string name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with no string name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with no string name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with wrong name format in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with wrong name format",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with wrong name format in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with wrong name format",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with empty name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with empty name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - test registration with empty name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - test registration with empty name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - math.random from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - math.random from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - math.random from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - math.random from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.call from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.call from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.call from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.call from function load",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.setresp from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.setresp from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.setresp from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.setresp from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.set_repl from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.set_repl from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.set_repl from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.set_repl from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.acl_check_cmd from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.acl_check_cmd from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - redis.acl_check_cmd from function load in tests/unit/functions.tcl",
+      "data": "LIBRARIES - redis.acl_check_cmd from function load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - malicious access test in tests/unit/functions.tcl",
+      "data": "LIBRARIES - malicious access test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - malicious access test in tests/unit/functions.tcl",
+      "data": "LIBRARIES - malicious access test",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - delete removed all functions on library in tests/unit/functions.tcl",
+      "data": "LIBRARIES - delete removed all functions on library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - delete removed all functions on library in tests/unit/functions.tcl",
+      "data": "LIBRARIES - delete removed all functions on library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - register function inside a function in tests/unit/functions.tcl",
+      "data": "LIBRARIES - register function inside a function",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - register function inside a function in tests/unit/functions.tcl",
+      "data": "LIBRARIES - register function inside a function",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - register library with no functions in tests/unit/functions.tcl",
+      "data": "LIBRARIES - register library with no functions",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - register library with no functions in tests/unit/functions.tcl",
+      "data": "LIBRARIES - register library with no functions",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "LIBRARIES - load timeout",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - verify global protection on the load run in tests/unit/functions.tcl",
+      "data": "LIBRARIES - verify global protection on the load run",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - verify global protection on the load run in tests/unit/functions.tcl",
+      "data": "LIBRARIES - verify global protection on the load run",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, bad function name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, bad function name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, bad function name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, bad function name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, bad callback type in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, bad callback type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, bad callback type in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, bad callback type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, bad description in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, bad description",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, bad description in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, bad description",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, unknown argument in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, unknown argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, unknown argument in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, unknown argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, missing function name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, missing function name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, missing function name in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, missing function name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, missing callback in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, missing callback",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "LIBRARIES - named arguments, missing callback in tests/unit/functions.tcl",
+      "data": "LIBRARIES - named arguments, missing callback",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function restore with function name collision in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function restore with function name collision",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function restore with function name collision in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function restore with function name collision",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with code in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with code",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with code in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with code",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with pattern in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with pattern",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with pattern in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with pattern",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list wrong argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list wrong argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list wrong argument in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list wrong argument",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with bad argument to library name in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with bad argument to library name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with bad argument to library name in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with bad argument to library name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list withcode multiple times in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list withcode multiple times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list withcode multiple times in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list withcode multiple times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list libraryname multiple times in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list libraryname multiple times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list libraryname multiple times in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list libraryname multiple times",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - verify OOM on function load and function restore",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - verify allow-omm allows running any command",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with CRLF injection attempt in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with CRLF injection attempt",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function list with CRLF injection attempt in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function list with CRLF injection attempt",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - wrong flags type named arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - wrong flags type named arguments",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - wrong flags type named arguments in tests/unit/functions.tcl",
+      "data": "FUNCTION - wrong flags type named arguments",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - wrong flag type in tests/unit/functions.tcl",
+      "data": "FUNCTION - wrong flag type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - wrong flag type in tests/unit/functions.tcl",
+      "data": "FUNCTION - wrong flag type",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - unknown flag in tests/unit/functions.tcl",
+      "data": "FUNCTION - unknown flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - unknown flag in tests/unit/functions.tcl",
+      "data": "FUNCTION - unknown flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - write script on fcall_ro in tests/unit/functions.tcl",
+      "data": "FUNCTION - write script on fcall_ro",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - write script on fcall_ro in tests/unit/functions.tcl",
+      "data": "FUNCTION - write script on fcall_ro",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - write script with no-writes flag in tests/unit/functions.tcl",
+      "data": "FUNCTION - write script with no-writes flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - write script with no-writes flag in tests/unit/functions.tcl",
+      "data": "FUNCTION - write script with no-writes flag",
+      "milliseconds": "0"
+    },
+    {
+      "status": "skip",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - deny oom",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - deny oom on no-writes function in tests/unit/functions.tcl",
+      "data": "FUNCTION - deny oom on no-writes function",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - deny oom on no-writes function in tests/unit/functions.tcl",
+      "data": "FUNCTION - deny oom on no-writes function",
+      "milliseconds": "1"
+    },
+    {
+      "status": "ignore",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "FUNCTION - allow stale: Not supported on external server",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - redis version api in tests/unit/functions.tcl",
+      "data": "FUNCTION - redis version api",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - redis version api in tests/unit/functions.tcl",
+      "data": "FUNCTION - redis version api",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats reloaded correctly from rdb in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats reloaded correctly from rdb",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats reloaded correctly from rdb in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats reloaded correctly from rdb",
+      "milliseconds": "1"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats delete library in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats delete library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats delete library in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats delete library",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function stats on loading failure in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function stats on loading failure",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test function stats on loading failure in tests/unit/functions.tcl",
+      "data": "FUNCTION - test function stats on loading failure",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats cleaned after flush in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats cleaned after flush",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function stats cleaned after flush in tests/unit/functions.tcl",
+      "data": "FUNCTION - function stats cleaned after flush",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test empty engine in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test empty engine",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test empty engine in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test empty engine",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test unknown metadata value in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test unknown metadata value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test unknown metadata value in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test unknown metadata value",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test no name in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test no name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test no name in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test no name",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test multiple names in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test multiple names",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test multiple names in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test multiple names",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test name with quotes in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test name with quotes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - function test name with quotes in tests/unit/functions.tcl",
+      "data": "FUNCTION - function test name with quotes",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - trick global protection 1 in tests/unit/functions.tcl",
+      "data": "FUNCTION - trick global protection 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - trick global protection 1 in tests/unit/functions.tcl",
+      "data": "FUNCTION - trick global protection 1",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test getmetatable on script load in tests/unit/functions.tcl",
+      "data": "FUNCTION - test getmetatable on script load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/functions.tcl",
+      "test": "FUNCTION - test getmetatable on script load in tests/unit/functions.tcl",
+      "data": "FUNCTION - test getmetatable on script load",
+      "milliseconds": "0"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "unit/functions",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/functions.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

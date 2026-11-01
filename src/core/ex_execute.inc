@@ -7,6 +7,13 @@
         if (multi_task_tagged(t)) {
             Shard& shard = srv_->shard(t.shard);
             shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            // A remote decision may arrive midway through an inbox batch. Give
+            // a previously refused markless waiter the newly opened gap before
+            // this fresh unit places. A refusal closes chaining only; the note
+            // never becomes an additional placement predicate (H3/B9).
+            if (shard.txn_boundary_notes() && !multi_retries_.chaining &&
+                !multi_task_continuation(t))
+                service_txn_boundary<IofusedPrivateQueue>();
             // PROGRAM ORDER: a transaction fragment must not run past an older same-connection
             // task parked in atomic_deferred_/xshard_retries_ on this shard. This branch used to
             // skip the check entirely, so a pipelined EXEC's child executed before the
@@ -61,10 +68,12 @@
                 }));
             if (result == MultiTaskResult::RetrySoon) {
                 queue_fast_multi_retry(t);
+                service_multi_chain<IofusedPrivateQueue>();
                 return true;
             }
             if (result == MultiTaskResult::Retry) {
                 queue_multi_retry(t);
+                service_multi_chain<IofusedPrivateQueue>();
                 return true;
             }
             if (result == MultiTaskResult::Final) {
@@ -75,6 +84,8 @@
                 public_op.state.store(OpState::Done, std::memory_order_release);
                 notify_sender(t.client);
             }
+            if (!multi_retries_.chaining) service_txn_boundary<IofusedPrivateQueue>();
+            service_multi_chain<IofusedPrivateQueue>();
             return true;
         }
         if (!t.client) {

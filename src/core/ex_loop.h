@@ -759,6 +759,7 @@ public:
 private:
     friend class IoLoop;
     friend struct CoreConcurrencyTest;
+    friend struct TxnChainTest;
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
@@ -2587,7 +2588,10 @@ private:
     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
         const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
-        const MultiRetryPromoter promoter{this, promote};
+        const MultiRetryPromoter promoter{this, promote,
+            [](void* loop, const void* token, int32_t sid) {
+                static_cast<ExLoopT*>(loop)->promote_deferred_writer(token, sid);
+            }};
 #ifdef TOMO_EXEC1S_DEBUG
         Exec1sVisitScope visits(self_->id());
 #endif
@@ -2602,28 +2606,39 @@ private:
     __attribute__((noinline)) void queue_multi_retry(const Task& task) {
         multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
     }
+    void promote_deferred_writer(const void* token, int32_t sid) {
+        if (txn_promote_deferred_writer(atomic_deferred_, token, sid))
+            srv_->note_txn(self_->id(), TxnCounter::WriterPromotions);
+    }
     void promote_multi_retry(MultiOwnerRetryNode& node) {
-        multi_retries_.promote(node);
+        multi_retries_.make_runnable(node);
         ring_fused_owner();
     }
+
+#include "ex_txn_chain.inc"
 
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {
         if (multi_retries_.empty()) return 0;
         // Snapshot the prefix and reserve the original rotation head. Promotions
         // and demotions append behind it, exactly as in the former deque.
+        const bool nested = multi_retries_.chaining;
+        multi_retries_.chaining = true;
         const uint32_t fast = multi_retries_.fast_count;
         const bool rotate = multi_retries_.rotation_head != nullptr;
         Task rotation{};
         if (rotate) rotation = multi_retries_.pop(false);
-        for (uint32_t i = 0; i < fast; ++i) {
+        for (uint32_t i = 0; i < fast && multi_retries_.fast_head; ++i) {
+            service_txn_boundary<IofusedPrivateQueue>();
+            if (!multi_retries_.fast_head) break;
             const Task task = multi_retries_.pop(true);
             srv_->note_txn(self_->id(), TxnCounter::FastPolls);
             execute_resumed<IofusedPrivateQueue>(task);
         }
         // Always advance the rotation too: a fast waiter may depend on it.
         if (rotate) execute_resumed<IofusedPrivateQueue>(rotation);
-        return fast + rotate;
+        multi_retries_.chaining = nested;
+        return fast + rotate + service_multi_chain<IofusedPrivateQueue>();
     }
 
     template <bool IofusedPrivateQueue = false>

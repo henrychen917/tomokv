@@ -371,6 +371,7 @@ void controls(Server& server, const std::string& name) {
 }
 }
 
+#ifndef TOMO_TXNORDER_EPISODES_LIBRARY
 int main(int argc,char** argv) {
     require(argc==2 || argc==4,"R-family case [1s|2s atomic]");
     require(command_registry_init(false),"command registry");
@@ -389,3 +390,5 @@ int main(int argc,char** argv) {
     release_records(server);
     std::printf("PASS %s\n",name.c_str());
 }
+
+#endif

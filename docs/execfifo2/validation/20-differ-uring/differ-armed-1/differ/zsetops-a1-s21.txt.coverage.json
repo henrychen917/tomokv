@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 357,
+    "SADD": 311,
+    "ZADD": 971,
+    "ZDIFF": 356,
+    "ZDIFFSTORE": 290,
+    "ZINTER": 303,
+    "ZINTERCARD": 302,
+    "ZINTERSTORE": 321,
+    "ZRANGE": 328,
+    "ZUNION": 336,
+    "ZUNIONSTORE": 325
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZDIFF": [
+      "reply"
+    ],
+    "ZDIFFSTORE": [
+      "reply"
+    ],
+    "ZINTER": [
+      "reply"
+    ],
+    "ZINTERCARD": [
+      "reply"
+    ],
+    "ZINTERSTORE": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ],
+    "ZUNION": [
+      "reply"
+    ],
+    "ZUNIONSTORE": [
+      "reply"
+    ]
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "mode": "2s",
+  "net_io": "uring",
+  "databases": 1,
+  "atomic": 0,
+  "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "rows": [
+    {
+      "root": "LUA-REDIS-API",
+      "steps": [
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply('MY_ERR custom msg')",
+            "0"
+          ],
+          "equal": true,
+          "target": "-MY_ERR custom msg\r\n",
+          "redis": "-MY_ERR custom msg\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.status_reply('MY_OK custom msg')",
+            "0"
+          ],
+          "equal": true,
+          "target": "+MY_OK custom msg\r\n",
+          "redis": "+MY_OK custom msg\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.log(redis.LOG_NOTICE,'x') return 1",
+            "0"
+          ],
+          "equal": true,
+          "target": ":1\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.REDIS_VERSION_NUM",
+            "0"
+          ],
+          "equal": true,
+          "target": ":459786\r\n",
+          "redis": ":459786\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply('')",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR \r\n",
+          "redis": "-ERR \r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply('message')",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR message\r\n",
+          "redis": "-ERR message\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply('-CUSTOM detail')",
+            0
+          ],
+          "equal": true,
+          "target": "-CUSTOM detail\r\n",
+          "redis": "-CUSTOM detail\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply('X a\\r\\nb')",
+            0
+          ],
+          "equal": true,
+          "target": "-X a  b\r\n",
+          "redis": "-X a  b\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply('X a\\0b')",
+            0
+          ],
+          "equal": true,
+          "target": "-X a\r\n",
+          "redis": "-X a\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.error_reply(1)",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR wrong number or type of arguments\r\n",
+          "redis": "-ERR wrong number or type of arguments\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.status_reply(1)",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR wrong number or type of arguments\r\n",
+          "redis": "-ERR wrong number or type of arguments\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.status_reply('a\\r\\nb')",
+            0
+          ],
+          "equal": true,
+          "target": "+a  b\r\n",
+          "redis": "+a  b\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return {redis.REDIS_VERSION,redis.REDIS_VERSION_NUM}",
+            0
+          ],
+          "equal": true,
+          "target": "*2\r\n$6\r\n7.4.10\r\n:459786\r\n",
+          "redis": "*2\r\n$6\r\n7.4.10\r\n:459786\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.log()",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR redis.log() requires two arguments or more. script: 832b44eaff8743413d7a371df1c038871278515a, on @user_script:1.\r\n",
+          "redis": "-ERR redis.log() requires two arguments or more. script: 832b44eaff8743413d7a371df1c038871278515a, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.log({},'x')",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR First argument must be a number (log level). script: 969ca7ac7724131d5f15c92cb843b98dbb772328, on @user_script:1.\r\n",
+          "redis": "-ERR First argument must be a number (log level). script: 969ca7ac7724131d5f15c92cb843b98dbb772328, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.log(4,'x')",
+            0
+          ],
+          "equal": true,
+          "target": "-ERR Invalid log level. script: 88845e85aedaeb65aa1529c40efdd06f7b799faf, on @user_script:1.\r\n",
+          "redis": "-ERR Invalid log level. script: 88845e85aedaeb65aa1529c40efdd06f7b799faf, on @user_script:1.\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "redis.log(redis.LOG_DEBUG,'x') return 1",
+            0
+          ],
+          "equal": true,
+          "target": ":1\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "eval",
+            "return redis.replicate_commands()",
+            0
+          ],
+          "equal": true,
+          "target": ":1\r\n",
+          "redis": ":1\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "function",
+            "load",
+            "replace",
+            "#!lua name=extra\nlocal version=redis.REDIS_VERSION_NUM redis.log(redis.LOG_NOTICE,'load') redis.register_function('api',function() return {version,redis.REDIS_VERSION} end)"
+          ],
+          "equal": true,
+          "target": "$5\r\nextra\r\n",
+          "redis": "$5\r\nextra\r\n"
+        },
+        {
+          "c": "a",
+          "send": [
+            "fcall",
+            "api",
+            0
+          ],
+          "equal": true,
+          "target": "*2\r\n:459786\r\n$6\r\n7.4.10\r\n",
+          "redis": "*2\r\n:459786\r\n$6\r\n7.4.10\r\n"
+        }
+      ],
+      "differences": 0
+    }
+  ],
+  "target_argv": [
+    "taskset",
+    "-c",
+    "96-103",
+    "/home/user/Projects/cx-execfifo3/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20600",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.hxIGt2/jobs/scriptfix2/LUA-REDIS-API-2s-uring-db1-a0/target",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "1",
+    "--net-io",
+    "uring",
+    "--atomic",
+    "0",
+    "--flip-auto",
+    "0",
+    "--ratio",
+    "6:2"
+  ],
+  "oracle_argv": [
+    "taskset",
+    "-c",
+    "104-111",
+    "/home/user/Projects/redis/src/redis-server",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "20601",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo3/build/gate-run.hxIGt2/jobs/scriptfix2/LUA-REDIS-API-2s-uring-db1-a0/redis",
+    "--enable-debug-command",
+    "yes"
+  ]
+}

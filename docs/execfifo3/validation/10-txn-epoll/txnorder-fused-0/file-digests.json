@@ -1,0 +1,42 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 61,
+    "sha256": "dcde9d9e25cb806415d19e27504942d49174d58c3f4825214bf712656a05ef1d"
+  },
+  {
+    "path": "gate-srv-fused.IwZG4a",
+    "bytes": 11211,
+    "sha256": "0bc8e41fbaf9e8bf6cad66863021a44289f22c9664054ff528e0b1a30a0c690f"
+  },
+  {
+    "path": "gate-srv-fused.tEb9jN",
+    "bytes": 11414,
+    "sha256": "24c8d414a8726ef377da9e4a117043a77647d124395e9a96d8ccfd354cdfb6cc"
+  },
+  {
+    "path": "ledger",
+    "bytes": 48,
+    "sha256": "823bde92e0fa26ac684e8e4c53bb7040f6a9dab9bdef23e6179ceaa9310c24bc"
+  },
+  {
+    "path": "output.log",
+    "bytes": 155,
+    "sha256": "918184bb51fabad9ace9f284ee4ba7298c2628c172703c3459870d938a509b39"
+  },
+  {
+    "path": "timings",
+    "bytes": 48,
+    "sha256": "823bde92e0fa26ac684e8e4c53bb7040f6a9dab9bdef23e6179ceaa9310c24bc"
+  },
+  {
+    "path": "txnorder-2s-0.txt",
+    "bytes": 5535,
+    "sha256": "40f7e1c257dba755a2295e72015369da2ac335fec18b6e20de250028408145c1"
+  }
+]

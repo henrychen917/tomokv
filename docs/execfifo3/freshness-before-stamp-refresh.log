@@ -1,0 +1,9 @@
+60 make -q checks; pass False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-execfifo3/tools/execfifo3_freshness.py", line 31, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/user/Projects/cx-execfifo3/tools/execfifo3_freshness.py", line 30, in main
+    print(len(rows),'make -q checks; pass',record['passed']);assert record['passed']
+                                                                    ~~~~~~^^^^^^^^^^
+AssertionError

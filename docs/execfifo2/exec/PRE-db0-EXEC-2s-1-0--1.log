@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/exec-scopes/PRE-db0-EXEC-2s-1-0--1.log
+SHA-256: 3f2b4bf88118babe6f00e42cd7e932e9bcffccb0faa9fb03b6c92c17c5a5bbd5
+Exit: 0
+0x00005555556bdcc2	3131	}
+0x00005555556bdcc3	3131	}
+0x00005555556bdcc4	3131	}
+0x00005555556bdcc6	3131	}
+0x00005555556bdcc8	3131	}
+tomo_db0::CoreConcurrencyTest::need (line=190, v=true) at /home/user/Projects/cx-execfifo2/tests/exec1sd_scope.cc:43
+43	 static void need(bool v,unsigned line=__builtin_LINTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+E()){if(!v){std::fprintf(stderr,"scope assertion line %u\n",line);std::abort();}}
+0x0000555555de09dc	43	 static void need(bool v,unsigned line=__builtin_LINE()){if(!v){std::fprintf(stderr,"scope assertion line %u\n",line);std::abort();}}
+0x0000555555de09e3	43	 static void need(bool v,unsigned line=__builtin_LINE()){if(!v){std::fprintf(stderr,"scope assertion line %u\n",line);std::abort();}}
+0x0000555555de09e9 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=1, atomic=atomic@entry=false, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execfifo2/tests/exec1sd_scope.cc:191
+191	   if(!depth_case) scope_end();
+0x0000555555de09f0	191	   if(!depth_case) scope_end();
+0x0000555555de112b	191	   if(!depth_case) scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/exec1sd_scope.cc:35
+35	[[gnu::noinline]] void scope_end(){
+[Inferior 1 (process 590895) exited normally]
+COUNT 10859

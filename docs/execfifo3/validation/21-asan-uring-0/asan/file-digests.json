@@ -1,0 +1,32 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 49,
+    "sha256": "e429204c3c6b906d1ed53bd683d43ee8011e6d081e48a10f1122104a7c762ecb"
+  },
+  {
+    "path": "gate-asan-build.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "ledger",
+    "bytes": 24,
+    "sha256": "596411687a7c2d98aeaad9e2f0226528a6b45244be022448b921b0bcb607c781"
+  },
+  {
+    "path": "output.log",
+    "bytes": 133,
+    "sha256": "33349f5ef14559c92dfbff55344b811b8eaf6ae20b8fe2c839e612659712d309"
+  },
+  {
+    "path": "timings",
+    "bytes": 24,
+    "sha256": "596411687a7c2d98aeaad9e2f0226528a6b45244be022448b921b0bcb607c781"
+  }
+]

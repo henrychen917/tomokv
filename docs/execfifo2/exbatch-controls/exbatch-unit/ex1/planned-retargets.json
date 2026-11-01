@@ -1,0 +1,24 @@
+{
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "group": "ex1",
+  "source_sha256": "8da646cbbc31e97b22fb1f4074b6e7d2a70ca9bdaf6f839284dd8709ec3118cd",
+  "inventory": {
+    "3": 86,
+    "30": 10,
+    "6": 3,
+    "1": 1
+  },
+  "patches": [
+    {
+      "address": 3800616,
+      "offset": 3800616,
+      "target": 3800720,
+      "item": 1,
+      "before": "0f1f440000",
+      "after": "e963000000",
+      "functions": [
+        "_ZN4tomo5Shard12publish_sizeEv"
+      ]
+    }
+  ]
+}

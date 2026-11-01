@@ -1,0 +1,123 @@
+{
+  "kind": "Serverless mechanism control; not a measurement PAD arm",
+  "group": "watch-no-update",
+  "source_sha256": "8da646cbbc31e97b22fb1f4074b6e7d2a70ca9bdaf6f839284dd8709ec3118cd",
+  "inventory": {
+    "3": 86,
+    "30": 10,
+    "6": 3,
+    "1": 1
+  },
+  "patches": [
+    {
+      "address": 614777,
+      "offset": 614777,
+      "target": 614528,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e902ffffff",
+      "functions": [
+        "_ZN4tomo5Shard19watch_writer_unmarkENS_5SliceEPKvb"
+      ]
+    },
+    {
+      "address": 615373,
+      "offset": 615373,
+      "target": 615401,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e917000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_writer_forgetEPKv"
+      ]
+    },
+    {
+      "address": 616030,
+      "offset": 616030,
+      "target": 616040,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e905000000",
+      "functions": [
+        "_ZN4tomo5Shard24watch_append_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS_14TxnReservationEPNS_9TxnWaiterE"
+      ]
+    },
+    {
+      "address": 619708,
+      "offset": 619708,
+      "target": 619661,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9ccffffff",
+      "functions": [
+        "_ZN4tomo5Shard26watch_finalize_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 620895,
+      "offset": 620895,
+      "target": 620640,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9fcfeffff",
+      "functions": [
+        "_ZN4tomo5Shard20watch_key_ready_implILb0EEEbRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPKvbm.isra.0"
+      ]
+    },
+    {
+      "address": 637174,
+      "offset": 637174,
+      "target": 637067,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN4tomo5Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 646167,
+      "offset": 646167,
+      "target": 645904,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9f4feffff",
+      "functions": [
+        "_ZN4tomo5Shard12watch_removeENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 649097,
+      "offset": 649097,
+      "target": 648880,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e922ffffff",
+      "functions": [
+        "_ZN4tomo5Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 845652,
+      "offset": 845652,
+      "target": 845675,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e912000000",
+      "functions": [
+        "_ZN4tomo5Shard19refresh_has_watchesEv"
+      ]
+    },
+    {
+      "address": 992344,
+      "offset": 992344,
+      "target": 992000,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e9a3feffff",
+      "functions": [
+        "_ZN4tomo5Shard20watch_key_ready_implILb1EEEbRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPKvbm"
+      ]
+    }
+  ]
+}

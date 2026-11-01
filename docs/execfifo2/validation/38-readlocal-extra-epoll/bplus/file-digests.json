@@ -1,0 +1,77 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "c37cc28888babd1bc975713a1051d758f94bf2d7219dd6afcad59de97afa8a8b"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 50,
+    "sha256": "d31689bece6e054aa2b8e320f1b259a36358eb4c7acc16ce70b4d0f6c580356e"
+  },
+  {
+    "path": "gate-bplus.txt",
+    "bytes": 1228,
+    "sha256": "fd0e03f2b4391dcc9bddcefee7c0cd9b665f1b55e9c9b5e45e5827f889336d2e"
+  },
+  {
+    "path": "gate-read-local-lane.txt",
+    "bytes": 1242,
+    "sha256": "b706f168fcf200b730ff7ff81d45f2d1cb216ece4dbe8743236b22619a561864"
+  },
+  {
+    "path": "gate-rlfence-1s.txt",
+    "bytes": 243,
+    "sha256": "306fb268bbd1e614778ec9dad9f2ed9bf2b787036bc9f52ae6939d22d3101059"
+  },
+  {
+    "path": "gate-rlfence-2s.txt",
+    "bytes": 243,
+    "sha256": "306fb268bbd1e614778ec9dad9f2ed9bf2b787036bc9f52ae6939d22d3101059"
+  },
+  {
+    "path": "gate-rlfix-del-1s.txt",
+    "bytes": 2847,
+    "sha256": "2c6c23437a312e9c2092af787daaa0ec27b7abc0eb2116ab7cc84fb46ae2dbea"
+  },
+  {
+    "path": "gate-rlfix-del-2s.txt",
+    "bytes": 2847,
+    "sha256": "6cf0d4effc944a311c55838d85c69ee9ba8038c15ecd9f709dfff51a760bd622"
+  },
+  {
+    "path": "gate-rlfix-miss-1s.txt",
+    "bytes": 7229,
+    "sha256": "405b466eac2b8d431de64762134824ae7ae9ef064d2370d522f0395487de956c"
+  },
+  {
+    "path": "gate-rlfix-miss-2s.txt",
+    "bytes": 7229,
+    "sha256": "405b466eac2b8d431de64762134824ae7ae9ef064d2370d522f0395487de956c"
+  },
+  {
+    "path": "gate-srv-fused.HT9VUn",
+    "bytes": 10915,
+    "sha256": "4dba31d2f9608b9fd9c47b2d8ef853b49fe637ca4e82180f6e179b133e62c027"
+  },
+  {
+    "path": "gate-srv-main.4niI5H",
+    "bytes": 10007,
+    "sha256": "9d579b35e858992588389951b63e813f7845d394c8320d25b27868075d933f00"
+  },
+  {
+    "path": "ledger",
+    "bytes": 382,
+    "sha256": "d366f328835666837d5ce043a44da2815e670886bfc52475ab8afe062e14de00"
+  },
+  {
+    "path": "output.log",
+    "bytes": 1238,
+    "sha256": "775c23623eecabbe2f0a7d7579b4e672300bd09c34dd68c2eb088e101975b0a0"
+  },
+  {
+    "path": "timings",
+    "bytes": 382,
+    "sha256": "d366f328835666837d5ce043a44da2815e670886bfc52475ab8afe062e14de00"
+  }
+]

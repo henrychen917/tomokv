@@ -1,0 +1,54 @@
+Starting test server at port 20104
+[ready]: 3954676
+[1;37;49mTesting unit/type/list-3[0m
+[[0;32;49mok[0m]: Explicit regression for a list bug (0 ms)
+[[0;32;49mok[0m]: Regression for quicklist #3343 bug (123 ms)
+[[0;33;49mskip[0m]: Check compression with recompress
+[[0;33;49mskip[0m]: Crash due to wrongly recompress after lrem
+[[0;33;49mskip[0m]: LINSERT correctly recompress full quicklistNode after inserting a element before it
+[[0;33;49mskip[0m]: LINSERT correctly recompress full quicklistNode after inserting a element after it
+[[0;31;49merr[0m]: n option or number of arguments for CONFIG SET - 'list-compress-depth'
+ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'
+    while executing
+"error $err"
+    (procedure "config_set" line 16)
+    invoked from within
+"config_set list-compress-depth $comp"
+    ("foreach" body line 4)
+    invoked from within
+"foreach comp {2 1 0} {
+    set cycles 1000
+    if {$::accurate} { set cycles 10000 }
+    config_set list-compress-depth $comp
+    
+    test "Stress te..."
+    ("uplevel" body line 81)
+    invoked from within
+"uplevel 2 $code"
+[1/1 [0;33;49mdone[0m]: unit/type/list-3 (0 seconds)
+
+                   The End
+
+Execution time of different units:
+  0 seconds - unit/type/list-3
+
+[1;31;49m!!! WARNING[0m The following tests failed:
+
+*** [[0;31;49merr[0m]: n option or number of arguments for CONFIG SET - 'list-compress-depth'
+ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'
+    while executing
+"error $err"
+    (procedure "config_set" line 16)
+    invoked from within
+"config_set list-compress-depth $comp"
+    ("foreach" body line 4)
+    invoked from within
+"foreach comp {2 1 0} {
+    set cycles 1000
+    if {$::accurate} { set cycles 10000 }
+    config_set list-compress-depth $comp
+    
+    test "Stress te..."
+    ("uplevel" body line 81)
+    invoked from within
+"uplevel 2 $code"

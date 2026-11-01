@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; txngroup battery (atomic 1)
+  txngroup battery (atomic 1)                          ok

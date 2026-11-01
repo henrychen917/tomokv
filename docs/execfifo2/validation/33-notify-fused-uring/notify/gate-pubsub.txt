@@ -1,0 +1,1 @@
+pubsub: PASS (regular_fanout=24, shard_fanout=24, concurrent_pub=4x150x12, batches=60 for 600 publishes, ordered_messages=40, shard_churn=320)

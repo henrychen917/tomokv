@@ -1,0 +1,146 @@
+{
+  "memory": {
+    "IoLoop+6656 access=1": 2,
+    "Client0+1920 access=1": 65,
+    "IoLoop+384 access=1": 136,
+    "Server+95872 access=1": 2,
+    "IoLoop+7104 access=1": 1,
+    "Client0+0 access=1": 266,
+    "IoThread+0 access=1": 1,
+    "IoLoop+6592 access=1": 1,
+    "IoLoop+1344 access=1": 1,
+    "IoLoop+1408 access=1": 1,
+    "Server+71104 access=1": 1,
+    "Server+93568 access=1": 1,
+    "Server+85120 access=1": 1,
+    "IoLoop+7040 access=1": 65,
+    "IoThread+960 access=1": 33,
+    "IoLoop+640 access=1": 32,
+    "Client0+192 access=1": 197,
+    "Client0+256 access=1": 258,
+    "Client0+128 access=1": 32,
+    "Client0+256 access=2": 64,
+    "Client0+128 access=2": 4,
+    "Client0+64 access=1": 96,
+    "Server+0 access=1": 32,
+    "Server+1600 access=1": 32,
+    "Client0+192 access=2": 34,
+    "Server+66496 access=1": 1,
+    "Shard0+256 access=1": 1,
+    "Server+66560 access=1": 32,
+    "Client0+320 access=1": 3,
+    "Client0+832 access=1": 1,
+    "Client0+1536 access=1": 1,
+    "Client0+256 access=3": 32,
+    "Client0+64 access=2": 32,
+    "Client0+0 access=3": 32,
+    "IoThread+960 access=3": 32,
+    "IoThread+128 access=1": 33,
+    "IoLoop+6464 access=1": 2,
+    "Client0+0 access=2": 1,
+    "IoLoop+6528 access=1": 1,
+    "IoLoop+6464 access=2": 1,
+    "IoLoop+6528 access=2": 1,
+    "IoLoop+2112 access=1": 1,
+    "IoLoop+2112 access=2": 1
+  },
+  "unknown_memory": {
+    "stack/1": 1966,
+    "1": 2249,
+    "stack/2": 1271,
+    "2": 1639,
+    "3": 96,
+    "stack/0": 32
+  },
+  "memory_operands": 8819,
+  "stack_cache_lines": 12,
+  "instruction_cache_lines": 141,
+  "regions": [
+    {
+      "name": "Server",
+      "size": 141760,
+      "alignment": 0
+    },
+    {
+      "name": "IoLoop",
+      "size": 7208,
+      "alignment": 16
+    },
+    {
+      "name": "IoThread",
+      "size": 1408,
+      "alignment": 0
+    },
+    {
+      "name": "Shard0",
+      "size": 1440,
+      "alignment": 0
+    },
+    {
+      "name": "Owner0",
+      "size": 5864,
+      "alignment": 8
+    },
+    {
+      "name": "Thread0",
+      "size": 1408,
+      "alignment": 0
+    },
+    {
+      "name": "Client0",
+      "size": 1984,
+      "alignment": 0
+    }
+  ],
+  "total": 26887,
+  "functions": {
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)": 13904,
+    "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const": 28,
+    "tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]": 6080,
+    "tomo::Op::cmd_name() const": 384,
+    "tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184,
+    "tomo::stamp_regular_range(tomo::Op&)": 1344,
+    "tomo::FlatStore::hash_key(tomo::Slice)": 2272,
+    "tomo::Rob<64u>::read_local_arm()": 17,
+    "tomo::multi_session_watch_size(tomo::Client const&)": 6,
+    "tomo::FlatStore::read_local_state_acquire() const [clone .isra.0]": 6,
+    "tomo::ExLoopT<true>::local_read_lane_has_room(unsigned int) const": 448,
+    "tomo::Rob<64u>::in_flight() const": 5,
+    "tomo::Client::nothing_to_write() const": 18,
+    "tomo::ReadLocalPendingFilter::add(unsigned long)": 416,
+    "tomo::Rob<64u>::publish()": 160,
+    "tomo::IoLoop::flip_fingerprint_note(tomo::CommandSpec const&, tomo::Op const&)": 192,
+    "tomo::IoLoop::mark_active(tomo::Client*)": 242,
+    "tomo::IoLoop::ReadLocalDemotionPlan::cancel()": 160,
+    "tomo::IoLoop::flip_fingerprint_finish_pass()": 12
+  },
+  "bodies": {
+    "0x799ad0 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)": 13904,
+    "0x779c10 tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const": 28,
+    "0x4a2f90 tomo::IoLoop::flip_dispatch_paused() const": 9,
+    "0x7700e0 tomo::ParseResult tomo::resp_parse_t<false, true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long, tomo::RespFrontier*) [clone .isra.0]": 6080,
+    "0x492430 tomo::Op::cmd_name() const": 384,
+    "0x81d9c0 tomo::multidb_stamp(tomo::Server&, tomo::Op&, unsigned char)": 1184,
+    "0x817010 tomo::stamp_regular_range(tomo::Op&)": 1344,
+    "0x497380 tomo::FlatStore::hash_key(tomo::Slice)": 2272,
+    "0x7810d0 tomo::Rob<64u>::read_local_arm()": 17,
+    "0x547b30 tomo::multi_session_watch_size(tomo::Client const&)": 6,
+    "0x76bb90 tomo::FlatStore::read_local_state_acquire() const [clone .isra.0]": 6,
+    "0x77e620 tomo::ExLoopT<true>::local_read_lane_has_room(unsigned int) const": 448,
+    "0x77c230 tomo::Rob<64u>::in_flight() const": 5,
+    "0x492ce0 tomo::Client::nothing_to_write() const": 18,
+    "0x776c00 tomo::ReadLocalPendingFilter::add(unsigned long)": 416,
+    "0x4ae0c0 tomo::Rob<64u>::publish()": 160,
+    "0x77bbd0 tomo::IoLoop::flip_fingerprint_note(tomo::CommandSpec const&, tomo::Op const&)": 192,
+    "0x4a2820 tomo::IoLoop::mark_active(tomo::Client*)": 242,
+    "0x77a140 tomo::IoLoop::ReadLocalDemotionPlan::cancel()": 160,
+    "0x77bb10 tomo::IoLoop::flip_fingerprint_finish_pass()": 12
+  },
+  "excluded": {
+    "_Znam@plt": 4,
+    "_Znwm@plt": 1
+  },
+  "clock_calls": 0,
+  "probe_sha256": "18eeca9a31f3497b98a696c107659fb8a6c7f82ad6bc4845262ae0cb94ede9c1"
+}

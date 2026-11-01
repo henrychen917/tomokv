@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "commands": {
+    "DUMP": 835,
+    "EXISTS": 833,
+    "GET": 436,
+    "HGETALL": 820,
+    "HPEXPIREAT": 3,
+    "HPEXPIRETIME": 820,
+    "HSET": 4,
+    "LRANGE": 418,
+    "PTTL": 851,
+    "RESTORE": 1661,
+    "RPUSH": 2,
+    "SADD": 2,
+    "SET": 2,
+    "SMEMBERS": 421,
+    "ZADD": 2,
+    "ZRANGE": 421
+  },
+  "kinds": {
+    "DUMP": [
+      "cross-decoded payload property"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "HGETALL": [
+      "reply"
+    ],
+    "HPEXPIREAT": [
+      "reply"
+    ],
+    "HPEXPIRETIME": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "PTTL": [
+      "reply"
+    ],
+    "RESTORE": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SMEMBERS": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "arm": "PRE",
+    "source_commit": "e32b04a445b056976abb308aa598e356fcbaae74",
+    "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/PRE",
+    "sha256": "735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca",
+    "bytes": 224567720,
+    "section_bytes": {
+      ".text": 8729431,
+      ".rodata": 637900,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  },
+  {
+    "arm": "POST-B",
+    "source_commit": "e0f0e0ff5",
+    "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST-B",
+    "sha256": "f45b5089e6132897df60e2c824868c8a35e1a37214cca941d6e114d77a1c11da",
+    "bytes": 224391152,
+    "section_bytes": {
+      ".text": 8726343,
+      ".rodata": 637836,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  },
+  {
+    "arm": "POST",
+    "source_commit": "6cb177b21096dcf509662ef290baf36b3ab7955e",
+    "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST",
+    "sha256": "ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a",
+    "bytes": 225416448,
+    "make_q_all": 0,
+    "section_bytes": {
+      ".text": 8739399,
+      ".rodata": 638028,
+      ".data": 19321,
+      ".bss": 1189256
+    }
+  },
+  {
+    "arm": "POST-layout",
+    "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/POST-layout",
+    "sha256": "02dec207ab3d5fef1aa257e353966f7d8572b477ed4f30817eca9bafb58b0998",
+    "bytes": 435860632,
+    "kind": "Exact text/layout twin for PAD-A",
+    "section_bytes": {
+      ".text": 17468455,
+      ".rodata": 705548,
+      ".data": 38649,
+      ".bss": 2378440
+    }
+  },
+  {
+    "arm": "PAD-A",
+    "path": "/home/user/Projects/cx-execfifo2/build/execfifo2/PAD-A",
+    "sha256": "07df961f35b194562de4e27e8b3a2be467ef9d250d448330f8e8d5494976b432",
+    "bytes": 435860632,
+    "kind": "A: PRE behaviour with exact POST-layout image",
+    "section_bytes": {
+      ".text": 17468455,
+      ".rodata": 705548,
+      ".data": 38649,
+      ".bss": 2378440
+    }
+  }
+]

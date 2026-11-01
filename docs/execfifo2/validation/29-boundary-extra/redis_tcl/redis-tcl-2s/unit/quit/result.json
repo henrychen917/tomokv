@@ -1,0 +1,132 @@
+{
+  "file": "unit/quit",
+  "mode": "2s",
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 0.36869858019053936,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/quit/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--databases",
+    "16",
+    "--ratio",
+    "6:2"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/quit",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-2s/unit/quit/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3891895",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/quit.tcl",
+      "test": "QUIT returns OK in tests/unit/quit.tcl",
+      "data": "QUIT returns OK",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/quit.tcl",
+      "test": "QUIT returns OK in tests/unit/quit.tcl",
+      "data": "QUIT returns OK",
+      "milliseconds": "66"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/quit.tcl",
+      "test": "Pipelined commands after QUIT must not be executed in tests/unit/quit.tcl",
+      "data": "Pipelined commands after QUIT must not be executed",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/quit.tcl",
+      "test": "Pipelined commands after QUIT must not be executed in tests/unit/quit.tcl",
+      "data": "Pipelined commands after QUIT must not be executed",
+      "milliseconds": "100"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/quit.tcl",
+      "test": "Pipelined commands after QUIT that exceed read buffer size in tests/unit/quit.tcl",
+      "data": "Pipelined commands after QUIT that exceed read buffer size",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/quit.tcl",
+      "test": "Pipelined commands after QUIT that exceed read buffer size in tests/unit/quit.tcl",
+      "data": "Pipelined commands after QUIT that exceed read buffer size",
+      "milliseconds": "100"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/quit.tcl",
+      "test": "",
+      "data": "unit/quit",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/quit.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

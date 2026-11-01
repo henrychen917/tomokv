@@ -1,0 +1,2 @@
+  row budget: 900s; median=37.48s; correctness-plan-fallback; tracking REDIRECT close vs Redis 7.4
+  tracking REDIRECT close vs Redis 7.4                 ok

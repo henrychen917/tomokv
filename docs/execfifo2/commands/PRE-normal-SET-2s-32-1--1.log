@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo2/build/execfifo2/commands-scopes/PRE-normal-SET-2s-32-1--1.log
+SHA-256: 5dd684bf649e3b97d3d86d10c5c0348ae021203bfa72c95ca5ab9185fe6c4a0b
+Exit: 0
+PASS bounded production command scope
+x7ffffffda000, n=n@entry=32) at src/core/ex_loop.h:2426
+2426	    }
+0x0000555555a414f8	2426	    }
+0x0000555555a41501	2426	    }
+0x0000555555a41507	2426	    }
+0x0000555555a4150b	2426	    }
+0x0000555555a4150c	2426	    }
+0x0000555555a4150e	2426	    }
+0x0000555555a41510	2426	    }
+0x0000555555a41512	2426	    }
+0x0000555555a41514	2426	    }
+0x0000555555a41515	2426	    }
+0x0000555555de2342 in tomo::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:112
+112	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo2/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3907369) exited normally]
+COUNT 22295

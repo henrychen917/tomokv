@@ -1,0 +1,137 @@
+{
+  "reason": "Completed headline exbatch_units controls; primary make targets are retained",
+  "binaries": [
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/all/unit",
+      "bytes": 207435224,
+      "sha256": "b557bd99c7730202fe384b0b1112afc8aba17754e380540a07d0429d26fe48eb",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/all/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/ex1/unit",
+      "bytes": 207435224,
+      "sha256": "e4476f5f16e365397d7cfe3822c7745f6b1f930cae58d58c300d6e566a41782c",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/ex1/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/ex3/unit",
+      "bytes": 207435224,
+      "sha256": "5418fd42bf46c067c854ad1a60ba8ff26e68b9a8454fe55370fc241b7ae98e9d",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/ex3/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/ex6/unit",
+      "bytes": 207435224,
+      "sha256": "009b6cca2ca1fb88d1ba732ee230f154fd7da0d43c87406f50ead097fa47e2dc",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/ex6/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/watch-no-add/unit",
+      "bytes": 207435224,
+      "sha256": "0116643d4e4f5f14ccaf24d3f21d97578e3c734de5ed374064b13819a39ea7fc",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/watch-no-add/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/watch-no-append/unit",
+      "bytes": 207435224,
+      "sha256": "2f289b3a7643d566e75c43d620174b7536c566e33c435f8ed853f249a015bf93",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/watch-no-append/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/watch-no-finalize/unit",
+      "bytes": 207435224,
+      "sha256": "72b662c7de9e8ae12c5f86bef51f127219c376ce3c82ae71340c5baa043a8b18",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/watch-no-finalize/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/watch-no-prune/unit",
+      "bytes": 207435224,
+      "sha256": "96ee87206853158d632215079564bd965bf17d87d6a29774a6f13cfa19cf16d6",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/watch-no-prune/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/watch-no-remove/unit",
+      "bytes": 207435224,
+      "sha256": "6a11223154781480f91461ade11c42864941649c4f3e66e363fa5395c62dea65",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/watch-no-remove/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/watch-no-update/unit",
+      "bytes": 207435224,
+      "sha256": "0e45dd907db906a725a551e324554b2d93ce3198465c30475314f0bf176f05ce",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/watch-no-update/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-db0-unit/watch-old-loads/unit",
+      "bytes": 207435224,
+      "sha256": "7d9805abf4aeb673160e23433252e2f240834e17a970766f39cbade622e7938b",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-db0-unit/watch-old-loads/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/all/unit",
+      "bytes": 105760152,
+      "sha256": "a2de27f8bd84f99bdfff45da14d7419a139d4fc3e33ef1e6ca9fff7ade1c0bd1",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/all/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/ex1/unit",
+      "bytes": 105760152,
+      "sha256": "47a053e04471c966fc6f65a93f7f1077d47fd9846560fe2a4d7bad5ffe600c62",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/ex1/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/ex3/unit",
+      "bytes": 105760152,
+      "sha256": "3f83c64e334f7b89f44d9061e0960989a6de104e6ae6ece596deafdf3ff25f7d",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/ex3/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/ex6/unit",
+      "bytes": 105760152,
+      "sha256": "5a703ff12b1aa3d4851aa6e72ceb02fc60fefdb2f82df5c66565c97c64ddf139",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/ex6/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/watch-no-add/unit",
+      "bytes": 105760152,
+      "sha256": "4c3e30f6117218a30253f29a57e69969fc4367774aa7e78421953961f1cacaf8",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/watch-no-add/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/watch-no-append/unit",
+      "bytes": 105760152,
+      "sha256": "acf81ffac4d7820f2a24e8a0cdaf245155101ef5ac11f80739663dcb4095bc3a",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/watch-no-append/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/watch-no-finalize/unit",
+      "bytes": 105760152,
+      "sha256": "14b43c0c4831adefb227418602fa2fc4e65ee4d42b4be3b9cffffd8e15f6e6ca",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/watch-no-finalize/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/watch-no-prune/unit",
+      "bytes": 105760152,
+      "sha256": "2ed495d22b6a0a1594b010cfede51e0f54e039920068bdb62ac86fa3884ba25d",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/watch-no-prune/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/watch-no-remove/unit",
+      "bytes": 105760152,
+      "sha256": "cd6652b11dcc58b176633c226488026c4aa9bcfd0f2bfbdeae24427325bcb80f",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/watch-no-remove/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/watch-no-update/unit",
+      "bytes": 105760152,
+      "sha256": "e1a1b070e5677421babf9adfe31122b58308dbce7041ed48133666b361254967",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/watch-no-update/proof.json"
+    },
+    {
+      "path": "build/exbatch/units/exbatch-unit/watch-old-loads/unit",
+      "bytes": 105760152,
+      "sha256": "32e7ac871b6a00d762522e2eb4c3a7623d8361986b5b94c3f65aa46b9f5d3197",
+      "proof": "docs/execfifo2/exbatch-controls/exbatch-unit/watch-old-loads/proof.json"
+    }
+  ]
+}

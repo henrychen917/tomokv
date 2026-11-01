@@ -1,0 +1,116 @@
+{
+  "file": "unit/type/list-2",
+  "mode": "1s",
+  "passed": 2,
+  "failed": 0,
+  "skipped": 0,
+  "teardown_exceptions": 1,
+  "complete": true,
+  "exit_code": 0,
+  "error": null,
+  "seconds": 5.776181234046817,
+  "server_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "/home/user/Projects/cx-execfifo2/build/tomokv",
+    "--port",
+    "20103",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/type/list-2/data",
+    "--enable-debug-command",
+    "yes",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--databases",
+    "16"
+  ],
+  "suite_argv": [
+    "taskset",
+    "-c",
+    "8-15",
+    "./runtest",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "20103",
+    "--singledb",
+    "--clients",
+    "1",
+    "--baseport",
+    "20105",
+    "--portcount",
+    "1",
+    "--single",
+    "unit/type/list-2",
+    "--durable",
+    "--timeout",
+    "60",
+    "--dont-clean",
+    "--dont-pre-clean",
+    "--skipfile",
+    "/home/user/Projects/cx-execfifo2/build/gate-run.I1WnIs/jobs/redis_tcl/redis-tcl-1s/unit/type/list-2/skip.txt"
+  ],
+  "server_exit": 0,
+  "smove_layout_attempts": [],
+  "events": [
+    {
+      "status": "ready",
+      "file": "",
+      "test": "",
+      "data": "3954503",
+      "milliseconds": "0"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list-2.tcl",
+      "test": "LTRIM stress testing - quicklist in tests/unit/type/list-2.tcl",
+      "data": "LTRIM stress testing - quicklist",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list-2.tcl",
+      "test": "LTRIM stress testing - quicklist in tests/unit/type/list-2.tcl",
+      "data": "LTRIM stress testing - quicklist",
+      "milliseconds": "2881"
+    },
+    {
+      "status": "testing",
+      "file": "tests/unit/type/list-2.tcl",
+      "test": "LTRIM stress testing - listpack in tests/unit/type/list-2.tcl",
+      "data": "LTRIM stress testing - listpack",
+      "milliseconds": "0"
+    },
+    {
+      "status": "ok",
+      "file": "tests/unit/type/list-2.tcl",
+      "test": "LTRIM stress testing - listpack in tests/unit/type/list-2.tcl",
+      "data": "LTRIM stress testing - listpack",
+      "milliseconds": "2775"
+    },
+    {
+      "status": "done",
+      "file": "tests/unit/type/list-2.tcl",
+      "test": "",
+      "data": "unit/type/list-2",
+      "milliseconds": "0"
+    },
+    {
+      "status": "exception",
+      "file": "tests/unit/type/list-2.tcl",
+      "test": "",
+      "data": "Executing test client: expected non-negative integer but got \"\".\nexpected non-negative integer but got \"\"\n    while executing\n\"read $::test_server_fd $bytes\"\n    (procedure \"test_client_main\" line 7)\n    invoked from within\n\"test_client_main $::test_server_port \"",
+      "milliseconds": "0"
+    }
+  ],
+  "setup_stdout": ""
+}

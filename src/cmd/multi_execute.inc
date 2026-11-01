@@ -170,6 +170,7 @@
                 xshard_multi_child_capture_groups(
                         *command.scatter, (*command.xshard_stage_groups)[next_stage]);
                 command.stage.store(next_stage, std::memory_order_release);
+                multi_local_runnable(state, shard.id(), promoter);
             } else if (finished == MultiChildFinish::Final) {
                 if (notify)
                     notify_xshard_finished(shard, *command.op, *command.scatter);
@@ -203,6 +204,7 @@
                 }
                 multi_slowlog_finish(state, command, owner_thread_id);
                 command.finished.store(true, std::memory_order_release);
+                multi_local_runnable(state, shard.id(), promoter);
             }
             continue;
         }
@@ -228,7 +230,8 @@
         if (!executed) return retry();
         done = static_cast<uint8_t>(stage + 1);
         latency_child.finish();
-        finish_command(state, command, stage, owner_thread_id);
+        if (finish_command(state, command, stage, owner_thread_id))
+            multi_local_runnable(state, shard.id(), promoter);
         multi_ring_participants(state);
     }
 
@@ -306,6 +309,7 @@
                 state.doomed = state.decision.epoch.load(std::memory_order_acquire) ==
                                kAtomicCancelledEpoch;
                 state.finalized.store(true, std::memory_order_release);
+                multi_local_runnable(state, shard.id(), promoter);
                 multi_ring_participants(state);
                 // Every owner has joined and the one commit decision is made: nothing this
                 // transaction writes can land on a shard after this point, so it can no longer

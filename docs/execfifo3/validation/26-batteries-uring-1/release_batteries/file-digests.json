@@ -1,0 +1,57 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "c37cc28888babd1bc975713a1051d758f94bf2d7219dd6afcad59de97afa8a8b"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 62,
+    "sha256": "98eb14b87da640c42c69d7701d6d2af98fe008c8b466c2e93d6172e9a5d0477d"
+  },
+  {
+    "path": "gate-acl-categories.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "gate-acl-nofile.txt",
+    "bytes": 30,
+    "sha256": "3b62586d93efd0272f55aebb357350e9c20027366c589de1bcc7fd4accc913a2"
+  },
+  {
+    "path": "gate-idle-signals.txt",
+    "bytes": 467,
+    "sha256": "9772af56099eb2f9cf11664f3df15e04cbce8643239368a0b4ed4070e9cf761c"
+  },
+  {
+    "path": "gate-ryow.txt",
+    "bytes": 322,
+    "sha256": "ec488c2b7d9c717905592d931c30c2dc2ac616e5da7733c64c8dc8b3d26b5175"
+  },
+  {
+    "path": "gate-srv-fused.RTolTu",
+    "bytes": 11063,
+    "sha256": "d54558d3a25e10fc2266cbc94bd60d1a666bede78a155e096b50fab69010614d"
+  },
+  {
+    "path": "gate-tort.txt",
+    "bytes": 635,
+    "sha256": "9c1a0ea6883a7ebbb558599dfdacf4cdff3723fe01e662bc7f005e1913a62fa5"
+  },
+  {
+    "path": "ledger",
+    "bytes": 306,
+    "sha256": "12dbb59379fc8df9d9b14fb5ddab2fd223867e2befb236337cd16da45b5e3036"
+  },
+  {
+    "path": "output.log",
+    "bytes": 1305,
+    "sha256": "206d88536dec8be3e5727c7a27060b78abc65d89b5628c4ec91d2a89f1f1baa9"
+  },
+  {
+    "path": "timings",
+    "bytes": 338,
+    "sha256": "e616c99d5a1b061befae47653997fa2bc7a0859ca14bc187a630926a091b459c"
+  }
+]

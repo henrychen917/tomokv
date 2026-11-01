@@ -1,0 +1,31 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=1787550)
+  Read of size 1 at 0x7fffffffd094 by thread T1:
+    #0 foreign_shape tests/exec1s_word.cc:18 (exec1s-word-tsan+0x4026b6) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+    #1 operator() tests/exec1s_word.cc:39 (exec1s-word-tsan+0x40290b) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+    #2 __invoke_impl<void, exercise_attempt(bool)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (exec1s-word-tsan+0x40290b)
+    #3 __invoke<exercise_attempt(bool)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (exec1s-word-tsan+0x40290b)
+    #4 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (exec1s-word-tsan+0x40290b)
+    #5 operator() /usr/include/c++/13/bits/std_thread.h:299 (exec1s-word-tsan+0x40290b)
+    #6 _M_run /usr/include/c++/13/bits/std_thread.h:244 (exec1s-word-tsan+0x40290b)
+    #7 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Previous write of size 4 at 0x7fffffffd094 by main thread:
+    #0 memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29 (exec1s-word-tsan+0x40280f) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+    #1 publish tests/exec1s_word.cc:26 (exec1s-word-tsan+0x40280f)
+    #2 exercise_attempt tests/exec1s_word.cc:47 (exec1s-word-tsan+0x402bad) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+    #3 exercise tests/exec1s_word.cc:58 (exec1s-word-tsan+0x402d13) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+    #4 main tests/exec1s_word.cc:69 (exec1s-word-tsan+0x402fd8) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+
+  Location is stack of main thread.
+
+  Location is global '<null>' at 0x000000000000 ([stack]+0x20094)
+
+  Thread T1 (tid=1787553, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 exercise tests/exec1s_word.cc:58 (exec1s-word-tsan+0x402d13) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+    #3 main tests/exec1s_word.cc:69 (exec1s-word-tsan+0x402fd8) (BuildId: 6d40abcef71917747cd86c0a55d12ccfea776a30)
+
+SUMMARY: ThreadSanitizer: data race tests/exec1s_word.cc:18 in foreign_shape
+==================

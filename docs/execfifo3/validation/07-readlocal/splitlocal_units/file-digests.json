@@ -1,0 +1,47 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 61,
+    "sha256": "32dcc106d2c33030d39e72ac99bfc80ddecf16164a53b87312f4ce7b65144b5b"
+  },
+  {
+    "path": "ledger",
+    "bytes": 67,
+    "sha256": "966f2e9ec769993ca50a1e5476ae3e4124727cc075a9f51d9e8ccdc3a7b46588"
+  },
+  {
+    "path": "output.log",
+    "bytes": 176,
+    "sha256": "0b8c8c3b9b77adeff194b2046dd327ce451c92a9a92911c0dd09496035b4ff5d"
+  },
+  {
+    "path": "splitlocal-controls/old-forwarding/compile.log",
+    "bytes": 21636,
+    "sha256": "2aa00418cde5c83286c6512f1101d548781be197af123c2f82abf6e806213564"
+  },
+  {
+    "path": "splitlocal-controls/old-park/compile.log",
+    "bytes": 2305,
+    "sha256": "2a882f09c78adf7747de4b8159d2aed071b141e8f54c769d06e76def81473b8e"
+  },
+  {
+    "path": "splitlocal-controls/results.json",
+    "bytes": 286,
+    "sha256": "94cbe963a216e11d408ea2caf28cec69c501a61863bd51534d537797109c2987"
+  },
+  {
+    "path": "splitlocal.log",
+    "bytes": 296,
+    "sha256": "ccde929bb3532750fe003d703fbfddcad74c0838d75dc6778ae420b6a5747dff"
+  },
+  {
+    "path": "timings",
+    "bytes": 67,
+    "sha256": "966f2e9ec769993ca50a1e5476ae3e4124727cc075a9f51d9e8ccdc3a7b46588"
+  }
+]

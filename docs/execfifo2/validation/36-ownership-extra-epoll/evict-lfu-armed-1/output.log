@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.32s; correctness-plan-fallback; eviction lfu battery (fused+armed, atomic 1)
+  eviction lfu battery (fused+armed, atomic 1)         ok

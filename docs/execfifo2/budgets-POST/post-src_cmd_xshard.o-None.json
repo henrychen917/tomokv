@@ -1,0 +1,39 @@
+{
+  "arm": "post",
+  "unit": "src/cmd/xshard.o",
+  "budget": 153728,
+  "initial": 126590,
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=153728",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-execfifo2/build/execfifo2/budgets-POST/post-src_cmd_xshard.o-None.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-execfifo2/build/execfifo2/budgets-POST/post-src_cmd_xshard.o-None.inline"
+  ],
+  "output": "/home/user/Projects/cx-execfifo2/build/execfifo2/budgets-POST/post-src_cmd_xshard.o-None.o",
+  "changed": [
+    "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "tomo::FlatStore::erase_resident(unsigned long, tomo::Slice)",
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)"
+  ],
+  "total": 27
+}

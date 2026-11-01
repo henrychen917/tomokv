@@ -1,0 +1,31 @@
+Starting test server at port 20104
+[ready]: 3938143
+[1;37;49mTesting unit/pause[0m
+[[0;32;49mok[0m]: Test read commands are not blocked by client pause (1 ms)
+[[0;33;49mskip[0m]: Test old pause-all takes precedence over new pause-write (less restrictive)
+[[0;32;49mok[0m]: Test new pause time is smaller than old one, then old time preserved (114 ms)
+[[0;32;49mok[0m]: Test write commands are paused by RO (51 ms)
+[[0;32;49mok[0m]: Test special commands are paused by RO (49 ms)
+[[0;32;49mok[0m]: Test read/admin multi-execs are not blocked by pause RO (1 ms)
+[[0;32;49mok[0m]: Test write multi-execs are blocked by pause RO (50 ms)
+[[0;32;49mok[0m]: Test scripts are blocked by pause RO (47 ms)
+[[0;32;49mok[0m]: Test RO scripts are not blocked by pause RO (1 ms)
+[[0;32;49mok[0m]: Test read-only scripts in multi-exec are not blocked by pause RO (0 ms)
+[[0;32;49mok[0m]: Test write scripts in multi-exec are blocked by pause RO (51 ms)
+[[0;33;49mskip[0m]: Test may-replicate commands are rejected in RO scripts
+[[0;32;49mok[0m]: Test multiple clients can be queued up and unblocked (46 ms)
+[[0;32;49mok[0m]: Test clients with syntax errors will get responses immediately (0 ms)
+[[0;32;49mok[0m]: Test both active and passive expires are skipped during client pause (102 ms)
+[[0;32;49mok[0m]: Test that client pause starts at the end of a transaction (50 ms)
+[[0;36;49mignore[0m]: Not supported on external server
+[[0;32;49mok[0m]: Test the randomkey command will not cause the server to get into an infinite loop during the client pause write (5 ms)
+[[0;33;49mskip[0m]: CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE
+[1/1 [0;33;49mdone[0m]: unit/pause (1 seconds)
+
+                   The End
+
+Execution time of different units:
+  1 seconds - unit/pause
+
+[1;37;49m\o/[0m [1;32;49mAll tests passed without errors![0m
+

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "at412-owner.log",
+    "bytes": 4536,
+    "sha256": "53a0f015bf8440fc7be5d101e12ae96a69287c62fc18813c0bf552cf04e04375"
+  },
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 56,
+    "sha256": "fa7fdf998929e156c48779452309ffafe68b41533ff2b6eb3861964f423d1ae5"
+  },
+  {
+    "path": "ledger",
+    "bytes": 24,
+    "sha256": "0d16f9dc77e0c16d2ff0976e87f49841b7f1f33668c6d3e1780166629033fdd7"
+  },
+  {
+    "path": "output.log",
+    "bytes": 134,
+    "sha256": "f0fdf32fdffd169cf2bd0fe2a8b5779a35f30c5d8cafc159c5ad1874fd1635fe"
+  },
+  {
+    "path": "timings",
+    "bytes": 24,
+    "sha256": "0d16f9dc77e0c16d2ff0976e87f49841b7f1f33668c6d3e1780166629033fdd7"
+  }
+]

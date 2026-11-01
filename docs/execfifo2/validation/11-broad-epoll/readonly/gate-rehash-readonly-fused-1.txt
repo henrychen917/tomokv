@@ -1,0 +1,3 @@
+ARMED mode=1s read_local=1 bound=3.0s State(shard=0, starts=3, capacity=8192, old_capacity=4096, cursor=96, old_live=2808, keys=2880)
+RESULT mode=1s reads=160 samples=5 elapsed=0.000687s remaining=4000->0 old_live=2808->0 final=State(shard=0, starts=3, capacity=8192, old_capacity=0, cursor=0, old_live=0, keys=2880)
+PASS: completed resize and verified all 2880 values

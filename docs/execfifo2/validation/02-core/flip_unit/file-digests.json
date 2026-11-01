@@ -1,0 +1,32 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 54,
+    "sha256": "5ed305afb922c5f4a619a4f69a3c2b5f532d4b9ec237e5d5c8104c7b015772d5"
+  },
+  {
+    "path": "gate-flipctl-unit.txt",
+    "bytes": 4246,
+    "sha256": "5e78211e80a55f69b5bf56d56e04fe5a3dcfb4f43c35275a3af2fa9efd98e2b7"
+  },
+  {
+    "path": "ledger",
+    "bytes": 40,
+    "sha256": "6754334e5e14b93cd1878b5add0ec2f607af0e8c95018cacbf478e27cebf6cbb"
+  },
+  {
+    "path": "output.log",
+    "bytes": 149,
+    "sha256": "b2916b9d2766c80c39b98effddfab8faeb8286a37636c89456c4695233e06534"
+  },
+  {
+    "path": "timings",
+    "bytes": 40,
+    "sha256": "6754334e5e14b93cd1878b5add0ec2f607af0e8c95018cacbf478e27cebf6cbb"
+  }
+]

@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/memory-scopes/PRE-normal-PARSE-SET-2s-32-1--1.log
+SHA-256: 40f0840d79f12a6bfec7663faea000693c1d2e8672680b734ff81352ea7032d0
+Exit: 0
+4232	    }
+0x0000555555a58030	4232	    }
+0x0000555555a58039	4232	    }
+0x0000555555a5803f	4232	    }
+0x0000555555a58043	4232	    }
+0x0000555555a58046	4232	    }
+0x0000555555a58047	4232	    }
+0x0000555555a58049	4232	    }
+0x0000555555a5804b	4232	    }
+0x0000555555a5804d	4232	    }
+0x0000555555a5804f	4232	    }
+0x0000555555a58051	4232	    }
+0x0000555555a58052	4232	    }
+0x0000555555ddccd5 in tomo::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, unsigned int, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const (__closure=__closure@entry=0x7ffffffd8ae0, w=w@entry=0) at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:133
+133	                    scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:29
+29	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 2915379) exited normally]
+COUNT 23241

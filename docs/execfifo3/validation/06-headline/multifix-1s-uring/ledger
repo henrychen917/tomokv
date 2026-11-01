@@ -1,0 +1,6 @@
+ok	11.110000	multifix RESET-IN-MULTI (1s uring)
+ok	11.110000	multifix WATCH-SPURIOUS-INVALIDATION (1s uring)
+ok	11.530000	multifix EXEC-REPEATED-KEY-LINEAR (1s uring)
+ok	15.270000	multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)
+ok	28.680000	multifix PAUSE-IN-MULTI (1s uring)
+ok	11.730000	multifix PAUSE-EXEC-NOT-HELD (1s uring)
