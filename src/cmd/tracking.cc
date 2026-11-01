@@ -147,14 +147,12 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     // Redis preserves CACHING across every CLIENT command, including introspection and errors.
     // Consuming it before TRACKINGINFO both hides the flag and loses the following OPTIN read's
     // invalidation (or wrongly subscribes an exempted OPTOUT read). CLIENT has no keys to enroll.
-    const CommandSpec* spec = op.spec;
-    if (!spec) return;
-    if ((spec->flags & (CmdFlags::Climon | CmdFlags::Transaction)) &&
-        (op.cmd_name().eq_icase("client") ||
-         (op.cmd_name().eq_icase("multi") && clientcompat_post()))) return;
+    if (op.spec && (op.spec->flags & CmdFlags::PreserveCaching)) return;
     const bool caching = state.caching_armed;
     state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
     if (state.bcast) return;
+    const CommandSpec* spec = op.spec;
+    if (!spec) return;
     // Only genuine reads register. A write from the tracking connection is not a subscription.
     if (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write)) return;
     // OPTIN: register only when the previous command was CLIENT CACHING yes.

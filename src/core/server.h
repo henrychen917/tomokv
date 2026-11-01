@@ -3260,7 +3260,10 @@ public:
         live_config_mailboxes_[owner].applied(version);
     }
     bool tracking_config_ready(uint64_t version) const {
-        if (flip_stage() != FlipStage::Idle || lb_stage() != LbStage::Idle) return false;
+        // This unfinished IO command itself holds the IO drain. Owners can
+        // apply configuration during that drain; waiting for Idle would form
+        // a cycle. A later ownership transfer installs the current mask in
+        // adopt_shard_owner_state before publishing the new owner.
         for (uint32_t sid = 0; sid < nshards(); ++sid)
             if (live_config_mailboxes_[worker_of_shard(sid)].applied() < version)
                 return false;

@@ -74,7 +74,7 @@ def keys(frames):
     return result
 
 
-def probe(case, port, rows, oracle):
+def probe(case, port, rows, oracle, mode=None):
     with contextlib.ExitStack() as stack:
         def peer(proto=2):
             c = Peer(port)
@@ -286,6 +286,23 @@ def probe(case, port, rows, oracle):
                     for _ in range(count):
                         check('occupation executed', source.read(), LIST_LENGTH - 1)
                 check('occupied invalidation', got, [g.witness.encode()])
+            if not oracle and mode == '2s':
+                # The pending TRACKING reply participates in IO drain. Owners
+                # must acknowledge ON during that drain, before FLIP can finish.
+                check('before flip off', t.cmd('CLIENT', 'TRACKING', 'OFF'), b'OK')
+                check('before flip settle', g.a.cmd('SET', g.witness, 'settled'), b'+OK')
+                scan = encode('LPOS', g.big, LIST_LENGTH - 1)
+                g.b1.send(scan * OCCUPY_FIRST)
+                g.b2.send(scan * OCCUPY_TASKS)
+                t.send('CLIENT', 'TRACKING', 'ON', 'BCAST')
+                a.send('FLIP', 5, 3)
+                check('tracking acknowledgement joins flip drain', t.response(), b'OK')
+                check('flip completes with tracking acknowledgement', a.response(), b'OK')
+                for source, count in ((g.b1, OCCUPY_FIRST), (g.b2, OCCUPY_TASKS)):
+                    for _ in range(count):
+                        check('flip occupation executed', source.read(), LIST_LENGTH - 1)
+                check('post-flip write', a.cmd('SET', g.witness, 'flipped'), b'OK')
+                check('post-flip invalidation', keys(t.drain(.3)), [g.witness.encode()])
 
 
 def main():
@@ -315,7 +332,7 @@ def main():
             rows = []
             try:
                 with Server(run, label, mode, extra=extra):
-                    probe(args.case, args.port, rows, oracle)
+                    probe(args.case, args.port, rows, oracle, mode)
                 run.check(label, True, True)
             except Exception:
                 traceback.print_exc()

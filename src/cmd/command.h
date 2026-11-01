@@ -119,6 +119,9 @@ struct CmdFlags {
     // Boot-stamped from generated metadata. Only containers need persistent
     // child identity for CLIENT LIST; ordinary verbs use the retained ROB spec.
     static constexpr uint32_t ClientCommandName = 1u << 28;
+    // CLIENT and MULTI preserve Redis's one-shot CLIENT CACHING choice.
+    // Internal registry metadata; never exposed as a COMMAND flag.
+    static constexpr uint32_t PreserveCaching = 1u << 29;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
