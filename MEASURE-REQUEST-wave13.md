@@ -158,7 +158,29 @@ notably its writable sections start 8 KiB earlier. This aggregate control
 cannot isolate every placement effect. The recipe and exact section comparison
 are in `docs/wave13/pad-a.json`. PRE and PAD source builds passed `make -q all`.
 
-The authorized correctness job matrix is running. No full-gate pass is claimed.
+The positive whole-job receipts cover **391/392 requested geometries**,
+**284/288 registered jobs**, and **1055/1063 declared labels**. The only missing
+correctness geometry/job is the non-C locale row explained below. The other
+unrun registered entries are two reserved performance jobs and the build-only
+tailgen prerequisite whose consumer is a reserved inline load-generator row.
+Seven declared performance/inline-load labels remain reserved for the owner;
+the eighth unwitnessed label is the locale row. These are coverage counts,
+not a full-gate pass. `docs/wave13/correctness-coverage.json` lists each required
+geometry, whole-job receipt, duplicate declaration and exclusion.
+
+Both engines passed the complete standard differential jobs, including
+permanent seeds 7/19/20/23, rotating seed 21 (uring) or 22 (epoll), all four
+MULTI repeats and the mode-equivalence witness. `differential-proof.json` uses
+the gate's own strict collector to validate both public folds; partial-job
+invocation itself emits only their five private children.
+The complete Tcl job and compat2 passed in both modes. Each Tcl mode witnessed
+all 1878 required assertion occurrences, with the unchanged 211 named skips and
+five named setup-error occurrences. Fused mode used the existing single fresh
+retry for `MONITOR log blocked command only once` and passed; the original
+ordering failure is retained. `tcl-positive-proof.json` verifies the exact
+per-file assertion multisets. The idle FLUSH deadline job also passed all
+eight legs in both db1 and db16.
+
 The first build-only job selection was rejected by the gate interface; its
 consuming unit job now builds all prerequisites. The durable Redis directory
 contained binaries without headers; subsequent jobs use the complete checkout

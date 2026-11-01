@@ -265,6 +265,7 @@
       "passed": true,
       "receipts": [
         "landing-epoll",
+        "landing-fused-epoll",
         "landing-fused-uring",
         "landing-primary"
       ]
@@ -2081,8 +2082,10 @@
     {
       "job": "flipctl",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-flipctl-epoll-isolated"
+      ]
     },
     {
       "job": "atomic_floor",
@@ -2321,8 +2324,10 @@
       "job": "debug-0",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "debug-0",
@@ -2355,8 +2360,10 @@
       "job": "debug-1",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "debug-1",
@@ -2391,8 +2398,10 @@
       "mode": "1s",
       "engine": "epoll",
       "atomic": "1",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "script_bounds",
@@ -2427,8 +2436,10 @@
       "job": "notify",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "notify",
@@ -2461,8 +2472,10 @@
       "job": "asan_batteries",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "asan_batteries",
@@ -2495,8 +2508,10 @@
       "job": "atomic_batteries",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "atomic_batteries",
@@ -2529,8 +2544,10 @@
       "job": "release_batteries",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "release_batteries",
@@ -2563,8 +2580,10 @@
       "job": "dump_restore",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "dump_restore",
@@ -2597,8 +2616,10 @@
       "job": "sort",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "sort",
@@ -2631,8 +2652,10 @@
       "job": "auth",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "auth",
@@ -2665,8 +2688,10 @@
       "job": "aof_frame",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "aof_frame",
@@ -2699,8 +2724,10 @@
       "job": "replyoff",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "replyoff",
@@ -2733,8 +2760,10 @@
       "job": "zc",
       "mode": "1s",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-epoll"
+      ]
     },
     {
       "job": "zc",
@@ -2769,8 +2798,10 @@
       "mode": "1s",
       "engine": "epoll",
       "atomic": "0",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-script0-epoll-1"
+      ]
     },
     {
       "job": "script_bounds",
@@ -2787,8 +2818,10 @@
       "mode": "2s",
       "engine": "epoll",
       "atomic": "0",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-script0-epoll-0"
+      ]
     },
     {
       "job": "feature-split-0",
@@ -2829,32 +2862,42 @@
     {
       "job": "differ-split-0",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-uring"
+      ]
     },
     {
       "job": "differ-split-1",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-uring"
+      ]
     },
     {
       "job": "differ-armed-0",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-uring"
+      ]
     },
     {
       "job": "differ-armed-1",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-uring"
+      ]
     },
     {
       "job": "differ-equivalence",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-uring"
+      ]
     },
     {
       "job": "feature-split-0",
@@ -2895,73 +2938,82 @@
     {
       "job": "differ-split-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-epoll"
+      ]
     },
     {
       "job": "differ-split-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-epoll"
+      ]
     },
     {
       "job": "differ-armed-0",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-epoll"
+      ]
     },
     {
       "job": "differ-armed-1",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-epoll"
+      ]
     },
     {
       "job": "differ-equivalence",
       "engine": "epoll",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-differ-epoll"
+      ]
     },
     {
       "job": "compat2",
       "run": "landing-tcl-quiet",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-tcl-quiet"
+      ]
     },
     {
       "job": "redis_tcl",
       "run": "landing-tcl-quiet",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-tcl-quiet"
+      ]
     },
     {
       "job": "flushfix3",
       "run": "landing-flush-idle",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-flush-idle"
+      ]
     },
     {
       "job": "abba_selftest",
       "run": "landing-abba-selftest-isolated",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-abba-selftest-isolated"
+      ]
     }
   ],
   "required_geometries": 392,
-  "satisfied_geometries": 361,
+  "satisfied_geometries": 391,
   "registry_jobs": 288,
-  "completed_registry_jobs": 275,
+  "completed_registry_jobs": 284,
   "missing_required_registry_jobs": [
-    "abba_selftest",
-    "compat2",
-    "datafix1_locale",
-    "differ-armed-0",
-    "differ-armed-1",
-    "differ-equivalence",
-    "differ-split-0",
-    "differ-split-1",
-    "flushfix3",
-    "redis_tcl"
+    "datafix1_locale"
   ],
   "not_run_performance": {
     "flip_saturated": "NOT RUN: memtier throughput workload is reserved for the maintainer.",
@@ -2974,9 +3026,18 @@
     "tailgen_build": "NOT RUN as a gate job: gate_subset.sh rejects a build-only prerequisite without a consuming job. Its only consumer is the reserved inline client-lb load-generator check. make all/freshness is recorded separately."
   },
   "declared_labels": 1063,
-  "witnessed_declared_labels": 1047,
-  "source_rows_witnessed_by_job_ledgers": 1047,
-  "public_differential_folds": [],
+  "witnessed_declared_labels": 1055,
+  "source_rows_witnessed_by_job_ledgers": 1053,
+  "public_differential_folds": [
+    {
+      "label": "Redis 7.4 differential matrix",
+      "proof": "docs/wave13/differential-proof.json"
+    },
+    {
+      "label": "Redis 7.4 differential matrix (armed fused + read-local)",
+      "proof": "docs/wave13/differential-proof.json"
+    }
+  ],
   "declared_row_multiset_passed": false,
   "duplicate_declarations": [
     {
@@ -3056,6 +3117,7 @@
     }
   ],
   "canonical_job_receipts": {
+    "abba_selftest": "landing-abba-selftest-isolated",
     "acl_metadata": "landing-primary",
     "acl_recheck": "landing-epoll",
     "acl_subcommands": "landing-primary",
@@ -3105,6 +3167,7 @@
     "climonfix4-2s-epoll": "landing-primary",
     "climonfix4-2s-uring": "landing-primary",
     "cmd_metadata": "landing-primary",
+    "compat2": "landing-tcl-quiet",
     "compat3": "landing-primary",
     "config_unit": "landing-primary",
     "core_tsan_build": "landing-primary",
@@ -3124,6 +3187,11 @@
     "dbdefault": "landing-primary",
     "debug-0": "landing-epoll",
     "debug-1": "landing-epoll",
+    "differ-armed-0": "landing-differ-epoll",
+    "differ-armed-1": "landing-differ-epoll",
+    "differ-equivalence": "landing-differ-epoll",
+    "differ-split-0": "landing-differ-epoll",
+    "differ-split-1": "landing-differ-epoll",
     "dispatch_arity": "landing-primary",
     "dispatch_children": "landing-primary",
     "dispatch_errors": "landing-primary",
@@ -3182,7 +3250,7 @@
     "filter_unit": "landing-primary",
     "flip": "landing-epoll",
     "flip_unit": "landing-primary",
-    "flipctl": "landing-primary",
+    "flipctl": "landing-flipctl-epoll-isolated",
     "flipfix5": "landing-primary",
     "flipfix5_units": "landing-primary",
     "flipfix6": "landing-primary",
@@ -3191,6 +3259,7 @@
     "fliplisten": "landing-epoll",
     "flushfix2": "landing-primary",
     "flushfix2_units": "landing-primary",
+    "flushfix3": "landing-flush-idle",
     "flushfix3_units": "landing-primary",
     "fused-0": "landing-epoll",
     "fused-1": "landing-epoll",
@@ -3257,6 +3326,7 @@
     "racefix_counters": "landing-primary",
     "racefix_tsan_build": "landing-primary",
     "readonly": "landing-epoll",
+    "redis_tcl": "landing-tcl-quiet",
     "release": "landing-blockfix-companions",
     "release_batteries": "landing-epoll",
     "reorder_bounds": "landing-primary",
@@ -3334,31 +3404,6 @@
   },
   "unwitnessed_declared_labels": [
     {
-      "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 16)",
-      "collector": 6237,
-      "quick": true
-    },
-    {
-      "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 1)",
-      "collector": 6237,
-      "quick": true
-    },
-    {
-      "label": "compat2 autharity",
-      "collector": 6363,
-      "quick": true
-    },
-    {
-      "label": "compat2 expire_notify",
-      "collector": 6363,
-      "quick": true
-    },
-    {
-      "label": "compat2 ktls_lifetime",
-      "collector": 6363,
-      "quick": true
-    },
-    {
       "label": "datafix1 SORT locale (both engines and modes)",
       "collector": 6425,
       "quick": true
@@ -3394,24 +3439,9 @@
       "quick": true
     },
     {
-      "label": "ABBA comparison + saturation negative controls",
-      "collector": 6533,
-      "quick": true
-    },
-    {
       "label": "tailgen client-lb outstanding bound",
       "collector": 6550,
       "quick": true
-    },
-    {
-      "label": "Redis 7.4 differential matrix",
-      "collector": 6594,
-      "quick": false
-    },
-    {
-      "label": "Redis 7.4 differential matrix (armed fused + read-local)",
-      "collector": 6605,
-      "quick": false
     }
   ],
   "release_stream_memory_bounds": [

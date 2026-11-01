@@ -48,6 +48,52 @@
       ]
     },
     {
+      "name": "landing-abba-selftest-isolated",
+      "receipt": "docs/wave13/jobs/landing-abba-selftest-isolated.json",
+      "receipt_sha256": "01136738c689fc6fecc04d5eb53ac74633a2c6795f18047763e3cb2a89001306",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "e63a451dd8859124fd38c4f57efa7a5ba4360410",
+      "gate_sha256": "586816394572f316794ccc5899233288fa1711c82232da6b55d5d556bb0ad6df",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "abba_selftest",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-abba-selftest-isolated.tsv"
+      },
+      "exit": 0,
+      "seconds": 399.1750502586365,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-abba-selftest-isolated.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "abba_selftest",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/wave13/abba-final-copy/build/gate-run.yQAG2I/jobs/abba_selftest",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "d4d7aa6b4e707a52f2421c5a2e62e45d86d67ecc8acd228dff19285bea6477c8",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "398.000000",
+              "label": "ABBA comparison + saturation negative controls"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "landing-blockfix-companions",
       "receipt": "docs/wave13/jobs/landing-blockfix-companions.json",
       "receipt_sha256": "3d27307dbf62f614ffdc46b7b17965cd08cbf1256b9b7d7118477cb2e02d8070",
@@ -293,6 +339,258 @@
           "name": "release",
           "complete": true,
           "artifact": "/home/user/Projects/cx-wave13/build/gate-run.WbdQPe/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "landing-differ-epoll",
+      "receipt": "docs/wave13/jobs/landing-differ-epoll.json",
+      "receipt_sha256": "51dbcfd416c842152272cc05de6188453ef2a6f547ab32b3e6d90e30dc712874",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "254afb69c03a4a806e7b43cf65fb8c5087914547",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll",
+        "GATE_ZC_NET_IO": "epoll",
+        "GATE_SHUTDOWN_NET_IO": "epoll",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-differ-epoll.tsv"
+      },
+      "exit": 0,
+      "seconds": 2128.407237291336,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-differ-epoll.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "differ-armed-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.8WG8Yd/jobs/differ-armed-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "96860fd1c3b12d9b1dcd153ff3e997d36e10a32107f20ae08ac6d4091b36c7ea",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "522.090000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-armed-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.8WG8Yd/jobs/differ-armed-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "019502712904273aac3b795038d6509d83aa0cea3759b1dbb7394c616f0f4bc4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "524.600000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "differ-equivalence",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.8WG8Yd/jobs/differ-equivalence",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "f89ae9050ac01eaf6ab4426ed3c33095fd17739f86bf84aee8a996a3e376a389",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "21.440000",
+              "label": "mode equivalence part (all execution modes and knobs)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.8WG8Yd/jobs/differ-split-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "44adf4dae689304da15bd6981d820aadedf673f909f2008f7c83ed73e83c331c",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "527.860000",
+              "label": "Redis 7.4 differential part (split, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.8WG8Yd/jobs/differ-split-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "05d05ef4d00ab5738be15fc2e464a6655d7e8df7114878a9d9e960d1622ea5d9",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "529.250000",
+              "label": "Redis 7.4 differential part (split, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.8WG8Yd/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "landing-differ-uring",
+      "receipt": "docs/wave13/jobs/landing-differ-uring.json",
+      "receipt_sha256": "b1b297d2b71ff080e60777fdf759ccdec1de32d8b55a0ebad203213ce71492db",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "4deacfde95688685d46786323e8c4782407cc402",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-differ-uring.tsv"
+      },
+      "exit": 0,
+      "seconds": 2142.9716017246246,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-differ-uring.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "differ-armed-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.q55F2e/jobs/differ-armed-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "7cc41d70362873c1691a986ed188902577e69daa01cf6e8c0a39006186cdfce5",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "525.380000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-armed-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.q55F2e/jobs/differ-armed-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "0ca0ff51653b0571f385fba68a57307b26949071e59a1346a8e8e588abcd49ba",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "527.730000",
+              "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "differ-equivalence",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.q55F2e/jobs/differ-equivalence",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "3c5257d51af9703899984136b2576bd4bf9dc4bfa0062fa528afb9abf5bda367",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "21.350000",
+              "label": "mode equivalence part (all execution modes and knobs)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.q55F2e/jobs/differ-split-0",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "c334c13644d0a53c4e5b5d676ad13396789e7b6e5c8267363542f6039ce2b532",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "532.010000",
+              "label": "Redis 7.4 differential part (split, atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "differ-split-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.q55F2e/jobs/differ-split-1",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "cc06e545ebd85c0cfd9468eddbbf27fcfd4b1dc098d9289a7d5d32900b66c067",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "533.320000",
+              "label": "Redis 7.4 differential part (split, atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.q55F2e/jobs/release",
           "exit": 0,
           "passed": 1,
           "failed": 0,
@@ -2498,6 +2796,135 @@
       ]
     },
     {
+      "name": "landing-flipctl-epoll-isolated",
+      "receipt": "docs/wave13/jobs/landing-flipctl-epoll-isolated.json",
+      "receipt_sha256": "f07af821f6b56f5f5d4955e7217f00698d34ae8c041d31e84b61abb6d3d64f9d",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "e63a451dd8859124fd38c4f57efa7a5ba4360410",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "flipctl",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll",
+        "GATE_ZC_NET_IO": "epoll",
+        "GATE_SHUTDOWN_NET_IO": "epoll",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-flipctl-epoll-isolated.tsv"
+      },
+      "exit": 0,
+      "seconds": 127.8150372505188,
+      "summary": [
+        "GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-flipctl-epoll-isolated.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "flipctl",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.20gtpW/jobs/flipctl",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "3992de26c7062282000f3613994c68894e6fb3b47bf53d083b8f2cc820da20aa",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "124.890000",
+              "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.20gtpW/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "landing-flush-idle",
+      "receipt": "docs/wave13/jobs/landing-flush-idle.json",
+      "receipt_sha256": "17629ca300f9e39c7a13b2e4fd1fc48009a153f85df88583618d322e4c39744f",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "c5329459dd39483b52081f47735477efd139c7b4",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "flushfix3",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-flush-idle.tsv"
+      },
+      "exit": 0,
+      "seconds": 94.32456040382385,
+      "summary": [
+        "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-flush-idle.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "flushfix3",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.fHiqvh/jobs/flushfix3",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "cd6ca2d51710ed0cd6f99499039ae08f66ea63c9f4d86dcb95d67447b41cf2a4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "46.750000",
+              "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 16)"
+            },
+            {
+              "status": "ok",
+              "seconds": "45.830000",
+              "label": "flushfix3 idle FLUSH deadlines all eight legs (databases 1)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.fHiqvh/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "landing-footprints-epoll",
       "receipt": "docs/wave13/jobs/landing-footprints-epoll.json",
       "receipt_sha256": "58623dcbb10c8d1d576566812ea86b676108f3fdf6116dd73b3e56987c5d9cb3",
@@ -4052,6 +4479,606 @@
               "status": "ok",
               "seconds": "0.000000",
               "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "landing-fused-epoll",
+      "receipt": "docs/wave13/jobs/landing-fused-epoll.json",
+      "receipt_sha256": "96ff0e984e6f4ffe1b6a4a682cd526562666fc31ca4ab394fa97482159e1876e",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "f755c498fde6e12d7a4bba6c61ce289d6ef37b38",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "aof_frame asan_batteries atomic_batteries auth debug-0 debug-1 dump_restore notify release_batteries replyoff script_bounds sort zc",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll",
+        "GATE_ZC_NET_IO": "epoll",
+        "GATE_SHUTDOWN_NET_IO": "epoll",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TXN_FUSED": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-fused-epoll.tsv"
+      },
+      "exit": 0,
+      "seconds": 366.6875116825104,
+      "summary": [
+        "GATE(PARTIAL): 79 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-fused-epoll.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "aof_frame",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/aof_frame",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "162089ad14eb467e76838ba26ad94a2092af594d2bb4d94a57e7d630a4d2ab0a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.320000",
+              "label": "AOF control frame never inside a large record (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.320000",
+              "label": "AOF control frame never inside a large record (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "asan",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/asan",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "3d0fa69957c41cbd84e8cfe7d8fa2624f7803ca763e0445194f16b2510e2f8a2",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.210000",
+              "label": "ASAN build"
+            }
+          ]
+        },
+        {
+          "name": "asan_batteries",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/asan_batteries",
+          "exit": 0,
+          "passed": 5,
+          "failed": 0,
+          "ledger_sha256": "b5d97b5c3c75246dc5c0c3bc465610cfa22ca63899cb0233601f820f2dc8cda4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.990000",
+              "label": "torture under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.040000",
+              "label": "RYOW under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "25.380000",
+              "label": "atomic torn/window under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.080000",
+              "label": "atomic RYOW under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "ASAN clean"
+            }
+          ]
+        },
+        {
+          "name": "atomic_batteries",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/atomic_batteries",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "113a3684fc19fca038830aae6f704ac2dbc47345441c4d3e85b3c5fc6c2a14cf",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "25.250000",
+              "label": "atomic torn/window battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.070000",
+              "label": "atomic RYOW/mixed-write battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "4.250000",
+              "label": "atomic owner-local hazard battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "atomic shutdown invariants"
+            }
+          ]
+        },
+        {
+          "name": "auth",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/auth",
+          "exit": 0,
+          "passed": 7,
+          "failed": 0,
+          "ledger_sha256": "c79640193e069ac315cf377158019acc41338551a20fcebd281a3e8090504d2b",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "reject bad protected-mode"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "reject bad enable-debug-command"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.150000",
+              "label": "AUTH/HELLO/protected state machine"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.570000",
+              "label": "ACL battery (atomic off)"
+            },
+            {
+              "status": "ok",
+              "seconds": "5.570000",
+              "label": "ACL battery (atomic on)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.460000",
+              "label": "DEBUG toggle/reload battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "typed snapshot round-trip incl stream"
+            }
+          ]
+        },
+        {
+          "name": "debug-0",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/debug-0",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "f440de5d28da9105a5c065b7311cf0e1c339d023519009ba9c11d66d926375e4",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "10.170000",
+              "label": "plain-write lost updates (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.160000",
+              "label": "lbsignals battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.490000",
+              "label": "slowlog battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.040000",
+              "label": "atomfix battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "14.470000",
+              "label": "execatomic battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "11.880000",
+              "label": "execiso battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.470000",
+              "label": "execfix battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "multires battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.800000",
+              "label": "multirace battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "30.680000",
+              "label": "session_monotonic battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "xmove battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.370000",
+              "label": "txn_nx battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "8.600000",
+              "label": "txniso battery (atomic 0)"
+            }
+          ]
+        },
+        {
+          "name": "debug-1",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/debug-1",
+          "exit": 0,
+          "passed": 16,
+          "failed": 0,
+          "ledger_sha256": "d2dd03dad6b02056f42e20bbbd07df9a9404d750acb3ecf900d21c03b5975cb3",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.160000",
+              "label": "plain-write lost updates (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.160000",
+              "label": "lbsignals battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.480000",
+              "label": "slowlog battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "atomfix battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "scriptatomic battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "14.460000",
+              "label": "execatomic battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "11.880000",
+              "label": "execiso battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.480000",
+              "label": "execfix battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "multires battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.730000",
+              "label": "multirace battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "30.690000",
+              "label": "session_monotonic battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.360000",
+              "label": "xacct battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "xmove battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "3.270000",
+              "label": "xscript battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "2.310000",
+              "label": "txn_nx battery (atomic 1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "8.330000",
+              "label": "txniso battery (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "dump_restore",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/dump_restore",
+          "exit": 0,
+          "passed": 3,
+          "failed": 0,
+          "ledger_sha256": "7baf5e5e4bfd9dfeffb5978d94dc585e52c1dd179eead1c5ff59f2b92929c1cc",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.070000",
+              "label": "DUMP/RESTORE prepare + native SAVE"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "DUMP/RESTORE cross-restart round-trip"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "DUMP/RESTORE restart shutdown invariants"
+            }
+          ]
+        },
+        {
+          "name": "notify",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/notify",
+          "exit": 0,
+          "passed": 6,
+          "failed": 0,
+          "ledger_sha256": "4a5fd74c44abc611287f174f7b595489436c52eff45e4377f5109c986689b758",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "2.080000",
+              "label": "MULTI feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.580000",
+              "label": "blocking feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.900000",
+              "label": "pubsub feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "Lua feature battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "47.540000",
+              "label": "keyspace notification battery (atomic 0/1)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "feature battery shutdown invariants"
+            }
+          ]
+        },
+        {
+          "name": "production_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/production_units",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "release_batteries",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/release_batteries",
+          "exit": 0,
+          "passed": 8,
+          "failed": 0,
+          "ledger_sha256": "4c3ffe71713d8bbcf617e7e49f9eaaa8f36d9b5cdb0c9bfe63167cf7c445194a",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "6.820000",
+              "label": "torture battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.980000",
+              "label": "RYOW battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "ACL category runtime table"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "ACL LOAD/SAVE no-file errors"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.030000",
+              "label": "idle loop ceiling (LBSIGNALS, 1s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "shutdown invariants (nothing stuck)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "direct-reply fired (direct=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.030000",
+              "label": "dispatched==executed (N)"
+            }
+          ]
+        },
+        {
+          "name": "replyoff",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/replyoff",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "1785583c54874b05a601a26344e58f3c1a24cfa96fb7932b6089034fb66df4f9",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.230000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.230000",
+              "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "script_bounds",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/script_bounds",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "d99eefd9ceeaad9b3e7c1b731762586d66d33cc107b6159170418b72161ac029",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.060000",
+              "label": "xscript limit control"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.050000",
+              "label": "xscript window control"
+            }
+          ]
+        },
+        {
+          "name": "sort",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/sort",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "7920b15f8b66ff703f383e241e5dc3dcd432567c9b5e8987709bc04e76c7773e",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.140000",
+              "label": "cross-owner SORT battery (atomic 0)"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.130000",
+              "label": "cross-owner SORT battery (atomic 1)"
+            }
+          ]
+        },
+        {
+          "name": "zc",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.F83lsi/jobs/zc",
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "ledger_sha256": "18fb0e02b50b604f30487f8ef397ad4d6d72fb82d33ea5210aa137ecde56edd6",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.370000",
+              "label": "zc borrow battery"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc fired (zc_sends=N)"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.400000",
+              "label": "zc borrow battery under ASAN"
+            },
+            {
+              "status": "ok",
+              "seconds": "0.020000",
+              "label": "zc ASAN clean"
             }
           ]
         }
@@ -14568,6 +15595,142 @@
       ]
     },
     {
+      "name": "landing-script0-epoll-0",
+      "receipt": "docs/wave13/jobs/landing-script0-epoll-0.json",
+      "receipt_sha256": "7eafc200ed1fb78777e21e2592aa843f360b7d713eed487e8ffcecf06797a406",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "4deacfde95688685d46786323e8c4782407cc402",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "GATE_TXN_ATOMIC": "0",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "script_bounds",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll",
+        "GATE_ZC_NET_IO": "epoll",
+        "GATE_SHUTDOWN_NET_IO": "epoll",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-script0-epoll-0.tsv"
+      },
+      "exit": 0,
+      "seconds": 5.501551628112793,
+      "summary": [
+        "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-script0-epoll-0.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.ReTkJk/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "script_bounds",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.ReTkJk/jobs/script_bounds",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "97adbc1f8719a4e657c6021faefa78b5ed59fd60edbf0bc94ce94f88216db940",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "xscript limit control"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.030000",
+              "label": "xscript window control"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "landing-script0-epoll-1",
+      "receipt": "docs/wave13/jobs/landing-script0-epoll-1.json",
+      "receipt_sha256": "edd3070177f5731e6074c502a95b0d503e6ccc48d40f83f50b8722b5b3cc802e",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "4deacfde95688685d46786323e8c4782407cc402",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "GATE_TXN_ATOMIC": "0",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "script_bounds",
+        "GATE_NET_IO": "epoll",
+        "GATE_PROOF_NET_IO": "epoll",
+        "GATE_ZC_NET_IO": "epoll",
+        "GATE_SHUTDOWN_NET_IO": "epoll",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TXN_FUSED": "1",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-script0-epoll-1.tsv"
+      },
+      "exit": 0,
+      "seconds": 5.5102808475494385,
+      "summary": [
+        "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-script0-epoll-1.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.hOsItP/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        },
+        {
+          "name": "script_bounds",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.hOsItP/jobs/script_bounds",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "6944688b63f6655523c538a54c3dd6c50307cc309edb2b92b29dc5b8905efdfe",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.050000",
+              "label": "xscript limit control"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.050000",
+              "label": "xscript window control"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "landing-script0-uring-0",
       "receipt": "docs/wave13/jobs/landing-script0-uring-0.json",
       "receipt_sha256": "6d72480b1dcf5ac352a38791d3e365c58fa53240e4a890b7ae065ff3c0739476",
@@ -14775,6 +15938,109 @@
           "name": "release",
           "complete": true,
           "artifact": "/home/user/Projects/cx-wave13/build/gate-run.oMxhjt/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "landing-tcl-quiet",
+      "receipt": "docs/wave13/jobs/landing-tcl-quiet.json",
+      "receipt_sha256": "613713571494811ffd2ad60ba8737cc0983e3f34a4edd7261b8aa8a7daab2651",
+      "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+      "source_commit": "e63a451dd8859124fd38c4f57efa7a5ba4360410",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "redis_tcl compat2",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-tcl-quiet.tsv"
+      },
+      "exit": 0,
+      "seconds": 466.75377464294434,
+      "summary": [
+        "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-tcl-quiet.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "compat2",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/compat2",
+          "exit": 0,
+          "passed": 3,
+          "failed": 0,
+          "ledger_sha256": "411a3fdd64fbeb52d756857f1e64e42417c2b95e8b58fecfc52ceb115a40dfa0",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "1.870000",
+              "label": "compat2 autharity"
+            },
+            {
+              "status": "ok",
+              "seconds": "6.830000",
+              "label": "compat2 expire_notify"
+            },
+            {
+              "status": "ok",
+              "seconds": "1.940000",
+              "label": "compat2 ktls_lifetime"
+            }
+          ]
+        },
+        {
+          "name": "production_units",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/production_units",
+          "exit": 0,
+          "passed": 0,
+          "failed": 0,
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rows": []
+        },
+        {
+          "name": "redis_tcl",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/redis_tcl",
+          "exit": 0,
+          "passed": 2,
+          "failed": 0,
+          "ledger_sha256": "596649de7b38dbb6e66c17fd38e5b60a7302cb2067f9ccbfdc67c3330bec39bc",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "223.240000",
+              "label": "Redis 7.4.10 Tcl passing subset (2s)"
+            },
+            {
+              "status": "ok",
+              "seconds": "227.740000",
+              "label": "Redis 7.4.10 Tcl passing subset (1s)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/release",
           "exit": 0,
           "passed": 1,
           "failed": 0,
