@@ -1,0 +1,3 @@
+ok	9.740000	AOF commit order single
+ok	4.310000	AOF commit order crossing
+ok	4.600000	AOF commit order rewrite
