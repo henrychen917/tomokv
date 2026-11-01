@@ -4117,15 +4117,13 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return ScatterFinish::Waiting;
-    if (state.atomic_pop && state.phase == 2 && state.pop_missed) {
+    if (state.pop_missed && state.phase == 2) {
         aof_abort_scatter_group(state);
         state.aof_group.reset();
-        static constexpr uint32_t kMaxPopRetries = 8;
-        if (state.pop_retries++ < kMaxPopRetries &&
-            publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
+        // A lost selected value is not evidence that the other listed keys
+        // are empty. Only a complete empty probe may produce a null reply.
+        if (publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
             return ScatterFinish::Waiting;
-        if (state.final_reply == FinalReply::QueueFull) return final();
-        state.final_reply = FinalReply::NullArray;
         return final();
     }
     if (state.kind == Kind::Sort && state.sort_options.deref && state.phase == 1) {
