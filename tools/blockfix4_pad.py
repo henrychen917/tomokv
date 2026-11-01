@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PAD-A: PRE behaviour, inert POST cold-statistics layout and total text size."""
+"""PAD-A: PRE behaviour, inert POST blocking-registry layout and total text size."""
 import hashlib
 import json
 from pathlib import Path
