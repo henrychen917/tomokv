@@ -2,8 +2,9 @@
 
 Implemented on `cx-clientcompat`, PRE `7d2f8a205`, production source through
 `fbbd5ddd76`. No push. All commands are restricted to CPUs 64–79; builds use
-`-j16`; correctness boots use `LC_ALL=C`, ports 20400–20499, 16 shards and the
-job's declared geometry. No performance benchmark, load generator, or full
+`-j16`; correctness boots use `LC_ALL=C` and ports 20400–20499. Standard gate
+geometry is 16 shards at 6:2; individual jobs retain their declared overrides.
+No performance benchmark, load generator, or full
 iteration gate was run. Correctness receipts below are partial job receipts,
 not a full gate claim.
 
@@ -114,6 +115,8 @@ reloads interleaved with data children. These are explicit validation bounds.
 production objects and identical markers. The main product is 160 rows:
 GET/SET/INCR/MGET/MSET × tracking off/on × batch 1/32 × 1s/2s × normal/db0
 namespace × atomic 0/1. Tracking-on scopes include registration and retirement.
+They use plain `CLIENT TRACKING ON`; option combinations have the separate
+correctness coverage described above.
 **52 equal, 108 lower, zero higher.** Thus none of the requested ordinary
 command scopes executes added instructions in this census.
 

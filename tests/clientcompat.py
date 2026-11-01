@@ -239,6 +239,17 @@ def probe(case, port, rows, oracle, mode=None):
                                   if sub == 'SSUBSCRIBE' else [sub.lower().encode(), b'cc:sub', 1])
                     check('exec subscription', b.cmd('EXEC'), [
                         subscribed, [unsub.lower().encode(), b'cc:sub', 0]])
+                # RESP2 PING changes shape at the subscription child, then
+                # returns to ordinary framing after the last unsubscribe.
+                check('multi subscription ping', b.cmd('MULTI'), b'OK')
+                for command in (('PING',), ('SUBSCRIBE', 'cc:ping'), ('PING',),
+                                ('PING', 'payload'), ('UNSUBSCRIBE', 'cc:ping'), ('PING',)):
+                    check('queue subscription ping', b.cmd(*command), b'QUEUED')
+                check('ordered subscription ping', b.cmd('EXEC'), [
+                    b'PONG', [b'subscribe', b'cc:ping', 1],
+                    [b'pong', b''] if proto == 2 else b'PONG',
+                    [b'pong', b'payload'] if proto == 2 else b'payload',
+                    [b'unsubscribe', b'cc:ping', 0], b'PONG'])
                 # Ordered publication uses the same EXEC carrier, including
                 # delivery to a subscription established by an earlier child.
                 check('multi self-publish', b.cmd('MULTI'), b'OK')
