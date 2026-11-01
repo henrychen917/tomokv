@@ -1,0 +1,85 @@
+{
+  "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+  "row_counts": {
+    "quick": 1046,
+    "full": 1063,
+    "delta": 47
+  },
+  "runnable_correctness_completed": true,
+  "full_gate_pass": false,
+  "geometry_requirements": 392,
+  "satisfied_geometries": 391,
+  "witnessed_labels": 1055,
+  "main_zero_delta_cells": 48,
+  "read_local_zero_delta_cells": 4,
+  "native_cells": 244,
+  "lua_cells": 96,
+  "universal_body_identity": false,
+  "residual_body_groups": 283,
+  "not_run": {
+    "flip_saturated": "NOT RUN: memtier throughput workload is reserved for the maintainer.",
+    "efficiency": "NOT RUN: performance comparison is reserved for the maintainer.",
+    "datafix1_locale": "NOT RUN under LC_ALL=C: the row requires an inherited non-C locale to differ from C. The assertion is retained; its initial nonconforming run is not credited."
+  },
+  "build_bytes": 31910023168,
+  "post_primary_harness_changes": [
+    {
+      "path": "tests/datafix1_common.py",
+      "before_sha256": "7b3e3b58789bafd3d0e7e8722e16cac5658c0878a817f0ff850c58c83b9e6590",
+      "after_sha256": "204304460cc3a0a3fec1e04050b81646baf56205754e6b5b15b4f2c171b7b8ff",
+      "rerun_proof": "locale-C-reruns.json"
+    },
+    {
+      "path": "tests/fixtures/nullrefresh-ledger-labels.json",
+      "before_sha256": "19a52c1e7384f6dea03da7b9935bbe7212f8efeacd90fdb77f372195d52b4d4b",
+      "after_sha256": "ce70785a168e33e6e1946b680632e76d85003fa443fd1b39297ca2e23b918bc9",
+      "rerun_proof": "jobs/landing-abba-selftest-isolated.json"
+    },
+    {
+      "path": "tests/persistfmt.py",
+      "before_sha256": "091fa81f14e996a048a7ec017ee5b940c97692eefe8794ab1cde3c779bdefff9",
+      "after_sha256": "fad2951eab38b3d8246926b4c0ab85ab826f82931b8de3a096913c0578838a27",
+      "rerun_proof": "interaction-receipts.json"
+    },
+    {
+      "path": "tools/persistfmt_schedule.py",
+      "before_sha256": "bd601a81e43f4ad558be5b01f40069ec162949748512347ea136c4ca7c94b491",
+      "after_sha256": "5e3fb1d7b9212fa07ca3dbbea2ba903eb1486159ea7072e3a7d2383af2d05704",
+      "rerun_proof": "interaction-receipts.json"
+    }
+  ],
+  "inputs": {
+    "delivery-verification.json": "8167b01d1aefa0f1dd37c3b6299983bbf85ca775befc927b3fa69ec8a75fef81",
+    "row-inventory.json": "99b5899e0cbc00d29814f84d96ebb67b82449f73281676be8fb863f140d34189",
+    "correctness-coverage.json": "6a63e0e3b41f6ee4ab8b6af217418dc0975e1bf2d1da3a0b90a697e2a52e8d11",
+    "instruction-comparison.json": "9b03799311274dbdf950baa916ff1834baa77fe446f257e7e641334f4d97e7a2",
+    "binding-final-post.json": "9d829650cd900fd862c8739e53336ee2066941ae1a9c0b7cca6331101341ff75",
+    "binding-pre.json": "2aa6c000a67fb9222734781fda0d2993a7f18e6cfcb7efca8b8ae873a579c7d6",
+    "binding-final-gc-lua.json": "7f2e2a68ab59c6d0a039bdc06dbfb12a4befd2ee894228787ac244be59aa57d2",
+    "binding-pre-gc-lua.json": "5b991fc6691602958f174639cf6690e8b2713342d583e1cc560dcf051b63f21c",
+    "binding-supplied-headline.json": "fda1b69bc22e2c02e53e49591d775f92b13345d02c746c143418227fb754e9ed",
+    "identity/summary.json": "59486df1a4b8653bf14ea1a265c6cd6dcdec1f7bb70012a325f81b7f3cd3740f",
+    "interaction-receipts.json": "06815bcb6bf3dce7a272f2fe30e4c39aa2806e1f93102170472880d582adf058",
+    "aof-window-negative-control.json": "b69bd4492b9cedfae1b3c56a201239723f9616e7f8fb6e04d1788d4239e8309a",
+    "locale-C-reruns.json": "6e8d87b82f148ca6163810f547d96511cb36836c0e2875a9eaf77715b297a772",
+    "gates-test.json": "5ffc849b1d9e9b390c64ce94ab7ebd8eaf46696190a2cb8985ed1a372d1af6dc",
+    "differential-proof.json": "e07e184044f373c4d78cc27f5f15f3474b18bd3f7813634a814608a137a96051",
+    "tcl-positive-proof.json": "dbf2fcca5378e09df9cb6ed68e5c629307b31b88237fcd093f176b7ded2141d3",
+    "isolated-regressions.json": "372efb25fdee398a7be3dc43fc0903a62e81ba1951c799bef57900de792d314c",
+    "abba-copy-replay.json": "631258f74537b37941d0604e25e3f3e4bb401c0fcabdb95f25f8ce3e80c25cc6",
+    "jobs/landing-abba-selftest-isolated.json": "01136738c689fc6fecc04d5eb53ac74633a2c6795f18047763e3cb2a89001306",
+    "jobs/landing-primary.json": "08d553819e890efc7dc1fba87b1b34ccb2f0b2326fd4c1f55767877ac277c70d"
+  },
+  "branch": "cx-wave13",
+  "excluded_lanes": [
+    "cx-execfifo2",
+    "cx-execfifo3"
+  ],
+  "root_expect": {
+    "QUICK": "999",
+    "FULL": "1016"
+  },
+  "assigned_port_listeners": [],
+  "owned_servers": [],
+  "note": "All runnable authorized correctness requirements are witnessed. The non-C locale row, universal body identity, PAD placement limits, performance merit and the full landing iteration remain explicit exceptions."
+}

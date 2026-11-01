@@ -5,6 +5,7 @@ import itertools
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -118,6 +119,29 @@ def main():
                                   after_sha256=sha(ROOT / name), rerun_proof=rerun_proofs[name]))
     disk_bytes = int(subprocess.check_output(['du', '-s', '-B1', 'build'], cwd=ROOT).split()[0])
     assert disk_bytes < 40 * 1024**3
+    branch = subprocess.check_output(['git', 'branch', '--show-current'], cwd=ROOT, text=True).strip()
+    assert branch == 'cx-wave13'
+    excluded_lanes = ['cx-execfifo2', 'cx-execfifo3']
+    for ref in excluded_lanes:
+        assert subprocess.run(['git', 'merge-base', '--is-ancestor', ref, 'HEAD'], cwd=ROOT).returncode == 1
+    expect = dict(re.findall(r'^EXPECT_(QUICK|FULL)=(\d+)', (ROOT / 'tests/gate.sh').read_text(), re.M))
+    assert expect == {'QUICK': '999', 'FULL': '1016'}
+    listeners = [line for line in subprocess.check_output(['ss', '-lntpH'], text=True).splitlines()
+                 if re.search(r':200[0-9]{2}\s', line)]
+    assert not listeners, listeners
+    servers = []
+    for process in Path('/proc').iterdir():
+        if not process.name.isdigit():
+            continue
+        try:
+            exe = Path(os.readlink(process / 'exe').removesuffix(' (deleted)'))
+            cwd = Path(os.readlink(process / 'cwd').removesuffix(' (deleted)'))
+            if (('tomokv' in exe.name or exe.name == 'redis-server') and
+                    (exe.is_relative_to(ROOT / 'build') or cwd.is_relative_to(ROOT))):
+                servers.append(dict(pid=int(process.name), executable=str(exe), cwd=str(cwd)))
+        except (OSError, RuntimeError):
+            pass
+    assert not servers, servers
     result = dict(binary_sha256=post, row_counts=dict(quick=1046, full=1063, delta=47),
                   runnable_correctness_completed=True, full_gate_pass=False,
                   geometry_requirements=coverage['required_geometries'],
@@ -127,6 +151,8 @@ def main():
                   universal_body_identity=False, residual_body_groups=283,
                   not_run=coverage['not_run_performance'] | coverage['constraint_exclusions'],
                   build_bytes=disk_bytes, post_primary_harness_changes=changed_files, inputs=inputs,
+                  branch=branch, excluded_lanes=excluded_lanes, root_expect=expect,
+                  assigned_port_listeners=listeners, owned_servers=servers,
                   note='All runnable authorized correctness requirements are witnessed. '
                        'The non-C locale row, universal body identity, PAD placement limits, '
                        'performance merit and the full landing iteration remain explicit exceptions.')

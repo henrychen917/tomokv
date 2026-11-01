@@ -2,7 +2,7 @@
 
 ## wave13 integration
 
-Work in progress on `cx-wave13`, based on headline `7d2f8a205`. No push.
+Integrated for review on `cx-wave13`, based on headline `7d2f8a205`. No push.
 The three lane reports were read before their two-parent merges:
 `1bfbeaef3` (flipfix6), `397e32db0` (persistfmt), `5c499a736` (surveytools).
 Lane branches are unchanged. The maintainer's merit addendum excludes both
@@ -157,6 +157,8 @@ unreachable padding. Individual function/data addresses are not matched;
 notably its writable sections start 8 KiB earlier. This aggregate control
 cannot isolate every placement effect. The recipe and exact section comparison
 are in `docs/wave13/pad-a.json`. PRE and PAD source builds passed `make -q all`.
+PRE and PAD-A also passed the gate's complete `dbdefault` boot job in both
+thread modes; their hashes remained unchanged.
 
 The positive whole-job receipts cover **391/392 requested geometries**,
 **284/288 registered jobs**, and **1055/1063 declared labels**. The only missing
@@ -259,6 +261,16 @@ helper to C; `/proc/PID/environ` verified all 96 target/oracle boots
 deliberately requires a non-C inherited default to differ from C. Its assertion
 is retained: **NOT RUN under the required C environment**, because that
 precondition conflicts with the task constraint.
+
+`docs/wave13/final-audit.json` closes the runnable correctness ledger and binds
+the build, instruction, identity, interaction, differential, Tcl and negative
+control proofs. Production source is unchanged since 68f85e5d5. The four
+harness/fixture files changed after the primary campaign each have a complete
+rerun proof. Build storage is about **29.7 GiB** after recorded pruning; all gate
+artifacts are retained. No owned server or listener on ports 20000–20099 remains.
+The universal body-identity requirement is **unmet**, the non-C locale row is
+**NOT RUN under C**, and PAD-A retains the stated placement limitations. The
+maintainer's performance verdict and full landing iteration are still pending.
 
 ### Maintainer measurement request
 

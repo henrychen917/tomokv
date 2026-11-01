@@ -94,6 +94,130 @@
       ]
     },
     {
+      "name": "landing-arm-PAD-A-smoke",
+      "receipt": "docs/wave13/jobs/landing-arm-PAD-A-smoke.json",
+      "receipt_sha256": "ddf8e463bbcb032b0d61cc15ce3feb5aa6c090624704a3b7cb3e245d701d8eff",
+      "binary_sha256": "2d1abf4553feb009d9f9f6d07f13996f39cc68f7cf7695f4bad598465663f9db",
+      "source_commit": "d42d3bb05b760cd0451304e8165fc384fe125b6d",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "dbdefault",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-arm-PAD-A-smoke.tsv"
+      },
+      "exit": 0,
+      "seconds": 1.7599849700927734,
+      "summary": [
+        "GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-arm-PAD-A-smoke.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "dbdefault",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.Vgqy4P/jobs/dbdefault",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "267d58d69188483ca9f95f7af1eef30f0a770c532db2ca474930f12768582f71",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "Redis default databases 16 (both modes)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.Vgqy4P/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "landing-arm-PRE-smoke",
+      "receipt": "docs/wave13/jobs/landing-arm-PRE-smoke.json",
+      "receipt_sha256": "122c6904d23e62739df88c1fb4594b619990cdb4367eecb695bec9f4af2bcecf",
+      "binary_sha256": "589be7469cdadcac827fa88588001e71342244e48e37aae9ca91098509272d79",
+      "source_commit": "d42d3bb05b760cd0451304e8165fc384fe125b6d",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "dbdefault",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-arm-PRE-smoke.tsv"
+      },
+      "exit": 0,
+      "seconds": 1.7648723125457764,
+      "summary": [
+        "GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-arm-PRE-smoke.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "dbdefault",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.muyjVb/jobs/dbdefault",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "267d58d69188483ca9f95f7af1eef30f0a770c532db2ca474930f12768582f71",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.170000",
+              "label": "Redis default databases 16 (both modes)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.muyjVb/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "landing-blockfix-companions",
       "receipt": "docs/wave13/jobs/landing-blockfix-companions.json",
       "receipt_sha256": "3d27307dbf62f614ffdc46b7b17965cd08cbf1256b9b7d7118477cb2e02d8070",
@@ -16333,6 +16457,73 @@
             {
               "status": "ok",
               "seconds": "0.000000",
+              "label": "release build (+footprint locks)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "negative-client-list-cmd-name",
+      "receipt": "docs/wave13/jobs/negative-client-list-cmd-name.json",
+      "receipt_sha256": "b4e19ca7eb3544edbf717a3ddb26f25c100a8edb988302705aada2fc1de154c3",
+      "binary_sha256": "04d8b667b9a62d0d889a672df67390e9dd1443dff35e3ec9a8416dd9f35f7970",
+      "source_commit": "0cdea55f855184098bc56ddad4f96976d86ac406",
+      "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "REDIS74_ROOT": "/home/user/Projects/redis",
+        "GATE_ONLY_JOBS": "redis_tcl",
+        "GATE_NET_IO": "uring",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_ZC_NET_IO": "uring",
+        "GATE_SHUTDOWN_NET_IO": "uring",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TEST_PORT": "20098",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/negative-client-list-cmd-name.tsv"
+      },
+      "exit": 1,
+      "seconds": 451.45702719688416,
+      "summary": [
+        "GATE(PARTIAL): 1 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/negative-client-list-cmd-name.tsv.partial"
+      ],
+      "jobs": [
+        {
+          "name": "redis_tcl",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.PetVtM/jobs/redis_tcl",
+          "exit": 0,
+          "passed": 0,
+          "failed": 2,
+          "ledger_sha256": "ff23835834ae5cec56881eebf1711bcaad1541db2c5a9cb3fd96d840dc46af22",
+          "rows": [
+            {
+              "status": "FAIL",
+              "seconds": "224.400000",
+              "label": "Redis 7.4.10 Tcl passing subset (2s)"
+            },
+            {
+              "status": "FAIL",
+              "seconds": "225.350000",
+              "label": "Redis 7.4.10 Tcl passing subset (1s)"
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "complete": true,
+          "artifact": "/home/user/Projects/cx-wave13/build/gate-run.PetVtM/jobs/release",
+          "exit": 0,
+          "passed": 1,
+          "failed": 0,
+          "ledger_sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5",
+          "rows": [
+            {
+              "status": "ok",
+              "seconds": "0.010000",
               "label": "release build (+footprint locks)"
             }
           ]
