@@ -29,3 +29,10 @@ Removed all assertions/diagnostics based on `script_group_occ_giveups` and
 and xscript. Their existing exact replies, conservation and live wait/retry
 counter checks remain the evidence. No new production counter is needed to
 detect a refused reply. DQ=DF=0. Live and PRE receipts pending.
+
+### V4 / TM4.1 — debug battery atomic drift
+
+Before every `job_debug` battery, restore `atomic` and require `CONFIG GET`
+to return the requested value. A failed restore fails that battery without
+mislabeling its configuration. `*-atomic.txt` records each live assertion.
+DQ=DF=0. Both split atomic settings and the explicit fused posture need runs.

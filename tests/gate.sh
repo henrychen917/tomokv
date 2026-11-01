@@ -3174,6 +3174,13 @@ local AT=${1##*-} mode=2s
     FEATURE_ARGS=()
     [ "$t" = xmove ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
+    # TM4.1: earlier batteries change this live flag. Every label must describe
+    # the next battery's actual starting configuration, including txniso.
+    if ! py tests/atomic_mode.py 127.0.0.1 "$PORT" "$AT" \
+        >"$TMPDIR/gate-$t-$AT-atomic.txt" 2>&1; then
+      bad "$t battery (atomic $AT)" "TM4.1: see $TMPDIR/gate-$t-$AT-atomic.txt"
+      continue
+    fi
     if [ "$t" = txniso ]; then
       txniso_checks "$mode" "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
           && ok "txniso battery (atomic $AT)" \
