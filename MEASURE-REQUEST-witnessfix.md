@@ -253,4 +253,23 @@ It complements the live SWAPDB/XADD consumer test; it does not claim a live move
 wake or a particular thread interleaving. The helper is shared by both thread
 modes; namespaces require the db16 image. Separate planted namespace-zero controls
 are being checked for each call site. DQ=+1, DF=+1: list_namespace is collected
-before the quick-tier exit. The Makefile change adds only this test target.
+before the quick-tier exit. A separate test Makefile fragment owns this target; the production Makefile is unchanged.
+
+TM4.1 follow-up: restoring atomic 0 exposed xmove's obsolete witness. The current
+mover removes its source at the first mutation turn; the old detector required a
+push reply of 3 (source not yet removed), so it could count a before-first-hop
+push and could never prove the same-edge case. Replaced the LREM/sleep timing
+with the existing non-lead mutation delay, an observed source claim, and a
+still-pending move after the intervening push. Each fresh attempt checks exact
+lists and replies; missing arming still fails after 20 attempts. Timing/rate
+checks remain disabled in this correctness-only run.
+
+### V3 — forced script-cycle scope
+
+The strict txnorder case-c storm remains a smoke test, not a forced-cycle
+witness. The existing at412 owner fixture and T7/T8 reached their forced states
+and passed through their gate jobs in this lane. No new live cycle detector was
+implemented. NOT RUN: a planted-defect proof for case c; its 30-second duration
+is not a hit counter. It must not be cited as evidence that this window opened.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
