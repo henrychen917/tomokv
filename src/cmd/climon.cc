@@ -1313,6 +1313,7 @@ void IoLoop::climon_handle_client_request(PubSubEvent& event) {
         result->count = victims.size();
         for (Client* victim : victims) {
             if (victim->id() == event.caller_id) {
+                command_client_closing(victim);
                 victim->mark_closing();
                 mark_active(victim);
             } else {

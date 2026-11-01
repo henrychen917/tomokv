@@ -5014,6 +5014,7 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
+        command_client_closing(c);
         climon_unpark_paused(c);
         if (!c->closing()) {
 #ifdef TOMO_CONNRESET_TRACE

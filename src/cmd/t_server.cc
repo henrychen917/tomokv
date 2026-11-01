@@ -190,6 +190,7 @@ struct ClientMeta {
     bool no_evict = false;
     bool no_touch = false;
     bool pause_blocked = false;
+    bool disconnected = false;
     const CommandMetadata* last_command = nullptr;
     uint64_t last_command_id = UINT64_MAX;
     // Mirrored from the io loop's tracking state purely so CLIENT INFO/LIST can report the
@@ -202,6 +203,9 @@ struct ClientMeta {
 // slowlog's armed snapshot take this mutex; ordinary commands never touch it.
 using ClientCatalog = std::unordered_map<uint64_t, ClientMeta>;
 std::mutex g_client_meta_mu;
+// INFO counts connections at disconnect, independently of the ownership count
+// retained until all executor/kernel references have drained.
+std::atomic<uint64_t> g_connected_clients{0};
 std::array<ClientCatalog*, kMaxThreads> g_client_catalogs{};
 struct RegisteredClientCatalog final : ClientCatalog {
     RegisteredClientCatalog() {
@@ -2605,7 +2609,7 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
                       "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n"
                       "total_blocking_keys:%llu\r\ntotal_blocking_keys_on_nokey:%llu\r\n",
-                static_cast<unsigned long long>(g_server ? g_server->live_clients() : 0),
+                static_cast<unsigned long long>(g_connected_clients.load(std::memory_order_relaxed)),
                 static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->climon_tracking_clients() : 0),
@@ -3623,10 +3627,20 @@ void command_client_connected(Client* client, const char* addr, const char* ladd
     // id -> (addr, name) directory; connection lifecycle is the only writer.
     slowlog_note_client(client->id(), meta.addr.c_str());
     g_client_meta[client->id()] = std::move(meta);
+    g_connected_clients.fetch_add(1, std::memory_order_relaxed);
+}
+
+void command_client_closing(Client* client) {
+    if (!client) return;
+    ClientMeta* meta = client_meta(client);
+    if (!meta || meta->disconnected) return;
+    meta->disconnected = true;
+    if (!g_connected_clients.fetch_sub(1, std::memory_order_relaxed)) std::abort();
 }
 
 void command_client_disconnected(Client* client) {
     if (!client) return;
+    command_client_closing(client);
     register_client_catalog();
     std::lock_guard<std::mutex> lock(g_client_meta_mu);
     slowlog_forget_client(client->id());

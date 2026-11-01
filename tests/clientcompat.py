@@ -18,9 +18,17 @@ import time
 import traceback
 
 from _lib import Conn, RespError, encode
-from authfix import Run, Server, clean
+from authfix import Run, Server, clean as base_clean
 
 CASES = ('pause', 'disconnect', 'multi-tracking', 'multi-controls', 'enable-race')
+
+
+def clean(value):
+    if isinstance(value, RespError):
+        return {'error': str(value)}
+    if isinstance(value, (list, tuple)):
+        return [clean(item) for item in value]
+    return base_clean(value)
 
 
 class Peer(Conn):
@@ -189,8 +197,10 @@ def probe(case, port, rows, oracle):
                     check('multi subscription', b.cmd('MULTI'), b'OK')
                     check('queue subscription', b.cmd(sub, 'cc:sub'), b'QUEUED')
                     check('queue unsubscribe', b.cmd(unsub, 'cc:sub'), b'QUEUED')
+                    subscribed = (RespError("ERR SSUBSCRIBE isn't allowed for a DENY BLOCKING client")
+                                  if sub == 'SSUBSCRIBE' else [sub.lower().encode(), b'cc:sub', 1])
                     check('exec subscription', b.cmd('EXEC'), [
-                        [sub.lower().encode(), b'cc:sub', 1], [unsub.lower().encode(), b'cc:sub', 0]])
+                        subscribed, [unsub.lower().encode(), b'cc:sub', 0]])
                 b.close()
         else:
             # Bounded enable-after-OK search. BCAST removes read-enrolment as a
