@@ -3,5 +3,6 @@
   "initial_gates_test": "83 tests; 14 scheduler fixture deadlines failed while other lane work was active; isolated final rerun required",
   "pre_tcl": "build/gate-run.Vd2gz7: selected baseline families, 2s pubsub unsubscribe assertion fails; 1s passes",
   "prototype_tcl": "build/gate-run.v0q8jM: rejected errorstats prototype; scripting inventory incomplete in both modes, pubsub assertion fails in 2s",
-  "unit_fixture": "cdhXrY: notify-oom segfaulted because the physical-owner fixture was an unregistered private workbench. Fixture now registers its owner and independently checks speculative expiry is discarded; 1RWWcJ passes 17/17 rows."
+  "unit_fixture": "cdhXrY: notify-oom segfaulted because the physical-owner fixture was an unregistered private workbench. Fixture now registers its owner and independently checks speculative expiry is discarded; 1RWWcJ passes 17/17 rows.",
+  "linear_redactor_review": "After final review found repeated HELLO rescans, the shared routine now advances a caller-owned cursor. Stopped only the owned V2oRKK/jiBTcA proof process groups cleanly; no lane listeners remain. They showed no mismatches before cancellation and will be replaced by complete reruns on the rebuilt arm."
 }
