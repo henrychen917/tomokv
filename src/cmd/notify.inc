@@ -502,6 +502,12 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
 }
 
 void notify_record_physical(Shard& shard, Op& source, uint32_t cls, Slice key) {
+    // Workbench expiry is speculative just like its other effects. It must be
+    // discarded on validation failure, rather than survive as a physical reap.
+    if (shard.server() && &shard.server()->shard(shard.id()) != &shard) {
+        notify_record(shard, source, cls, NotifyEventId::Expired, key);
+        return;
+    }
     shard.watch_physical_delete(key, true);
     const uint32_t mask = shard.notify_mask();
     const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
@@ -566,6 +572,9 @@ void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key) {
 }
 
 void notify_elapsed_set(Shard& shard, Op& op, Slice key) {
+    // Private script state has no asynchronous expiry pass. Its by-name expiry
+    // already joins the script's ordered, speculative notification batch.
+    if (shard.server() && &shard.server()->shard(shard.id()) != &shard) return;
     // Only this already-elapsed value needs a causal edge to maintenance. The
     // value still expires through the usual owner cycle, with unchanged AOF,
     // SAVE, tracking-NOLOOP and expiry-counter semantics. Waiting delays only

@@ -2782,6 +2782,10 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             Shard* work = script_workbench(*state.server, state.script_coordinator_shard,
                                            shard.type_limits(), shard.stream_limits());
             work->store().clear();
+            // The private shard is outside owner config publication. Refresh its
+            // observers for every attempt, including escalated and same-owner
+            // multi-shard scripts. The scatter's batch publishes only at commit.
+            work->set_notify_mask(shard.notify_mask());
             // The workbench is a shard object of its own, so xshard_execute's cut does not reach
             // it; give it the same instant explicitly.
             work->pin_now_ms(state.now_cut_ms);
@@ -2806,7 +2810,10 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             const uint64_t workbench_misses = work->stats().misses;
             {
                 ScriptAccessScope access(op, state.status, state.key_count);
-                op.spec->handler(*work, op);
+                const CommandSpec* spec = (work->notify_mask() || state.server->climon_monitors())
+                    ? command_notify_variant(op.spec) : op.spec;
+                NotifyExecutionScope notifications(*work, op, spec->flags & CmdFlags::NotifySelected);
+                spec->handler(*work, op);
             }
             // The workbench is intentionally absent from Server::shards(), so forward the nested
             // command's read-lookup counters to the real coordinator shard before it is reused.
