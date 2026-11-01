@@ -61,3 +61,15 @@ sequence is the composition of those lane behaviours, not an additional merge
 regression. This is the pre-existing D11 publication/retirement problem; it is
 not promoted, tolerated as a Redis pass, or silently hidden in a new green row.
 The red directed receipts are retained under `docs/wave14/jobs/order-*`.
+
+### Initial command census and budget criterion
+
+The rebuilt PRE matches all 718 headline hot bodies and all 88 headline command
+bodies; its only two linked-body differences are the cold INFO git identity
+strings from the archive build. All 216 PRE scopes completed. The first merged
+census exposed +35 instructions per DB0 GET and +10 per DB0 INCR, attributable
+to `FlatStore::find` outlining `Slice::key_eq`. That body happens to match the
+older execfifo3 binary but regresses the newer headline. Budget selection
+therefore prioritizes headline identity for hot bodies unchanged by every lane;
+matching an older lane's incidental compiler output is not sufficient. Initial
+and rejected counts are retained, not presented as the integration cost proof.

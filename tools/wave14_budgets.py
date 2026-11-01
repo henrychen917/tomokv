@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compile-only per-unit trials and linked reference scoring; no server or workload."""
 from concurrent.futures import ProcessPoolExecutor
-import hashlib,json,os,re,shlex,subprocess,sys
+import gzip,hashlib,json,os,re,shlex,subprocess,sys
 from pathlib import Path
 import wave14
 identity=wave14.references()
@@ -45,7 +45,17 @@ def trial(job):
 
 def score(job):
  receipt=Path(job['output']+'.frozen-score.json')
- if receipt.exists():return json.loads(receipt.read_text())
+ if receipt.exists():
+  result=json.loads(receipt.read_text())
+  if result.get('score_version')==2:return result
+  with gzip.open(identity.OUT/result['linked_sha256']/'inventory.json.gz','rt') as f:post=json.load(f)
+  refs={arm:identity.inventory(path) for arm,path in identity.REFS.items()}
+  rows=identity.compare(post,refs)
+  result['previous_score']=result['score']
+  result['score']=[sum(r['hot'] and not r['changed_lanes'] and not r['equal'] for r in rows),*result['score']]
+  result['score_version']=2
+  receipt.write_text(json.dumps(result,indent=2)+'\n')
+  return result
  binary=Path(job['output']+'.tomokv')
  cmd=shlex.split(next(s for s in subprocess.check_output(['make','-n','-W','build/src/main.o','all'],cwd=ROOT,text=True).splitlines() if s.startswith('g++ ') and ' -Wl,--wrap=main ' in s))
  cmd[cmd.index('build/'+job['object'])]=job['output'];cmd[cmd.index('-o')+1]=str(binary);cmd+=['-Wl,--strip-debug']
@@ -55,7 +65,8 @@ def score(job):
  rows=identity.compare(post,refs)
  # First preserve command bodies, then single-lane/unchanged hot bodies, then
  # minimize residual hot and all-body changes. Composites remain fully listed.
- result=dict(job,score=[sum(r['command_hot'] and not r['matches'] for r in rows),
+ result=dict(job,score_version=2,score=[sum(r['hot'] and not r['changed_lanes'] and not r['equal'] for r in rows),
+   sum(r['command_hot'] and not r['matches'] for r in rows),
    sum(r['hot'] and len(r['changed_lanes'])<=1 and not r['matches'] for r in rows),
    sum(r['hot'] and not r['matches'] for r in rows),sum(not r['matches'] for r in rows)],
    linked_sha256=post['sha256'],link_command=cmd,base_manifest_sha256=hashlib.sha256((ROOT/'docs/wave14/budget-base.json').read_bytes()).hexdigest(),
