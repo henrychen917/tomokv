@@ -20,6 +20,7 @@
 #include <ctime>
 #include <memory>
 #include <mutex>
+#include "cfgfix.h"
 #include <new>
 #include <sys/resource.h>
 #include <unordered_map>
@@ -152,6 +153,7 @@ class Server {
     friend class IoLoop;
     friend struct FlipListenerState;
     friend bool fliplisten_reserve(Server&, std::string&);
+    friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&);
     friend struct CoreConcurrencyTest;
     friend struct AtomicSurvivorsTest;
     friend struct LbPlannerTest;
@@ -1498,6 +1500,10 @@ public:
             return false;
         }
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+        if (cfgfix_control_busy(*this)) {
+            error = "ERR FLIP is not allowed during a listener reconfiguration";
+            return false;
+        }
         // The automatic controller's evidence belongs to this completion epoch.
         // Check under admission's lock so a manual completion between its sample
         // and this call cannot be silently acknowledged as part of the new move.

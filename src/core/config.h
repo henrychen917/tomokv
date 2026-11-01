@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 #include <climits>
 #include <cctype>
 #include <cstdio>
@@ -48,6 +49,64 @@ inline bool cfg_parse_u32(const char* s, uint32_t& out);
 inline bool cfg_parse_u64(const char* s, uint64_t& out);
 
 inline bool cfg_split_args(const char* line, std::vector<std::string>& out);
+
+// Cold process/diagnostic configuration. The 32-bit handle replaces reserved
+// bytes in Config; defaults allocate no sidecar and move no existing field.
+// Boot and CONFIG SET both use cfg_process_normalize below.
+struct ProcessConfigSpec {
+    const char* name;
+    const char* value;
+    const char* choices; // null: string; "integer": signed int; otherwise comma-separated enum
+    bool immutable;
+    bool hidden = false;
+};
+inline constexpr ProcessConfigSpec process_configs[] = {
+    {"daemonize", "no", "yes, no", true},
+    {"logfile", "", nullptr, true},
+    {"syslog-enabled", "no", "yes, no", true},
+    {"syslog-ident", "redis", nullptr, true},
+    {"syslog-facility", "local0", "user, local0, local1, local2, local3, local4, local5, local6, local7", true},
+    {"loglevel", "notice", "debug, verbose, notice, warning, nothing", false},
+    {"pidfile", "", nullptr, true},
+    {"supervised", "no", "upstart, systemd, auto, no", true},
+    {"key-load-delay", "0", "integer", false, true},
+};
+inline constexpr size_t kProcessConfigCount = std::size(process_configs);
+inline std::vector<std::array<std::string, kProcessConfigCount>> process_config_values;
+inline int cfg_process_find(Slice name) {
+    for (size_t i = 0; i < kProcessConfigCount; ++i)
+        if (name.eq_icase(process_configs[i].name)) return static_cast<int>(i);
+    return -1;
+}
+inline bool cfg_process_normalize(int index, Slice input, std::string& out, std::string& error) {
+    const auto& spec = process_configs[index];
+    if (!spec.choices) { out.assign(input.p, strnlen(input.p, input.n)); return true; }
+    if (!std::strcmp(spec.choices, "integer")) {
+        // Redis string2ll accepts only canonical decimal, including a minus
+        // sign but excluding +, leading zeroes, whitespace and embedded NUL.
+        int64_t value = 0;
+        auto parsed = std::from_chars(input.p, input.p + input.n, value);
+        if (!input.n || parsed.ec != std::errc{} || parsed.ptr != input.p + input.n ||
+            std::to_string(value) != input.sv()) {
+            error = "argument couldn't be parsed into an integer"; return false;
+        }
+        if (value < INT_MIN || value > INT_MAX) {
+            error = "argument must be between -2147483648 and 2147483647 inclusive"; return false;
+        }
+        out = std::to_string(value); return true;
+    }
+    const std::string choices(spec.choices);
+    for (size_t begin = 0; begin < choices.size();) {
+        const size_t end = choices.find(", ", begin);
+        const std::string choice = choices.substr(begin, end == std::string::npos ? end : end - begin);
+        if (input.eq_icase(choice.c_str())) { out = choice; return true; }
+        if (end == std::string::npos) break;
+        begin = end + 2;
+    }
+    error = !std::strcmp(spec.choices, "yes, no") ? "argument must be 'yes' or 'no'" :
+        std::string("argument(s) must be one of the following: ") + spec.choices;
+    return false;
+}
 
 // LAT-HIST-1: Redis 7.4 uses space-separated string2d tokens (no sorting or
 // deduplication). A null/default vector owns no memory while tracking is off.
@@ -452,7 +511,7 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    uint32_t network_reserved = 0;  // preserve Config and every following member offset
+    uint32_t process_config_id = 0; // cold sidecar, preserves every following member offset
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -573,6 +632,21 @@ struct Config {
     std::vector<double> latency_tracking_info_percentiles; // implicit default: 50 99 99.9
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
+
+inline const char* cfg_process_value(const Config& cfg, size_t index) {
+    return cfg.process_config_id ? process_config_values.at(cfg.process_config_id - 1)[index].c_str()
+                                 : process_configs[index].value;
+}
+inline void cfg_process_store(Config& cfg, size_t index, std::string value) {
+    if (!cfg.process_config_id) {
+        if (value == process_configs[index].value) return;
+        std::array<std::string, kProcessConfigCount> values;
+        for (size_t i = 0; i < kProcessConfigCount; ++i) values[i] = process_configs[i].value;
+        process_config_values.push_back(std::move(values));
+        cfg.process_config_id = process_config_values.size();
+    }
+    process_config_values.at(cfg.process_config_id - 1)[index] = std::move(value);
+}
 
 inline Slice cfg_requirepass(const Config& cfg) {
     const char* password = cfg.requirepass ? cfg.requirepass : "";
@@ -774,6 +848,18 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         };
         auto next_integer = [&] { return value_slice(next(nullptr)); };
         const char* a = args[i];
+        const int process = !std::strncmp(a, "--", 2)
+            ? cfg_process_find(Slice(a + 2, std::strlen(a + 2))) : -1;
+        if (process >= 0) {
+            const char* value = next(nullptr);
+            std::string normalized, error;
+            if (!value || !cfg_process_normalize(process, value_slice(value), normalized, error)) {
+                std::fprintf(stderr, "%s: %s\n", a, value ? error.c_str() : "wrong number of arguments");
+                return kConfigError;
+            }
+            cfg_process_store(cfg, process, std::move(normalized));
+            continue;
+        }
         const int encoding = !std::strncmp(a, "--", 2)
             ? EncodingConfig::find(Slice(a + 2, std::strlen(a + 2))) : -1;
         if (encoding >= 0) {
@@ -1672,6 +1758,8 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
         const bool valueless = words[0] == "no-pin" || words[0] == "help";
         const bool variadic = words[0] == "user" || words[0] == "save" ||
                               words[0] == "client-output-buffer-limit" ||
+                              words[0] == "shutdown-on-sigint" ||
+                              words[0] == "shutdown-on-sigterm" ||
                               words[0] == "latency-tracking-info-percentiles";
         if ((valueless && words.size() != 1) ||
             (!valueless && ((words.size() < 2 &&

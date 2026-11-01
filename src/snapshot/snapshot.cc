@@ -1,4 +1,5 @@
 #include "../persist/routing_compat.h"
+#include "../core/cfgfix.h"
 #include "snapshot.h"
 
 #include <algorithm>
@@ -297,7 +298,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                 return StartResult::Busy;
             }
         } else transition_lock.lock();
-        if (server.placement_transition_active()) {
+        if (server.placement_transition_active() || cfgfix_control_busy(server)) {
             error = "placement transition is in progress";
             return StartResult::Busy;
         }
@@ -1221,6 +1222,7 @@ static bool load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shar
                 return false;
             }
             shard.store().note_loaded_object(hash, object);
+            cfgfix_delay_loaded_key();
         }
     }
     shard.publish_size();

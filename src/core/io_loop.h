@@ -61,6 +61,7 @@ namespace tomo {
 
 class IoLoop {
     friend struct FlipListenerState;
+    friend bool cfgfix_rebind(Server&, uint32_t, uint16_t, const std::string&, std::string&);
     friend bool fliplisten_reserve(Server&, std::string&);
     friend struct CoreConcurrencyTest;
     friend struct LbPlannerTest;
@@ -1429,7 +1430,8 @@ private:
         try {
             auto conn = std::make_unique<TlsConn>();
             std::string error;
-            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, c->fd(),
+            auto& auth = const_cast<Config&>(srv_->cfg()).tls_auth_clients;
+            if (!conn->init(*tls_context_, std::atomic_ref<TlsAuthClients>(auth).load(std::memory_order_relaxed), c->fd(),
                             true, error)) {
                 std::fprintf(stderr, "TLS connection init failed: %s\n", error.c_str());
                 return false;

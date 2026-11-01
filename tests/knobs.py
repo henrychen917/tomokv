@@ -75,12 +75,21 @@ try:
             raise AssertionError("CONFIG %s differs: %r" % (name, values.get(name.encode())))
     for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "reorder", "wb-policy",
                  "wb-small-pipe", "wb-complete-visits",
-                 "hll-sparse-max-bytes", "unixsocketperm", "port", "bind", "unixsocket"):
+                 "hll-sparse-max-bytes", "unixsocketperm", "unixsocket",
+                 "daemonize", "logfile", "syslog-enabled", "syslog-ident", "syslog-facility", "pidfile", "supervised"):
         result = conn.cmd("CONFIG", "SET", name, values[name.encode()])
         if not isinstance(result, _lib.RespError) or "immutable" not in str(result):
             raise AssertionError("boot-only knob was mutable: " + name)
         if conn.must("CONFIG", "GET", name) != [name.encode(), values[name.encode()]]:
             raise AssertionError("rejected boot-only SET changed its GET value: " + name)
+    for name in ("port", "bind", "tls-auth-clients", "loglevel"):
+        conn.must("CONFIG", "SET", name, values[name.encode()])
+    conn.must("CONFIG", "SET", "key-load-delay", "17")
+    if conn.must("CONFIG", "GET", "key-load-delay") != [b"key-load-delay", b"17"]:
+        raise AssertionError("hidden CONFIG must be accessible by its exact name")
+    if conn.must("CONFIG", "GET", "key-load-*") != []:
+        raise AssertionError("hidden CONFIG leaked through a pattern")
+    conn.must("CONFIG", "SET", "key-load-delay", "0")
     for policy in ("no", "yes"):
         conn.must("CONFIG", "SET", "aof-load-truncated", policy)
         if conn.must("CONFIG", "GET", "aof-load-truncated") != [b"aof-load-truncated", policy.encode()]:

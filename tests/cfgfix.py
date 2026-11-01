@@ -2,6 +2,8 @@
 """CONFIG oracle receipts; called by gate.sh's cfgfix job, with all engine/mode legs."""
 from contextlib import closing
 import json
+from pathlib import Path
+import re
 import socket
 
 import _netfix as n
@@ -29,6 +31,13 @@ def test(a, port, certs, proc, oracle):
         visible = c.must('CONFIG', 'GET', '*')
         (a.output / ('oracle' if oracle else f'candidate-{proc.pid}') ).with_suffix('.configs.json').write_text(
             json.dumps(dict(zip(map(plain, visible[::2]), map(plain, visible[1::2]))), indent=2))
+        reference_source = Path(a.oracle).parent / 'config.c'
+        standard = reference_source.read_text().split('standardConfig static_configs[] = {')[1].split('/* NULL Terminator')[0]
+        names = set(re.findall(r'create\w+Config\("([^"]+)"', standard))
+        names.update(re.findall(r'create\w+Config\("[^"]+", "([^"]+)"', standard))
+        explicit = {name: plain(c.must('CONFIG', 'GET', name)) for name in sorted(names)}
+        (a.output / ('oracle' if oracle else f'candidate-{proc.pid}')).with_suffix('.explicit.json').write_text(
+            json.dumps(explicit, indent=2))
         for args in (
             ('GET', 'key-load-delay'), ('GET', 'key-load-*'),
             ('GET', 'key-load-delay', 'key-load-*', 'key-load-delay'),
@@ -80,6 +89,16 @@ def test(a, port, certs, proc, oracle):
             # A fresh connection must still reach the original listener after failure.
             with closing(n.connect(port)) as fresh:
                 assert fresh.must('PING') == b'PONG'
+        # Keep this connection across successful changes, including a disabled
+        # TCP listener, and verify every new endpoint from a fresh connection.
+        command('CONFIG', 'SET', 'port', str(port + 1))
+        with closing(n.connect(port + 1)) as fresh:
+            assert fresh.must('PING') == b'PONG'
+        command('CONFIG', 'SET', 'port', '0')
+        assert c.must('PING') == b'PONG'
+        command('CONFIG', 'SET', 'port', str(port))
+        with closing(n.connect(port)) as fresh:
+            assert fresh.must('PING') == b'PONG'
         # Only sorted key/value pairs are compared; Redis hash-table order is unspecified.
         for args, result in replies:
             if args[:2] == ['CONFIG', 'GET'] and isinstance(result, list):

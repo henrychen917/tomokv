@@ -53,6 +53,7 @@ SRC      += src/core/shutdown.cc
 SRC      += src/cmd/latency_tracking.cc
 SRC      += src/cmd/eviction.cc
 SRC      += src/store/flush.cc
+SRC      += src/core/cfgfix.cc
 # The entry wrapper belongs only to server links using --wrap=main.
 SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto

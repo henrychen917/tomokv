@@ -50,6 +50,10 @@ def parser_knobs(source):
     for canonical, alias, legacy in rows:
         flags.add(canonical)
         flags.update(name.strip('"') for name in (alias, legacy) if name != "nullptr")
+    process = source.split('process_configs[] = {', 1)[1].split('};', 1)[0]
+    if 'cfg_process_find' not in parser:
+        raise ValueError('missing process configuration dispatch')
+    flags.update(re.findall(r'\{"([a-z0-9-]+)"', process))
     return flags
 
 

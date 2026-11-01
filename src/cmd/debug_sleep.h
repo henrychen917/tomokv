@@ -19,6 +19,27 @@ template <unsigned Workers, unsigned WaitMs> class DebugSleepCoordinator {
     using Clock = std::chrono::steady_clock;
     using Lock = std::unique_lock<std::mutex>;
 public:
+    // Cold configuration rendezvous. Reuses the already-present pass-boundary
+    // pending check, so ordinary commands acquire no new branch or load.
+    // The callback runs on each physical issuer after every worker has parked.
+    // No callback may depend on normal command execution during this interval.
+    bool exclusive(unsigned origin, void* context, void (*action)(void*, unsigned)) {
+        Lock lock(mutex_);
+        if (pending() || origin >= Workers || !workers_.test(origin)) return false;
+        Control control{this, context, action, {}, {}, {}};
+        Control* empty = nullptr;
+        if (!control_.compare_exchange_strong(empty, &control)) return false;
+        control.members = workers_;
+        ++generation_;
+        arrived_.reset();
+        deadline_ = Clock::now() + std::chrono::seconds(5);
+        interrupted_.store(false, std::memory_order_relaxed);
+        pending_.store(true, std::memory_order_release);
+        control_park(lock, origin, control);
+        while ((control.departed & arrived_) != arrived_) changed_.wait(lock);
+        control_.store(nullptr, std::memory_order_release);
+        return control.started;
+    }
     // Role changes leave/re-enter this membership before touching their next pass.
     class Worker {
     public:
@@ -44,6 +65,8 @@ public:
     uint64_t start(uint64_t us) {
         Lock lock(mutex_);
         if (pending()) return 0;
+        if (Control* control = control_.load(std::memory_order_acquire);
+                control && control->owner == this) return 0;
         duration_ = std::chrono::microseconds(us);
         arrived_.reset();
         ++generation_;
@@ -69,6 +92,11 @@ public:
     __attribute__((noinline)) void park(unsigned tid) {
         Lock lock(mutex_);
         if (!pending()) return;
+        if (Control* control = control_.load(std::memory_order_acquire);
+                control && control->owner == this) {
+            control_park(lock, tid, *control);
+            return;
+        }
         if (phase_ == Phase::Retry) {
             if (Clock::now() < deadline_) return;
             phase_ = Phase::Collect;
@@ -105,6 +133,47 @@ public:
     }
 
 private:
+    struct Control {
+        DebugSleepCoordinator* owner;
+        void* context;
+        void (*action)(void*, unsigned);
+        std::bitset<Workers> completed, departed, members;
+        bool started = false;
+    };
+    inline static std::atomic<Control*> control_{nullptr};
+    void control_park(Lock& lock, unsigned tid, Control& control) {
+        arrived_.set(tid);
+        changed_.notify_all();
+        while (pending() && !control.started) {
+            if ((arrived_ & control.members) == control.members) {
+                control.started = true;
+                changed_.notify_all();
+                break;
+            }
+            if (interrupted_.load(std::memory_order_relaxed) || Clock::now() >= deadline_) {
+                // Nothing has run: failure releases every parked worker and
+                // leaves the caller's prepared resources available to unwind.
+                pending_.store(false, std::memory_order_release);
+                changed_.notify_all();
+                break;
+            }
+            changed_.wait_until(lock, std::min(deadline_, Clock::now() + kSignalPoll));
+        }
+        if (!control.started) {
+            control.departed.set(tid); changed_.notify_all(); return;
+        }
+        lock.unlock();
+        control.action(control.context, tid);
+        lock.lock();
+        control.completed.set(tid);
+        if ((control.completed & control.members) == control.members) {
+            pending_.store(false, std::memory_order_release);
+            changed_.notify_all();
+        }
+        while (pending()) changed_.wait(lock);
+        control.departed.set(tid);
+        changed_.notify_all();
+    }
     enum class Phase { Collect, Sleep, Retry };
     // These bound coordination and signal observation, never the requested sleep duration.
     static constexpr auto kCollectWindow = std::chrono::milliseconds(2 * WaitMs);

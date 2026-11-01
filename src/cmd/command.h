@@ -428,6 +428,7 @@ void command_config_resetstat();
 bool command_validate_all_shards(Op& op);
 bool command_config_routes_all_shards(Op& op, bool execution_boundary = false);
 bool command_validate_config_set(Op& op);
+bool command_config_apply_reply(Op& op);
 bool command_prepare_script_route(Server& server, Op& op);
 bool command_validate_script_route(Op& op, uint32_t& first, uint32_t& count);
 bool command_script_key_range(const Op& op, uint32_t& first, uint32_t& count);
