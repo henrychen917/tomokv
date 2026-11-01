@@ -23,6 +23,9 @@ def proc(c, run, label):
         for name, value in result.items():
             if name.startswith(b'used_cpu_'):
                 assert re.fullmatch(rb'\d+\.\d{6}', value), (name, value)
+            if not run.oracle and name in (b'used_cpu_sys_main_thread', b'used_cpu_user_main_thread'):
+                run.check(label + ' unavailable proc ' + section + ' ' + name.decode(),
+                          value, b'0.000000')
         run.check(label + ' alive after INFO ' + section, c.cmd('PING'), b'PONG')
 
 
