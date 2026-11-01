@@ -150,7 +150,15 @@ def main():
                                         results_sha256=sha(path),
                                         mix='scripts, EXEC, WATCH/EXEC, plain writers' if case == 'T6'
                                             else 'original T10 scripts/plain writers with FLIP; session storm is covered separately'))
+    control_path = DOC / 'aof-window-negative-control.json'
+    control = json.loads(control_path.read_text())
+    assert control['verified'] and control['post_sha256'] == post
+    assert control['harness_sha256'] == sha(ROOT / 'tests/persistfmt.py')
+    assert control['generator_sha256'] == sha(ROOT / 'tools/persistfmt_schedule.py')
+    assert len(control['modes']) == 4 and all(r['verified'] for r in control['modes'])
     output = dict(binary_sha256=post, gate_jobs=used, sanitizer_units=units,
+                  aof_never_armed_control=dict(path=str(control_path.relative_to(ROOT)),
+                                              sha256=sha(control_path), verified=True),
                   ping_probed_storm_legs=storms, moved_session_semantics=semantics,
                   flush_live_flip=siblings, function_flush_restart_boundaries=boundaries,
                   aof_failure_windows=failures,
