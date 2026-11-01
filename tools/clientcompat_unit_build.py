@@ -77,7 +77,7 @@ def main():
     os.environ["LC_ALL"] = "C"
     targets = json.loads((DOC / "production-targets.json").read_text())
     commands = [["make", "-j16", target] for target in targets]
-    commands += [
+    extra = [
         ["make", "-j16", "mdbqsbr-live-arms"],
         ["make", "-f", "Makefile", "-f", "tools/blockfix_cost.mk", "-j16", "build/blockfix-cost"],
         ["make", "-f", "Makefile", "-f", "tools/blockfix2.mk", "-j16",
@@ -85,14 +85,25 @@ def main():
     ]
     receipt = DOC / "production-builds.json"
     records = json.loads(receipt.read_text())
-    for index, command in enumerate(commands):
-        log = Path(f"build/clientcompat/ack-units-{index:02d}.log")
+    completed = {tuple(row.get("requested_command", row["command"])) for row in records
+                 if row.get("source_commit") == SOURCE_COMMIT and row["exit"] == 0}
+    pending = [command for command in commands if tuple(command) not in completed]
+    # One make owns shared prerequisites. Eight targets keep debug link output
+    # bounded while making use of the lane's sixteen permitted build CPUs.
+    batches = [pending[i:i + 8] for i in range(0, len(pending), 8)]
+    batches += [[command] for command in extra if tuple(command) not in completed]
+    for index, batch in enumerate(batches):
+        command = (["make", "-j16"] + [row[-1] for row in batch]
+                   if len(batch) > 1 else batch[0])
+        log = Path(f"build/clientcompat/units-{SOURCE_COMMIT}-{index:02d}.log")
         with log.open("w") as output:
             result = subprocess.run(command, stdout=output, stderr=subprocess.STDOUT)
-        records.append(dict(command=command, exit=result.returncode, log=str(log),
-                            source_commit=SOURCE_COMMIT))
+        for requested in batch:
+            records.append(dict(command=command, requested_command=requested,
+                                exit=result.returncode, log=str(log),
+                                source_commit=SOURCE_COMMIT))
         receipt.write_text(json.dumps(records, indent=2) + "\n")
-        print(index, result.returncode, command[-1], flush=True)
+        print(index, result.returncode, [row[-1] for row in batch], flush=True)
         assert result.returncode == 0, log
         trim_units()
     finish_unit_artifacts()

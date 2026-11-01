@@ -175,47 +175,23 @@ the sealed server SHA-256s; retained build recipes reproduce the probes.
 
 ### Correctness validation
 
-**Refresh in progress after subscription/keyspace capture and ordering corrections.** The stronger
-multi-controls witness failed on all 32 preceding POST geometries, passed on
-the Redis oracle, and now passes all 32 corrected POST geometries. The final
-160/128 instruction census is complete and satisfies the ordinary-command
-bound. Earlier full validation below used `fbbd5ddd76`; those receipts are
-archived under `history/before-subscription-ping.*` and will be replaced by
-completed checks of `0606bdb130` before delivery.
+**Final correctness refresh in progress.** The strengthened subscription/PING
+witness first failed on all 32 preceding candidate geometries. The additional
+SUBSCRIBE;SET;UNSUBSCRIBE keyspace witness also failed on all 32 preceding
+candidate geometries; Redis passed both. Event retention and child-ordered
+publication now pass all 32 geometries plus the oracle on semantic source
+`4307fd0354` (`validation/subscription-keyspace-after.json`). The final compiler
+budget is recorded by `1076280569`; its full 160/128 instruction census is
+complete, with zero ordinary scopes above PRE.
 
-All results in this paragraph use the sealed POST SHA above. The five new
-witness jobs pass **160/160 candidate legs and every oracle leg**. PAD-A fails
-all five public rows as intended: pause 32/32, disconnect 24/32, multi-tracking
-32/32, multi-controls 32/32 and enable-race 29/32 failing candidate legs.
-All 29 enable-race failures are missing invalidations after the witnessed
-occupation completed. Raw assertions and binary identities are retained in
-`docs/clientcompat/witnesses/summary.json` and compressed archives.
-
-The complete tracking FLUSH-order job passes **24 geometries × 864 exact-wire
-cases**, plus 864 oracle cases, in 288.72 seconds under the unchanged 900-second
-watchdog (`validation/ack-trackorder.json` and `ack-trackorder-product.json`).
-Both Tcl modes pass **37 manifest files / 39 declared runs each**; all six
-mode/promotion terminal events are independently checked in
-`validation/tcl-promotions.json`. `python3 tests/gates_test.py` passes
-**83/83 in 145.503 seconds**, with the CPU allocation isolated from the two gate
-queues (`validation/final-gates-test.json`). All nine core concurrency rows
-also pass on the final build (`validation/final-core-units.json`).
-
-The standard io_uring differential run passes **235/239 split comparisons and
-230/234 armed-fused comparisons** (atomic 0/1), plus all **16 mode-equivalence
-cells**. Its fixed seeds are 7/19/20/23, with the gate's own rotating fifth seed;
-no suite or seed override was used (`validation/differential-uring.json`).
-The final epoll run and broader selected-job run are still in progress; they
-must finish before this report is delivered. The requested inventory is the
-union of `final-regression-jobs.txt`, `supplement-jobs.txt` and
-`coverage-extra-jobs.txt`. The final verifier checks every requested job and
-all raw AT4.12 mode/engine/atomic/script-form legs, including oracle legs.
-
-`make all`, all **51 production-unit targets**, live MDBQSBR arms and blockfix
-control/unit targets built successfully. All **55 make-q freshness checks**
-pass. See `production-builds.json`, `production-targets.json` and
-`freshness.json`. Compiler work finished before the final isolated harness and
-Tcl checks; production source has remained frozen through the final reruns.
+The 51 production targets are being rebuilt, followed by the isolated harness
+self-test and complete selected correctness campaign. Older broad, Tcl,
+differential, tracking-order and PAD receipts are retained as superseded
+evidence and are not claimed for the final SHA above. Final delivery requires
+all 150 requested jobs plus prerequisites, every declared leg, both differential
+engines, both Tcl modes, all five POST/PAD witness matrices, 83 harness tests,
+and all 55 freshness checks on the sealed final artifacts. No throughput
+measurement is part of this campaign.
 
 Earlier failures are retained, not counted as passing evidence:
 
@@ -230,18 +206,19 @@ Earlier failures are retained, not counted as passing evidence:
   before the unchanged 900-second deadline. Idle owners and the waiting IO
   could each park for 50 ms per TRACKING ON. The final cold owner wake and
   pending-ack 1 ms polling change fixes that delay; the complete final job
-  passes as reported above. No test deadline was increased.
+  passed on the preceding candidate and is included in the final rerun. No test
+  deadline was increased.
 * One blockfix2 job could not find its unit binaries beside the sealed POST.
   The final artifact directory now links the freshly built unit executables
   and the verified blockfix hash binding. Its replacement is in the final
   broader selection.
 * Two earlier harness runs each hit the existing 45-second one-slot scheduler
   deadline during concurrent correctness traffic; PRE reproduced that same
-  failure. The final unchanged self-test passes in isolation. One draft Tcl
+  failure. The preceding unchanged self-test passed in isolation. One draft Tcl
   1s run failed a no-acknowledgement unsubscribe assertion and hit the script
   GC timeout during compilation. PRE reproduced unsubscribe/PUNSUBSCRIBE
   races in 6/20 bounded mode/trial legs, including the same assertion. Both
-  final Tcl modes pass unchanged. `pre-pubsub-control.json` retains the trials.
+  preceding Tcl modes passed unchanged. `pre-pubsub-control.json` retains the trials.
 
 The superseded broad ledgers retain the four legacy assertion failures, the
 tracking-order timeout and the missing-unit failure. The final verdict keeps
