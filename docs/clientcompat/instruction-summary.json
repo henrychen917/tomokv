@@ -9,7 +9,7 @@
     "max_per_command_delta": 0.0,
     "changed_symbol_rows": 868,
     "pre_server_sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
-    "post_server_sha256": "33e3c8afb0f86f5f694ae9e9bc4385e53db14636ed9d0f375fc70bd15044ff26"
+    "post_server_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
   },
   "sessions": {
     "rows": 128,
@@ -17,9 +17,9 @@
     "lower": 0,
     "higher": 128,
     "min_per_command_delta": 214.0,
-    "max_per_command_delta": 1182.25,
+    "max_per_command_delta": 1158.25,
     "changed_symbol_rows": 5120,
     "pre_server_sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
-    "post_server_sha256": "33e3c8afb0f86f5f694ae9e9bc4385e53db14636ed9d0f375fc70bd15044ff26"
+    "post_server_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01"
   }
 }

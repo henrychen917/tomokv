@@ -1,7 +1,7 @@
 ## clientcompat
 
 Implemented on `cx-clientcompat`, PRE `7d2f8a205`, production source through
-`1076280569`. No push. All commands are restricted to CPUs 64–79; builds use
+`694fae5c73`. No push. All commands are restricted to CPUs 64–79; builds use
 `-j16`; correctness boots use `LC_ALL=C` and ports 20400–20499. Standard gate
 geometry is 16 shards at 6:2; individual jobs retain their declared overrides.
 No performance benchmark, load generator, or full
@@ -13,15 +13,15 @@ not a full gate claim.
 | Arm | Path | SHA-256 |
 |---|---|---|
 | PRE | `build/clientcompat/PRE/tomokv` | `b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39` |
-| POST | `build/clientcompat/POST/tomokv` | `33e3c8afb0f86f5f694ae9e9bc4385e53db14636ed9d0f375fc70bd15044ff26` |
-| PAD-A | `build/clientcompat/PAD-A/tomokv` | `a8d3e52da9fda007239e52f37e8f15b169bffb5fef227e5e0a2bfaac805e78c3` |
+| POST | `build/clientcompat/POST/tomokv` | `346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01` |
+| PAD-A | `build/clientcompat/PAD-A/tomokv` | `54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874` |
 
 PAD is kind **A, behavior twin**: PRE compatibility behavior with POST's exact
 ELF section sizes/addresses and symbol table. `tools/clientcompat_pad.py`
 changes the two cold namespace selectors to false, changing four bytes total.
 It restores PRE pause exceptions, delayed INFO count, queue-time tracking,
 MULTI control refusals and immediate TRACKING ON acknowledgement. No ordinary
-GET/SET/INCR/MGET/MSET path calls the selector. POST and PAD have 8,885,639 bytes
+GET/SET/INCR/MGET/MSET path calls the selector. POST and PAD have 8,884,599 bytes
 of `.text`; `docs/clientcompat/pad.json` proves their section/symbol equality.
 This is not an inverse control. Debug-only reductions of unrelated unit
 executables preserve all allocated sections; the three sealed arms are intact.
@@ -90,6 +90,11 @@ Raw JSON, oracle assertions and SHA-256s are in
   each child's events before applying subsequent subscription changes, joining
   the existing notification chain acknowledgement. Tracking routes remain on
   the existing EXEC retirement path; published K/E routes are consumed once.
+  Disconnect cleanup also waits for EXEC retirement, so a subscription child
+  cannot install a home entry after the cleanup sweep has passed. The directed
+  witness proves data commit while the EXEC reply is still pending, disconnects,
+  then checks all 128 subscription counts for two seconds. The preceding binary
+  leaked 89–127 subscriptions in every one of 32 geometries; Redis passed.
 * **Enable race:** TRACKING ON waits for existing owner configuration mailboxes
   to acknowledge the notification configuration before replying +OK. The
   acknowledgement occupies padding in the 960-byte mailbox; no Server array
@@ -159,12 +164,16 @@ routes. The db0 compiler budget is 161773; four bounded neighbour trials retain
 why that value was selected. All 72 ordinary and 32 EXEC total changes relative
 to the preceding PING correction, with every changed symbol, are retained in
 `validation/subscription-keyspace-counts.json`. The final bound is judged
-against PRE across all 160 cells.
+against PRE across all 160 cells. The disconnect correction preserves every
+ordinary instruction total and symbol count from that accepted candidate; its
+32 changed EXEC totals and 64 changed symbol rows are separately recorded in
+`validation/subscription-close-counts.json` (compiler redistribution between
+`climon_armed_gate` and `climon_conn_find`).
 
 A separate 128-row census exercises real MULTI parsing/dispatch/retirement:
 two GET or INCR children, one or several shards, tracking off/on, 1s/2s,
 normal/db0, atomic 0/1, batches 1/4 transactions. All EXEC scopes add work:
-**+214 to +1182.25 instructions per transaction**. Preparation adds ACL shadow
+**+214 to +1158.25 instructions per transaction**. Preparation adds ACL shadow
 checks and receipt selection; tracked execution records version observations;
 retirement applies committed IO effects, replays own writes in child order,
 and promotes or cancels receipts. `session-totals.csv` gives every delta and
@@ -175,23 +184,20 @@ the sealed server SHA-256s; retained build recipes reproduce the probes.
 
 ### Correctness validation
 
-**Final correctness refresh in progress.** The strengthened subscription/PING
-witness first failed on all 32 preceding candidate geometries. The additional
-SUBSCRIBE;SET;UNSUBSCRIBE keyspace witness also failed on all 32 preceding
-candidate geometries; Redis passed both. Event retention and child-ordered
-publication now pass all 32 geometries plus the oracle on semantic source
-`4307fd0354` (`validation/subscription-keyspace-after.json`). The final compiler
-budget is recorded by `1076280569`; its full 160/128 instruction census is
-complete, with zero ordinary scopes above PRE.
+**Final correctness refresh in progress after the disconnect correction.**
+The subscription/PING and subscription/keyspace witnesses first failed on all
+32 preceding candidate geometries, while Redis passed. Their fixes pass all
+32 geometries. The final disconnect witness also failed in all 32 geometries
+on `1076280569`, with every pending-EXEC window certified; Redis passed. The
+corrected `694fae5c73` witness and production-unit rebuild are in progress.
+The 160/128 instruction census is complete with zero ordinary increases.
 
-The 51 production targets are being rebuilt, followed by the isolated harness
-self-test and complete selected correctness campaign. Older broad, Tcl,
-differential, tracking-order and PAD receipts are retained as superseded
-evidence and are not claimed for the final SHA above. Final delivery requires
-all 150 requested jobs plus prerequisites, every declared leg, both differential
-engines, both Tcl modes, all five POST/PAD witness matrices, 83 harness tests,
-and all 55 freshness checks on the sealed final artifacts. No throughput
-measurement is part of this campaign.
+Older broad, Tcl, differential, tracking-order and PAD receipts are retained
+as superseded evidence and are not claimed for the final SHA above. Final
+delivery requires all 150 requested jobs plus prerequisites, every declared
+leg, both differential engines, both Tcl modes, all five POST/PAD witness
+matrices, 83 harness tests, and all 55 freshness checks on the sealed final
+artifacts. No throughput measurement is part of this campaign.
 
 Earlier failures are retained, not counted as passing evidence:
 

@@ -166,7 +166,7 @@
     "-lm",
     "/home/user/Projects/cx-clientcompat/build/clientcompat/counts/scopes/POST-db0/probe.o"
   ],
-  "probe_sha256": "c95b2fadd3939244ee703951ee609ef78a867ddc5d59d88edd5fb466614ca100",
-  "server_sha256": "33e3c8afb0f86f5f694ae9e9bc4385e53db14636ed9d0f375fc70bd15044ff26",
+  "probe_sha256": "c2dd30a3db85d99ca94261cbf1d3595edcf82754188ad951bc5dd9a9267a0a04",
+  "server_sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
   "fixture_sha256": "a563469701cd51317f22b5d33a5ee4d007317af318507d5428631599f775620e"
 }
