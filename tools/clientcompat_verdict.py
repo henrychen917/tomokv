@@ -101,7 +101,8 @@ def main():
         sources.append(dict(receipt=name, archive_sha256=receipt["archive_sha256"]))
         for job in receipt["jobs"]:
             if name == "final-witnesses" and job["job"] == "clientcompat-pause":
-                assert job["failed"] == job["exit"] == 1
+                # The gate records row failures separately from its wrapper status.
+                assert job["failed"] == 1 and job["exit"] == 0
                 continue  # The complete replacement job supplies this winner.
             assert job["exit"] == job["failed"] == 0, (name, job)
             chosen[job["job"]] = dict(receipt=name, **job)

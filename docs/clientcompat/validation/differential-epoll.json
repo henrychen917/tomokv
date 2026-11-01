@@ -1,5 +1,5 @@
 {
-  "run": "build/gate-run.NrmvCz",
+  "run": "build/gate-run.el52gP",
   "partial": true,
   "full_gate_receipt": false,
   "complete": true,
@@ -10,7 +10,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t596.090000\tRedis 7.4 differential part (armed fused, atomic 0)"
+        "ok\t539.770000\tRedis 7.4 differential part (armed fused, atomic 0)"
       ],
       "differential_legs": 230
     },
@@ -20,7 +20,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t575.080000\tRedis 7.4 differential part (armed fused, atomic 1)"
+        "ok\t530.330000\tRedis 7.4 differential part (armed fused, atomic 1)"
       ],
       "differential_legs": 234
     },
@@ -30,7 +30,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t21.700000\tmode equivalence part (all execution modes and knobs)"
+        "ok\t21.320000\tmode equivalence part (all execution modes and knobs)"
       ],
       "differential_legs": 0
     },
@@ -40,7 +40,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t570.300000\tRedis 7.4 differential part (split, atomic 0)"
+        "ok\t534.900000\tRedis 7.4 differential part (split, atomic 0)"
       ],
       "differential_legs": 235
     },
@@ -50,7 +50,7 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t574.420000\tRedis 7.4 differential part (split, atomic 1)"
+        "ok\t541.770000\tRedis 7.4 differential part (split, atomic 1)"
       ],
       "differential_legs": 239
     },
@@ -60,13 +60,43 @@
       "passed": 1,
       "failed": 0,
       "ledger": [
-        "ok\t0.000000\trelease build (+footprint locks)"
+        "ok\t0.010000\trelease build (+footprint locks)"
       ]
     }
   ],
   "missing": [],
   "archive": "docs/clientcompat/validation/differential-epoll.json.gz",
-  "archive_sha256": "0da0aa90827ec9e2b7595fa99e64bdeecc6012f9800ce2e22140d37f3743cf96",
+  "archive_sha256": "81396fb046f9203d8d3747ceec44ba806e13de87ca417192d02cff1f959ab8ba",
   "passed": 6,
-  "failed": 0
+  "failed": 0,
+  "arm": {
+    "source_commit": "694fae5c73",
+    "binary": "build/clientcompat/POST/tomokv",
+    "sha256": "346d035c03e434604778e164172516cc5e1bfc8ee9fb248ded307f54dbb25d01",
+    "engine": "epoll",
+    "arm": "POST",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/POST/tomokv"
+    ],
+    "started": 1793524897.8126915,
+    "pid": 1794638,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "release",
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence"
+    ]
+  }
 }
