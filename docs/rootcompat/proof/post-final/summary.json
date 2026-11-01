@@ -1,0 +1,90 @@
+{
+  "gate": "build/gate-run.QQjXt6",
+  "complete": false,
+  "rows": [
+    {
+      "job": "rootcompat-password",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 56,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-password",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 7,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-proc",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 56,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-proc",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 2,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-redact",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 40,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-redact",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 5,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-replication",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 104,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-replication",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 13,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-sort-acl",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 96,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-sort-acl",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 12,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-xsnotify",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 576,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-xsnotify",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 9,
+      "failed": 0
+    }
+  ]
+}

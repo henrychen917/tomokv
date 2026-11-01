@@ -1,0 +1,2 @@
+  row budget: 900s; median=1.17s; correctness-plan-fallback; rootcompat sort-acl vs Redis 7.4
+  rootcompat sort-acl vs Redis 7.4                     ok
