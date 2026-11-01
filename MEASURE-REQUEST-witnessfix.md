@@ -136,3 +136,10 @@ UNSUBSCRIBE/PUBLISH assertion. The existing SLOWLOG capacity skips now identify
 SLOWLOG-MAXLEN-PER-THREAD; the Redis CLI MIGRATE skip already names D17d.
 The three withdrawn climonfix4 promotions remain withdrawn. No retry remains.
 DQ=DF=0; one fewer required Tcl assertion per mode.
+
+### Compat 4.1 — EX4.4 histogram stub
+
+The dispatch-children row now also enables latency tracking in RESP2/RESP3,
+executes exactly 32 GETs and requires their call count and nonempty cumulative
+buckets. An empty histogram stub cannot pass. The default/off probes remain.
+DQ=DF=0; PRE and current receipts pending.

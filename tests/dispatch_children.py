@@ -81,6 +81,27 @@ def run(a):
                     assert row['oracle'] == ([] if protocol == 2 else {}), row
                     if row['target'] != row['oracle']:
                         failures.append(row)
+            # EX4.4: an always-empty implementation also passes the disabled
+            # checks above. Enable tracking and require actual sampled GETs.
+            for protocol in (2, 3):
+                for role, c in (('target', target), ('oracle', oracle)):
+                    c.cmd('HELLO', protocol)
+                    assert c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+                    assert c.cmd('CONFIG', 'RESETSTAT') == b'OK'
+                    for _ in range(32):
+                        assert c.cmd('GET', 'allowed:key') == b'before'
+                    reply = c.cmd('LATENCY', 'HISTOGRAM', 'GET')
+                    mapping = lambda x: x if isinstance(x, dict) else dict(zip(x[::2], x[1::2]))
+                    outer = mapping(reply)
+                    assert set(outer) == {b'get'}, ('EX4.4 empty histogram stub', role, reply)
+                    entry = mapping(outer[b'get'])
+                    assert entry[b'calls'] == 32, (role, entry)
+                    buckets = sorted(mapping(entry[b'histogram_usec']).items())
+                    assert buckets and buckets[-1][1] == 32, (role, buckets)
+                    assert all(k > 0 and 0 < v <= 32 for k, v in buckets), buckets
+                    assert [v for _, v in buckets] == sorted(v for _, v in buckets), buckets
+                    rows.append(dict(protocol=protocol, role=role, enabled_histogram=reply,
+                                     witnessed_gets=32))
     save(a.output / 'children.json', children)
     save(a.output / 'replies.json', rows)
     assert len(children) >= 90, len(children)
