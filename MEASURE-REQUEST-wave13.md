@@ -214,8 +214,12 @@ The first complete ABBA selftest and the epoll FLIP controller hold check
 overlapped on the same CPUs. The scheduler fixture assumes its server CPUs are
 idle; it hit its unchanged 45-second deadline, while the FLIP check failed to
 arm its complete 30-second hold interval. Both failed attempts remain in
-`docs/wave13/job-issues.json`. Complete isolated reruns are queued with the same
-assertions and bounds; neither overlapping attempt is credited.
+`docs/wave13/job-issues.json`. Both complete isolated reruns passed with the same
+assertions and bounds: ABBA in 399.175 seconds; epoll flipctl in 127.815 seconds,
+with its complete hold armed on the first attempt. Neither overlapping attempt
+is credited. The ABBA copy changes only EXPECT to 1046/1063; its fixture equals
+the landing fixture. `docs/wave13/abba-copy-replay.json` records its archive and
+exact differences.
 
 The initial seven datafix1 jobs returned passing verdicts but their shared
 helper forced `LC_ALL=en_US.UTF-8` for 120 target/oracle boots. These outcomes

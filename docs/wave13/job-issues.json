@@ -167,7 +167,7 @@
       "cause": "The complete scheduler dependency-probe fixture hit its unchanged 45-second deadline. It expands its CPU allocation to GATE_CORES plus load CPUs, explicitly assuming its server CPUs are otherwise idle. This invocation overlapped the live epoll sweep on CPUs 0-7, violating that isolation assumption.",
       "evidence": "The standalone 83-test suite passed on CPUs 8-15. In the complete ABBA row, one dependency-probe scheduler returned 124; the other assertion suites completed. No production failure is inferred from this run.",
       "correction": "Rerun the complete abba_selftest job alone after the correctness server campaign, using the same archived tree, throwaway EXPECT values, assertions and deadline. Do not credit the overlapping attempt.",
-      "rerun": "PENDING: isolated complete job",
+      "rerun": "PASS: complete isolated job, docs/wave13/jobs/landing-abba-selftest-isolated.json; 399.175 seconds, one row, zero failures, original bounds and unchanged archived harness.",
       "failure_logs": [
         {
           "path": "build/wave13/abba-final-copy/build/gate-run.WQYsEg/jobs/abba_selftest/gate-abbagate-unit.txt",
@@ -182,7 +182,7 @@
       "cause": "The stable-hold witness did not open its required full 30-second assertion interval before the bounded arming budget expired. This leg overlapped the ABBA scheduler fixtures that claimed its server CPUs; no isolated epoll conclusion is drawn.",
       "evidence": "The final attempt had only 20 hold samples. The assertion correctly failed instead of accepting an unarmed window. The primary uring job passed.",
       "correction": "Rerun the complete epoll flipctl job by itself after the remaining sequential correctness campaign. Preserve all arming and hold bounds.",
-      "rerun": "PENDING: landing-flipctl-epoll-isolated",
+      "rerun": "PASS: complete isolated epoll job, docs/wave13/jobs/landing-flipctl-epoll-isolated.json; 127.815 seconds, full 30-second hold armed on attempt 1, surge and mix re-maneuvers passed, original bounds unchanged.",
       "failure_logs": [
         {
           "path": "build/gate-run.zO0XlD/jobs/flipctl/battery.log",
