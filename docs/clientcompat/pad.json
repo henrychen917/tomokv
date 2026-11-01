@@ -3,15 +3,15 @@
   "patches": [
     {
       "symbol": "_ZN4tomo17clientcompat_postEv",
-      "pc": "0x6e4b2",
-      "offset": 451762,
+      "pc": "0x6e686",
+      "offset": 452230,
       "before": "b001c3",
       "after": "31c0c3"
     },
     {
       "symbol": "_ZN8tomo_db017clientcompat_postEv",
-      "pc": "0x43d50",
-      "offset": 277840,
+      "pc": "0x43d9c",
+      "offset": 277916,
       "before": "b001c3",
       "after": "31c0c3"
     }
@@ -19,7 +19,7 @@
   "changed_bytes": 4,
   "sections_equal": true,
   "symbols_equal": true,
-  "post_sha256": "e0b3b2efd2d44a0da115ad5a468d3bb813ebeecf4cfb4c1e72bb690831cc23d7",
-  "pad_sha256": "40f767c28218795c75ae6c404c9b493cd0b45105694b448d73f7cd52599e65d9",
-  "text_bytes": 8864583
+  "post_sha256": "33e3c8afb0f86f5f694ae9e9bc4385e53db14636ed9d0f375fc70bd15044ff26",
+  "pad_sha256": "a8d3e52da9fda007239e52f37e8f15b169bffb5fef227e5e0a2bfaac805e78c3",
+  "text_bytes": 8885639
 }
