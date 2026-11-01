@@ -444,6 +444,8 @@ def server(args, arm, folder, persistence='off'):
                 while not monitor_stop.wait(.1):
                     try:
                         used = disk_bytes(data)
+                    except FileNotFoundError:
+                        continue  # directory renamed while rglob was advancing
                     except OSError as exc:
                         disk_failure.append(f'persistence budget observation failed: {exc}')
                         signal_child(process, 'terminate')
