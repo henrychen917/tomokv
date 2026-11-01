@@ -306,3 +306,13 @@ still covers only DEL/UNLINK. NOT RUN: new producer and removal matrices or
 planted-defect proofs for them. These remain blocking/hang inputs for rootcompat.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V9 — TO-W3 evidence is serverless
+
+The discriminating TO-W3 evidence remains its existing production-body unit.
+W1/W2/S5 live legs still do not prove that the TO-W3 window opened; their replies
+are useful smoke checks only. No live latch or additional negative control was
+added. NOT RUN: a shipped-binary TO-W3 window proof. Do not promote the live
+successes to evidence of that race.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
