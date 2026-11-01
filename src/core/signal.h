@@ -310,6 +310,15 @@ public:
         return (w.fetch_or(bit, std::memory_order_seq_cst) & bit) == 0;
     }
 
+    // Queue producers need StoreLoad ordering even when the bit was already
+    // set. One unconditional RMW publishes the item and owns an edge wake;
+    // a relaxed read-first shortcut needs a separate fence to be safe.
+    bool publish(uint32_t producer) {
+        const uint64_t bit = 1ull << (producer & 63);
+        auto& w = words_[(producer >> 6) & (kWords - 1)];
+        return (w.fetch_or(bit, std::memory_order_seq_cst) & bit) == 0;
+    }
+
     // Consumer side. Takes and clears one word's worth of flags. Acquire pairs with the producer's
     // release so the queue contents behind the bit are visible.
     //

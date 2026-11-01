@@ -500,7 +500,7 @@ public:
         if (!pushed) return false;
         // Publish the bit FIRST, wake only if we are the producer that raised it. Order matters more
         // than it looks -- see Channel::push/wake.
-        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
+        if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
         return true;
     }
 
@@ -542,7 +542,7 @@ public:
     bool post_iofused_task(uint32_t from, const Task& task, Ring& my_ring,
                            LoopSignals& sig) {
         if (!post_iofused_task_quiet(from, task, sig)) return false;
-        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
+        if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
         return true;
     }
     bool post_iofused_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count,
@@ -571,7 +571,7 @@ public:
         });
     }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
-        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
+        if (task_notify_.publish(from)) task_in_->wake(my_ring, sig, ring());
     }
     bool post_client(uint32_t from, Client* c, Ring& my_ring, LoopSignals& sig) {
         if (!client_in_[from].push(c, sig)) return false;
