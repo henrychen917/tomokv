@@ -1514,7 +1514,7 @@ void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op)
     if (!state.atomic_group) blocking_cleanup_published(shard);
 }
 
-bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,
+[[gnu::noinline, gnu::cold]] bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,
                              ScatterState& state) {
     BlockingState* block = state.blocking_origin;
     if (!block || state.final_reply != FinalReply::Nil) return false;

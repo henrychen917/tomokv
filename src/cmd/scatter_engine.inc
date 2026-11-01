@@ -1509,6 +1509,9 @@ bool publish_pop_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& 
 
     state.phase = 1;
     state.pop_retry_snapshot = server.atomic_snapshot();
+    // Atomic-off pops can still carry a cut while older MVCC records exist.
+    // Their retry must not keep selecting an image from the original cut.
+    if (!state.atomic_pop) state.snapshot = state.pop_retry_snapshot;
     state.pending.store(state.nsub, std::memory_order_release);
     Task posts[256];
     uint16_t participant_begin[kMaxThreads];
@@ -4199,12 +4202,12 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.phase == 2) {
         const bool commit_ready = finish_phase2(state);
-        if (state.blocking_origin && blocking_scatter_repark(server, self, ring, state))
-            return ScatterFinish::Waiting;
         const bool pop_commit_ready = state.aof_group && state.atomic_pop &&
             (state.final_reply == FinalReply::Lmpop ||
              state.final_reply == FinalReply::Zmpop);
         if (commit_ready || pop_commit_ready) return ScatterFinish::CommitQueued;
+        if (state.blocking_origin && blocking_scatter_repark(server, self, ring, state))
+            return ScatterFinish::Waiting;
         if (state.aof_group) {
             const uint64_t ticket = state.epoch.load(std::memory_order_acquire);
             if (ticket && !state.aborted.load(std::memory_order_acquire))
