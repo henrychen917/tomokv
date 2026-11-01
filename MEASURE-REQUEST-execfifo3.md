@@ -104,11 +104,12 @@ necessary; no stronger code-placement control is claimed.
 
 Use the gate's instrument on the quiet box, identical allocation and offered
 load for every arm, three blocks per comparison. Retain individual blocks,
-cycles/op, instructions/op and IPC.
+cycles/op, instructions/op and IPC. Current harness, driver and oracle digests
+are recorded in [measurement-tools.json](docs/execfifo3/measurement-tools.json).
 
 1. Run the generic cells against PRE for both FIFO and POST:
    `h05,h06,p8g,p8s,d1g_l0,d1s_l0,d32s_l1,d8s_l1,d32g_l1,x9_32_l1,x9_32_l0,m8g_l0,v1g_l0,d128g_l0`,
-   plus the four `cc_2s_get/set_p1/p32` nulls. Prioritize **d32s_l1** and
+   plus `cc_2s_get_p1,cc_2s_set_p1,cc_2s_get_p32,cc_2s_set_p32`. Prioritize **d32s_l1** and
    **x9_32_l0**. Run POST-layout versus PAD-A on the same cells. Main commands
    must meet the owner's zero-regression rule against PRE.
 2. Retain the 64-connection EXEC merit (`exec-merit.py --cells all --blocks 3
@@ -116,9 +117,19 @@ cycles/op, instructions/op and IPC.
    settings, hot and uncontended. Compare POST with both PRE and FIFO;
    retain the four plain-writer clients' completions and share.
 3. Retain execfifo2's same-owner/same-shard/cross-owner depth sweep and
-   contended-script merit, using the same cells and harness versions as its
-   request. POST must retain FIFO's measured advantages; instruction savings
-   alone do not decide this.
+   contended-script merit. Use `exec-depth-sweep.py --mode 1s` and `--mode 2s`,
+   each with `--blocks 3 --secs 10 --atomic 0 --placements
+   cross,same-owner,same-shard --depths 16x1,16x4,32x4,64x4,128x4`; select each
+   arm with `--binary`. Use `script-storm-merit.py --blocks 3 --secs 30` for
+   the standard T6 load. POST must retain FIFO's measured advantages;
+   instruction savings alone do not decide this.
+
+The merit scripts are in `/home/user/Projects/calib/`. Supply explicit
+`--reference` / `--candidate` paths, `--benchtxn
+/home/user/Projects/bins/benchtxn-b6e76d422` where applicable, a distinct
+`--output` directory, and maintainer-selected `--server-cores`, `--load-cores`
+and `--port` for every run. Keep `LC_ALL=C` on every boot. Retain execfifo2's
+Redis 7.4 comparison if judging the original hot-EXEC-versus-Redis condition.
 
 All throughput cells, load generators and full `iteration` are **NOT RUN**:
 they remain maintainer work. Correctness uses only selected gate jobs, the

@@ -219,5 +219,180 @@
         "evidence": "docs/execfifo3/validation/02-fairness/txnorder_fifo_live"
       }
     ]
+  },
+  {
+    "group": "at412",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "at412-T1 at412-T2 at412-T3 at412-T4 at412-T5 at412-T6 at412-T7 at412-T8 at412-T9 at412-T10 at412-T11a at412-T11b at412-T12 at412-T13 at412-T14 at412-T15 at412-T16",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/at412-1793501795243644273.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN",
+    "jobs_evidence": [
+      {
+        "name": "at412-T1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T1",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T1"
+      },
+      {
+        "name": "at412-T10",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T10",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T10"
+      },
+      {
+        "name": "at412-T11a",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T11a",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T11a"
+      },
+      {
+        "name": "at412-T11b",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T11b",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T11b"
+      },
+      {
+        "name": "at412-T12",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T12",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T12"
+      },
+      {
+        "name": "at412-T13",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T13",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T13"
+      },
+      {
+        "name": "at412-T14",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T14",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T14"
+      },
+      {
+        "name": "at412-T15",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T15",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T15"
+      },
+      {
+        "name": "at412-T16",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T16",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T16"
+      },
+      {
+        "name": "at412-T2",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T2",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T2"
+      },
+      {
+        "name": "at412-T3",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T3",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T3"
+      },
+      {
+        "name": "at412-T4",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T4",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T4"
+      },
+      {
+        "name": "at412-T5",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T5",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T5"
+      },
+      {
+        "name": "at412-T6",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T6",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T6"
+      },
+      {
+        "name": "at412-T7",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T7",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T7"
+      },
+      {
+        "name": "at412-T8",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T8",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T8"
+      },
+      {
+        "name": "at412-T9",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/at412-T9",
+        "evidence": "docs/execfifo3/validation/03-at412/at412-T9"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.e8VBFN/jobs/release",
+        "evidence": "docs/execfifo3/validation/03-at412/release"
+      }
+    ]
   }
 ]

@@ -403,5 +403,11 @@
     "/home/user/Projects/cx-execfifo3/build/execfifo3/pre-source/build/third_party/lua/helpers/strbuf.o": "b917b8bcdc9ffceb07a82242c771fad5b6eaa8568ed741c48fe563eea720a709",
     "/home/user/Projects/cx-execfifo3/build/execfifo3/pre-source/build/third_party/lua/helpers/fpconv.o": "0e66033422ffae8ea0dd81660b3d71347cdbac52bab48edd4a9edaa80424159d"
   },
-  "limitation": "The exact twin is POST-layout, not the smaller release image. Measure the release null separately."
+  "limitation": "The exact twin is POST-layout, not the smaller release image. Measure the release null separately.",
+  "relocated_images": {
+    "POST": "build/execfifo3/stage1/POST",
+    "POST-layout": "build/execfifo3/stage1/POST-layout",
+    "PAD-A": "build/execfifo3/stage1/PAD-A"
+  },
+  "relocation_note": "The original build paths in this receipt describe the completed two-budget build; its frozen images now live at relocated_images. The unqualified release paths name the final three-budget build."
 }
