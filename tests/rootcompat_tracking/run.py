@@ -65,7 +65,8 @@ def main():
                                                     a.port, 1, 100000, 4000, trigger, out,
                                                     mode=enrol, mget_chunk=100000)
                                                 break
-                                            except t3_keylesscap.EnrollmentExpired as exc:
+                                            except (t3_keylesscap.EnrollmentExpired,
+                                                    t3_keylesscap.CapNotOpened) as exc:
                                                 receipt = dict(geometry=label, trigger=exercise,
                                                                arming=arming + 1, bound=3, error=str(exc))
                                                 with out.with_suffix('.arming.jsonl').open('a') as f:
@@ -75,6 +76,8 @@ def main():
                                                     raise
                                     for result in map(json.loads, out.read_text().splitlines()):
                                         for row in result['attempts']:
+                                            run.check(label + result['trigger'] + ' cap overflow armed',
+                                                      row['hit'], True)
                                             run.check(label + result['trigger'] + ' live enrolment',
                                                       row['dbsize_before_trigger'], 100000)
                                             run.check(label + result['trigger'] + ' no missing keys', row['missing'], 0)

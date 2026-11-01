@@ -32,6 +32,10 @@ class EnrollmentExpired(AssertionError):
     """The finite TTL elapsed before every initial read could enrol its key."""
 
 
+class CapNotOpened(AssertionError):
+    """Fresh state never filled the bounded keyless notification queue."""
+
+
 def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chunk=50000,
         reap_wait_s=30.0):
     is_redis = geom == "redis"
@@ -153,6 +157,8 @@ def run(geom, port, attempts, n, ttl_ms, trigger, out, mode="default", mget_chun
         w.close(); trk.close()
     finally:
         srv.stop()
+    if not is_redis and any(not row['hit'] for row in res['attempts']):
+        raise CapNotOpened(json.dumps(res))
     with open(out, "a") as f:
         f.write(json.dumps(res) + "\n")
 
