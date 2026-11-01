@@ -1006,6 +1006,7 @@ job_body(){
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
+    rootcore-*) job_rootcore "${name#rootcore-}";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
     multidb-*) job_multidb "$name";;
@@ -1159,6 +1160,7 @@ plan_jobs(){
     # correctness jobs still run and retain their evidence.
     JOB_NAMES+=(differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence)
   fi
+  JOB_NAMES+=(rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   local atomic mode section slot FM FR FO FQ FF
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
@@ -5575,6 +5577,16 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
 # multifix: six directed roots in each mode/engine, before the quick exit.
 # Each row retains both atomic settings, both read-local settings and both
 # compiled namespace variants. DQ=DF=+24; EXPECT remains owner-owned.
+job_rootcore(){
+  local root=$1 label="rootcore $1"
+  row_begin "$label"
+  py tests/rootcore.py --case "$root" --binary "$CANDIDATE_BINARY" \
+      --oracle-binary "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+      --output "$TMPDIR/rootcore-$root" >"$TMPDIR/rootcore-$root.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/rootcore-$root.log"
+}
+
 job_multifix(){
   local prefix mode engine root label atomic read_local databases passed boot_fn
   IFS=- read -r prefix mode engine <<< "$1"
@@ -6137,6 +6149,9 @@ if [ "${GATE_PARTIAL:-0}" = 1 ]; then
   partial_gate
   exit $?
 fi
+# rootcore: six directed rows collected before the quick-tier exit (DQ=DF=+6).
+# EXPECT_QUICK / EXPECT_FULL are maintainer-owned.
+for root in eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
 collect_job release
 
 collect_job asan
