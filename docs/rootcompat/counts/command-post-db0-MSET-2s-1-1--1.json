@@ -9,10 +9,10 @@
     "1",
     "-1"
   ],
-  "steps": 16449,
+  "steps": 16441,
   "clock_calls": 1,
   "excluded_calls": 45,
-  "total": 15974,
+  "total": 15966,
   "functions": {
     "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 160,
     "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 200,
@@ -47,7 +47,7 @@
     "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 392,
     "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1719,
     "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 3280,
+    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 3272,
     "tomo_db0::FlatStore::atomic_install_group(void*, unsigned long, tomo_db0::Slice, tomo_db0::KvObj*)": 376,
     "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 792,
     "tomo_db0::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 50,
@@ -59,5 +59,5 @@
     "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)": 1096,
     "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 248
   },
-  "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+  "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
 }

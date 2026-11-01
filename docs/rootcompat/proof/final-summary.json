@@ -1,0 +1,258 @@
+[
+  {
+    "name": "directed-tcl-final",
+    "exit": 0,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.QQjXt6",
+    "seconds": 1222.895,
+    "passed": 12,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "name": "residuals-final",
+    "exit": 1,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.DojKRt",
+    "seconds": 28.26,
+    "passed": 1,
+    "failed": 3,
+    "failures": [
+      "rootcompat stringlimit vs Redis 7.4",
+      "rootcompat hx3 vs Redis 7.4",
+      "rootcompat errorstats vs Redis 7.4"
+    ]
+  },
+  {
+    "name": "differ-final-uring",
+    "exit": 0,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.1oKV9G",
+    "seconds": 2148.137,
+    "passed": 6,
+    "failed": 0,
+    "failures": [],
+    "differential_parts": [
+      {
+        "schema": 1,
+        "part": "armed-0",
+        "run": "push:gate-run.1oKV9G",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 230,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "armed-1",
+        "run": "push:gate-run.1oKV9G",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 234,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "equivalence",
+        "run": "push:gate-run.1oKV9G",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 16,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "split-0",
+        "run": "push:gate-run.1oKV9G",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 235,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "split-1",
+        "run": "push:gate-run.1oKV9G",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 239,
+        "complete": true
+      }
+    ],
+    "comparisons": 954
+  },
+  {
+    "name": "surfaces-final-uring-split",
+    "exit": 1,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.8Of8nR",
+    "seconds": 1577.995,
+    "passed": 277,
+    "failed": 1,
+    "failures": [
+      "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+    ]
+  },
+  {
+    "name": "surfaces-final-uring-fused",
+    "exit": 0,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.jvq4sZ",
+    "seconds": 234.15,
+    "passed": 41,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "name": "surfaces-final-epoll-split",
+    "exit": 0,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.CvLzOV",
+    "seconds": 771.339,
+    "passed": 189,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "name": "surfaces-final-epoll-fused",
+    "exit": 0,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.dk6ySq",
+    "seconds": 235.167,
+    "passed": 41,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "name": "differ-final-epoll",
+    "exit": 0,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.xCELb7",
+    "seconds": 2166.206,
+    "passed": 6,
+    "failed": 0,
+    "failures": [],
+    "differential_parts": [
+      {
+        "schema": 1,
+        "part": "armed-0",
+        "run": "push:gate-run.xCELb7",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 230,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "armed-1",
+        "run": "push:gate-run.xCELb7",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 234,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "equivalence",
+        "run": "push:gate-run.xCELb7",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 16,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "split-0",
+        "run": "push:gate-run.xCELb7",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 235,
+        "complete": true
+      },
+      {
+        "schema": 1,
+        "part": "split-1",
+        "run": "push:gate-run.xCELb7",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 239,
+        "complete": true
+      }
+    ],
+    "comparisons": 954
+  },
+  {
+    "name": "pre-tracking-final",
+    "exit": 1,
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.JwyrpG",
+    "seconds": 456.507,
+    "passed": 1,
+    "failed": 1,
+    "failures": [
+      "rootcompat tracking vs Redis 7.4"
+    ]
+  },
+  {
+    "name": "supplemental-final",
+    "exit": 1,
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.PaxlDV",
+    "seconds": 1820.976,
+    "passed": 50,
+    "failed": 1,
+    "failures": [
+      "blockfix2 BLOCK-SERVE-REFUSED-DROP"
+    ]
+  }
+]

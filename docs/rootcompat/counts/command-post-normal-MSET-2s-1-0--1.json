@@ -24,13 +24,13 @@
     "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 20,
     "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
     "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
     "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 256,
     "tomo::FlatStore::atomic_has_script_intent(unsigned long, tomo::Slice) const [clone .isra.0]": 32,
     "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]": 4,
     "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
     "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)": 224,
-    "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
     "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 30,
     "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
     "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -57,5 +57,5 @@
     "tomo::good_size(unsigned long)": 192,
     "tomo::KvObj::val_ptr()": 128
   },
-  "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+  "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
 }

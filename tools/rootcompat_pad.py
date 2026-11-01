@@ -5,6 +5,6 @@ from exec1s_pad import build
 
 root = Path(__file__).resolve().parents[1]
 if __name__ == '__main__':
-    out = root / 'build/rootcompat'
+    out = root / 'build/rootcompat/release'
     out.mkdir(parents=True, exist_ok=True)
-    build(out / 'pre-source', root, out, root / 'docs/rootcompat/pad-a.json')
+    build(root / 'build/rootcompat/pre-source', root, out, root / 'docs/rootcompat/pad-a.json')

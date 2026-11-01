@@ -370,9 +370,9 @@
       "-1"
     ],
     "pre": 10147,
-    "post": 10147,
-    "delta": 0,
-    "functions_equal": true
+    "post": 10139,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -385,9 +385,9 @@
       "-1"
     ],
     "pre": 10171,
-    "post": 10171,
-    "delta": 0,
-    "functions_equal": true
+    "post": 10163,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -400,9 +400,9 @@
       "-1"
     ],
     "pre": 323526,
-    "post": 323526,
-    "delta": 0,
-    "functions_equal": true
+    "post": 323270,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -415,9 +415,9 @@
       "-1"
     ],
     "pre": 324294,
-    "post": 324294,
-    "delta": 0,
-    "functions_equal": true
+    "post": 324038,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -430,9 +430,9 @@
       "-1"
     ],
     "pre": 10147,
-    "post": 10147,
-    "delta": 0,
-    "functions_equal": true
+    "post": 10139,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -445,9 +445,9 @@
       "-1"
     ],
     "pre": 10171,
-    "post": 10171,
-    "delta": 0,
-    "functions_equal": true
+    "post": 10163,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -460,9 +460,9 @@
       "-1"
     ],
     "pre": 323526,
-    "post": 323526,
-    "delta": 0,
-    "functions_equal": true
+    "post": 323270,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -475,9 +475,9 @@
       "-1"
     ],
     "pre": 324294,
-    "post": 324294,
-    "delta": 0,
-    "functions_equal": true
+    "post": 324038,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -970,9 +970,9 @@
       "-1"
     ],
     "pre": 9964,
-    "post": 9964,
-    "delta": 0,
-    "functions_equal": true
+    "post": 9956,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -985,9 +985,9 @@
       "-1"
     ],
     "pre": 9990,
-    "post": 9990,
-    "delta": 0,
-    "functions_equal": true
+    "post": 9982,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1000,9 +1000,9 @@
       "-1"
     ],
     "pre": 317670,
-    "post": 317670,
-    "delta": 0,
-    "functions_equal": true
+    "post": 317414,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1015,9 +1015,9 @@
       "-1"
     ],
     "pre": 318502,
-    "post": 318502,
-    "delta": 0,
-    "functions_equal": true
+    "post": 318246,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1030,9 +1030,9 @@
       "-1"
     ],
     "pre": 9964,
-    "post": 9964,
-    "delta": 0,
-    "functions_equal": true
+    "post": 9956,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1045,9 +1045,9 @@
       "-1"
     ],
     "pre": 9990,
-    "post": 9990,
-    "delta": 0,
-    "functions_equal": true
+    "post": 9982,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1060,9 +1060,9 @@
       "-1"
     ],
     "pre": 317670,
-    "post": 317670,
-    "delta": 0,
-    "functions_equal": true
+    "post": 317414,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1075,9 +1075,9 @@
       "-1"
     ],
     "pre": 318502,
-    "post": 318502,
-    "delta": 0,
-    "functions_equal": true
+    "post": 318246,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1105,9 +1105,9 @@
       "-1"
     ],
     "pre": 16306,
-    "post": 16306,
-    "delta": 0,
-    "functions_equal": true
+    "post": 16298,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1135,9 +1135,9 @@
       "-1"
     ],
     "pre": 897102,
-    "post": 897102,
-    "delta": 0,
-    "functions_equal": true
+    "post": 896846,
+    "delta": -256,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1165,9 +1165,9 @@
       "-1"
     ],
     "pre": 15974,
-    "post": 15974,
-    "delta": 0,
-    "functions_equal": true
+    "post": 15966,
+    "delta": -8,
+    "functions_equal": false
   },
   {
     "probe": "command",
@@ -1195,8 +1195,8 @@
       "-1"
     ],
     "pre": 886478,
-    "post": 886478,
-    "delta": 0,
-    "functions_equal": true
+    "post": 886222,
+    "delta": -256,
+    "functions_equal": false
   }
 ]

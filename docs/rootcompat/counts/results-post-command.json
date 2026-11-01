@@ -30,7 +30,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -63,7 +63,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -96,7 +96,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -129,7 +129,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -159,7 +159,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -189,7 +189,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -219,7 +219,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -249,7 +249,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -287,7 +287,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -325,7 +325,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -363,7 +363,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -401,7 +401,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -436,7 +436,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -471,7 +471,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -506,7 +506,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -541,7 +541,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -588,7 +588,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -635,7 +635,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -682,7 +682,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -729,7 +729,7 @@
       "tomo::FlatStore::publish_database_counts() const": 147,
       "tomo::Shard::publish_size()": 58
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -773,7 +773,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -817,7 +817,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -861,7 +861,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -905,7 +905,7 @@
       "tomo::FlatStore::publish_database_counts() const": 588,
       "tomo::Shard::publish_size()": 232
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -918,10 +918,10 @@
       "0",
       "-1"
     ],
-    "steps": 10575,
+    "steps": 10567,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 10147,
+    "total": 10139,
     "functions": {
       "tomo::Op::cmd_name() const": 12,
       "tomo::atomic_tripwire_enabled()": 48,
@@ -932,12 +932,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 30,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 24,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 96,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 52,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 945,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 6,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -952,7 +952,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 384,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1905,
       "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 16,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1328,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1320,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 232,
       "tomo::KvObj::key() const": 104,
       "tomo::ScatterState::ScatterState()": 91,
@@ -962,7 +962,7 @@
       "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 383
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -975,10 +975,10 @@
       "1",
       "-1"
     ],
-    "steps": 10599,
+    "steps": 10591,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 10171,
+    "total": 10163,
     "functions": {
       "tomo::Op::cmd_name() const": 12,
       "tomo::atomic_tripwire_enabled()": 48,
@@ -989,12 +989,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 30,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 24,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 96,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 52,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 945,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 6,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -1009,7 +1009,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 384,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1929,
       "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 16,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1328,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1320,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 232,
       "tomo::KvObj::key() const": 104,
       "tomo::ScatterState::ScatterState()": 91,
@@ -1019,7 +1019,7 @@
       "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 383
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1032,10 +1032,10 @@
       "0",
       "-1"
     ],
-    "steps": 336788,
+    "steps": 336532,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 323526,
+    "total": 323270,
     "functions": {
       "tomo::Op::cmd_name() const": 384,
       "tomo::atomic_tripwire_enabled()": 1536,
@@ -1046,12 +1046,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 3072,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 1664,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 30240,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 709,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1066,7 +1066,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12288,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 60960,
       "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42496,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42240,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 7424,
       "tomo::KvObj::key() const": 3328,
       "tomo::ScatterState::ScatterState()": 2912,
@@ -1076,7 +1076,7 @@
       "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 12256
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1089,10 +1089,10 @@
       "1",
       "-1"
     ],
-    "steps": 337556,
+    "steps": 337300,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 324294,
+    "total": 324038,
     "functions": {
       "tomo::Op::cmd_name() const": 384,
       "tomo::atomic_tripwire_enabled()": 1536,
@@ -1103,12 +1103,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 3072,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 1664,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 30240,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 709,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1123,7 +1123,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12288,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 61728,
       "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42496,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42240,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 7424,
       "tomo::KvObj::key() const": 3328,
       "tomo::ScatterState::ScatterState()": 2912,
@@ -1133,7 +1133,7 @@
       "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 12256
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1146,10 +1146,10 @@
       "0",
       "-1"
     ],
-    "steps": 10575,
+    "steps": 10567,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 10147,
+    "total": 10139,
     "functions": {
       "tomo::Op::cmd_name() const": 12,
       "tomo::atomic_tripwire_enabled()": 48,
@@ -1160,12 +1160,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 30,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 24,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 96,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 52,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 945,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 6,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -1180,7 +1180,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 384,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1905,
       "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 16,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1328,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1320,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 232,
       "tomo::KvObj::key() const": 104,
       "tomo::ScatterState::ScatterState()": 91,
@@ -1190,7 +1190,7 @@
       "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 383
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1203,10 +1203,10 @@
       "1",
       "-1"
     ],
-    "steps": 10599,
+    "steps": 10591,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 10171,
+    "total": 10163,
     "functions": {
       "tomo::Op::cmd_name() const": 12,
       "tomo::atomic_tripwire_enabled()": 48,
@@ -1217,12 +1217,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 30,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 24,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 96,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 52,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 945,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 32,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 6,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -1237,7 +1237,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 384,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1929,
       "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 16,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1328,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 1320,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 232,
       "tomo::KvObj::key() const": 104,
       "tomo::ScatterState::ScatterState()": 91,
@@ -1247,7 +1247,7 @@
       "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 383
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1260,10 +1260,10 @@
       "0",
       "-1"
     ],
-    "steps": 336788,
+    "steps": 336532,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 323526,
+    "total": 323270,
     "functions": {
       "tomo::Op::cmd_name() const": 384,
       "tomo::atomic_tripwire_enabled()": 1536,
@@ -1274,12 +1274,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 3072,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 1664,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 30240,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 709,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1294,7 +1294,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12288,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 60960,
       "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42496,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42240,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 7424,
       "tomo::KvObj::key() const": 3328,
       "tomo::ScatterState::ScatterState()": 2912,
@@ -1304,7 +1304,7 @@
       "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 12256
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1317,10 +1317,10 @@
       "1",
       "-1"
     ],
-    "steps": 337556,
+    "steps": 337300,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 324294,
+    "total": 324038,
     "functions": {
       "tomo::Op::cmd_name() const": 384,
       "tomo::atomic_tripwire_enabled()": 1536,
@@ -1331,12 +1331,12 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 960,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 768,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 3072,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]": 1664,
       "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 30240,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1024,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 192,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 709,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1351,7 +1351,7 @@
       "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12288,
       "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 61728,
       "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 512,
-      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42496,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 42240,
       "tomo::Slice::key_eq(tomo::Slice const&) const": 7424,
       "tomo::KvObj::key() const": 3328,
       "tomo::ScatterState::ScatterState()": 2912,
@@ -1361,7 +1361,7 @@
       "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 12256
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1389,13 +1389,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 20,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 256,
       "tomo::FlatStore::atomic_has_script_intent(unsigned long, tomo::Slice) const [clone .isra.0]": 32,
       "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]": 4,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)": 224,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 30,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -1423,7 +1423,7 @@
       "tomo::KvObj::val_ptr()": 128,
       "tomo::l4prebuild_policy(unsigned int)": 28
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1454,13 +1454,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 12,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 459,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)": 224,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]": 390,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 144,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 480,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 20,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -1490,7 +1490,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 472,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 192
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1518,13 +1518,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 640,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 1024,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 8192,
       "tomo::FlatStore::atomic_has_script_intent(unsigned long, tomo::Slice) const [clone .isra.0]": 1024,
       "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]": 128,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)": 7168,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 960,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 709,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1552,7 +1552,7 @@
       "tomo::KvObj::val_ptr()": 4096,
       "tomo::l4prebuild_policy(unsigned int)": 896
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1583,13 +1583,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 384,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 14688,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)": 7168,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]": 12480,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 1024,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 4608,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 15360,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 640,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1622,7 +1622,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 15104,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 6144
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1650,13 +1650,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 20,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 410,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 256,
       "tomo::FlatStore::atomic_has_script_intent(unsigned long, tomo::Slice) const [clone .isra.0]": 32,
       "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]": 4,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)": 224,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 30,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -1683,7 +1683,7 @@
       "tomo::good_size(unsigned long)": 192,
       "tomo::KvObj::val_ptr()": 128
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1714,13 +1714,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 12,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 459,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 35,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)": 176,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]": 294,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 32,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 144,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 27,
       "tomo::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 480,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 34,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 20,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 88,
@@ -1749,7 +1749,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 472,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 192
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1777,13 +1777,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 640,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 13120,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 1024,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 8192,
       "tomo::FlatStore::atomic_has_script_intent(unsigned long, tomo::Slice) const [clone .isra.0]": 1024,
       "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]": 128,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)": 7168,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 960,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 709,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1810,7 +1810,7 @@
       "tomo::good_size(unsigned long)": 6144,
       "tomo::KvObj::val_ptr()": 4096
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1841,13 +1841,13 @@
       "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)": 384,
       "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 14688,
       "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)": 1120,
+      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)": 5632,
       "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]": 9408,
       "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]": 1024,
       "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 4608,
       "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]": 864,
       "tomo::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]": 15360,
-      "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": 1088,
       "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 640,
       "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 864,
       "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 2816,
@@ -1879,7 +1879,7 @@
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 15104,
       "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 6144
     },
-    "probe_sha256": "aadf8471e6e9dcba0d936de26641f7947c7bf579f03565308499777a9955cc74"
+    "probe_sha256": "bc041c9df91115af1a600412a2f807eeb438752386320642865f8c9674ed9753"
   },
   {
     "probe": "command",
@@ -1910,7 +1910,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -1941,7 +1941,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -1972,7 +1972,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2003,7 +2003,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2031,7 +2031,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2059,7 +2059,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2087,7 +2087,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2115,7 +2115,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2152,7 +2152,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2189,7 +2189,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2226,7 +2226,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2263,7 +2263,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2297,7 +2297,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2331,7 +2331,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2365,7 +2365,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2399,7 +2399,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2442,7 +2442,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2485,7 +2485,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2528,7 +2528,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2571,7 +2571,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 22,
       "tomo_db0::Shard::publish_size()": 54
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2611,7 +2611,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2651,7 +2651,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2691,7 +2691,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2731,7 +2731,7 @@
       "tomo_db0::FlatStore::publish_database_counts() const": 88,
       "tomo_db0::Shard::publish_size()": 216
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2744,10 +2744,10 @@
       "0",
       "-1"
     ],
-    "steps": 10392,
+    "steps": 10384,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 9964,
+    "total": 9956,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 48,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 23,
@@ -2776,7 +2776,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 392,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1923,
       "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1368,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1360,
       "tomo_db0::ScatterState::ScatterState()": 91,
       "tomo_db0::ScatterState::~ScatterState()": 42,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 800,
@@ -2784,7 +2784,7 @@
       "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 383
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2797,10 +2797,10 @@
       "1",
       "-1"
     ],
-    "steps": 10418,
+    "steps": 10410,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 9990,
+    "total": 9982,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 48,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 23,
@@ -2829,7 +2829,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 392,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1949,
       "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1368,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1360,
       "tomo_db0::ScatterState::ScatterState()": 91,
       "tomo_db0::ScatterState::~ScatterState()": 42,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 800,
@@ -2837,7 +2837,7 @@
       "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 383
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2850,10 +2850,10 @@
       "0",
       "-1"
     ],
-    "steps": 330932,
+    "steps": 330676,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 317670,
+    "total": 317414,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 1536,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 736,
@@ -2882,7 +2882,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12544,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 61536,
       "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 512,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43776,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43520,
       "tomo_db0::ScatterState::ScatterState()": 2912,
       "tomo_db0::ScatterState::~ScatterState()": 1344,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 25600,
@@ -2890,7 +2890,7 @@
       "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 12256
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2903,10 +2903,10 @@
       "1",
       "-1"
     ],
-    "steps": 331764,
+    "steps": 331508,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 318502,
+    "total": 318246,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 1536,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 736,
@@ -2935,7 +2935,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12544,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 62368,
       "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 512,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43776,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43520,
       "tomo_db0::ScatterState::ScatterState()": 2912,
       "tomo_db0::ScatterState::~ScatterState()": 1344,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 25600,
@@ -2943,7 +2943,7 @@
       "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 12256
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -2956,10 +2956,10 @@
       "0",
       "-1"
     ],
-    "steps": 10392,
+    "steps": 10384,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 9964,
+    "total": 9956,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 48,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 23,
@@ -2988,7 +2988,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 392,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1923,
       "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1368,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1360,
       "tomo_db0::ScatterState::ScatterState()": 91,
       "tomo_db0::ScatterState::~ScatterState()": 42,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 800,
@@ -2996,7 +2996,7 @@
       "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 383
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3009,10 +3009,10 @@
       "1",
       "-1"
     ],
-    "steps": 10418,
+    "steps": 10410,
     "clock_calls": 1,
     "excluded_calls": 34,
-    "total": 9990,
+    "total": 9982,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 48,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 23,
@@ -3041,7 +3041,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 392,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1949,
       "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1368,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 1360,
       "tomo_db0::ScatterState::ScatterState()": 91,
       "tomo_db0::ScatterState::~ScatterState()": 42,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 800,
@@ -3049,7 +3049,7 @@
       "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 23,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 383
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3062,10 +3062,10 @@
       "0",
       "-1"
     ],
-    "steps": 330932,
+    "steps": 330676,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 317670,
+    "total": 317414,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 1536,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 736,
@@ -3094,7 +3094,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12544,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 61536,
       "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 512,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43776,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43520,
       "tomo_db0::ScatterState::ScatterState()": 2912,
       "tomo_db0::ScatterState::~ScatterState()": 1344,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 25600,
@@ -3102,7 +3102,7 @@
       "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 12256
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3115,10 +3115,10 @@
       "1",
       "-1"
     ],
-    "steps": 331764,
+    "steps": 331508,
     "clock_calls": 32,
     "excluded_calls": 1026,
-    "total": 318502,
+    "total": 318246,
     "functions": {
       "tomo_db0::atomic_tripwire_enabled()": 1536,
       "std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector()": 736,
@@ -3147,7 +3147,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12544,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 62368,
       "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 512,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43776,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 43520,
       "tomo_db0::ScatterState::ScatterState()": 2912,
       "tomo_db0::ScatterState::~ScatterState()": 1344,
       "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 25600,
@@ -3155,7 +3155,7 @@
       "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 736,
       "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 12256
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3215,7 +3215,7 @@
       "tomo_db0::KvObj::val_ptr()": 128,
       "tomo_db0::l4prebuild_policy(unsigned int)": 28
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3228,10 +3228,10 @@
       "1",
       "-1"
     ],
-    "steps": 16781,
+    "steps": 16773,
     "clock_calls": 1,
     "excluded_calls": 45,
-    "total": 16306,
+    "total": 16298,
     "functions": {
       "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 160,
       "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 200,
@@ -3266,7 +3266,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 392,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1873,
       "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 3280,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 3272,
       "tomo_db0::FlatStore::atomic_install_group(void*, unsigned long, tomo_db0::Slice, tomo_db0::KvObj*)": 376,
       "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 792,
       "tomo_db0::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 50,
@@ -3279,7 +3279,7 @@
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 248,
       "tomo_db0::l4prebuild_policy(unsigned int)": 28
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3339,7 +3339,7 @@
       "tomo_db0::KvObj::val_ptr()": 4096,
       "tomo_db0::l4prebuild_policy(unsigned int)": 896
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3352,10 +3352,10 @@
       "1",
       "-1"
     ],
-    "steps": 911868,
+    "steps": 911612,
     "clock_calls": 32,
     "excluded_calls": 1176,
-    "total": 897102,
+    "total": 896846,
     "functions": {
       "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 5120,
       "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 6400,
@@ -3393,7 +3393,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12544,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 59936,
       "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 512,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 118104,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 117848,
       "tomo_db0::FlatStore::atomic_install_group(void*, unsigned long, tomo_db0::Slice, tomo_db0::KvObj*)": 12032,
       "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 15424,
       "tomo_db0::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 1600,
@@ -3406,7 +3406,7 @@
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 7936,
       "tomo_db0::l4prebuild_policy(unsigned int)": 896
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3465,7 +3465,7 @@
       "tomo_db0::good_size(unsigned long)": 192,
       "tomo_db0::KvObj::val_ptr()": 128
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3478,10 +3478,10 @@
       "1",
       "-1"
     ],
-    "steps": 16449,
+    "steps": 16441,
     "clock_calls": 1,
     "excluded_calls": 45,
-    "total": 15974,
+    "total": 15966,
     "functions": {
       "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 160,
       "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 200,
@@ -3516,7 +3516,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 392,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1719,
       "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 16,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 3280,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 3272,
       "tomo_db0::FlatStore::atomic_install_group(void*, unsigned long, tomo_db0::Slice, tomo_db0::KvObj*)": 376,
       "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 792,
       "tomo_db0::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 50,
@@ -3528,7 +3528,7 @@
       "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)": 1096,
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 248
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3587,7 +3587,7 @@
       "tomo_db0::good_size(unsigned long)": 6144,
       "tomo_db0::KvObj::val_ptr()": 4096
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   },
   {
     "probe": "command",
@@ -3600,10 +3600,10 @@
       "1",
       "-1"
     ],
-    "steps": 901244,
+    "steps": 900988,
     "clock_calls": 32,
     "excluded_calls": 1176,
-    "total": 886478,
+    "total": 886222,
     "functions": {
       "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]": 5120,
       "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 6400,
@@ -3641,7 +3641,7 @@
       "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12544,
       "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 55008,
       "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 512,
-      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 118104,
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 117848,
       "tomo_db0::FlatStore::atomic_install_group(void*, unsigned long, tomo_db0::Slice, tomo_db0::KvObj*)": 12032,
       "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)": 15424,
       "tomo_db0::Server::atomic_try_admit(unsigned int, unsigned long&, bool)": 1600,
@@ -3653,6 +3653,6 @@
       "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)": 35072,
       "tomo_db0::FlatStore::atomic_acquire_value_block(unsigned long)": 7936
     },
-    "probe_sha256": "cdba449efbea4139f68dc8ee4b1a59dc7a445606b6c01927d5d9f0ba1c9fd747"
+    "probe_sha256": "8b60ba23a59626d92c97e79a5729a338f80a31c9481aa172c2d3262ad0709f67"
   }
 ]
