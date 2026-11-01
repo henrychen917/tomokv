@@ -77,9 +77,12 @@ under `docs/blockfix4/legacy-receipts/`; none is counted as passing evidence.
 
 ### Validation
 
-The broad io_uring gate proof passed 334/334 rows; the additional fused debug
-jobs passed 33/33 on each engine, and fused blocking/atomic/notification jobs
-passed 19/19 on each engine. The remaining broad epoll receipt is pending.
+The broad io_uring gate proof passed 334/334 rows and epoll passed 363/363.
+Epoll's selection also includes the 29 structure/registry/atomic-unit rows
+already covered by the separate io_uring production proof. Additional fused
+debug jobs passed 33/33 on each engine, and fused blocking/atomic/notification
+jobs passed 19/19 on each engine. All 45 requested jobs after alias expansion
+have passing final-candidate receipts on each engine.
 The production-unit proof passed 30/30 rows. `make all` and all 51 targets in the first
 `job_production_units` make command built; its two MDBQSBR control servers,
 blockfix cost target and both blockfix2 unit targets also built. All five
@@ -90,6 +93,14 @@ The complete requested job list is `docs/blockfix4/required-jobs.txt`.
 interface, pins the oracle and both engines, archives every red and green
 ledger, and refuses a binary change during a run. No EXPECT tally, ABBA or
 iteration receipt is claimed by a partial proof.
+`python3 tools/blockfix4_verify.py` checks the 45-job coverage on each engine,
+the 18 indexed gate receipt archive hashes, all four identical-source witness matrices,
+the PRE/PAD negative controls, differential comparison totals, instruction
+pair totals, unchanged EXPECT constants and the recorded freshness commands.
+Its output is `docs/blockfix4/final-verification.json`.
+The final runtime check found no lane server processes. `build/` is 14.48 GiB;
+the generated tracing ranges/commands are retained in `scope-workfiles.tar.xz`
+with a SHA-256 manifest, and the required build targets remain fresh.
 An initial attempt to select `production_units` alone was rejected by the
 gate because it is a build-only prerequisite; the successful run selected
 its consuming jobs. That rejected invocation is retained too.
