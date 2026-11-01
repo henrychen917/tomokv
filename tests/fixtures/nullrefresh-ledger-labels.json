@@ -860,10 +860,10 @@
     "rootcore eval",
     "rootcore functions",
     "rootcore inbox",
-    "rootcore misconf",
+    "rootcore misconf known difference MISCONF-NEVER-CLEARS",
     "rootcore notify",
     "rootcore segments",
-    "rootcore waitaof",
+    "rootcore waitaof known difference WAITAOF-NOOP-RECEIPT",
     "s6 battery (atomic 0)",
     "s6 battery (atomic 1)",
     "scriptatomic battery (atomic 0)",
@@ -1545,8 +1545,8 @@
       "rootcore segments",
       "rootcore notify",
       "rootcore functions",
-      "rootcore waitaof",
-      "rootcore misconf"
+      "rootcore waitaof known difference WAITAOF-NOOP-RECEIPT",
+      "rootcore misconf known difference MISCONF-NEVER-CLEARS"
     ],
     "removed": [],
     "DQ": 7,

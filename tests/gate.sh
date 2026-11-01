@@ -1015,6 +1015,8 @@ job_body(){
     iofix-sleep) job_iofix_sleep "$name";;
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
+    rootcore-waitaof) job_rootcore "waitaof known difference WAITAOF-NOOP-RECEIPT";;
+    rootcore-misconf) job_rootcore "misconf known difference MISCONF-NEVER-CLEARS";;
     rootcore-*) job_rootcore "${name#rootcore-}";;
     wave14_order) job_wave14_order;;
     rootcompat) job_rootcompat all;;
@@ -5818,7 +5820,7 @@ job_wave14_order(){
 }
 
 job_rootcore(){
-  local root=$1 label="rootcore $1"
+  local root=${1%% *} label="rootcore $1"
   row_begin "$label"
   if [ "$root" = inbox ]; then
     local revision=()
