@@ -50,7 +50,7 @@
       "cause": "The added FLUSHALL check did not open the injected fail() diagnostic window within its unchanged four-second bound. The original scheduling twin can wait for a reply gate while holding a fused owner that FLUSH still needs.",
       "evidence": "SET opened the window and exited 1 without a reply. FLUSHALL reached the 168-byte increment limit, then failed its arming assertion; teardown escalated the owned scheduling twin. No successful FLUSH reply was observed. The other 39 persistfmt rows passed.",
       "correction": "Prepared trace markers and up to eight fresh-state attempts. Only a witnessed writer wait before any receipt gate may be retried; unexpected replies or other missing-window states fail. Every credited command still requires the actual blocked failure logger, no reply, and fatal exit 1. The traced rerun and never-armed negative control are pending.",
-      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control pending.",
+      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control verified: all four rows fail after eight attempts each, overall gate exit 1.",
       "failure_logs": [
         {
           "path": "build/gate-run.dQbZff/jobs/persistfmt/persistfmt-aof-failure-1s-epoll.log",
@@ -69,7 +69,7 @@
       "label": "persistfmt aof-failure (1s, epoll)",
       "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
       "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
-      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control pending.",
+      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control verified: all four rows fail after eight attempts each, overall gate exit 1.",
       "failure_logs": [
         {
           "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-1s-epoll.log",
@@ -86,7 +86,7 @@
       "label": "persistfmt aof-failure (1s, uring)",
       "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
       "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
-      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control pending.",
+      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control verified: all four rows fail after eight attempts each, overall gate exit 1.",
       "failure_logs": [
         {
           "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-1s-uring.log",
@@ -103,7 +103,7 @@
       "label": "persistfmt aof-failure (2s, epoll)",
       "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
       "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
-      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control pending.",
+      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control verified: all four rows fail after eight attempts each, overall gate exit 1.",
       "failure_logs": [
         {
           "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-2s-epoll.log",
@@ -120,7 +120,7 @@
       "label": "persistfmt aof-failure (2s, uring)",
       "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
       "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
-      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control pending.",
+      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control verified: all four rows fail after eight attempts each, overall gate exit 1.",
       "failure_logs": [
         {
           "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-2s-uring.log",
@@ -140,7 +140,7 @@
       "cause": "FLUSHALL exhausted all eight fresh-state attempts: the scheduling twin held the fused writer in fail() before its remaining owner work could reach a receipt gate.",
       "evidence": "Other three mode/engine cases opened all three SET/FLUSHALL/FLUSHDB windows and passed. Failed attempts remain uncredited.",
       "correction": "The scheduling twin now returns from writer_pass while waiting for a receipt gate, leaving fused owner work runnable. The original after-failure-check pause and real RLIMIT_FSIZE write failure remain required.",
-      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control pending.",
+      "rerun": "PASS: complete persistfmt and persistfmt_aof_error jobs; docs/wave13/jobs/landing-persistfmt-window-v3.json, 45 ok / 0 FAIL. Never-armed control verified: all four rows fail after eight attempts each, overall gate exit 1.",
       "failure_logs": [
         {
           "path": "build/gate-run.VBZvQF/jobs/persistfmt/persistfmt-aof-failure-1s-epoll.log",
@@ -151,6 +151,14 @@
           "sha256": "6c3865aba4fd00a509fc8e7408dfca64c8cf79fd38cae80b7ffff93b0bfb15fd"
         }
       ]
+    }
+  ],
+  "negative-aof-never-armed-collector": [
+    {
+      "job": "persistfmt",
+      "cause": "The first receipt collector expected shell job status 1. This gate job collects row failures and returns shell status 0; its failed-row count is 4 and the gate verdict is correctly 1.",
+      "correction": "The collector now requires the actual gate contract: whole invocation exit 1 and done=(0,36,4). All four intended missing-window failures were already present; the original run was recaptured without rerunning or changing any assertion.",
+      "rerun": "Verified by --capture-existing; source regeneration equals the recorded mutant before artifact pruning."
     }
   ]
 }

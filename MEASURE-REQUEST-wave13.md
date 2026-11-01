@@ -182,7 +182,10 @@ At most eight fresh-state attempts are allowed for witnessed latch setup
 failures; no missing window is accepted. The four-second arming bound, no-reply
 assertions and fatal exit 1 are unchanged. Both complete persistence jobs now
 pass (45 rows), including all twelve SET/FLUSHALL/FLUSHDB windows. Three fresh
-rearms were needed in fused epoll. The removed-pause-hook control is pending.
+rearms were needed in fused epoll. Removing the pause hook fails all four mode/engine rows after 32 unarmed
+attempts; the other 36 persistence rows still pass. The gate exits 1.
+`docs/wave13/aof-window-negative-control.json` binds the control and its pruned
+build artifacts; `interaction-receipts.json` binds the positive windows.
 No production change was needed.
 
 The initial seven datafix1 jobs returned passing verdicts but their shared

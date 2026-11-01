@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / 'docs/wave13'
@@ -20,24 +21,36 @@ def sha(path):
 def main():
     assert os.sched_getaffinity(0) <= set(range(16))
     assert 'failure_window_unarmed' in (ROOT / 'tests/persistfmt.py').read_text()
-    assert not DEST.exists(), 'Preserve previous control attempts'
-    DEST.mkdir(parents=True)
+    assert sys.argv[1:] in ([], ['--capture-existing'])
+    capture_existing = bool(sys.argv[1:])
+    if capture_existing:
+        assert DEST.is_dir()
+    else:
+        assert not DEST.exists(), 'Preserve previous control attempts'
+        DEST.mkdir(parents=True)
     source = DEST / 'aof.cc'
-    subprocess.run(['python3', 'tools/persistfmt_schedule.py', 'src/persist/aof.cc', str(source)],
-                   cwd=ROOT, check=True)
-    generated_sha = sha(source)
     before = 'if (persistfmt_armed() && persistfmt_schedule.load() < 2) {'
     after = 'if (false && persistfmt_armed() && persistfmt_schedule.load() < 2) {'
-    original = source.read_text()
+    generated = DEST / 'generated-check.cc'
+    subprocess.run(['python3', 'tools/persistfmt_schedule.py', 'src/persist/aof.cc', str(generated)],
+                   cwd=ROOT, check=True)
+    generated_sha = sha(generated)
+    original = generated.read_text()
     assert original.count(before) == 1
-    source.write_text(original.replace(before, after))
+    modified = original.replace(before, after)
+    if capture_existing:
+        assert source.read_text() == modified
+    else:
+        source.write_text(modified)
+    generated.unlink()
     candidate = ROOT / 'build/wave13/tomokv-POST'
     post_sha = sha(candidate)
     binary = DEST / 'tomokv'
     build = ['make', '-f', 'Makefile', '-f', 'tools/persistfmt.mk', '-j16',
              'PERSISTFMT_SCHEDULE=' + str(DEST.relative_to(ROOT)), str(binary.relative_to(ROOT))]
-    with (DEST / 'build.log').open('w') as stream:
-        subprocess.run(build, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, check=True)
+    if not capture_existing:
+        with (DEST / 'build.log').open('w') as stream:
+            subprocess.run(build, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, check=True)
     record = dict(post_sha256=post_sha, scheduling_control_sha256=sha(binary),
                   generated_source_sha256=generated_sha, modified_source_sha256=sha(source),
                   generator_sha256=sha(ROOT / 'tools/persistfmt_schedule.py'),
@@ -47,17 +60,20 @@ def main():
     argv = ['python3', 'docs/wave13/run_jobs.py', receipt_name, 'persistfmt',
             '--binary', str(candidate), '--single-slot']
     env = dict(os.environ, GATE_PERSISTFMT_SCHEDULED=str(binary), LC_ALL='C', LANG='C')
-    with (DEST / 'gate.log').open('w') as stream:
-        result = subprocess.run(argv, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)
+    if not capture_existing:
+        with (DEST / 'gate.log').open('w') as stream:
+            result = subprocess.run(argv, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)
     receipt_path = DOC / 'jobs' / (receipt_name + '.json')
     receipt = json.loads(receipt_path.read_text())
     folder = Path(receipt['artifacts']) / 'jobs/persistfmt'
-    record.update(exit=result.returncode, receipt=str(receipt_path.relative_to(ROOT)),
+    record.update(exit=receipt['exit'], receipt=str(receipt_path.relative_to(ROOT)),
                   receipt_sha256=sha(receipt_path), modes=[])
-    assert result.returncode == receipt['exit'] == 1
+    assert receipt['exit'] == 1
     assert receipt['binary_unchanged'] and receipt['source_tree_unchanged'] and receipt['tests_tools_unchanged']
     assert receipt['binary_sha256'] == post_sha == sha(candidate)
-    assert list(map(int, (folder / 'done').read_text().split())) == [1, 36, 4]
+    # This shell job returns zero after collecting rows; the gate verdict
+    # correctly returns one for its four failed assertions.
+    assert list(map(int, (folder / 'done').read_text().split())) == [0, 36, 4]
     for mode, engine in itertools.product(('1s', '2s'), ('epoll', 'uring')):
         stem = f'persistfmt-aof-failure-{mode}-{engine}'
         events_path = folder / stem / 'events.jsonl'

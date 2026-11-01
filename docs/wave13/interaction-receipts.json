@@ -1,0 +1,3166 @@
+{
+  "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+  "gate_jobs": {
+    "flipfix6_units": {
+      "receipt": "docs/wave13/jobs/landing-primary.json",
+      "receipt_sha256": "08d553819e890efc7dc1fba87b1b34ccb2f0b2326fd4c1f55767877ac277c70d",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.dQbZff/jobs/flipfix6_units"
+    },
+    "flipfix6": {
+      "receipt": "docs/wave13/jobs/landing-primary.json",
+      "receipt_sha256": "08d553819e890efc7dc1fba87b1b34ccb2f0b2326fd4c1f55767877ac277c70d",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.dQbZff/jobs/flipfix6"
+    },
+    "persistfmt": {
+      "receipt": "docs/wave13/jobs/landing-persistfmt-window-v3.json",
+      "receipt_sha256": "cf2fa1a2b7848f20dd656ae6d9294615d826a2d52a9f8d9b70f7792cd7e1dcf8",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.eCMbdT/jobs/persistfmt"
+    },
+    "persistfmt_aof_error": {
+      "receipt": "docs/wave13/jobs/landing-persistfmt-window-v3.json",
+      "receipt_sha256": "cf2fa1a2b7848f20dd656ae6d9294615d826a2d52a9f8d9b70f7792cd7e1dcf8",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.eCMbdT/jobs/persistfmt_aof_error"
+    },
+    "trackorder": {
+      "receipt": "docs/wave13/jobs/landing-primary.json",
+      "receipt_sha256": "08d553819e890efc7dc1fba87b1b34ccb2f0b2326fd4c1f55767877ac277c70d",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.dQbZff/jobs/trackorder"
+    },
+    "maxmemrace": {
+      "receipt": "docs/wave13/jobs/landing-primary.json",
+      "receipt_sha256": "08d553819e890efc7dc1fba87b1b34ccb2f0b2326fd4c1f55767877ac277c70d",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.dQbZff/jobs/maxmemrace"
+    },
+    "at412-T6": {
+      "receipt": "docs/wave13/jobs/landing-primary.json",
+      "receipt_sha256": "08d553819e890efc7dc1fba87b1b34ccb2f0b2326fd4c1f55767877ac277c70d",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.dQbZff/jobs/at412-T6"
+    },
+    "at412-T10": {
+      "receipt": "docs/wave13/jobs/landing-primary.json",
+      "receipt_sha256": "08d553819e890efc7dc1fba87b1b34ccb2f0b2326fd4c1f55767877ac277c70d",
+      "artifact": "/home/user/Projects/cx-wave13/build/gate-run.dQbZff/jobs/at412-T10"
+    }
+  },
+  "sanitizer_units": [
+    {
+      "log": "flipfix6.txt",
+      "original_cases": 54,
+      "integration_cases": [
+        "ARMED wave13 FLUSH unpublished db1 atomic0 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic0 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic0 converting EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH unpublished db1 atomic1 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic1 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic1 converting EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH unpublished db16 atomic0 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic0 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic0 converting EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH unpublished db16 atomic1 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic1 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic1 converting EXEC: refused at IoDrain, same state resumed"
+      ],
+      "sha256": "4adb08082ecf6d4d9adad49465b516f68c8e210b4f763a0d0b311ed887f86aab"
+    },
+    {
+      "log": "tsan-core-concurrency-tsan-flipfix6.log",
+      "original_cases": 54,
+      "integration_cases": [
+        "ARMED wave13 FLUSH unpublished db1 atomic0 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic0 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic0 converting EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH unpublished db1 atomic1 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic1 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db1 atomic1 converting EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH unpublished db16 atomic0 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic0 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic0 converting EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH unpublished db16 atomic1 both capacity exits",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic1 surviving EXEC: refused at IoDrain, same state resumed",
+        "ARMED wave13 FLUSH-queue-error S2 db16 atomic1 converting EXEC: refused at IoDrain, same state resumed"
+      ],
+      "sha256": "4adb08082ecf6d4d9adad49465b516f68c8e210b4f763a0d0b311ed887f86aab"
+    }
+  ],
+  "aof_never_armed_control": {
+    "path": "docs/wave13/aof-window-negative-control.json",
+    "sha256": "b69bd4492b9cedfae1b3c56a201239723f9616e7f8fb6e04d1788d4239e8309a",
+    "verified": true
+  },
+  "ping_probed_storm_legs": [
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db1-exec",
+      "workers": 6,
+      "pings": 47240,
+      "ping_max_seconds": 0.001150251366198063,
+      "max_flip_seconds": 0.0012560905888676643,
+      "flips": 29037,
+      "sessions_moved": 58077,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db1-p1",
+      "workers": 6,
+      "pings": 58221,
+      "ping_max_seconds": 0.0006697103381156921,
+      "max_flip_seconds": 0.0007052607834339142,
+      "flips": 30289,
+      "sessions_moved": 60581,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db1-p2",
+      "workers": 6,
+      "pings": 58204,
+      "ping_max_seconds": 0.0027120141312479973,
+      "max_flip_seconds": 0.0028118835762143135,
+      "flips": 30091,
+      "sessions_moved": 60185,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db1-p3",
+      "workers": 6,
+      "pings": 53710,
+      "ping_max_seconds": 0.0011414112523198128,
+      "max_flip_seconds": 0.00120635237544775,
+      "flips": 30604,
+      "sessions_moved": 61211,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db1-watch",
+      "workers": 6,
+      "pings": 57348,
+      "ping_max_seconds": 0.0004925597459077835,
+      "max_flip_seconds": 0.000648990273475647,
+      "flips": 30170,
+      "sessions_moved": 60343,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db1-exec-close",
+      "workers": 6,
+      "pings": 39299,
+      "ping_max_seconds": 0.001042541116476059,
+      "max_flip_seconds": 0.0013797525316476822,
+      "flips": 25734,
+      "sessions_moved": 47219,
+      "s2_refusals": 0,
+      "close_refusals": 2547,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db1-exec",
+      "workers": 6,
+      "pings": 47407,
+      "ping_max_seconds": 0.0010215211659669876,
+      "max_flip_seconds": 0.001125602051615715,
+      "flips": 28936,
+      "sessions_moved": 57875,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db1-p1",
+      "workers": 6,
+      "pings": 58011,
+      "ping_max_seconds": 0.0005286205559968948,
+      "max_flip_seconds": 0.0006945710629224777,
+      "flips": 29944,
+      "sessions_moved": 59891,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db1-p2",
+      "workers": 6,
+      "pings": 58453,
+      "ping_max_seconds": 0.001074962317943573,
+      "max_flip_seconds": 0.0011893827468156815,
+      "flips": 30176,
+      "sessions_moved": 60355,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db1-p3",
+      "workers": 6,
+      "pings": 53557,
+      "ping_max_seconds": 0.005709218792617321,
+      "max_flip_seconds": 0.005777448415756226,
+      "flips": 30279,
+      "sessions_moved": 60561,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db1-watch",
+      "workers": 6,
+      "pings": 56928,
+      "ping_max_seconds": 0.0005203615874052048,
+      "max_flip_seconds": 0.0006615808233618736,
+      "flips": 30305,
+      "sessions_moved": 60613,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db1-exec-close",
+      "workers": 6,
+      "pings": 39247,
+      "ping_max_seconds": 0.0006150910630822182,
+      "max_flip_seconds": 0.0009159306064248085,
+      "flips": 25841,
+      "sessions_moved": 47307,
+      "s2_refusals": 0,
+      "close_refusals": 2617,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db1-exec",
+      "workers": 6,
+      "pings": 48049,
+      "ping_max_seconds": 0.0011019520461559296,
+      "max_flip_seconds": 0.0012039123103022575,
+      "flips": 29054,
+      "sessions_moved": 58111,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db1-p1",
+      "workers": 6,
+      "pings": 58866,
+      "ping_max_seconds": 0.00045741163194179535,
+      "max_flip_seconds": 0.0011418908834457397,
+      "flips": 29848,
+      "sessions_moved": 59699,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db1-p2",
+      "workers": 6,
+      "pings": 58676,
+      "ping_max_seconds": 0.0008771922439336777,
+      "max_flip_seconds": 0.001028161495923996,
+      "flips": 30001,
+      "sessions_moved": 60005,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db1-p3",
+      "workers": 6,
+      "pings": 54353,
+      "ping_max_seconds": 0.0010382113978266716,
+      "max_flip_seconds": 0.001164930872619152,
+      "flips": 30880,
+      "sessions_moved": 61763,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db1-watch",
+      "workers": 6,
+      "pings": 59076,
+      "ping_max_seconds": 0.009525525383651257,
+      "max_flip_seconds": 0.009481635875999928,
+      "flips": 30370,
+      "sessions_moved": 60743,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db1-exec-close",
+      "workers": 6,
+      "pings": 39386,
+      "ping_max_seconds": 0.0010227318853139877,
+      "max_flip_seconds": 0.00118993129581213,
+      "flips": 25918,
+      "sessions_moved": 47497,
+      "s2_refusals": 0,
+      "close_refusals": 2569,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db1-exec",
+      "workers": 6,
+      "pings": 47846,
+      "ping_max_seconds": 0.0008469009771943092,
+      "max_flip_seconds": 0.0012139622122049332,
+      "flips": 29292,
+      "sessions_moved": 58587,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db1-p1",
+      "workers": 6,
+      "pings": 58989,
+      "ping_max_seconds": 0.0013279924169182777,
+      "max_flip_seconds": 0.0013214526697993279,
+      "flips": 29893,
+      "sessions_moved": 59789,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db1-p2",
+      "workers": 6,
+      "pings": 59257,
+      "ping_max_seconds": 0.00047282129526138306,
+      "max_flip_seconds": 0.0006738007068634033,
+      "flips": 30202,
+      "sessions_moved": 60407,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db1-p3",
+      "workers": 6,
+      "pings": 53380,
+      "ping_max_seconds": 0.00047412142157554626,
+      "max_flip_seconds": 0.0011265520006418228,
+      "flips": 30417,
+      "sessions_moved": 60837,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db1-watch",
+      "workers": 6,
+      "pings": 59413,
+      "ping_max_seconds": 0.00044512003660202026,
+      "max_flip_seconds": 0.0012810025364160538,
+      "flips": 30471,
+      "sessions_moved": 60945,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db1-exec-close",
+      "workers": 6,
+      "pings": 39170,
+      "ping_max_seconds": 0.01153262984007597,
+      "max_flip_seconds": 0.011836080811917782,
+      "flips": 25953,
+      "sessions_moved": 47354,
+      "s2_refusals": 0,
+      "close_refusals": 2677,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db16-exec",
+      "workers": 6,
+      "pings": 45770,
+      "ping_max_seconds": 0.0006900113075971603,
+      "max_flip_seconds": 0.0014721229672431946,
+      "flips": 28735,
+      "sessions_moved": 57473,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db16-p1",
+      "workers": 6,
+      "pings": 57514,
+      "ping_max_seconds": 0.0005707414820790291,
+      "max_flip_seconds": 0.0008034203201532364,
+      "flips": 29604,
+      "sessions_moved": 59211,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db16-p2",
+      "workers": 6,
+      "pings": 56718,
+      "ping_max_seconds": 0.0007288819178938866,
+      "max_flip_seconds": 0.0007424913346767426,
+      "flips": 29634,
+      "sessions_moved": 59271,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db16-p3",
+      "workers": 6,
+      "pings": 50376,
+      "ping_max_seconds": 0.0005010096356272697,
+      "max_flip_seconds": 0.000582229346036911,
+      "flips": 29906,
+      "sessions_moved": 59815,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db16-watch",
+      "workers": 6,
+      "pings": 57509,
+      "ping_max_seconds": 0.0005097705870866776,
+      "max_flip_seconds": 0.001239502802491188,
+      "flips": 29562,
+      "sessions_moved": 59127,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-0-db16-exec-close",
+      "workers": 6,
+      "pings": 39537,
+      "ping_max_seconds": 0.0007940623909235001,
+      "max_flip_seconds": 0.000673241913318634,
+      "flips": 25086,
+      "sessions_moved": 45190,
+      "s2_refusals": 0,
+      "close_refusals": 2936,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db16-exec",
+      "workers": 6,
+      "pings": 45925,
+      "ping_max_seconds": 0.0007731309160590172,
+      "max_flip_seconds": 0.0007216911762952805,
+      "flips": 29011,
+      "sessions_moved": 58025,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db16-p1",
+      "workers": 6,
+      "pings": 56900,
+      "ping_max_seconds": 0.014445976354181767,
+      "max_flip_seconds": 0.014627037569880486,
+      "flips": 29495,
+      "sessions_moved": 58993,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db16-p2",
+      "workers": 6,
+      "pings": 57844,
+      "ping_max_seconds": 0.0010941624641418457,
+      "max_flip_seconds": 0.0013072025030851364,
+      "flips": 29687,
+      "sessions_moved": 59377,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db16-p3",
+      "workers": 6,
+      "pings": 50790,
+      "ping_max_seconds": 0.0011409325525164604,
+      "max_flip_seconds": 0.0013119028881192207,
+      "flips": 29858,
+      "sessions_moved": 59719,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db16-watch",
+      "workers": 6,
+      "pings": 57782,
+      "ping_max_seconds": 0.0005320310592651367,
+      "max_flip_seconds": 0.0011419625952839851,
+      "flips": 29816,
+      "sessions_moved": 59635,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-uring-1-db16-exec-close",
+      "workers": 6,
+      "pings": 40089,
+      "ping_max_seconds": 0.003219475969672203,
+      "max_flip_seconds": 0.0033008670434355736,
+      "flips": 25356,
+      "sessions_moved": 45727,
+      "s2_refusals": 0,
+      "close_refusals": 2954,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db16-exec",
+      "workers": 6,
+      "pings": 48464,
+      "ping_max_seconds": 0.001179192215204239,
+      "max_flip_seconds": 0.0012647733092308044,
+      "flips": 29007,
+      "sessions_moved": 58017,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db16-p1",
+      "workers": 6,
+      "pings": 57184,
+      "ping_max_seconds": 0.0011194217950105667,
+      "max_flip_seconds": 0.001227501779794693,
+      "flips": 29490,
+      "sessions_moved": 58983,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db16-p2",
+      "workers": 6,
+      "pings": 58431,
+      "ping_max_seconds": 0.01795720588415861,
+      "max_flip_seconds": 0.01780745666474104,
+      "flips": 29609,
+      "sessions_moved": 59221,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db16-p3",
+      "workers": 6,
+      "pings": 51592,
+      "ping_max_seconds": 0.0011344822123646736,
+      "max_flip_seconds": 0.0012617120519280434,
+      "flips": 30632,
+      "sessions_moved": 61267,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db16-watch",
+      "workers": 6,
+      "pings": 58184,
+      "ping_max_seconds": 0.001135231927037239,
+      "max_flip_seconds": 0.0012792721390724182,
+      "flips": 29587,
+      "sessions_moved": 59177,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-0-db16-exec-close",
+      "workers": 6,
+      "pings": 40454,
+      "ping_max_seconds": 0.0005837408825755119,
+      "max_flip_seconds": 0.0020285136997699738,
+      "flips": 25374,
+      "sessions_moved": 45523,
+      "s2_refusals": 0,
+      "close_refusals": 3061,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db16-exec",
+      "workers": 6,
+      "pings": 49022,
+      "ping_max_seconds": 0.000668032094836235,
+      "max_flip_seconds": 0.0007137414067983627,
+      "flips": 29438,
+      "sessions_moved": 58879,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db16-p1",
+      "workers": 6,
+      "pings": 57910,
+      "ping_max_seconds": 0.0004444411024451256,
+      "max_flip_seconds": 0.0006148610264062881,
+      "flips": 29486,
+      "sessions_moved": 58975,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db16-p2",
+      "workers": 6,
+      "pings": 57345,
+      "ping_max_seconds": 0.0004330817610025406,
+      "max_flip_seconds": 0.0005783615633845329,
+      "flips": 29178,
+      "sessions_moved": 58359,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db16-p3",
+      "workers": 6,
+      "pings": 53892,
+      "ping_max_seconds": 0.0005600806325674057,
+      "max_flip_seconds": 0.0006101308390498161,
+      "flips": 30168,
+      "sessions_moved": 60339,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db16-watch",
+      "workers": 6,
+      "pings": 59041,
+      "ping_max_seconds": 0.01974031049758196,
+      "max_flip_seconds": 0.019684380851686,
+      "flips": 29705,
+      "sessions_moved": 59413,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6",
+      "leg": "2s-epoll-1-db16-exec-close",
+      "workers": 6,
+      "pings": 39863,
+      "ping_max_seconds": 0.0005945209413766861,
+      "max_flip_seconds": 0.0008981721475720406,
+      "flips": 25734,
+      "sessions_moved": 46408,
+      "s2_refusals": 0,
+      "close_refusals": 2971,
+      "results_sha256": "2ede3991e4850b984f8d0ea610525815c5216dd4684e7c8a0af92b260d19d619"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-0-db1-exec",
+      "workers": 48,
+      "pings": 6640,
+      "ping_max_seconds": 0.004798250272870064,
+      "max_flip_seconds": 0.004176679067313671,
+      "flips": 6418,
+      "sessions_moved": 102720,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-0-db1-exec-close",
+      "workers": 48,
+      "pings": 6297,
+      "ping_max_seconds": 0.004789839498698711,
+      "max_flip_seconds": 0.00416541937738657,
+      "flips": 6362,
+      "sessions_moved": 100371,
+      "s2_refusals": 0,
+      "close_refusals": 95,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-1-db1-exec",
+      "workers": 48,
+      "pings": 6552,
+      "ping_max_seconds": 0.003836679272353649,
+      "max_flip_seconds": 0.004086499102413654,
+      "flips": 6449,
+      "sessions_moved": 103216,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-1-db1-exec-close",
+      "workers": 48,
+      "pings": 6420,
+      "ping_max_seconds": 0.004565170034766197,
+      "max_flip_seconds": 0.004756820388138294,
+      "flips": 6325,
+      "sessions_moved": 99697,
+      "s2_refusals": 0,
+      "close_refusals": 99,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-0-db1-exec",
+      "workers": 48,
+      "pings": 6761,
+      "ping_max_seconds": 0.004151319153606892,
+      "max_flip_seconds": 0.0037714680656790733,
+      "flips": 6463,
+      "sessions_moved": 103440,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-0-db1-exec-close",
+      "workers": 48,
+      "pings": 6512,
+      "ping_max_seconds": 0.0046318294480443,
+      "max_flip_seconds": 0.004251458682119846,
+      "flips": 6214,
+      "sessions_moved": 98296,
+      "s2_refusals": 0,
+      "close_refusals": 76,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-1-db1-exec",
+      "workers": 48,
+      "pings": 6633,
+      "ping_max_seconds": 0.0045316992327570915,
+      "max_flip_seconds": 0.004275758750736713,
+      "flips": 6430,
+      "sessions_moved": 102912,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-1-db1-exec-close",
+      "workers": 48,
+      "pings": 6451,
+      "ping_max_seconds": 0.00525929220020771,
+      "max_flip_seconds": 0.0042053693905472755,
+      "flips": 6350,
+      "sessions_moved": 100559,
+      "s2_refusals": 0,
+      "close_refusals": 71,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-0-db16-exec",
+      "workers": 48,
+      "pings": 6627,
+      "ping_max_seconds": 0.0049417996779084206,
+      "max_flip_seconds": 0.0048687998205423355,
+      "flips": 6344,
+      "sessions_moved": 101536,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-0-db16-exec-close",
+      "workers": 48,
+      "pings": 6443,
+      "ping_max_seconds": 0.004719889722764492,
+      "max_flip_seconds": 0.004357978701591492,
+      "flips": 6306,
+      "sessions_moved": 98729,
+      "s2_refusals": 0,
+      "close_refusals": 141,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-1-db16-exec",
+      "workers": 48,
+      "pings": 6516,
+      "ping_max_seconds": 0.004911571741104126,
+      "max_flip_seconds": 0.004298938438296318,
+      "flips": 6319,
+      "sessions_moved": 101136,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-uring-1-db16-exec-close",
+      "workers": 48,
+      "pings": 6412,
+      "ping_max_seconds": 0.005641342140734196,
+      "max_flip_seconds": 0.004907120950520039,
+      "flips": 6220,
+      "sessions_moved": 97258,
+      "s2_refusals": 0,
+      "close_refusals": 146,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-0-db16-exec",
+      "workers": 48,
+      "pings": 6569,
+      "ping_max_seconds": 0.0036643194034695625,
+      "max_flip_seconds": 0.004264848306775093,
+      "flips": 6317,
+      "sessions_moved": 101104,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-0-db16-exec-close",
+      "workers": 48,
+      "pings": 6440,
+      "ping_max_seconds": 0.004251520149409771,
+      "max_flip_seconds": 0.0037211785092949867,
+      "flips": 6372,
+      "sessions_moved": 99753,
+      "s2_refusals": 0,
+      "close_refusals": 144,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-1-db16-exec",
+      "workers": 48,
+      "pings": 6589,
+      "ping_max_seconds": 0.00415181927382946,
+      "max_flip_seconds": 0.004750569351017475,
+      "flips": 6397,
+      "sessions_moved": 102384,
+      "s2_refusals": 0,
+      "close_refusals": 0,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    },
+    {
+      "group": "flipfix6-scale",
+      "leg": "2s-epoll-1-db16-exec-close",
+      "workers": 48,
+      "pings": 6524,
+      "ping_max_seconds": 0.004546619951725006,
+      "max_flip_seconds": 0.004577559418976307,
+      "flips": 6168,
+      "sessions_moved": 96346,
+      "s2_refusals": 0,
+      "close_refusals": 153,
+      "results_sha256": "279af898fcade0b75d6f31ab74572096fa9e4f1f7f91468443a95f3082b28714"
+    }
+  ],
+  "moved_session_semantics": [
+    {
+      "leg": "2s-uring-0-db1-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00031067151576280594
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00019945017993450165
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.00017140991985797882
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.00016198121011257172
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.0001611504703760147
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00017959997057914734
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.0001537799835205078
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00016468949615955353
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00015982985496520996
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db1-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00031451042741537094
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00016589928418397903
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.00015689991414546967
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.0001574195921421051
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.00015428103506565094
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00016259122639894485
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00017356034368276596
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.0001618294045329094
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00016270950436592102
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db1-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.0002725599333643913
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.0001552412286400795
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.00015188008546829224
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.00016533024609088898
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.00016114022582769394
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00014497991651296616
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.0001476416364312172
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00015170127153396606
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00015580002218484879
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db1-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.0002444908022880554
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00015025120228528976
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.0001498796045780182
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.00015085097402334213
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.00015291012823581696
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00015278998762369156
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00014825072139501572
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00015489012002944946
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00015223119407892227
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-0-db16-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.0003370707854628563
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.0001972503960132599
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.0001633698120713234
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.00017428025603294373
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.00018290989100933075
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00017961114645004272
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00017936062067747116
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00017441995441913605
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00015551969408988953
+        }
+      ]
+    },
+    {
+      "leg": "2s-uring-1-db16-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00032659992575645447
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.0001903502270579338
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.00020204950124025345
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.00019595026969909668
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.00018261093646287918
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00017540063709020615
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00015740003436803818
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00016740057617425919
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00016606133431196213
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-0-db16-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00024770013988018036
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00017940066754817963
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.00016744062304496765
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.0001740800216794014
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.0001576598733663559
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00017604976892471313
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.00015138927847146988
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.00016153976321220398
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.0001824311912059784
+        }
+      ]
+    },
+    {
+      "leg": "2s-epoll-1-db16-semantics",
+      "cases": [
+        {
+          "case": "watch-clean",
+          "session_moves": 1,
+          "flip_seconds": 0.00026924069970846176
+        },
+        {
+          "case": "watch-dirty",
+          "session_moves": 1,
+          "flip_seconds": 0.00017755944281816483
+        },
+        {
+          "case": "watch-flushall",
+          "session_moves": 1,
+          "flip_seconds": 0.00017873011529445648
+        },
+        {
+          "case": "watch-flushdb",
+          "session_moves": 1,
+          "flip_seconds": 0.00016622059047222137
+        },
+        {
+          "case": "watch-config",
+          "session_moves": 1,
+          "flip_seconds": 0.00015149079263210297
+        },
+        {
+          "case": "queue",
+          "session_moves": 1,
+          "flip_seconds": 0.00019155163317918777
+        },
+        {
+          "case": "queue-error",
+          "session_moves": 1,
+          "flip_seconds": 0.0001539001241326332
+        },
+        {
+          "case": "discard",
+          "session_moves": 1,
+          "flip_seconds": 0.0001662997528910637
+        },
+        {
+          "case": "reset",
+          "session_moves": 1,
+          "flip_seconds": 0.00017283111810684204
+        }
+      ]
+    }
+  ],
+  "flush_live_flip": [
+    {
+      "databases": 1,
+      "legs": [
+        {
+          "case": "live-flip",
+          "leg": "redis-redis-0",
+          "databases": 1,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 68134,
+            "work": 0,
+            "saves": 0,
+            "flips": 0,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 68134,
+                "work": 0,
+                "saves": 0,
+                "flips": 0,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.141
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-uring-0",
+          "databases": 1,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 29301,
+            "work": 0,
+            "saves": 0,
+            "flips": 29485,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 29301,
+                "work": 0,
+                "saves": 0,
+                "flips": 29485,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.058
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-uring-1",
+          "databases": 1,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 29760,
+            "work": 0,
+            "saves": 0,
+            "flips": 29940,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 29760,
+                "work": 0,
+                "saves": 0,
+                "flips": 29940,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.07
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-epoll-0",
+          "databases": 1,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 30238,
+            "work": 0,
+            "saves": 0,
+            "flips": 30238,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 30238,
+                "work": 0,
+                "saves": 0,
+                "flips": 30238,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.07
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-epoll-1",
+          "databases": 1,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 30069,
+            "work": 0,
+            "saves": 0,
+            "flips": 30072,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 30069,
+                "work": 0,
+                "saves": 0,
+                "flips": 30072,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.058
+        }
+      ],
+      "results_sha256": "8a88b09aaa6762b3060f57906c7935b6d023c61abab4903cc2ba8e133983410f"
+    },
+    {
+      "databases": 16,
+      "legs": [
+        {
+          "case": "live-flip",
+          "leg": "redis-redis-0",
+          "databases": 16,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 68575,
+            "work": 0,
+            "saves": 0,
+            "flips": 0,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 68575,
+                "work": 0,
+                "saves": 0,
+                "flips": 0,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.141
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-uring-0",
+          "databases": 16,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 29112,
+            "work": 0,
+            "saves": 0,
+            "flips": 29270,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 29112,
+                "work": 0,
+                "saves": 0,
+                "flips": 29270,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.058
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-uring-1",
+          "databases": 16,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 29006,
+            "work": 0,
+            "saves": 0,
+            "flips": 29157,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 29006,
+                "work": 0,
+                "saves": 0,
+                "flips": 29157,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.077
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-epoll-0",
+          "databases": 16,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 30204,
+            "work": 0,
+            "saves": 0,
+            "flips": 30205,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 30204,
+                "work": 0,
+                "saves": 0,
+                "flips": 30205,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.081
+        },
+        {
+          "case": "live-flip",
+          "leg": "2s-epoll-1",
+          "databases": 16,
+          "command": "FLUSHALL",
+          "flush_mode": "SYNC",
+          "value": {
+            "flushes": 30081,
+            "work": 0,
+            "saves": 0,
+            "flips": 30082,
+            "flip_refusals": 0,
+            "cancelled_saves": 0,
+            "snapshots_checked": 0,
+            "aof_sentinels": 0,
+            "aof_namespaces": 0
+          },
+          "pass": true,
+          "attempts": [
+            {
+              "value": {
+                "flushes": 30081,
+                "work": 0,
+                "saves": 0,
+                "flips": 30082,
+                "flip_refusals": 0,
+                "cancelled_saves": 0,
+                "snapshots_checked": 0,
+                "aof_sentinels": 0,
+                "aof_namespaces": 0
+              },
+              "passed": true
+            }
+          ],
+          "seconds": 4.058
+        }
+      ],
+      "results_sha256": "e80456d93a6998d3942d98bd352d4afd8b689c024a38aecf230441c6542eb9d3"
+    }
+  ],
+  "function_flush_restart_boundaries": [
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "case": "save",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "55c02bb09576598fd02a298dae4b2851ed3d00fae0e1afb7bae1a474cda1a2c0"
+    },
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "case": "bgsave",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "3fa3fb4413e71f83300412aeb2209590bea0e03304da39a62e75d0f72a9990c2"
+    },
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "case": "shutdown",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "6df737ae26541048325bea0055c79318e17537e1706610e3c93bd26542350825"
+    },
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "case": "reload",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "b85786cb4031a12941620f861d251864b09c3ff15d60a5c6d570bdc2eac4eb3a"
+    },
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "case": "aof-yes",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "f693418db5c7e682710ab6ae742c349da406dafb33c2216ae829d77deef8fd16"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "case": "save",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "e4b6f183728b2557444ce4ae6c96511cc439bfc6210af0cd275f51cce774e95d"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "case": "bgsave",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "bb0db7e7411300bbcfb4e5231a89dbf1d609c35882714e2d42d0cc27aff5467a"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "case": "shutdown",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "3d91c94649eb775dfd7e3acd70ae0fffc1921665783dfc732215621cb7bb4338"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "case": "reload",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "3343afe9f83a3410e1b8b267150b304936c6ebfbe55f620b82d9ff04fd7bc7f6"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "case": "aof-yes",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "f062ff80d8146a7e4da5cc205ce30b414919272e0b3d07d660e9edd3bea11b1d"
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "case": "save",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "d51a99c0290c341426a79f9bd6953249f70e9888f62b14aba3c9478831052f0b"
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "case": "bgsave",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "873dc2737ca484318f94beea3c4c99d833cda97fdacb18fd7a27dedf59e776d6"
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "case": "shutdown",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "212abd97c314fa88f1fd7c379641603de2a6f3f26931e703150177abafe98e28"
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "case": "reload",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "cd4a21660613a9e244d1d59c7eeb2b575374ef48cfdd2919f39691ce4e711996"
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "case": "aof-yes",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "2f15274d04c809b124a62cfb9356225c723637407f2fb00e766d66556d62fb1a"
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "case": "save",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "save",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "e811939d75d99474d5104f6d4493d3aa558924f39bbe14eaaca1ec4baa9d0b66"
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "case": "bgsave",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "bgsave",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "a194cb03585ca0ff0c6c7d4ad1800f7ad76d1973b074c7746f66d902bf6989f2"
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "case": "shutdown",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "shutdown",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "e5a414231a83f3d25bc929552769058c952266eee7cdc3d1e68d454651d32456"
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "case": "reload",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "reload",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "f60aa1a648a88fde141ccb1250371a0cb65a42ea3737ade791d1f5090c202d94"
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "case": "aof-yes",
+      "checks": [
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": true,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        },
+        {
+          "event": "wave13_flush_function_boundary",
+          "oracle": false,
+          "case": "aof-yes",
+          "invalidation": [
+            "message",
+            "__redis__:invalidate",
+            null
+          ],
+          "function_flush_invalidates": false
+        }
+      ],
+      "events_sha256": "1c9b9ed81a591470827d97246825ed63aed389ac0ee63d1e8f7c4d7595b9b6a1"
+    }
+  ],
+  "aof_failure_windows": [
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "commands": [
+        "SET",
+        "FLUSHALL",
+        "FLUSHDB"
+      ],
+      "windows": [
+        {
+          "event": "failure_window_armed",
+          "command": "SET",
+          "attempt": 1,
+          "threads": [
+            "/proc/3054464/task/3054473"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3054473,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3054470,
+              "producer": 4,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3054473,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3054473
+          ],
+          "loggers": {
+            "3054473": {
+              "tid": 3054473,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3054470": {
+              "tid": 3054470,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3054473,
+            "producer": 7,
+            "stage": 0
+          }
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHALL",
+          "attempt": 3,
+          "threads": [
+            "/proc/3054636/task/3054645"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3054645,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3054641,
+              "producer": 3,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3054645,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3054645
+          ],
+          "loggers": {
+            "3054645": {
+              "tid": 3054645,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3054641": {
+              "tid": 3054641,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3054645,
+            "producer": 7,
+            "stage": 0
+          }
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHDB",
+          "attempt": 2,
+          "threads": [
+            "/proc/3054732/task/3054741"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3054741,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3054738,
+              "producer": 4,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3054741,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3054741
+          ],
+          "loggers": {
+            "3054741": {
+              "tid": 3054741,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3054738": {
+              "tid": 3054738,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3054741,
+            "producer": 7,
+            "stage": 0
+          }
+        }
+      ],
+      "limits": [
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHALL",
+          "attempt": 3,
+          "bytes": 168
+        },
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHDB",
+          "attempt": 2,
+          "bytes": 168
+        }
+      ],
+      "unarmed_attempts": [
+        {
+          "event": "failure_window_unarmed",
+          "command": "FLUSHALL",
+          "attempt": 1,
+          "markers": {
+            "gate": {
+              "tid": 3054491,
+              "producer": 7,
+              "stage": 0
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3054491,
+            "producer": 7,
+            "stage": 0
+          },
+          "reason": "writer held at its own receipt gate before failure"
+        },
+        {
+          "event": "failure_window_unarmed",
+          "command": "FLUSHALL",
+          "attempt": 2,
+          "markers": {
+            "gate": {
+              "tid": 3054564,
+              "producer": 7,
+              "stage": 0
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3054564,
+            "producer": 7,
+            "stage": 0
+          },
+          "reason": "writer held at its own receipt gate before failure"
+        },
+        {
+          "event": "failure_window_unarmed",
+          "command": "FLUSHDB",
+          "attempt": 1,
+          "markers": {
+            "gate": {
+              "tid": 3054662,
+              "producer": 7,
+              "stage": 0
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3054662,
+            "producer": 7,
+            "stage": 0
+          },
+          "reason": "writer held at its own receipt gate before failure"
+        }
+      ],
+      "events_sha256": "f89decbd58d849ac4b883fde20941a79270e61f8be5d60c7d3f7f3d500e1499d"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "commands": [
+        "SET",
+        "FLUSHALL",
+        "FLUSHDB"
+      ],
+      "windows": [
+        {
+          "event": "failure_window_armed",
+          "command": "SET",
+          "attempt": 1,
+          "threads": [
+            "/proc/3059340/task/3059349"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3059349,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3059347,
+              "producer": 5,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3059349,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3059349
+          ],
+          "loggers": {
+            "3059347": {
+              "tid": 3059347,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059349": {
+              "tid": 3059349,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 7,
+          "deferred": null
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHALL",
+          "attempt": 1,
+          "threads": [
+            "/proc/3059393/task/3059402"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3059402,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3059397,
+              "producer": 2,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3059402,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3059402
+          ],
+          "loggers": {
+            "3059402": {
+              "tid": 3059402,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059396": {
+              "tid": 3059396,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059397": {
+              "tid": 3059397,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059400": {
+              "tid": 3059400,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059401": {
+              "tid": 3059401,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059395": {
+              "tid": 3059395,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059398": {
+              "tid": 3059398,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059399": {
+              "tid": 3059399,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3059402,
+            "producer": 7,
+            "stage": 0
+          }
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHDB",
+          "attempt": 1,
+          "threads": [
+            "/proc/3059423/task/3059432"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3059432,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3059431,
+              "producer": 6,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3059432,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3059432
+          ],
+          "loggers": {
+            "3059425": {
+              "tid": 3059425,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059430": {
+              "tid": 3059430,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059426": {
+              "tid": 3059426,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059427": {
+              "tid": 3059427,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059428": {
+              "tid": 3059428,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059432": {
+              "tid": 3059432,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059429": {
+              "tid": 3059429,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3059431": {
+              "tid": 3059431,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 7,
+          "deferred": {
+            "tid": 3059432,
+            "producer": 7,
+            "stage": 0
+          }
+        }
+      ],
+      "limits": [
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHALL",
+          "attempt": 1,
+          "bytes": 168
+        },
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHDB",
+          "attempt": 1,
+          "bytes": 168
+        }
+      ],
+      "unarmed_attempts": [],
+      "events_sha256": "552a2752cf5845f7d93132ffe952b51dae9089c777569ec7c9ed9c58bf6256f1"
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "commands": [
+        "SET",
+        "FLUSHALL",
+        "FLUSHDB"
+      ],
+      "windows": [
+        {
+          "event": "failure_window_armed",
+          "command": "SET",
+          "attempt": 1,
+          "threads": [
+            "/proc/3060121/task/3060130"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3060130,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3060124,
+              "producer": 7,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3060130,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3060130
+          ],
+          "loggers": {
+            "3060130": {
+              "tid": 3060130,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3060124": {
+              "tid": 3060124,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 5,
+          "deferred": {
+            "tid": 3060130,
+            "producer": 5,
+            "stage": 0
+          }
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHALL",
+          "attempt": 1,
+          "threads": [
+            "/proc/3060134/task/3060143"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3060143,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3060137,
+              "producer": 7,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3060143,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3060143
+          ],
+          "loggers": {
+            "3060136": {
+              "tid": 3060136,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3060137": {
+              "tid": 3060137,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3060143": {
+              "tid": 3060143,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 5,
+          "deferred": {
+            "tid": 3060143,
+            "producer": 5,
+            "stage": 0
+          }
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHDB",
+          "attempt": 1,
+          "threads": [
+            "/proc/3060147/task/3060156"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3060156,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3060150,
+              "producer": 7,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3060156,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3060156
+          ],
+          "loggers": {
+            "3060150": {
+              "tid": 3060150,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3060156": {
+              "tid": 3060156,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3060149": {
+              "tid": 3060149,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 5,
+          "deferred": {
+            "tid": 3060156,
+            "producer": 5,
+            "stage": 0
+          }
+        }
+      ],
+      "limits": [
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHALL",
+          "attempt": 1,
+          "bytes": 168
+        },
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHDB",
+          "attempt": 1,
+          "bytes": 168
+        }
+      ],
+      "unarmed_attempts": [],
+      "events_sha256": "09b3b47f80d0582141b9438d5bc9d94cff92cf9d590b5af92c46011ad11af578"
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "commands": [
+        "SET",
+        "FLUSHALL",
+        "FLUSHDB"
+      ],
+      "windows": [
+        {
+          "event": "failure_window_armed",
+          "command": "SET",
+          "attempt": 1,
+          "threads": [
+            "/proc/3064680/task/3064689"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3064689,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3064682,
+              "producer": 6,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3064689,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3064689
+          ],
+          "loggers": {
+            "3064682": {
+              "tid": 3064682,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3064683": {
+              "tid": 3064683,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3064689": {
+              "tid": 3064689,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 5,
+          "deferred": null
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHALL",
+          "attempt": 1,
+          "threads": [
+            "/proc/3064695/task/3064704"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3064704,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3064697,
+              "producer": 6,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3064704,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3064704
+          ],
+          "loggers": {
+            "3064698": {
+              "tid": 3064698,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3064704": {
+              "tid": 3064704,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3064697": {
+              "tid": 3064697,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 5,
+          "deferred": {
+            "tid": 3064704,
+            "producer": 5,
+            "stage": 0
+          }
+        },
+        {
+          "event": "failure_window_armed",
+          "command": "FLUSHDB",
+          "attempt": 1,
+          "threads": [
+            "/proc/3064711/task/3064720"
+          ],
+          "markers": {
+            "fail": {
+              "tid": 3064720,
+              "producer": 4294967295,
+              "stage": 1
+            },
+            "gate": {
+              "tid": 3064714,
+              "producer": 7,
+              "stage": 0
+            },
+            "diagnostic": {
+              "tid": 3064720,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "logging_waiters": [
+            3064720
+          ],
+          "loggers": {
+            "3064714": {
+              "tid": 3064714,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3064720": {
+              "tid": 3064720,
+              "producer": 4294967295,
+              "stage": 2
+            },
+            "3064713": {
+              "tid": 3064713,
+              "producer": 4294967295,
+              "stage": 2
+            }
+          },
+          "writer": 5,
+          "deferred": {
+            "tid": 3064720,
+            "producer": 5,
+            "stage": 0
+          }
+        }
+      ],
+      "limits": [
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHALL",
+          "attempt": 1,
+          "bytes": 168
+        },
+        {
+          "event": "wave13_flush_aof_limit",
+          "command": "FLUSHDB",
+          "attempt": 1,
+          "bytes": 168
+        }
+      ],
+      "unarmed_attempts": [],
+      "events_sha256": "a692884da30757fa35976f8a740b9012ee58af1532529ab5b0cae27a1a1eaa59"
+    }
+  ],
+  "headline_admission_controls": [
+    {
+      "case": "T6",
+      "passing_legs": [
+        "1s-epoll-0-EVAL",
+        "1s-epoll-0-EVALSHA",
+        "1s-epoll-0-FCALL",
+        "1s-epoll-1-EVAL",
+        "1s-epoll-1-EVALSHA",
+        "1s-epoll-1-FCALL",
+        "1s-uring-0-EVAL",
+        "1s-uring-0-EVALSHA",
+        "1s-uring-0-FCALL",
+        "1s-uring-1-EVAL",
+        "1s-uring-1-EVALSHA",
+        "1s-uring-1-FCALL",
+        "2s-epoll-0-EVAL",
+        "2s-epoll-0-EVALSHA",
+        "2s-epoll-0-FCALL",
+        "2s-epoll-1-EVAL",
+        "2s-epoll-1-EVALSHA",
+        "2s-epoll-1-FCALL",
+        "2s-uring-0-EVAL",
+        "2s-uring-0-EVALSHA",
+        "2s-uring-0-FCALL",
+        "2s-uring-1-EVAL",
+        "2s-uring-1-EVALSHA",
+        "2s-uring-1-FCALL",
+        "redis-redis-0-EVAL",
+        "redis-redis-0-EVALSHA",
+        "redis-redis-0-FCALL"
+      ],
+      "results_sha256": "a0c446dd5cac70bda44c2171942b91f7a3b620e1fd4abe75fb56efd4832662e6",
+      "mix": "scripts, EXEC, WATCH/EXEC, plain writers"
+    },
+    {
+      "case": "T10",
+      "passing_legs": [
+        "2s-epoll-0-EVAL",
+        "2s-epoll-0-EVALSHA",
+        "2s-epoll-0-FCALL",
+        "2s-epoll-1-EVAL",
+        "2s-epoll-1-EVALSHA",
+        "2s-epoll-1-FCALL",
+        "2s-uring-0-EVAL",
+        "2s-uring-0-EVALSHA",
+        "2s-uring-0-FCALL",
+        "2s-uring-1-EVAL",
+        "2s-uring-1-EVALSHA",
+        "2s-uring-1-FCALL",
+        "redis-redis-0-EVAL",
+        "redis-redis-0-EVALSHA",
+        "redis-redis-0-FCALL"
+      ],
+      "results_sha256": "5c8a75628177a0301d5405f59c1c5f918018174651b69d6441043f8a4dcd65fb",
+      "mix": "original T10 scripts/plain writers with FLIP; session storm is covered separately"
+    }
+  ],
+  "scheduled_aof_twin": {
+    "path": "build/persistfmt/scheduled/tomokv",
+    "sha256": "2f476989bc52b7e824e798634f60b0d71b75fe67bed054143d86924de6a6115d",
+    "production_aof_source_sha256": "e5c1f95f85e70f781d3f4f1dc452cc0907c7042eada9c7bd9e374322af87d004",
+    "schedule_generator_sha256": "5e3fb1d7b9212fa07ca3dbbea2ba903eb1486159ea7072e3a7d2383af2d05704",
+    "note": "Gate-owned scheduling twin: merged production objects, with AOF-only timing latches and trace markers compiled from the merged AOF source."
+  },
+  "note": "Gap values verify the original one-second correctness bound. No rate, throughput, cycles or IPC claim.",
+  "passed": true
+}
