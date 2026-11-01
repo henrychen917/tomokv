@@ -112,3 +112,10 @@ The unit retains exact subexpiry/state assertions and reports any census walk
 as known difference SO4.5. A correct constant-work implementation can now pass.
 No timing or merit claim is made; TTL cost measurement stays with the maintainer.
 DQ=DF=0.
+
+### Compat 4.2 — BITFIELD above the string representation limit
+
+Both servers now expect `[0]` for reads of a missing value at the large offset.
+The 32-bit representation error is recorded as CD4.10 / NETFIX-POST-2 with Redis
+and target replies in the receipt. No multi-gigabyte allocation is required.
+DQ=DF=0.
