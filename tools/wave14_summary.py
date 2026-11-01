@@ -1,13 +1,37 @@
 #!/usr/bin/env python3
 """Summarize finite instruction scopes and bind entered bodies to each arm."""
 import argparse
+import bisect
 from concurrent.futures import ProcessPoolExecutor
 import gzip
 import json
 from pathlib import Path
+import re
+import subprocess
 import wave14
 
 KINDS = ('ordinary', 'scripts', 'session', 'other', 'parser')
+
+
+def rlfence(path):
+    """Preserve assembly bytes and resolve its four relocated return jumps."""
+    from lbstall_artifacts import Elf
+    elf=Elf(path);section=elf.names.index('.rlfence');base=elf.sections[section][3]
+    raw=bytearray(elf.section_data(section));targets=[]
+    disassembly=subprocess.check_output(['objdump','-dw','-j','.rlfence',str(path)],text=True)
+    for line in disassembly.splitlines():
+        m=re.match(r'\s*([0-9a-f]+):\s+((?:[0-9a-f]{2} )+)\s+jmp\s+([0-9a-f]+)\s+<',line)
+        if not m:continue
+        encoded=bytes.fromhex(m[2]);assert len(encoded)==5 and encoded[0]==0xe9
+        at,destination=int(m[1],16),int(m[3],16)
+        candidates=[s for s in elf.symbols if s['info']&15==2 and s['size'] and
+                    s['value']<=destination<s['value']+s['size']]
+        assert candidates, 'unresolved assembly return target'
+        target=min(candidates,key=lambda s:(s['size'],s['name']))
+        targets.append((at-base,target['name'],destination-target['value']))
+        raw[at-base+1:at-base+5]=bytes(4)
+    assert len(targets)==4
+    return raw.hex(),targets
 
 
 def key(row):
@@ -57,18 +81,34 @@ def binding(job):
     assert wave14.sha(server) == build['server_sha256']
     production, fixture = audit.inventory(server), audit.inventory(probe)
     names = set()
+    sites = {}
     for row in json.loads((folder/'counts.json').read_text())['rows']:
         if row['namespace'] == ns:
             names.update(audit.audit.canonical(n) for n in row['functions'])
+            path=folder/('-'.join(map(str, key(row)))+'.json.sites.gz')
+            with gzip.open(path, 'rt') as stream:
+                for pc, count in json.load(stream)['sites'].items():
+                    address=int(pc,16)
+                    sites[address]=sites.get(address,0)+count
+    addresses=sorted(sites)
     rows = []
     for name in sorted(names):
         before = production['groups'].get(name, [])
         after = fixture['groups'].get(name, [])
-        # Group multiplicity can increase when a fixture emits its own template
-        # instance. Preserve every digest; do not normalize away a new body.
-        matches = bool(after) and {r['digest'] for r in after} <= {r['digest'] for r in before}
+        # Bind actual executed PCs, not another clone with the same local name.
+        # A fixture can emit an unused extra clone into an otherwise equal group.
+        entered=[]
+        for body in after:
+            start=int(body['address'],16)
+            lo=bisect.bisect_left(addresses,start)
+            hi=bisect.bisect_left(addresses,start+body['size'])
+            if hi>lo:
+                entered.append(dict(body, instructions=sum(sites[pc] for pc in addresses[lo:hi])))
+        matches=bool(entered) and {r['digest'] for r in entered} <= {r['digest'] for r in before}
+        if name.endswith('::[asm .rlfence]'):
+            matches=rlfence(server)==rlfence(probe)
         rows.append(dict(name=name, equal=matches,
-            server_digests=[r['digest'] for r in before], probe_digests=[r['digest'] for r in after]))
+            server_digests=[r['digest'] for r in before], entered_bodies=entered))
     result = dict(arm=arm, kind=kind, namespace=ns, server_sha256=production['sha256'],
         probe_sha256=fixture['sha256'], entered_groups=len(rows),
         matched=sum(r['equal'] for r in rows), unmatched=[r for r in rows if not r['equal']])
