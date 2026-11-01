@@ -1,0 +1,37 @@
+final-normal-INCR-2s-1-1--1 2149
+final-normal-INCR-1s-1-1--1 1529
+final-normal-MGET-2s-1-1--1 10197
+final-normal-MGET-1s-1-1--1 10197
+final-normal-MSET-1s-1-0--1 10659
+final-normal-MSET-2s-1-0--1 10477
+final-normal-MSET-1s-1-1--1 16968
+final-normal-MSET-2s-1-1--1 16636
+final-normal-LPUSH-1s-1-1--1 3071
+final-normal-LPUSH-2s-1-1--1 3691
+final-normal-RPUSH-1s-1-1--1 2909
+final-normal-RPUSH-2s-1-1--1 3529
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-blockfix4/tools/blockfix4_scope.py", line 196, in <module>
+    if __name__ == "__main__":main()
+                              ^^^^^^
+  File "/home/user/Projects/cx-blockfix4/tools/blockfix4_scope.py", line 183, in main
+    rows = list(pool.map(trace, cases))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-blockfix4/tools/blockfix4_scope.py", line 156, in trace
+    assert result.returncode == 0 and output.exists(), label
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: final-normal-EVAL-local-1s-1-1--1

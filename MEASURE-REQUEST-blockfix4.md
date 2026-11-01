@@ -59,6 +59,12 @@ at least one MVCC window in each leg.
 move to finish immediately after releasing that hold, without a rescue push;
 BLPOP/BRPOP must finish while the hold remains set. This distinction applies
 equally to PRE and POST. The additional natural-MVCC runs use no DEBUG hold.
+The initial POST script row incorrectly required atomic BLMOVE to complete
+while that global commit hold was still armed; its twelve held BLMOVE cases
+completed after release. The corrected assertion requires that completion
+without any rescue push, and the complete expanded PRE job still fails.
+The original red row and both interrupted build/proof attempts are retained
+under `docs/blockfix4/legacy-receipts/`; none is counted as passing evidence.
 
 ### Validation
 
