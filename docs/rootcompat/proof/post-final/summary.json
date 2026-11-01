@@ -1,7 +1,21 @@
 {
   "gate": "build/gate-run.QQjXt6",
-  "complete": false,
+  "complete": true,
   "rows": [
+    {
+      "job": "rootcompat-hscan",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 24,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-hscan",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 2,
+      "failed": 0
+    },
     {
       "job": "rootcompat-password",
       "who": "candidate",
@@ -59,6 +73,20 @@
       "failed": 0
     },
     {
+      "job": "rootcompat-setpast",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 768,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-setpast",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 6,
+      "failed": 0
+    },
+    {
       "job": "rootcompat-sort-acl",
       "who": "candidate",
       "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
@@ -70,6 +98,20 @@
       "who": "oracle",
       "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
       "checks": 12,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-tracking",
+      "who": "candidate",
+      "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+      "checks": 96,
+      "failed": 0
+    },
+    {
+      "job": "rootcompat-tracking",
+      "who": "oracle",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "checks": 4,
       "failed": 0
     },
     {

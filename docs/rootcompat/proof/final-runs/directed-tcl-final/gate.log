@@ -1,0 +1,29 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-rootcompat/build/gate-run.QQjXt6
+PARTIAL jobs (including prerequisites): release redis_tcl rootcompat-proc rootcompat-password rootcompat-replication rootcompat-sort-acl rootcompat-redact rootcompat-xsnotify rootcompat-tracking rootcompat-hscan rootcompat-setpast
+PARTIAL jobs (including prerequisites): release redis_tcl rootcompat-proc rootcompat-password rootcompat-replication rootcompat-sort-acl rootcompat-redact rootcompat-xsnotify rootcompat-tracking rootcompat-hscan rootcompat-setpast
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=224.88s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (2s)
+  Redis 7.4.10 Tcl passing subset (2s)                 ok
+  row budget: 900s; median=151.345s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (1s)
+  Redis 7.4.10 Tcl passing subset (1s)                 ok
+  row budget: 900s; median=1.2s; correctness-plan-fallback; rootcompat proc vs Redis 7.4
+  rootcompat proc vs Redis 7.4                         ok
+  row budget: 900s; median=1.16s; correctness-plan-fallback; rootcompat password vs Redis 7.4
+  rootcompat password vs Redis 7.4                     ok
+  row budget: 900s; median=1.34s; correctness-plan-fallback; rootcompat replication vs Redis 7.4
+  rootcompat replication vs Redis 7.4                  ok
+  row budget: 900s; median=1.17s; correctness-plan-fallback; rootcompat sort-acl vs Redis 7.4
+  rootcompat sort-acl vs Redis 7.4                     ok
+  row budget: 900s; median=1.49s; correctness-plan-fallback; rootcompat redact vs Redis 7.4
+  rootcompat redact vs Redis 7.4                       ok
+  row budget: 900s; median=297.48s; correctness-plan-fallback; rootcompat xsnotify vs Redis 7.4
+  rootcompat xsnotify vs Redis 7.4                     ok
+  row budget: 900s; median=482.07s; correctness-plan-fallback; rootcompat tracking vs Redis 7.4
+  rootcompat tracking vs Redis 7.4                     ok
+  row budget: 900s; median=1.99s; correctness-plan-fallback; rootcompat hscan vs Redis 7.4
+  rootcompat hscan vs Redis 7.4                        ok
+  row budget: 900s; median=25.09s; correctness-plan-fallback; rootcompat setpast vs Redis 7.4
+  rootcompat setpast vs Redis 7.4                      ok
+GATE(PARTIAL): 12 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-rootcompat/build/gate-run.QQjXt6/ledger.partial
