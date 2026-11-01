@@ -5658,7 +5658,7 @@
   },
   "removed": {},
   "fixture_path": "tests/fixtures/nullrefresh-ledger-labels.json",
-  "fixture_sha256": "19a52c1e7384f6dea03da7b9935bbe7212f8efeacd90fdb77f372195d52b4d4b",
+  "fixture_sha256": "ce70785a168e33e6e1946b680632e76d85003fa443fd1b39297ca2e23b918bc9",
   "archived_fixture_labels_match": true,
   "landing_fixture_matches": true,
   "expected_assignments": [
