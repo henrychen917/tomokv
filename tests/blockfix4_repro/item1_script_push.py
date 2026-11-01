@@ -79,6 +79,7 @@ for i in range(a.attempts):
         c.cmd('SET', qk, 'old')
     elif a.server == 'tomokv':
         rec['placement'] = srv.shards_of(c, k)
+    rec['key'] = k
     if kind == 'BLPOP':
         w.send('BLPOP', k, 0)
     elif kind == 'BRPOP':

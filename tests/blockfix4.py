@@ -66,6 +66,10 @@ def main():
             if s['variant'] == 'hold' and r.get('kind') == 'BLMOVE':
                 ready |= r.get('served_after_hold_release', False)
             served += bool(ready)
+            if ready:
+                expected = 'x' if r['kind'] == 'BLMOVE' else f"[{r['key']}, x]"
+                if r.get('waiter_reply') != expected:
+                    errors.append(f"{r['kind']}: wrong pushed value: {r.get('waiter_reply')!r}")
         if s['hits'] != 3 or served != 3:
             errors.append(f"wake: hits={s['hits']}/3 served={served}/3")
         if s['mid_llen'] != {'1': 3}:
@@ -87,15 +91,29 @@ def main():
         return errors
 
     def creators_check(s, records, server):
-        return [f"{name}: {r}" for name, r in s['results'].items()
-                if r['hits'] != 2 or r['served'] != 2 or r['defects']]
+        errors = []
+        if set(s['results']) != set(CREATORS.split(',')):
+            errors.append('creator inventory incomplete')
+        return errors + [f"{name}: {r}" for name, r in s['results'].items()
+                         if r['hits'] != 2 or r['served'] != 2 or r['defects']]
 
     def removed_check(s, records, server):
         errors = []
+        if set(s['results']) != set(REMOVALS.split(',')):
+            errors.append('removal inventory incomplete')
         for name, r in s['results'].items():
             expected = 'error: WRONGTYPE' if name == 'SET+RENAME' else 'error: NOGROUP'
             if r['hits'] != 10 or r['outcomes'] != {expected: 10}:
                 errors.append(f"{name}: hits={r['hits']} outcomes={r['outcomes']}")
+        for r in records:
+            if 'i' not in r or not r.get('hit'):
+                continue
+            expected = ('(error) WRONGTYPE Operation against a key holding the wrong kind of value'
+                        if r['case'] == 'SET+RENAME' else
+                        f"(error) NOGROUP No such key '{r['key']}' or consumer group 'g' in XREADGROUP with GROUP option")
+            if r.get('waiter_reply') != expected:
+                errors.append(f"{r['case']}: exact error mismatch: {r.get('waiter_reply')!r}")
+                break
         return errors
 
     def mpop_check(s, records, server):

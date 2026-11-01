@@ -93,7 +93,7 @@ for name in a.cases.split(','):
         if name.startswith('EXPIRE(EXISTS)'):
             ok = ok and replies[0] == 0          # the EXISTS observed the expiry
         hit = ok
-        rec = dict(case=name, i=i, batch=[' '.join(map(str, b[:1])) for b in batch],
+        rec = dict(case=name, i=i, key=sk, batch=[' '.join(map(str, b[:1])) for b in batch],
                    replies=[show(x) for x in replies], hit=hit)
         if a.server == 'tomokv':
             rec['placement'] = srv.shards_of(c, sk, sk + ':src')
