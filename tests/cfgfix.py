@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """CONFIG oracle receipts; called by gate.sh's cfgfix job, with all engine/mode legs."""
-from contextlib import closing
+from contextlib import closing, contextmanager
 import ctypes
 import json
 import os
@@ -13,6 +13,68 @@ import subprocess
 import time
 
 import _netfix as n
+
+
+@contextmanager
+def environment(**values):
+    previous = {key: os.environ.get(key) for key in values}
+    os.environ.update(values)
+    try:
+        yield
+    finally:
+        for key, value in previous.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+
+def syslog_trial(a, mode, engine, oracle):
+    # Intercept the libc boundary in these owned processes. This checks ident,
+    # facility, severity and live filtering without changing the host /dev/log
+    # socket or sending test messages to its logging service.
+    hook = (a.output / 'syslog-hook.so').resolve()
+    if not hook.exists():
+        source = a.output / 'syslog-hook.c'
+        source.write_text(r'''
+#include <fcntl.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+static void record(const char *kind, const char *value, int number) {
+    const char *path = getenv("CFGFIX_SYSLOG_RECEIPT");
+    if (!path) _exit(97);
+    int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0600);
+    if (fd < 0) _exit(98);
+    dprintf(fd, "%s\t%s\t%d\n", kind, value, number);
+    close(fd);
+}
+void openlog(const char *ident, int options, int facility) {
+    (void)options; record("openlog", ident, facility);
+}
+void syslog(int priority, const char *format, ...) {
+    (void)format; record("syslog", "", priority);
+}
+void closelog(void) { record("closelog", "", 0); }
+''')
+        subprocess.run(['gcc', '-shared', '-fPIC', '-O2', str(source), '-o', str(hook)], check=True)
+    label = f'syslog-{mode}-{engine}'
+    receipt = (a.output / (label + '.tsv')).resolve()
+    with environment(LD_PRELOAD=str(hook), CFGFIX_SYSLOG_RECEIPT=str(receipt)):
+        with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+                      extra=('--syslog-enabled', 'yes', '--syslog-ident', 'cfgfix',
+                             '--syslog-facility', 'local7')):
+            assert 'openlog\tcfgfix\t184\n' in receipt.read_text()  # LOG_LOCAL7
+            with closing(n.connect(a.port)) as c, closing(socket.socket()) as occupied:
+                occupied.bind(('127.0.0.1', a.port + 2)); occupied.listen()
+                before = receipt.stat().st_size
+                assert isinstance(c.cmd('CONFIG', 'SET', 'port', a.port + 2), n._lib.RespError)
+                assert 'syslog\t\t4\n' in receipt.read_text()[before:]  # LOG_WARNING
+                c.must('CONFIG', 'SET', 'loglevel', 'nothing')
+                before = receipt.stat().st_size
+                assert isinstance(c.cmd('CONFIG', 'SET', 'port', a.port + 2), n._lib.RespError)
+                assert receipt.stat().st_size == before, 'filtered warning reached syslog'
 
 
 def plain(value):
@@ -90,6 +152,7 @@ def process_trial(a, mode, engine, oracle):
         _, status = os.waitpid(pid, 0)
         assert os.waitstatus_to_exitcode(status) == 0, status
     assert not pidfile.exists(), 'daemon pidfile was not removed'
+    syslog_trial(a, mode, engine, oracle)
 
 
 def test(a, port, certs, proc, oracle):
