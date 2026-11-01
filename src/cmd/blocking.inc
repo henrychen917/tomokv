@@ -1348,8 +1348,13 @@ BlockingSnapshotPrepare blocking_snapshot_prepare(const Task& task, Shard& shard
 }
 
 void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t key_len, uint8_t ns) {
-    if (blocking_tls_defer_plain || !shard.has_blocking_waiters() ||
-        !blocking_tls_self || !blocking_tls_ring) return;
+    if (!shard.has_blocking_waiters() || !blocking_tls_self || !blocking_tls_ring) return;
+    if (blocking_tls_defer_plain) {
+        // A script/EXEC or an unpublished plain version must retain readiness
+        // without letting another command consume its intermediate state.
+        shard.set_blocking_dirty();
+        return;
+    }
     BlockingRegistry* registry = blocking_registry_get(shard, false);
     if (!registry) return;
     const int64_t now = shard.now_ms();
@@ -1385,10 +1390,25 @@ void blocking_publish_deleted(Shard& shard, Op& op) {
     }
 }
 
-void blocking_defer_plain_publication(bool defer) { blocking_tls_defer_plain = defer; }
+bool blocking_defer_plain_publication(bool defer) {
+    const bool previous = blocking_tls_defer_plain;
+    blocking_tls_defer_plain = defer;
+    return previous;
+}
+
+void blocking_script_publication_finished(bool previous) {
+    blocking_tls_defer_plain = previous;
+    if (previous || !blocking_tls_self) return;
+    for (Shard* shard : blocking_tls_self->shards()) blocking_cleanup_published(*shard);
+}
 
 void blocking_plain_mutation_published(Shard& shard, Op& op) {
     if (!shard.has_blocking_waiters()) return;
+    if (op.spec->flags & CmdFlags::ScriptRoute) {
+        // The outer plain view, if present, must close before these reads.
+        blocking_script_publication_finished(blocking_tls_defer_plain);
+        return;
+    }
     const char* name = op.spec->name;
     if (!std::strcmp(name, "LPUSH") || !std::strcmp(name, "RPUSH") ||
         !std::strcmp(name, "LPUSHX") || !std::strcmp(name, "RPUSHX") ||

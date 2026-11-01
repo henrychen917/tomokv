@@ -9,6 +9,7 @@
 #include "auth.h"
 #include "notify.h"
 #include "scripting.h"
+#include "blocking.h"
 #include "../base/numeric.h"
 
 #include <algorithm>
@@ -1597,6 +1598,10 @@ FunctionMemoryScope::~FunctionMemoryScope() {
 }
 
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
+    struct PublicationScope {
+        bool previous = blocking_defer_plain_publication(true);
+        ~PublicationScope() { blocking_script_publication_finished(previous); }
+    } publication_scope;
     if (__builtin_expect(shard.server() && shard.server()->latency_tracking(), false))
         latency_tracking_script_begin(op);
     LuaEngine& engine = call.style == ScriptArgStyle::Params ? t_function_engine : t_lua_engine;
