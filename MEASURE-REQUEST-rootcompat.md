@@ -36,7 +36,7 @@ PAD semantics: **A, behaviour twin**. `tools/rootcompat_pad.py` builds a common 
 
 Maintainer measurement request: the 14 generic cells, plus 2s GET/SET at p1 and p32, on PRE/POST and the POST-layout/PAD-A control pair. Use the gate's normal ABBA instrument and matched offered load. Report rate, cycles/op, instructions/op and IPC per cell. A candidate is acceptable only with zero headline regression and a flat layout control; no rate has been measured by this lane.
 
-Finite zero-cost proof: GET/SET/INCR/MGET/MSET, batch 1/32, 1s/2s, normal/db0 namespaces and atomic 0/1 (80 cells per arm), via `tools/rootcompat_counts.py`. Final production rerun: **80/80 exact PRE counts, zero added instructions**. The script observer scope is outlined; compile-only budget trials preserve ordinary scatter inlining (`docs/rootcompat/budgets-outlined/selected.json`). Complete final production receipts are in `docs/rootcompat/counts/`. The rejected generic error-counter prototype failed this condition; its complete counts and nested-error failures are retained.
+Finite zero-cost proof: GET/SET/INCR/MGET/MSET on the notification-disabled path, batch 1/32, 1s/2s, normal/db0 namespaces and atomic 0/1 (80 cells per arm), via `tools/rootcompat_counts.py`. Final production rerun: **80/80 exact PRE counts, zero added instructions**. The script observer scope is outlined; compile-only budget trials preserve ordinary scatter inlining (`docs/rootcompat/budgets-outlined/selected.json`). Complete final production receipts are in `docs/rootcompat/counts/`. The rejected generic error-counter prototype failed this condition; its complete counts and nested-error failures are retained.
 
 | Command | Cells (namespace × mode × batch × atomic) | PRE→POST instruction delta, every cell |
 |---|---:|---:|
@@ -48,4 +48,18 @@ Finite zero-cost proof: GET/SET/INCR/MGET/MSET, batch 1/32, 1s/2s, normal/db0 na
 
 Gate count accounting by physical collection location: **DQ=+9, DF=+9**. Nine `rootcompat-*` directed rows are collected before the quick-tier exit. `rootcompat-errorstats`, `rootcompat-stringlimit`, and `rootcompat-hx3` are diagnostic-only partial jobs and add zero complete-gate rows. From the checked-in 999/1016 constants, the maintainer's new counts should be **1008/1025**. EXPECT_QUICK and EXPECT_FULL were not edited.
 
-Proof ledger and final validation results: pending. Initial Tcl 2s exposes existing unsupported setup commands and a pubsub failure; scheduler self-tests exceeded their fixed deadlines while builds were active. These are failures, not green results, and require isolated reruns/baseline checks. Any final unexecuted proof will be marked NOT RUN with its reason.
+Validation in progress:
+
+| Proof | Final result / evidence |
+|---|---|
+| Nine directed jobs | PASS, 10/10 ledger rows including release; `proof/post-release/` |
+| Production units | All 51 primary targets and the four auxiliary readiness groups built; all required `make -q` checks return 0; `proof/build.json` |
+| Notification units | PASS, 17/17 rows; `proof/units-final/`. Earlier private-shard fixture failure and repair are recorded separately |
+| Tcl passing-subset job | PASS in 2s and 1s, 39 file jobs each, zero manifest validation errors; `proof/tcl-final/`. This preserves the manifest's existing known setup errors and skips |
+| Broader touched jobs | Running, both modes/engines |
+| Standard differential seeds | Running, both engines |
+| `tests/gates_test.py` | Final isolated rerun pending; the first run exceeded fixed scheduler-fixture deadlines during builds |
+
+Tcl accounting: the XGROUP DESTROY/NOGROUP counter assertion is re-skipped after guard removal. The two Lua error_reply statistics assertions remain skipped. No other entire upstream test was made passing by these fixes: the combined SLOWLOG privacy test also requires unsupported replication/TLS configs, and the adjacent redaction test requires MIGRATE. Their fixed ACL assertions are covered by the new oracle-directed SLOWLOG/MONITOR job. The first Tcl attempt used the rejected counter prototype; a focused PRE control reproduced its intermittent 2s pubsub unsubscribe failure. Final POST passes the full checked-in manifest in both modes.
+
+Performance cells and the full iteration: **NOT RUN**, reserved for the maintainer. No throughput claim.
