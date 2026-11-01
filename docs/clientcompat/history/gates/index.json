@@ -4523,5 +4523,51 @@
       "jobs/clientcompat-multi-controls/clientcompat-multi-controls/oracle/redis-oracle-db16-a1-r0/data"
     ],
     "reason": "Superseded disconnect-correction evidence; verified archive before deletion"
+  },
+  {
+    "run": "build/gate-run.QCr4J3",
+    "archive": "docs/clientcompat/history/gates/gate-run.QCr4J3.tar.gz",
+    "sha256": "9fbcfe4255ce948b42f6be9f2524e344599a31e96663425ca88e1776b47a5432",
+    "files": 122,
+    "job_counts": {
+      "jobs/clientcompat-multi-controls": "0\t1\t0",
+      "jobs/release": "0\t1\t0"
+    },
+    "excluded_reproducible_dirs": [
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db1-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db1-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db1-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db1-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db16-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db16-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db16-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-epoll-db16-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db1-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db1-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db1-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db1-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db16-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db16-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db16-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/1s-uring-db16-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db1-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db1-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db1-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db1-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db16-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db16-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db16-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-epoll-db16-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db1-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db1-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db1-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db1-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db16-a0-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db16-a0-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db16-a1-r0/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/candidate/2s-uring-db16-a1-r1/data",
+      "jobs/clientcompat-multi-controls/clientcompat-multi-controls/oracle/redis-oracle-db16-a1-r0/data"
+    ],
+    "reason": "Standalone final-source disconnect proof superseded by the complete final POST witness product; archive verified before deletion"
   }
 ]
