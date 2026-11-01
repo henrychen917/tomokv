@@ -326,3 +326,14 @@ crossing observable was added and no new AOF crossing run was performed here.
 NOT RUN: a candidate-binary crossing negative control.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V15 — migration overlap remains unwitnessed
+
+UNREPAIRED: the directed atomic and EXEC interaction rows still disable LB
+and automatic FLIP. Merely enabling those knobs would not establish an
+ownership change during the asserted interval. No migration-while-armed hit
+counter or ASAN/FLIP schedule was added. NOT RUN: new migrated atomic windows
+and ASAN under FLIP. Single-owner and same-critical-section ownership laws
+are unchanged; this lane makes no claim that their missing coverage is closed.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
