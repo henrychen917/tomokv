@@ -1,0 +1,6 @@
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication unit + negative controls
+  exbatch publication unit + negative controls         ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch watch unit + negative controls
+  exbatch watch unit + negative controls               ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch metadata unit + negative controls
+  exbatch metadata unit + negative controls            ok

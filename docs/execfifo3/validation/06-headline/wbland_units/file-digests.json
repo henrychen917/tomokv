@@ -1,0 +1,37 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 57,
+    "sha256": "80ba7b8dafd7bff96b045399fe975bd474a80ee34d08979ad2d60035eed41bbf"
+  },
+  {
+    "path": "ledger",
+    "bytes": 132,
+    "sha256": "0fa5ed0d6a97dc0250fc4f608f47170be44e9fd0810f5e1152c3ed179fd3babd"
+  },
+  {
+    "path": "output.log",
+    "bytes": 354,
+    "sha256": "ec874fccadec174ca1da068e4f1d9503dbbb07b835ccb9670409a3dd499ad901"
+  },
+  {
+    "path": "timings",
+    "bytes": 132,
+    "sha256": "0fa5ed0d6a97dc0250fc4f608f47170be44e9fd0810f5e1152c3ed179fd3babd"
+  },
+  {
+    "path": "wbland-clauses.log",
+    "bytes": 4040,
+    "sha256": "57d32be2d743fda568a3982a4bc2bcfcbe15ddd62205b7d762fa7b921bf4cfb0"
+  },
+  {
+    "path": "wbland-paths.log",
+    "bytes": 885,
+    "sha256": "fe875692f86aecbe8113a9e41711024749c05dd32736f07e97205f8e5481c5cf"
+  }
+]

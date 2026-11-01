@@ -1,0 +1,618 @@
+[
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-0-db1",
+    "databases": 1,
+    "engine": "uring",
+    "atomic": 0,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              3,
+              7
+            ],
+            [
+              2,
+              6
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 23897,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 12294,
+              "FLUSHALL": 19468,
+              "FLUSHALL-ASYNC": 21227,
+              "FLUSHDB": 14537,
+              "DBSIZE-NOW": 25594,
+              "SCAN": 324,
+              "RANDOMKEY": 23996,
+              "EVAL": 23919,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 2
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 14082,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 8001,
+              "FLUSHALL": 7038,
+              "FLUSHALL-ASYNC": 7036,
+              "FLUSHDB": 7038,
+              "DBSIZE-NOW": 14075,
+              "SCAN": 147,
+              "RANDOMKEY": 14074,
+              "EVAL": 14079,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 42238
+            }
+          ],
+          "flip_stale_stage_refusals": 42240
+        },
+        "error": null,
+        "seconds": 10.109,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-1-db1",
+    "databases": 1,
+    "engine": "uring",
+    "atomic": 1,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              15,
+              7
+            ],
+            [
+              12,
+              6
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 24879,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 11847,
+              "FLUSHALL": 15827,
+              "FLUSHALL-ASYNC": 12763,
+              "FLUSHDB": 15153,
+              "DBSIZE-NOW": 25024,
+              "SCAN": 261,
+              "RANDOMKEY": 24878,
+              "EVAL": 24872,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 5
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 14509,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 7698,
+              "FLUSHALL": 7248,
+              "FLUSHALL-ASYNC": 7251,
+              "FLUSHDB": 7252,
+              "DBSIZE-NOW": 14499,
+              "SCAN": 152,
+              "RANDOMKEY": 14494,
+              "EVAL": 14505,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 43518
+            }
+          ],
+          "flip_stale_stage_refusals": 43523
+        },
+        "error": null,
+        "seconds": 10.109,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-0-db1",
+    "databases": 1,
+    "engine": "epoll",
+    "atomic": 0,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              2,
+              6
+            ],
+            [
+              15,
+              7
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 28557,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 13053,
+              "FLUSHALL": 18753,
+              "FLUSHALL-ASYNC": 18504,
+              "FLUSHDB": 14748,
+              "DBSIZE-NOW": 28941,
+              "SCAN": 299,
+              "RANDOMKEY": 28588,
+              "EVAL": 28560,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 0
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 16674,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 8163,
+              "FLUSHALL": 8340,
+              "FLUSHALL-ASYNC": 8338,
+              "FLUSHDB": 8338,
+              "DBSIZE-NOW": 16669,
+              "SCAN": 174,
+              "RANDOMKEY": 16671,
+              "EVAL": 16669,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 50012
+            }
+          ],
+          "flip_stale_stage_refusals": 50012
+        },
+        "error": null,
+        "seconds": 10.108,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-1-db1",
+    "databases": 1,
+    "engine": "epoll",
+    "atomic": 1,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              6,
+              6
+            ],
+            [
+              5,
+              7
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 28175,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 14673,
+              "FLUSHALL": 15035,
+              "FLUSHALL-ASYNC": 18625,
+              "FLUSHDB": 14904,
+              "DBSIZE-NOW": 28784,
+              "SCAN": 335,
+              "RANDOMKEY": 28219,
+              "EVAL": 28177,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 0
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 16539,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 8637,
+              "FLUSHALL": 8275,
+              "FLUSHALL-ASYNC": 8275,
+              "FLUSHDB": 8275,
+              "DBSIZE-NOW": 16543,
+              "SCAN": 173,
+              "RANDOMKEY": 16544,
+              "EVAL": 16537,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 49584
+            }
+          ],
+          "flip_stale_stage_refusals": 49584
+        },
+        "error": null,
+        "seconds": 10.108,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-0-db16",
+    "databases": 16,
+    "engine": "uring",
+    "atomic": 0,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              4,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 22108,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 12711,
+              "FLUSHALL": 13877,
+              "FLUSHALL-ASYNC": 11403,
+              "FLUSHDB": 11254,
+              "DBSIZE-NOW": 22157,
+              "SCAN": 313,
+              "RANDOMKEY": 22099,
+              "EVAL": 22107,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 0
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 12738,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 7047,
+              "FLUSHALL": 6365,
+              "FLUSHALL-ASYNC": 6365,
+              "FLUSHDB": 6365,
+              "DBSIZE-NOW": 12728,
+              "SCAN": 133,
+              "RANDOMKEY": 12733,
+              "EVAL": 12735,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 38209
+            }
+          ],
+          "flip_stale_stage_refusals": 38209
+        },
+        "error": null,
+        "seconds": 10.111,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-uring-1-db16",
+    "databases": 16,
+    "engine": "uring",
+    "atomic": 1,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              8,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 21055,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 11061,
+              "FLUSHALL": 11220,
+              "FLUSHALL-ASYNC": 12075,
+              "FLUSHDB": 10563,
+              "DBSIZE-NOW": 21052,
+              "SCAN": 260,
+              "RANDOMKEY": 21045,
+              "EVAL": 21050,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 2
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 12341,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 6459,
+              "FLUSHALL": 6169,
+              "FLUSHALL-ASYNC": 6167,
+              "FLUSHDB": 6168,
+              "DBSIZE-NOW": 12334,
+              "SCAN": 129,
+              "RANDOMKEY": 12329,
+              "EVAL": 12334,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 37014
+            }
+          ],
+          "flip_stale_stage_refusals": 37016
+        },
+        "error": null,
+        "seconds": 10.111,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-0-db16",
+    "databases": 16,
+    "engine": "epoll",
+    "atomic": 0,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              0,
+              6
+            ],
+            [
+              9,
+              7
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 25562,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 12321,
+              "FLUSHALL": 16116,
+              "FLUSHALL-ASYNC": 16417,
+              "FLUSHDB": 13172,
+              "DBSIZE-NOW": 25884,
+              "SCAN": 290,
+              "RANDOMKEY": 25575,
+              "EVAL": 25557,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 0
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 14256,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 7233,
+              "FLUSHALL": 7128,
+              "FLUSHALL-ASYNC": 7127,
+              "FLUSHDB": 7127,
+              "DBSIZE-NOW": 14253,
+              "SCAN": 149,
+              "RANDOMKEY": 14253,
+              "EVAL": 14253,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 42766
+            }
+          ],
+          "flip_stale_stage_refusals": 42766
+        },
+        "error": null,
+        "seconds": 10.111,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  },
+  {
+    "case": "row",
+    "op": "FLUSHALL+FLUSHALL-ASYNC+FLUSHDB+DBSIZE-NOW+SCAN+RANDOMKEY+EVAL",
+    "flush_mode": "SYNC",
+    "leg": "2s-epoll-1-db16",
+    "databases": 16,
+    "engine": "epoll",
+    "atomic": 1,
+    "attempts": 1,
+    "seconds_per_attempt": 10.0,
+    "tally": {
+      "pass": 1,
+      "abort": 0,
+      "fail": 0
+    },
+    "outcomes": [
+      {
+        "attempt": 0,
+        "value": {
+          "owners": [
+            [
+              12,
+              6
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "phases": [
+            {
+              "phase": "natural",
+              "seconds": 6.0,
+              "flips": 25561,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 13026,
+              "FLUSHALL": 14313,
+              "FLUSHALL-ASYNC": 14896,
+              "FLUSHDB": 12878,
+              "DBSIZE-NOW": 26097,
+              "SCAN": 350,
+              "RANDOMKEY": 25562,
+              "EVAL": 25559,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 0
+            },
+            {
+              "phase": "held",
+              "seconds": 4,
+              "flips": 15199,
+              "flip_refusals": 0,
+              "refused": 0,
+              "identity_checks": 6858,
+              "FLUSHALL": 7599,
+              "FLUSHALL-ASYNC": 7599,
+              "FLUSHDB": 7598,
+              "DBSIZE-NOW": 15191,
+              "SCAN": 159,
+              "RANDOMKEY": 15194,
+              "EVAL": 15194,
+              "refusal_kinds": {},
+              "flip_stale_stage_refusals": 45590
+            }
+          ],
+          "flip_stale_stage_refusals": 45590
+        },
+        "error": null,
+        "seconds": 10.111,
+        "exit": {
+          "rc": 0,
+          "forced": false
+        },
+        "outcome": "pass"
+      }
+    ]
+  }
+]

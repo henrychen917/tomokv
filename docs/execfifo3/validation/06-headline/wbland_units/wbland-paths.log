@@ -1,0 +1,17 @@
+PASS paths build/wb-rule-completion-unit lifetime-serve 
+PASS paths build/wb-rule-completion-unit knob-lifetime-serve 
+PASS paths build/wb-rule-phase-unit wbland-fused 
+PASS paths build/wb-rule-phase-unit wbland-fused r7
+PASS paths build/wb-rule-phase-unit wbland-split 
+PASS paths build/wb-rule-phase-unit wbland-local 
+PASS paths build/wb-rule-db0-completion-unit lifetime-serve 
+PASS paths build/wb-rule-db0-completion-unit knob-lifetime-serve 
+PASS paths build/wb-rule-db0-phase-unit wbland-fused 
+PASS paths build/wb-rule-db0-phase-unit wbland-fused r7
+PASS paths build/wb-rule-db0-phase-unit wbland-split 
+PASS paths build/wb-rule-db0-phase-unit wbland-local 
+PASS paths serve-reset/unit lifetime-serve 
+PASS paths serve-reset/db0-unit lifetime-serve 
+PASS paths split-policy/unit wbland-fused 
+PASS paths split-policy/unit wbland-split 
+PASS wbland paths: 16/16 strict outcomes
