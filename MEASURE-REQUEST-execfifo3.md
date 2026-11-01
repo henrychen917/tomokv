@@ -15,6 +15,8 @@ explicit memory operands per batch of 32). The corrected ceilings restore
 the former absolute allowances; the final linked scopes return exactly to PRE.
 Every FIFO source predicate, queue operation, hand-off, boundary and ownership
 rule remains unchanged. No field, allocation, runtime branch or knob is added.
+The [budget derivation](docs/execfifo3/budgets.json) uses
+[GCC 13.3.0 and binutils 2.42](docs/execfifo3/toolchain.json).
 
 The original owner-command scopes missed this cost because they start after
 parsing. In the db0 linked parser at batch 32:
@@ -94,7 +96,8 @@ PRE was rebuilt from e32b04a44; its executable `.text` is identical to
 execfifo2's frozen PRE (full-file differences include build/debug provenance).
 FIFO is byte-identical to execfifo2's frozen POST. POST's `.text` is 8,759,831
 bytes, +20,432 versus FIFO. The intermediate two-budget candidate and its own
-PAD-A/common-image pair remain in `build/execfifo3/stage1/` with separate receipts;
+PAD-A/common-image pair remain losslessly archived in `build/execfifo3/stage1/`
+with separate receipts and [restoration instructions](docs/execfifo3/reproduce.md);
 the table above always names the final three-budget candidate.
 
 PAD-A is **type A, behaviour twin**: PRE behaviour in the identical combined
@@ -139,3 +142,6 @@ Redis 7.4 comparison if judging the original hot-EXEC-versus-Redis condition.
 All throughput cells, load generators and full `iteration` are **NOT RUN**:
 they remain maintainer work. Correctness uses only selected gate jobs, the
 Redis 7.4 oracle, differential suites and serverless fixtures.
+`GATE_PROOF_NO_RATES=1` also leaves the quantitative atomic floor, atomic
+RYOW rates and stream/xmove rate checks **NOT RUN**; their correctness checks
+remain enabled. `flip_saturated` is **NOT RUN** because it invokes memtier.

@@ -558,5 +558,12 @@
     "after_bytes": 45039680,
     "text_sha256": "e14366901434e494388add0ab3819c9fbf3dc8ffe68981a6c397fc17becefbf6",
     "compressed_ns": 1793500070338129591
+  },
+  {
+    "path": "build/ctlfix-unit",
+    "before_bytes": 107948176,
+    "after_bytes": 43581168,
+    "text_sha256": "56a3bdebbe399ebac17ea34da2d43a56a1b2d2947fd566644440ecda2b68224f",
+    "compressed_ns": 1793507567340012635
   }
 ]

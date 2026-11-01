@@ -10,6 +10,19 @@ Production code is the three-value Makefile change at `4248cfd40`; later commits
 contain evidence and tooling. The release candidate is `build/execfifo3/POST`.
 `POST-final` in fixture filenames denotes that same final production link.
 
+The superseded stage-1 images and original reference copies are retained as
+`.gz` files to leave room for sanitizer builds. `image-archives.json` records
+their compressed and original hashes. The five final arms remain uncompressed
+and are the entries in `SHA256SUMS`. The archived original PRE also has its
+separate `original-reference-SHA256SUMS` receipt.
+To inspect the older images or run their original `stage1-SHA256SUMS` check:
+
+```sh
+taskset -c 96-111 python3 tools/execfifo3_archive_intermediates.py --restore
+taskset -c 96-111 sha256sum -c docs/execfifo3/stage1-SHA256SUMS
+taskset -c 96-111 python3 tools/execfifo3_archive_intermediates.py
+```
+
 The linked probes are retained losslessly as `probe.gz`; `probe-archives.json`
 records both compressed and original digests. Restore only the needed family
 to limit peak disk use. Recount the complete owner and parser scopes with:
@@ -48,8 +61,9 @@ and the corresponding `fifo-source` command, then run the scope driver without
 `--trace-only`. Intermediate objects and generated symbol-range files were
 deleted after proof completion to respect the disk budget; their hashes are
 retained in `intermediate-cleanup.json`. Regenerating frozen release/PAD images
-with `tools/execfifo3_artifacts.py` likewise requires the PRE objects and a fresh
-main `make all`; it changes receipts and must not be confused with the existing
+with `tools/execfifo3_artifacts.py` likewise requires restoring the original
+reference copies, rebuilding the PRE objects and a fresh main `make all`;
+it changes receipts and must not be confused with the existing
 frozen images.
 
 The live driver imports all 42 unchanged groups from `execfifo2_validate.py`.
