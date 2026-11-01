@@ -35,6 +35,7 @@ CASES = {
     'DEL(ctl)': lambda s: [['DEL', s]],
     # RENAME recreation (the audit's residual): s2 holds group g and one undelivered entry
     'SET+RENAME': lambda s: [['SET', s, 'x'], ['RENAME', s + ':src', s]],
+    'MSET+RENAME': lambda s: [['MSET', s, 'x', s + ':pad', 'y'], ['RENAME', s + ':src', s]],
     'EXPIRE(EXISTS)+RENAME': lambda s: [['EXISTS', s], ['RENAME', s + ':src', s]],
     'FLUSHDB+RENAME': lambda s: [['FLUSHDB'], ['XGROUP', 'CREATE', s + ':src', 'g', '$', 'MKSTREAM'],
                                  ['XADD', s + ':src', '*', 'f', 'renamed'], ['RENAME', s + ':src', s]],
@@ -47,7 +48,7 @@ CASES = {
     'DEL+RENAME(ctl)': lambda s: [['DEL', s], ['RENAME', s + ':src', s]],
     'RENAME(ctl)': lambda s: [['RENAME', s + ':src', s]],
 }
-NEEDS_SRC = {'SET+RENAME', 'EXPIRE(EXISTS)+RENAME', 'DEL+RENAME(ctl)', 'RENAME(ctl)'}
+NEEDS_SRC = {'SET+RENAME', 'MSET+RENAME', 'EXPIRE(EXISTS)+RENAME', 'DEL+RENAME(ctl)', 'RENAME(ctl)'}
 
 p = base_args('item 5 stream removed')
 p.add_argument('--cases', default=','.join(CASES))

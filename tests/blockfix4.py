@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 CREATORS = ('COPY-list,RESTORE-list,RENAME-list(ctl),SORTSTORE-list(ctl),LMOVE-list(ctl),'
             'COPY-zset,RESTORE-zset,ZUNIONSTORE,ZINTERSTORE,ZDIFFSTORE,ZRANGESTORE,'
             'GEOSEARCHSTORE,RENAME-zset(ctl),COPY-stream,RENAME-stream(ctl)')
-REMOVALS = ('SET+RENAME,EXPIRE(EXISTS)+RENAME,FLUSHDB+RENAME,FLUSHALL+RENAME,'
+REMOVALS = ('SET+RENAME,MSET+RENAME,EXPIRE(EXISTS)+RENAME,FLUSHDB+RENAME,FLUSHALL+RENAME,'
             'FLUSHDB-ASYNC+RENAME,FLUSHALL-ASYNC+RENAME,DEL+RENAME(ctl)')
 
 
@@ -136,14 +136,14 @@ def main():
         if set(s['results']) != set(REMOVALS.split(',')):
             errors.append('removal inventory incomplete')
         for name, r in s['results'].items():
-            expected = 'error: WRONGTYPE' if name == 'SET+RENAME' else 'error: NOGROUP'
+            expected = 'error: WRONGTYPE' if name in ('SET+RENAME', 'MSET+RENAME') else 'error: NOGROUP'
             if r['hits'] != 10 or r['outcomes'] != {expected: 10}:
                 errors.append(f"{name}: hits={r['hits']} outcomes={r['outcomes']}")
         for r in records:
             if 'i' not in r or not r.get('hit'):
                 continue
             expected = ('(error) WRONGTYPE Operation against a key holding the wrong kind of value'
-                        if r['case'] == 'SET+RENAME' else
+                        if r['case'] in ('SET+RENAME', 'MSET+RENAME') else
                         f"(error) NOGROUP No such key '{r['key']}' or consumer group 'g' in XREADGROUP with GROUP option")
             if r.get('waiter_reply') != expected:
                 errors.append(f"{r['case']}: exact error mismatch: {r.get('waiter_reply')!r}")
