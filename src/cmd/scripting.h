@@ -113,6 +113,7 @@ struct FunctionStats {
     uint64_t ro_rejections   = 0;   // FCALL_RO refused for a function without no-writes
 };
 FunctionStats function_stats();
+bool function_restore_journal(Slice payload, std::string& error);
 
 // Whether argv[0] of this op is one of the FCALL forms. Routing shares EVAL's numkeys grammar but
 // Redis reports a different message for a malformed count.

@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -59,6 +60,7 @@ enum class AofRecordKind : uint8_t {
     DatabaseMap = 8,
     GroupDatabaseMap = 9,
     GroupFlush = 10,
+    FunctionRestore = 11,
 };
 
 enum class AofRewriteDebugStage : uint8_t {
@@ -112,6 +114,7 @@ public:
     std::vector<uint32_t> next_sequence;
     std::vector<std::vector<uint8_t>> sections;
     std::vector<uint8_t> control_section;
+    std::vector<std::string> function_journal;
     std::unordered_set<uint64_t> committed_groups;
 };
 
@@ -209,6 +212,7 @@ public:
     void on_io_complete(ThreadCtx& writer, Ring& ring, void* request, int result);
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
+    void append_function_journal(Slice payload);
     bool request_rewrite();
     bool start_offline_rewrite(ThreadCtx& writer, Ring& ring, std::string& error);
     bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
@@ -357,6 +361,8 @@ private:
         // pending cut here preserves AofManager/Server layout and AOF-off storage.
         uint64_t rewrite_epoch = 0, rewrite_commit = 0;
         bool sealing_on_writer = false;
+        std::mutex function_journal_mu;
+        std::vector<std::unique_ptr<AofChunk>> function_journal;
     };
     bool producers_stopped() const;
     using OpenStreamToken = AofStreamOwner::OpenToken;

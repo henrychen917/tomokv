@@ -45,11 +45,29 @@ def functions(a):
         c.must('BGREWRITEAOF')
         wait(lambda: rewrite_done(c), 'rewrite completed')
         assert c.must('FUNCTION', 'LOAD', source) == b'rootcore'
+        dump = c.must('FUNCTION', 'DUMP')
         assert c.must('SET', 'rootcore:key', 'after') == b'OK'
         emit('risky moment', case='function mutation after AOF base', hits=1,
              fsync=a.fsync, functions=c.must('FUNCTION', 'LIST', 'WITHCODE'))
     with boot(a, 'read', opts, existing_data=data) as (_, c, _):
         assert c.must('GET', 'rootcore:key') == b'after'
+        assert c.must('FCALL', 'rootcore', 0) == 17
+        assert c.must('FUNCTION', 'DELETE', 'rootcore') == b'OK'
+        emit('risky moment', case='FUNCTION DELETE in increment', hits=1)
+    with boot(a, 'deleted', opts, existing_data=data) as (_, c, _):
+        assert c.must('FUNCTION', 'LIST') == []
+        assert c.must('FUNCTION', 'RESTORE', dump, 'FLUSH') == b'OK'
+        emit('risky moment', case='FUNCTION RESTORE in increment', hits=1)
+    with boot(a, 'restored', opts, existing_data=data) as (_, c, _):
+        assert c.must('FCALL', 'rootcore', 0) == 17
+        assert c.must('FUNCTION', 'FLUSH', 'ASYNC') == b'OK'
+        emit('risky moment', case='FUNCTION FLUSH in increment', hits=1)
+    with boot(a, 'flushed', opts, existing_data=data) as (_, c, _):
+        assert c.must('FUNCTION', 'LIST') == []
+        # The control frame must also carry records larger than a shard chunk.
+        assert c.must('FUNCTION', 'LOAD', source + '\n--' + 'x' * 70000) == b'rootcore'
+        emit('risky moment', case='large FUNCTION journal record', hits=1)
+    with boot(a, 'large', opts, existing_data=data) as (_, c, _):
         assert c.must('FCALL', 'rootcore', 0) == 17
 
 
@@ -94,6 +112,8 @@ def notify(a):
     if not a.oracle:
         opts += ['--atomic', str(a.atomic)]
     with boot(a, 'write', opts) as (_, c, data):
+        sub = Conn('127.0.0.1', a.port, timeout=3)
+        assert sub.must('PSUBSCRIBE', '__keyevent@0__:*')[0] == b'psubscribe'
         assert c.must('RPUSH', 'rootcore:{same}:source', 3, 1, 2) == 3
         assert c.must('SORT', 'rootcore:{same}:source', 'STORE', 'rootcore:{same}:dest') == 3
         c.must('XADD', 'rootcore:stream', '1-0', 'field', 'value')
@@ -101,6 +121,13 @@ def notify(a):
         result = c.must('XREADGROUP', 'GROUP', 'group', 'consumer', 'STREAMS', 'rootcore:stream', '>')
         assert result and result[0][1][0][0] == b'1-0'
         pending = c.must('XPENDING', 'rootcore:stream', 'group')
+        seen = set()
+        while not {b'__keyevent@0__:sortstore', b'__keyevent@0__:xgroup-createconsumer'} <= seen:
+            event = sub.read()
+            assert event[0] == b'pmessage', event
+            seen.add(event[2])
+        sub.close()
+        emit('notification attachment witnessed', events=sorted(seen), hits=2)
         emit('risky moment', case='notifications with local SORT STORE and XREADGROUP',
              hits=2, pending=pending)
     with boot(a, 'read', opts, existing_data=data) as (_, c, _):

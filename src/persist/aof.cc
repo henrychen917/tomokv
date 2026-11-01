@@ -1,5 +1,6 @@
 #include "routing_compat.h"
 #include "aof.h"
+#include "../cmd/scripting.h"
 #include "../cmd/xshard.h"
 
 #include <algorithm>
@@ -1916,6 +1917,35 @@ void AofManager::rewrite_abort() {
     rewrite_history_.clear();
 }
 
+void AofManager::append_function_journal(Slice payload) {
+    if (!recording()) return;
+    auto chunk = std::make_unique<AofChunk>();
+    chunk->group_commit = true; // ordered control frame, no shard sequence
+    chunk->bytes.resize(kRecordHeaderBytes + payload.n);
+    uint8_t* record = chunk->bytes.data();
+    snapshot_put_u32(record, kRecordTag);
+    record[4] = static_cast<uint8_t>(AofRecordKind::FunctionRestore);
+    record[7] = 1;
+    snapshot_put_u32(record + 12, kRecordHeaderBytes);
+    snapshot_put_u64(record + 16, payload.n);
+    snapshot_put_u64(record + 24, static_cast<uint64_t>(-1));
+    std::memcpy(record + kRecordHeaderBytes, payload.p, payload.n);
+    {
+        std::lock_guard<std::mutex> lock(chunk_in_[writer_tid_].function_journal_mu);
+        chunk_in_[writer_tid_].function_journal.push_back(std::move(chunk));
+        chunk_in_[writer_tid_].function_journal.back()->post_sequence =
+            posted_sequence_.fetch_add(1, std::memory_order_acq_rel) + 1;
+        pending_chunks_.fetch_add(1, std::memory_order_release);
+    }
+    ThreadCtx* producer = command_local_thread();
+    Ring* target = writer_ring_.load(std::memory_order_acquire);
+    if (producer && producer->ring() && target && producer->ring() != target) {
+        while (!producer->ring()->msg_to(*target, ur_tag(UrKind::Wake, nullptr)))
+            producer->ring()->submit_and_reap();
+        producer->sig().wakes_sent++;
+    }
+}
+
 bool AofManager::post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                             Ring& producer_ring, LoopSignals& signals) {
     if (!chunk || producer >= nthreads_ || !chunk_in_) return false;
@@ -2193,7 +2223,7 @@ void AofManager::on_io_complete(ThreadCtx& writer, Ring& ring, void* opaque, int
             }
             records_written_.fetch_add(chunk->group_commit ? 1 : chunk->records,
                                        std::memory_order_relaxed);
-            if (chunk->group_commit)
+            if (chunk->group_commit && chunk->group)
                 groups_committed_.fetch_add(1, std::memory_order_relaxed);
         }
         current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
@@ -2314,6 +2344,7 @@ bool AofManager::group_dependencies_ready(const AofGroupDecision& group) const {
 
 bool AofManager::prepare_group_commit(const OpenStreamToken&, AofChunk& chunk,
                                       uint8_t* header) {
+    if (chunk.group) {
     if (!chunk.group || !group_dependencies_ready(*chunk.group)) return false;
     const uint64_t ticket = chunk.group->ticket.load(std::memory_order_acquire);
     if (!ticket || chunk.group->aborted.load(std::memory_order_acquire)) return false;
@@ -2335,6 +2366,8 @@ bool AofManager::prepare_group_commit(const OpenStreamToken&, AofChunk& chunk,
         snapshot_put_u32(record + pos, dependency.sid);
         snapshot_put_u32(record + pos + 4, dependency.sequence);
         pos += 8;
+    }
+
     }
 
     snapshot_put_u32(header, kFrameTag);
@@ -2360,7 +2393,7 @@ bool AofManager::write_group_commit_normal(const OpenStreamToken& stream, AofChu
     last_good_offset_ = file_offset_;
     current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
     records_written_.fetch_add(1, std::memory_order_relaxed);
-    groups_committed_.fetch_add(1, std::memory_order_relaxed);
+    if (chunk.group) groups_committed_.fetch_add(1, std::memory_order_relaxed);
     return true;
 }
 
@@ -2456,7 +2489,7 @@ uint32_t AofManager::drain_pending_commits(const OpenStreamToken& stream, uint32
     uint32_t written = 0;
     for (size_t index = 0; index < pending_commits_.size() && budget;) {
         AofChunk& chunk = *pending_commits_[index];
-        if (!group_dependencies_ready(*chunk.group)) { index++; continue; }
+        if (chunk.group && !group_dependencies_ready(*chunk.group)) { index++; continue; }
         const bool ok = engine_ == PersistIoEngine::Normal
             ? write_group_commit_normal(stream, chunk)
             : submit_group_commit_uring(stream, std::move(pending_commits_[index]),
@@ -2549,6 +2582,14 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) 
     if (engine_ == PersistIoEngine::Uring &&
         fsync_policy() == AppendFsyncPolicy::Everysec && io_inflight_ &&
         monotonic_ms() - last_fsync_ms_ >= 1000) return 0;
+    {
+        std::lock_guard<std::mutex> lock(chunk_in_[writer_tid_].function_journal_mu);
+        while (!chunk_in_[writer_tid_].function_journal.empty()) {
+            try { pending_commits_.push_back(std::move(chunk_in_[writer_tid_].function_journal.front())); }
+            catch (const std::bad_alloc&) { fail("out of memory staging FUNCTION journal"); return 0; }
+            chunk_in_[writer_tid_].function_journal.erase(chunk_in_[writer_tid_].function_journal.begin());
+        }
+    }
     if (!chunk_in_[writer_tid_].sealing_on_writer) {
         maybe_schedule_auto_rewrite();
         maybe_start_rewrite(writer, ring);
@@ -3078,6 +3119,16 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
         if (!parse_record_bounds(plan->control_section, control_pos, kind, type, encoding,
                                  key_len, payload_len, expire, group, next, error)) return nullptr;
         const size_t payload_pos = control_pos + kRecordHeaderBytes + key_len;
+        if (kind == AofRecordKind::FunctionRestore) {
+            if (key_len || group || payload_len > UINT32_MAX) {
+                error = "invalid AOF FUNCTION record"; return nullptr;
+            }
+            plan->function_journal.emplace_back(
+                reinterpret_cast<const char*>(plan->control_section.data() + payload_pos), payload_len);
+            plan->replayed_records++;
+            control_pos = next;
+            continue;
+        }
         if (kind != AofRecordKind::GroupCommit || key_len != 0 || !group || payload_len < 4) {
             error = "invalid AOF GCMT record";
             return nullptr;
@@ -3246,6 +3297,8 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                     std::string& error) {
     const uint32_t sid = static_cast<uint32_t>(shard.id());
     if (sid >= plan.sections.size()) { error = "AOF shard section is missing"; return false; }
+    if (sid == 0) for (const auto& payload : plan.function_journal)
+        if (!function_restore_journal(Slice(payload), error)) return false;
     const int64_t now = now_realtime_ms();
     shard.set_cached_now_ms(now);
     const RecoverySections sources(plan.routing_version, plan.shard_count, shard);
