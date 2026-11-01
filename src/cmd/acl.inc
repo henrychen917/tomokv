@@ -1402,6 +1402,44 @@ AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
         }, denied_arg);
 }
 
+AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
+                               const std::vector<std::string>& argv,
+                               std::unique_ptr<AclPerm>& permissions, uint32_t* denied_arg) {
+    const auto arg = [&](uint32_t i) { return Slice(argv[i]); };
+    AclDeniedReason denied = AclDeniedReason::None;
+    if (!permissions) denied = acl_check_queued(user_index, spec, argv, denied_arg);
+    else if (!(spec.flags & CmdFlags::AclExempt)) {
+        bool granted = false;
+        uint32_t first = UINT32_MAX;
+        const auto check = [&](const AclSelector& selector) {
+            if (!acl_command_allowed(selector, spec, argv.size() > 1 ? arg(1) : Slice{})) return false;
+            granted = true;
+            uint32_t candidate = UINT32_MAX;
+            if (acl_check_keys(selector, spec, argv.size(), arg, &candidate) ==
+                AclDeniedReason::None) return true;
+            if (first == UINT32_MAX) first = candidate;
+            return false;
+        };
+        bool allowed = check(*permissions);
+        for (const auto& selector : permissions->selectors) allowed |= check(selector);
+        if (!allowed) {
+            denied = granted ? AclDeniedReason::Key : AclDeniedReason::Command;
+            if (denied_arg) *denied_arg = first;
+        }
+    }
+    if (denied != AclDeniedReason::None || argv.size() < 3 ||
+        !arg(0).eq_icase("acl") || !arg(1).eq_icase("setuser")) return denied;
+    std::lock_guard<std::mutex> lock(g_acl_mu);
+    AclUser* user = acl_slot(user_index);
+    if (!user || argv[2] != user->name) return denied;
+    AclUserImage image = acl_image(*user);
+    if (permissions) image.perm = *permissions;
+    std::string error;
+    if (acl_apply_rules(image, argv, 3, error))
+        permissions = std::make_unique<AclPerm>(std::move(image.perm));
+    return denied;
+}
+
 bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& thread) {
     AclUser* user = acl_slot(client.acl_user_idx());
     const AclPerm* perm = user ? user->perm.load(std::memory_order_acquire) : nullptr;

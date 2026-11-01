@@ -304,6 +304,12 @@ struct alignas(8) MultiExecState : SnapshotCut {
 
 namespace {
 
+void multi_notify_source(Shard& shard, Op& source, uint32_t order) {
+    tracking_observe_read(shard, source);
+    notify_execute_source(shard, source, order);
+}
+
+
 void multi_ring_participants(MultiExecState& state) {
     if (state.server->thread_mode() != ThreadMode::Fused) return;
     for (int32_t sid : state.shards)
@@ -962,6 +968,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
         if (swaps || !state.watched.empty())
             state.database_map = std::make_unique<DatabaseMap::Map>(routing_map);
         uint8_t logical_db = state.client->session().db_index;
+        std::unique_ptr<AclPerm> acl_permissions;
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
             if (swaps) command->watch_map = std::make_unique<DatabaseMap::Map>(routing_map);
@@ -979,9 +986,9 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             command->kind = classify_multi_command(*command);
             uint32_t acl_denied_arg = UINT32_MAX;
-            const AclDeniedReason acl_denied = acl_check_queued(
+            const AclDeniedReason acl_denied = acl_check_multi(
                 state.client->acl_user_idx(), *command->queued.spec,
-                command->queued.argv, &acl_denied_arg);
+                command->queued.argv, acl_permissions, &acl_denied_arg);
             if (acl_denied != AclDeniedReason::None) {
                 const char* reason = acl_denied == AclDeniedReason::Command
                     ? "no permission to execute the command or subcommand"
@@ -1700,7 +1707,7 @@ __attribute__((always_inline)) inline bool execute_local_command(Server& server,
             if (!prepare_local_write_keys(c.server, c.state, c.command, c.shard, c.owner))
                 return false;
             if (c.command.op->spec->flags & CmdFlags::NotifySelected)
-                notify_execute_source(c.shard, *c.command.op, c.command.notify_order_base);
+                multi_notify_source(c.shard, *c.command.op, c.command.notify_order_base);
             c.shard.store().atomic_set_read_context(multi_read_cut(c.state), c.state.origin_conn_id);
             return true;
         });
@@ -1710,7 +1717,7 @@ __attribute__((always_inline)) inline bool execute_local_command(Server& server,
     }
     if (!prepare_local_write_keys(server, state, command, shard, owner_thread_id)) return false;
     if (command.op->spec->flags & CmdFlags::NotifySelected)
-        notify_execute_source(shard, *command.op, command.notify_order_base);
+        multi_notify_source(shard, *command.op, command.notify_order_base);
     shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
     {
         WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
@@ -1774,7 +1781,7 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
     WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
         &state.decision.aborted, &state.watch_refs, state.client);
     if (notify)
-        notify_execute_source(shard, op, command.notify_order_base);
+        multi_notify_source(shard, op, command.notify_order_base);
     const bool read_kind = command.kind == MultiCommandKind::Mget ||
                            command.kind == MultiCommandKind::Exists ||
                            (command.kind == MultiCommandKind::Msetnx && stage == 0);

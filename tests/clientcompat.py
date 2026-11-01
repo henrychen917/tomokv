@@ -143,6 +143,8 @@ def probe(case, port, rows, oracle):
                 sink.drain()  # BCAST legitimately invalidates the seed.
                 if option == 'OPTIN':
                     check('caching', t.cmd('CLIENT', 'CACHING', 'YES'), b'OK')
+                queued_pushes = []
+                expected_queued = []
                 if shape == 'plain_control':
                     check('plain', t.cmd('GET', key), b'v0')
                 else:
@@ -152,17 +154,20 @@ def probe(case, port, rows, oracle):
                     check('queued get', t.cmd('GET', key), b'QUEUED')
                     if shape == 'foreign_write_between':
                         check('between', a.cmd('SET', key, 'v1'), b'OK')
-                    early = keys(sink.drain())
-                    check('nothing enrolled at QUEUED', early,
-                          [key] if option == 'BCAST' and shape == 'foreign_write_between' else [])
+                    queued_pushes = keys(sink.drain())
+                    expected_queued = ([key] if option == 'BCAST' and
+                                       shape == 'foreign_write_between' else [])
                     expected = [b'OK', b'v1'] if shape == 'own_write_first' else [
                         b'v1' if shape == 'foreign_write_between' else b'v0']
                     check('exec', t.cmd('EXEC'), expected)
                 early = keys(sink.drain())
-                check('no spurious pre-write push', early,
-                      [key] if option == 'BCAST' and shape == 'own_write_first' else [])
+                expected_early = [key] if option == 'BCAST' and shape == 'own_write_first' else []
                 check('post-exec write', a.cmd('SET', key, 'v2'), b'OK')
-                check('post-exec invalidation', keys(sink.drain(.3)), [key])
+                # Always observe BOTH halves before rejecting PRE: an early
+                # invalidation cannot hide a missing post-EXEC invalidation.
+                post = keys(sink.drain(.3))
+                check('queued / EXEC / post-write invalidations',
+                      [queued_pushes, early, post], [expected_queued, expected_early, [key]])
                 t.close()
                 if redirect:
                     sink.close()
@@ -202,7 +207,37 @@ def probe(case, port, rows, oracle):
                                   if sub == 'SSUBSCRIBE' else [sub.lower().encode(), b'cc:sub', 1])
                     check('exec subscription', b.cmd('EXEC'), [
                         subscribed, [unsub.lower().encode(), b'cc:sub', 0]])
+                # Ordered publication uses the same EXEC carrier, including
+                # delivery to a subscription established by an earlier child.
+                check('multi self-publish', b.cmd('MULTI'), b'OK')
+                for command in (('SUBSCRIBE', 'cc:self'), ('PUBLISH', 'cc:self', 'msg'),
+                                ('UNSUBSCRIBE', 'cc:self')):
+                    check('queue self-publish', b.cmd(*command), b'QUEUED')
+                check('exec self-publish', b.cmd('EXEC'), [
+                    [b'subscribe', b'cc:self', 1], 1, [b'unsubscribe', b'cc:self', 0]])
+                check('self-publish delivery', b.drain(), [[b'message', b'cc:self', b'msg']])
+                user = f'cc-acl-{proto}'
+                check('create ACL caller', a.cmd('ACL', 'SETUSER', user, 'on', 'nopass',
+                                               '~*', '&*', '+@all'), b'OK')
+                check('authenticate ACL caller', b.cmd('AUTH', user, ''), b'OK')
+                check('multi ACL mutation', b.cmd('MULTI'), b'OK')
+                for command in (('ACL', 'SETUSER', user, '-set'), ('SET', 'cc:acl-order', 'bad'),
+                                ('ACL', 'SETUSER', user, '+set'), ('SET', 'cc:acl-order', 'good'),
+                                ('GET', 'cc:acl-order')):
+                    check('queue ACL mutation', b.cmd(*command), b'QUEUED')
+                denied = RespError('NOPERM ACLs rules changed between the moment the transaction '
+                                  'was accumulated and the EXEC call. This command is no longer '
+                                  'allowed for the following reason: no permission to execute '
+                                  'the command or subcommand')
+                check('ordered ACL mutation', b.cmd('EXEC'), [b'OK', denied, b'OK', b'OK', b'good'])
+                check('watch ACL abort', b.cmd('WATCH', 'cc:acl-watch'), b'OK')
+                check('multi ACL abort', b.cmd('MULTI'), b'OK')
+                check('queue aborted ACL', b.cmd('ACL', 'SETUSER', user, '-set'), b'QUEUED')
+                check('wound ACL transaction', a.cmd('SET', 'cc:acl-watch', 'changed'), b'OK')
+                check('aborted ACL reply', b.cmd('EXEC'), None)
+                check('aborted ACL has no effect', b.cmd('SET', 'cc:acl-order', 'still-allowed'), b'OK')
                 b.close()
+                check('remove ACL caller', a.cmd('ACL', 'DELUSER', user), 1)
         else:
             # Bounded enable-after-OK search. BCAST removes read-enrolment as a
             # confounder; every round proves delivery again on a later write.

@@ -306,7 +306,6 @@ void notify_execute_enter(Shard& shard, Op& carrier, Op& source, uint32_t order_
 }
 
 void notify_execute_source(Shard& shard, Op& source, uint32_t order_base) {
-    tracking_observe_read(shard, source);
     shard.set_notify_context(shard.notify_carrier(), &source, order_base);
 }
 
