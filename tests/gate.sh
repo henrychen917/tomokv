@@ -4946,6 +4946,7 @@ py tests/aof.py 127.0.0.1 $PORT populate "$AOF_STATE" >$TMPDIR/gate-aof-$NET_IO-
            "see $TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt"
 row_begin "AOF writer fired (records=N)"
 AOF_PRE_MODEL=$(py tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>$TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt)
+printf '%s\n' "$AOF_PRE_MODEL" >"$AOF_DIR/pre-snapshot-model.txt"
 AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
     | tr -d '\r' | sed -n 's/^aof_records_written://p')
 [ -n "$AOF_WRITTEN" ] && [ "$AOF_WRITTEN" -gt 0 ] \
@@ -4964,6 +4965,7 @@ py tests/aof.py 127.0.0.1 $PORT verify "$AOF_STATE" >>$TMPDIR/gate-aof-$NET_IO-$
            "see $TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt"
 row_begin "AOF native snapshot streams byte-exact"
 AOF_POST_MODEL=$(py tests/aof.py 127.0.0.1 $PORT snapshot "$AOF_DIR/dump.tomo" 2>>$TMPDIR/gate-aof-$NET_IO-$AOF_ATOMIC.txt)
+printf '%s\n' "$AOF_POST_MODEL" >"$AOF_DIR/post-snapshot-model.txt"
 [ -n "$AOF_PRE_MODEL" ] && [ "$AOF_PRE_MODEL" = "$AOF_POST_MODEL" ] \
     && ok "AOF native snapshot streams byte-exact" || bad "AOF native snapshot streams byte-exact"
 row_begin "AOF replay fired (records=N skipped=N)"
