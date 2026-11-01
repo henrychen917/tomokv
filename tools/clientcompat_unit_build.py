@@ -9,7 +9,7 @@ import subprocess
 
 
 DOC = Path("docs/clientcompat")
-SOURCE_COMMIT = os.environ.get("CLIENTCOMPAT_SOURCE_COMMIT", "0606bdb130")
+SOURCE_COMMIT = os.environ.get("CLIENTCOMPAT_SOURCE_COMMIT", "ecdf5d9ffa")
 
 
 def allocated(data):

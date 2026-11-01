@@ -1,0 +1,12 @@
+{
+  "source_commit": "0606bdb130",
+  "run": "build/gate-run.n97tPU",
+  "reason": "All 32 candidate geometries lose a keyspace event between SUBSCRIBE and UNSUBSCRIBE EXEC children; Oracle passes. Supersede binary and rerun complete selection.",
+  "paused_worker_pid": 69284,
+  "parent_terminated": 68673,
+  "completed_uncollected_job": "multifix-2s-epoll (collected by shutdown)",
+  "completed_uncollected_rows": 6,
+  "no_performance_work": true,
+  "final_completed_rows": 56,
+  "final_failed_rows": 0
+}

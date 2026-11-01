@@ -72,6 +72,11 @@ def main():
             assert job["job"] == "clientcompat-multi-controls" and job["failed"] == 1
             history.append(dict(receipt="subscription-ping-before", **job))
     assert sum(j["failed"] for j in history) == 7
+    for job in read("subscription-keyspace-before")["jobs"]:
+        if job["failed"]:
+            assert job["job"] == "clientcompat-multi-controls" and job["failed"] == 1
+            history.append(dict(receipt="subscription-keyspace-before", **job))
+    assert sum(j["failed"] for j in history) == 8
     interrupted = [dict(receipt="before-subscription-ping-epoll", **job)
                    for job in read("before-subscription-ping-epoll")["jobs"] if job["failed"]]
     assert len(interrupted) == 1 and interrupted[0]["job"] == "differ-armed-1"
