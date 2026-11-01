@@ -33,13 +33,8 @@ from _lib import Conn, RespError, encode, wait_ready
 
 REPLY_BOUND_S = 6.5   # a FLIP's own pre-commit deadline is 5 s
 # A connection that closes during a FLIP must neither wedge it nor hold it to that deadline nor
-# make it fail: the only refusals tolerated here are the epoll registration collisions of IO4.19
-# (stale source registrations of earlier moves; a separate finding, out of this lane's scope).
+# make it fail. IO4.19 is fixed, so registration collisions are regressions too.
 STALL_BOUND_S = 3.0
-OUT_OF_SCOPE_REFUSALS = (
-    b'ERR FLIP could not detach a connection: could not reserve destination epoll registration',
-    b'ERR FLIP could not detach a connection: could not reserve source epoll rollback registration',
-)
 SANITIZER_MARKS = ('ERROR: AddressSanitizer', 'WARNING: ThreadSanitizer', 'ThreadSanitizer:',
                    'runtime error:', 'ERROR: LeakSanitizer')
 
@@ -234,8 +229,8 @@ def disconnects(args, churn=False):
                 if not args.evidence:
                     assert elapsed < STALL_BOUND_S, \
                         f'FLIP held {elapsed:.2f}s by connections closing during it ({key})'
-                    allowed = OUT_OF_SCOPE_REFUSALS + ((b'ERR a FLIP is already in progress',)
-                                                      if args.flip_auto else ())
+                    allowed = ((b'ERR a FLIP is already in progress',)
+                               if args.flip_auto else ())
                     assert reply == b'OK' or reply.message in allowed, \
                         f'FLIP refused because connections closed during it: {key}'
                 after = report(observer)

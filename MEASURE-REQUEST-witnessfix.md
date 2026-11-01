@@ -208,3 +208,13 @@ are explicitly DBSIZE-PUBLICATION-LAG (owner decision 12), excluded from parity
 and counted. Invalid frames still fail; the existing final nonzero population
 must converge within its bound. NOW no longer impersonates compatibility with
 Redis DBSIZE. DQ=DF=0.
+
+### V12 — IO4.19 refusal tolerance
+
+Removed both stale-epoll-registration exceptions from flipfix close/churn.
+A valid manual FLIP must succeed; the auto-controller collision remains a
+separate valid concurrent-request outcome. This closes the obsolete tolerance,
+not the missing IO4.1 latch. The existing moving observation does not establish
+that a close occurred after detach/RoleReady. Late/abort producers still need a
+production observable to make that claim; the ungated late probe lacks it too.
+DQ=DF=0. Do not count a successful close storm as a forced late-close witness.
