@@ -1,0 +1,17 @@
+{
+  "command": [
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit": 0,
+  "tests": 83,
+  "test_seconds": 145.503,
+  "wall_seconds": 145.60804047249258,
+  "cores": "64-79",
+  "port": 20409,
+  "quiet": true,
+  "archive": "docs/clientcompat/validation/final-gates-test.log.gz",
+  "archive_sha256": "4db28ada7924c9b58c2672f477180cdd64031eee7366f0db59725384ec8a3e50",
+  "server_sha256": "eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884",
+  "count_source": "Final unittest summary; nested sub-suite summaries excluded"
+}

@@ -59,12 +59,39 @@ def main():
     instruction = json.loads((DOC / "instruction-summary.json").read_text())
     assert instruction["commands"]["rows"] == 160 and instruction["commands"]["higher"] == 0
     assert instruction["sessions"]["rows"] == 128
+    post_sha = hashlib.sha256(Path("build/clientcompat/POST/tomokv").read_bytes()).hexdigest()
+    pad_sha = hashlib.sha256(Path("build/clientcompat/PAD-A/tomokv").read_bytes()).hexdigest()
+    assert instruction["commands"]["post_server_sha256"] == post_sha
+    assert instruction["sessions"]["post_server_sha256"] == post_sha
+    witnesses = json.loads((DOC / "witnesses/summary.json").read_text())
+    assert len(witnesses) == 10
+    for witness in witnesses:
+        oracle, candidate = witness["results"]["oracle"], witness["results"]["candidate"]
+        assert oracle["passed"] == oracle["total"] == 1
+        assert candidate["total"] == 32
+        if witness["arm"] == "POST":
+            assert candidate["passed"] == 32 and candidate["sha256"] == post_sha
+        else:
+            assert witness["arm"] == "PAD-A" and candidate["failed"] and candidate["sha256"] == pad_sha
+    selftest = read("final-gates-test")
+    assert selftest["exit"] == 0 and selftest["tests"] == 83 and selftest["quiet"]
+    assert selftest["server_sha256"] == post_sha
+    tcl = read("tcl-promotions")
+    assert len(tcl["summary"]) == 2 and {r["mode"] for r in tcl["summary"]} == {"1s", "2s"}
+    assert all(r["files"] == 37 and r["runs"] == 39 and r["manifest_errors"] == 0 and
+               r["sha256"] == post_sha for r in tcl["summary"])
+    assert len(tcl["promotions"]) == 6 and all(r["event"]["status"] == "ok" for r in tcl["promotions"])
+    at412 = read("at412-product")
+    assert at412["complete"] and at412["total_legs"] == 423
+    assert at412["run"] == read("regression-final")["run"]
     verdict = dict(partial=True, full_gate_receipt=False, sources=sources,
                    requested_jobs=len(expected), completed_jobs=len(chosen),
                    passed_rows=sum(j["passed"] for j in chosen.values()), failed_rows=0,
                    jobs=[chosen[k] for k in sorted(chosen)],
                    superseded_failures=history, differential=differential,
-                   freshness_checks=len(fresh), instructions=instruction)
+                   freshness_checks=len(fresh), instructions=instruction,
+                   post_sha256=post_sha, pad_sha256=pad_sha, gates_tests=83,
+                   tcl_runs=78, tcl_promotions=6, at412_legs=423)
     (VALIDATION / "final-verdict.json").write_text(json.dumps(verdict, indent=2) + "\n")
     print(json.dumps({k: verdict[k] for k in
           ("requested_jobs", "completed_jobs", "passed_rows", "failed_rows", "freshness_checks")}, indent=2))
