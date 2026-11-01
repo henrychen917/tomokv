@@ -1,0 +1,79 @@
+{
+  "name": "txnorder-pre-2",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--ports",
+    "20100-20199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcore/build/rootcore/PRE"
+  ],
+  "jobs": {
+    "production_units": {
+      "done": "0\t0\t0",
+      "ledger": ""
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "ledger": "ok\t0.000000\trelease build (+footprint locks)\n"
+    },
+    "txnorder-fused-1": {
+      "done": "0\t1\t0",
+      "ledger": "ok\t48.210000\ttxnorder battery (fused, atomic 1)\n"
+    }
+  },
+  "engine": "epoll",
+  "fused": 0,
+  "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+  "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+  "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+  "started": "2026-11-01T05:25:56.911138+00:00",
+  "ended": "2026-11-01T05:26:49.349864+00:00",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.wRDqbp",
+  "passed_rows": 2,
+  "failed_rows": [],
+  "notices": [
+    "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+  ],
+  "missing_jobs": [],
+  "differential": {},
+  "declared_omissions": {},
+  "differential_plan": null,
+  "archive_sha256": "0e8ae34b4e60fde7fcc718a1274796111247e71a77343fb43f3d66ca8664e6bc",
+  "archive_files": [
+    "families.tsv",
+    "jobs/production_units/blockfix-cost-build.log",
+    "jobs/production_units/blockfix2-build.log",
+    "jobs/production_units/build.log",
+    "jobs/production_units/done",
+    "jobs/production_units/family.tsv",
+    "jobs/production_units/ledger",
+    "jobs/production_units/mdbqsbr-live-build.log",
+    "jobs/production_units/output.log",
+    "jobs/release/done",
+    "jobs/release/family.tsv",
+    "jobs/release/ledger",
+    "jobs/release/output.log",
+    "jobs/txnorder-fused-1/done",
+    "jobs/txnorder-fused-1/family.tsv",
+    "jobs/txnorder-fused-1/gate-data-fused.QHRLmQ/appendonlydir/appendonly.aof.manifest",
+    "jobs/txnorder-fused-1/gate-srv-fused.9zEI30",
+    "jobs/txnorder-fused-1/gate-srv-fused.TVozCD",
+    "jobs/txnorder-fused-1/ledger",
+    "jobs/txnorder-fused-1/output.log",
+    "jobs/txnorder-fused-1/txnorder-2s-1.txt",
+    "ledger.partial",
+    "ledger.partial.timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "requested_jobs": [
+    "txnorder-fused-1"
+  ]
+}

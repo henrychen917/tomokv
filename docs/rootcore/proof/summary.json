@@ -1,5 +1,68 @@
 [
   {
+    "name": "aof-final-split",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:35:28.332515+00:00",
+    "ended": "2026-11-01T05:37:37.187568+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.UlNaeh",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "9363cab2fc45121e8efd9fe8b227912ac64a438daa7366051a12a7b6c876e50f"
+  },
+  {
+    "name": "aof-pre-fused",
+    "engine": "uring",
+    "fused": 1,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:33:05.730677+00:00",
+    "ended": "2026-11-01T05:35:14.599446+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.sGXBWi",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "75782a1c89d325c55936ae6470324b168c56b7ccadc646a8e71902ec33d9e32f"
+  },
+  {
+    "name": "aof-pre-split",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:30:36.512083+00:00",
+    "ended": "2026-11-01T05:32:52.159045+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.iUApaL",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "1b57f96529001d7681acd7858bff58d146800b84a9630ddfcacab7948b1e96d7"
+  },
+  {
     "name": "directed",
     "engine": "uring",
     "fused": 0,
@@ -20,7 +83,55 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "bd95ae61dabd69cc69d89c975d7a5ce09cbde88a8cadc2794768a07518e70eaa"
+    "archive_sha256": "ab90801d8ed619b1cae0586be5b93a2bf747b28e4dba226a389bd76075095d0c"
+  },
+  {
+    "name": "fused-epoll",
+    "engine": "epoll",
+    "fused": 1,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T05:20:09.813033+00:00",
+    "ended": "2026-11-01T05:23:57.976506+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.lOImR8",
+    "passed_rows": 47,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=release_batteries atomic_batteries debug-0 debug-1 script_bounds; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/debug-0/gate-lbsignals-0.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-lbsignals-1.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ]
+    },
+    "archive_sha256": "26707ab52ae09c49804a34d0ebfe28e0aebf129243ea93b7b1086eba399a0548"
   },
   {
     "name": "fused-uring",
@@ -68,7 +179,7 @@
         "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
       ]
     },
-    "archive_sha256": "1f31ca414e3fdc3c5a89132d53a15efb7bb7420d3815b502b1ff8b7043dcb266"
+    "archive_sha256": "f1f09e541d2917e21e4d1b846040a71c7e9337b26ae9f46fe6ef4a1fe4d50781"
   },
   {
     "name": "main-epoll",
@@ -162,7 +273,7 @@
         "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
       ]
     },
-    "archive_sha256": "a633f3721bd972398dd7ad4aaf9ee2c69ff4f71986546c6dc584f5f717641570"
+    "archive_sha256": "fda14af3036b2cba5c4e6412a6180f9574c01489aefb25aca4877e76e6d26d80"
   },
   {
     "name": "main-uring",
@@ -266,6 +377,132 @@
         "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
       ]
     },
-    "archive_sha256": "d10a8ba464ecf00aa287768db1915b7199e4f2d98986f6853d1314f20ea7f2ea"
+    "archive_sha256": "777b4f291dece41c112d18db0fa382cc61f9563c872ef503c3702c150e5fbbf9"
+  },
+  {
+    "name": "notify-order-post",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:29:16.793602+00:00",
+    "ended": "2026-11-01T05:30:29.760187+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.71pzUp",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=notify_order; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "aa453532ec8f602afc87a0247783ee663ffbab5bef8ca6b0a484b85c203915d3"
+  },
+  {
+    "name": "notify-order-pre",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:27:55.316789+00:00",
+    "ended": "2026-11-01T05:29:10.179689+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.afH98K",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=notify_order; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "b54ac402988840f2f3e28143a5b107aa3f4037c7bbaadaa6d1ade7f58a6a3b41"
+  },
+  {
+    "name": "txnorder-post-1",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:24:57.540678+00:00",
+    "ended": "2026-11-01T05:25:50.038432+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.95i5Sh",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "449da127dd17180baed7d00f9c667409163eaf4388ec9edc6670c998cc875ef3"
+  },
+  {
+    "name": "txnorder-post-2",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:26:56.036609+00:00",
+    "ended": "2026-11-01T05:27:48.536385+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.yUkePF",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "9f7935bade0902c9d6fe4159bf01437a1f5aef12eba29c5d79cd3f5729f327e3"
+  },
+  {
+    "name": "txnorder-pre-1",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:23:58.319442+00:00",
+    "ended": "2026-11-01T05:24:50.874827+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.wptkEr",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "0ca77cd9a891ef1d0b1f5df860d7519d7b42298a1746f733b13c3da226ccaf36"
+  },
+  {
+    "name": "txnorder-pre-2",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "20cad68cbae07e8f8ce01b332f9a27236c500094f16221d33cb7aeae86e837e7",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:25:56.911138+00:00",
+    "ended": "2026-11-01T05:26:49.349864+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.wRDqbp",
+    "passed_rows": 2,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=txnorder-fused-1; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "0e8ae34b4e60fde7fcc718a1274796111247e71a77343fb43f3d66ca8664e6bc"
   }
 ]

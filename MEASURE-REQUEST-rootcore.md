@@ -213,8 +213,9 @@ release) and two red rows: MISCONF and WAITAOF. The first broad phase completed
 all 77 selected/prerequisite jobs: **544 passing rows, 11 failed rows**. Those
 failures are maxmemrace, nine original AOF rows discussed below, and notify_order.
 Main-epoll completed all 43 jobs with **270 passing rows and one failed row**.
-Supplementary fused-uring completed all seven jobs with **47 passing rows and
-zero failed rows**. Remaining supplementary results will be appended when complete.
+Supplementary fused-uring and fused-epoll each completed all seven jobs with
+**47 passing rows and zero failed rows**. Remaining supplementary results will
+be appended when complete.
 
 The main-epoll `txnorder-fused-1` job has also failed. Its non-AOF cases and
 serverless survivors pass, but the AOF storm (`1s`, atomic=1, databases=16,
@@ -222,8 +223,25 @@ read-local=1, appendfsync=no, shards=16, CPUs 16–23) reaches a client timeout;
 subsequent shutdown aborts at the database worker watchdog (2703 ms, bound
 900 ms, all eight participants unacknowledged). The log does not establish a
 specific producer or completed storm count. Two PRE and two POST controls at
-the same gate geometry are queued. This is an unresolved S1 observation, not
-attributed to a fixture or to a production change without those controls.
+the same gate geometry all pass, including exact four-key AOF replay. Each
+control runs the existing ten-second storm: PRE completes 28,681/28,518 EXECs,
+POST 28,429/28,438, with positive writer-wait counts on every leg. The observed
+timeout count is one in the original POST leg and zero in these four controls.
+These counts do not instrument the AOF channel-full moment. This remains an
+unresolved S1 observation; neither a fixture explanation nor a regression is
+established by the bounded reruns.
+
+A source-level candidate is the GCMT retry loop in `aof_commit_group`: unlike
+ordinary chunk sealing, it does not call `drain_for_producer` when posting finds
+a full channel. A diagnostic should force the elected fused writer's own
+channel full before GCMT publication; if that reproduces, calling the existing
+drain helper in that retry is the smallest candidate fix. That forced-window
+probe is **NOT RUN**, with no measured hits: it is outside the listed fixes,
+and the matched controls did not establish it as this failure's cause. No
+speculative production change was made. Live stack capture was also **NOT RUN**: the host has
+ptrace_scope=1 and this lane has no passwordless privileged debugger. The
+optional observer was stopped without attaching to any server; no system
+debugging policy was changed.
 
 The standard differential matrix is complete on both engines. These are the
 runner's reported passing-check counts; every part reports zero failures.
@@ -288,8 +306,10 @@ The `2s/epoll/atomic=1/read-local=0` leg stopped during publisher placement,
 before its notification cases: the accepted-client total advanced by two instead
 of one. `Peer.__init__` opens its listener without a readiness round trip before
 sampling the initial total, so that listener can arrive with the candidate.
-PRE/POST controls are queued. This non-S1 fixture issue is not silently changed;
-the strict `+1` assertion remains and the unexecuted event leg is not credited.
+The full PRE and POST controls each pass all 12 geometries, with 23 cases per
+geometry and zero failures. This non-S1 fixture issue is not silently changed;
+the strict `+1` assertion remains. The initially unexecuted event leg is not
+credited in that failed run; it is covered by the separate completed controls.
 
 The complete per-phase omission transcripts are retained in
 `docs/rootcore/proof/*.json`. Beyond the reserved performance work, the first
