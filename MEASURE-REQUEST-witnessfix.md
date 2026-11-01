@@ -385,3 +385,84 @@ forced transaction-window negative control; a suitable production observable
 or controlled production-body unit is still needed.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### Compat 4.1 — complete disposition of the remaining flags
+
+The following are **not repaired or proved** by this lane unless explicitly
+identified otherwise. Existing green smoke rows are not offered as negative
+controls. NOT RUN below means no new directed proof for that gap; it does not
+mean every existing row in that family was skipped.
+
+| Audit flag | Disposition / missing evidence |
+|---|---|
+| XGROUP NOGROUP-only accounting | Demoted with D17a/D17b and BLOCK-STREAM-REMOVED-NO-UNBLOCK. No unmerged rootcompat fix assumed. |
+| INFO / printver constants | CPU advancement and nonzero candidate build identifiers are now required. The zero-CPU mutant fails. Replication fields beyond the existing offset and the separate Tcl printver fallback remain unproved. |
+| BLOCK-WAKE producer subset | V8 remains open; atomic-1 successes are not discriminating evidence. |
+| autharity | Current source already includes ACL-restricted command-denial probes. Authenticated local-maximum and MULTI precedence remain NOT RUN. |
+| ktls_lifetime / trackfix_order / tracking_redirect / racefix_climon / cd13b/cdfix | Serverless/source-copy evidence only. NOT RUN: new candidate-binary windows. |
+| HX-3 expire_notify | NOT RUN: unrelated expired keys during live versions. |
+| SV4.1 redaction | Existing lane coverage is broader than four shapes, but the skipped replication/cluster Tcl surfaces remain absent by design. No new broad redaction proof. |
+| CG4.1 config user lines | **Baseline security defect reproduced in both modes**: `user witness on ">foo\x00tail" ~* +@all` accepts truncated `foo` and rejects the full password; Redis does the reverse. `docs/witnessfix/userline_probe.py` asserts Redis semantics and exits nonzero on this base. This is an open failure, not a known-difference pass or a production fix. |
+| authfix / aclfix db0-only | Both database runtimes now run in every existing row. Geometry expansion alone has no new planted defect. |
+| CC4.2 tracking cap / pipeline | NOT RUN: the MULTI enrollment/cap shape. |
+| CLIENT REPLY SKIP | NOT RUN: a witnessed parser retry. Sending partial input alone is not sufficient. |
+| notifycompat setpast / writemiss | NOT RUN: long values through L4 prebuild and additional producers. Existing short-value checks cannot close NO-A1. |
+| notify_aof | NOT RUN: cross-owner scripts or local multi-key command argument-range replay (NO-A5). Potential event/invalidation/AOF loss remains open. |
+| CD4.2 compact HSCAN | NOT RUN: mutate between pages while another unit retains a version. |
+| CD4.9 same-owner SMOVE WATCH | Repaired: actual same-shard geometry, ordinary and EXEC arms, exact WATCH result; PRE fails the added assertion. |
+| CD4.5 / CD4.15 / CD4.6 | Current list tests already cover 4,085/4,086-byte boundaries and repeated 100-byte values. Lua locale difference is now explicit. NOT RUN: 45–192-byte encoding and RENAME/COPY/MOVE preservation; ambient non-C boot conflicts with this task's LC_ALL=C requirement. |
+| CD4.1 / CD4.19 GEO COUNT | NOT RUN: unspecified-order COUNT form against Redis. |
+| Stream trim / image rebuild | NOT RUN: non-default node limits across image round trips. Existing Tcl mutant pass remains non-evidence. |
+| MPOP error prefixes | NOT RUN: full-string oracle matrix. Prefix-only checks remain weak. |
+| EX4.4 histogram stub | Repaired: enabled histogram must contain 32 acknowledged GET samples in RESP2/RESP3; empty stub fails. |
+| Histogram default | Default-off versus Redis default-on remains a documented difference; explicitly enabling both servers does not prove default parity. |
+| racefix_counters TSan filtering | NOT RUN: unfiltered accepts/plain_accepts race proof. |
+| WAITAOF | NOT RUN: enabled-AOF local durable acknowledgment. |
+| CONFIG allowlist | Repaired: exact native immutable error, or exact Redis reply / named lifetime difference. Unrelated-error mutant fails. |
+| HLL success stub | Tcl alone remains blind. The existing serverfix_hll row already has a broken-estimator binary control; no new HLL proof was added. |
+| MONITOR refused / nested commands | NOT RUN: strict refused-command and nested trace matrix. SV6 remains a documented divergence. |
+| psfix / infofix success-only | Forced failed SAVE now records one actual error-path hit and Redis expectations. NOT RUN: loading=1 during load. |
+| SO4.5 storesize unit | Removed the demand that the full walk occur. It remains a serverless state test, not a constant-work merit proof. |
+| Storesize TTL merit | NOT RUN: performance measurements are outside authorization. |
+| N1 / 148-case inline | NOT RUN: full UDS and both-engine matrix; the existing seven-case epoll row is not equivalent coverage. |
+
+### Compat 4.3 — integration status
+
+No one-retry rule remains. Five previously required assertions per mode are now
+named skips: MONITOR blocked-once, two BRPOPLPUSH/WATCH assertions, guarded
+XGROUP DESTROY, and UNSUBSCRIBE/PUBLISH disconnect lag. Existing SLOWLOG rewrite
+and capacity skips have their actual root names. The three withdrawn climonfix4
+promotions stay withdrawn. The SLOWLOG rewrite skip still hides its independent
+SPOP/GEOADD/GETSET/INCRBYFLOAT checks; extracting those is NOT RUN. No guard
+removal from rootcompat was available in this branch.
+
+### Compat 4.4 — S1 input for round 5 (inventory only)
+
+No new fixtures or binaries were built for this inventory.
+
+- `external:skip` suppresses all main server blocks in unit/info (26 tests),
+  unit/wait (35), unit/shutdown, integration/shutdown, unit/acl (110),
+  unit/acl-v2 (34), unit/auth, unit/networking and unit/limits. Relevant risks:
+  wrong replies/accounting, false durability acknowledgments, shutdown loss or
+  hangs, ACL/auth security failures, networking crashes/hangs and resource limits.
+- unit/pubsubshard and unit/querybuf are absent from the manifest: missing or
+  wrong pubsub delivery, query-buffer state loss, crashes/hangs and limit bypass.
+- INFO, WAITAOF, SHUTDOWN, ACL and TLS therefore rely on lane rows; those rows
+  need independent coverage of failure paths, loading, durability, revocation,
+  handshake/teardown and resource limits.
+- The audit counted 39 survey cascades among 144 real-deviation skips. Seventeen
+  passed fresh: five MULTI-OOM-QUEUE / D10 cascades and twelve
+  BLOCK-WAKE-ORDER-MULTI / D11 cascades, including timeout/fairness and the
+  ZRANDMEMBER-listpack case contaminated by a prior BZMPOP. Risks are wrong
+  replies, stranded waiters and unintended pops. Some manifest entries changed
+  before this base; audit counts are historical, not a new live count.
+- Only two of TRACK-BCAST-BATCH's 26 promoted assertions test batching; the
+  other 24 cascades do not prove invalidation correctness. Use the pubtrackfix
+  witness for the actual stale-cache risk.
+- TRACK-MAXKEYS-IMMUTABLE / D15 blocks thirteen unrelated tracking assertions
+  in setup/cleanup, including FLUSHALL/FLUSHDB invalidation, CLIENT REPLY OFF and
+  redirection. TRACK-FLUSH-INVALIDATE-ORDER fixes on unmerged cx-trackorder are
+  not evidence for this base; stale client caches remain the S1 concern.
+- CD4.19's GEO COUNT form and NT4.17 remain only partly covered. Round 5 should
+  isolate their wrong-reply/protocol paths rather than treating neighboring
+  forms or the smaller inline battery as equivalent coverage.
