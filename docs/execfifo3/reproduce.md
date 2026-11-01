@@ -10,15 +10,20 @@ Production code is the three-value Makefile change at `4248cfd40`; later commits
 contain evidence and tooling. The release candidate is `build/execfifo3/POST`.
 `POST-final` in fixture filenames denotes that same final production link.
 
-The runnable linked probes are retained. Recount their complete owner and
-parser scopes with:
+The linked probes are retained losslessly as `probe.gz`; `probe-archives.json`
+records both compressed and original digests. Restore only the needed family
+to limit peak disk use. Recount the complete owner and parser scopes with:
 
 ```sh
+taskset -c 96-111 python3 tools/execfifo3_probe_archive.py --restore --kind commands
 taskset -c 96-111 python3 tools/execfifo3_scope.py --kind commands --arms PRE,POST-final --trace-only --fresh --workers 8
+taskset -c 96-111 python3 tools/execfifo3_probe_archive.py --kind commands
+taskset -c 96-111 python3 tools/execfifo3_probe_archive.py --restore --kind memory
 taskset -c 96-111 python3 tools/execfifo3_scope.py --kind memory --arms PRE,FIFO,POST-final --trace-only --fresh --commands GET,SET,INCR,PARSE-GET,PARSE-SET,PARSE-INCR --batches 32 --workers 6
 taskset -c 96-111 python3 tools/execfifo3_input_scope.py
 taskset -c 96-111 python3 tools/execfifo3_perf.py --arms PRE,FIFO,POST-final
 taskset -c 96-111 python3 tools/execfifo3_perf_summary.py
+taskset -c 96-111 python3 tools/execfifo3_probe_archive.py --kind memory
 ```
 
 The trace counts named production Tomo routines in the linked image, including
@@ -28,6 +33,8 @@ returns, push or pop. Object-line identities use actual allocation alignment.
 The TLS diagnostic also classifies the parser's read buffer and `FS` region.
 Each trace verifies the probe digest and exact fixture replies. Perf counts
 the complete process, including setup and external libraries; it uses no rates.
+The memory/parser fixture uses atomic 1. The original owner-command fixture
+also covers both atomic settings for MSET.
 
 Capstone 5.0.9 is installed locally in `build/execfifo3/python` for GDB's Python
 interpreter. The probes use production objects first in link order, with only
@@ -63,6 +70,10 @@ AT4.12 and differential leg inventories. The proof recorder archives completed
 job ledgers and result logs. The negative controls modify only a stopped GDB
 inferior and require the intended assertion and exit 1; no broken binary or
 source is published.
+
+Captured compiler/GDB/protocol logs are retained verbatim, including meaningful
+trailing spaces. Source whitespace checks exclude `docs/execfifo3/validation/`;
+the archived logs are checked by their byte digests instead.
 
 `GATE_PROOF_NO_RATES=1` leaves the quantitative atomic floor, atomic RYOW rates
 and stream/xmove rate checks to the maintainer while retaining correctness

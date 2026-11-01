@@ -52,11 +52,17 @@ def main():
                                      for arm in ('PRE','FIFO','POST-final')))
         lines.append('| '+' | '.join(map(str,(*key,*values)))+' |')
     lines+=['','The [complete CSV](medians.csv) and [block counts](summary.json) include '
-            'L1 load misses, L2 data-request misses, generic LLC misses, instruction-cache '
+            'L1 load misses, L2 data-request misses, combined instruction/data L2 misses, instruction-cache '
             'misses, remote-CCX cache fills, local-CCX fills and requests to obtain exclusive state. '
             'The last three are the available coherence-related proxies used here; they '
             'do not identify dirty HITM transfers. Their process-level counts include '
             'startup and cannot attribute a transfer to a FIFO cache line.', '',
+            '`cache-misses` maps to `cpu/event=0x64,umask=0x09/` on this kernel: '
+            'the same event as `l2_cache_req_stat.ic_dc_miss_in_l2`. It is not an '
+            'LLC measurement. Direct LLC counts are **NOT RUN** because the '
+            'kernel exposes no AMD L3 PMU and rejects both the generic LLC-miss '
+            'event and the named L3-miss event. The [availability audit](../pmu-audit/README.md) '
+            'retains the mappings and failed probes. No system module or PMU configuration was changed.', '',
             'The exact commands, event runtimes, probe hashes, CSVs and assertion logs '
             'are retained in [results.json](results.json). Event descriptions and the '
             'two CPUs’ L3 topology are recorded in the parent directory.']

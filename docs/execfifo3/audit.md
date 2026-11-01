@@ -63,7 +63,7 @@ stack writes instead. The additional TLS reads are directly classified in
 `memory-sites/`; they are not FIFO state or another owner's publication line.
 
 FIFO/C1 enlarges each fused translation unit's initial GCC IPA size by 2,031
-instructions. Its unchanged `large-unit-insns` ceiling reduces the allowance
+compiler size units. Its unchanged `large-unit-insns` ceiling reduces the allowance
 for inlining existing code. Raising each of the two fused ceilings by exactly
 2,031 restores the parser scopes above to PRE counts, including memory
 operands. The extended trace also finds +44 instructions and three explicit

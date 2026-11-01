@@ -1,0 +1,42 @@
+[
+  {
+    "path": "done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "path": "family.tsv",
+    "bytes": 61,
+    "sha256": "f4672581426a650c8972768c203d794343691eb5540aaeb1d4caa82557ae905b"
+  },
+  {
+    "path": "gate-srv-main.7wmFLM",
+    "bytes": 9423,
+    "sha256": "aec9342f70256b9508d3b007932b498bfe3427e2fdaf8345531648b815d3241a"
+  },
+  {
+    "path": "gate-srv-main.Yze7Y2",
+    "bytes": 9514,
+    "sha256": "dca33ece90ce90737eaa3108522f83aa45f8aeccd7715898e46d7d89057fd28f"
+  },
+  {
+    "path": "ledger",
+    "bytes": 48,
+    "sha256": "d9c79196f38dff86a510a96d156480404ab9605c45a6be642879e4519e277db8"
+  },
+  {
+    "path": "output.log",
+    "bytes": 155,
+    "sha256": "46284777537a9c463f84ba0cfd7373c2767be8f4a134369f30f53e1ab3047e7b"
+  },
+  {
+    "path": "timings",
+    "bytes": 48,
+    "sha256": "d9c79196f38dff86a510a96d156480404ab9605c45a6be642879e4519e277db8"
+  },
+  {
+    "path": "txnorder-2s-0.txt",
+    "bytes": 5516,
+    "sha256": "13e0c898ee59ba2822ebc9c06ef4a0b74930c38956e653dea4c61f1255e7c786"
+  }
+]

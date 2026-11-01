@@ -9,6 +9,8 @@ import subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/execfifo3/perf'
+# On this kernel cache-misses aliases combined instruction/data L2 misses,
+# not LLC misses. See docs/execfifo3/pmu-audit for availability probes.
 EVENTS=[['instructions:u','cycles:u','L1-dcache-load-misses:u'],
         ['l2_cache_req_stat.ls_rd_blk_c:u','cache-misses:u','ls_any_fills_from_sys.remote_cache:u'],
         ['ls_any_fills_from_sys.local_ccx:u','l2_request_g1.change_to_x:u','ic_tag_hit_miss.instruction_cache_miss:u']]

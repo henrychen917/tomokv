@@ -44,7 +44,7 @@ Final evidence so far:
   both modes and namespaces, batches 1/32, both MSET atomic settings.
 * **36/36 extended parser/owner comparisons exactly equal PRE** in instructions
   and explicit memory operands, with no added classified object lines; includes
-  fused read-local 0/1. An additional address trace confirms the TLS reads are
+  atomic 1 and fused read-local 0/1. An additional address trace confirms the TLS reads are
   removed. These finite fixtures have no WATCH/EXEC state; the source audit also
   states the active-reservation slow path rather than claiming it is free.
 * **378/378 perf counter runs** pass with all events running at 100%, including
@@ -54,6 +54,11 @@ Final evidence so far:
   154.299/159.296/157.204 million. Some two-owner controls also have large
   coherence-counter differences; these process-level measurements do not
   attribute transfers to a FIFO line or establish server performance.
+  **Direct LLC counts: NOT RUN.** This kernel exposes no AMD L3 PMU and rejects
+  generic and named LLC-miss events. Its `cache-misses` alias is combined
+  instruction/data **L2** misses; the [PMU audit](docs/execfifo3/pmu-audit/README.md)
+  records the mapping and availability failures. Available remote-cache-fill
+  and exclusive-request events are coherence proxies, not dirty-HITM counts.
 * **160/160 F1–F10 legs**, **12/12 deliberate break controls**, and **16/16
   common-image smoke cells** passed. The broader selected-job matrix is running.
 * `python3 tests/gates_test.py` passed on a quiet rerun with its deadlines
