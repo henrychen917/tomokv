@@ -1,61 +1,51 @@
 namespace,command,mode,batch,atomic,symbol,pre,post,delta
-db0,MGET,1s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
 db0,MGET,1s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,MGET,1s,1,0,tomo_db0::Op::cmd_name() const,0,12,12
 db0,MGET,1s,1,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",383,407,24
 db0,MGET,1s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1368,1360,-8
 db0,MGET,1s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1923,1914,-9
-db0,MGET,1s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
 db0,MGET,1s,1,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,MGET,1s,1,1,tomo_db0::Op::cmd_name() const,0,12,12
 db0,MGET,1s,1,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",383,407,24
 db0,MGET,1s,1,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1368,1360,-8
-db0,MGET,1s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1939,-10
-db0,MGET,1s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
+db0,MGET,1s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1940,-9
 db0,MGET,1s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,MGET,1s,32,0,tomo_db0::Op::cmd_name() const,0,384,384
 db0,MGET,1s,32,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12256,13024,768
 db0,MGET,1s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",43776,43520,-256
 db0,MGET,1s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",61536,61248,-288
-db0,MGET,1s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
 db0,MGET,1s,32,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,MGET,1s,32,1,tomo_db0::Op::cmd_name() const,0,384,384
 db0,MGET,1s,32,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12256,13024,768
 db0,MGET,1s,32,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",43776,43520,-256
-db0,MGET,1s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62048,-320
-db0,MGET,2s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
+db0,MGET,1s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62080,-288
 db0,MGET,2s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,MGET,2s,1,0,tomo_db0::Op::cmd_name() const,0,12,12
 db0,MGET,2s,1,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",383,407,24
 db0,MGET,2s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1368,1360,-8
 db0,MGET,2s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1923,1914,-9
-db0,MGET,2s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
 db0,MGET,2s,1,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,MGET,2s,1,1,tomo_db0::Op::cmd_name() const,0,12,12
 db0,MGET,2s,1,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",383,407,24
 db0,MGET,2s,1,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1368,1360,-8
-db0,MGET,2s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1939,-10
-db0,MGET,2s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
+db0,MGET,2s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1940,-9
 db0,MGET,2s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,MGET,2s,32,0,tomo_db0::Op::cmd_name() const,0,384,384
 db0,MGET,2s,32,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12256,13024,768
 db0,MGET,2s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",43776,43520,-256
 db0,MGET,2s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",61536,61248,-288
-db0,MGET,2s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
 db0,MGET,2s,32,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,MGET,2s,32,1,tomo_db0::Op::cmd_name() const,0,384,384
 db0,MGET,2s,32,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12256,13024,768
 db0,MGET,2s,32,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",43776,43520,-256
-db0,MGET,2s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62048,-320
+db0,MGET,2s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62080,-288
 db0,MSET,1s,1,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",70,72,2
-db0,MSET,1s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,MSET,1s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,MSET,1s,1,0,tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0],4,0,-4
 db0,MSET,1s,1,0,tomo_db0::Op::cmd_name() const,0,12,12
 db0,MSET,1s,1,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",375,399,24
 db0,MSET,1s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",2192,2184,-8
 db0,MSET,1s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1972,1970,-2
-db0,MSET,1s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,MSET,1s,1,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",480,0,-480
 db0,MSET,1s,1,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",792,1248,456
 db0,MSET,1s,1,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
@@ -64,14 +54,12 @@ db0,MSET,1s,1,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(to
 db0,MSET,1s,1,1,"tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",206,207,1
 db0,MSET,1s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1873,1872,-1
 db0,MSET,1s,32,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",2240,2304,64
-db0,MSET,1s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,MSET,1s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,MSET,1s,32,0,tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0],128,0,-128
 db0,MSET,1s,32,0,tomo_db0::Op::cmd_name() const,0,384,384
 db0,MSET,1s,32,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12000,12768,768
 db0,MSET,1s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",70144,69888,-256
 db0,MSET,1s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",63104,63040,-64
-db0,MSET,1s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,MSET,1s,32,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",15360,0,-15360
 db0,MSET,1s,32,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",15424,29768,14344
 db0,MSET,1s,32,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
@@ -81,14 +69,12 @@ db0,MSET,1s,32,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shar
 db0,MSET,1s,32,1,"tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",6592,6624,32
 db0,MSET,1s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",59936,59904,-32
 db0,MSET,2s,1,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",70,72,2
-db0,MSET,2s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,MSET,2s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,MSET,2s,1,0,tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0],4,0,-4
 db0,MSET,2s,1,0,tomo_db0::Op::cmd_name() const,0,12,12
 db0,MSET,2s,1,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",375,399,24
 db0,MSET,2s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",2192,2184,-8
 db0,MSET,2s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1818,1809,-9
-db0,MSET,2s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,MSET,2s,1,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",480,0,-480
 db0,MSET,2s,1,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",792,1248,456
 db0,MSET,2s,1,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
@@ -97,14 +83,12 @@ db0,MSET,2s,1,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(t
 db0,MSET,2s,1,1,"tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",206,207,1
 db0,MSET,2s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1719,1711,-8
 db0,MSET,2s,32,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",2240,2304,64
-db0,MSET,2s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,MSET,2s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,MSET,2s,32,0,tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0],128,0,-128
 db0,MSET,2s,32,0,tomo_db0::Op::cmd_name() const,0,384,384
 db0,MSET,2s,32,0,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12000,12768,768
 db0,MSET,2s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",70144,69888,-256
 db0,MSET,2s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",58176,57888,-288
-db0,MSET,2s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,MSET,2s,32,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",15360,0,-15360
 db0,MSET,2s,32,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",15424,29768,14344
 db0,MSET,2s,32,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
@@ -178,7 +162,6 @@ db0,TRACK-INCR,2s,32,1,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Clien
 db0,TRACK-INCR,2s,32,1,tomo_db0::NotifyBatch::NotifyBatch(),0,1600,1600
 db0,TRACK-INCR,2s,32,1,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",1824,1664,-160
 db0,TRACK-MGET,1s,1,0,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",264,0,-264
-db0,TRACK-MGET,1s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
 db0,TRACK-MGET,1s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],3052,2996,-56
 db0,TRACK-MGET,1s,1,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",1164,1302,138
 db0,TRACK-MGET,1s,1,0,tomo_db0::Op::cmd_name() const,0,12,12
@@ -187,16 +170,14 @@ db0,TRACK-MGET,1s,1,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, st
 db0,TRACK-MGET,1s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1448,1440,-8
 db0,TRACK-MGET,1s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1923,1914,-9
 db0,TRACK-MGET,1s,1,1,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",264,0,-264
-db0,TRACK-MGET,1s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
 db0,TRACK-MGET,1s,1,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],3052,2996,-56
 db0,TRACK-MGET,1s,1,1,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",1164,1302,138
 db0,TRACK-MGET,1s,1,1,tomo_db0::Op::cmd_name() const,0,12,12
 db0,TRACK-MGET,1s,1,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",383,407,24
 db0,TRACK-MGET,1s,1,1,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",32,27,-5
 db0,TRACK-MGET,1s,1,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1448,1440,-8
-db0,TRACK-MGET,1s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1939,-10
+db0,TRACK-MGET,1s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1940,-9
 db0,TRACK-MGET,1s,32,0,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",8448,0,-8448
-db0,TRACK-MGET,1s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
 db0,TRACK-MGET,1s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],97664,95872,-1792
 db0,TRACK-MGET,1s,32,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",37248,41664,4416
 db0,TRACK-MGET,1s,32,0,tomo_db0::Op::cmd_name() const,0,384,384
@@ -205,16 +186,14 @@ db0,TRACK-MGET,1s,32,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, s
 db0,TRACK-MGET,1s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",46336,46080,-256
 db0,TRACK-MGET,1s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",61536,61248,-288
 db0,TRACK-MGET,1s,32,1,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",8448,0,-8448
-db0,TRACK-MGET,1s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
 db0,TRACK-MGET,1s,32,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],97664,95872,-1792
 db0,TRACK-MGET,1s,32,1,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",37248,41664,4416
 db0,TRACK-MGET,1s,32,1,tomo_db0::Op::cmd_name() const,0,384,384
 db0,TRACK-MGET,1s,32,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12256,13024,768
 db0,TRACK-MGET,1s,32,1,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",1024,864,-160
 db0,TRACK-MGET,1s,32,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",46336,46080,-256
-db0,TRACK-MGET,1s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62048,-320
+db0,TRACK-MGET,1s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62080,-288
 db0,TRACK-MGET,2s,1,0,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",264,0,-264
-db0,TRACK-MGET,2s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
 db0,TRACK-MGET,2s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],3052,2996,-56
 db0,TRACK-MGET,2s,1,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",1164,1302,138
 db0,TRACK-MGET,2s,1,0,tomo_db0::Op::cmd_name() const,0,12,12
@@ -223,16 +202,14 @@ db0,TRACK-MGET,2s,1,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, st
 db0,TRACK-MGET,2s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1448,1440,-8
 db0,TRACK-MGET,2s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1923,1914,-9
 db0,TRACK-MGET,2s,1,1,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",264,0,-264
-db0,TRACK-MGET,2s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",32,30,-2
 db0,TRACK-MGET,2s,1,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],3052,2996,-56
 db0,TRACK-MGET,2s,1,1,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",1164,1302,138
 db0,TRACK-MGET,2s,1,1,tomo_db0::Op::cmd_name() const,0,12,12
 db0,TRACK-MGET,2s,1,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",383,407,24
 db0,TRACK-MGET,2s,1,1,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",32,27,-5
 db0,TRACK-MGET,2s,1,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",1448,1440,-8
-db0,TRACK-MGET,2s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1939,-10
+db0,TRACK-MGET,2s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1949,1940,-9
 db0,TRACK-MGET,2s,32,0,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",8448,0,-8448
-db0,TRACK-MGET,2s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
 db0,TRACK-MGET,2s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],97664,95872,-1792
 db0,TRACK-MGET,2s,32,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",37248,41664,4416
 db0,TRACK-MGET,2s,32,0,tomo_db0::Op::cmd_name() const,0,384,384
@@ -241,17 +218,15 @@ db0,TRACK-MGET,2s,32,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, s
 db0,TRACK-MGET,2s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",46336,46080,-256
 db0,TRACK-MGET,2s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",61536,61248,-288
 db0,TRACK-MGET,2s,32,1,"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",8448,0,-8448
-db0,TRACK-MGET,2s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1024,960,-64
 db0,TRACK-MGET,2s,32,1,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],97664,95872,-1792
 db0,TRACK-MGET,2s,32,1,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",37248,41664,4416
 db0,TRACK-MGET,2s,32,1,tomo_db0::Op::cmd_name() const,0,384,384
 db0,TRACK-MGET,2s,32,1,"tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",12256,13024,768
 db0,TRACK-MGET,2s,32,1,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",1024,864,-160
 db0,TRACK-MGET,2s,32,1,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",46336,46080,-256
-db0,TRACK-MGET,2s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62048,-320
+db0,TRACK-MGET,2s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",62368,62080,-288
 db0,TRACK-MSET,1s,1,0,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",55,0,-55
 db0,TRACK-MSET,1s,1,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",70,72,2
-db0,TRACK-MSET,1s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,TRACK-MSET,1s,1,0,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),234,188,-46
 db0,TRACK-MSET,1s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,TRACK-MSET,1s,1,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",53,40,-13
@@ -263,7 +238,6 @@ db0,TRACK-MSET,1s,1,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, st
 db0,TRACK-MSET,1s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",2272,2264,-8
 db0,TRACK-MSET,1s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1972,1970,-2
 db0,TRACK-MSET,1s,1,1,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",55,0,-55
-db0,TRACK-MSET,1s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,TRACK-MSET,1s,1,1,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),234,188,-46
 db0,TRACK-MSET,1s,1,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",480,0,-480
 db0,TRACK-MSET,1s,1,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",792,1248,456
@@ -278,7 +252,6 @@ db0,TRACK-MSET,1s,1,1,"tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db
 db0,TRACK-MSET,1s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1873,1872,-1
 db0,TRACK-MSET,1s,32,0,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",1760,0,-1760
 db0,TRACK-MSET,1s,32,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",2240,2304,64
-db0,TRACK-MSET,1s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,TRACK-MSET,1s,32,0,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),7488,6016,-1472
 db0,TRACK-MSET,1s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,TRACK-MSET,1s,32,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",1696,1280,-416
@@ -290,7 +263,6 @@ db0,TRACK-MSET,1s,32,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, s
 db0,TRACK-MSET,1s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",72704,72448,-256
 db0,TRACK-MSET,1s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",63104,63040,-64
 db0,TRACK-MSET,1s,32,1,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",1760,0,-1760
-db0,TRACK-MSET,1s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,TRACK-MSET,1s,32,1,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),7488,6016,-1472
 db0,TRACK-MSET,1s,32,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",15360,0,-15360
 db0,TRACK-MSET,1s,32,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",15424,29768,14344
@@ -306,7 +278,6 @@ db0,TRACK-MSET,1s,32,1,"tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_d
 db0,TRACK-MSET,1s,32,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",59936,59904,-32
 db0,TRACK-MSET,2s,1,0,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",55,0,-55
 db0,TRACK-MSET,2s,1,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",70,72,2
-db0,TRACK-MSET,2s,1,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,TRACK-MSET,2s,1,0,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),234,188,-46
 db0,TRACK-MSET,2s,1,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],763,707,-56
 db0,TRACK-MSET,2s,1,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",53,40,-13
@@ -318,7 +289,6 @@ db0,TRACK-MSET,2s,1,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, st
 db0,TRACK-MSET,2s,1,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",2272,2264,-8
 db0,TRACK-MSET,2s,1,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1818,1809,-9
 db0,TRACK-MSET,2s,1,1,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",55,0,-55
-db0,TRACK-MSET,2s,1,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",34,31,-3
 db0,TRACK-MSET,2s,1,1,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),234,188,-46
 db0,TRACK-MSET,2s,1,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",480,0,-480
 db0,TRACK-MSET,2s,1,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",792,1248,456
@@ -333,7 +303,6 @@ db0,TRACK-MSET,2s,1,1,"tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db
 db0,TRACK-MSET,2s,1,1,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",1719,1711,-8
 db0,TRACK-MSET,2s,32,0,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",1760,0,-1760
 db0,TRACK-MSET,2s,32,0,"tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",2240,2304,64
-db0,TRACK-MSET,2s,32,0,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,TRACK-MSET,2s,32,0,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),7488,6016,-1472
 db0,TRACK-MSET,2s,32,0,tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0],24416,22624,-1792
 db0,TRACK-MSET,2s,32,0,"tomo_db0::IoLoop::tracking_register_read(tomo_db0::Client*, tomo_db0::IoLoop::ClimonConn&, tomo_db0::Op&)",1696,1280,-416
@@ -345,7 +314,6 @@ db0,TRACK-MSET,2s,32,0,"tomo_db0::Slice::eq_icase(std::basic_string_view<char, s
 db0,TRACK-MSET,2s,32,0,"tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",72704,72448,-256
 db0,TRACK-MSET,2s,32,0,"tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",58176,57888,-288
 db0,TRACK-MSET,2s,32,1,"std::_Deque_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_initialize_map(unsigned long)",1760,0,-1760
-db0,TRACK-MSET,2s,32,1,"tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",1088,992,-96
 db0,TRACK-MSET,2s,32,1,tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&),7488,6016,-1472
 db0,TRACK-MSET,2s,32,1,"tomo_db0::FlatStore::atomic_alloc_entry(unsigned int, unsigned long) [clone .isra.0]",15360,0,-15360
 db0,TRACK-MSET,2s,32,1,"tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",15424,29768,14344

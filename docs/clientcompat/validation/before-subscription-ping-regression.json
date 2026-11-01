@@ -1,0 +1,423 @@
+{
+  "run": "build/gate-run.mjQ5XY",
+  "partial": true,
+  "full_gate_receipt": false,
+  "complete": false,
+  "jobs": [
+    {
+      "job": "acl_metadata",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.050000\tgenerated Redis 7.4 ACL categories"
+      ]
+    },
+    {
+      "job": "at412-T1",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.800000\tat412 T1"
+      ]
+    },
+    {
+      "job": "at412-T10",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t452.000000\tat412 T10"
+      ]
+    },
+    {
+      "job": "at412-T2",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t25.890000\tat412 T2"
+      ]
+    },
+    {
+      "job": "at412-T3",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.770000\tat412 T3"
+      ]
+    },
+    {
+      "job": "at412-T4",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t13.100000\tat412 T4"
+      ]
+    },
+    {
+      "job": "at412-T5",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t94.390000\tat412 T5"
+      ]
+    },
+    {
+      "job": "at412-T6",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t812.640000\tat412 T6"
+      ]
+    },
+    {
+      "job": "at412-T7",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t37.110000\tat412 T7"
+      ]
+    },
+    {
+      "job": "at412-T8",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t4.080000\tat412 T8"
+      ]
+    },
+    {
+      "job": "at412-T9",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t3.840000\tat412 T9"
+      ]
+    },
+    {
+      "job": "climonfix4-1s-epoll",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.820000\tclimonfix4 PAUSE-BLOCKED-COUNT (1s epoll)",
+        "ok\t12.270000\tclimonfix4 PAUSE-MAY-REPLICATE (1s epoll)",
+        "ok\t11.340000\tclimonfix4 PAUSE-SCRIPT-FLAGS (1s epoll)",
+        "ok\t13.390000\tclimonfix4 MONITOR-SCRIPT-CMDS (1s epoll)",
+        "ok\t11.320000\tclimonfix4 RESET-CLEARS-LIBNAME (1s epoll)",
+        "ok\t11.320000\tclimonfix4 RESET-MONITOR-ECHO (1s epoll)",
+        "ok\t11.360000\tclimonfix4 CLIENT-LIST-CMD-NAME (1s epoll)"
+      ]
+    },
+    {
+      "job": "climonfix4-1s-uring",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.870000\tclimonfix4 PAUSE-BLOCKED-COUNT (1s uring)",
+        "ok\t12.280000\tclimonfix4 PAUSE-MAY-REPLICATE (1s uring)",
+        "ok\t11.340000\tclimonfix4 PAUSE-SCRIPT-FLAGS (1s uring)",
+        "ok\t13.390000\tclimonfix4 MONITOR-SCRIPT-CMDS (1s uring)",
+        "ok\t11.320000\tclimonfix4 RESET-CLEARS-LIBNAME (1s uring)",
+        "ok\t11.310000\tclimonfix4 RESET-MONITOR-ECHO (1s uring)",
+        "ok\t11.330000\tclimonfix4 CLIENT-LIST-CMD-NAME (1s uring)"
+      ]
+    },
+    {
+      "job": "climonfix4-2s-epoll",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.840000\tclimonfix4 PAUSE-BLOCKED-COUNT (2s epoll)",
+        "ok\t12.290000\tclimonfix4 PAUSE-MAY-REPLICATE (2s epoll)",
+        "ok\t11.350000\tclimonfix4 PAUSE-SCRIPT-FLAGS (2s epoll)",
+        "ok\t13.400000\tclimonfix4 MONITOR-SCRIPT-CMDS (2s epoll)",
+        "ok\t11.340000\tclimonfix4 RESET-CLEARS-LIBNAME (2s epoll)",
+        "ok\t11.350000\tclimonfix4 RESET-MONITOR-ECHO (2s epoll)",
+        "ok\t11.360000\tclimonfix4 CLIENT-LIST-CMD-NAME (2s epoll)"
+      ]
+    },
+    {
+      "job": "climonfix4-2s-uring",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.840000\tclimonfix4 PAUSE-BLOCKED-COUNT (2s uring)",
+        "ok\t12.280000\tclimonfix4 PAUSE-MAY-REPLICATE (2s uring)",
+        "ok\t11.330000\tclimonfix4 PAUSE-SCRIPT-FLAGS (2s uring)",
+        "ok\t13.410000\tclimonfix4 MONITOR-SCRIPT-CMDS (2s uring)",
+        "ok\t11.330000\tclimonfix4 RESET-CLEARS-LIBNAME (2s uring)",
+        "ok\t11.340000\tclimonfix4 RESET-MONITOR-ECHO (2s uring)",
+        "ok\t11.360000\tclimonfix4 CLIENT-LIST-CMD-NAME (2s uring)"
+      ]
+    },
+    {
+      "job": "core_tsan_build",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "flip_unit",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t17.110000\tflip controller model unit"
+      ]
+    },
+    {
+      "job": "flipctl",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t127.890000\tflip controller: ramp gate, hold, surge + mix re-maneuvers"
+      ]
+    },
+    {
+      "job": "multifix-1s-epoll",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.080000\tmultifix RESET-IN-MULTI (1s epoll)",
+        "ok\t11.090000\tmultifix WATCH-SPURIOUS-INVALIDATION (1s epoll)",
+        "ok\t11.510000\tmultifix EXEC-REPEATED-KEY-LINEAR (1s epoll)",
+        "ok\t15.260000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)",
+        "ok\t28.660000\tmultifix PAUSE-IN-MULTI (1s epoll)",
+        "ok\t11.980000\tmultifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      ]
+    },
+    {
+      "job": "multifix-1s-uring",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.110000\tmultifix RESET-IN-MULTI (1s uring)",
+        "ok\t11.110000\tmultifix WATCH-SPURIOUS-INVALIDATION (1s uring)",
+        "ok\t11.520000\tmultifix EXEC-REPEATED-KEY-LINEAR (1s uring)",
+        "ok\t15.260000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)",
+        "ok\t28.660000\tmultifix PAUSE-IN-MULTI (1s uring)",
+        "ok\t12.120000\tmultifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      ]
+    },
+    {
+      "job": "multifix-2s-epoll",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.110000\tmultifix RESET-IN-MULTI (2s epoll)",
+        "ok\t11.120000\tmultifix WATCH-SPURIOUS-INVALIDATION (2s epoll)",
+        "ok\t11.530000\tmultifix EXEC-REPEATED-KEY-LINEAR (2s epoll)",
+        "ok\t15.280000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)",
+        "ok\t28.630000\tmultifix PAUSE-IN-MULTI (2s epoll)",
+        "ok\t11.740000\tmultifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      ]
+    },
+    {
+      "job": "multifix-2s-uring",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t11.120000\tmultifix RESET-IN-MULTI (2s uring)",
+        "ok\t11.100000\tmultifix WATCH-SPURIOUS-INVALIDATION (2s uring)",
+        "ok\t11.520000\tmultifix EXEC-REPEATED-KEY-LINEAR (2s uring)",
+        "ok\t15.280000\tmultifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)",
+        "ok\t28.570000\tmultifix PAUSE-IN-MULTI (2s uring)",
+        "ok\t11.990000\tmultifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      ]
+    },
+    {
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    {
+      "job": "pubtrackfix",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t3.430000\tpubtrackfix TRACK-BCAST-BATCH",
+        "ok\t11.530000\tpubtrackfix PUBSUB-REPLY-OFF-PUSH",
+        "ok\t8.370000\tpubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT",
+        "ok\t20.090000\tpubtrackfix PUBSUB-EVICT-ON-MAXMEMORY"
+      ]
+    },
+    {
+      "job": "redis_tcl",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t224.200000\tRedis 7.4.10 Tcl passing subset (2s)",
+        "ok\t228.310000\tRedis 7.4.10 Tcl passing subset (1s)"
+      ]
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    {
+      "job": "ring_unit",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.090000\tread-local write ring + arming transient unit",
+        "ok\t0.020000\tclimon 128-owner delivery mask",
+        "ok\t0.890000\tread-local MGET fence symmetry unit"
+      ]
+    }
+  ],
+  "missing": [
+    "acl_recheck",
+    "acl_subcommands",
+    "aclfix",
+    "at412-T11a",
+    "at412-T11b",
+    "at412-T12",
+    "at412-T13",
+    "at412-T14",
+    "at412-T15",
+    "at412-T16",
+    "at412-owner",
+    "atomfix5_accounting",
+    "atomfix5_watch",
+    "atomic_batteries",
+    "atomic_units",
+    "auth",
+    "authfix",
+    "blockfix2",
+    "clientfix",
+    "climonfix",
+    "compat2",
+    "compat3",
+    "debug-0",
+    "debug-1",
+    "exec1s",
+    "execfair",
+    "feature-armed-0",
+    "feature-armed-1",
+    "feature-cell-1s-0-0-0-0",
+    "feature-cell-1s-0-0-0-1",
+    "feature-cell-1s-0-0-1-0",
+    "feature-cell-1s-0-0-1-1",
+    "feature-cell-1s-0-1-0-0",
+    "feature-cell-1s-0-1-0-1",
+    "feature-cell-1s-0-1-1-0",
+    "feature-cell-1s-0-1-1-1",
+    "feature-cell-1s-1-0-0-0",
+    "feature-cell-1s-1-0-0-1",
+    "feature-cell-1s-1-0-1-0",
+    "feature-cell-1s-1-0-1-1",
+    "feature-cell-1s-1-1-0-0",
+    "feature-cell-1s-1-1-0-1",
+    "feature-cell-1s-1-1-1-0",
+    "feature-cell-1s-1-1-1-1",
+    "feature-cell-2s-0-0-0-0",
+    "feature-cell-2s-0-0-0-1",
+    "feature-cell-2s-0-0-1-0",
+    "feature-cell-2s-0-0-1-1",
+    "feature-cell-2s-0-1-0-0",
+    "feature-cell-2s-0-1-0-1",
+    "feature-cell-2s-0-1-1-0",
+    "feature-cell-2s-0-1-1-1",
+    "feature-cell-2s-1-0-0-0",
+    "feature-cell-2s-1-0-0-1",
+    "feature-cell-2s-1-0-1-0",
+    "feature-cell-2s-1-0-1-1",
+    "feature-cell-2s-1-1-0-0",
+    "feature-cell-2s-1-1-0-1",
+    "feature-cell-2s-1-1-1-0",
+    "feature-cell-2s-1-1-1-1",
+    "feature-cell-fused-home-max-nopin",
+    "feature-cell-split-home-min",
+    "feature-cell-split-shards-auto",
+    "feature-split-0",
+    "feature-split-1",
+    "flip",
+    "flipfix5",
+    "flipfix5_units",
+    "flipfix_units",
+    "fliplisten",
+    "fused-0",
+    "fused-1",
+    "infofix_compat-docs",
+    "infofix_compat-loadaof",
+    "infofix_compat-missing",
+    "infofix_latency",
+    "lb-stationary-1s",
+    "lb-stationary-2s",
+    "lbplanner_units",
+    "multidb-1s-0-0",
+    "multidb-1s-0-1",
+    "multidb-1s-1-0",
+    "multidb-1s-1-1",
+    "multidb-2s-0-0",
+    "multidb-2s-0-1",
+    "multidb-2s-1-0",
+    "multidb-2s-1-1",
+    "netcmd_units",
+    "notify",
+    "notify_aof",
+    "notify_order",
+    "notifycompat",
+    "ntfix_input",
+    "racefix_climon",
+    "release_batteries",
+    "replyoff",
+    "rlfix3_info",
+    "serverfix_acllog",
+    "serverfix_config",
+    "serverfix_hello",
+    "serverfix_hll",
+    "serverfix_lines",
+    "serverfix_scalar",
+    "serverfix_slowlog",
+    "serverfix_waitaof",
+    "snapfix_bgsave_exec",
+    "trackfix_accounting",
+    "trackfix_order",
+    "tracking_redirect",
+    "txn_group_fused",
+    "txn_group_split",
+    "txnorder-fused-0",
+    "txnorder-fused-1",
+    "txnorder-split-0",
+    "txnorder-split-1",
+    "txnorder2",
+    "txnorder_index",
+    "txnorder_wake",
+    "txnorder_wound",
+    "wave8b_off"
+  ],
+  "archive": "docs/clientcompat/validation/before-subscription-ping-regression.json.gz",
+  "archive_sha256": "e608666f397a4677ef3947d6aa0aca98f99f1eab118da3f85f94ce6dc50328b2",
+  "passed": 75,
+  "failed": 0
+}

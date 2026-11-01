@@ -59,6 +59,10 @@ def main():
         path = args.run / name
         if path.is_file():
             raw[name] = path.read_text()
+    arm_path = args.run / "clientcompat-arm.json"
+    arm = json.loads(arm_path.read_text()) if arm_path.exists() else None
+    if arm is not None:
+        raw[arm_path.name] = arm
     archive = output / (args.label + ".json.gz")
     archive.write_bytes(gzip.compress(json.dumps(raw, separators=(",", ":")).encode(), mtime=0))
     report = dict(run=str(args.run),partial=True,full_gate_receipt=False,
@@ -66,6 +70,8 @@ def main():
                   jobs=jobs,missing=missing,archive=str(archive),
                   archive_sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),
                   passed=sum(job["passed"] for job in jobs),failed=sum(job["failed"] for job in jobs))
+    if arm is not None:
+        report["arm"] = arm
     (output / (args.label + ".json")).write_text(json.dumps(report, indent=2)+"\n")
     print(json.dumps({k:v for k,v in report.items() if k not in ("jobs", "missing")},indent=2))
 

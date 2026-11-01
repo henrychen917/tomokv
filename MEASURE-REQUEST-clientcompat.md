@@ -1,7 +1,7 @@
 ## clientcompat
 
 Implemented on `cx-clientcompat`, PRE `7d2f8a205`, production source through
-`fbbd5ddd76`. No push. All commands are restricted to CPUs 64–79; builds use
+`0606bdb130`. No push. All commands are restricted to CPUs 64–79; builds use
 `-j16`; correctness boots use `LC_ALL=C` and ports 20400–20499. Standard gate
 geometry is 16 shards at 6:2; individual jobs retain their declared overrides.
 No performance benchmark, load generator, or full
@@ -13,15 +13,15 @@ not a full gate claim.
 | Arm | Path | SHA-256 |
 |---|---|---|
 | PRE | `build/clientcompat/PRE/tomokv` | `b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39` |
-| POST | `build/clientcompat/POST/tomokv` | `eb9efefa59d3a5d0e1bf5b9bb73af4984f6cda0b11cb03681c777b16026ba884` |
-| PAD-A | `build/clientcompat/PAD-A/tomokv` | `f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c` |
+| POST | `build/clientcompat/POST/tomokv` | `e0b3b2efd2d44a0da115ad5a468d3bb813ebeecf4cfb4c1e72bb690831cc23d7` |
+| PAD-A | `build/clientcompat/PAD-A/tomokv` | `40f767c28218795c75ae6c404c9b493cd0b45105694b448d73f7cd52599e65d9` |
 
 PAD is kind **A, behavior twin**: PRE compatibility behavior with POST's exact
 ELF section sizes/addresses and symbol table. `tools/clientcompat_pad.py`
 changes the two cold namespace selectors to false, changing four bytes total.
 It restores PRE pause exceptions, delayed INFO count, queue-time tracking,
 MULTI control refusals and immediate TRACKING ON acknowledgement. No ordinary
-GET/SET/INCR/MGET/MSET path calls the selector. POST and PAD have 8,864,375 bytes
+GET/SET/INCR/MGET/MSET path calls the selector. POST and PAD have 8,864,583 bytes
 of `.text`; `docs/clientcompat/pad.json` proves their section/symbol equality.
 This is not an inverse control. Debug-only reductions of unrelated unit
 executables preserve all allocated sections; the three sealed arms are intact.
@@ -82,6 +82,9 @@ Raw JSON, oracle assertions and SHA-256s are in
   appropriate. IO subscription effects complete in order using the parent's
   ROB slot, including SUBSCRIBE;PUBLISH;UNSUBSCRIBE and RESP2/RESP3 framing.
   SSUBSCRIBE queues, then yields Redis's exact DENY BLOCKING child error.
+  PING formatting also follows the subscription state at its own child:
+  RESP2 switches to the pubsub `pong` array after SUBSCRIBE and back to an
+  ordinary reply after the final UNSUBSCRIBE; RESP3 keeps ordinary PING replies.
 * **Enable race:** TRACKING ON waits for existing owner configuration mailboxes
   to acknowledge the notification configuration before replying +OK. The
   acknowledgement occupies padding in the 960-byte mailbox; no Server array
@@ -138,7 +141,7 @@ Representative normal-namespace 2s, atomic 1, batch 1:
 | MSET | 16690 | 16679 | 22721 | 22721 |
 
 `docs/clientcompat/command-totals.csv` contains every arm/cell, and
-`command-sites.csv` attributes all 840 changed symbol rows. The ordinary read
+`command-sites.csv` attributes all 808 changed symbol rows. The ordinary read
 handler is unchanged. Registry PreserveCaching metadata replaces a repeated
 CLIENT name comparison; writes consume CACHING and return before the irrelevant
 BCAST lookup. Cold EXEC code is isolated in clientcompat.cc. The Makefile pins
@@ -158,6 +161,14 @@ and tracking control paths. `instruction-summary.json` ties both products to
 the sealed server SHA-256s; retained build recipes reproduce the probes.
 
 ### Correctness validation
+
+**Refresh in progress after the subscription/PING correction.** The stronger
+multi-controls witness failed on all 32 preceding POST geometries, passed on
+the Redis oracle, and now passes all 32 corrected POST geometries. The final
+160/128 instruction census is complete and satisfies the ordinary-command
+bound. Earlier full validation below used `fbbd5ddd76`; those receipts are
+archived under `history/before-subscription-ping.*` and will be replaced by
+completed checks of `0606bdb130` before delivery.
 
 All results in this paragraph use the sealed POST SHA above. The five new
 witness jobs pass **160/160 candidate legs and every oracle leg**. PAD-A fails

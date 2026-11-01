@@ -39,14 +39,17 @@ def check_at412_product(run):
 
 
 def main():
+    post_sha = hashlib.sha256(Path("build/clientcompat/POST/tomokv").read_bytes()).hexdigest()
+    pad_sha = hashlib.sha256(Path("build/clientcompat/PAD-A/tomokv").read_bytes()).hexdigest()
     chosen = {}
     history = []
     sources = []
     # Every winning job uses the final binary, including the separately
     # completed full FLUSH-order job. Preserve earlier failures separately.
-    for name in ("regression-final", "ack-trackorder", "final-witnesses", "final-core-units"):
+    for name in ("regression-final", "final-witnesses"):
         receipt = read(name)
         assert receipt["complete"] and not receipt["full_gate_receipt"], name
+        assert receipt["arm"]["sha256"] == post_sha, name
         archive = Path(receipt["archive"])
         assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["archive_sha256"]
         sources.append(dict(receipt=name, archive_sha256=receipt["archive_sha256"]))
@@ -64,11 +67,21 @@ def main():
     assert not expected - chosen.keys(), sorted(expected - chosen.keys())
     assert all(j["exit"] == j["failed"] == 0 for j in chosen.values())
     assert sum(j["failed"] for j in history) == 6, history
+    for job in read("subscription-ping-before")["jobs"]:
+        if job["failed"]:
+            assert job["job"] == "clientcompat-multi-controls" and job["failed"] == 1
+            history.append(dict(receipt="subscription-ping-before", **job))
+    assert sum(j["failed"] for j in history) == 7
+    interrupted = [dict(receipt="before-subscription-ping-epoll", **job)
+                   for job in read("before-subscription-ping-epoll")["jobs"] if job["failed"]]
+    assert len(interrupted) == 1 and interrupted[0]["job"] == "differ-armed-1"
+    assert interrupted[0]["failed"] == 2
 
     differential = []
     for engine in ("uring", "epoll"):
         receipt = read("differential-" + engine)
         assert receipt["complete"] and receipt["failed"] == 0
+        assert receipt["arm"]["sha256"] == post_sha and receipt["arm"]["engine"] == engine
         parts = []
         for part, comparisons in (("split-0", 235), ("split-1", 239),
                                   ("armed-0", 230), ("armed-1", 234), ("equivalence", 16)):
@@ -95,8 +108,6 @@ def main():
     instruction = json.loads((DOC / "instruction-summary.json").read_text())
     assert instruction["commands"]["rows"] == 160 and instruction["commands"]["higher"] == 0
     assert instruction["sessions"]["rows"] == 128
-    post_sha = hashlib.sha256(Path("build/clientcompat/POST/tomokv").read_bytes()).hexdigest()
-    pad_sha = hashlib.sha256(Path("build/clientcompat/PAD-A/tomokv").read_bytes()).hexdigest()
     assert instruction["commands"]["post_server_sha256"] == post_sha
     assert instruction["sessions"]["post_server_sha256"] == post_sha
     witnesses = json.loads((DOC / "witnesses/summary.json").read_text())
@@ -122,7 +133,8 @@ def main():
                    requested_jobs=len(expected), completed_jobs=len(chosen),
                    passed_rows=sum(j["passed"] for j in chosen.values()), failed_rows=0,
                    jobs=[chosen[k] for k in sorted(chosen)],
-                   superseded_failures=history, differential=differential,
+                   superseded_failures=history, interrupted_for_correction=interrupted,
+                   differential=differential,
                    freshness_checks=len(fresh), instructions=instruction,
                    post_sha256=post_sha, pad_sha256=pad_sha, gates_tests=83,
                    tcl_runs=78, tcl_promotions=6, at412_legs=423)

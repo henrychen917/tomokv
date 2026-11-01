@@ -9,6 +9,7 @@ import subprocess
 
 
 DOC = Path("docs/clientcompat")
+SOURCE_COMMIT = os.environ.get("CLIENTCOMPAT_SOURCE_COMMIT", "0606bdb130")
 
 
 def allocated(data):
@@ -45,7 +46,7 @@ def trim_units():
             records.append(dict(path=str(path), before_sha256=hashlib.sha256(before).hexdigest(),
                                 after_sha256=hashlib.sha256(after).hexdigest(),
                                 before_bytes=len(before), after_bytes=len(after),
-                                allocated_sections_identical=True, trim_revision="fbbd5ddd76"))
+                                allocated_sections_identical=True, trim_revision=SOURCE_COMMIT))
     receipt.write_text(json.dumps(records, indent=2) + "\n")
 
 
@@ -89,7 +90,7 @@ def main():
         with log.open("w") as output:
             result = subprocess.run(command, stdout=output, stderr=subprocess.STDOUT)
         records.append(dict(command=command, exit=result.returncode, log=str(log),
-                            source_commit="fbbd5ddd76"))
+                            source_commit=SOURCE_COMMIT))
         receipt.write_text(json.dumps(records, indent=2) + "\n")
         print(index, result.returncode, command[-1], flush=True)
         assert result.returncode == 0, log
