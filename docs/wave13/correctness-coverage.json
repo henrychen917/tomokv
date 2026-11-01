@@ -265,6 +265,7 @@
       "passed": true,
       "receipts": [
         "landing-epoll",
+        "landing-fused-uring",
         "landing-primary"
       ]
     },
@@ -1616,8 +1617,10 @@
     {
       "job": "aof-epoll",
       "mode": "1s",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "aof-epoll",
@@ -1630,8 +1633,10 @@
     {
       "job": "aof-uring",
       "mode": "1s",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "aof-uring",
@@ -1644,8 +1649,10 @@
     {
       "job": "snapshot-epoll",
       "mode": "1s",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "snapshot-epoll",
@@ -1658,8 +1665,10 @@
     {
       "job": "snapshot-uring",
       "mode": "1s",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "snapshot-uring",
@@ -1674,6 +1683,7 @@
       "engine": "uring",
       "passed": true,
       "receipts": [
+        "landing-footprints-uring",
         "landing-primary"
       ]
     },
@@ -1682,7 +1692,8 @@
       "engine": "epoll",
       "passed": true,
       "receipts": [
-        "landing-epoll"
+        "landing-epoll",
+        "landing-footprints-epoll"
       ]
     },
     {
@@ -1690,6 +1701,7 @@
       "engine": "uring",
       "passed": true,
       "receipts": [
+        "landing-footprints-uring",
         "landing-primary"
       ]
     },
@@ -1698,7 +1710,8 @@
       "engine": "epoll",
       "passed": true,
       "receipts": [
-        "landing-epoll"
+        "landing-epoll",
+        "landing-footprints-epoll"
       ]
     },
     {
@@ -1706,6 +1719,7 @@
       "engine": "uring",
       "passed": true,
       "receipts": [
+        "landing-footprints-uring",
         "landing-primary"
       ]
     },
@@ -1714,7 +1728,8 @@
       "engine": "epoll",
       "passed": true,
       "receipts": [
-        "landing-epoll"
+        "landing-epoll",
+        "landing-footprints-epoll"
       ]
     },
     {
@@ -1722,6 +1737,7 @@
       "engine": "uring",
       "passed": true,
       "receipts": [
+        "landing-footprints-uring",
         "landing-primary"
       ]
     },
@@ -1730,7 +1746,8 @@
       "engine": "epoll",
       "passed": true,
       "receipts": [
-        "landing-epoll"
+        "landing-epoll",
+        "landing-footprints-epoll"
       ]
     },
     {
@@ -2295,8 +2312,10 @@
       "job": "debug-0",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "debug-0",
@@ -2327,8 +2346,10 @@
       "job": "debug-1",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "debug-1",
@@ -2360,8 +2381,10 @@
       "mode": "1s",
       "engine": "uring",
       "atomic": "1",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "script_bounds",
@@ -2395,8 +2418,10 @@
       "job": "notify",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "notify",
@@ -2427,8 +2452,10 @@
       "job": "asan_batteries",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "asan_batteries",
@@ -2459,8 +2486,10 @@
       "job": "atomic_batteries",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "atomic_batteries",
@@ -2491,8 +2520,10 @@
       "job": "release_batteries",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "release_batteries",
@@ -2523,8 +2554,10 @@
       "job": "dump_restore",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "dump_restore",
@@ -2555,8 +2588,10 @@
       "job": "sort",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "sort",
@@ -2587,8 +2622,10 @@
       "job": "auth",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "auth",
@@ -2619,8 +2656,10 @@
       "job": "aof_frame",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "aof_frame",
@@ -2651,8 +2690,10 @@
       "job": "replyoff",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "replyoff",
@@ -2683,8 +2724,10 @@
       "job": "zc",
       "mode": "1s",
       "engine": "uring",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-fused-uring"
+      ]
     },
     {
       "job": "zc",
@@ -2716,8 +2759,10 @@
       "mode": "1s",
       "engine": "uring",
       "atomic": "0",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-script0-uring-1"
+      ]
     },
     {
       "job": "script_bounds",
@@ -2732,8 +2777,10 @@
       "mode": "2s",
       "engine": "uring",
       "atomic": "0",
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-script0-uring-0"
+      ]
     },
     {
       "job": "script_bounds",
@@ -2747,29 +2794,37 @@
       "job": "feature-split-0",
       "engine": "uring",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-uring"
+      ]
     },
     {
       "job": "feature-split-1",
       "engine": "uring",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-uring"
+      ]
     },
     {
       "job": "feature-armed-0",
       "engine": "uring",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-uring"
+      ]
     },
     {
       "job": "feature-armed-1",
       "engine": "uring",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-uring"
+      ]
     },
     {
       "job": "differ-split-0",
@@ -2805,29 +2860,37 @@
       "job": "feature-split-0",
       "engine": "epoll",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-epoll"
+      ]
     },
     {
       "job": "feature-split-1",
       "engine": "epoll",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-epoll"
+      ]
     },
     {
       "job": "feature-armed-0",
       "engine": "epoll",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-epoll"
+      ]
     },
     {
       "job": "feature-armed-1",
       "engine": "epoll",
       "release_footprints": true,
-      "passed": false,
-      "receipts": []
+      "passed": true,
+      "receipts": [
+        "landing-footprints-epoll"
+      ]
     },
     {
       "job": "differ-split-0",
@@ -2885,7 +2948,7 @@
     }
   ],
   "required_geometries": 392,
-  "satisfied_geometries": 334,
+  "satisfied_geometries": 361,
   "registry_jobs": 288,
   "completed_registry_jobs": 275,
   "missing_required_registry_jobs": [
@@ -2997,8 +3060,8 @@
     "acl_recheck": "landing-epoll",
     "acl_subcommands": "landing-primary",
     "aclfix": "landing-primary",
-    "aof-epoll": "landing-primary",
-    "aof-uring": "landing-primary",
+    "aof-epoll": "landing-fused-uring",
+    "aof-uring": "landing-fused-uring",
     "aof_frame": "landing-epoll",
     "aoforder": "landing-primary",
     "asan": "landing-epoll",
@@ -3237,8 +3300,8 @@
     "snapfix_bgsave_exec": "landing-primary",
     "snapfix_bgsave_script": "landing-primary",
     "snapfix_shutdown": "landing-primary",
-    "snapshot-epoll": "landing-primary",
-    "snapshot-uring": "landing-primary",
+    "snapshot-epoll": "landing-fused-uring",
+    "snapshot-uring": "landing-fused-uring",
     "sort": "landing-epoll",
     "source_identity": "landing-primary",
     "splitlocal_units": "landing-primary",
@@ -3351,7 +3414,96 @@
       "quick": false
     }
   ],
-  "release_stream_memory_bounds": [],
+  "release_stream_memory_bounds": [
+    {
+      "run": "landing-footprints-epoll",
+      "job": "feature-armed-0",
+      "engine": "epoll",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    {
+      "run": "landing-footprints-epoll",
+      "job": "feature-armed-1",
+      "engine": "epoll",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    {
+      "run": "landing-footprints-epoll",
+      "job": "feature-split-0",
+      "engine": "epoll",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    {
+      "run": "landing-footprints-epoll",
+      "job": "feature-split-1",
+      "engine": "epoll",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    {
+      "run": "landing-footprints-uring",
+      "job": "feature-armed-0",
+      "engine": "uring",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    {
+      "run": "landing-footprints-uring",
+      "job": "feature-armed-1",
+      "engine": "uring",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    {
+      "run": "landing-footprints-uring",
+      "job": "feature-split-0",
+      "engine": "uring",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    {
+      "run": "landing-footprints-uring",
+      "job": "feature-split-1",
+      "engine": "uring",
+      "passed": true,
+      "assertions": [
+        "  ok   sustained exact trim reaches a memory plateau first=2167 second=2167 after-del=0 baseline=0",
+        "  ok   one-entry memory floor tracks ~140B design (well below 4.4KiB) measured=128.0B/key audit-kvobj~=140B",
+        "  ok   growth across the embedded->macro boundary stays amortized-linear usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    }
+  ],
   "failed_attempts": [
     {
       "run": "landing-abba-selftest-final",

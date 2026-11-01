@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=aof_frame asan_batteries atomic_batteries auth debug-0 debug-1 dump_restore notify release_batteries replyoff script_bounds sort zc; NOT A RECEIPT
