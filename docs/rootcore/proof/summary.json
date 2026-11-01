@@ -19,6 +19,7 @@
     ],
     "missing_jobs": [],
     "differential": {},
-    "archive_sha256": "a7d729010946d21c142a4e4ca11faf69f37f05e009b75e9b7037a746e3161dde"
+    "declared_omissions": {},
+    "archive_sha256": "a67119cf0624a39b6b42bbbd5845c5978167cacc2614c76d8ff302751a4404bf"
   }
 ]

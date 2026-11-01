@@ -28,18 +28,26 @@ for receipt in sorted(source.glob('*.json')):
     assert all(row[0] in ('PARTIAL', 'ok', 'FAIL') for row in rows), ledger
     jobs = {}
     differential = {}
+    omissions = {}
     for directory in sorted((run / 'jobs').iterdir()):
         done = directory / 'done'
         jobs[directory.name] = dict(
             done=done.read_text().strip() if done.exists() else None,
             ledger=(directory / 'ledger').read_text() if (directory / 'ledger').exists() else '')
+        output_path = directory / 'output.log'
+        output = output_path.read_text(errors='replace') if output_path.exists() else ''
+        omitted = [line for line in output.splitlines()
+                   if re.search(r'\b(?:SKIP|NOT RUN|UNAVAILABLE)\b', line)]
+        if omitted:
+            omissions[directory.name] = omitted
         if directory.name.startswith('differ-'):
-            output = (directory / 'output.log').read_text(errors='replace')
             differential[directory.name] = [line for line in output.splitlines()
                 if line.startswith(('DIFFER GATE:', 'DIFFER COMMAND COVERAGE:'))]
     selected = []
     for path in sorted(run.rglob('*')):
-        if path.is_file() and (path.suffix in ('.log', '.txt', '.json', '.tsv', '.timings')
+        if path.is_file() and (path.suffix in ('.log', '.txt', '.json', '.tsv', '.timings',
+                                              '.csv', '.conf', '.acl', '.manifest', '.resp')
+                or path.name.startswith('gate-srv-')
                 or path.name in ('ledger', 'done', 'ledger.partial', 'plan.sh')):
             selected.append(path)
     archive = out / (receipt.stem + '.tar.gz')
@@ -54,6 +62,7 @@ for receipt in sorted(source.glob('*.json')):
         notices=[row[2] for row in rows if row[0] == 'PARTIAL'],
         missing_jobs=[name for name in meta['jobs'] if not jobs.get(name, {}).get('done')],
         differential=differential,
+        declared_omissions=omissions,
         differential_plan=json.loads((run / 'differ-plan.json').read_text())
             if (run / 'differ-plan.json').exists() else None,
         jobs=jobs, archive_sha256=archive_sha,

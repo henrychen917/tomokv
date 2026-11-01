@@ -79,6 +79,13 @@ Items 6–8 remain assigned to blockfix4. No blocking wake mechanism is changed.
 The two edits in `blocking.inc` only supply the originating client ID to AOF
 receipt contexts. No PS4.4 format change or other lane's assigned fix is included.
 
+The existing `aoffix2 manifest-missing` check now searches both the live AOF
+directory and quarantine for each saved segment's exact SHA-256. Its former
+same-path assumption rejected the requested quarantine policy. Every original
+segment must still be present byte-for-byte; accepting boot or refusal and the
+number of gate rows are unchanged. This test-only update is `bd2eeac850` and
+preceded both selected AOF jobs in the final broader proof.
+
 The final PRE inbox controls also exercise the hard assertion: client, transfer,
 task, fused and quiet+flush abort on attempts 1860, 80, 260, 27 and 3139,
 respectively. Their separate 200,000-attempt counting runs see 39, 260, 825, 229
@@ -257,6 +264,12 @@ path must retain zero added instructions. This requires a mutation-to-journal
 contract across handlers/stores that this baseline does not expose. It is
 **STOPPED under the algorithm freeze** rather than adding per-command heuristics.
 The new strict check remains in the default row; item 11 is not declared closed.
+
+The existing `WatchEffectScope` is only a partial candidate for that contract:
+`watch_notification_mutates()` deliberately excludes stream group/PEL metadata,
+which AOF must persist. WATCH reporting also depends on the notifying handler
+path. Reusing its boolean alone would miss real persistent changes; any reuse
+must preserve WATCH's different semantics while covering all AOF mutation paths.
 
 ### Item 10 — STOP under the algorithm freeze
 
