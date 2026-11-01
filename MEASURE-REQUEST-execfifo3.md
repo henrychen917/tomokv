@@ -64,10 +64,20 @@ Final evidence so far:
   instruction/data **L2** misses; the [PMU audit](docs/execfifo3/pmu-audit/README.md)
   records the mapping and availability failures. Available remote-cache-fill
   and exclusive-request events are coherence proxies, not dirty-HITM counts.
-* **160/160 F1–F10 legs**, **12/12 deliberate break controls**, and **16/16
-  common-image smoke cells** passed. The broader selected-job matrix is running.
-* `python3 tests/gates_test.py` passed on a quiet rerun with its deadlines
-  unchanged. The initial scheduler-fixture timeout and all artifacts are retained.
+* **160/160 F1–F10 legs**, **16/16 C1 legs**, and **423/423 AT4.12 legs**
+  passed. All **16/16 live FIFO fairness legs** ran for the full 60 seconds:
+  every one-second window contains progress from all 68 clients, final data
+  match exactly, and FIFO-wait counters are positive. The broader selected-job
+  matrix is running.
+* **12/12 deliberate break controls** detected their intended assertion, and
+  **16/16 common-image smoke cells** passed EXEC, WATCH, EVAL and FCALL checks.
+* Both standard Redis differential matrices passed **938/938 suite legs**
+  each, plus **16/16 mode-equivalence cells** per engine. Permanent seeds are
+  7/19/20/23; the rotating seeds were 21 for io_uring and 22 for epoll.
+  Each matrix includes all four additional MULTI replays in both atomic=1 arms.
+* `python3 tests/gates_test.py` passed every test group on a quiet rerun,
+  including the final **76/76** group, with deadlines unchanged. The initial
+  scheduler-fixture timeout and all artifacts are retained.
 * `make all`, the complete `job_production_units` build, and **60/60 make -q
   freshness queries** passed. Debug-only unit compression preserves `.text`;
   the five aggregate stamps affected by changed mtimes were rebuilt and rechecked.

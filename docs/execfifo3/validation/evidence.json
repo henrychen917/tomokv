@@ -3336,5 +3336,87 @@
         "evidence": "docs/execfifo3/validation/32-broad-epoll/txn_group_split"
       }
     ]
+  },
+  {
+    "group": "differ-epoll",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "differ-split differ-armed",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/differ-epoll-1793516012786916205.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.0JvJOR",
+    "jobs_evidence": [
+      {
+        "name": "differ-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.0JvJOR/jobs/differ-armed-0",
+        "evidence": "docs/execfifo3/validation/33-differ-epoll/differ-armed-0"
+      },
+      {
+        "name": "differ-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.0JvJOR/jobs/differ-armed-1",
+        "evidence": "docs/execfifo3/validation/33-differ-epoll/differ-armed-1"
+      },
+      {
+        "name": "differ-equivalence",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.0JvJOR/jobs/differ-equivalence",
+        "evidence": "docs/execfifo3/validation/33-differ-epoll/differ-equivalence"
+      },
+      {
+        "name": "differ-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.0JvJOR/jobs/differ-split-0",
+        "evidence": "docs/execfifo3/validation/33-differ-epoll/differ-split-0"
+      },
+      {
+        "name": "differ-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.0JvJOR/jobs/differ-split-1",
+        "evidence": "docs/execfifo3/validation/33-differ-epoll/differ-split-1"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.0JvJOR/jobs/release",
+        "evidence": "docs/execfifo3/validation/33-differ-epoll/release"
+      }
+    ]
   }
 ]

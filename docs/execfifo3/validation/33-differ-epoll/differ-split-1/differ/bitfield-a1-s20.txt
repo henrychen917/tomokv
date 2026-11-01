@@ -1,0 +1,1 @@
+DIFFER bitfield: 3226 ops, 0 diffs, 1 deadline-bounded TTL checks -> PASS
