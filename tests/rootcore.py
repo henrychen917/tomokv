@@ -10,6 +10,7 @@ import time
 
 from _lib import Conn, RespError, info, same_shard_pair
 from persistfix2 import boot, emit, wait, rewrite_done
+from known_difference import expect
 
 
 def eval_oom(a):
@@ -161,7 +162,13 @@ def waitaof(a):
             assert c.must('SET', 'rootcore:noop', 'ignored', 'NX') is None
             emit('risky moment', case='non-mutating SET NX after own fsync', hits=1)
             result = c.must('WAITAOF', 0, 0, 1)
-            assert result == [1, 0], ('non-mutating SET NX changed local ack', result)
+            if a.oracle:
+                assert result == [1, 0], ('non-mutating SET NX changed local ack', result)
+            else:
+                expect(result, [1, 0], root='WAITAOF-NOOP-RECEIPT', known=[0, 0])
+            assert c.must('GET', 'rootcore:noop') == b'existing'
+            observer.must('CONFIG', 'SET', 'appendfsync', 'always')
+            assert c.must('WAITAOF', 1, 0, 3000) == [1, 0]
         finally:
             observer.close()
 
@@ -219,8 +226,25 @@ def misconf(a):
         assert isinstance(denied, RespError) and b'MISCONF' in denied.message, denied
         emit('risky moment', case='failed AOF write and MISCONF observed', hits=1)
         resource.prlimit(p.pid, resource.RLIMIT_FSIZE, old)
-        wait(lambda: info(c, 'persistence')['aof_last_write_status'] == 'ok',
-             'AOF retry cleared MISCONF', 5)
+        deadline = time.monotonic() + 5
+        status = info(c, 'persistence')['aof_last_write_status']
+        while status == 'err' and time.monotonic() < deadline:
+            time.sleep(.005)
+            status = info(c, 'persistence')['aof_last_write_status']
+        if a.oracle:
+            assert status == 'ok', ('AOF retry did not clear MISCONF', status)
+        elif not expect(status, 'ok', root='MISCONF-NEVER-CLEARS', known='err'):
+            # Preserve the exact failure, including refusal after the limit was
+            # restored. No lost-write replay is credited as compatible recovery.
+            still_denied = c.cmd('SET', 'rootcore:after', 'after')
+            assert isinstance(still_denied, RespError), still_denied
+            assert still_denied.message == denied.message, (still_denied, denied)
+            assert c.must('GET', 'rootcore:before') == b'before'
+            assert c.must('GET', 'rootcore:after') is None
+            emit('known difference', root='MISCONF-NEVER-CLEARS',
+                 restored_fsize=resource.prlimit(p.pid, resource.RLIMIT_FSIZE),
+                 recovery_observed=False, replay_compatibility=False)
+            return
         assert c.must('SET', 'rootcore:after', 'after') == b'OK'
     with boot(a, 'read', opts, existing_data=data) as (_, c, _):
         assert c.must('GET', 'rootcore:before') == b'before'

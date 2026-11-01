@@ -99,9 +99,8 @@ def main(feature, battery, *, multi=False, flags=()):
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     failures = []
-    # The dedicated locale-default witness must retain its non-C environment;
-    # all other batteries use the gate's required C boot environment.
-    boot_locale = 'en_US.UTF-8' if feature == 'CD4.6' else 'C'
+    # CD4.6 arms non-C collation with CONFIG, like every other C-locale boot.
+    boot_locale = 'C'
     legs = [('oracle', '2s', 0, 0)] if args.oracle_only else [
         (engine, mode, local, atomic)
         for engine in ('epoll', 'uring') for mode, local in (('2s', 0), ('1s', 0), ('1s', 1))
