@@ -1,0 +1,16 @@
+post-normal-GET-2s-1-1--1 1556
+post-normal-GET-1s-1-1--1 936
+post-normal-GET-1s-32-1--1 18482
+post-normal-GET-2s-32-1--1 18327
+post-normal-SET-1s-1-1--1 1060
+post-normal-SET-2s-1-1--1 1680
+post-normal-SET-1s-32-1--1 22450
+post-normal-INCR-1s-1-1--1 1513
+post-normal-INCR-2s-1-1--1 2133
+post-normal-SET-2s-32-1--1 22295
+post-normal-MGET-1s-1-1--1 10192
+post-normal-INCR-1s-32-1--1 37475
+post-normal-INCR-2s-32-1--1 37320
+post-normal-MGET-2s-1-1--1 10192
+post-normal-MSET-1s-1-0--1 10700
+post-normal-MSET-1s-1-1--1 16959

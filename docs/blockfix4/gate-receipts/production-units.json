@@ -1,0 +1,56 @@
+{
+  "label": "production-units",
+  "source": "/home/user/Projects/cx-blockfix4/build/gate-run.HD2gCU",
+  "archive": "/home/user/Projects/cx-blockfix4/docs/blockfix4/gate-receipts/production-units.tar.gz",
+  "archive_sha256": "d49c54f1e1d2ea1bcc379f048a5afef7cbfe5468df89aa6428c6308f5e680844",
+  "files": [
+    {
+      "path": "phases.tsv",
+      "size": 27,
+      "sha256": "4c4b37e3bf3dffc228bf8974ab67a46765604f866c48c122851885aadd8658bf"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1178,
+      "sha256": "7a648d857546d9535b0d9daf0c6e54d1c5d9c1598f8ee5b833823224a6c7ca3c"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 3430,
+      "sha256": "91236dec7e5147f75923b5a8b76b20ad5c99ca8690f2592fea83db94095c0f5f"
+    }
+  ],
+  "jobs": [],
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "push",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20290-20299",
+    "--candidate-binary",
+    "/home/user/Projects/cx-blockfix4/build/tomokv"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "production_units",
+    "GATE_LEDGER": "/home/user/Projects/cx-blockfix4/docs/blockfix4/gate-receipts/production-units"
+  },
+  "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+  "exit_code": 2
+}

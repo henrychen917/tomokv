@@ -1,0 +1,1973 @@
+{
+  "label": "post-extended-uring",
+  "source": "/home/user/Projects/cx-blockfix4/build/gate-run.T0KXDB",
+  "archive": "/home/user/Projects/cx-blockfix4/docs/blockfix4/gate-receipts/post-extended-uring.tar.gz",
+  "archive_sha256": "5d08eed3451b93644780791f5e28da28fcde2a6975c0434c145e06752cec7f9c",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 106,
+      "sha256": "724c16e34bd872dce9fd6f7c91f4589d67c2ed760a45ee5444a73f7633619d66"
+    },
+    {
+      "path": "jobs/blockfix4/creators/redis-2s-0-0-0/logs/item4-redis-redis-7.4.10_oracle-random-20261101-112659.jsonl",
+      "size": 13006,
+      "sha256": "c44b263733002ba82e8f8b7e35e4ac58dff5419ab80e5c1bb44b21debf66cefb"
+    },
+    {
+      "path": "jobs/blockfix4/creators/redis-2s-0-0-0/run/item4-redis-20261101-112659-4163352/server.log",
+      "size": 1203,
+      "sha256": "4a60127607de858117524b50a50097c13517c4c40351233227cb204cf696ea5c"
+    },
+    {
+      "path": "jobs/blockfix4/creators/redis-2s-0-0-0/stdout.log",
+      "size": 1687,
+      "sha256": "9679b97e7c179d39e845dc852ea0f586070b979be47b15d690aa87c9552af4bc"
+    },
+    {
+      "path": "jobs/blockfix4/creators/results.json",
+      "size": 88548,
+      "sha256": "6604996c8c6d86101713c1417c99b7c84c2c9b58de9e32e0d7e96285b25fb98d"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-0-10/logs/item4-tomokv-1s_fused8_shards16_rl0_a0-cross-owner-20261101-112702.jsonl",
+      "size": 13915,
+      "sha256": "7a27e932f6856dacf5f018493f0448e09923115271ce033d780dfce6c92834b8"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-0-10/run/item4-tomokv-20261101-112702-4163580/server.log",
+      "size": 10761,
+      "sha256": "260ff352240ffec12b4c36420c1c6de73b7608ec927b019c950c4dd87686e361"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-0-10/stdout.log",
+      "size": 1845,
+      "sha256": "2820056b7498ba7b971b09286e2d113ea6fe1d593ba5e44948047f43ce09a7d2"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-0-9/logs/item4-tomokv-1s_fused8_shards16_rl0_a0-same-shard-20261101-112701.jsonl",
+      "size": 13946,
+      "sha256": "d2a84192f7acebde5d9bbcaeb3b64b0db270349484e3c82101a4522de32256cd"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-0-9/run/item4-tomokv-20261101-112701-4163567/server.log",
+      "size": 10750,
+      "sha256": "7bd57b3d61249b4bcfdcf5a454f83f9cb0962b6f0139a9d7ffd50608a483c27f"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-0-9/stdout.log",
+      "size": 1842,
+      "sha256": "9c9c7c1d2eb5d59c53688f938747fbcfa49b1988e89f9f441899f6a03290333b"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-1-11/logs/item4-tomokv-1s_fused8_shards16_rl0_a1-same-shard-20261101-112702.jsonl",
+      "size": 13944,
+      "sha256": "834a2afd3d709480b2ac106d05fc317e1dd1405ffa944686c6b422c0ed5def31"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-1-11/run/item4-tomokv-20261101-112702-4163612/server.log",
+      "size": 10745,
+      "sha256": "fc12ed7460773d52f1a8eeb4e273861affc1dbba97ecdf5395e8644596c4d85f"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-1-11/stdout.log",
+      "size": 1843,
+      "sha256": "8ae8a713c66eac9d592ace001de129af5457cd22c9dd6c1663371b767f7845aa"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-1-12/logs/item4-tomokv-1s_fused8_shards16_rl0_a1-cross-owner-20261101-112702.jsonl",
+      "size": 13910,
+      "sha256": "4d14823909596ee8691c8f0a1d6b3ba70bbb08845c9ee7cee95127dc9ec69dc9"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-1-12/run/item4-tomokv-20261101-112702-4163642/server.log",
+      "size": 10755,
+      "sha256": "c3f00e31a46a15c31855865bfd061cc65d3b45510ff13a759ad4ce459e334c1c"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-0-1-12/stdout.log",
+      "size": 1845,
+      "sha256": "ed650180048efc1559d8ef832a636631334b424f2d69a176c567ff81991dc36a"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-0-13/logs/item4-tomokv-1s_fused8_shards16_rl1_a0-same-shard-20261101-112703.jsonl",
+      "size": 13938,
+      "sha256": "0d44a6e7c36ea4e1f0041d2f18941331dfd6ddfe6c0560145fdc9141d87f356f"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-0-13/run/item4-tomokv-20261101-112703-4163660/server.log",
+      "size": 10752,
+      "sha256": "85f2543f66e9a84a5e731da6c90b45320bb69284e5d81db8d54b29709cca0e6d"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-0-13/stdout.log",
+      "size": 1843,
+      "sha256": "46067606142c2e96c153dd6dab71587add4c06454e7c79f023b59d133d862508"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-0-14/logs/item4-tomokv-1s_fused8_shards16_rl1_a0-cross-owner-20261101-112703.jsonl",
+      "size": 13910,
+      "sha256": "5a124f1d63d91411a65b16f85f10f573fc1f56957307c8cd52fdddd9cfe4cd5b"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-0-14/run/item4-tomokv-20261101-112703-4163680/server.log",
+      "size": 10762,
+      "sha256": "24b0f9c4d23cf32a8f43afb8c6f110a9c5189a8112e6cd86b9f0f94a6161d4a9"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-0-14/stdout.log",
+      "size": 1845,
+      "sha256": "28377bb2780a2ac9ee955cad83859b83c83c41679561e127a83a73d72acac646"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-1-15/logs/item4-tomokv-1s_fused8_shards16_rl1_a1-same-shard-20261101-112703.jsonl",
+      "size": 13930,
+      "sha256": "a9191ef68a62c243cf0eefa48d2ff7a3800d3dc26dc4a7b2b7e9f5f8b6d6b957"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-1-15/run/item4-tomokv-20261101-112703-4163720/server.log",
+      "size": 10745,
+      "sha256": "4a8598e6c4a83d762355902e5c0a575179dcdd27be8017fd0cf708ff5026a07d"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-1-15/stdout.log",
+      "size": 1843,
+      "sha256": "975c0e2073ac96d44f64aae880add438effcb431a38da1262281418bde3492b0"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-1-16/logs/item4-tomokv-1s_fused8_shards16_rl1_a1-cross-owner-20261101-112704.jsonl",
+      "size": 13912,
+      "sha256": "0b7311156f71e03fb6dde3a214514e1e1a0ffa006693891a5118514c71b8f49e"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-1-16/run/item4-tomokv-20261101-112704-4163753/server.log",
+      "size": 10759,
+      "sha256": "6ecf822c3e131f1222df96a00a920f5a606683b71969059cec132b59614474dc"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-1s-1-1-16/stdout.log",
+      "size": 1845,
+      "sha256": "562875d93a0f2f2b37538e34110f41b4cdfd9bbcb851d7591038d783b5fd5737"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-0-1/logs/item4-tomokv-2s_ratio_6-2_shards16_rl0_a0-same-shard-20261101-112659.jsonl",
+      "size": 13920,
+      "sha256": "07376e2bed5765de7b5ed888e54fa57a66d9f8ff07c00e3f5085313dc493cb81"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-0-1/run/item4-tomokv-20261101-112659-4163384/server.log",
+      "size": 9775,
+      "sha256": "7b6a0dc6bc4e128d1f0f1caa0dba7d4b1d5807e02f66b7e5329f24e1d0aa53a5"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-0-1/stdout.log",
+      "size": 1830,
+      "sha256": "a2c02b1c414031999a99afc63bc107159105d209185c62031963fb18a8e147b5"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-0-2/logs/item4-tomokv-2s_ratio_6-2_shards16_rl0_a0-cross-owner-20261101-112659.jsonl",
+      "size": 13896,
+      "sha256": "ae1cf145f7ba8683df9cffecb3cc4d32325be75369f77957fd0a4c394f418300"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-0-2/run/item4-tomokv-20261101-112659-4163399/server.log",
+      "size": 9760,
+      "sha256": "c62c786c1e170beb94ed711a94a23f60a7d154fa6fff036e0dfde408ee9bd6a3"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-0-2/stdout.log",
+      "size": 1832,
+      "sha256": "6ab6ab6989afb2208e4675eb0e1206b2c2568c4af0330a9e5c01402e8b36f7dd"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-1-3/logs/item4-tomokv-2s_ratio_6-2_shards16_rl0_a1-same-shard-20261101-112700.jsonl",
+      "size": 13928,
+      "sha256": "c0234a1dfc7ef5c27cf33242a009afdb6c5bcda16c80ff1857032955fcfbe3b3"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-1-3/run/item4-tomokv-20261101-112700-4163427/server.log",
+      "size": 9767,
+      "sha256": "f6703af7613c1e7bec0a5198dcd7fd50e6d5fff742c9ff6ec47ba16a4078409f"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-1-3/stdout.log",
+      "size": 1830,
+      "sha256": "f4e04e95fe9da11b5afa93be651dafa8e4479df9c7f1b8e1315c321cdd0a1c7d"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-1-4/logs/item4-tomokv-2s_ratio_6-2_shards16_rl0_a1-cross-owner-20261101-112700.jsonl",
+      "size": 13895,
+      "sha256": "7cd78191248af70f415e3cd8ed7520036a10b63107b24b70d89581e8377ef55e"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-1-4/run/item4-tomokv-20261101-112700-4163442/server.log",
+      "size": 9783,
+      "sha256": "4f39f6855074f40a751071f643beb113c777f79b8e08a4a5b0ae528c7675fa5b"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-0-1-4/stdout.log",
+      "size": 1832,
+      "sha256": "dad26c3af16b595d883a3290efab75b0872777e6b5e64384c48d2807c8fd53d2"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-0-5/logs/item4-tomokv-2s_ratio_6-2_shards16_rl1_a0-same-shard-20261101-112700.jsonl",
+      "size": 13928,
+      "sha256": "e3b8301da0bb4dbab6c09c1426c6dffe91d75a733198ffb713f7c27bf7f00f75"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-0-5/run/item4-tomokv-20261101-112700-4163455/server.log",
+      "size": 9881,
+      "sha256": "b5f1cd82684fc08e7575835a1b1d591578810aa8f7d548463f1265ab6ecd3be2"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-0-5/stdout.log",
+      "size": 1830,
+      "sha256": "e7c6ceb0c2e3872dd93d2ff026db9d721e4695fca74713a28bece1b686f3bbba"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-0-6/logs/item4-tomokv-2s_ratio_6-2_shards16_rl1_a0-cross-owner-20261101-112701.jsonl",
+      "size": 13901,
+      "sha256": "60d3d46e2a4144cf133a265e5ae4a180579062710d862ac7d54b97c0fa056880"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-0-6/run/item4-tomokv-20261101-112700-4163497/server.log",
+      "size": 9881,
+      "sha256": "34f5e3c55b0817abba9cf1b952d2bf5f356ac1c20cfb25790761dc8847638cff"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-0-6/stdout.log",
+      "size": 1832,
+      "sha256": "cee425dc048f1c1ea51ef89bff3703c9a89335614ccd7c38a834d9ff669b2e3a"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-1-7/logs/item4-tomokv-2s_ratio_6-2_shards16_rl1_a1-same-shard-20261101-112701.jsonl",
+      "size": 13932,
+      "sha256": "1044ff6d4d370872fdf73ef150f047a4cf98abf2c70079c20a8fde6c2afab927"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-1-7/run/item4-tomokv-20261101-112701-4163535/server.log",
+      "size": 9889,
+      "sha256": "89e873f4e98cfdf4c0e05e7529dbec2a05e6993308ab6dc3e515f59187187bfa"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-1-7/stdout.log",
+      "size": 1830,
+      "sha256": "24416ea890dfe19ca326e80499fc849638ef37d33c311bd8ef88d95376917df0"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-1-8/logs/item4-tomokv-2s_ratio_6-2_shards16_rl1_a1-cross-owner-20261101-112701.jsonl",
+      "size": 13895,
+      "sha256": "5be9157c36e0485e2ae4a02be08c9f95172840fa9f8bebcf41ba5ad6383c099a"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-1-8/run/item4-tomokv-20261101-112701-4163554/server.log",
+      "size": 9880,
+      "sha256": "7b15c1676983df7156c56cba1e479ac00747fc552c8a498032abc9b1b7ebb59f"
+    },
+    {
+      "path": "jobs/blockfix4/creators/tomokv-2s-1-1-8/stdout.log",
+      "size": 1832,
+      "sha256": "7dd8daabc0c2950bb2100652c3d4a8c8d1f4f5abb08ce0d4815bbb3d91248354"
+    },
+    {
+      "path": "jobs/blockfix4/creators/witness.json",
+      "size": 1355,
+      "sha256": "581d0c5901bc91f41bd0a48883f489052bb9b6338f6bf0b517a84e54bd408cf5"
+    },
+    {
+      "path": "jobs/blockfix4/creators.log",
+      "size": 380,
+      "sha256": "1a0d4ea1540a5392ca824292b67364d5c5631fce0293c043d01f11e078d72610"
+    },
+    {
+      "path": "jobs/blockfix4/done",
+      "size": 6,
+      "sha256": "784aabeda96461e514a5c5c1dffa9f824dea005c1a051ccc532e3eb8e5e8a8cb"
+    },
+    {
+      "path": "jobs/blockfix4/family.tsv",
+      "size": 54,
+      "sha256": "4f9ea7478d850e009ea77e36e69bbb0b56a4471a9245e419c519365e6c9ab55d"
+    },
+    {
+      "path": "jobs/blockfix4/ledger",
+      "size": 323,
+      "sha256": "7a98d46c319c0f3ad99c265a23150d7a4774521e261c1b153467153709b77217"
+    },
+    {
+      "path": "jobs/blockfix4/moves/redis-2s-0-0-0/logs/item2-redis-redis-7.4.10_oracle-random-pipelined-20261101-112614.jsonl",
+      "size": 6094,
+      "sha256": "83339155154a88e2efd0c5cf99a64520336e0cf588bdad478e4f78ff2804c50e"
+    },
+    {
+      "path": "jobs/blockfix4/moves/redis-2s-0-0-0/run/item2-redis-20261101-112614-4147935/server.log",
+      "size": 1203,
+      "sha256": "b32b3d7b2c5aacd81f722b08ce84195c208739ebfe6021ffcea455c13bc002cf"
+    },
+    {
+      "path": "jobs/blockfix4/moves/redis-2s-0-0-0/stdout.log",
+      "size": 486,
+      "sha256": "16e6446dfc4103014b142c7db2f42e02c30c3ea4152b53d5e8372681af57e74c"
+    },
+    {
+      "path": "jobs/blockfix4/moves/results.json",
+      "size": 20602,
+      "sha256": "16dc0274272878fbfff8bf8f37c8dcf038a3a5df7a9d237e32c90b2328677f87"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-13/logs/item2-tomokv-1s_fused8_shards16_rl0_a0-same-shard-pipelined-20261101-112637.jsonl",
+      "size": 8113,
+      "sha256": "a4877db700343cb68ee6916a2e7e465a31c3e637d4c9207d1ac3c0cd4b47479a"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-13/run/item2-tomokv-20261101-112636-4155671/server.log",
+      "size": 10809,
+      "sha256": "179f281680386ed7f85afcd420da573862bfd36f899cdfa274c7fbaec86e3d15"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-13/stdout.log",
+      "size": 655,
+      "sha256": "a8627e9cea485c14e05e2086477282225974a5c44702697729f94d6f8ccc42ec"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-14/logs/item2-tomokv-1s_fused8_shards16_rl0_a0-same-owner-pipelined-20261101-112638.jsonl",
+      "size": 8115,
+      "sha256": "1728aac5be03ea0541a4d9f23fbc413df872a0b13aac6b152e122994bf16f1be"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-14/run/item2-tomokv-20261101-112638-4155794/server.log",
+      "size": 10821,
+      "sha256": "2b7e6478b9098038ce0f9a8609929cb6b2aead5965a4905621a1dfdc624210ed"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-14/stdout.log",
+      "size": 655,
+      "sha256": "d5904b4ada9638cb3732c08165f530e1e7cd149fc6739f3ff35cb7f2ec53c9b7"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-15/logs/item2-tomokv-1s_fused8_shards16_rl0_a0-cross-owner-pipelined-20261101-112640.jsonl",
+      "size": 8116,
+      "sha256": "23b9029e7815debced904a2815ad9cb49e1cf46c82217a824d6bc6e4c14a6062"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-15/run/item2-tomokv-20261101-112640-4155879/server.log",
+      "size": 10815,
+      "sha256": "3f8f4deadeb22a52012a837d24b44eadb4963bae6c6dcec224ce6e98e2d0f3fe"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-0-15/stdout.log",
+      "size": 658,
+      "sha256": "1e9d2ca79cab22195127a46648f460cb0f97326e950b31e81ba4238b488f8c10"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-16/logs/item2-tomokv-1s_fused8_shards16_rl0_a1-same-shard-pipelined-20261101-112642.jsonl",
+      "size": 8113,
+      "sha256": "a4f317ddcaa9e726ef7aba0d82082d4e4ed7ee7f31f8fa05a668d7aba5fa0081"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-16/run/item2-tomokv-20261101-112642-4157475/server.log",
+      "size": 10837,
+      "sha256": "93e6a584faf4de59311fbd30a29c6d1762de2022c16adbd7b61c1209b9d91954"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-16/stdout.log",
+      "size": 655,
+      "sha256": "ea6b21f1dbf2d7956b96bbba71ca51654baab9c138b44653a922636851938b12"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-17/logs/item2-tomokv-1s_fused8_shards16_rl0_a1-same-owner-pipelined-20261101-112644.jsonl",
+      "size": 8115,
+      "sha256": "0de09e9a23953e91e8c531d3575b0a2dc213d99ad181446b7e5bc02a5211fc5b"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-17/run/item2-tomokv-20261101-112644-4160486/server.log",
+      "size": 10792,
+      "sha256": "06f6e25bb98092be8e18ae7828b46e302b249c8aff793573526b0f5a4554d67c"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-17/stdout.log",
+      "size": 655,
+      "sha256": "52f704757a55cfa6171da9f71d1530de4d72eaec31d122b78868993ba57caa02"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-18/logs/item2-tomokv-1s_fused8_shards16_rl0_a1-cross-owner-pipelined-20261101-112646.jsonl",
+      "size": 8114,
+      "sha256": "76a285ae9053c0696669d2038447db0cc1c0f7ada205cd69a8acac944d5b4bd8"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-18/run/item2-tomokv-20261101-112645-4162591/server.log",
+      "size": 10836,
+      "sha256": "7cc3fbf3ecede3010823a0d17b4cf2cb6e215a15a510a516f3ef568189aaa01a"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-0-1-18/stdout.log",
+      "size": 658,
+      "sha256": "08fe8eafc4becea7d5990b1c4bdac22b1821135825031208fa1140ba20294789"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-19/logs/item2-tomokv-1s_fused8_shards16_rl1_a0-same-shard-pipelined-20261101-112647.jsonl",
+      "size": 8113,
+      "sha256": "946cda8b78a3fb0f3d7c5cfe7bd2b9f8ee7e5c215575eb9131e7f286b7a2f512"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-19/run/item2-tomokv-20261101-112647-4162646/server.log",
+      "size": 10814,
+      "sha256": "07c90c3572e3bc9be031d9bb8364ff0038c9a4ae24db197ac3e4be30128ecbcc"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-19/stdout.log",
+      "size": 655,
+      "sha256": "77acac96b8f5df1cb2a72bc6286d2f5546dde938c269641776f0298d5e90f790"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-20/logs/item2-tomokv-1s_fused8_shards16_rl1_a0-same-owner-pipelined-20261101-112649.jsonl",
+      "size": 8111,
+      "sha256": "46e8ca1d5a8a07dd7cdf0607a07617d1a12f69648f1dbac5b611ca0406e6cd51"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-20/run/item2-tomokv-20261101-112649-4162700/server.log",
+      "size": 10810,
+      "sha256": "06012d3dade5d7224b629209a4d5264ee4b58e9f736bf12027a2e239a9642b11"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-20/stdout.log",
+      "size": 655,
+      "sha256": "c706a68da4bedd954885aee207000d8759b6773c1fc2a22a6becee560bdcbe1c"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-21/logs/item2-tomokv-1s_fused8_shards16_rl1_a0-cross-owner-pipelined-20261101-112651.jsonl",
+      "size": 8108,
+      "sha256": "cb6db6512c6659d49c382c2e8ac52893e354ef789e52d5d5cfa863e9d6bdde7f"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-21/run/item2-tomokv-20261101-112651-4162821/server.log",
+      "size": 10819,
+      "sha256": "ce1b7b144d436fad0eee7e097c5c000285ab17a38a4d175268fd131f9f017670"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-0-21/stdout.log",
+      "size": 658,
+      "sha256": "d62dfc64cddea82f2ae1b350e625bbf776307c4550b61ffa40d54a82277f3792"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-22/logs/item2-tomokv-1s_fused8_shards16_rl1_a1-same-shard-pipelined-20261101-112653.jsonl",
+      "size": 8115,
+      "sha256": "2db623d53f15059a8d6477417747a9b6e38916b4a0eed01d5b7aaa4435a934e9"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-22/run/item2-tomokv-20261101-112653-4162994/server.log",
+      "size": 10816,
+      "sha256": "7bce960ea6469330f74920661163d3842a18cb19cae3192b59baa27d618c305f"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-22/stdout.log",
+      "size": 655,
+      "sha256": "50129a7e09d158f798d1be5f1ee2efb0bd4a8a09d33d8859731bc69232e3069c"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-23/logs/item2-tomokv-1s_fused8_shards16_rl1_a1-same-owner-pipelined-20261101-112655.jsonl",
+      "size": 8111,
+      "sha256": "cc4f3a285a9b1488888ca7ac240d126a34ff428cbdfb37c535dacc0d569fb160"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-23/run/item2-tomokv-20261101-112655-4163154/server.log",
+      "size": 10828,
+      "sha256": "b1a9f8bff525afa2f256561289694b7a4b7a9f66a9300fa142eb3a2c093465bf"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-23/stdout.log",
+      "size": 655,
+      "sha256": "3ee6cf8b94dbc60a1f384a0be56f18ff4e8b1c8c9455802064d4db7912abb805"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-24/logs/item2-tomokv-1s_fused8_shards16_rl1_a1-cross-owner-pipelined-20261101-112656.jsonl",
+      "size": 8110,
+      "sha256": "ba3cf8bb48353dbf688b04eecd196156cee6b95062813a8e4ef6bfe644c3203d"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-24/run/item2-tomokv-20261101-112656-4163276/server.log",
+      "size": 10835,
+      "sha256": "14d82c5f4655b5a28818086506451e9556d390194c0a0d768c635e36440a4f08"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-1s-1-1-24/stdout.log",
+      "size": 658,
+      "sha256": "98c3d6ce745d9b2a7872ca174470cdd536f99e4cb2583c02fea6e94a589903ca"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-1/logs/item2-tomokv-2s_ratio_6-2_shards16_rl0_a0-same-shard-pipelined-20261101-112615.jsonl",
+      "size": 8099,
+      "sha256": "39eef79ff199ee6d58d60d0c751868858c92924b994b0622877672f4b6c3a063"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-1/run/item2-tomokv-20261101-112614-4147976/server.log",
+      "size": 9847,
+      "sha256": "6a228afd6668d43ee6fa1f6a6c566cb376f6ea4455e1a2beb98dbe4656202fc5"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-1/stdout.log",
+      "size": 643,
+      "sha256": "9bfd388b72b960dcc7ace34330fddfd807d67886ade837e5d9472ba002667985"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-2/logs/item2-tomokv-2s_ratio_6-2_shards16_rl0_a0-same-owner-pipelined-20261101-112616.jsonl",
+      "size": 8103,
+      "sha256": "aec33c29d03ef706836ea42189b2fb7e2dd3468950d7dee0c54fb931816bc03c"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-2/run/item2-tomokv-20261101-112616-4148127/server.log",
+      "size": 9837,
+      "sha256": "adfa73462d2c3173fdf36120cba8f1d8f69e5ee2bdc6985f46de34128021c901"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-2/stdout.log",
+      "size": 643,
+      "sha256": "5bd93b95797d2e409d28cf169a11e7308d2953a54bbdc17e9b54db36ada9d00e"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-3/logs/item2-tomokv-2s_ratio_6-2_shards16_rl0_a0-cross-owner-pipelined-20261101-112618.jsonl",
+      "size": 8097,
+      "sha256": "70f4148f638d02bfcc2a7fd41b55a2d3843d1012b014c85404c44ad9cd53344d"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-3/run/item2-tomokv-20261101-112618-4149817/server.log",
+      "size": 9826,
+      "sha256": "5aeb8640c26602e871a9c358002a319703d323dfa24456103b60f19470681273"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-0-3/stdout.log",
+      "size": 646,
+      "sha256": "a67448791de23dad56dd5cdabad81edc990c1290211d41e22bf22f6e74e16a60"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-4/logs/item2-tomokv-2s_ratio_6-2_shards16_rl0_a1-same-shard-pipelined-20261101-112620.jsonl",
+      "size": 8101,
+      "sha256": "2b0c96116b1186c1966e530564ff5673081e5fd039fa142fec115ce5d89d47a6"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-4/run/item2-tomokv-20261101-112620-4153092/server.log",
+      "size": 9857,
+      "sha256": "56be27406da50d5bc01177b112de56f4a755cb7ad22a615a4069b8809eb4464a"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-4/stdout.log",
+      "size": 643,
+      "sha256": "a8a02b258e85721e7ad51baef323f9103749953a99921abe9751525625c826a0"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-5/logs/item2-tomokv-2s_ratio_6-2_shards16_rl0_a1-same-owner-pipelined-20261101-112622.jsonl",
+      "size": 8099,
+      "sha256": "76679595d9572aa8a1dc6b6f61d14997659ba74c113452055f29c14825412f15"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-5/run/item2-tomokv-20261101-112622-4154940/server.log",
+      "size": 9856,
+      "sha256": "cb480669955c996480e319c23e07ba1b4b341fb3d5c93ae5d494e7451f3829d5"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-5/stdout.log",
+      "size": 643,
+      "sha256": "76dcb63368caa8529be7bf16c4a99b902919e566416dc5f5ee61ceb2ebabe715"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-6/logs/item2-tomokv-2s_ratio_6-2_shards16_rl0_a1-cross-owner-pipelined-20261101-112624.jsonl",
+      "size": 8106,
+      "sha256": "aa22c4ca9a701d9945dcf3d3e3b295efc2a32e1515c8d6f7653386fbf32245a3"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-6/run/item2-tomokv-20261101-112624-4155020/server.log",
+      "size": 9850,
+      "sha256": "7aeb012344cbc83e40d4969122c34ac2308e1fb5f5aa30951e767d88f834978c"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-0-1-6/stdout.log",
+      "size": 646,
+      "sha256": "fb574957e176f7593b19c5d17b38a961d2411967a5b56062b3996ae6ef7c140d"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-7/logs/item2-tomokv-2s_ratio_6-2_shards16_rl1_a0-same-shard-pipelined-20261101-112626.jsonl",
+      "size": 8109,
+      "sha256": "31eef7750a101980c347dfa199b163178aab4bfab5f500f8cb26a49af0b55e80"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-7/run/item2-tomokv-20261101-112625-4155121/server.log",
+      "size": 9955,
+      "sha256": "f40f0b98474d4e562acbf3e74a96857217ea34d9a9a405452633ce93bb6ad1ce"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-7/stdout.log",
+      "size": 643,
+      "sha256": "c491df66fbbf33452b2dea2649577e25b3cb3f5273bee683727ec7fa0c94736d"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-8/logs/item2-tomokv-2s_ratio_6-2_shards16_rl1_a0-same-owner-pipelined-20261101-112627.jsonl",
+      "size": 8096,
+      "sha256": "356768e5e48055512288601bee5e8b52ee2b90d8737064442fe2cfd0a6f32ca9"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-8/run/item2-tomokv-20261101-112627-4155217/server.log",
+      "size": 9948,
+      "sha256": "b7989c558846216d2062fdc47e8f6e095c993b43c8e2f2aeb1fe9ecefeb1ed60"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-8/stdout.log",
+      "size": 643,
+      "sha256": "5a7248bf6d9358d8c201040c779eb718292a17136ac7b6909099a6e9777205b6"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-9/logs/item2-tomokv-2s_ratio_6-2_shards16_rl1_a0-cross-owner-pipelined-20261101-112629.jsonl",
+      "size": 8107,
+      "sha256": "97259a297defd848254282751eab0955f30a7b633f8ede27301c0662dc7d41c9"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-9/run/item2-tomokv-20261101-112629-4155257/server.log",
+      "size": 9963,
+      "sha256": "be9a26a3c93967594b0cff60f86bd619402ef6ae579da341a0c2514aeef3915f"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-0-9/stdout.log",
+      "size": 646,
+      "sha256": "94f0cbcea2e36868765074e0495e5ec522661e7351d22a4cb963473b580f15b0"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-10/logs/item2-tomokv-2s_ratio_6-2_shards16_rl1_a1-same-shard-pipelined-20261101-112631.jsonl",
+      "size": 8095,
+      "sha256": "04485c0d6ff603cce348ae5742db169791556e7f7dbb39a64831bf977d7b818a"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-10/run/item2-tomokv-20261101-112631-4155383/server.log",
+      "size": 9965,
+      "sha256": "af4139d37e23e1a7fdf161b6f7d1dc95e2518493f1faf8ef980718c865ce97f2"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-10/stdout.log",
+      "size": 644,
+      "sha256": "5f688abc02018e6f5e1f70d4277bf227216a1dd147aaab38138a6bfcdcd9991a"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-11/logs/item2-tomokv-2s_ratio_6-2_shards16_rl1_a1-same-owner-pipelined-20261101-112633.jsonl",
+      "size": 8098,
+      "sha256": "71122c525e43d0fa0252c4d2f0fcdc81281331b449e7633154506f2754184312"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-11/run/item2-tomokv-20261101-112633-4155491/server.log",
+      "size": 9967,
+      "sha256": "f86143ef98169199183311f6fa3b8c641ba5f272400e8828d00e0c8cfd92e91d"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-11/stdout.log",
+      "size": 644,
+      "sha256": "9d8299c5e2f837630298f72edfb53bda9c0403db407f84948e502cbbc7070d31"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-12/logs/item2-tomokv-2s_ratio_6-2_shards16_rl1_a1-cross-owner-pipelined-20261101-112635.jsonl",
+      "size": 8102,
+      "sha256": "656670f7619e919cb4a6b5ca8c453ac3ae0fe4c39b9a6a4bdf2db2d7d4576eb6"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-12/run/item2-tomokv-20261101-112635-4155580/server.log",
+      "size": 9966,
+      "sha256": "d18032153a72ceb4125b670f1e60ea3bc2e31958715a0b2cd8b6cb38695ff14b"
+    },
+    {
+      "path": "jobs/blockfix4/moves/tomokv-2s-1-1-12/stdout.log",
+      "size": 647,
+      "sha256": "a30f4b437c4a3994b98eebfe69386fe16d1ee20d36aa464c6dcedaf3daf4301e"
+    },
+    {
+      "path": "jobs/blockfix4/moves/witness.json",
+      "size": 1352,
+      "sha256": "77c08ed9cc2393ec296599054aa99d9cca354b55e0aaeb96eafbd9edc5b6fb2a"
+    },
+    {
+      "path": "jobs/blockfix4/moves.log",
+      "size": 564,
+      "sha256": "253b1ef0d3980119ca8eaa562b726f2099dc2373480f8250c608029af57abab3"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/redis-2s-0-0-0/logs/item6-redis-redis-7.4.10_oracle-LMPOP-atomfix5-cross-owner-20261101-112714.jsonl",
+      "size": 664,
+      "sha256": "30b9f9d89a2d6291fe50d415534c1b1780dcc4410e0c59a432f2daf2fe3ba72c"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/redis-2s-0-0-0/run/item6-redis-20261101-112714-4172137/server.log",
+      "size": 1203,
+      "sha256": "7c0cf18b145c5ea7610b87169d0809323db5004224ff6e2cd34f65bc1691d352"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/redis-2s-0-0-0/stdout.log",
+      "size": 597,
+      "sha256": "52e3664792847799d886ac51ed9b8b95976009f4d624928d6d6fc3aebee45184"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/redis-2s-0-0-1/logs/item6-redis-redis-7.4.10_oracle-ZMPOP-atomfix5-cross-owner-20261101-112715.jsonl",
+      "size": 664,
+      "sha256": "0a01901e2d5ae69c279dc418cc22e2dd153d851069493223192ceb9c2f871903"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/redis-2s-0-0-1/run/item6-redis-20261101-112715-4172190/server.log",
+      "size": 1203,
+      "sha256": "106e943d3e370d99b122d52b30878026e58241e74d68928c56f0967dc6eaafb0"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/redis-2s-0-0-1/stdout.log",
+      "size": 597,
+      "sha256": "c4a8facae78bc8eac38d399166b9b45a0980d0e67b0c77832998612055b29eec"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/results.json",
+      "size": 14867,
+      "sha256": "61be373c72f3b615989bf92fcfe81db2fc8febd1eb6ce23aa5a47f2a549c6a3b"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-0-10/logs/item6-tomokv-1s_fused8_shards16_rl0_a0-LMPOP-atomfix5-cross-owner-20261101-112718.jsonl",
+      "size": 788,
+      "sha256": "c250d5ffd78d61ac64c3684fcb7c1ee0c3467823b517ab46bbe3a1c61e2c4f06"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-0-10/run/item6-tomokv-20261101-112718-4172826/server.log",
+      "size": 10866,
+      "sha256": "eafb49a15d541e06a67efdc13403a27bc59d121e595aff4e7ed79a7539531b23"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-0-10/stdout.log",
+      "size": 779,
+      "sha256": "8504652b40cf6338c39fad877c100f540a99d083d2c5850647bf6aef06691fbd"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-0-11/logs/item6-tomokv-1s_fused8_shards16_rl0_a0-ZMPOP-atomfix5-cross-owner-20261101-112718.jsonl",
+      "size": 787,
+      "sha256": "802b402a109ba0e8663c1d63797f8d0811df45aa8b96d123e286c44f50cd358e"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-0-11/run/item6-tomokv-20261101-112718-4172886/server.log",
+      "size": 10837,
+      "sha256": "69c71a0c2866cbda5bd71fe2e09797e9c60bbaaddec798f63eab3cabae31ac14"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-0-11/stdout.log",
+      "size": 778,
+      "sha256": "ca2675f713c4f53c620aa2af95e8aa648c4b0d3009455ef7affc79cedaff4d5b"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-1-12/logs/item6-tomokv-1s_fused8_shards16_rl0_a1-LMPOP-atomfix5-cross-owner-20261101-112718.jsonl",
+      "size": 787,
+      "sha256": "3828e030fa6a5d01167488520a1be83054aa1141dbaf7df1a4a55244b28515b7"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-1-12/run/item6-tomokv-20261101-112718-4172967/server.log",
+      "size": 10865,
+      "sha256": "525908fbf27411ffaafc37f916e633a080ed7dcf8e48124ed21675e0786be751"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-1-12/stdout.log",
+      "size": 778,
+      "sha256": "e664a371d37b3ead3b6dfa8b1c80236539ad3fb07d736da769d77a774221cf95"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-1-13/logs/item6-tomokv-1s_fused8_shards16_rl0_a1-ZMPOP-atomfix5-cross-owner-20261101-112719.jsonl",
+      "size": 788,
+      "sha256": "0923b1b9f09dcacf7dc50e9e0a0d3a3ca76ea973657d1f5e35651f075b0a9b8b"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-1-13/run/item6-tomokv-20261101-112719-4173056/server.log",
+      "size": 10888,
+      "sha256": "adde5646b7d3f3465b298eba5c3092ac5767ff5969049c072b583f7c3dd62b0a"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-0-1-13/stdout.log",
+      "size": 779,
+      "sha256": "b04c30450196eb49b984573697b67a742c728ae925182cb19a3efefed5b90a72"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-0-14/logs/item6-tomokv-1s_fused8_shards16_rl1_a0-LMPOP-atomfix5-cross-owner-20261101-112719.jsonl",
+      "size": 788,
+      "sha256": "26cd8c2200ea9e073d9ab297be4738a4fcc503048673d2fc6b9693bc1d44c7e3"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-0-14/run/item6-tomokv-20261101-112719-4173147/server.log",
+      "size": 10865,
+      "sha256": "347dd9202b7b792a9a080f698b7f2ad1c2791487720bbf1582458d23f557e22f"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-0-14/stdout.log",
+      "size": 779,
+      "sha256": "f208d3737025c737685b720cac12efdfabad568fc2d8a4ae8697665b991167b7"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-0-15/logs/item6-tomokv-1s_fused8_shards16_rl1_a0-ZMPOP-atomfix5-cross-owner-20261101-112719.jsonl",
+      "size": 787,
+      "sha256": "653a2643f12fdf4ba7eecf5e999267fe4cd4b257bfccdc434db83db19145c1fd"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-0-15/run/item6-tomokv-20261101-112719-4173201/server.log",
+      "size": 10869,
+      "sha256": "55af600096048b471f0f5c30d5d5edd45e2d41b26a35ab2f89850376625c28e2"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-0-15/stdout.log",
+      "size": 778,
+      "sha256": "d2a40d8d8b1cfbad0464c808379bd1b9784ffc34cf51ca8cdcd925d74f1abab2"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-1-16/logs/item6-tomokv-1s_fused8_shards16_rl1_a1-LMPOP-atomfix5-cross-owner-20261101-112720.jsonl",
+      "size": 788,
+      "sha256": "f67e2ec45c03fd5e2ee4691e79a1b4353b2b812adef771322dfe0de09939bba5"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-1-16/run/item6-tomokv-20261101-112720-4173286/server.log",
+      "size": 10858,
+      "sha256": "dc18f6f3030870e2fc5af2c302644065ede4c76b99dccffdc6c591a1e2a1ef9b"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-1-16/stdout.log",
+      "size": 779,
+      "sha256": "8c574fbfac791e51976342ee9973e9bfa19498af08bb5beee19284d088b3754c"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-1-17/logs/item6-tomokv-1s_fused8_shards16_rl1_a1-ZMPOP-atomfix5-cross-owner-20261101-112720.jsonl",
+      "size": 788,
+      "sha256": "c49d3c833a725cd119255a2be9866cfee3f00a8b1a3c5b19e309d48478bead89"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-1-17/run/item6-tomokv-20261101-112720-4173355/server.log",
+      "size": 10898,
+      "sha256": "86d0165c52ff1b883744ef7f94d018955670ecc049aaf83e7a9b36b5722ab88d"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-1s-1-1-17/stdout.log",
+      "size": 779,
+      "sha256": "3885722534b9cec0144ec2d4d16970ca52af7a910165845b443a4cb2339d0ed9"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-0-2/logs/item6-tomokv-2s_ratio_6-2_shards16_rl0_a0-LMPOP-atomfix5-cross-owner-20261101-112715.jsonl",
+      "size": 773,
+      "sha256": "ccd479c8dbfeb845647906ffd7838e0bca38a06bdb0a95307a71ff0fb7985adc"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-0-2/run/item6-tomokv-20261101-112715-4172329/server.log",
+      "size": 9935,
+      "sha256": "7fbd0aca9a642fdda24232181db41d3a86110b767aa65c84e0a17c0f768495b5"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-0-2/stdout.log",
+      "size": 766,
+      "sha256": "3ea3fcdd8a5ab64832579ce516afb891b4e2f811cb9f448598205564321bc14a"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-0-3/logs/item6-tomokv-2s_ratio_6-2_shards16_rl0_a0-ZMPOP-atomfix5-cross-owner-20261101-112716.jsonl",
+      "size": 774,
+      "sha256": "6b8254f6f0195d91b92ba809f4ca58e7ccecb2927148278927c01c495192760a"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-0-3/run/item6-tomokv-20261101-112715-4172379/server.log",
+      "size": 9930,
+      "sha256": "97ebf05c201b48a47637d6b2e9ab54c8fc93a881b96094f7d639ebf71a733f0f"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-0-3/stdout.log",
+      "size": 767,
+      "sha256": "5c16b4ff43d019644b2f5f8d3b24c344e0ddf0bad8d17c597f80096f510d6fb3"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-1-4/logs/item6-tomokv-2s_ratio_6-2_shards16_rl0_a1-LMPOP-atomfix5-cross-owner-20261101-112716.jsonl",
+      "size": 774,
+      "sha256": "0a3aba7b87dd48c82e493ae154f4abed505d81d657244f8cbebabce3103956db"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-1-4/run/item6-tomokv-20261101-112716-4172438/server.log",
+      "size": 9931,
+      "sha256": "80f629a0233ea73347dfcf2ec8670f860013eb605947940dc1e42df761857d81"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-1-4/stdout.log",
+      "size": 767,
+      "sha256": "ec445a56ed9f2b603c3ff58bc43e8a94b6ca874d9ed1c6b0d9664c3ef66732f6"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-1-5/logs/item6-tomokv-2s_ratio_6-2_shards16_rl0_a1-ZMPOP-atomfix5-cross-owner-20261101-112716.jsonl",
+      "size": 774,
+      "sha256": "d2484335bc14d30ef0e0e50dd52c659c698b7d502780bac19e5453ba3a8d6ded"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-1-5/run/item6-tomokv-20261101-112716-4172483/server.log",
+      "size": 9936,
+      "sha256": "c2eb3cb58c7817e9d7ba9b01db4722518d20df92b009c761164273980db817c8"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-0-1-5/stdout.log",
+      "size": 767,
+      "sha256": "519553b955d81408b9a93a4eb8f3683e7e5d97bb2959a47e345b626795daf7e9"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-0-6/logs/item6-tomokv-2s_ratio_6-2_shards16_rl1_a0-LMPOP-atomfix5-cross-owner-20261101-112717.jsonl",
+      "size": 773,
+      "sha256": "d9f1892558d7f3d05c230755812010853adc73b095eb35ca35c6e1bf4d21cc19"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-0-6/run/item6-tomokv-20261101-112716-4172551/server.log",
+      "size": 10018,
+      "sha256": "ef691e8007c3a379fed6c11914df1682e6d34b68f2800aed65a802fce10ce56b"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-0-6/stdout.log",
+      "size": 766,
+      "sha256": "a51ef34b779e5f865571c785463f4326cf8eff4e2550618a6eb6346e2192462f"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-0-7/logs/item6-tomokv-2s_ratio_6-2_shards16_rl1_a0-ZMPOP-atomfix5-cross-owner-20261101-112717.jsonl",
+      "size": 774,
+      "sha256": "a43aa8014e54a1e5c8cca66e3d5d798769baa067fd30d90a181fce8ac725ff14"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-0-7/run/item6-tomokv-20261101-112717-4172639/server.log",
+      "size": 10001,
+      "sha256": "ad1644b970bb842edbd4d918b6313b76b4c9da6534e44372a7ed61f50a6d1b2e"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-0-7/stdout.log",
+      "size": 767,
+      "sha256": "f3c4a60b920d806afe26cc1085db3601161438435caca568906ba7451b220d35"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-1-8/logs/item6-tomokv-2s_ratio_6-2_shards16_rl1_a1-LMPOP-atomfix5-cross-owner-20261101-112717.jsonl",
+      "size": 774,
+      "sha256": "acc6afeb900c06a03b2f7502e7f3d64977558d879f2fada922a9831aa6dac53a"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-1-8/run/item6-tomokv-20261101-112717-4172700/server.log",
+      "size": 10034,
+      "sha256": "e508128487d0d7f95d06b657f81c98e22a96c894c6088534734b42bf87f6fbc6"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-1-8/stdout.log",
+      "size": 767,
+      "sha256": "37078a36831794f79f133df8c32891fec37c7bf73413cbea1546044710c922a7"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-1-9/logs/item6-tomokv-2s_ratio_6-2_shards16_rl1_a1-ZMPOP-atomfix5-cross-owner-20261101-112717.jsonl",
+      "size": 774,
+      "sha256": "e9286ea7cb8fae4f98b512105a2dd07aa4506445523a11dbdbe7925c26b0690f"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-1-9/run/item6-tomokv-20261101-112717-4172767/server.log",
+      "size": 10007,
+      "sha256": "db43a0a481bd42dbb7f548251571e21b0abc3d9616fa75414fb7301de9e2c6d3"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/tomokv-2s-1-1-9/stdout.log",
+      "size": 767,
+      "sha256": "c444e3d6fd62d07aff36cb0716c64f14c0ef26a1b133bd19d59aecc31c6f25f2"
+    },
+    {
+      "path": "jobs/blockfix4/mpop/witness.json",
+      "size": 1351,
+      "sha256": "cf37e2ae9846f09178b4d9b0c0a9bd7b2051bdca076a340f9fe0e8f776b38a2d"
+    },
+    {
+      "path": "jobs/blockfix4/mpop.log",
+      "size": 402,
+      "sha256": "bb8fcea5d81a8b7ef45ba091dd79933da26d646e4e6b1b9ac499681fd7f9ae82"
+    },
+    {
+      "path": "jobs/blockfix4/output.log",
+      "size": 866,
+      "sha256": "d81f6ccbc303f3cf0e7a1a8bd80f16a5a586a6df5ace7eb090031932d578caff"
+    },
+    {
+      "path": "jobs/blockfix4/removed/redis-2s-0-0-0/logs/item5-redis-redis-7.4.10_oracle-20261101-112704.jsonl",
+      "size": 28008,
+      "sha256": "3879dc2621d9935beecfc50b74d3359b588fb4e686915c04f326ffe1405d62fb"
+    },
+    {
+      "path": "jobs/blockfix4/removed/redis-2s-0-0-0/run/item5-redis-20261101-112704-4163843/server.log",
+      "size": 1203,
+      "sha256": "a9bc12ab5bfd3618ec6310e3e769e7b1a6b7887ad7eab7c7fb00a0b366443810"
+    },
+    {
+      "path": "jobs/blockfix4/removed/redis-2s-0-0-0/stdout.log",
+      "size": 906,
+      "sha256": "50d7217ddc152381a10bc6a5bbb1422c8c07ddfa645072ae8b05816d857c7dbd"
+    },
+    {
+      "path": "jobs/blockfix4/removed/results.json",
+      "size": 24351,
+      "sha256": "c525717560798668ef83e2b6293f0a7ca708af9cc069699af528c0c687d97561"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-0-0-5/logs/item5-tomokv-1s_fused8_shards16_rl0_a0-20261101-112710.jsonl",
+      "size": 30629,
+      "sha256": "35a02475c8437aae7397dfbf56375bc543ec645a444a89c47cd68e110c233b33"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-0-0-5/run/item5-tomokv-20261101-112710-4171610/server.log",
+      "size": 10946,
+      "sha256": "6d83ee12d6882d877e72ba6e194472e7411f0d51d839d9133d02d6b83011543f"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-0-0-5/stdout.log",
+      "size": 1053,
+      "sha256": "0981918737c458ef6329f7358b4700b1c2378ec3832e94c98cdd782ed9bfb0cf"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-0-1-6/logs/item5-tomokv-1s_fused8_shards16_rl0_a1-20261101-112711.jsonl",
+      "size": 30652,
+      "sha256": "b7b2530f4a11e472a3768be38011306be1d0dbe24cb110c848111b78fbecd838"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-0-1-6/run/item5-tomokv-20261101-112711-4171760/server.log",
+      "size": 10876,
+      "sha256": "39365bf8f924d082c4c72c2fb2ac2d2db081adc36f4e742e87f0fa04c34d7ad5"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-0-1-6/stdout.log",
+      "size": 1053,
+      "sha256": "66e0616d71140777ed312d614dd4a796cf76805382e885556bec4b725f072980"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-1-0-7/logs/item5-tomokv-1s_fused8_shards16_rl1_a0-20261101-112712.jsonl",
+      "size": 30657,
+      "sha256": "70859ea18801deaacc0aae1bfea9a7f6cf0064de92bffaf711a177149a2847af"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-1-0-7/run/item5-tomokv-20261101-112712-4171871/server.log",
+      "size": 10873,
+      "sha256": "23037c717554e970212caaab9b393c0a3c55dec2a9116be4c0a61b007f626f1e"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-1-0-7/stdout.log",
+      "size": 1053,
+      "sha256": "f11c0eb1b13764172b92ce301b122987c961cece80ae5c7b87734f17de5e27c5"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-1-1-8/logs/item5-tomokv-1s_fused8_shards16_rl1_a1-20261101-112713.jsonl",
+      "size": 30642,
+      "sha256": "dfdcc586e786a9fc98ba1340ff9f4dc59de02d3ec125cfeaa8520a74fe4ef049"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-1-1-8/run/item5-tomokv-20261101-112713-4171942/server.log",
+      "size": 10950,
+      "sha256": "4c1258e73a08742412e4d0b6e57b0303565270376239814a6f6d571d84430b3c"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-1s-1-1-8/stdout.log",
+      "size": 1053,
+      "sha256": "1ec282919a17dbaf06b44a3f2328a87ea7811de089454d9a4181c3e06d8141b8"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-0-0-1/logs/item5-tomokv-2s_ratio_6-2_shards16_rl0_a0-20261101-112705.jsonl",
+      "size": 30632,
+      "sha256": "8fc0b0c22e8ec1c379795f7d4c1d98093cf2325caad4102ba5d900478a812d99"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-0-0-1/run/item5-tomokv-20261101-112705-4164778/server.log",
+      "size": 9832,
+      "sha256": "007a65b6571c10b852606334d815ffa26c62430eef55d5b9bc927140bec8dd3e"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-0-0-1/stdout.log",
+      "size": 1041,
+      "sha256": "6e082ccdaf1764eabc7321730daebe2cf65e24c876b53ab3a16df36e46ff2145"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-0-1-2/logs/item5-tomokv-2s_ratio_6-2_shards16_rl0_a1-20261101-112707.jsonl",
+      "size": 30641,
+      "sha256": "326876180bb3e77e54db7d661e3bcd3e7b5f8bd0db291f1bdd68c2f64d6e4902"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-0-1-2/run/item5-tomokv-20261101-112706-4166694/server.log",
+      "size": 9837,
+      "sha256": "dda6e046432c687d6c9be22549668828e711274474744803ed70a0b9ad498443"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-0-1-2/stdout.log",
+      "size": 1041,
+      "sha256": "f7f9e936afbf93068b1ba5ffb6186c95b91afe201d1afc41b5e048a9e0d5cfbc"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-1-0-3/logs/item5-tomokv-2s_ratio_6-2_shards16_rl1_a0-20261101-112708.jsonl",
+      "size": 30637,
+      "sha256": "353d8e8e098bb16f288a90b459310c59eda1cebc0033ab356e0b397ba7ac0ba5"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-1-0-3/run/item5-tomokv-20261101-112708-4168737/server.log",
+      "size": 9939,
+      "sha256": "ba392281cd9d62f16b8be0c008a8b753d4ec210cd0d6b779d93d4352642ff62e"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-1-0-3/stdout.log",
+      "size": 1041,
+      "sha256": "f5507ed3b2033d0db6eb0806c47c73049bce88b1945975320babfd6709e95134"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-1-1-4/logs/item5-tomokv-2s_ratio_6-2_shards16_rl1_a1-20261101-112709.jsonl",
+      "size": 30643,
+      "sha256": "f28132959bb5fe18b5252afccc40eef5282cec34ba70020d6242c7e2b73ffffd"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-1-1-4/run/item5-tomokv-20261101-112709-4170690/server.log",
+      "size": 9939,
+      "sha256": "e3b9a4cc78331f247f38b28f576bf873d9a91b4ba2943420b1a00545278d2862"
+    },
+    {
+      "path": "jobs/blockfix4/removed/tomokv-2s-1-1-4/stdout.log",
+      "size": 1041,
+      "sha256": "3af1656cd59d189fceb801adef6a0e58db1c69998b56cde6c70253c4432b012c"
+    },
+    {
+      "path": "jobs/blockfix4/removed/witness.json",
+      "size": 1354,
+      "sha256": "37c3231fb79f78455b1651e79c7aa2498b9267453b929bdf47b596eba054bdec"
+    },
+    {
+      "path": "jobs/blockfix4/removed.log",
+      "size": 197,
+      "sha256": "fac9423f6440537c2b346c7143f9ec92813a29fca49d0c90b3ec2f28dd97e567"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-0/logs/item1-redis-redis-7.4.10_oracle-plain-eval-20261101-112556.jsonl",
+      "size": 1054,
+      "sha256": "26193787deb393a28f0c5e572ff1f987bc395ce00eede4a7010a1dae7f0c6375"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-0/run/item1-redis-plain-20261101-112556-4143872/server.log",
+      "size": 1203,
+      "sha256": "13d168baced3f4b6b179250c40014b8d61d3faf67ef61ebed847a962a467aeaf"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-0/stdout.log",
+      "size": 498,
+      "sha256": "997daa7f852ee820411385d7b770911941fb3c25e41127beaadeb0546b288492"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-1/logs/item1-redis-redis-7.4.10_oracle-plain-evalsha-20261101-112556.jsonl",
+      "size": 1060,
+      "sha256": "05e9b5c5424c13a41dad0bd5c740080e0a8d7981f6cfa6d4f973d13ba0ff4bed"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-1/run/item1-redis-plain-20261101-112556-4144559/server.log",
+      "size": 1203,
+      "sha256": "061a7ec95e4baa10a6d1f5cbad3da6e43f3ad4f3d2b73099564de8b00bbfc40c"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-1/stdout.log",
+      "size": 504,
+      "sha256": "61706b789675524563a94062eee296295dfa4ed26609832266fc0b86ec0ccfd6"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-2/logs/item1-redis-redis-7.4.10_oracle-plain-fcall-20261101-112557.jsonl",
+      "size": 1056,
+      "sha256": "56e10490697d7d00bb0f49830af3c89e88018e8e21575b2da9f7058c53a8f761"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-2/run/item1-redis-plain-20261101-112557-4145172/server.log",
+      "size": 1203,
+      "sha256": "674e22402036f3e4ea79d0cdeb3e45232a663ea33150835674bbeb14d2a7e70c"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/redis-2s-0-0-2/stdout.log",
+      "size": 500,
+      "sha256": "7cb7823b73b736aae6897602834daff1acbd8d8c4dba0bbff1cd32831c1ca630"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/results.json",
+      "size": 41372,
+      "sha256": "21551edc06a95bf3d21e0ebef0c64f4039a9ef9057fd2b7b73ccd8559b6e7792"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-25/logs/item1-tomokv-1s_fused8_shards16_rl0_a0-plain-eval-20261101-112605.jsonl",
+      "size": 1231,
+      "sha256": "62111a1355935c621e06e333a90782fab88e73afefca8c8dcc32db895f33e35e"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-25/run/item1-tomokv-plain-20261101-112605-4146956/server.log",
+      "size": 10608,
+      "sha256": "0d791fdadc1a8f56dd61180b6184887f2792087eedda917c57c3ad7c10beb183"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-25/stdout.log",
+      "size": 664,
+      "sha256": "427e245f5445046ddb0254dccf33c800609cbb3b052e10cd1f5e233d89040594"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-26/logs/item1-tomokv-1s_fused8_shards16_rl0_a0-plain-evalsha-20261101-112606.jsonl",
+      "size": 1237,
+      "sha256": "3a5a1446746fba86273e7e1fc5486e226c471975c872c3eaa148a988859ad63a"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-26/run/item1-tomokv-plain-20261101-112605-4146984/server.log",
+      "size": 10616,
+      "sha256": "4fbb1141f5932b547e539638d560d6c9ef8eedc58a7ef93c1cf9ca3c63c8a85f"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-26/stdout.log",
+      "size": 670,
+      "sha256": "04a53aff7735426f8e6b95a2511b5b20d2076838b5ff5a0aeb351e8fa111c36e"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-27/logs/item1-tomokv-1s_fused8_shards16_rl0_a0-plain-fcall-20261101-112606.jsonl",
+      "size": 1234,
+      "sha256": "a42503d4d3960d3b326ff285eee243de48d38df231a4b3c9e2f1bc1c7d7d82bd"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-27/run/item1-tomokv-plain-20261101-112606-4147030/server.log",
+      "size": 10606,
+      "sha256": "a0c2ef567c3029e667e9a477c3557233140f4d97fbace62ff09e952475caea36"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-0-27/stdout.log",
+      "size": 666,
+      "sha256": "93cc8d066c128df506dbbca0559be82d3fb6e5583c0e3b8695d86d95f2a9190d"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-28/logs/item1-tomokv-1s_fused8_shards16_rl0_a1-plain-eval-20261101-112606.jsonl",
+      "size": 1231,
+      "sha256": "2b8a3730919622368fa8e9c2de268d6e1e815713f63284f92a38a53f14661b95"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-28/run/item1-tomokv-plain-20261101-112606-4147057/server.log",
+      "size": 10611,
+      "sha256": "3afa093181e866b969530943b78440b9b24e40481b70dc2f835c3c54309c678d"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-28/stdout.log",
+      "size": 664,
+      "sha256": "02b2b98e1b9b0ad88546b28ea01b5a628f968221358631d466b32eff5ac5f24d"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-29/logs/item1-tomokv-1s_fused8_shards16_rl0_a1-hold-eval-20261101-112606.jsonl",
+      "size": 1691,
+      "sha256": "876c9b9fd8afc528b3d8d02a466e5054a52f1442667458d15a7b811fa9b76081"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-29/run/item1-tomokv-hold-20261101-112606-4147084/server.log",
+      "size": 10726,
+      "sha256": "bcd3339dc1d1d6f2fd3ba8df9a147fe51175755d9ca18d2e3c99befdb9e2b384"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-29/stdout.log",
+      "size": 662,
+      "sha256": "86e32e35ddcfe3ba0a608d4e96d48bbb214412da8e095c5b53e3c23e1e797dbe"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-30/logs/item1-tomokv-1s_fused8_shards16_rl0_a1-plain-evalsha-20261101-112607.jsonl",
+      "size": 1237,
+      "sha256": "0712c8eef51ff7b7c68b45c2ecb118d074836a887e6dc7d5aea9b4c9a6062955"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-30/run/item1-tomokv-plain-20261101-112607-4147154/server.log",
+      "size": 10600,
+      "sha256": "783c3158accd084ccdb758b909cb57c2492b624729b6519123d4458b6fe3dc2a"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-30/stdout.log",
+      "size": 670,
+      "sha256": "a38ab18155cd2a81a90013b48b2e11d43a2ed9df0afc3067b151a0cf5fa98b34"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-31/logs/item1-tomokv-1s_fused8_shards16_rl0_a1-hold-evalsha-20261101-112607.jsonl",
+      "size": 1700,
+      "sha256": "30269279f45ad6207ce65987ead41c75b0ec2b7a8b652b2b165fa82190f0a405"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-31/run/item1-tomokv-hold-20261101-112607-4147183/server.log",
+      "size": 10753,
+      "sha256": "62d4cdb1a643a7c52b1354993aff8f2c377998e942c46a99f022272a7b257614"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-31/stdout.log",
+      "size": 668,
+      "sha256": "869cd7e827ecc53112c5a03c9e9c06e74f808271caba7c2f49c726604537b7c5"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-32/logs/item1-tomokv-1s_fused8_shards16_rl0_a1-plain-fcall-20261101-112608.jsonl",
+      "size": 1232,
+      "sha256": "82976f6f82ef9af7bd1ba01e254d80d356cafd9722e25117ae9b295f44be3f8c"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-32/run/item1-tomokv-plain-20261101-112608-4147243/server.log",
+      "size": 10591,
+      "sha256": "f567e3ad4bdeacc61da66d131e8f40a3252d50233c229e376d8113621ef37cd2"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-32/stdout.log",
+      "size": 666,
+      "sha256": "c93d7d6f1e1a4f4a3b42b4c2204ab84f25253324747d738fda7a2b8245007a9d"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-33/logs/item1-tomokv-1s_fused8_shards16_rl0_a1-hold-fcall-20261101-112608.jsonl",
+      "size": 1699,
+      "sha256": "d4f15421ee2a4f247f3496e9afd0bcb1efc329a95434dafbecf1c38e04915bc8"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-33/run/item1-tomokv-hold-20261101-112608-4147270/server.log",
+      "size": 10712,
+      "sha256": "72e6cf4d45efc5c0e675d8699164156aae3f23a6f573e22466be7c4866c4edaf"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-33/stdout.log",
+      "size": 664,
+      "sha256": "2f39a3430629ef10626fd92bbd83e9cea40259e9c93d2e08fae653d30cbbedd0"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-34/logs/item1nat-tomokv-1s_fused8_shards16_rl0_a1-after-20261101-112609.jsonl",
+      "size": 26262,
+      "sha256": "86a76cdf5f160e3bbe67d747b42151f1717f6bd0cbbdbca20136f98a5db9df8b"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-34/run/item1nat-after-20261101-112608-4147321/server.log",
+      "size": 10856,
+      "sha256": "3fc73dc9ed27a79e847f921674bc2dd48f5621409c0cb6fb549417a32c1aa0ee"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-34/stdout.log",
+      "size": 540,
+      "sha256": "7b5659281bab119c38f343f3703d83aef7a9fd22541af7041384758ac48cefbf"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-35/logs/item1nat-tomokv-1s_fused8_shards16_rl0_a1-race-20261101-112609.jsonl",
+      "size": 26267,
+      "sha256": "5870e02593525963ab6add3341ac983f53fed573ef96bbbaad318afc5bfc0564"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-35/run/item1nat-race-20261101-112609-4147393/server.log",
+      "size": 10842,
+      "sha256": "3e743d30bd6787b3fc1aa0fea9ee9c8364e21f2355d7a4f5887cb1a53a3fe5e3"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-0-1-35/stdout.log",
+      "size": 538,
+      "sha256": "1424b291e06a65a3efad1c64efc99926f2ac7a3876c6878a7cda587182f4cec8"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-36/logs/item1-tomokv-1s_fused8_shards16_rl1_a0-plain-eval-20261101-112610.jsonl",
+      "size": 1229,
+      "sha256": "b136cf22a6a65d4dfa0d6afd7476372f2a9a6958c02789e3f104307094cbdf3d"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-36/run/item1-tomokv-plain-20261101-112609-4147408/server.log",
+      "size": 10610,
+      "sha256": "2586584d9ef7c97950c6e2b7dbe3920eb371c2d457e980af6d9951360acab179"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-36/stdout.log",
+      "size": 664,
+      "sha256": "a40642f8952f0c2a2739a47fabc80e6bdc6131727ca6af60e1f118a65229573b"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-37/logs/item1-tomokv-1s_fused8_shards16_rl1_a0-plain-evalsha-20261101-112610.jsonl",
+      "size": 1236,
+      "sha256": "7cc883e84ec1c36aa7040cb74e6fe23504288c140b4af6a096d15563bac1c24f"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-37/run/item1-tomokv-plain-20261101-112610-4147435/server.log",
+      "size": 10615,
+      "sha256": "d5699e5302f201add574b05fe8642427ae434140d08eb0004257e21df30fdc10"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-37/stdout.log",
+      "size": 670,
+      "sha256": "608536e9b9d260dbcfee5186eb8ce7db66ba2aad33f78059edbdd8d000a8b290"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-38/logs/item1-tomokv-1s_fused8_shards16_rl1_a0-plain-fcall-20261101-112610.jsonl",
+      "size": 1233,
+      "sha256": "4000c2f0408183c27ebe718c439c2d9068995d6abc4130d78611089d74af1132"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-38/run/item1-tomokv-plain-20261101-112610-4147448/server.log",
+      "size": 10617,
+      "sha256": "6cdc7e60fe670878bc872834f320d18d461ef114974f680fcf1342aaa0bd6044"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-0-38/stdout.log",
+      "size": 666,
+      "sha256": "41a6354d0846352dfabac1205c59af420d1eaf88e67141a43b7a02cde98ceb0d"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-39/logs/item1-tomokv-1s_fused8_shards16_rl1_a1-plain-eval-20261101-112610.jsonl",
+      "size": 1231,
+      "sha256": "1d738a218f80ad4c8b5b633021e450ded46597f82c37d4b9cb3abff9d4846969"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-39/run/item1-tomokv-plain-20261101-112610-4147471/server.log",
+      "size": 10631,
+      "sha256": "7b9a2929cd3e6b70c3a7fe92e124c939111da4fecb5ab8076140ce2528e93da5"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-39/stdout.log",
+      "size": 664,
+      "sha256": "866975a30479df474ef381bac597b49a8b4e0712ce1d743ea18477f529bbd691"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-40/logs/item1-tomokv-1s_fused8_shards16_rl1_a1-hold-eval-20261101-112611.jsonl",
+      "size": 1693,
+      "sha256": "b8f3ce2b0df5204780a7cfe4a787021fc41605dcd6a9adda75cb5e4bfe3227a8"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-40/run/item1-tomokv-hold-20261101-112610-4147498/server.log",
+      "size": 10740,
+      "sha256": "01b7a78c148d6ff66a985935e55b3a7ae921158f2a5c02fecdba9f6a1b9ffeee"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-40/stdout.log",
+      "size": 662,
+      "sha256": "800f9579301b4fdf4974c185b1648f519fc04ec4081787e16639e0666f53dfed"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-41/logs/item1-tomokv-1s_fused8_shards16_rl1_a1-plain-evalsha-20261101-112611.jsonl",
+      "size": 1236,
+      "sha256": "fdbf27cb67eaa2a3c71eb62f79c920606175cde4386f36c9c7688d8b8430720a"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-41/run/item1-tomokv-plain-20261101-112611-4147542/server.log",
+      "size": 10597,
+      "sha256": "684da07cca251cae0669e7a41c3c7cf991436106f7b95f37901ab5e3cded4192"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-41/stdout.log",
+      "size": 670,
+      "sha256": "e598d4c652ee4031d9cf6ccce5646f90e1e4edc78284107ecc1d042c55d0b5c3"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-42/logs/item1-tomokv-1s_fused8_shards16_rl1_a1-hold-evalsha-20261101-112611.jsonl",
+      "size": 1699,
+      "sha256": "8380c675cb4f821bf5586248c49689aa6761c9b400906484a59b13d57d3888af"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-42/run/item1-tomokv-hold-20261101-112611-4147591/server.log",
+      "size": 10729,
+      "sha256": "f864eb20074d8e690a3e50b46ed69a3610199bfac1fd2021b19cab6234b8f2d9"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-42/stdout.log",
+      "size": 668,
+      "sha256": "671cedbb8f5f1f2ea140ed784a8f2ee08c6497943b14c7226b815323a7b98d63"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-43/logs/item1-tomokv-1s_fused8_shards16_rl1_a1-plain-fcall-20261101-112612.jsonl",
+      "size": 1233,
+      "sha256": "00d98fa8e31f4c2177716ff86b179d7f2b326232959167646d2f80bb16e48932"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-43/run/item1-tomokv-plain-20261101-112612-4147620/server.log",
+      "size": 10609,
+      "sha256": "a55808bfbc549c1cb0db8d33239b7648b923e8bef573af40e46a582b311c8002"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-43/stdout.log",
+      "size": 666,
+      "sha256": "b9bb285545fce6f2d37917deed9d5aa51b8fe9d6c96b371e723e31c9d74300b0"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-44/logs/item1-tomokv-1s_fused8_shards16_rl1_a1-hold-fcall-20261101-112612.jsonl",
+      "size": 1694,
+      "sha256": "42db6552a3793d015da12d13be126b7b1350aca75e199c354ff377c19b67e1af"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-44/run/item1-tomokv-hold-20261101-112612-4147664/server.log",
+      "size": 10743,
+      "sha256": "732e3a216e4da4422d76e40bf54b168b48973a131e4cf9b7aa2279772aa0ecda"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-44/stdout.log",
+      "size": 664,
+      "sha256": "984025aa1ca8124cca40381d46633365a219407b639ad08e6fad45326c5c5aee"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-45/logs/item1nat-tomokv-1s_fused8_shards16_rl1_a1-after-20261101-112613.jsonl",
+      "size": 26278,
+      "sha256": "ac6f0ca5fdbc0285c8d254bc86759f92c58ec9723ae7a5985c14539b0dee5115"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-45/run/item1nat-after-20261101-112613-4147714/server.log",
+      "size": 10865,
+      "sha256": "bf626337dfa9717a07130d3da1638d42ebf8a40fa9f469dd4010f4da9f35e80b"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-45/stdout.log",
+      "size": 540,
+      "sha256": "40861356c5b91ddb11628d8ac96f65fcccba32b355f0c3d93f3c0910b9de2547"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-46/logs/item1nat-tomokv-1s_fused8_shards16_rl1_a1-race-20261101-112613.jsonl",
+      "size": 26264,
+      "sha256": "0fa78b2c461491e60231ce19768e449972c3d7b6e6900a6b86a62bb7db9b8b87"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-46/run/item1nat-race-20261101-112613-4147775/server.log",
+      "size": 10857,
+      "sha256": "9b59a4f8b2fb1bab8d61d30d6ae0af95ac04c743327ac0d74d931e8858dcc012"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-1s-1-1-46/stdout.log",
+      "size": 538,
+      "sha256": "e16828a2490abf255f0ad856cbc1a84a08639e4add690a7e3ebcb2024dd234c5"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-3/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a0-plain-eval-20261101-112557.jsonl",
+      "size": 1219,
+      "sha256": "34add476c3e246ecb7b82b8d00c1e1418c783d19499be3db3a3585df2ae61753"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-3/run/item1-tomokv-plain-20261101-112557-4145769/server.log",
+      "size": 9685,
+      "sha256": "7129eb73a7278111e70adeed2bdae57436bf7dfed2641e751752831e09a5832e"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-3/stdout.log",
+      "size": 652,
+      "sha256": "f2e4f85cc6e7a75d4bb6f9dbb4933f4a28e3327cadad34338bb9b205d16a174d"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-4/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a0-plain-evalsha-20261101-112557.jsonl",
+      "size": 1223,
+      "sha256": "8a0e010306ced24e2e254e9d64fe9adcfc468416436f30c6915da24288c5a32a"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-4/run/item1-tomokv-plain-20261101-112557-4146028/server.log",
+      "size": 9680,
+      "sha256": "9dab4858d6efad784aa119059029c814bf0396fa16a8d2ff516499aadc647717"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-4/stdout.log",
+      "size": 658,
+      "sha256": "ac69fe4a9234da3407bf41d069d5f04738950b100da3012f12764322061d0bcd"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-5/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a0-plain-fcall-20261101-112557.jsonl",
+      "size": 1221,
+      "sha256": "a3c5615d709d4e0e699d1cb7f19468a168f5042ed33038e81ea80488a57bf371"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-5/run/item1-tomokv-plain-20261101-112557-4146041/server.log",
+      "size": 9683,
+      "sha256": "b2de8542d60236bf678c4e58c1c78f69f004e82dc4d3376e6c92a6960842ed91"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-0-5/stdout.log",
+      "size": 654,
+      "sha256": "c94b8ae9147ad97be39f6b83fdf5d6d5343eacae91f87723acb2fa9c9d3e81f5"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-10/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a1-plain-fcall-20261101-112559.jsonl",
+      "size": 1218,
+      "sha256": "166717f7f2d2eeed5379668b316e21887a813ea8a4e4b4913970ab4d27df4374"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-10/run/item1-tomokv-plain-20261101-112559-4146195/server.log",
+      "size": 9687,
+      "sha256": "502b7fb2a42e1715b3d01c2d7260802d109dda46c762f8ed5e127d9230d63da2"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-10/stdout.log",
+      "size": 655,
+      "sha256": "d9b81d805132de9e8cf2f66b5daf1744c6b7671db60c2f3e7a64cc5132e1877f"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-11/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a1-hold-fcall-20261101-112600.jsonl",
+      "size": 1682,
+      "sha256": "9dcfd85f4729a1cbd26df1971783578cbee5af4dff821a5e5251f1c2bb067aeb"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-11/run/item1-tomokv-hold-20261101-112559-4146227/server.log",
+      "size": 9767,
+      "sha256": "90923bb433b7ac161225ff7221668f301ae3c1074706a559c95f53d0e98e93f1"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-11/stdout.log",
+      "size": 653,
+      "sha256": "ded24801c5b85f7a2012af7c4cf267e9b53d414cf2bd169155a2d02615de7f5a"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-12/logs/item1nat-tomokv-2s_ratio_6-2_shards16_rl0_a1-after-20261101-112600.jsonl",
+      "size": 26239,
+      "sha256": "5bf7c19e253b61563f954f00df71f7a5646e344d8cfd2283fdeef0f839cc8a58"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-12/run/item1nat-after-20261101-112600-4146269/server.log",
+      "size": 9869,
+      "sha256": "0f7d357dfe385a026267cd779c6a529de7472a7c5a9b9eb275461be11027a739"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-12/stdout.log",
+      "size": 529,
+      "sha256": "0a464f0f63e7cc92fc7f5bd34b3817ef903047085e3888d1663ac2cf58bda901"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-13/logs/item1nat-tomokv-2s_ratio_6-2_shards16_rl0_a1-race-20261101-112601.jsonl",
+      "size": 26264,
+      "sha256": "34903b55f7cf3dcb5a184d8e3862431ecbb1c805cf61aa8be21f4617b4016e0e"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-13/run/item1nat-race-20261101-112600-4146306/server.log",
+      "size": 9844,
+      "sha256": "1d50bacea93ec58ba177c4e0ed5a9030cb9cf8140a585f56254eefff9c6044fe"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-13/stdout.log",
+      "size": 527,
+      "sha256": "d6aa3a425a54fd14b25b162772e1a95abf477224d7fdace23c4f6ad3ce6104fd"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-6/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a1-plain-eval-20261101-112558.jsonl",
+      "size": 1217,
+      "sha256": "f01aa24a63d7b6bcc58d47e98b4f8940c209711357d8285696d76062d298bfd3"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-6/run/item1-tomokv-plain-20261101-112558-4146054/server.log",
+      "size": 9694,
+      "sha256": "3a67bf763b8c5ca7aab37c31c044c2ec8fa2c5a30923bbd546c5a49628f7e1a7"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-6/stdout.log",
+      "size": 652,
+      "sha256": "cdd1349843b5eab570b730d10bd9959835b0f62047bdd77cd4bd26304a79b6f8"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-7/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a1-hold-eval-20261101-112558.jsonl",
+      "size": 1680,
+      "sha256": "3dc5ef5deadcebb525d10c5b345cdf15e519b667a838954565bafdcfc1a2ac58"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-7/run/item1-tomokv-hold-20261101-112558-4146099/server.log",
+      "size": 9767,
+      "sha256": "ba0434339ca66dfd330222455055751779361bbef710a8af0722e5242f2d1f97"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-7/stdout.log",
+      "size": 650,
+      "sha256": "c8c802e9d9b1b0131dfcfbc82a17deb9a4b3f9d602141809f59345164a7fae2b"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-8/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a1-plain-evalsha-20261101-112558.jsonl",
+      "size": 1224,
+      "sha256": "719a766cb75a6c4b2f567b60b8875ceba5e7acd55cab17ea7cddef4a574fb785"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-8/run/item1-tomokv-plain-20261101-112558-4146127/server.log",
+      "size": 9697,
+      "sha256": "e448d2ee723cd5dbde2f79043a40e2660ebd02fff9d8c041cf3bab50058f4923"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-8/stdout.log",
+      "size": 658,
+      "sha256": "3a016bbd12313b6db6f8e4ac9061356c249ebbc79de9f3213edf88441ae3e3ed"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-9/logs/item1-tomokv-2s_ratio_6-2_shards16_rl0_a1-hold-evalsha-20261101-112559.jsonl",
+      "size": 1686,
+      "sha256": "984438a8cdec526e8f63f4b1e82499082d208ca455d640bf37a28bfe479a8b71"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-9/run/item1-tomokv-hold-20261101-112559-4146141/server.log",
+      "size": 9765,
+      "sha256": "1e05bdf33beabf2a5f1ddbada4ba79436a25725c5125e80a7bbb3b4ec3ed28ce"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-0-1-9/stdout.log",
+      "size": 656,
+      "sha256": "8a2535800c8b84210c498a74553e0cfac0882b5569503a37418c4c7a438fb84b"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-14/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a0-plain-eval-20261101-112601.jsonl",
+      "size": 1216,
+      "sha256": "38364bfbad6d2401f22efce635b0599df02a240e99aa1deb4c496cb71a694191"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-14/run/item1-tomokv-plain-20261101-112601-4146352/server.log",
+      "size": 9796,
+      "sha256": "556eeb5f827b268f9c9c614f6c59810139494e66135de7d7f3cc601cc96ceda9"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-14/stdout.log",
+      "size": 653,
+      "sha256": "55b32b067809c307b26a4d3bfaa769526e518ee1e63ec1a55b70a8e8642f83ba"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-15/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a0-plain-evalsha-20261101-112601.jsonl",
+      "size": 1221,
+      "sha256": "e6437e129b7e2801d4e0c184060957b73cce73f53fc4e60ab6167c179b627d7b"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-15/run/item1-tomokv-plain-20261101-112601-4146367/server.log",
+      "size": 9816,
+      "sha256": "6036c900e79140d8bf53da578828ff28b74a72701897a2dff8cc36bab2eabb76"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-15/stdout.log",
+      "size": 659,
+      "sha256": "1536a6faf4ef7d5583b0bafac37cba64be58eaccf1106591ba66c0c59e64c295"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-16/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a0-plain-fcall-20261101-112602.jsonl",
+      "size": 1219,
+      "sha256": "5493729df6d5e8ff269f8795c3f55ed6ad26c8aa59242a9299ae27dc234a7e6f"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-16/run/item1-tomokv-plain-20261101-112601-4146397/server.log",
+      "size": 9804,
+      "sha256": "00d5bc378a5b6de1dfaa37c0388713e1573421a134eb3a2a91207345b0ed32c8"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-0-16/stdout.log",
+      "size": 655,
+      "sha256": "5e6219685a29192a611bb67116bf0d016b1ea357b2bd66ece35118a445fc3051"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-17/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a1-plain-eval-20261101-112602.jsonl",
+      "size": 1215,
+      "sha256": "1930032c3fdcd6164307af2c0e4d70dbf547b337976c7ed01b472210d9e15489"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-17/run/item1-tomokv-plain-20261101-112602-4146438/server.log",
+      "size": 9790,
+      "sha256": "5383771eb74c19793365e1c6b7e189c6283ac1a4f6de6f4b3d47f8713969dcc2"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-17/stdout.log",
+      "size": 653,
+      "sha256": "63533135edff1170bdddc1c555ec3c2b17ad98e707b3595689c2986c1312690a"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-18/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a1-hold-eval-20261101-112602.jsonl",
+      "size": 1681,
+      "sha256": "9c72a11f87f723b25f65468a7ff5764b9bcda0d5ba273fdc1f030eeb14128cdb"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-18/run/item1-tomokv-hold-20261101-112602-4146473/server.log",
+      "size": 9873,
+      "sha256": "c2aea9d67631b4a9995cd9a92fc46a54f159bf7a07086aca046bacfc27aeda92"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-18/stdout.log",
+      "size": 651,
+      "sha256": "5790ffeadbec3c6de1568657637cf9c3615dc1afa9704c368079df6a8a7e31c8"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-19/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a1-plain-evalsha-20261101-112603.jsonl",
+      "size": 1221,
+      "sha256": "422588d09edb856fc580d8d73ff46805a4890ed0f9019b9e28ff423b56c7e510"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-19/run/item1-tomokv-plain-20261101-112603-4146591/server.log",
+      "size": 9806,
+      "sha256": "095306cece487a4c235dee40adbf3aeb9e230f8fdcdaba50b7ada7e8ac4c9dce"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-19/stdout.log",
+      "size": 659,
+      "sha256": "2d6abd8f057422ee27cff677dc7a2457a11f65866fdd113a64abafc0ad8471d8"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-20/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a1-hold-evalsha-20261101-112603.jsonl",
+      "size": 1685,
+      "sha256": "f75fbbb0097e25b7884dce8a69fb4a2eb14a017bd4bb06d69ddd573119c26c55"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-20/run/item1-tomokv-hold-20261101-112603-4146639/server.log",
+      "size": 9859,
+      "sha256": "14bf099bf001f3fc4d927391ba46a410fbda9f0c73281ca0da214579bf1cd54c"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-20/stdout.log",
+      "size": 657,
+      "sha256": "6c6d94758127146ed82fcedd1636d9edd688a1ba081515e9a23aee1f7381a729"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-21/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a1-plain-fcall-20261101-112604.jsonl",
+      "size": 1217,
+      "sha256": "1f8ccf15ce4bf3e690aa006016e18c53810311e9e6a867f772d4d7e312f531ac"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-21/run/item1-tomokv-plain-20261101-112603-4146725/server.log",
+      "size": 9794,
+      "sha256": "38849f9e0a87bb48a7f93122261818277ed83b85bbd41b261b525de9d16120ca"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-21/stdout.log",
+      "size": 655,
+      "sha256": "7f63ed94d2f2a391c04c1e9e5e3d7c963caf00083840be0275cc941a366fe1bc"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-22/logs/item1-tomokv-2s_ratio_6-2_shards16_rl1_a1-hold-fcall-20261101-112604.jsonl",
+      "size": 1681,
+      "sha256": "359f61094ccb175579082cd78df93c27c6f88198e4da96bcc653a6cbd3f737e4"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-22/run/item1-tomokv-hold-20261101-112604-4146764/server.log",
+      "size": 9855,
+      "sha256": "5102da9c04d505a1342ab2e39e75b3b5aa216f8bccdcdeb33e22c91af82dfcb0"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-22/stdout.log",
+      "size": 653,
+      "sha256": "b03913d308a41fc15dd49c0eab13d84b0e8da2caa4a0fd19af53f3188b76e531"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-23/logs/item1nat-tomokv-2s_ratio_6-2_shards16_rl1_a1-after-20261101-112604.jsonl",
+      "size": 26250,
+      "sha256": "31927ab51bb7475bef726a97a7a2acf41e16e9d5852aef9176324e6c2a4d35e0"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-23/run/item1nat-after-20261101-112604-4146812/server.log",
+      "size": 9941,
+      "sha256": "470dac97d37456490b4bc221cb41e91291e6a276cf210a31d414394020c60ed9"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-23/stdout.log",
+      "size": 529,
+      "sha256": "d6ed86cebe0420b1a336225f5ec2a64296779a4e2db97cf13d706c4bb4e8a509"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-24/logs/item1nat-tomokv-2s_ratio_6-2_shards16_rl1_a1-race-20261101-112605.jsonl",
+      "size": 26284,
+      "sha256": "74b39005be974839fd1a057cbdb739fff60e5f8a315ba03f2734c70c82205c86"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-24/run/item1nat-race-20261101-112605-4146889/server.log",
+      "size": 9962,
+      "sha256": "3fcc9a22498ff964491e59da6adfa1f7154e2988117e5217fed2e86bd3c2c40b"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/tomokv-2s-1-1-24/stdout.log",
+      "size": 527,
+      "sha256": "8a2c2a2fe3dddf31bb67644a2f0d881b3a029e5133e61edc8e51beb540bb2bc1"
+    },
+    {
+      "path": "jobs/blockfix4/scripts/witness.json",
+      "size": 1354,
+      "sha256": "0bf61923fcd6013b128ec69936eb8c532e84acfc4dad3abd2489846166d527ee"
+    },
+    {
+      "path": "jobs/blockfix4/scripts.log",
+      "size": 1068,
+      "sha256": "b4a82e1739242af0c8dfa2ce9b7073c4221558a91cf795d0eef526db82d50b27"
+    },
+    {
+      "path": "jobs/blockfix4/timings",
+      "size": 323,
+      "sha256": "7a98d46c319c0f3ad99c265a23150d7a4774521e261c1b153467153709b77217"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "ac3573bbb75162e3d111d2c20670b14dcce37a4839950d3c81f41e4c01129745"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "68432feed99b37b2fd66704359a8f520f9034bb68fefab756193fa8c43e0c064"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1178,
+      "sha256": "d163f582fc675840f60bb9d9b8d15fbb6edbacebc7b3386784fc049c36ee171e"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 98497,
+      "sha256": "53fd7cbcedaa56fc38df8248bb6f9de4a960e4865a73db018cccbd7b5da110ed"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "blockfix4",
+      "done": "0\t5\t0",
+      "passed": 5,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "18.120000",
+          "label": "blockfix4 scripts (all modes, read-local and atomic)"
+        },
+        {
+          "status": "ok",
+          "seconds": "44.480000",
+          "label": "blockfix4 moves (all modes, read-local and atomic)"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.470000",
+          "label": "blockfix4 creators (all modes, read-local and atomic)"
+        },
+        {
+          "status": "ok",
+          "seconds": "9.950000",
+          "label": "blockfix4 removed (all modes, read-local and atomic)"
+        },
+        {
+          "status": "ok",
+          "seconds": "6.190000",
+          "label": "blockfix4 mpop (all modes, read-local and atomic)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "push",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20220-20229",
+    "--candidate-binary",
+    "/home/user/Projects/cx-blockfix4/build/tomokv"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "blockfix4",
+    "GATE_LEDGER": "/home/user/Projects/cx-blockfix4/docs/blockfix4/gate-receipts/post-extended-uring"
+  },
+  "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+  "exit_code": 0
+}

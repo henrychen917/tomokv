@@ -1514,6 +1514,9 @@ bool publish_pop_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& 
 
     state.phase = 1;
     state.pop_retry_snapshot = server.atomic_snapshot();
+    // Atomic-off pops can still carry a cut while older MVCC records exist.
+    // Their retry must not keep selecting an image from the original cut.
+    if (!state.atomic_pop) state.snapshot = state.pop_retry_snapshot;
     state.pending.store(state.nsub, std::memory_order_release);
     Task posts[256];
     uint16_t participant_begin[kMaxThreads];
@@ -4099,15 +4102,13 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return ScatterFinish::Waiting;
-    if (state.atomic_pop && state.phase == 2 && state.pop_missed) {
+    if (state.pop_missed && state.phase == 2) {
         aof_abort_scatter_group(state);
         state.aof_group.reset();
-        static constexpr uint32_t kMaxPopRetries = 8;
-        if (state.pop_retries++ < kMaxPopRetries &&
-            publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
+        // A lost selected value is not evidence that the other listed keys
+        // are empty. Only a complete empty probe may produce a null reply.
+        if (publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
             return ScatterFinish::Waiting;
-        if (state.final_reply == FinalReply::QueueFull) return final();
-        state.final_reply = FinalReply::NullArray;
         return final();
     }
     if (state.kind == Kind::Sort && state.sort_options.deref && state.phase == 1) {
@@ -4187,6 +4188,8 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             (state.final_reply == FinalReply::Lmpop ||
              state.final_reply == FinalReply::Zmpop);
         if (commit_ready || pop_commit_ready) return ScatterFinish::CommitQueued;
+        if (state.blocking_origin && blocking_scatter_repark(server, self, ring, state))
+            return ScatterFinish::Waiting;
         if (state.aof_group) {
             const uint64_t ticket = state.epoch.load(std::memory_order_acquire);
             if (ticket && !state.aborted.load(std::memory_order_acquire))
@@ -4208,6 +4211,8 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (!state.two_hop) return final();
     if (finish_phase1(state, op)) {
+        if (state.blocking_origin && blocking_scatter_repark(server, self, ring, state))
+            return ScatterFinish::Waiting;
         return final();
     }
     if (publish_phase2<IofusedPrivateQueue>(server, self, ring, task, op, state))
@@ -4315,6 +4320,10 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                 op.zc_shard = Op::kScatterReplyMarker;
             } else if (state->kind == Kind::Flush) {
                 flush_after_decision(server, self, ring, *state);
+                state = next;
+                continue;
+            } else if (state->blocking_origin &&
+                       blocking_scatter_repark(server, self, ring, *state)) {
                 state = next;
                 continue;
             }

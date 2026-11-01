@@ -884,6 +884,7 @@ public:
 
     uint32_t publish(Shard& shard, uint64_t hash, Slice key, int64_t now_ms,
                      ThreadCtx& self, Ring& ring) {
+        ServiceScope scope(servicing_);
         auto position = queues_.find(BlockingQueueProbe{hash, key});
         if (position == queues_.end()) return 0;
         const uint32_t work = service(shard, position->second, now_ms, self, ring);
@@ -893,6 +894,7 @@ public:
 
     uint32_t sweep(Shard& shard, int64_t now_ms, bool check_values,
                    ThreadCtx& self, Ring& ring) {
+        ServiceScope scope(servicing_);
         uint32_t work = 0;
         for (auto position = queues_.begin(); position != queues_.end();) {
             BlockingQueue& queue = position->second;
@@ -943,7 +945,45 @@ public:
         return work;
     }
 
+    void stream_removed(Shard& shard, Slice key, bool wrongtype,
+                        ThreadCtx& self, Ring& ring) {
+        // A lazy expiry reached from our own probe will be observed by that
+        // probe. Never invalidate its queue iterator recursively.
+        if (servicing_) { shard.set_blocking_dirty(); return; }
+        const auto position = queues_.find(BlockingQueueProbe{FlatStore::hash_key(key), key});
+        if (position == queues_.end()) return;
+        auto& queue = position->second;
+        for (size_t i = 0; i < queue.waiters.size();) {
+            BlockingState& state = *queue.waiters[i].state;
+            auto phase = state.phase.load(std::memory_order_acquire);
+            if (state.kind != BlockingKind::Xreadgroup || !blocking_phase_live(phase) ||
+                !state.phase.compare_exchange_strong(phase, BlockingPhase::Claimed,
+                                                     std::memory_order_acq_rel)) {
+                ++i;
+                continue;
+            }
+            // The old group must fail before a later command can install a
+            // same-named group. No lookup of the not-yet-replaced table here.
+            Op& op = state.client->rob().at(state.op_id);
+            state.acl_checked = true;
+            if (!acl_recheck_blocking(*state.client, op, self)) {
+                if (wrongtype) reply_wrongtype(op.sink());
+                else stream_xreadgroup_reply_nogroup(op);
+            }
+            remove_at_from_shard(shard, queue, i);
+            blocking_publish_completion(state, self, ring);
+        }
+        if (queue.waiters.empty()) queues_.erase(position);
+    }
+
 private:
+    struct ServiceScope {
+        bool& active;
+        bool previous;
+        explicit ServiceScope(bool& value) : active(value), previous(value) { active = true; }
+        ~ServiceScope() { active = previous; }
+    };
+    bool servicing_ = false;
     void remove_at_from_shard(Shard& shard, BlockingQueue& queue, size_t index) {
         BlockingState* state = queue.waiters[index].state;
         queue.members.erase(state);
@@ -1348,24 +1388,46 @@ BlockingSnapshotPrepare blocking_snapshot_prepare(const Task& task, Shard& shard
 }
 
 void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t key_len, uint8_t ns) {
-    if (blocking_tls_defer_plain || !shard.has_blocking_waiters() ||
-        !blocking_tls_self || !blocking_tls_ring) return;
+    if (!shard.has_blocking_waiters() || !blocking_tls_self || !blocking_tls_ring) return;
+    if (blocking_tls_defer_plain) {
+        // A script/EXEC or an unpublished plain version must retain readiness
+        // without letting another command consume its intermediate state.
+        shard.set_blocking_dirty();
+        return;
+    }
     BlockingRegistry* registry = blocking_registry_get(shard, false);
     if (!registry) return;
     const int64_t now = shard.now_ms();
     registry->publish(shard, hash, Slice(key, key_len, ns), now, *blocking_tls_self, *blocking_tls_ring);
 }
 
-void blocking_stream_removed(const void* store, Slice) {
+void blocking_key_created(const void* store, Slice) {
     if (!blocking_tls_self) return;
-    // This runs before the table replacement completes. Reprobe only from the
-    // next owner turn, never recursively from object retirement. Staging stores
-    // are deliberately absent from this list; atomic publication handles them.
+    // Signal readiness; serving here would observe a partially applied command.
+    // Private staging stores are absent; their commit signals the real shards.
     for (Shard* shard : blocking_tls_self->shards())
         if (&shard->store() == store && shard->has_blocking_waiters()) {
             shard->set_blocking_dirty();
             return;
         }
+}
+
+void blocking_stream_removed(const void* store, Slice key, const KvObj* replacement) {
+    if (!blocking_tls_self || !blocking_tls_ring) return;
+    for (Shard* shard : blocking_tls_self->shards()) {
+        if (&shard->store() != store || !shard->has_blocking_waiters()) continue;
+        // Scripts/EXEC publish only their final state. Replacing a stream
+        // directly with another stream also re-probes the new group's name,
+        // as Redis does for RENAME; a reheader retains the same group.
+        if (blocking_tls_defer_plain ||
+            (replacement && static_cast<Type>(replacement->type) == Type::Stream)) {
+            shard->set_blocking_dirty();
+        } else if (auto* registry = blocking_registry_get(*shard, false)) {
+            registry->stream_removed(*shard, key, replacement != nullptr,
+                                      *blocking_tls_self, *blocking_tls_ring);
+        }
+        return;
+    }
 }
 
 void blocking_publish_list_op(Shard& shard, Op& op) {
@@ -1385,33 +1447,26 @@ void blocking_publish_deleted(Shard& shard, Op& op) {
     }
 }
 
-void blocking_defer_plain_publication(bool defer) { blocking_tls_defer_plain = defer; }
+bool blocking_defer_plain_publication(bool defer) {
+    const bool previous = blocking_tls_defer_plain;
+    blocking_tls_defer_plain = defer;
+    return previous;
+}
+
+void blocking_script_publication_finished(bool previous) {
+    blocking_tls_defer_plain = previous;
+    if (previous || !blocking_tls_self) return;
+    for (Shard* shard : blocking_tls_self->shards()) blocking_cleanup_published(*shard);
+}
 
 void blocking_plain_mutation_published(Shard& shard, Op& op) {
     if (!shard.has_blocking_waiters()) return;
-    const char* name = op.spec->name;
-    if (!std::strcmp(name, "LPUSH") || !std::strcmp(name, "RPUSH") ||
-        !std::strcmp(name, "LPUSHX") || !std::strcmp(name, "RPUSHX") ||
-        !std::strcmp(name, "ZADD") || !std::strcmp(name, "ZINCRBY") ||
-        !std::strcmp(name, "XADD") || !std::strcmp(name, "SET") ||
-        !std::strcmp(name, "DEL") || !std::strcmp(name, "UNLINK"))
-        blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
-    else if (!std::strcmp(name, "LMOVE") || !std::strcmp(name, "RPOPLPUSH") ||
-             !std::strcmp(name, "RENAME") || !std::strcmp(name, "RENAMENX")) {
-        const Slice destination = op.arg(2);
-        blocking_publish_key(shard, FlatStore::hash_key(destination),
-                             destination.p, destination.n, destination.ns);
-        blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
-    } else if (!std::strcmp(name, "SORT")) {
-        SortOptions options;
-        if (parse_sort_options(op, options) && options.store) {
-            const Slice key = op.arg(options.store_arg);
-            blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
-        }
-    } else if (!std::strcmp(name, "XGROUP")) {
-        const Slice key = op.arg(2);
-        blocking_publish_key(shard, FlatStore::hash_key(key), key.p, key.n, key.ns);
+    if (op.spec->flags & CmdFlags::ScriptRoute) {
+        // The outer plain view, if present, must close before these reads.
+        blocking_script_publication_finished(blocking_tls_defer_plain);
+        return;
     }
+    blocking_cleanup_published(shard);
 }
 
 void blocking_cleanup_published(Shard& shard) {
@@ -1455,20 +1510,23 @@ void blocking_atomic_published(Server& server, ThreadCtx& self, Ring& ring,
 void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op) {
     if (!task.scatter || !shard.has_blocking_waiters()) return;
     ScatterState& state = *task.scatter;
-    const bool deletion = !state.atomic_apply && state.phase == 1 &&
-        (state.kind == Kind::Del || state.kind == Kind::Unlink);
-    if (state.atomic_group || (!deletion && (state.phase != 2 ||
-        !(state.kind == Kind::Lmove || state.kind == Kind::Rpoplpush ||
-          state.kind == Kind::Rename || state.kind == Kind::Renamenx ||
-          state.kind == Kind::Sort)))) return;
-    ShardGroup* group = group_for(state, shard.id());
-    if (!group) return;
-    for (uint32_t i = 0; i < group->count; i++) {
-        const uint32_t pos = state.key_order[group->begin + i];
-        const KeyRef& key = state.keys[pos];
-        const Slice slice = op.arg(key.arg);
-        blocking_publish_key(shard, key.hash, slice.p, slice.n, slice.ns);
-    }
+    (void)op;
+    if (!state.atomic_group) blocking_cleanup_published(shard);
+}
+
+[[gnu::noinline, gnu::cold]] bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,
+                             ScatterState& state) {
+    BlockingState* block = state.blocking_origin;
+    if (!block || state.final_reply != FinalReply::Nil) return false;
+    // Every scatter task has finished, and an atomic attempt has decided its
+    // read dependencies. Keep the ROB slot and Blocking barrier: no nil reply
+    // may retire a timeout-zero move that lost its source before resumption.
+    server.atomic_apply_close(self.id(), state.apply_open);
+    for (const BlockingKey& key : block->keys)
+        server.shard(key.shard).set_blocking_dirty();
+    block->phase.store(BlockingPhase::RemapRequested, std::memory_order_release);
+    blocking_notify_sender(server, self, ring, block->client);
+    return true;
 }
 
 template <bool IofusedPrivateQueue>
@@ -1478,11 +1536,38 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
     for (uint64_t id = client.rob().flush_id(), end = client.rob().dispatch_id(); id != end; id++) {
         Op& op = client.rob().at(id);
         BlockingState* block = op.blocking_state();
+        if (ScatterState* scatter = op.scatter_state(); scatter && scatter->blocking_origin &&
+            scatter->blocking_origin->phase.load(std::memory_order_acquire) ==
+                BlockingPhase::RemapRequested) {
+            block = scatter->blocking_origin;
+            scatter->blocking_origin = nullptr;
+            if (scatter->atomic_group) {
+                free_state_contents(*scatter);
+                if (scatter->snapshot_registered)
+                    pool.unregister_snapshot(server, scatter, self.id());
+                client.atomic_group_finished();
+            }
+            op.detach_scatter_state();
+            op.attach_blocking_state(block);
+            xshard_destroy(scatter, pool, self.id());
+            op.clear_reply();
+        }
         if (block && block->phase.load(std::memory_order_acquire) ==
                          BlockingPhase::RemapRequested &&
             block->active_tasks.load(std::memory_order_acquire) == 0 &&
             block->refs.load(std::memory_order_acquire) == 1) {
             if (server.database_boundary_active()) return false;
+            if (client.closing() || block->cancel_requested.load(std::memory_order_acquire)) {
+                block->phase.store(BlockingPhase::Cancelled, std::memory_order_release);
+                op.state.store(OpState::Done, std::memory_order_release);
+                return true;
+            }
+            if (block->deadline_ms && now_realtime_ms() >= block->deadline_ms) {
+                blocking_reply_timeout(op, block->kind);
+                block->phase.store(BlockingPhase::Completed, std::memory_order_release);
+                op.state.store(OpState::Done, std::memory_order_release);
+                return true;
+            }
             // Every old owner has dropped its alias. Rebuild routes on the owning IO,
             // retaining the original deadline and resolved XREAD cursors (including '$').
             if constexpr (!kSingleDatabase) multidb_stamp(server, op, block->logical_db);

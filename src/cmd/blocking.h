@@ -56,9 +56,12 @@ void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t
 void blocking_publish_list_op(Shard& shard, Op& op);
 void blocking_publish_zset_op(Shard& shard, Op& op);
 void blocking_publish_deleted(Shard& shard, Op& op);
-void blocking_defer_plain_publication(bool defer);
+bool blocking_defer_plain_publication(bool defer);
+void blocking_script_publication_finished(bool previous);
 void blocking_plain_mutation_published(Shard& shard, Op& op);
 void blocking_cleanup_published(Shard& shard);
+bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,
+                             ScatterState& state);
 
 // Executor heartbeat and atomic publish integration.
 uint32_t blocking_owner_cycle(Server& server, ThreadCtx& self, Ring& ring, int64_t now_ms,

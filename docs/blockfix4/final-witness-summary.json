@@ -1,0 +1,3309 @@
+[
+  {
+    "tag": "post-extended-uring",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "blockfix4",
+        "done": "0\t5\t0",
+        "passed": 5,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "18.120000",
+            "label": "blockfix4 scripts (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "44.480000",
+            "label": "blockfix4 moves (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "5.470000",
+            "label": "blockfix4 creators (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.950000",
+            "label": "blockfix4 removed (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "6.190000",
+            "label": "blockfix4 mpop (all modes, read-local and atomic)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "creators": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 30,
+            "defects": 0,
+            "served": 30,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 480,
+            "parked": 480,
+            "hits": 480,
+            "defects": 0,
+            "served": 480,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        }
+      },
+      "moves": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 0,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 30,
+            "nonhit_other": 0
+          }
+        },
+        "tomokv": {
+          "legs": 24,
+          "passing": 24,
+          "errors": {},
+          "totals": {
+            "attempts": 720,
+            "parked": 720,
+            "hits": 720,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 720,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 0,
+            "nonhit_other": 0
+          }
+        }
+      },
+      "mpop": {
+        "redis": {
+          "legs": 2,
+          "passing": 2,
+          "errors": {},
+          "totals": {
+            "hot": 3200,
+            "fallback": 3200,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 2,
+            "contended": 3200,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 6400
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "totals": {
+            "hot": 25600,
+            "fallback": 25600,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 16,
+            "contended": 25600,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 51200
+          }
+        }
+      },
+      "removed": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            }
+          },
+          "totals": {
+            "attempts": 80,
+            "parked": 80,
+            "hits": 80,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 60,
+              "error: WRONGTYPE": 20
+            }
+          }
+        },
+        "tomokv": {
+          "legs": 8,
+          "passing": 8,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            }
+          },
+          "totals": {
+            "attempts": 640,
+            "parked": 640,
+            "hits": 640,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 480,
+              "error: WRONGTYPE": 160
+            }
+          }
+        }
+      },
+      "scripts": {
+        "redis": {
+          "legs": 3,
+          "passing": 3,
+          "errors": {},
+          "script": {
+            "attempts": 9,
+            "parked": 9,
+            "hits": 9,
+            "served": 9,
+            "not_served": 0,
+            "served_after_long": 0,
+            "served_after_release": 0,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 9
+            }
+          },
+          "natural_mvcc": {},
+          "natural_legs": []
+        },
+        "tomokv": {
+          "legs": 44,
+          "passing": 44,
+          "errors": {},
+          "script": {
+            "attempts": 108,
+            "parked": 108,
+            "hits": 108,
+            "served": 96,
+            "not_served": 12,
+            "served_after_long": 0,
+            "served_after_release": 12,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 108
+            }
+          },
+          "natural_mvcc": {
+            "attempts": 1024,
+            "parked": 1024,
+            "hits": 1001,
+            "hit_defects": 0,
+            "nonhit_defects": 0,
+            "served": 1024,
+            "served_after_long": 0
+          },
+          "natural_legs": [
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 111,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "race"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "tag": "functional-epoll",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "blockfix4",
+        "done": "0\t5\t0",
+        "passed": 5,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "17.830000",
+            "label": "blockfix4 scripts (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "44.350000",
+            "label": "blockfix4 moves (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "5.370000",
+            "label": "blockfix4 creators (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.950000",
+            "label": "blockfix4 removed (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "6.140000",
+            "label": "blockfix4 mpop (all modes, read-local and atomic)"
+          }
+        ]
+      },
+      {
+        "job": "differ-armed-0",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "540.460000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "differ-armed-1",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "530.500000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "differ-equivalence",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "21.710000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      {
+        "job": "differ-split-0",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "538.700000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      {
+        "job": "differ-split-1",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "565.340000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      {
+        "job": "redis_tcl",
+        "done": "0\t2\t0",
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "233.890000",
+            "label": "Redis 7.4.10 Tcl passing subset (2s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "228.310000",
+            "label": "Redis 7.4.10 Tcl passing subset (1s)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "creators": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 30,
+            "defects": 0,
+            "served": 30,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 480,
+            "parked": 480,
+            "hits": 480,
+            "defects": 0,
+            "served": 480,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        }
+      },
+      "moves": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 0,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 30,
+            "nonhit_other": 0
+          }
+        },
+        "tomokv": {
+          "legs": 24,
+          "passing": 24,
+          "errors": {},
+          "totals": {
+            "attempts": 720,
+            "parked": 720,
+            "hits": 720,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 720,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 0,
+            "nonhit_other": 0
+          }
+        }
+      },
+      "mpop": {
+        "redis": {
+          "legs": 2,
+          "passing": 2,
+          "errors": {},
+          "totals": {
+            "hot": 3200,
+            "fallback": 3200,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 2,
+            "contended": 3200,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 6400
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "totals": {
+            "hot": 25600,
+            "fallback": 25600,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 16,
+            "contended": 25600,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 51200
+          }
+        }
+      },
+      "removed": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            }
+          },
+          "totals": {
+            "attempts": 80,
+            "parked": 80,
+            "hits": 80,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 60,
+              "error: WRONGTYPE": 20
+            }
+          }
+        },
+        "tomokv": {
+          "legs": 8,
+          "passing": 8,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            }
+          },
+          "totals": {
+            "attempts": 640,
+            "parked": 640,
+            "hits": 640,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 480,
+              "error: WRONGTYPE": 160
+            }
+          }
+        }
+      },
+      "scripts": {
+        "redis": {
+          "legs": 3,
+          "passing": 3,
+          "errors": {},
+          "script": {
+            "attempts": 9,
+            "parked": 9,
+            "hits": 9,
+            "served": 9,
+            "not_served": 0,
+            "served_after_long": 0,
+            "served_after_release": 0,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 9
+            }
+          },
+          "natural_mvcc": {},
+          "natural_legs": []
+        },
+        "tomokv": {
+          "legs": 44,
+          "passing": 44,
+          "errors": {},
+          "script": {
+            "attempts": 108,
+            "parked": 108,
+            "hits": 108,
+            "served": 96,
+            "not_served": 12,
+            "served_after_long": 0,
+            "served_after_release": 12,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 108
+            }
+          },
+          "natural_mvcc": {
+            "attempts": 1024,
+            "parked": 1024,
+            "hits": 1021,
+            "hit_defects": 0,
+            "nonhit_defects": 0,
+            "served": 1024,
+            "served_after_long": 0
+          },
+          "natural_legs": [
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "race"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "tag": "normal-namespace-uring",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "blockfix4",
+        "done": "0\t5\t0",
+        "passed": 5,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "17.620000",
+            "label": "blockfix4 scripts (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "44.280000",
+            "label": "blockfix4 moves (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "5.230000",
+            "label": "blockfix4 creators (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.900000",
+            "label": "blockfix4 removed (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "6.240000",
+            "label": "blockfix4 mpop (all modes, read-local and atomic)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "creators": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 30,
+            "defects": 0,
+            "served": 30,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 480,
+            "parked": 480,
+            "hits": 480,
+            "defects": 0,
+            "served": 480,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        }
+      },
+      "moves": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 0,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 30,
+            "nonhit_other": 0
+          }
+        },
+        "tomokv": {
+          "legs": 24,
+          "passing": 24,
+          "errors": {},
+          "totals": {
+            "attempts": 720,
+            "parked": 720,
+            "hits": 720,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 720,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 0,
+            "nonhit_other": 0
+          }
+        }
+      },
+      "mpop": {
+        "redis": {
+          "legs": 2,
+          "passing": 2,
+          "errors": {},
+          "totals": {
+            "hot": 3200,
+            "fallback": 3200,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 2,
+            "contended": 3200,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 6400
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "totals": {
+            "hot": 25600,
+            "fallback": 25600,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 16,
+            "contended": 25600,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 51200
+          }
+        }
+      },
+      "removed": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            }
+          },
+          "totals": {
+            "attempts": 80,
+            "parked": 80,
+            "hits": 80,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 60,
+              "error: WRONGTYPE": 20
+            }
+          }
+        },
+        "tomokv": {
+          "legs": 8,
+          "passing": 8,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            }
+          },
+          "totals": {
+            "attempts": 640,
+            "parked": 640,
+            "hits": 640,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 480,
+              "error: WRONGTYPE": 160
+            }
+          }
+        }
+      },
+      "scripts": {
+        "redis": {
+          "legs": 3,
+          "passing": 3,
+          "errors": {},
+          "script": {
+            "attempts": 9,
+            "parked": 9,
+            "hits": 9,
+            "served": 9,
+            "not_served": 0,
+            "served_after_long": 0,
+            "served_after_release": 0,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 9
+            }
+          },
+          "natural_mvcc": {},
+          "natural_legs": []
+        },
+        "tomokv": {
+          "legs": 44,
+          "passing": 44,
+          "errors": {},
+          "script": {
+            "attempts": 108,
+            "parked": 108,
+            "hits": 108,
+            "served": 96,
+            "not_served": 12,
+            "served_after_long": 0,
+            "served_after_release": 12,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 108
+            }
+          },
+          "natural_mvcc": {
+            "attempts": 1024,
+            "parked": 1024,
+            "hits": 1009,
+            "hit_defects": 0,
+            "nonhit_defects": 0,
+            "served": 1024,
+            "served_after_long": 0
+          },
+          "natural_legs": [
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 125,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 123,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 126,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "race"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "tag": "normal-namespace-epoll",
+    "exit_code": 0,
+    "binary_sha256": "cb7a70bbcf669f8657697a3708c9dd583dbf74fd0463da4ba590a1b8caf63a65",
+    "jobs": [
+      {
+        "job": "blockfix4",
+        "done": "0\t5\t0",
+        "passed": 5,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "17.480000",
+            "label": "blockfix4 scripts (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "43.870000",
+            "label": "blockfix4 moves (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "5.120000",
+            "label": "blockfix4 creators (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.850000",
+            "label": "blockfix4 removed (all modes, read-local and atomic)"
+          },
+          {
+            "status": "ok",
+            "seconds": "6.140000",
+            "label": "blockfix4 mpop (all modes, read-local and atomic)"
+          }
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "creators": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 2,
+              "parked": 2,
+              "hits": 2,
+              "defects": 0,
+              "served": 2,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 30,
+            "defects": 0,
+            "served": 30,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "by_case": {
+            "COPY-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-stream": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "COPY-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "GEOSEARCHSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "LMOVE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-stream(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RENAME-zset(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-list": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "RESTORE-zset": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "SORTSTORE-list(ctl)": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZDIFFSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZINTERSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZRANGESTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            },
+            "ZUNIONSTORE": {
+              "attempts": 32,
+              "parked": 32,
+              "hits": 32,
+              "defects": 0,
+              "served": 32,
+              "served_after_long": 0,
+              "served_after_plain_push": 0,
+              "long_checked": 0
+            }
+          },
+          "totals": {
+            "attempts": 480,
+            "parked": 480,
+            "hits": 480,
+            "defects": 0,
+            "served": 480,
+            "served_after_long": 0,
+            "served_after_plain_push": 0,
+            "long_checked": 0
+          }
+        }
+      },
+      "moves": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "totals": {
+            "attempts": 30,
+            "parked": 30,
+            "hits": 0,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 0,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 30,
+            "nonhit_other": 0
+          }
+        },
+        "tomokv": {
+          "legs": 24,
+          "passing": 24,
+          "errors": {},
+          "totals": {
+            "attempts": 720,
+            "parked": 720,
+            "hits": 720,
+            "defects_nil": 0,
+            "hit_waiter_still_blocked": 720,
+            "hit_waiter_other": 0,
+            "nonhit_served_x": 0,
+            "nonhit_other": 0
+          }
+        }
+      },
+      "mpop": {
+        "redis": {
+          "legs": 2,
+          "passing": 2,
+          "errors": {},
+          "totals": {
+            "hot": 3200,
+            "fallback": 3200,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 2,
+            "contended": 3200,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 6400
+          }
+        },
+        "tomokv": {
+          "legs": 16,
+          "passing": 16,
+          "errors": {},
+          "totals": {
+            "hot": 25600,
+            "fallback": 25600,
+            "null": 0,
+            "error": 0,
+            "other": 0,
+            "rounds": 16,
+            "contended": 25600,
+            "hits": 0,
+            "defects": 0,
+            "attempts": 51200
+          }
+        }
+      },
+      "removed": {
+        "redis": {
+          "legs": 1,
+          "passing": 1,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 10
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 10,
+              "parked": 10,
+              "hits": 10,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 10
+              }
+            }
+          },
+          "totals": {
+            "attempts": 80,
+            "parked": 80,
+            "hits": 80,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 60,
+              "error: WRONGTYPE": 20
+            }
+          }
+        },
+        "tomokv": {
+          "legs": 8,
+          "passing": 8,
+          "errors": {},
+          "by_case": {
+            "DEL+RENAME(ctl)": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "EXPIRE(EXISTS)+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHALL-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "FLUSHDB-ASYNC+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: NOGROUP": 80
+              }
+            },
+            "MSET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            },
+            "SET+RENAME": {
+              "attempts": 80,
+              "parked": 80,
+              "hits": 80,
+              "long_released": 0,
+              "long_checked": 0,
+              "outcomes": {
+                "error: WRONGTYPE": 80
+              }
+            }
+          },
+          "totals": {
+            "attempts": 640,
+            "parked": 640,
+            "hits": 640,
+            "long_released": 0,
+            "long_checked": 0,
+            "outcomes": {
+              "error: NOGROUP": 480,
+              "error: WRONGTYPE": 160
+            }
+          }
+        }
+      },
+      "scripts": {
+        "redis": {
+          "legs": 3,
+          "passing": 3,
+          "errors": {},
+          "script": {
+            "attempts": 9,
+            "parked": 9,
+            "hits": 9,
+            "served": 9,
+            "not_served": 0,
+            "served_after_long": 0,
+            "served_after_release": 0,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 9
+            }
+          },
+          "natural_mvcc": {},
+          "natural_legs": []
+        },
+        "tomokv": {
+          "legs": 44,
+          "passing": 44,
+          "errors": {},
+          "script": {
+            "attempts": 108,
+            "parked": 108,
+            "hits": 108,
+            "served": 96,
+            "not_served": 12,
+            "served_after_long": 0,
+            "served_after_release": 12,
+            "served_after_plain_push": 0,
+            "still_stuck": 0,
+            "mid_llen": {
+              "1": 108
+            }
+          },
+          "natural_mvcc": {
+            "attempts": 1024,
+            "parked": 1024,
+            "hits": 1011,
+            "hit_defects": 0,
+            "nonhit_defects": 0,
+            "served": 1024,
+            "served_after_long": 0
+          },
+          "natural_legs": [
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 128,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 125,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 125,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "2s ratio 6:2 shards16 rl1 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl0 a1",
+              "order": "race"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 125,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "after"
+            },
+            {
+              "event": "summary",
+              "attempts": 128,
+              "parked": 128,
+              "hits": 127,
+              "hit_defects": 0,
+              "nonhit_defects": 0,
+              "served": 128,
+              "served_after_long": 0,
+              "geometry": "1s fused(8) shards16 rl1 a1",
+              "order": "race"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

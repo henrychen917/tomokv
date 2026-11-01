@@ -991,6 +991,17 @@ public:
     // Re-arms type-specific attention for an imported image, including atomic COPY/RENAME APPLY.
     // The type guard keeps hash-field machinery behind the hash-only branch.
     void note_loaded_object(uint64_t h, const KvObj* o) {
+        if (static_cast<Type>(o->type) == Type::String) return;
+        // Imported images (COPY/RESTORE/*STORE/RENAME) create collections
+        // without going through their native push handlers. Signal here, at
+        // installation, so wake coverage follows the type rather than a list
+        // of commands. Native pushes already signal behind their waiter gate.
+        if (static_cast<Type>(o->type) == Type::List ||
+            static_cast<Type>(o->type) == Type::Zset ||
+            static_cast<Type>(o->type) == Type::Stream) {
+            if (blocking_key_created) blocking_key_created(this, o->key());
+            return;
+        }
         if (static_cast<Type>(o->type) != Type::Hash) return;
         if (static_cast<Enc>(o->enc) == Enc::Compact) return;
         if (static_cast<const HashVal*>(o->external_ptr())->ttls) note_field_ttl(h);
@@ -1662,6 +1673,11 @@ public:
     // during capture for the same reason admission is (victims are not pre-imaged).
     bool budget_admit(Slice protected_key) {
         if (!__builtin_expect(maxmemory_enabled_, false)) return true;
+        return budget_admit_over_limit(protected_key);
+    }
+    // Stream-retirement context belongs to the armed eviction path. Keep its
+    // register saves behind the existing maxmemory gate for ordinary writes.
+    [[gnu::noinline, gnu::cold]] bool budget_admit_over_limit(Slice protected_key) {
         if (snapshot_active_) return true;
         // NOT make_room_for: projected_bytes subtracts the protected key's own size (replacement
         // semantics), so the very key being grown always "fits". The gate asks the raw question:
@@ -1730,7 +1746,7 @@ public:
         // and the key resurrects — see the header.
         if (rehashing()) {
             bool expired = false;
-            if (erase_in(1, h, o->key(), &expired) && expired && expired_counter_)
+            if (erase_in(1, h, o->key(), &expired, o) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
         return insert_into(0, h, o, true) ? InsertResult::Inserted : InsertResult::Failed;
@@ -2739,7 +2755,7 @@ private:
                     if constexpr (!kSingleDatabase) storesize_replace(cur, o);
                     (void)this->track_expire(h, o);
                 }
-                retire_obj(cur);                            // replace in place; live_ unchanged
+                retire_obj(cur, o);                         // replace in place; live_ unchanged
                 tab_[t][i] = make_word(tag, o);
                 if (fresh) obj_bytes_ += kvobj_size(o);
                 return true;
@@ -2755,9 +2771,10 @@ private:
             sink->emit(sink->context, cls, event, key);
     }
 
-    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr,
+                  const KvObj* replacement = nullptr) {
         if (__builtin_expect(read_local_enabled_, false))
-            return erase_in_read_local(t, h, key, was_expired);
+            return erase_in_read_local(t, h, key, was_expired, replacement);
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -2771,7 +2788,8 @@ private:
                 }
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
-                retire_obj(o);
+                if (replacement) retire_obj(o, replacement);
+                else retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
                 live_[t]--; tombs_[t]++;
                 return true;
@@ -2995,7 +3013,7 @@ private:
         ReadLocalTableGuard table_move(*this, moves_from_old);
         if (rehashing()) {
             bool expired = false;
-            if (erase_in_read_local(1, h, o->key(), &expired) && expired && expired_counter_)
+            if (erase_in_read_local(1, h, o->key(), &expired, o) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
         return insert_into_read_local(0, h, o, true)
@@ -3211,7 +3229,7 @@ private:
                     (void)this->track_expire(h, o);
                 }
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
-                retire_obj_read_local(cur);
+                retire_obj_read_local(cur, o);
                 const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
                 obj_bytes_ += added_bytes;
                 if (track_expire && o->expire_at_ms() < 0) {
@@ -3223,7 +3241,8 @@ private:
         return false;
     }
 
-    bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+    bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr,
+                             const KvObj* replacement = nullptr) {
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -3238,7 +3257,7 @@ private:
                 if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
                 read_local_slot_store(&tab_[t][i], kTombBit);
-                retire_obj_read_local(o);
+                retire_obj_read_local(o, replacement);
                 live_[t]--; tombs_[t]++;
                 return true;
             }
@@ -3294,9 +3313,9 @@ private:
     // Logical retirement, before QSBR destruction: only the existing external
     // stream type arm signals blocked group readers. String retirement retains
     // its ordinary encoding test and adds no waiter test or callback.
-    size_t retiring_external_bytes(const KvObj* object) {
+    size_t retiring_external_bytes(const KvObj* object, const KvObj* replacement = nullptr) {
         return static_cast<Enc>(object->enc) == Enc::Extern
-            ? kvobj_external_bytes<true>(object, this) : 0;
+            ? kvobj_external_bytes<true>(object, this, replacement) : 0;
     }
 
     // Decode the header ONCE, exactly as unarmed retire_obj() does: the size class computed for
@@ -3304,9 +3323,9 @@ private:
     // auxiliary word, so the free after the grace period does not re-derive it from a header that
     // has gone cold. A published object is immutable, and eviction-meta updates keep
     // the layout bits, so the class cannot change between retire and reclaim.
-    void retire_obj_read_local(KvObj* object) {
+    void retire_obj_read_local(KvObj* object, const KvObj* replacement = nullptr) {
         const size_t capacity = kvobj_capacity(object);
-        const size_t bytes = capacity + retiring_external_bytes(object);
+        const size_t bytes = capacity + retiring_external_bytes(object, replacement);
         obj_bytes_ -= bytes;
         read_local_store_state_armed().retire_sink.retire(
             this, object, capacity, &FlatStore::read_local_reclaim_object);
@@ -3618,9 +3637,12 @@ private:
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
     // The header is decoded once: the class computed for accounting is the sized-free length.
-    void retire_obj(KvObj* o) {
+    // Keep replacement context inside the external-value branch. Outlining this
+    // wrapper passes an otherwise unused extra argument for inline integers.
+    void retire_obj(KvObj* o) { retire_obj(o, nullptr); }
+    [[gnu::always_inline]] void retire_obj(KvObj* o, const KvObj* replacement) {
         const size_t capacity = kvobj_capacity(o);
-        const size_t bytes = capacity + retiring_external_bytes(o);
+        const size_t bytes = capacity + retiring_external_bytes(o, replacement);
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())

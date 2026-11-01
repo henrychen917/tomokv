@@ -117,7 +117,7 @@ ScatterTaskResult execute_live_pop(const Task& task, Shard& shard, Op& op) {
         state.status[pos] = static_cast<uint8_t>(WorkError::WrongType);
     else if (popped == XshardPopResult::Oom)
         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
-    else if (popped == XshardPopResult::Missing && state.atomic_pop)
+    else if (popped == XshardPopResult::Missing)
         state.pop_missed = true;
     if (plain_active) shard.store().atomic_finish_plain();
     return ScatterTaskResult::Complete;

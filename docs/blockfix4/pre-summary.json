@@ -1,0 +1,27 @@
+{
+  "mpop": {
+    "legs": 18,
+    "passing": 10,
+    "failing": 8
+  },
+  "creators": {
+    "legs": 17,
+    "passing": 1,
+    "failing": 16
+  },
+  "removed": {
+    "legs": 9,
+    "passing": 2,
+    "failing": 7
+  },
+  "moves": {
+    "legs": 25,
+    "passing": 1,
+    "failing": 24
+  },
+  "scripts": {
+    "legs": 39,
+    "passing": 3,
+    "failing": 36
+  }
+}

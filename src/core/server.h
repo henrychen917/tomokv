@@ -3024,7 +3024,7 @@ public:
         flag.store(true, std::memory_order_release);
     }
     // Idempotent by construction: whichever of the two ends reaches the group first closes it.
-    void atomic_apply_close(uint32_t tid, std::atomic<bool>& flag) {
+    [[gnu::always_inline]] void atomic_apply_close(uint32_t tid, std::atomic<bool>& flag) {
         if (tid >= nthreads()) std::abort();
         if (__builtin_expect(!flag.load(std::memory_order_acquire), true)) return;
         if (flag.exchange(false, std::memory_order_acq_rel))
