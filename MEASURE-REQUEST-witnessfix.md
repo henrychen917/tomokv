@@ -73,3 +73,12 @@ distinguished from an error reply already received. DQ=DF=0.
 Renamed `job_execfair` and its ledger identity fixture to include the wave6-wave10
 interaction batteries it actually runs. DQ=DF=0; one label is renamed, no row
 is added or retired. This is reporting repair, not new concurrency evidence.
+
+### Compat 4.2 — XPENDING exclusive bounds
+
+The Redis 7.4.10 oracle rejects `(-` and `(+` with `ERR Invalid stream ID
+specified as stream command argument`, and exclusive UINT64_MAX with `ERR
+invalid start ID for the interval`. The battery now records those expectations.
+The existing empty-array result is a named known difference under
+XRANGE-EXCLUSIVE-SENTINEL / XPENDING; any other result fails. The ECHO/PING framing
+fence remains strict. DQ=DF=0; the exclusion is not evidence of compatibility.
