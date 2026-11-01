@@ -46,6 +46,11 @@ def main():
         if legs.exists():
             raw[str(legs.relative_to(args.run))] = legs.read_text()
             record["differential_legs"] = len(legs.read_text().splitlines())
+            # Retain startup engine/geometry declarations, including both
+            # witness and replay servers for every equivalence cell.
+            for path in sorted((job / "differ").rglob("*.log")):
+                if path.name in ("server.log", "oracle.log") or path.name.startswith("target-atomic-"):
+                    raw[str(path.relative_to(args.run))] = path.read_text(errors="replace")
     found = {job["job"] for job in jobs}
     expected = set(args.expected_jobs.read_text().split())
     missing = sorted(expected - found)

@@ -76,6 +76,17 @@ def main():
             complete = json.loads(path.read_text())
             assert complete["complete"] and complete["comparisons"] == comparisons, complete
             assert complete["seeds"][:4] == [7, 19, 20, 23] and len(complete["seeds"]) == 5
+            logs = (sorted(path.parent.rglob("server.log")) if part == "equivalence" else
+                    sorted(path.parent.glob("target-atomic-*.log")))
+            assert len(logs) == (32 if part == "equivalence" else 1), (engine, part, logs)
+            boots = []
+            for log in logs:
+                header = next(line for line in log.read_text().splitlines()
+                              if line.startswith("tomokv-cpp:"))
+                assert (", io_uring," if engine == "uring" else ", epoll,") in header, header
+                boots.append(dict(path=str(log), header=header,
+                                  sha256=hashlib.sha256(log.read_bytes()).hexdigest()))
+            complete["engine_boots"] = boots
             parts.append(complete)
         differential.append(dict(engine=engine, receipt="differential-" + engine, parts=parts))
 

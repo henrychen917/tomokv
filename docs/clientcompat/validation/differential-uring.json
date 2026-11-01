@@ -66,7 +66,7 @@
   ],
   "missing": [],
   "archive": "docs/clientcompat/validation/differential-uring.json.gz",
-  "archive_sha256": "db838d6b21d8a2af5ab1ec969c2fd7da0487aa9aaf88b84fe8f593a0d9ec43e7",
+  "archive_sha256": "54c7ae728385ceb3e153e6ce1d0f90b38a9d0cca64601f65987bb46cf1d2b156",
   "passed": 6,
   "failed": 0
 }
