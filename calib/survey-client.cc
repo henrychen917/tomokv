@@ -10,7 +10,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sched.h>
-#include <poll.h>
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -152,7 +151,6 @@ struct alignas(64) Result {
 };
 static int dial(int port) {
     int fd=socket(AF_INET,SOCK_STREAM,0); need(fd>=0,"socket");
-    int off=0;need(setsockopt(fd,SOL_SOCKET,SO_BUSY_POLL,&off,sizeof off)==0,"disable socket busy polling");
     sockaddr_in a{};a.sin_family=AF_INET;a.sin_port=htons(port);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
     if(connect(fd,(sockaddr*)&a,sizeof a)) {close(fd);throw std::runtime_error("connect: "+std::string(strerror(errno)));}
     int yes=1; setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,&yes,sizeof yes);
@@ -268,13 +266,7 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
             if(!live)break;
             now=ns();u64 wait=wake>now?wake-now:0;
             timespec timeout{time_t(wait/1000000000),long(wait%1000000000)};
-            // Waiting directly on sockets in epoll inherits net.core.busy_poll,
-            // whose spin interval can exceed our next deadline. Poll the epoll
-            // descriptor itself (no socket/NAPI ID), then drain with timeout 0.
-            // This keeps high-resolution readiness/deadline waits local to us.
-            pollfd readyfd{ep,POLLIN,0};int waiting=ppoll(&readyfd,1,&timeout,nullptr);
-            need(waiting>=0||errno==EINTR,"readiness wait");
-            int n=epoll_wait(ep,events.data(),events.size(),0);
+            int n=epoll_pwait2(ep,events.data(),events.size(),&timeout,nullptr);
             need(n>=0||errno==EINTR,"epoll wait");
             for(int i=0;i<n;i++){
                 auto& c=*static_cast<Conn*>(events[i].data.ptr);
