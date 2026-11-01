@@ -218,3 +218,11 @@ not the missing IO4.1 latch. The existing moving observation does not establish
 that a close occurred after detach/RoleReady. Late/abort producers still need a
 production observable to make that claim; the ungated late probe lacks it too.
 DQ=DF=0. Do not count a successful close storm as a forced late-close witness.
+
+### Compat 4.1 — CONFIG allowlist errors
+
+Boot-only settings no longer accept arbitrary ERR replies. Native controls
+require their exact immutable error; Redis-backed settings first compare the
+oracle's value and otherwise accept only the exact documented lifetime error,
+with CONFIG-RUNTIME-IMMUTABLE / 68d-4 or TRACK-MAXKEYS-IMMUTABLE / D15 in the
+receipt. Both retained values and transaction rollback remain checked. DQ=DF=0.

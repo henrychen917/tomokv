@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 from _serverfix import main, Server, is_error
+from known_difference import expect
 
 
 def inventory():
@@ -29,6 +30,8 @@ LIFETIME_DIFFERENCES = set('appendonly bind hll-sparse-max-bytes port tls-auth-c
                            'tls-ca-cert-dir tls-ca-cert-file tls-cert-file tls-ciphers '
                            'tls-ciphersuites tls-key-file tls-port tls-prefer-server-ciphers '
                            'tls-protocols tracking-table-max-keys'.split())
+NATIVE_IMMUTABLE = set('net-io thread-mode read-local reorder wb-policy wb-small-pipe '
+                       'wb-complete-visits key-lb key-lb-damping client-lb flip-auto'.split())
 
 
 def probe(run, mode, label, extra):
@@ -69,7 +72,20 @@ def probe(run, mode, label, extra):
                     continue
                 expected = run.reference.get(key)
                 if name in IMMUTABLE and (expected is None or name in LIFETIME_DIFFERENCES):
-                    run.check(label + ' immutable ' + key, result, lambda r: is_error(r, 'ERR'))
+                    spelling = next(command[i] for i in range(2, len(command), 2)
+                                    if command[i].lower() == name)
+                    immutable = {'error': ('ERR parameter is immutable at runtime'
+                                 if name in NATIVE_IMMUTABLE else
+                                 "ERR CONFIG SET failed (possibly related to argument '" +
+                                 spelling + "') - can't set immutable config")}
+                    if expected is None:
+                        run.check(label + ' native immutable ' + key, result, immutable)
+                    else:
+                        root = ('TRACK-MAXKEYS-IMMUTABLE / D15' if name == 'tracking-table-max-keys'
+                                else 'CONFIG-RUNTIME-IMMUTABLE / 68d-4')
+                        compatible = expect(result, expected, root=root, known=immutable)
+                        run.rows[key] = dict(target=result, redis=expected,
+                                             known_difference=None if compatible else root)
                 elif expected is not None:
                     run.check(label + ' oracle ' + key, result, expected)
                 else:  # Tomo-only spellings retain their own type, but reject duplicates too.
