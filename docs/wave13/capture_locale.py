@@ -28,9 +28,15 @@ def main():
         locales = {event['pid']: event['boot_locale'] for event in events if 'boot_locale' in event}
         assert len(starts) == 2 * legs and starts.keys() == locales.keys(), name
         assert all(value == {'LANG': 'C', 'LC_ALL': 'C'} for value in locales.values()), name
+        oracles = [row['start'] for row in starts.values()
+                   if Path(row['start'][3]).name == 'redis-server']
+        assert len(oracles) == legs
+        assert all('--set-proc-title' in argv and argv[argv.index('--set-proc-title') + 1] == 'no'
+                   for argv in oracles), name
         summary = json.loads((directory / 'proof/summary.json').read_text())
         assert summary['legs'] == legs and summary['failures'] == [], name
         rows.append(dict(job=name, legs=legs, boots=len(starts),
+                         oracle_title_updates_disabled=True,
                          actual_environments=locales, passed=True,
                          proof_sha256=hashlib.sha256((directory / 'proof.log').read_bytes()).hexdigest()))
     result = dict(receipt=str(receipt_path.relative_to(ROOT)), binary_sha256=post,

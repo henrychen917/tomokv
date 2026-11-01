@@ -61,5 +61,15 @@
     }
   ],
   "action": "Retain these attempts as nonconforming. Rerun six locale-independent jobs after pinning their helper to C. The dedicated locale-default row requires a non-C boot and cannot be certified under this task constraint; preserve its assertion.",
-  "nonconforming_boots": 120
+  "nonconforming_boots": 120,
+  "oracle_environment_observation": {
+    "setting": [
+      "--set-proc-title",
+      "no"
+    ],
+    "reason": "Redis setproctitle overwrites the original argv/environment region exposed by /proc; disable only the oracle title update to retain the actual locale observation.",
+    "source": "/home/user/Projects/redis/src/setproctitle.c",
+    "source_sha256": "8fbd62bca37f4815ec8ef67c49e312fbad80148710b1b5919d7a8832b3990095",
+    "config_source": "/home/user/Projects/redis/src/config.c:3078"
+  }
 }

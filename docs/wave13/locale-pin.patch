@@ -1,22 +1,26 @@
 --- a/tests/datafix1_common.py
 +++ b/tests/datafix1_common.py
-@@ -13,13 +13,13 @@
+@@ -13,13 +13,17 @@
  
  
  @contextlib.contextmanager
 -def boot(binary, port, cores, directory, flags=()):
-+def boot(binary, port, cores, directory, flags=(), *, locale='C'):
++def boot(binary, port, cores, directory, flags=(), *, locale='C', oracle=False):
      assert not subprocess.check_output(['ss', '-H', '-ltn', f'sport = :{port}']).strip()
      directory.mkdir(parents=True, exist_ok=True)
      argv = ['taskset', '-c', cores, str(Path(binary).resolve()), '--bind', '127.0.0.1',
              '--port', str(port), '--dir', str(directory.resolve()), '--save', '',
              '--appendonly', 'no', '--enable-debug-command', 'yes', *flags]
 -    env = dict(os.environ, LANG='en_US.UTF-8', LC_ALL='en_US.UTF-8')
++    # Redis's process-title update overwrites the original /proc environment
++    # area. Keep it intact so the ready oracle's locale can be witnessed too.
++    if oracle:
++        argv += ['--set-proc-title', 'no']
 +    env = dict(os.environ, LANG=locale, LC_ALL=locale)
      with (directory / 'server.log').open('w') as log:
          p = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT, env=env)
      print(json.dumps(dict(start=argv, pid=p.pid)), flush=True)
-@@ -34,6 +34,13 @@
+@@ -34,6 +38,13 @@
              except (OSError, TimeoutError):
                  assert time.monotonic() < deadline, 'boot timeout'
                  time.sleep(.02)
@@ -30,7 +34,7 @@
          with Conn(port) as c:
              c.s.settimeout(15)
              yield c
-@@ -87,6 +94,9 @@
+@@ -87,6 +98,9 @@
      args = p.parse_args()
      args.output.mkdir(parents=True, exist_ok=True)
      failures = []
@@ -40,12 +44,13 @@
      legs = [('oracle', '2s', 0, 0)] if args.oracle_only else [
          (engine, mode, local, atomic)
          for engine in ('epoll', 'uring') for mode, local in (('2s', 0), ('1s', 0), ('1s', 1))
-@@ -95,14 +105,14 @@
+@@ -95,14 +109,15 @@
          name = f'{engine}-{mode}-rl{local}-a{atomic}'
          directory = args.output / name
          try:
 -            with boot(args.oracle, args.port + 1, args.cores, directory / 'oracle', flags) as oracle:
-+            with boot(args.oracle, args.port + 1, args.cores, directory / 'oracle', flags, locale=boot_locale) as oracle:
++            with boot(args.oracle, args.port + 1, args.cores, directory / 'oracle', flags,
++                      locale=boot_locale, oracle=True) as oracle:
                  target_flags = ['--shards', '16', '--databases', '1',
                                  '--thread-mode', mode, '--read-local', str(local), '--atomic', str(atomic),
                                  '--net-io', engine, '--flip-auto', '0', *flags]
