@@ -372,3 +372,16 @@ instrument. Existing correctness jobs that contain latency assertions report
 their ordinary pass/fail outcome only.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V23 — statistical RENAMENX remains insufficient
+
+UNREPAIRED: txn_nx still runs 8,192 synchronized rounds without observing the
+critical overlap. At independent probability 1e-5 per round, its chance of at
+least one failure is only 1-(1-1e-5)^8192, approximately 7.87%. The existing
+ATOMIC-CONDITIONAL-DEFER hook covers atomic-OFF destination validation, not
+the atomic transaction window this test claims. Increasing the round count or
+counting barrier rendezvous would not repair that witness. NOT RUN: a new
+forced transaction-window negative control; a suitable production observable
+or controlled production-body unit is still needed.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
