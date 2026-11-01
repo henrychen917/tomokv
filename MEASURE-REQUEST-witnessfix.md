@@ -174,3 +174,12 @@ progress before/after an observed completed FLIP remains mandatory. This is a
 liveness bound, not a throughput measurement. A planted freeze/PRE control is
 required before treating this change as demonstrated regression evidence.
 DQ=DF=0.
+
+### Compat 4.2 — failed foreground SAVE telemetry
+
+Redis 7.4.10 was forced to fail SAVE at rename: rdb_saves 0->1, background
+status ok->ok, reply ERR. psfix now records those expectations and names the
+known PS7 count/SV9 background-status differences. The gated INFO missing-field
+battery also forces this error path with a directory at dbfilename and requires
+an error plus one recorded hit. It never turns a successful SAVE into evidence
+of an error path. DQ=DF=0.

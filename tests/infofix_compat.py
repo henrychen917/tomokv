@@ -11,7 +11,8 @@ import re
 import time
 import traceback
 
-from authfix import Run, Server, clean
+from authfix import Run, Server, clean, is_error
+from known_difference import expect
 
 
 def fields(c, section):
@@ -63,6 +64,25 @@ def missing(c, run, label):
     c.cmd('CONFIG', 'RESETSTAT')
     after = fields(c, 'CPU')
     run.check(label + ' CPU survives RESETSTAT', all(float(after[k]) >= float(v) for k, v in cpu.items()), True)
+
+    # Force SAVE to reach its rename/error path on this fresh owned server.
+    directory = Path(c.cmd('CONFIG', 'GET', 'dir')[1].decode())
+    filename = c.cmd('CONFIG', 'GET', 'dbfilename')[1].decode()
+    obstacle = directory / filename
+    assert not obstacle.exists(), ('SAVE fixture requires fresh state', obstacle)
+    before = fields(c, 'PERSISTENCE')
+    obstacle.mkdir()
+    try:
+        reply = c.cmd('SAVE')
+        assert is_error(reply, 'ERR'), ('SAVE error path not hit', reply)
+        after = fields(c, 'PERSISTENCE')
+        expect(int(after[b'rdb_saves']), int(before[b'rdb_saves']) + 1,
+               root='PS7 SAVE admission count', known=int(before[b'rdb_saves']))
+        expect(after[b'rdb_last_bgsave_status'], before[b'rdb_last_bgsave_status'],
+               root='SV9 foreground SAVE background status', known=b'err')
+        print(label, 'failed_SAVE_hits=1', flush=True)
+    finally:
+        obstacle.rmdir()
 
 
 def docs(c, run, label):
