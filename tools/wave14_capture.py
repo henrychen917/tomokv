@@ -29,6 +29,10 @@ for ns in ('normal', 'db0'):
         ['nm', str(a.objects/('db0/' if ns=='db0' else '')/'src/snapshot/snapshot.o')],
         text=True).splitlines() if ' U ' in line and 'function_snapshot_save' in line)
     link += [str(obj), '-Wl,--wrap='+symbol]
+    journal = next(line.split()[-1] for line in subprocess.check_output(
+        ['nm', str(a.objects/('db0/' if ns=='db0' else '')/'src/cmd/functions.o')],
+        text=True).splitlines() if ' U ' in line and 'append_function_journal' in line)
+    link += ['-Wl,--wrap='+journal]
 link[link.index('-o')+1] = str(a.output/'tomokv')
 subprocess.run(link, check=True)
 save(a.output/'binding.json', dict(commands=commands, link=link,

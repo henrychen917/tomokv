@@ -31,33 +31,27 @@ def probe(a):
                     control = candidate
                     break
             assert control is not None, 'no IO-0 controller'
-            inspector = None
-            for _ in range(128):
-                candidate = stack.enter_context(contextlib.closing(Conn('127.0.0.1', a.port, timeout=15)))
-                if candidate.must('DEBUG', 'IO-THREAD') == 0:
-                    inspector = candidate
-                    break
-            assert inspector is not None, 'no IO-0 registry inspector'
             hold.touch(exist_ok=False)
         try:
             assert control.must('BGREWRITEAOF').startswith(b'Background append only file rewriting')
             if not a.oracle:
                 wait(lambda: Path(str(hold)+'.ready').exists(), 'library image copied before mutation')
             control.send('FUNCTION', 'LOAD', 'REPLACE', SOURCE % 2)
-            # always/everysec can defer the mutation's reply behind the held
-            # writer. Observe the installed registry from a separate IO-0
-            # connection; release the writer before waiting for that receipt.
+            # always/everysec hold this IO's sends behind the writer. The
+            # test-only journal wrapper proves enqueueing in the held window
+            # without requiring a reply through that same send gate.
             if a.oracle:
                 assert control.read() == b'wave14'
             else:
-                wait(lambda: b'return 2' in inspector.must('FUNCTION', 'LIST', 'WITHCODE')[0][-1],
-                     'replacement installed while capture is held')
+                wait(lambda: Path(str(hold)+'.journal').exists(),
+                     'replacement journal enqueued while capture is held')
             emit('risky moment', case='FUNCTION replaced after rewrite library capture',
                  hits=1, scheduled=not a.oracle, fsync=a.fsync)
         finally:
             hold.unlink(missing_ok=True)
         if not a.oracle:
             assert control.read() == b'wave14'
+        assert b'return 2' in control.must('FUNCTION', 'LIST', 'WITHCODE')[0][-1]
         wait(lambda: rewrite_done(control), 'rewrite completed')
         assert control.must('SET', 'wave14:key', 'after') == b'OK'
         assert control.must('FCALL', 'wave14', 0) == 2
