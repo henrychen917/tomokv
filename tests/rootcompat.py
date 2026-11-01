@@ -239,33 +239,72 @@ def xsexpiry(c, run, label):
                 ('same_owner', lambda s, o: s != sid and o == owner),
                 ('cross_owner', lambda s, o: o != owner)):
             shapes[name] = [names[0], next(k for k, (s, o) in zip(names[1:], geometry[1:]) if predicate(s, o))]
-    assert c.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', 0) == b'OK'
     sub = Conn(run.args.port)
+    writer = Conn(run.args.port)
     try:
         sub.send('PSUBSCRIBE', '__keyevent@0__:*')
         assert sub.read()[0] == b'psubscribe'
-        for atomic in ([0] if run.oracle else [0, 1]):
-            if not run.oracle:
-                assert c.cmd('CONFIG', 'SET', 'atomic', atomic) == b'OK'
-            for shape, keys in shapes.items():
-                assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', '') == b'OK'
-                assert c.cmd('MSET', keys[0], 'old', keys[1], 'old') == b'OK'
-                sub.poll_pushes(.02)
-                assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'E$gx') == b'OK'
-                before = 0 if run.oracle else int(fields(c, 'STATS')[b'script_crossshard_activations'])
-                script = "redis.call('set',KEYS[2],'x','PXAT',1); redis.call('set',KEYS[1],'y'); return 1"
-                run.check(f'{label} {shape} a{atomic} reply', c.cmd('EVAL', script, 2, *keys), 1)
+        for readback in (False, True):
+            for atomic in ([0] if run.oracle else [0, 1]):
                 if not run.oracle:
-                    after = int(fields(c, 'STATS')[b'script_crossshard_activations'])
-                    run.check(f'{label} {shape} a{atomic} staged geometry', after - before,
-                              0 if shape == 'same_shard' else 1)
-                run.check(f'{label} {shape} a{atomic} expired value', c.cmd('GET', keys[1]), None)
-                frames = sub.read_frames_until_quiet(.05, 2)
-                actual = [(row[2].decode().rsplit(':', 1)[1], keys.index(row[3].decode())) for row in frames]
-                if run.oracle:
-                    run.reference[shape] = actual
-                run.check(f'{label} {shape} a{atomic} ordered events', actual, run.reference[shape])
+                    assert c.cmd('CONFIG', 'SET', 'atomic', atomic) == b'OK'
+                for active in (0, 1):
+                    assert c.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', active) == b'OK'
+                    for force in ([False] if run.oracle else [False, True]):
+                        if not run.oracle:
+                            assert c.cmd('DEBUG', 'SCRIPT-ESCALATE-FORCE', int(force)) == b'OK'
+                        for shape, keys in shapes.items():
+                            prefix = f'{label} {shape} a{atomic} active{active} force{int(force)} readback{int(readback)}'
+                            assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', '') == b'OK'
+                            assert c.cmd('MSET', keys[0], 'old', keys[1], 'old') == b'OK'
+                            sub.poll_pushes(.02)
+                            assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'E$gx') == b'OK'
+                            before = {} if run.oracle else fields(c, 'STATS')
+                            script = ("redis.call('set',KEYS[2],'x','PXAT',1); "
+                                      + ("redis.call('get',KEYS[2]); " if readback else "")
+                                      + "redis.call('set',KEYS[1],'y'); return 1")
+                            if force and shape != 'same_shard':
+                                # FORCE needs a real conflict. Hold the lead READ,
+                                # change its image, and prove RUN has not begun.
+                                assert c.cmd('DEBUG', 'SCRIPT-STAGE-DEFER', 1000000) == b'OK'
+                                try:
+                                    writer.send('EVAL', script, 2, *keys)
+                                    deadline = time.monotonic() + .5
+                                    current = before
+                                    while time.monotonic() < deadline:
+                                        current = fields(c, 'STATS')
+                                        if current[b'script_stage_owner_tasks'] != before[b'script_stage_owner_tasks']:
+                                            break
+                                        time.sleep(.001)
+                                    assert int(current[b'script_stage_owner_tasks']) == int(before[b'script_stage_owner_tasks']) + 1
+                                    assert current[b'script_run_attempts'] == before[b'script_run_attempts']
+                                    assert c.cmd('SET', keys[0], 'rival') == b'OK'
+                                    # Fence and consume the rival's real event.
+                                    frames = sub.read_frames_until_quiet(.02, 1)
+                                    assert [(r[2], r[3]) for r in frames] == [(b'__keyevent@0__:set', keys[0].encode())], frames
+                                    assert fields(c, 'STATS')[b'script_run_attempts'] == before[b'script_run_attempts']
+                                finally:
+                                    c.cmd('DEBUG', 'SCRIPT-STAGE-DEFER', 0)
+                                reply = writer.read()
+                            else:
+                                reply = writer.call('EVAL', script, 2, *keys)
+                            run.check(prefix + ' reply', reply, 1)
+                            if not run.oracle:
+                                after = fields(c, 'STATS')
+                                run.check(prefix + ' staged geometry',
+                                          int(after[b'script_crossshard_activations']) - int(before[b'script_crossshard_activations']),
+                                          0 if shape == 'same_shard' else 1)
+                                if force and shape != 'same_shard':
+                                    run.check(prefix + ' escalation armed',
+                                              int(after[b'script_escalations']) > int(before[b'script_escalations']), True)
+                            run.check(prefix + ' expired value', c.cmd('GET', keys[1]), None)
+                            frames = sub.read_frames_until_quiet(.05, 2)
+                            actual = [(row[2].decode().rsplit(':', 1)[1], keys.index(row[3].decode())) for row in frames]
+                            if run.oracle:
+                                run.reference[shape, active, readback] = actual
+                            run.check(prefix + ' ordered events', actual, run.reference[shape, active, readback])
     finally:
+        writer.close()
         sub.close()
 
 

@@ -1,0 +1,2 @@
+  row budget: 900s; median=8.39s; correctness-plan-fallback; rootcompat xsexpiry vs Redis 7.4
+  rootcompat xsexpiry vs Redis 7.4                     FAIL (see /home/user/Projects/cx-rootcompat/build/gate-run.MG8Bkd/jobs/rootcompat-xsexpiry/rootcompat.log and proof)

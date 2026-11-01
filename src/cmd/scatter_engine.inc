@@ -2727,6 +2727,39 @@ struct ScriptAccessScope {
     spec->handler(work, op);
 }
 
+void notify_script_expiries(Shard&, Op&, ScatterState&, ShardGroup&);
+
+[[gnu::noinline]] ScatterTaskResult execute_script_apply(
+        const Task& task, Shard& shard, Op& op, uint32_t execution_owner) {
+    ScatterState& state = *task.scatter;
+    ShardGroup& group = *group_for(state, shard.id());
+    struct Pins {
+        ScatterState& state;
+        Shard& shard;
+        Op& op;
+        ShardGroup& group;
+        ~Pins() {
+            for (uint32_t i = 0; i < group.count; i++) {
+                const uint32_t pos = state.key_order[group.begin + i];
+                if (!state.script_pinned[pos]) continue;
+                const KeyRef& key = state.keys[pos];
+                shard.store().atomic_script_unpin(key.hash, op.arg(key.arg));
+                state.server->note_script_key_released();
+                state.script_pinned[pos] = 0;
+            }
+        }
+    } pins{state, shard, op, group};
+    state.server->note_script_apply_owner();
+    const bool admitted = group.count &&
+        (state.status[state.key_order[group.begin]] & kScriptFunctionAdmitted);
+    FunctionMemoryScope memory_scope(shard.store(), admitted);
+    const auto result = execute_atomic_apply(task, shard, op, execution_owner);
+    if (result == ScatterTaskResult::Complete &&
+        !state.aborted.load(std::memory_order_acquire))
+        notify_script_expiries(shard, op, state, group);
+    return result;
+}
+
 ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
     ScatterState& state = *task.scatter;
     ShardGroup* group = group_for(state, shard.id());
@@ -2834,7 +2867,9 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             for (uint32_t pos = 0; pos < state.key_count; pos++) {
                 if (!(state.status[pos] & 2u)) continue;
                 const KeyRef& key = state.keys[pos];
-                KvObj* value = work->store().find(key.hash, op.arg(key.arg));
+                // Image collection is a physical copy, not another script read.
+                // Preserve an elapsed SET for its real owner to reap and notify.
+                KvObj* value = work->store().find_resident(key.hash, op.arg(key.arg));
                 if (!serialize_object(value, state.apply[pos])) {
                     state.final_error = WorkError::Oom;
                     state.aborted.store(true, std::memory_order_release);
@@ -3004,36 +3039,13 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     ReadEpochGuard read_epoch(
         shard.store(), read_latest ? UINT64_MAX : read_snapshot, state.origin_conn_id,
         state.multi_child);
-    struct ScriptApplyPins {
-        ScatterState& state;
-        Shard& shard;
-        Op& op;
-        ShardGroup& group;
-        ~ScriptApplyPins() {
-            for (uint32_t i = 0; i < group.count; i++) {
-                const uint32_t pos = state.key_order[group.begin + i];
-                if (!state.script_pinned[pos]) continue;
-                const KeyRef& key = state.keys[pos];
-                shard.store().atomic_script_unpin(key.hash, op.arg(key.arg));
-                state.server->note_script_key_released();
-                state.script_pinned[pos] = 0;
-            }
-        }
-    };
     try {
         if (state.atomic_direct)
             return execute_atomic_direct_rename(task, shard, op, execution_owner);
         if (state.atomic_apply) {
             if (state.phase == 2) {
-                if (state.kind == Kind::Script) {
-                    state.server->note_script_apply_owner();
-                    ScriptApplyPins pins{state, shard, op, group};
-                    // Preserve the callback's admission on every actual APPLY owner.
-                    const bool admitted = group.count &&
-                        (state.status[state.key_order[group.begin]] & kScriptFunctionAdmitted);
-                    FunctionMemoryScope memory_scope(shard.store(), admitted);
-                    return execute_atomic_apply(task, shard, op, execution_owner);
-                }
+                if (state.kind == Kind::Script)
+                    return execute_script_apply(task, shard, op, execution_owner);
                 return execute_atomic_apply(task, shard, op, execution_owner);
             }
             const auto prepared = txn_group_read_prepare(state, shard, op);
