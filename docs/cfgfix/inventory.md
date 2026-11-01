@@ -68,7 +68,7 @@ Source: `/home/user/Projects/redis/src/config.c`, `standardConfig static_configs
 | `cluster-announce-hostname` | no | yes / — | no | no | no (Redis 0/0) | Excluded surface: cluster, replication, or modules; no corresponding service. |
 | `cluster-announce-human-nodename` | no | yes / — | no | no | no (Redis 0/0) | Excluded surface: cluster, replication, or modules; no corresponding service. |
 | `syslog-ident` | yes / cfgfix | no / no | yes | yes | yes (Redis 0/0) | Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation. |
-| `dbfilename` | yes / d82abe6cb9 | yes / no | no | no | yes (Redis 0/1) | UNFIXED: persistence paths are retained at boot; protected-config policy is not implemented. |
+| `dbfilename` | yes / d82abe6cb9 | yes / no | no | no | yes (Redis 0/1) | Native snapshot files use dump.tomo rather than Redis dump.rdb. UNFIXED: the path is retained at boot and protected-config policy is not implemented. |
 | `appendfilename` | yes / b9a5e89480 | no / no | yes | yes | yes (Redis 0/0) | Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation. |
 | `appenddirname` | yes / b9a5e89480 | no / no | yes | yes | yes (Redis 0/0) | Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation. |
 | `server-cpulist` | no | no / — | no | no | no (Redis 0/0) | TomoKV assigns shard owners and IO roles from inherited affinity and ratio/place; no Redis BIO/fork worker pools. |
@@ -207,12 +207,12 @@ Source: `/home/user/Projects/redis/src/config.c`, `standardConfig static_configs
 | `tls-protocols` | yes / 0f920a52d7 | yes / no | yes | yes | yes (Redis 0/0) | TLS context/session settings are created at boot; live context replacement and additional client TLS settings are not implemented. |
 | `tls-ciphers` | yes / 0f920a52d7 | yes / no | yes | yes | yes (Redis 0/0) | TLS context/session settings are created at boot; live context replacement and additional client TLS settings are not implemented. |
 | `tls-ciphersuites` | yes / 0f920a52d7 | yes / no | yes | yes | yes (Redis 0/0) | TLS context/session settings are created at boot; live context replacement and additional client TLS settings are not implemented. |
-| `dir` | yes / d82abe6cb9 | yes / no | yes (source defaults) | no | yes (Redis 0/1) | UNFIXED: persistence paths are retained at boot; protected-config policy is not implemented. |
+| `dir` | yes / d82abe6cb9 | yes / no | yes (source defaults) | no | yes (Redis 0/1) | Captured GET paths differ because each test server owns a private directory; both default to the current directory. UNFIXED: the persistence path is retained at boot and protected-config policy is not implemented. |
 | `save` | yes / f94726446d | yes / yes | yes (source defaults) | yes | yes (Redis 0/0) | Captured value includes the gate harness override; boot default comparison needs the source defaults. |
 | `client-output-buffer-limit` | yes / 8f3d0900ec | yes / yes | yes | yes | yes (Redis 0/0) | Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation. |
 | `oom-score-adj-values` | no | yes / — | no | no | no (Redis 0/0) | UNFIXED: No configurable OOM-score policy for process roles exists; native persistence uses owner threads, not Redis fork children. |
 | `notify-keyspace-events` | yes / ded646a91f | yes / yes | yes | yes | yes (Redis 0/0) | Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation. |
-| `bind` | yes / d82abe6cb9 | yes / yes | no (source defaults) | yes | yes (Redis 0/0) | Runtime rebind implemented; IPv4 single address remains the transport boundary (Redis also accepts lists/IPv6/optional addresses). |
+| `bind` | yes / d82abe6cb9 | yes / yes | no (source defaults) | yes | yes (Redis 0/0) | Runtime rebind implemented; the AF_INET transport still accepts one IPv4 address and defaults to loopback. Redis defaults to * -::* and also accepts lists/IPv6/optional addresses. |
 | `replicaof` | no | no / — | no | no | no (Redis 0/0) | Excluded surface: cluster, replication, or modules; no corresponding service. |
 | `slaveof` | no | no / — | no | no | no (Redis 0/0) | Excluded surface: cluster, replication, or modules; no corresponding service. |
 | `latency-tracking-info-percentiles` | yes / bffd6e6b5e | yes / yes | yes | yes | yes (Redis 0/0) | Present; values/flags below report the captured state. Any mismatch remains a compatibility limitation. |

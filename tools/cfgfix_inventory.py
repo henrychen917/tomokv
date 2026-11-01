@@ -39,8 +39,12 @@ def reason(name, present):
     if name == 'aof-use-rdb-preamble':
         return 'Native AOF bases are TomoKV snapshots: yes is accepted, no is rejected explicitly. This format boundary now blocks stream-cgroups after appendonly setup succeeds.'
     if name == 'bind':
-        return 'Runtime rebind implemented; IPv4 single address remains the transport boundary (Redis also accepts lists/IPv6/optional addresses).'
-    if name in {'dir', 'dbfilename', 'enable-protected-configs'}:
+        return 'Runtime rebind implemented; the AF_INET transport still accepts one IPv4 address and defaults to loopback. Redis defaults to * -::* and also accepts lists/IPv6/optional addresses.'
+    if name == 'dbfilename':
+        return 'Native snapshot files use dump.tomo rather than Redis dump.rdb. UNFIXED: the path is retained at boot and protected-config policy is not implemented.'
+    if name == 'dir':
+        return 'Captured GET paths differ because each test server owns a private directory; both default to the current directory. UNFIXED: the persistence path is retained at boot and protected-config policy is not implemented.'
+    if name == 'enable-protected-configs':
         return 'UNFIXED: persistence paths are retained at boot; protected-config policy is not implemented.'
     if name.startswith('tls-') and name != 'tls-auth-clients':
         return 'TLS context/session settings are created at boot; live context replacement and additional client TLS settings are not implemented.'

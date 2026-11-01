@@ -1209,7 +1209,7 @@
       "dump.tomo"
     ],
     "flags_equal": true,
-    "reason": "UNFIXED: persistence paths are retained at boot; protected-config policy is not implemented."
+    "reason": "Native snapshot files use dump.tomo rather than Redis dump.rdb. UNFIXED: the path is retained at boot and protected-config policy is not implemented."
   },
   {
     "name": "appendfilename",
@@ -3888,7 +3888,7 @@
       "/home/user/Projects/cx-cfgfix/build/gate-run.Bnjrst/jobs/cfgfix/proof/1s-epoll-tcp"
     ],
     "flags_equal": true,
-    "reason": "UNFIXED: persistence paths are retained at boot; protected-config policy is not implemented."
+    "reason": "Captured GET paths differ because each test server owns a private directory; both default to the current directory. UNFIXED: the persistence path is retained at boot and protected-config policy is not implemented."
   },
   {
     "name": "save",
@@ -3990,7 +3990,7 @@
       "127.0.0.1"
     ],
     "flags_equal": true,
-    "reason": "Runtime rebind implemented; IPv4 single address remains the transport boundary (Redis also accepts lists/IPv6/optional addresses)."
+    "reason": "Runtime rebind implemented; the AF_INET transport still accepts one IPv4 address and defaults to loopback. Redis defaults to * -::* and also accepts lists/IPv6/optional addresses."
   },
   {
     "name": "replicaof",
