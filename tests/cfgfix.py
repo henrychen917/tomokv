@@ -65,6 +65,11 @@ def test(a, port, certs, proc, oracle):
         for flags in ('AKEn', 'nAKE', 'AKE', 'AKEmn', 'n', 'g$lnKE', ''):
             command('CONFIG', 'SET', 'notify-keyspace-events', flags)
             command('CONFIG', 'GET', 'notify-keyspace-events')
+        c.must('DEL', 'cfgfix:list')
+        c.must('RPUSH', 'cfgfix:list', 'x' * 60000)
+        command('OBJECT', 'ENCODING', 'cfgfix:list')
+        c.must('RPUSH', 'cfgfix:list', 'x' * 5536)
+        command('OBJECT', 'ENCODING', 'cfgfix:list')
         # Redis GET serializes AKEn as AKE too. The raw configured n bit must
         # survive that lossy display format and actually publish new events.
         c.must('DEL', 'cfgfix:new')
@@ -99,6 +104,17 @@ def test(a, port, certs, proc, oracle):
         command('CONFIG', 'SET', 'port', str(port))
         with closing(n.connect(port)) as fresh:
             assert fresh.must('PING') == b'PONG'
+        if not oracle and proc.args[proc.args.index('--thread-mode') + 1] == '2s':
+            # Rebind listener homes transferred by FLIP, then transfer them
+            # again. Existing connections and fresh accepts must both survive.
+            for io_threads in (4, 6):
+                c.must('FLIP', str(io_threads), str(8 - io_threads))
+                c.must('CONFIG', 'SET', 'port', str(port + 1))
+                with closing(n.connect(port + 1)) as fresh:
+                    assert fresh.must('PING') == b'PONG'
+                c.must('CONFIG', 'SET', 'port', str(port))
+                with closing(n.connect(port)) as fresh:
+                    assert fresh.must('PING') == b'PONG'
         # Only sorted key/value pairs are compared; Redis hash-table order is unspecified.
         for args, result in replies:
             if args[:2] == ['CONFIG', 'GET'] and isinstance(result, list):

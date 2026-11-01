@@ -84,6 +84,33 @@ def test(a, port, certs, proc, oracle):
         assert not missing, missing
         assert results['TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256'] == (True, 1), results
         assert results['TLSv1.2/ECDHE-RSA-AES256-GCM-SHA384'] == (True, 1), results
+    # cfgfix: change verification on newly accepted connections, keeping an
+    # established TLS connection alive across every policy change.
+    policy_results = {}
+    with closing(n.connect(a.port)) as admin, closing(n.connect(port, certs)) as established:
+        for version in (ssl.TLSVersion.TLSv1_2, ssl.TLSVersion.TLSv1_3):
+            for policy in ('yes', 'optional', 'no'):
+                admin.must('CONFIG', 'SET', 'tls-auth-clients', policy)
+                assert established.must('PING') == b'PONG'
+                for identity in ('none', 'client', 'bad-client'):
+                    ctx = ssl.create_default_context(cafile=str(certs / 'ca.crt'))
+                    ctx.check_hostname = False
+                    ctx.minimum_version = ctx.maximum_version = version
+                    if identity != 'none':
+                        ctx.load_cert_chain(str(certs / (identity + '.crt')), str(certs / (identity + '.key')))
+                    accepted = False
+                    try:
+                        with socket.create_connection(('127.0.0.1', port), timeout=5) as raw:
+                            with ctx.wrap_socket(raw, server_hostname='localhost') as sock:
+                                sock.sendall(b'*1\r\n$4\r\nPING\r\n')
+                                accepted = sock.recv(64) == b'+PONG\r\n'
+                    except (ssl.SSLError, ConnectionError):
+                        pass
+                    expected = policy == 'no' or identity == 'client' or (policy == 'optional' and identity == 'none')
+                    policy_results[f'{version.name}/{policy}/{identity}'] = accepted
+                    assert accepted == expected, (version, policy, identity, accepted)
+        admin.must('CONFIG', 'SET', 'tls-auth-clients', 'no')
+    (a.output / f'auth-policy-{proc.pid}.json').write_text(json.dumps(policy_results, indent=2))
     return results
 
 

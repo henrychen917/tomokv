@@ -98,7 +98,8 @@ void adopt_nodes(ListVal& dst, ListVal& src) {
 
 // Redis's hysteresis is based on listpack wire size, not this implementation's
 // ULEB framing or allocator capacity. Include the 6-byte header and terminator.
-uint64_t redis_listpack_bytes(const Compact& packed) {
+template<class Packed>
+uint64_t redis_listpack_bytes(const Packed& packed) {
     uint64_t bytes = 7;
     for (const Compact::Entry entry : packed) {
         int64_t integer = 0;
@@ -373,7 +374,7 @@ void push_generic(Shard& shard, Op& op, bool left, bool only_existing) {
         auto* list = new (std::nothrow) ListVal;
         if (!list) { reply_oom(op); return; }
         const CompactLimit& limit = shard.type_limits().list;
-        if (list->list_fits(limit, added, incoming_payload)) {
+        if (list->list_fits(limit, added, 7 + incoming_payload)) {
             for (uint32_t i = 2; i < op.argc(); i++) {
                 const bool ok = left ? list->prepend(op.arg(i)) : list->append(op.arg(i));
                 if (!ok) { delete list; reply_oom(op); return; }
@@ -411,6 +412,10 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     }
 
     CollectionRef before = list_value(object);
+    // Redis decides growth from the serialized old listpack plus incoming
+    // string lengths. Payload alone misses its header and entry framing.
+    const uint64_t growth_bytes = before.encoding() == CollectionEncoding::Compact
+        ? redis_listpack_bytes(before.compact()) + incoming_payload : 0;
     const uint64_t resulting_encoded = before.compact().encoded_bytes() + [&] {
         uint64_t bytes = 0;
         for (uint32_t i = 2; i < op.argc(); i++)
@@ -420,7 +425,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     if (before.is_embedded() &&
         (!before.embedded_bytes_fit(resulting_encoded) ||
          !before.list_fits(shard.type_limits().list, before.entries() + added,
-                           before.payload_bytes() + incoming_payload))) {
+                           growth_bytes))) {
         if (!externalize_list<kNotify>(shard, op, object)) return;
     }
     CollectionRef list = list_value(object);
@@ -432,8 +437,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
 
     if (list.encoding() == CollectionEncoding::Compact) {
         const uint32_t resulting_entries = list.entries() + added;
-        const uint64_t resulting_payload = list.payload_bytes() + incoming_payload;
-        if (list.list_fits(shard.type_limits().list, resulting_entries, resulting_payload)) {
+        if (list.list_fits(shard.type_limits().list, resulting_entries, growth_bytes)) {
             for (uint32_t i = 2; i < op.argc(); i++) {
                 const bool ok = left ? list.prepend(op.arg(i)) : list.append(op.arg(i));
                 if (!ok) { reply_oom(op); return; }

@@ -79,7 +79,8 @@ for match in re.finditer(r'create\w+Config\("([^"]+)", (NULL|"[^"]+"), ([^,]+),'
         hidden = 'HIDDEN_CONFIG' in flags
         protected = 'PROTECTED_CONFIG' in flags
         tomo_hidden = name == 'key-load-delay'
-        flag_equal = present and hidden == tomo_hidden and not protected
+        tomo_protected = name in {'dir', 'dbfilename'}
+        flag_equal = present and hidden == tomo_hidden and protected == tomo_protected
         default = 'NOT MEASURED (override)' if name in overridden else ('yes' if equal else 'no')
         row = dict(name=name, canonical=canonical, redis_flags=flags, present=present,
                    since=since.get(name, 'cfgfix') if present else None,
