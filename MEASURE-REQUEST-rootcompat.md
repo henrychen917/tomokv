@@ -21,13 +21,30 @@ Branch `cx-rootcompat`; PRE `7d2f8a2051961a1942735fb6dc9b507d778e09d1`. All corr
 
 The initial SORT PRE oracle assertion incorrectly used SORT_RO in the error text. Redis spells SORT in both errors; that test was corrected and a fresh PRE run is required. Initial passing results above are evidence for intermediate builds, not a final binary certification.
 
-Artifacts and final SHA-256s: pending final build. Frozen PRE: `build/rootcompat/PRE`, SHA-256 `2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309`.
+Final arms are built; SHA-256s are in `docs/rootcompat/arms.sha256`:
+
+| Arm | SHA-256 |
+|---|---|
+| PRE | `2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309` |
+| POST | `72a266c7c90d9d35748f499e6ba7055dbe9b8b0d2cf2628660ff52bfdba0a187` |
+| POST-layout | `fc20de582408f9dd40a0cf146742673eeac7ef338a86859fc6d86b0778ca6dd0` |
+| PAD-A | `002ebc12137a6c1d757445bd7717e06c2261048e6e943b156fe82da0744819d6` |
+
+The paired-image gate controls pass on POST-layout and reproduce PRE's replication/HSCAN failures on PAD-A, in both modes, engines and namespaces. `docs/rootcompat/pad-a.json` records equal sections/symbols and exactly five changed bytes.
 
 PAD semantics: **A, behaviour twin**. `tools/rootcompat_pad.py` builds a common image containing POST and a symbol-isolated PRE. `POST-layout` executes POST; `PAD-A` changes only the five-byte main-entry jump to PRE. Sections, symbols and addresses match within that pair. The ordinary `POST` release binary is smaller; its null comparison against PRE remains separate. Do not describe PAD-A as an exact layout twin of the ordinary release binary.
 
 Maintainer measurement request: the 14 generic cells, plus 2s GET/SET at p1 and p32, on PRE/POST and the POST-layout/PAD-A control pair. Use the gate's normal ABBA instrument and matched offered load. Report rate, cycles/op, instructions/op and IPC per cell. A candidate is acceptable only with zero headline regression and a flat layout control; no rate has been measured by this lane.
 
-Finite zero-cost proof: GET/SET/INCR/MGET/MSET, batch 1/32, 1s/2s, normal/db0 namespaces and atomic 0/1 (80 cells per arm), via `tools/rootcompat_counts.py`. Final rerun pending. The rejected generic error-counter prototype failed this condition; its complete counts and nested-error failures are retained.
+Finite zero-cost proof: GET/SET/INCR/MGET/MSET, batch 1/32, 1s/2s, normal/db0 namespaces and atomic 0/1 (80 cells per arm), via `tools/rootcompat_counts.py`. Final production rerun: **80/80 exact PRE counts, zero added instructions**. The script observer scope is outlined; compile-only budget trials preserve ordinary scatter inlining (`docs/rootcompat/budgets-outlined/selected.json`). Complete final production receipts are in `docs/rootcompat/counts/`. The rejected generic error-counter prototype failed this condition; its complete counts and nested-error failures are retained.
+
+| Command | Cells (namespace × mode × batch × atomic) | PRE→POST instruction delta, every cell |
+|---|---:|---:|
+| GET | 16 | 0 |
+| SET | 16 | 0 |
+| INCR | 16 | 0 |
+| MGET | 16 | 0 |
+| MSET | 16 | 0 |
 
 Gate count accounting by physical collection location: **DQ=+9, DF=+9**. Nine `rootcompat-*` directed rows are collected before the quick-tier exit. `rootcompat-errorstats`, `rootcompat-stringlimit`, and `rootcompat-hx3` are diagnostic-only partial jobs and add zero complete-gate rows. From the checked-in 999/1016 constants, the maintainer's new counts should be **1008/1025**. EXPECT_QUICK and EXPECT_FULL were not edited.
 
