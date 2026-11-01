@@ -196,7 +196,7 @@ baseline constants are 999/1016, so these additions alone require **1006/1023**.
 `EXPECT_QUICK` and `EXPECT_FULL` are not edited. Row counting uses collector line
 placement, not the word `full` in the partial invocation.
 
-Their collector is at `tests/gate.sh:6162`; the quick exit is at line 6491.
+Their collector is at `tests/gate.sh:6164`; the quick exit is at line 6493.
 The static source inventory confirms PRE full=1016 and POST full=1023. The seven
 literal labels were added to the reviewed receipt fixture without using a run
 ledger. Its check remains red **only because EXPECT_FULL is still 1016**;
@@ -213,6 +213,20 @@ release) and two red rows: MISCONF and WAITAOF. The first broad phase completed
 all 77 selected/prerequisite jobs: **544 passing rows, 11 failed rows**. Those
 failures are maxmemrace, nine original AOF rows discussed below, and notify_order.
 The epoll and supplementary phase results will be appended when complete.
+
+The standard differential matrix is complete on both engines. These are the
+runner's reported passing-check counts; every part reports zero failures.
+
+| Engine | Seeds | Split a0 | Split a1 | Fused/read-local a0 | Fused/read-local a1 | Equivalence |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| io_uring | 7, 19, 20, 23, 22 | 235 | 239 | 231 | 235 | 1 |
+| epoll | 7, 19, 20, 23, 24 | 235 | 239 | 231 | 235 | 1 |
+
+The atomic-on parts include four repeated seed-19 MULTI legs. Fused parts omit
+the five split-only SORT legs and include a positive read-local-lane witness.
+Exact seed plans, coverage records and all per-suite output remain in the phase
+archives. Thus a passing differential part does not claim its omitted SORT
+geometry was exercised.
 
 `python3 tests/gates_test.py` has been run twice. Each attempt has 82 passing
 tests and one failure: the complete single-slot scheduler fixture reaches its
