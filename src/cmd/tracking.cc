@@ -203,6 +203,19 @@ void IoLoop::tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batc
     auto found = state->tracking_reads.find(&op);
     if (found == state->tracking_reads.end()) return;
     TrackingRead& read = *found->second;
+    if (!committed && !read.canceled) {
+        // An internal EXEC retry abandons only this attempt's memberships.
+        // OFF/RESET instead clear the entire table and mark receipts canceled.
+        for (const auto& key : read.keys) {
+            auto pending = state->tracking_pending.find(key);
+            if (pending == state->tracking_pending.end()) std::abort();
+            auto& members = pending->second.reads;
+            auto member = std::find(members.begin(), members.end(), &op);
+            if (member == members.end()) std::abort();
+            members.erase(member);
+            if (members.empty()) state->tracking_pending.erase(pending);
+        }
+    }
     read.canceled |= !committed;
     if (committed) {
         std::vector<uint64_t> observed;
