@@ -1006,6 +1006,25 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     std::sort(state.prefixes.begin(), state.prefixes.end());   // redis reports them sorted
     command_client_set_tracking_view(client, true, static_cast<int64_t>(redirect));
     climon_refresh_armed();
+    // Owners may still be draining a pass whose notification mask predates ON.
+    // Acknowledge only after their existing config refresh has applied this
+    // publication. This cold timer shares WAIT's already-conditional service;
+    // no command handler or unchanging owner pass gains a tracking check.
+    const uint64_t version = srv_->live_config_snapshot(self_->id()).version;
+    if (!srv_->tracking_config_ready(version) &&
+        &op == &client->rob().at(client->rob().dispatch_id())) {
+        try {
+            deferred_timers_.push_back(DeferredTimer{client, client->rob().dispatch_id(),
+                version, 0, {}, DeferredTimerKind::TrackingOn});
+        } catch (const std::bad_alloc&) {
+            reply_err(op.sink(), "ERR out of memory");
+            return ClimonStartResult::Sync;
+        }
+        client->rob().publish();
+        barrier_arm(client, BarrierOwner::PubSub);
+        mark_active(client);
+        return ClimonStartResult::Async;
+    }
     reply_ok(op.sink());
     return ClimonStartResult::Sync;
 }

@@ -52,6 +52,8 @@
         std::vector<std::string> channels;
         uint64_t count = 0;
         std::string deferred;
+        Op* exec_child = nullptr;
+        void* exec_state = nullptr;
     };
 
     static std::string pubsub_string(Slice value) {
@@ -722,7 +724,7 @@
         PubSubPending& pending = pending_it->second;
         PubSubLocalConn& local = local_it->second;
         Client* client = local.client;
-        Op& op = client->rob().at(pending.op_id);
+        Op& op = pending.exec_child ? *pending.exec_child : client->rob().at(pending.op_id);
         auto sink = op.sink();
 
         // Subscription confirmations are pushes, including their RESP2 carriage.
@@ -784,9 +786,12 @@
         if (pending.kind != PubSubPendingKind::Modify && pending.kind != PubSubPendingKind::Reset &&
             !pending.deferred.empty())
             sink.append(pending.deferred.data(), pending.deferred.size());
+        void* exec_state = pending.exec_state;
         op.state.store(OpState::Done, std::memory_order_release);
-        enqueue_serve(client);
-        mark_active(client);
+        if (!exec_state) {
+            enqueue_serve(client);
+            mark_active(client);
+        }
         if (!local.pending) std::abort();
         local.pending--;
         srv_->pubsub_pending_finished();
@@ -794,6 +799,7 @@
         if (!client->closing() && !local.pending && local.channels.empty() &&
             local.patterns.empty() && local.shard_channels.empty() && !local.cleanup_started)
             pubsub_local_.erase(local_it);
+        if (exec_state) multi_io_child_completed(exec_state);
     }
 
     void pubsub_finish_publish(const PubSubResult& result) {
@@ -1078,15 +1084,16 @@
         local.pending++;
         pending.remaining = events.size();
         const uint64_t op_id = pending.op_id;
+        const bool exec_child = pending.exec_child != nullptr;
         if (!pubsub_pending_.emplace(conn_id, std::move(pending)).second) std::abort();
         srv_->pubsub_pending_started();
 
         // Publish the ROB slot before any home can answer it. The response event may race all the
         // way back to this IO, but it can never complete an operation absent from dispatch_.
-        client->rob().publish();
+        if (!exec_child) client->rob().publish();
         // Released by the quiescence backstop in flush_ready: the transition's parked lifetime is
         // its ROB slot, which retires only once every channel home has answered.
-        barrier_arm(client, BarrierOwner::PubSub);
+        if (!exec_child) barrier_arm(client, BarrierOwner::PubSub);
         for (PubSubEvent* event : events) {
             event->origin_io = self_->id();
             event->conn_id = conn_id;
@@ -1099,10 +1106,13 @@
     }
 
     PubSubStartResult pubsub_start_modify(Client* client, Op& op, bool pattern,
-                                          bool subscribe, bool shard = false) {
+                                          bool subscribe, bool shard = false,
+                                          void* exec_state = nullptr, uint64_t exec_id = 0) {
         PubSubPending pending;
         pending.kind = PubSubPendingKind::Modify;
-        pending.op_id = client->rob().dispatch_id();
+        pending.op_id = exec_state ? exec_id : client->rob().dispatch_id();
+        pending.exec_child = exec_state ? &op : nullptr;
+        pending.exec_state = exec_state;
         pending.pattern = pattern;
         pending.shard = shard;
         pending.subscribe = subscribe;

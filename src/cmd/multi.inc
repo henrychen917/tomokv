@@ -277,6 +277,8 @@ struct alignas(8) MultiExecState : SnapshotCut {
     uint32_t attempt = 0;
     bool has_publication = false;
     bool publication_started = false; // IO-owned after all participant tasks finish
+    bool has_subscription = false;
+    size_t io_cursor = 0;
     std::atomic<bool> backoff{false};
     uint64_t retry_after_ns = 0;
     std::atomic<uint32_t> record_refs{0};
@@ -553,15 +555,18 @@ void destroy_multi_state(MultiExecState* state) {
 
 bool multi_engine_policy_refusal(const Op& op) {
     // Owner decision group 5: these are engine limitations, NOT Redis no_multi flags.
-    // Whole-store replacement has no transaction-private image; subscription controls and
-    // ACL need their IO-owned protocols, not a synchronous EXEC child handler.
-    // Keep the existing safety boundary until those mechanisms have transaction lowering.
-    return (multi_verb(op.spec) == MultiVerb::V_flushall) || (multi_verb(op.spec) == MultiVerb::V_flushdb) || (multi_verb(op.spec) == MultiVerb::V_acl) ||
-           (multi_verb(op.spec) == MultiVerb::V_subscribe) || (multi_verb(op.spec) == MultiVerb::V_unsubscribe) ||
-           (multi_verb(op.spec) == MultiVerb::V_psubscribe) || (multi_verb(op.spec) == MultiVerb::V_punsubscribe) ||
-           (multi_verb(op.spec) == MultiVerb::V_ssubscribe) || (multi_verb(op.spec) == MultiVerb::V_sunsubscribe) ||
+    // FLUSH's range unit still owns a separate placement/decision/collapse
+    // lifecycle; composing it under EXEC needs child-aware lowering. DEBUG
+    // loaders need the separately approved database-boundary design.
+    return (multi_verb(op.spec) == MultiVerb::V_flushall) || (multi_verb(op.spec) == MultiVerb::V_flushdb) ||
            ((multi_verb(op.spec) == MultiVerb::V_debug) && op.argc() == 2 &&
             (op.arg(1).eq_icase("reload") || op.arg(1).eq_icase("loadaof")));
+}
+
+bool multi_subscription(MultiVerb verb) {
+    return verb == MultiVerb::V_subscribe || verb == MultiVerb::V_unsubscribe ||
+        verb == MultiVerb::V_psubscribe || verb == MultiVerb::V_punsubscribe ||
+        verb == MultiVerb::V_ssubscribe || verb == MultiVerb::V_sunsubscribe;
 }
 
 bool queued_copy(const Op& op, MultiQueuedCommand& out) {
@@ -765,6 +770,7 @@ bool normalize_multi_blocking_pop(MultiCommand& command) {
 }
 
 MultiCommandKind classify_multi_command(MultiCommand& command) {
+    if (multi_subscription(command.queued.verb)) return MultiCommandKind::IoLocal;
     if ((command.queued.verb == MultiVerb::V_swapdb)) return MultiCommandKind::Swapdb;
     if ((command.queued.verb == MultiVerb::V_ping)) return MultiCommandKind::Ping;
     if ((command.queued.verb == MultiVerb::V_echo)) return MultiCommandKind::Echo;
@@ -1145,6 +1151,9 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     ? 1 : server.nshards(), 0);
             state.has_publication |= command->kind == MultiCommandKind::IoLocal &&
                 ((command->queued.verb == MultiVerb::V_publish) || (command->queued.verb == MultiVerb::V_spublish));
+            state.has_subscription |= command->kind == MultiCommandKind::IoLocal &&
+                multi_subscription(command->queued.verb);
+            state.has_publication |= state.has_subscription;
             // SCOPE: multi-owner READ fragments, nothing else.  Mget/Exists are reached only when
             // classify_multi_command already found the key set spanning more than one shard, and an
             // Xshard child carries its own participant count.  A single-owner read resolves inside
@@ -2599,6 +2608,11 @@ void IoLoop::tracking_finish_multi(Client& client, MultiExecState& state, Notify
             child.cmd_name().eq_icase("client") &&
             tracking_client_subcommand(&client, child) == ClimonStartResult::Sync)
             command->io_effect_done = true;
+        if (committed && command->kind == MultiCommandKind::IoLocal &&
+            command->queued.verb == MultiVerb::V_acl && !command->io_effect_done) {
+            acl_command_entry(*this, client, child);
+            command->io_effect_done = true;
+        }
         tracking_retire_exec_read(client, child, batch, command->notify_order_base, committed);
     }
     if (committed)
@@ -2751,6 +2765,52 @@ void multi_bind_retry_lane(Server& server, uint32_t io) {
         multi_retry_signal.pending.store(true, std::memory_order_release);
 }
 
+void multi_io_child_completed(void* raw) {
+    multi_enqueue_retry(*static_cast<MultiExecState*>(raw));
+}
+
+bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state) {
+    // Reuse the post-commit publication phase. Subscription homes acknowledge
+    // each child before the next IO effect starts, while EXEC retains its ROB
+    // slot and connection barrier. No child publishes a second ROB slot.
+    Client& client = *state.client;
+    while (state.io_cursor < state.commands.size()) {
+        auto& command = *state.commands[state.io_cursor++];
+        if (command.kind != MultiCommandKind::IoLocal || command.io_effect_done) continue;
+        Op& child = *command.op;
+        const auto verb = command.queued.verb;
+        command.io_effect_done = true;
+        if (multi_subscription(verb)) {
+            if (verb == MultiVerb::V_ssubscribe) {
+                reply_err(child.sink(), "ERR SSUBSCRIBE isn't allowed for a DENY BLOCKING client");
+                continue;
+            }
+            const bool pattern = verb == MultiVerb::V_psubscribe || verb == MultiVerb::V_punsubscribe;
+            const bool subscribe = verb == MultiVerb::V_subscribe || verb == MultiVerb::V_psubscribe;
+            if (subscribe && state.server->acl_active() &&
+                !acl_pubsub_channel_entry(client, child, pattern, *loop.self_)) continue;
+            if (loop.pubsub_start_modify(&client, child, pattern, subscribe,
+                    verb == MultiVerb::V_sunsubscribe, &state, state.exec_op_id) ==
+                    IoLoop::PubSubStartResult::Async) return false;
+        } else if (verb == MultiVerb::V_publish || verb == MultiVerb::V_spublish) {
+            auto chain = std::make_shared<PubSubNotificationChain>();
+            chain->items.push_back(PubSubNotificationItem{
+                command.queued.argv[1], command.queued.argv[2], &child, verb == MultiVerb::V_spublish});
+            chain->completed = multi_io_child_completed;
+            chain->completion = &state;
+            loop.pubsub_notification_enqueue(chain);
+            return false;
+        } else {
+            command_set_local_context(&client, loop.self_);
+            if (verb == MultiVerb::V_acl) acl_command_entry(loop, client, child);
+            else if (!command_client_pause(*state.server, child, state.now_cut_mono_ms))
+                child.spec->handler(state.server->shard(0), child);
+            command_set_local_context(nullptr, nullptr);
+        }
+    }
+    return true;
+}
+
 template <bool IofusedPrivateQueue>
 __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
     uint32_t work = 0;
@@ -2791,6 +2851,13 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             Client& client = *previous->client;
             Op& op = client.rob().at(previous->exec_op_id);
             if (previous->finalized.load(std::memory_order_acquire) && !previous->doomed) {
+                if (previous->has_subscription) {
+                    if (multi_exec_io_commands(loop, *previous)) {
+                        op.state.store(OpState::Done, std::memory_order_release);
+                        loop.mark_active(&client);
+                    }
+                    continue;
+                }
                 if (!previous->publication_started) {
                     std::shared_ptr<PubSubNotificationChain> chain;
                     try {

@@ -519,6 +519,7 @@ private:
     friend void acl_command_entry(IoLoop&, Client&, Op&);
     friend void acl_broadcast_user_change(IoLoop&, uint32_t, const AclPerm*, bool);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
+    friend bool multi_exec_io_commands(IoLoop&, MultiExecState&);
     friend uint32_t multi_owner_pass_entry(IoLoop&);
     friend uint32_t xshard_flush_snapshot_progress(Server&, ThreadCtx&);
     template <bool IofusedPrivateQueue>
@@ -4726,7 +4727,7 @@ ordinary_shard_ready:
         else          sig.clear_oldest_age();
     }
 
-    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk };
+    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk, TrackingOn };
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -4772,7 +4773,9 @@ ordinary_shard_ready:
             const DeferredTimer timer = deferred_timers_[i];
             const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
                 ? srv_->debug_sleep_complete(timer.deadline_ms)
-                : timer.deadline_ms && now_ms >= timer.deadline_ms;
+                : timer.kind == DeferredTimerKind::TrackingOn
+                    ? srv_->tracking_config_ready(timer.deadline_ms)
+                    : timer.deadline_ms && now_ms >= timer.deadline_ms;
             if (!ready) {
                 i++;
                 continue;

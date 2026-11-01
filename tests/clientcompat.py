@@ -53,6 +53,7 @@ class Peer(Conn):
         end = time.monotonic() + wait
         while select.select([self.sock], [], [], max(0, end-time.monotonic()))[0]:
             self.pushes.append(self.read())
+            end = min(end, time.monotonic() + .005)
             if time.monotonic() >= end:
                 break
         got, self.pushes = self.pushes, []
@@ -215,6 +216,41 @@ def probe(case, port, rows, oracle):
                 check('after OK write', writer.cmd('SET', key, 'v1'), b'OK')
                 check('after OK invalidation', keys(t.drain(.01)), [key])
             rows.append(dict(bound=200, owner_pass_window_certified=False))
+            # Reuse maxmemrace's observed-owner geometry and bounded LPOS
+            # occupation. The tracker and writer parse on an IO distinct from
+            # the occupied owner, including in fused mode. This is a finite
+            # correctness schedule, without throughput or latency assertions.
+            from maxmemrace import Geometry, prepare, LIST_LENGTH, OCCUPY_FIRST, OCCUPY_TASKS
+            g = Geometry(port, oracle, rows)
+            stack.callback(g.close)
+            t.cmd('CLIENT', 'TRACKING', 'OFF')
+            if not oracle:
+                for _ in range(96):
+                    candidate = peer(3)
+                    if candidate.cmd('DEBUG', 'IO-THREAD') == g.io:
+                        t = candidate
+                        break
+                    candidate.close()
+                else:
+                    raise AssertionError('no tracking connection on the selected IO')
+            prepare(g, 'noeviction')
+            for attempt in range(12):
+                check('occupation tracking off', t.cmd('CLIENT', 'TRACKING', 'OFF'), b'OK')
+                # The control write crosses an owner pass with tracking off.
+                check('old mode settled', g.a.cmd('SET', g.witness, 'settled'), b'+OK')
+                scan = encode('LPOS', g.big, LIST_LENGTH - 1)
+                g.b1.send(scan * OCCUPY_FIRST)
+                g.b2.send(scan * OCCUPY_TASKS)
+                check('occupied on acknowledged', t.cmd('CLIENT', 'TRACKING', 'ON', 'BCAST'), b'OK')
+                owed = not bool(select.select([g.b2.sock], [], [], 0)[0])
+                check('occupied write', g.a.cmd('SET', g.witness, 'after-ok'), b'+OK')
+                got = keys(t.drain(.3))
+                rows.append(dict(attempt=attempt, occupation_replies_not_ready_at_ok=owed,
+                                 invalidations=clean(got)))
+                for source, count in ((g.b1, OCCUPY_FIRST), (g.b2, OCCUPY_TASKS)):
+                    for _ in range(count):
+                        check('occupation executed', source.read(), LIST_LENGTH - 1)
+                check('occupied invalidation', got, [g.witness.encode()])
 
 
 def main():

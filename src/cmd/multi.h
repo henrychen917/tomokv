@@ -172,6 +172,8 @@ void multi_mark_queue_error(Client& client);
 // parse/dispatch and retirement paths.
 bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed);
 void multi_retire_entry(IoLoop& loop, Client& client, Op& op);
+bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state);
+void multi_io_child_completed(void* state);
 void multi_bind_retry_lane(Server& server, uint32_t io);
 uint32_t multi_owner_pass_entry(IoLoop& loop);
 uint32_t multi_owner_reap_entry(IoLoop& loop);

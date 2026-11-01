@@ -1699,6 +1699,8 @@ private:
         slowlog_armed_ = slowlog_arm_.armed();
         debug_fanout_defer_us_ = snapshot.debug_fanout_defer_us;
         live_config_version_ = snapshot.version;
+        if constexpr (OwnsShards)
+            srv_->tracking_config_applied(self_->id(), snapshot.version);
     }
 
     // CONFIG SET maxmemory/-policy/-samples: called by this owner's own CONFIG fragment, after the

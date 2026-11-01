@@ -3256,6 +3256,16 @@ public:
         snapshot = live_config_snapshot(reader_tid);
         return snapshot.version != known_version;
     }
+    void tracking_config_applied(uint32_t owner, uint64_t version) {
+        tracking_applied_[owner].store(version, std::memory_order_release);
+    }
+    bool tracking_config_ready(uint64_t version) const {
+        if (flip_stage() != FlipStage::Idle || lb_stage() != LbStage::Idle) return false;
+        for (uint32_t sid = 0; sid < nshards(); ++sid)
+            if (tracking_applied_[worker_of_shard(sid)].load(std::memory_order_acquire) < version)
+                return false;
+        return true;
+    }
     void set_maxmemory_config(uint64_t memory, MaxmemoryPolicy policy, uint32_t samples,
                               bool set_memory = true, bool set_policy = true,
                               bool set_samples = true) {
@@ -3689,6 +3699,7 @@ private:
     std::atomic<uint64_t> blocked_clients_{0};
     std::atomic<uint64_t> blocking_waiters_{0};
     std::atomic<uint64_t> live_config_version_{0};
+    std::atomic<uint64_t> tracking_applied_[kMaxThreads]{};
     std::atomic<uint64_t> live_maxmemory_{0};
     std::atomic<uint8_t>  live_maxmemory_policy_{
         static_cast<uint8_t>(MaxmemoryPolicy::NoEviction)};
