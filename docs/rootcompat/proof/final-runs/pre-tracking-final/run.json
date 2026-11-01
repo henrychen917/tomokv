@@ -1,0 +1,32 @@
+{
+  "name": "pre-tracking-final",
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "56-63",
+    "--load-cores",
+    "48-55",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20310-20319",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/PRE"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "rootcompat-tracking"
+  },
+  "exit": 1,
+  "seconds": 456.507,
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.JwyrpG",
+  "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309"
+}

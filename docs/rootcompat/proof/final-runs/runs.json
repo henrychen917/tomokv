@@ -163,5 +163,138 @@
     "seconds": 234.15,
     "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.jvq4sZ",
     "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+  },
+  {
+    "name": "surfaces-final-epoll-split",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "56-63",
+      "--load-cores",
+      "48-55",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20310-20319",
+      "--candidate-binary",
+      "/home/user/Projects/cx-rootcompat/build/rootcompat/POST"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 debug-0 debug-1 sort notify acl_recheck scriptfix",
+      "GATE_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "0"
+    },
+    "exit": 0,
+    "seconds": 771.339,
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.CvLzOV",
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+  },
+  {
+    "name": "surfaces-final-epoll-fused",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "56-63",
+      "--load-cores",
+      "48-55",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20310-20319",
+      "--candidate-binary",
+      "/home/user/Projects/cx-rootcompat/build/rootcompat/POST"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 sort notify",
+      "GATE_NET_IO": "epoll",
+      "GATE_TXN_FUSED": "1"
+    },
+    "exit": 0,
+    "seconds": 235.167,
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.dk6ySq",
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+  },
+  {
+    "name": "differ-final-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "tests/gate.sh",
+      "push",
+      "--server-cores",
+      "48-55",
+      "--load-cores",
+      "56-63",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20300-20309",
+      "--candidate-binary",
+      "/home/user/Projects/cx-rootcompat/build/rootcompat/POST"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "exit": 0,
+    "seconds": 2166.206,
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.xCELb7",
+    "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+  },
+  {
+    "name": "pre-tracking-final",
+    "command": [
+      "taskset",
+      "-c",
+      "48-63",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "56-63",
+      "--load-cores",
+      "48-55",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "20310-20319",
+      "--candidate-binary",
+      "/home/user/Projects/cx-rootcompat/build/rootcompat/PRE"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "rootcompat-tracking"
+    },
+    "exit": 1,
+    "seconds": 456.507,
+    "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.JwyrpG",
+    "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309"
   }
 ]
