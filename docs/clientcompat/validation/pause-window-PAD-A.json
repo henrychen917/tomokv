@@ -1,0 +1,592 @@
+{
+  "run": "build/gate-run.pHNZ6F",
+  "arm": "PAD-A",
+  "rows": [
+    {
+      "side": "oracle",
+      "leg": "redis-oracle-db16-a1-r0",
+      "accepted": 48,
+      "attempts": 48,
+      "maximum_seconds": 0.03512564208358526,
+      "expired": [],
+      "passed": true,
+      "failed_classification": null
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035466271452605724,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03517411183565855,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.0351778008043766,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db1-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.0351573321968317,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03521354217082262,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03517638146877289,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03514435142278671,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-uring-db16-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035115561448037624,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035135370679199696,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.0351765314117074,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03520219121128321,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db1-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035172561183571815,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03512927144765854,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035231221467256546,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03518172074109316,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "1s-epoll-db16-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03518366161733866,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03519101068377495,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03514476120471954,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03514917008578777,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db1-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03512832149863243,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035122510977089405,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03511331137269735,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03511363919824362,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-uring-db16-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035117470659315586,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.0351168904453516,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03511079028248787,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03511636983603239,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db1-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035113739781081676,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a0-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035110730677843094,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a0-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.035114141181111336,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a1-r0",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03512025997042656,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    },
+    {
+      "side": "candidate",
+      "leg": "2s-epoll-db16-a1-r1",
+      "accepted": 22,
+      "attempts": 22,
+      "maximum_seconds": 0.03511545155197382,
+      "expired": [],
+      "passed": false,
+      "failed_classification": {
+        "mode": "WRITE",
+        "command": [
+          "XGROUP",
+          "HELP"
+        ],
+        "held": true,
+        "expected": false
+      }
+    }
+  ]
+}

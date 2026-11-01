@@ -1,5 +1,5 @@
 {
-  "run": "build/gate-run.bLHsm0",
+  "run": "build/gate-run.pHNZ6F",
   "partial": true,
   "full_gate_receipt": false,
   "complete": true,
@@ -10,7 +10,7 @@
       "passed": 0,
       "failed": 1,
       "ledger": [
-        "FAIL\t3.760000\tclientcompat disconnect"
+        "FAIL\t3.530000\tclientcompat disconnect"
       ]
     },
     {
@@ -19,7 +19,7 @@
       "passed": 0,
       "failed": 1,
       "ledger": [
-        "FAIL\t98.270000\tclientcompat enable-race"
+        "FAIL\t72.860000\tclientcompat enable-race"
       ]
     },
     {
@@ -28,7 +28,7 @@
       "passed": 0,
       "failed": 1,
       "ledger": [
-        "FAIL\t3.430000\tclientcompat multi-controls"
+        "FAIL\t7.890000\tclientcompat multi-controls"
       ]
     },
     {
@@ -37,7 +37,7 @@
       "passed": 0,
       "failed": 1,
       "ledger": [
-        "FAIL\t41.460000\tclientcompat multi-tracking"
+        "FAIL\t41.160000\tclientcompat multi-tracking"
       ]
     },
     {
@@ -46,7 +46,7 @@
       "passed": 0,
       "failed": 1,
       "ledger": [
-        "FAIL\t48.810000\tclientcompat pause"
+        "FAIL\t48.680000\tclientcompat pause"
       ]
     },
     {
@@ -61,7 +61,36 @@
   ],
   "missing": [],
   "archive": "docs/clientcompat/validation/final-pad.json.gz",
-  "archive_sha256": "691957fdfdc42d009ed7907e4317768eb5d2da8813cc7635d79d08d50708bf92",
+  "archive_sha256": "a00251612dd7739b438b6ba4e1c9402604fb9cff3166f4e77a762cd6458d228a",
   "passed": 1,
-  "failed": 5
+  "failed": 5,
+  "arm": {
+    "source_commit": "694fae5c73",
+    "binary": "build/clientcompat/PAD-A/tomokv",
+    "sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
+    "engine": null,
+    "arm": "PAD-A",
+    "command": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "72-79",
+      "--load-cores",
+      "64-71",
+      "--ports",
+      "20400-20419",
+      "--candidate-binary",
+      "build/clientcompat/PAD-A/tomokv"
+    ],
+    "started": 1793522589.676193,
+    "pid": 1385113,
+    "LC_ALL": "C",
+    "requested_jobs": [
+      "clientcompat-pause",
+      "clientcompat-disconnect",
+      "clientcompat-multi-tracking",
+      "clientcompat-multi-controls",
+      "clientcompat-enable-race"
+    ]
+  }
 }

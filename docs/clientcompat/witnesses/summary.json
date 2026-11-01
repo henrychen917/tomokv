@@ -112,8 +112,8 @@
   {
     "arm": "PAD-A",
     "case": "pause",
-    "run": "bLHsm0",
-    "ledger": "FAIL\t48.810000\tclientcompat pause\n",
+    "run": "pHNZ6F",
+    "ledger": "FAIL\t48.680000\tclientcompat pause\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -122,7 +122,7 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
+        "sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
         "total": 32,
         "passed": 0,
         "failed": [
@@ -162,13 +162,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-pause.json.gz",
-    "archive_sha256": "8c110a0c8dab0f3e7aff2fc25d676f783c4fc531f52a19f6cf61bd90f5b785de"
+    "archive_sha256": "db12570d188327f9ccfc4d9fa2f381fcd19020ced65417ab61431318b6bf5476"
   },
   {
     "arm": "PAD-A",
     "case": "disconnect",
-    "run": "bLHsm0",
-    "ledger": "FAIL\t3.760000\tclientcompat disconnect\n",
+    "run": "pHNZ6F",
+    "ledger": "FAIL\t3.530000\tclientcompat disconnect\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -177,26 +177,26 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
+        "sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
         "total": 32,
         "passed": 8,
         "failed": [
           "1s-uring-db1-a0-r0",
           "1s-uring-db1-a0-r1",
-          "1s-uring-db1-a1-r0",
           "1s-uring-db1-a1-r1",
           "1s-uring-db16-a0-r0",
           "1s-uring-db16-a0-r1",
           "1s-uring-db16-a1-r0",
           "1s-uring-db16-a1-r1",
-          "1s-epoll-db1-a1-r1",
+          "1s-epoll-db1-a0-r1",
+          "1s-epoll-db1-a1-r0",
           "1s-epoll-db16-a0-r0",
           "1s-epoll-db16-a0-r1",
           "1s-epoll-db16-a1-r0",
           "1s-epoll-db16-a1-r1",
           "2s-uring-db1-a0-r0",
+          "2s-uring-db1-a0-r1",
           "2s-uring-db1-a1-r0",
-          "2s-uring-db1-a1-r1",
           "2s-uring-db16-a0-r0",
           "2s-uring-db16-a0-r1",
           "2s-uring-db16-a1-r0",
@@ -209,13 +209,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-disconnect.json.gz",
-    "archive_sha256": "c4685424545da332725111b418043c144996ea7f7d80ae84aec2f7e87429add8"
+    "archive_sha256": "00306105892ba0f0e940fb601408fa9a9cf569fe1f91d57e88252f90dbcdce77"
   },
   {
     "arm": "PAD-A",
     "case": "multi-tracking",
-    "run": "bLHsm0",
-    "ledger": "FAIL\t41.460000\tclientcompat multi-tracking\n",
+    "run": "pHNZ6F",
+    "ledger": "FAIL\t41.160000\tclientcompat multi-tracking\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -224,7 +224,7 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
+        "sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
         "total": 32,
         "passed": 0,
         "failed": [
@@ -264,13 +264,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-multi-tracking.json.gz",
-    "archive_sha256": "a7fd0527cd1eb47fa551faa4c71104a03b506d2508cc38acf27e5bd772ce9b44"
+    "archive_sha256": "71cb92dd9f21518021875adf0dfdb5cff3a197c43dbf4906d3426c471b30dc31"
   },
   {
     "arm": "PAD-A",
     "case": "multi-controls",
-    "run": "bLHsm0",
-    "ledger": "FAIL\t3.430000\tclientcompat multi-controls\n",
+    "run": "pHNZ6F",
+    "ledger": "FAIL\t7.890000\tclientcompat multi-controls\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -279,7 +279,7 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
+        "sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
         "total": 32,
         "passed": 0,
         "failed": [
@@ -319,13 +319,13 @@
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-multi-controls.json.gz",
-    "archive_sha256": "d1922f3aa964b86163f1e7ffbc3e820da04eb0c3a608bddf0dc0587d0b1522b3"
+    "archive_sha256": "15d3f15e05ccab4b04836fd326395747b895db2e4cd1e1e616cb3cf87033af40"
   },
   {
     "arm": "PAD-A",
     "case": "enable-race",
-    "run": "bLHsm0",
-    "ledger": "FAIL\t98.270000\tclientcompat enable-race\n",
+    "run": "pHNZ6F",
+    "ledger": "FAIL\t72.860000\tclientcompat enable-race\n",
     "results": {
       "oracle": {
         "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
@@ -334,15 +334,15 @@
         "failed": []
       },
       "candidate": {
-        "sha256": "f8287e0627d8075a6557d2729f7ba9c0539e83cf8d658f61a6a5ef7c2f75981c",
+        "sha256": "54084673401c693fb9ba466ba9671bed153cc7f0fccc50fb2be2240085e3b874",
         "total": 32,
-        "passed": 3,
+        "passed": 17,
         "failed": [
           "1s-uring-db1-a0-r0",
           "1s-uring-db1-a0-r1",
           "1s-uring-db1-a1-r0",
+          "1s-uring-db1-a1-r1",
           "1s-uring-db16-a0-r0",
-          "1s-uring-db16-a0-r1",
           "1s-uring-db16-a1-r0",
           "1s-uring-db16-a1-r1",
           "1s-epoll-db1-a0-r0",
@@ -350,27 +350,13 @@
           "1s-epoll-db1-a1-r0",
           "1s-epoll-db1-a1-r1",
           "1s-epoll-db16-a0-r0",
+          "1s-epoll-db16-a0-r1",
           "1s-epoll-db16-a1-r0",
-          "1s-epoll-db16-a1-r1",
-          "2s-uring-db1-a0-r0",
-          "2s-uring-db1-a0-r1",
-          "2s-uring-db1-a1-r0",
-          "2s-uring-db1-a1-r1",
-          "2s-uring-db16-a0-r0",
-          "2s-uring-db16-a0-r1",
-          "2s-uring-db16-a1-r0",
-          "2s-uring-db16-a1-r1",
-          "2s-epoll-db1-a0-r0",
-          "2s-epoll-db1-a0-r1",
-          "2s-epoll-db1-a1-r0",
-          "2s-epoll-db1-a1-r1",
-          "2s-epoll-db16-a0-r1",
-          "2s-epoll-db16-a1-r0",
-          "2s-epoll-db16-a1-r1"
+          "2s-uring-db16-a0-r1"
         ]
       }
     },
     "archive": "docs/clientcompat/witnesses/PAD-A-enable-race.json.gz",
-    "archive_sha256": "3446bb3aa794b4799aa9f4e1b5e38c2ce80cd516fa83b6b748e7e4a7cdcb7e8e"
+    "archive_sha256": "490fcced1ed45d929a703e5f633669bd9c9e3923d4cc263875c25957a74ab206"
   }
 ]
