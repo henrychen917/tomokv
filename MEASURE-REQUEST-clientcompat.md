@@ -154,19 +154,28 @@ the sealed server SHA-256s; retained build recipes reproduce the probes.
 ### Correctness validation
 
 Final execution is in progress. This section will be replaced with completed
-receipts before delivery. The sealed POST has passed all 32 legs of pause,
-disconnect, multi-tracking and multi-controls. The sealed broad selection is
+receipts before delivery. The sealed POST passed **160/160** candidate legs across all five new
+witnesses; every oracle leg passed. PAD-A failed all five gate rows as intended:
+pause 32/32, disconnect 26/32, multi-tracking 32/32, multi-controls 32/32 and
+enable-race 19/32 failing candidate legs. `docs/clientcompat/witnesses/summary.json`
+and its compressed raw assertions retain both halves of this control. The sealed broad selection is
 `docs/clientcompat/final-regression-jobs.txt`; its 120 selected jobs and required
 prerequisites include the complete requested command families, Tcl both modes,
 all feature-matrix geometries and multidb/FLIP/LB/transaction ordering jobs.
 Standard differential seeds are running through the gate jobs on both engines.
-The sealed PAD-A runs the same five witnesses as negative controls.
+The sealed PAD-A negative controls are complete.
 
 `make all`, all 51 explicitly enumerated production-unit targets, live MDBQSBR
 arms and blockfix control/unit targets built successfully. See
 `production-builds.json`, `production-targets.json` and `freshness.json`.
 `python3 tests/gates_test.py` is being rerun without concurrent compilation.
-Earlier Tcl failures and controls will be recorded, not discarded as noise.
+The draft full Tcl run passed 2s; 1s failed a no-acknowledgement unsubscribe
+assertion and timed out in the 50,000-script GC test during compilation. A
+bounded PRE control reproduced unsubscribe/PUNSUBSCRIBE races in 6 of 20
+mode/trial legs, including the exact failed assertion. Upstream util.tcl
+consumes zero replies for the no-argument helper before another client
+publishes. `pre-pubsub-control.json` retains every trial. No assertion or
+timeout was weakened; the sealed full Tcl jobs remain pending.
 
 Tcl promotions: old ALL-pause precedence; CLIENT KILL SKIPME's immediate INFO
 count; unsubscribe-inside-MULTI/publish-self. The transaction response-order

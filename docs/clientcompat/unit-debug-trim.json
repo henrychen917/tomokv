@@ -158,5 +158,365 @@
     "before_bytes": 213474192,
     "after_bytes": 11419232,
     "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/done-bytes/unit",
+    "before_sha256": "e3be72d191d57c47e7f68795250e6c3d788ac81733deda69f491cc012f07aec9",
+    "after_sha256": "c14b1554a9f0778979625893886f7eaf4361d85c1fc379893df8cce40367308d",
+    "before_bytes": 278248,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/parse/unit",
+    "before_sha256": "4eb1bf8ca7e5a1cd49a4f27d1796388082de3e0e5b98cc8ad5538083de8f993c",
+    "after_sha256": "efdc8012e81b6098e6abafa364808a465a8c09ff0561a4c533b4c50b6c2d8273",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/marker/unit",
+    "before_sha256": "ab03df043a0dd2f9f8e1cb751f2d5d0c3733573407b49e1e979d253b2d351afa",
+    "after_sha256": "71f7870fce3b081d92e8696ad329510b00e19517aa2141557c0c44280e518257",
+    "before_bytes": 278328,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/pin/unit",
+    "before_sha256": "534ce78a4dc36ac71790d53fd8122ef75bd842f693a5a4a847a1d6f7e595439c",
+    "after_sha256": "f0c936b56aff26ca9705aa06a6f285795e62bdbeb8a99bc13c08a45ae628a25d",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/staged-clause/unit",
+    "before_sha256": "ef8aa9130c28fe63652015d2f0aa70bb975202cfea384356566e2ef1a70ff424",
+    "after_sha256": "dd4624c16de2f8ce32296cefc3899acbbb11c06680b8ce891a58adeb854dc734",
+    "before_bytes": 279056,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/staged-source/unit",
+    "before_sha256": "ec20217f2c8081e12bac1da41739e0a2b1f177c1a9568924c6e383be2b5674bc",
+    "after_sha256": "de7f650c13cc47ee5779ef2950b9b5362e10ec56b5aeadd42b6897cd63b74080",
+    "before_bytes": 276048,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/code/unit",
+    "before_sha256": "713f847af34656372c636b11d2d4d9725c89b00d25e2a3b13227a16fef65cd98",
+    "after_sha256": "ecc62bdcca3686f8fe1fce27b7a82f8b63981f816fac795aa7c2edda802c13fb",
+    "before_bytes": 273976,
+    "after_bytes": 39448,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-policy/unit",
+    "before_sha256": "945b4dcf22081482914876dbe8b451ee05ef3e1c0cab1b546c092c48356e9a28",
+    "after_sha256": "3994069c36d4599808cd485f500f43d71e13b95161dc0e95105ffead455ab079",
+    "before_bytes": 108269984,
+    "after_bytes": 7880744,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/relaxed/unit",
+    "before_sha256": "72fa8e4d6b05d059ed5b9e166de22827aa21c17c3b7b67bac5b2ae5b65fe53da",
+    "after_sha256": "451c7486f25d11f0407430b9e8eeca899b9beb286f5655e742bd615ae0af3ffe",
+    "before_bytes": 273464,
+    "after_bytes": 39408,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/capture/unit",
+    "before_sha256": "5b14f224ecc7f1f20e9d7acd0264e005df85cc91b397596b68152339c79fe9ca",
+    "after_sha256": "3f524ea3745e31c50241c4cabf34eed5d18768dda8a69ca8b364ce5bfbeda5e6",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/fastpath/unit",
+    "before_sha256": "a5fb8c161ef6c1a2214b07802392f4bf59a2955ee9302685c654f532d1c4d2db",
+    "after_sha256": "9d048a60833af1ce1ca616a28f53abfb906aa6f88babb8eb20024e9df07bd922",
+    "before_bytes": 279184,
+    "after_bytes": 39504,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-aof/unit",
+    "before_sha256": "a77a99995e16bc550bb3ab5494aa559a53a90f3cc4c83e0fff05eaf03dd77ea0",
+    "after_sha256": "b7dadee15b8667aead1f5b56bcb6e97399076d033e8edc06db73bf61aca5f53b",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/direct/unit",
+    "before_sha256": "f64e4afe750ffea8c99b7d36bea45c9f2df0dcee557e9312d27b4d28538980df",
+    "after_sha256": "d90f322186fc3f84cf6cfa5e0c6fef9a85185fc70da3d3465b8ff45027e9f182",
+    "before_bytes": 278296,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/dead/unit",
+    "before_sha256": "0c718f497c1542e92c7afe8f4fc6477f34c689fb4f076f9544f691d63479d6fa",
+    "after_sha256": "823660aaaecb609846d97775ad1532cc769da500a009f4a63015a37a13798275",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/no-sum/unit",
+    "before_sha256": "3857cc7de881b41612304d9446051b8d490e9ec907f8af8d88263748d66c1692",
+    "after_sha256": "561747f579c9ed21871962e4da881c9320cbb60cf30f711ebf760f8f685986a4",
+    "before_bytes": 278552,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-ex/unit",
+    "before_sha256": "3bf6e45b28a3eb5f010d8fcfe9a497b9f98f4ac631237b014401e752de21bead",
+    "after_sha256": "672b6b19fa0c2f3e7a5f3775499ae590f5ea7055fb0b63935e6956c2a152f611",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-local/unit",
+    "before_sha256": "945b4dcf22081482914876dbe8b451ee05ef3e1c0cab1b546c092c48356e9a28",
+    "after_sha256": "3994069c36d4599808cd485f500f43d71e13b95161dc0e95105ffead455ab079",
+    "before_bytes": 108269984,
+    "after_bytes": 7880744,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/scatter-exit/unit",
+    "before_sha256": "38cfb5f60f1e96c336021bf9c166f90331801dc080f6574b07e7c14c2a407e07",
+    "after_sha256": "6042407dc049f735a5f2dc24a3bb2a5d324f42fabb017db8cb92c3b04b3a3cb9",
+    "before_bytes": 278008,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/borrow/unit",
+    "before_sha256": "5efc13321fd0a5899b21f5998ff5bd9252691d0951a33b77cf13f8a2749eecec",
+    "after_sha256": "b277cb2b2902b9a3c49acb65a543e5f3838d73b9b28529528e92254e835cdaa9",
+    "before_bytes": 278560,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/submitted/unit",
+    "before_sha256": "778808e151fdab3254558cb6f224391beac0e564e71b94b328d3520288099e77",
+    "after_sha256": "3e49e36086aac8ed6f0503bec726b5c59f0478e36543e84e48f530d7c9df293f",
+    "before_bytes": 282040,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/crlf/unit",
+    "before_sha256": "21269e0ebebc57b9ecd8fc11fa2ceb19e91a3ac0ec03aae3a6bf53c60f29b4a0",
+    "after_sha256": "e88d0f1da715966f48d2bf6d607649d3d042d774fa20427f5d220c9768c0d3bb",
+    "before_bytes": 278544,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/head/unit",
+    "before_sha256": "8b8b24b004a524ccb2b6c416fc6ecf021dc9ae0e8ad7ffb7ad84ac76a7fbcaab",
+    "after_sha256": "6de107242e17930c146efc9c51a943ba98ae2a7a2304c512f6d35236aac689f2",
+    "before_bytes": 108270520,
+    "after_bytes": 7881280,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-budget/unit",
+    "before_sha256": "2aa986c1bbb7c1a1f8c2d2fd3879df82bb48068fc0854a2b2b7cf3744bcc4835",
+    "after_sha256": "3768788d50e1c9e2c8f500ebe549ebdf1550729cfee00e9615f832dcdbdc70b2",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/pre-read/unit",
+    "before_sha256": "65fb9b1dca06bc9cc9e1564dcd6134bc1bb07be9da1cd0e03cdcfc06537a66bc",
+    "after_sha256": "675715ee83051194c00c243db29e40debec2f1a010315459cc701e2cb9df7efe",
+    "before_bytes": 281256,
+    "after_bytes": 39568,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/walk-tail/unit",
+    "before_sha256": "672bc90120ad7dc12d664444a1c0b31b27289e5f2a75b8a48fda0adf3f3866e4",
+    "after_sha256": "70493fea6bd36596714a32493421dae2acf1ff12b83d54cd762f741c604ff461",
+    "before_bytes": 278288,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/hole/unit",
+    "before_sha256": "7ba522fac07605d627c1aba856896a286778e0494184c2a4984a1599f890f09b",
+    "after_sha256": "62e7901e14da79ecea98f701fea02e7ca03ee77897a4edb028ce4403bb84be55",
+    "before_bytes": 278080,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/work/unit",
+    "before_sha256": "4b006c57e08461412b39326b2768097068e9e9803e0753ffcb6b07cb6b21b693",
+    "after_sha256": "97e57a7f0276c3450e823247ced07ff66feb2c8e0818ec98e166351d8e82cda4",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/rotation/unit",
+    "before_sha256": "70f9368b88f4b87e72f28ff5416663a862e6132d9d3e4e335ade935379672bdf",
+    "after_sha256": "42787d57347ba5d28e3a03ecca806049cf67f223903160faea4ed526d9394c4d",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/budget/unit",
+    "before_sha256": "2aa986c1bbb7c1a1f8c2d2fd3879df82bb48068fc0854a2b2b7cf3744bcc4835",
+    "after_sha256": "3768788d50e1c9e2c8f500ebe549ebdf1550729cfee00e9615f832dcdbdc70b2",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/floor/unit",
+    "before_sha256": "87d692f6c0b20b3f044d8e680fbed1b42d6a7ccec2ffe85024074101230b8887",
+    "after_sha256": "da95160eb7de5fb04d1fd68a8028f9af37cd07ee8a43c7fd54867145ec2eef0c",
+    "before_bytes": 278528,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/spill/unit",
+    "before_sha256": "3177a270a5a709e17647a233127e9a2ef13d2cb922e68d4eb8e283da66adf525",
+    "after_sha256": "48f827c4b9d92b8bd52a25f5cf26aaec55c4269b0c0c6cff112590f1f34acbc0",
+    "before_bytes": 277720,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/visit/unit",
+    "before_sha256": "1370c2f02175553f392dc55ef9d4e617d69cc8fed7ced8091677f0768d986922",
+    "after_sha256": "58c34a0f1460a4f73f456b21310336682b916d123347ff65e37e9a62f7eff49c",
+    "before_bytes": 108270264,
+    "after_bytes": 7881024,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wb-rule-controls/whole/unit",
+    "before_sha256": "b452e647ae961d6e28a207dc38eaeacd8d7a78c13fc8e883b5e94bca21222340",
+    "after_sha256": "92612537570b39e66043a2cbcb84a35317324bb74ad3d255414bd6aa4c4d902b",
+    "before_bytes": 278120,
+    "after_bytes": 39496,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/stale-lb/unit",
+    "before_sha256": "4b0e192d0e11eab552b1ae6aec7f92620f8784cb4420d82413f0479b26d6eb6c",
+    "after_sha256": "eef62491ad6f1751fd4499f4d4a6677a8a17046148e030097b3d49ef6647012a",
+    "before_bytes": 113146416,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/stale-flip/unit",
+    "before_sha256": "3e0df597e4ecbee2a87795e6f169185240d1b8f0e3b20617a8e7e0339d9b5d7f",
+    "after_sha256": "33d436dce5e6eba65d0ecba0b63bd132bd901c3d88fcb3962485485d8bba0d51",
+    "before_bytes": 113146424,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/record-reuse/unit",
+    "before_sha256": "6313b451e8ff3a23e48c68720ba1ba9377ad47726955f791bec861d60c299aa5",
+    "after_sha256": "7b5e21688f61c5b42a9979d8330259307f4ca07b25a82e1c5b9ec5131c1b28f1",
+    "before_bytes": 113146504,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/timing-lock/unit",
+    "before_sha256": "21b1eec0767d129dfec3a6731ac3f590b867fcb20b780214181d50edafd71904",
+    "after_sha256": "9b5cd734c33f8d3a2b51a0b3253e1d7645aad675c57c5b5935a345ad4c6ec077",
+    "before_bytes": 113150208,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/timing-late-pause/unit",
+    "before_sha256": "93a7cf431cc44cd36a6a1bf205b02acd79174035487da87f79779338155380a5",
+    "after_sha256": "579348a94e7b9c58be9873a3a0931329ff7426426423b66f449ce9dedc7632e9",
+    "before_bytes": 113147352,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/no-publish/unit",
+    "before_sha256": "c42c8cc6b226c25119f7f20ebbfef4d920786e5571011be710d664720eaf95cf",
+    "after_sha256": "933668e0345360b36aae80829c4a1f18179dce11609ff06657b2e063db7f458b",
+    "before_bytes": 113146648,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/timing-budget/unit",
+    "before_sha256": "23af5552f118369b5035490297f5f20af555a7ce8af000da0c601944d8a62353",
+    "after_sha256": "6c9fe021efd037a61639ad7ef6e4cc496c6ab23e7e6a4123259e3120aca28d5e",
+    "before_bytes": 113145448,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/copy-on-io/unit",
+    "before_sha256": "923b2e63fb8dd58850ebf34574d6f3b30ba4673ce1eec704290aa223c9b42367",
+    "after_sha256": "789149b446164e613ccf664c94920d8dd4940b9c6b02de14f910c090d35bdadc",
+    "before_bytes": 113152800,
+    "after_bytes": 6235424,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/lbplanner-controls/duplicate/unit",
+    "before_sha256": "0e93010f321949e55766ef016b801ba9a54590c48dd573bb0d98bb33b18cfac4",
+    "after_sha256": "3e8b120d2fb41233020bf8783cbfb91966c9662216ce6fc85d61954c49e70f6c",
+    "before_bytes": 113146648,
+    "after_bytes": 6235360,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/persistfix-controls/old-close/unit",
+    "before_sha256": "ff68eec2c8532024fca888f4f608b5ec9f43a7e81c897232203d4bb5b8b594de",
+    "after_sha256": "370355caeb838c6613ecff99324eaea5d59f3d36db9f4bd2751c46b12fb6b9eb",
+    "before_bytes": 107880944,
+    "after_bytes": 6047568,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/persistfix-controls/old-ack/unit",
+    "before_sha256": "e155437801fff35b33df13690ac14a72adcf95e4dabe49a961635e7d17be0f9b",
+    "after_sha256": "3d4be1c1267dc3a75479e5207f0c101f73e4662b820d1c4b66677bd90d8e4235",
+    "before_bytes": 107869144,
+    "after_bytes": 6047504,
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/persistfix-controls/no-refusal/unit",
+    "before_sha256": "0554fbfcaede476f4d61fd9eefa0f634e460f524654cddd11b62ff9d92d0a778",
+    "after_sha256": "929726cbfb0d2803ed4562f8443de4dc7f3a236396001bd6675dd98ecf9ecdd5",
+    "before_bytes": 107890664,
+    "after_bytes": 6047592,
+    "allocated_sections_identical": true
   }
 ]

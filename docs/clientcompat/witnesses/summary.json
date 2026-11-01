@@ -1,0 +1,368 @@
+[
+  {
+    "arm": "POST",
+    "case": "pause",
+    "run": "mzKGBQ",
+    "ledger": "ok\t207.690000\tclientcompat pause\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "total": 32,
+        "passed": 32,
+        "failed": []
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/POST-pause.json.gz",
+    "archive_sha256": "de892152b55923b14d665c9cdb15384c5012c165c92df71fdbd560c71278a13a"
+  },
+  {
+    "arm": "POST",
+    "case": "disconnect",
+    "run": "mzKGBQ",
+    "ledger": "ok\t9.870000\tclientcompat disconnect\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "total": 32,
+        "passed": 32,
+        "failed": []
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/POST-disconnect.json.gz",
+    "archive_sha256": "23743da5d555bcc274d567f571ab25e5d28ac00c0b265b0b1526ae66e7df6998"
+  },
+  {
+    "arm": "POST",
+    "case": "multi-tracking",
+    "run": "mzKGBQ",
+    "ledger": "ok\t266.310000\tclientcompat multi-tracking\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "total": 32,
+        "passed": 32,
+        "failed": []
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/POST-multi-tracking.json.gz",
+    "archive_sha256": "1bb0de46094a7cc7936cb0af27bb9bb6c758055229eafe7d7f250961a93fc8a4"
+  },
+  {
+    "arm": "POST",
+    "case": "multi-controls",
+    "run": "mzKGBQ",
+    "ledger": "ok\t165.780000\tclientcompat multi-controls\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "total": 32,
+        "passed": 32,
+        "failed": []
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/POST-multi-controls.json.gz",
+    "archive_sha256": "4b41556768adb0dc9f5ca9ccce6096479427d6a30b318e1bcfdf100d99f25c4b"
+  },
+  {
+    "arm": "POST",
+    "case": "enable-race",
+    "run": "mzKGBQ",
+    "ledger": "ok\t659.040000\tclientcompat enable-race\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464",
+        "total": 32,
+        "passed": 32,
+        "failed": []
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/POST-enable-race.json.gz",
+    "archive_sha256": "5e139bfb1f63da8a752b2cdffaa50eedd0dbecda9ec389f2940472a8474f04d4"
+  },
+  {
+    "arm": "PAD-A",
+    "case": "pause",
+    "run": "ljOY8G",
+    "ledger": "FAIL\t48.760000\tclientcompat pause\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "total": 32,
+        "passed": 0,
+        "failed": [
+          "1s-uring-db1-a0-r0",
+          "1s-uring-db1-a0-r1",
+          "1s-uring-db1-a1-r0",
+          "1s-uring-db1-a1-r1",
+          "1s-uring-db16-a0-r0",
+          "1s-uring-db16-a0-r1",
+          "1s-uring-db16-a1-r0",
+          "1s-uring-db16-a1-r1",
+          "1s-epoll-db1-a0-r0",
+          "1s-epoll-db1-a0-r1",
+          "1s-epoll-db1-a1-r0",
+          "1s-epoll-db1-a1-r1",
+          "1s-epoll-db16-a0-r0",
+          "1s-epoll-db16-a0-r1",
+          "1s-epoll-db16-a1-r0",
+          "1s-epoll-db16-a1-r1",
+          "2s-uring-db1-a0-r0",
+          "2s-uring-db1-a0-r1",
+          "2s-uring-db1-a1-r0",
+          "2s-uring-db1-a1-r1",
+          "2s-uring-db16-a0-r0",
+          "2s-uring-db16-a0-r1",
+          "2s-uring-db16-a1-r0",
+          "2s-uring-db16-a1-r1",
+          "2s-epoll-db1-a0-r0",
+          "2s-epoll-db1-a0-r1",
+          "2s-epoll-db1-a1-r0",
+          "2s-epoll-db1-a1-r1",
+          "2s-epoll-db16-a0-r0",
+          "2s-epoll-db16-a0-r1",
+          "2s-epoll-db16-a1-r0",
+          "2s-epoll-db16-a1-r1"
+        ]
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/PAD-A-pause.json.gz",
+    "archive_sha256": "db6c1c4ff5dffbab1a570774ce596379b15c78c82c95a2b87c97d67c68fb0a78"
+  },
+  {
+    "arm": "PAD-A",
+    "case": "disconnect",
+    "run": "ljOY8G",
+    "ledger": "FAIL\t3.830000\tclientcompat disconnect\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "total": 32,
+        "passed": 6,
+        "failed": [
+          "1s-uring-db1-a0-r0",
+          "1s-uring-db1-a0-r1",
+          "1s-uring-db1-a1-r0",
+          "1s-uring-db1-a1-r1",
+          "1s-uring-db16-a0-r0",
+          "1s-uring-db16-a0-r1",
+          "1s-uring-db16-a1-r0",
+          "1s-uring-db16-a1-r1",
+          "1s-epoll-db1-a0-r0",
+          "1s-epoll-db1-a0-r1",
+          "1s-epoll-db1-a1-r0",
+          "1s-epoll-db1-a1-r1",
+          "1s-epoll-db16-a0-r0",
+          "1s-epoll-db16-a0-r1",
+          "1s-epoll-db16-a1-r0",
+          "1s-epoll-db16-a1-r1",
+          "2s-uring-db1-a1-r0",
+          "2s-uring-db1-a1-r1",
+          "2s-uring-db16-a0-r0",
+          "2s-uring-db16-a0-r1",
+          "2s-uring-db16-a1-r0",
+          "2s-uring-db16-a1-r1",
+          "2s-epoll-db16-a0-r0",
+          "2s-epoll-db16-a0-r1",
+          "2s-epoll-db16-a1-r0",
+          "2s-epoll-db16-a1-r1"
+        ]
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/PAD-A-disconnect.json.gz",
+    "archive_sha256": "04b2814ec65655343059d1784067f0f5547f988b27f0b260d9a2aebf0ef45cdb"
+  },
+  {
+    "arm": "PAD-A",
+    "case": "multi-tracking",
+    "run": "ljOY8G",
+    "ledger": "FAIL\t41.380000\tclientcompat multi-tracking\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "total": 32,
+        "passed": 0,
+        "failed": [
+          "1s-uring-db1-a0-r0",
+          "1s-uring-db1-a0-r1",
+          "1s-uring-db1-a1-r0",
+          "1s-uring-db1-a1-r1",
+          "1s-uring-db16-a0-r0",
+          "1s-uring-db16-a0-r1",
+          "1s-uring-db16-a1-r0",
+          "1s-uring-db16-a1-r1",
+          "1s-epoll-db1-a0-r0",
+          "1s-epoll-db1-a0-r1",
+          "1s-epoll-db1-a1-r0",
+          "1s-epoll-db1-a1-r1",
+          "1s-epoll-db16-a0-r0",
+          "1s-epoll-db16-a0-r1",
+          "1s-epoll-db16-a1-r0",
+          "1s-epoll-db16-a1-r1",
+          "2s-uring-db1-a0-r0",
+          "2s-uring-db1-a0-r1",
+          "2s-uring-db1-a1-r0",
+          "2s-uring-db1-a1-r1",
+          "2s-uring-db16-a0-r0",
+          "2s-uring-db16-a0-r1",
+          "2s-uring-db16-a1-r0",
+          "2s-uring-db16-a1-r1",
+          "2s-epoll-db1-a0-r0",
+          "2s-epoll-db1-a0-r1",
+          "2s-epoll-db1-a1-r0",
+          "2s-epoll-db1-a1-r1",
+          "2s-epoll-db16-a0-r0",
+          "2s-epoll-db16-a0-r1",
+          "2s-epoll-db16-a1-r0",
+          "2s-epoll-db16-a1-r1"
+        ]
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/PAD-A-multi-tracking.json.gz",
+    "archive_sha256": "efd75e4ce8c397b6eea3608162a5af0eb3bc05bea46411152577057eef53d41b"
+  },
+  {
+    "arm": "PAD-A",
+    "case": "multi-controls",
+    "run": "ljOY8G",
+    "ledger": "FAIL\t3.390000\tclientcompat multi-controls\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "total": 32,
+        "passed": 0,
+        "failed": [
+          "1s-uring-db1-a0-r0",
+          "1s-uring-db1-a0-r1",
+          "1s-uring-db1-a1-r0",
+          "1s-uring-db1-a1-r1",
+          "1s-uring-db16-a0-r0",
+          "1s-uring-db16-a0-r1",
+          "1s-uring-db16-a1-r0",
+          "1s-uring-db16-a1-r1",
+          "1s-epoll-db1-a0-r0",
+          "1s-epoll-db1-a0-r1",
+          "1s-epoll-db1-a1-r0",
+          "1s-epoll-db1-a1-r1",
+          "1s-epoll-db16-a0-r0",
+          "1s-epoll-db16-a0-r1",
+          "1s-epoll-db16-a1-r0",
+          "1s-epoll-db16-a1-r1",
+          "2s-uring-db1-a0-r0",
+          "2s-uring-db1-a0-r1",
+          "2s-uring-db1-a1-r0",
+          "2s-uring-db1-a1-r1",
+          "2s-uring-db16-a0-r0",
+          "2s-uring-db16-a0-r1",
+          "2s-uring-db16-a1-r0",
+          "2s-uring-db16-a1-r1",
+          "2s-epoll-db1-a0-r0",
+          "2s-epoll-db1-a0-r1",
+          "2s-epoll-db1-a1-r0",
+          "2s-epoll-db1-a1-r1",
+          "2s-epoll-db16-a0-r0",
+          "2s-epoll-db16-a0-r1",
+          "2s-epoll-db16-a1-r0",
+          "2s-epoll-db16-a1-r1"
+        ]
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/PAD-A-multi-controls.json.gz",
+    "archive_sha256": "18f96f84380cd2d80b05df556ec7fb62c915e04d0406018fa1ee4b68e12802d9"
+  },
+  {
+    "arm": "PAD-A",
+    "case": "enable-race",
+    "run": "ljOY8G",
+    "ledger": "FAIL\t75.400000\tclientcompat enable-race\n",
+    "results": {
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "total": 1,
+        "passed": 1,
+        "failed": []
+      },
+      "candidate": {
+        "sha256": "8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53",
+        "total": 32,
+        "passed": 13,
+        "failed": [
+          "1s-uring-db1-a0-r0",
+          "1s-uring-db1-a0-r1",
+          "1s-uring-db1-a1-r0",
+          "1s-uring-db1-a1-r1",
+          "1s-uring-db16-a0-r0",
+          "1s-uring-db16-a0-r1",
+          "1s-uring-db16-a1-r0",
+          "1s-uring-db16-a1-r1",
+          "1s-epoll-db1-a0-r0",
+          "1s-epoll-db1-a0-r1",
+          "1s-epoll-db1-a1-r0",
+          "1s-epoll-db1-a1-r1",
+          "1s-epoll-db16-a0-r1",
+          "1s-epoll-db16-a1-r0",
+          "1s-epoll-db16-a1-r1",
+          "2s-uring-db1-a0-r0",
+          "2s-uring-db1-a1-r1",
+          "2s-uring-db16-a1-r1",
+          "2s-epoll-db1-a1-r0"
+        ]
+      }
+    },
+    "archive": "docs/clientcompat/witnesses/PAD-A-enable-race.json.gz",
+    "archive_sha256": "1983a7d03f74b99d4cc2eabf6523ddf82eba6e57123649c1981419f147172b92"
+  }
+]
