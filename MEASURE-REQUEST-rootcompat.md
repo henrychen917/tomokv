@@ -38,7 +38,7 @@ Maintainer measurement request: run the **18 frozen recipes** in `docs/rootcompa
 
 Finite zero-cost proof uses `tools/rootcompat_counts.py` on the notification-disabled path, batch 1/32, both modes and namespaces, atomic 0/1: **80/80 cells add zero instructions; 60 exact, 20 lower**. Counts were rerun from final production objects after `make all`. Final cold-helper inlining budgets are 159000 normal / 161500 DB0. The initial fenced prototype failed this condition; complete rejected and selected receipts remain in `rejected-expiry-budget/`, `budgets-expiry/`, `counts-expiry-tuned/` and final `counts/`. These finite instruction counts do not measure IPC, latency or rate.
 
-| Command | Cells | POST minus PRE instructions per operation |
+| Command | Cells | POST minus PRE instructions per command invocation |
 |---|---:|---|
 | GET | 16 | 0 in all cells |
 | SET | 16 | 0 in all cells |
@@ -54,14 +54,14 @@ Gate accounting: **DQ=+9, DF=+9**. One default worker emits nine directed rows, 
 | Production builds/freshness | All 51 primary production targets and four auxiliary groups built; `make all` and every required `make -q` return 0; `proof/build-release.json` |
 | Notification/production unit gate | PASS, 17/17 rows, gate `ipmOrX`; final blockfix2 and DB0 companion binaries copied beside POST |
 | Broad touched jobs | RUNNING on final release, both modes/engines. `proof/release-runs/` records commands, hashes, ledgers and complete differential receipts as jobs finish |
-| Standard differential seeds | Final uring PASS: 954 comparisons, all five jobs, gate `4F4Z4c`; final epoll RUNNING. Both prior-arm suites passed 954 comparisons each; those receipts remain separately labelled under `proof/final-runs/` |
+| Standard differential seeds | PASS on both final engines: 954 comparisons each, all five jobs; uring gate `4F4Z4c`, epoll gate `B4ZjaF`. Both prior-arm suites remain separately labelled under `proof/final-runs/` |
 | First final-release Tcl job | 1s PASS: 39 files, 1,874 passing assertions, five accepted setup errors, 433 skips. 2s FAIL: two unsubscribe/PUBLISH count assertions and scripting incomplete at unchanged 60 s bound during compilation. One isolated full rerun is queued; first failure retained under `proof/tcl-release-first/` |
 | Tcl PRE control | Actual PRE hash reproduced the 2s SUBSCRIBE-after-UNSUBSCRIBE failure (returned 1, expected 0); PUNSUBSCRIBE passed in that specific control. Full summaries preserved under `proof/pre-tcl-control/`; bounded focused control for both assertions queued |
 | `tests/gates_test.py` | Isolated rerun queued. Earlier ungrouped run: 82/83, one-slot inventory hit 45 s bound. Grouped run during compilation: 80/83, three 45 s deadline failures. No deadlines or assertions weakened; both failures retained |
 | Diagnostic residual jobs | Expected FAIL on predecessor release: stringlimit 24/48 mismatches, HX-3 8/8, unsupported error counters 56/72. These source paths are unchanged; `proof/final-runs/residuals-final/` |
 | Final PAD runtime controls | QUEUED on the hashes above; old-image controls are retained separately and are not substituted |
 
-Earlier broad blockfix2 attempts failed before fixture execution: first the helper was absent beside the external candidate; then a DB0 helper link failed during overlapping object/debug-strip work. Both failures remain recorded. A fresh frozen build, all freshness checks and companion copies repaired the artifact preparation; final full blockfix2 execution is queued in the broad uring split run. No earlier failed gate is called green.
+Earlier broad blockfix2 attempts failed before fixture execution: first the helper was absent beside the external candidate; then a DB0 helper link failed during overlapping object/debug-strip work. Both failures remain recorded. A fresh frozen build, all freshness checks and companion copies repaired the artifact preparation; final full blockfix2 execution passes all seven rows in broad uring split gate `FhcI3T`, including the refusal fixture. No earlier failed gate is called green.
 
 Tcl accounting: re-skip the XGROUP DESTROY/NOGROUP statistics assertion; the two Lua error_reply statistics assertions remain skipped. Six compat3_blockfix2 total/errorstats assertions and the failed_calls component are explicitly skipped after removing their unsupported guard. No whole upstream test was promoted for ACL redaction: the combined SLOWLOG privacy test also requires unsupported replication/TLS configs, and the adjacent test needs MIGRATE. Fixed ACL assertions have their own oracle-directed SLOWLOG/MONITOR coverage. Five known setup errors and 433 skips remain in successful checked-in-subset runs; this is not a claim that the complete upstream Tcl suite passes.
 
