@@ -129,7 +129,10 @@ def main():
                          retry['reason'] == 'writer held by test latch before any reply gate') or
                         (mode == '1s' and markers.keys() == {'gate'} and markers['gate']['stage'] == 0 and
                          markers['gate']['producer'] == retry['writer'] and
-                         retry['reason'] == 'writer held at its own receipt gate before failure'))
+                         retry['reason'] == 'writer held at its own receipt gate before failure') or
+                        (not markers and retry['deferred']['producer'] == retry['writer'] and
+                         retry['deferred']['stage'] == 0 and
+                         retry['reason'] == 'writer IO deferred by test latch before any reply gate'))
         assert len(stops) == len(attempts) == len(unarmed) + 3
         assert all(not r['escalated'] for r in stops)
         assert sum(r['exit'] == 1 for r in stops) == 3

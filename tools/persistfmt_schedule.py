@@ -35,6 +35,17 @@ bool persistfmt_marker(const char* suffix, uint32_t producer = UINT32_MAX) {
 }
 '''
 text = text.replace('namespace tomo {', 'namespace tomo {\n' + declaration, 1)
+writer_guard = '    if (!configured_ || writer.id() != writer_tid_ || fd_ < 0 || failed()) return 0;'
+assert text.count(writer_guard) == 1
+text = text.replace(writer_guard, writer_guard + '''
+    // Leave the fused writer free to finish its FLUSH owner work before the
+    // faulting write. Spinning inside fail() before that work deadlocks the
+    // artificial rendezvous. This delay changes only the scheduling twin.
+    if (persistfmt_armed() && persistfmt_schedule.load() == 0) {
+        persistfmt_marker(".deferred", writer.id());
+        return 0;
+    }
+''')
 before_gate = '        if (!reply_gate_ready(front.target)) {'
 assert text.count(before_gate) == 1
 text = text.replace(before_gate, '''

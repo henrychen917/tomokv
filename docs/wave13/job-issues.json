@@ -7,7 +7,7 @@
       "cause": "gate.sh resolves the matching serverless refusal units beside CANDIDATE_BINARY; the frozen POST directory lacked the two binaries already built in build/.",
       "evidence": "All four namespace/mode unit logs report taskset: failed to execute ... No such file or directory. The six live rows passed.",
       "correction": "Matching production companions copied beside the frozen POST, with SHA-256s in candidate-companions.json. No production or gate assertion change.",
-      "rerun": "PENDING: complete blockfix2 job through gate.sh",
+      "rerun": "PASS: complete job, docs/wave13/jobs/landing-blockfix-companions.json (both jobs: 9 ok, 0 FAIL)",
       "failure_logs": [
         {
           "path": "build/gate-run.dQbZff/jobs/blockfix2/blockfix2-db0-unit-1s.log",
@@ -34,7 +34,7 @@
       "cause": "The following job started before candidate companion packaging completed; its candidate-specific cost binding file was absent.",
       "evidence": "cost-binding.log reports the missing tomokv-POST.blockfix-cost.sha256; instructions.log was not created.",
       "correction": "The original build/tomokv cost binding was verified; an equivalent binding now names the frozen POST and matching copied blockfix-cost.",
-      "rerun": "PENDING: complete blockfix_registry job through gate.sh",
+      "rerun": "PASS: complete job, docs/wave13/jobs/landing-blockfix-companions.json (both jobs: 9 ok, 0 FAIL)",
       "failure_logs": [
         {
           "path": "build/gate-run.dQbZff/jobs/blockfix_registry/cost-binding.log",
@@ -49,7 +49,7 @@
       "artifact": "build/gate-run.dQbZff/jobs/persistfmt",
       "cause": "The added FLUSHALL check did not open the injected fail() diagnostic window within its unchanged four-second bound. The original scheduling twin can wait for a reply gate while holding a fused owner that FLUSH still needs.",
       "evidence": "SET opened the window and exited 1 without a reply. FLUSHALL reached the 168-byte increment limit, then failed its arming assertion; teardown escalated the owned scheduling twin. No successful FLUSH reply was observed. The other 39 persistfmt rows passed.",
-      "correction": "Prepared trace markers and up to eight fresh-state attempts. Only a witnessed writer wait before any receipt gate may be retried; unexpected replies or other missing-window states fail. Every credited command still requires the actual blocked writer, no reply, and fatal exit 1. The traced rerun and never-armed negative control are pending.",
+      "correction": "Prepared trace markers and up to eight fresh-state attempts. Only a witnessed writer wait before any receipt gate may be retried; unexpected replies or other missing-window states fail. Every credited command still requires the actual blocked failure logger, no reply, and fatal exit 1. The traced rerun and never-armed negative control are pending.",
       "rerun": "PENDING: full persistfmt and persistfmt_aof_error jobs after applying persistfmt-window.patch",
       "failure_logs": [
         {
@@ -59,6 +59,76 @@
         {
           "path": "build/gate-run.dQbZff/jobs/persistfmt/persistfmt-aof-failure-1s-epoll/events.jsonl",
           "sha256": "36aecc4f811a3839b1e53cc14a24ccfc1f27c1baf195785dd0fb4faf2f5d830d"
+        }
+      ]
+    }
+  ],
+  "landing-persistfmt-window": [
+    {
+      "job": "persistfmt",
+      "label": "persistfmt aof-failure (1s, epoll)",
+      "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
+      "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
+      "rerun": "PENDING: landing-persistfmt-window-v2",
+      "failure_logs": [
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-1s-epoll.log",
+          "sha256": "ee5a048b1c7098bf594015ff8e6751d8f99d5510ba642893510a0795faab7336"
+        },
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-1s-epoll/events.jsonl",
+          "sha256": "ec3828cf558be0b1698341035b889d7fb7d51d5076838ac407e4bb9f2bdc77da"
+        }
+      ]
+    },
+    {
+      "job": "persistfmt",
+      "label": "persistfmt aof-failure (1s, uring)",
+      "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
+      "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
+      "rerun": "PENDING: landing-persistfmt-window-v2",
+      "failure_logs": [
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-1s-uring.log",
+          "sha256": "1198bb899f91e9076317ba1bb31699b0b9ec478c52013c09816d50cd79f07d07"
+        },
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-1s-uring/events.jsonl",
+          "sha256": "f4e7530d813336e2dab0870e64453af0a6eb4ff2df21960503a1b7dfeb14bad9"
+        }
+      ]
+    },
+    {
+      "job": "persistfmt",
+      "label": "persistfmt aof-failure (2s, epoll)",
+      "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
+      "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
+      "rerun": "PENDING: landing-persistfmt-window-v2",
+      "failure_logs": [
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-2s-epoll.log",
+          "sha256": "5c9c591445c44450edc2f15d4f33210dc8f2aea6760b0cba352a01314f0103d1"
+        },
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-2s-epoll/events.jsonl",
+          "sha256": "4e4a5f1c03f895b5caba224be32b98bf97ad60fbe60038f0d287365df79b408b"
+        }
+      ]
+    },
+    {
+      "job": "persistfmt",
+      "label": "persistfmt aof-failure (2s, uring)",
+      "cause": "The first traced fixture required the first failure reporter itself to block on pipe_write; a concurrent failure reporter may hold the stderr FILE lock. The 1s/uring FLUSHALL also paused the writer at its own receipt gate.",
+      "correction": "Trace every failure logger, require an actual pipe_write logger, and permit bounded fresh-state rearming only for the witnessed writer-before-gate or writer-at-own-gate latch deadlocks. No production change, deadline widening or unarmed pass.",
+      "rerun": "PENDING: landing-persistfmt-window-v2",
+      "failure_logs": [
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-2s-uring.log",
+          "sha256": "e61e50cd91b350220f2b1ec84473dc1de0c9cd35af72aa0bd914ed16475503f5"
+        },
+        {
+          "path": "build/gate-run.IsiYy7/jobs/persistfmt/persistfmt-aof-failure-2s-uring/events.jsonl",
+          "sha256": "b929a54b95f9a2b332ec5d6e35a1213cc2924c2ff7c2735b03ecc19f3da553dd"
         }
       ]
     }

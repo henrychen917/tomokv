@@ -68,8 +68,9 @@ def main():
         stops = [e for e in events if e['event'] == 'stop']
         assert len(attempts) == len(unarmed) == len(stops) == 8 and not armed
         assert [e['attempt'] for e in attempts] == list(range(1, 9))
-        assert all(e['command'] == 'SET' and e['markers'].keys() == {'fail'} and
-                   e['markers']['fail']['stage'] == 0 for e in unarmed)
+        assert all(e['command'] == 'SET' and not e['markers'] and
+                   e['deferred']['producer'] == e['writer'] and e['deferred']['stage'] == 0 and
+                   e['reason'] == 'writer IO deferred by test latch before any reply gate' for e in unarmed)
         assert all(e['exit'] == -9 and not e['escalated'] for e in stops)
         log = folder / (stem + '.log')
         assert 'SET: fail() logging window never opened in 8 fresh attempts' in log.read_text()

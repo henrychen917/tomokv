@@ -358,6 +358,15 @@ def aof_failure_attempt(command, attempt):
                 found[tid] = dict(tid=tid, producer=producer, stage=stage)
         return found
 
+    def deferred_writer():
+        path = Path(str(schedule) + '.deferred')
+        if path.exists():
+            fields = path.read_text().split()
+            if len(fields) == 3:
+                tid, producer, stage = map(int, fields)
+                return dict(tid=tid, producer=producer, stage=stage)
+        return None
+
     rfd, wfd = os.pipe()
     try:
         with server(extra=h.aof('always'), data=data,
@@ -392,6 +401,7 @@ def aof_failure_attempt(command, attempt):
                     blocked = [p for p in Path(f'/proc/{s.p.pid}/task').glob('*/wchan')
                                if 'pipe_write' in p.read_text()]
                     evidence = markers()
+                    deferred = deferred_writer()
                     loggers = logging_threads()
                     logging_waiters = sorted(set(loggers) & {int(p.parent.name) for p in blocked})
                     if (logging_waiters and evidence.keys() == {'fail', 'gate', 'diagnostic'}
@@ -406,11 +416,14 @@ def aof_failure_attempt(command, attempt):
                               evidence['gate'].get('stage') == 0 and
                               evidence['gate'].get('producer') == writer):
                             reason = 'writer held at its own receipt gate before failure'
+                        elif (not evidence and deferred and deferred['producer'] == writer
+                              and deferred['stage'] == 0):
+                            reason = 'writer IO deferred by test latch before any reply gate'
                         else:
                             raise AssertionError(('unrecognized missing failure window', evidence,
                                                   loggers, [str(p.parent) for p in blocked]))
                         h.emit('failure_window_unarmed', command=command, attempt=attempt,
-                               markers=evidence, writer=writer, reason=reason)
+                               markers=evidence, writer=writer, deferred=deferred, reason=reason)
                         # Only the owned scheduling twin is stopped. This attempt
                         # is not credited; exhausting all fresh attempts fails.
                         s.stop(signal.SIGKILL)
@@ -423,7 +436,8 @@ def aof_failure_attempt(command, attempt):
                 assert evidence['diagnostic']['stage'] == 2 and logging_waiters
                 h.emit('failure_window_armed', command=command, attempt=attempt,
                        threads=[str(p.parent) for p in blocked], markers=evidence,
-                       logging_waiters=logging_waiters, loggers=loggers, writer=writer)
+                       logging_waiters=logging_waiters, loggers=loggers, writer=writer,
+                       deferred=deferred)
                 # Wake this IO owner after recording_ changed. Otherwise an idle
                 # epoll owner can sleep through the held failure window entirely.
                 c.send('PING')
