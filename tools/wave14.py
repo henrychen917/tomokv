@@ -84,7 +84,7 @@ def jobs(a):
         '--candidate-binary', str(binary)]
     digest = sha(binary)
     save(out / (a.tag + '-started.json'), dict(command=command, binary_sha256=digest,
-        env={k:v for k,v in env.items() if k.startswith(('GATE_', 'WAVE14_')) or
+        env={k:v for k,v in env.items() if k.startswith(('GATE_', 'WAVE14_', 'BLOCKFIX4_')) or
              k in ('LC_ALL', 'REDIS74_ROOT', 'CXX', 'CC')}))
     with (out / (a.tag + '.log')).open('w') as log:
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)

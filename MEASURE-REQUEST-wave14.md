@@ -117,6 +117,11 @@ and rejected counts are retained, not presented as the integration cost proof.
   use static ACL/SORT, OOM, subscription and WAITAOF-disabled messages. XREADGROUP
   still uses the central NOGROUP builder; no new user-controlled error text
   bypasses the central CR/LF handling.
+- The blockfix4 creator row now includes RESTORE-stream. Its existing raw
+  fixture was excluded pending D9, which wave13 persistfmt supplies. The
+  merged row requires two parked/woken XREAD hits and oracle-exact values
+  per declared geometry, without adding a public row. Both network engines
+  and namespace builds are selected in the validation plan.
 - The maxmemrace Redis oracle assumed `maxmemory 1` immediately implies OOM.
   Redis's eviction time slice may instead return `EVICT_RUNNING`, admitting a
   write before a later eviction attempt reports failure. Oracle setup now waits

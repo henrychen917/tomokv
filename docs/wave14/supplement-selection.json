@@ -223,7 +223,6 @@
     "asan",
     "atomic_units",
     "blockfix2",
-    "blockfix4",
     "blockfix_registry",
     "clientcompat-disconnect",
     "clientcompat-enable-race",
@@ -319,5 +318,8 @@
     "wbland_units",
     "witness_contracts"
   ],
-  "reason": "Declared self-contained mode/engine matrices and serverless units are covered by the main sweep; engine-selectable live jobs are repeated on epoll."
+  "reason": "Self-contained mode/engine matrices and serverless units are covered by the main sweep; engine-selectable live jobs are repeated on epoll. blockfix4 selects only one engine per invocation, so blockfix4-supplement-plan.json supplies epoll and both namespace controls.",
+  "separately_supplemented": [
+    "blockfix4"
+  ]
 }

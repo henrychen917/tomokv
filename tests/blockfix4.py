@@ -12,7 +12,7 @@ import sys
 ROOT = Path(__file__).resolve().parent
 CREATORS = ('COPY-list,RESTORE-list,RENAME-list(ctl),SORTSTORE-list(ctl),LMOVE-list(ctl),'
             'COPY-zset,RESTORE-zset,ZUNIONSTORE,ZINTERSTORE,ZDIFFSTORE,ZRANGESTORE,'
-            'GEOSEARCHSTORE,RENAME-zset(ctl),COPY-stream,RENAME-stream(ctl)')
+            'GEOSEARCHSTORE,RENAME-zset(ctl),COPY-stream,RESTORE-stream,RENAME-stream(ctl)')
 REMOVALS = ('SET+RENAME,MSET+RENAME,EXPIRE(EXISTS)+RENAME,FLUSHDB+RENAME,FLUSHALL+RENAME,'
             'FLUSHDB-ASYNC+RENAME,FLUSHALL-ASYNC+RENAME,DEL+RENAME(ctl)')
 
