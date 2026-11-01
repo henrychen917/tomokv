@@ -132,7 +132,6 @@ at412-T15
 at412-T16
 at412-owner
 ring_unit
-core_units
 netcmd_units
 debug-0
 debug-1

@@ -19,7 +19,7 @@ def main():
     sources = []
     # Every winning job uses the final binary, including the separately
     # completed full FLUSH-order job. Preserve earlier failures separately.
-    for name in ("regression-final", "ack-trackorder", "final-witnesses"):
+    for name in ("regression-final", "ack-trackorder", "final-witnesses", "final-core-units"):
         receipt = read(name)
         assert receipt["complete"] and not receipt["full_gate_receipt"], name
         archive = Path(receipt["archive"])
