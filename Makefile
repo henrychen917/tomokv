@@ -375,7 +375,9 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # compat2b: 29 reference recompiles and merged compile-only trials select the
 # per-unit budgets in docs/compat2b/selected.json. Preserve headline or compat2
 # hot bodies; composed C1/N3/N4 dispatchers remain explicit merit inputs.
-$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147838
+# execfifo3: the corresponding split-unit IPA delta is 1646. Restore the
+# ordinary multi-database parser's Client::nothing_to_write inlining too.
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=149484
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # RL4.3/RL4.4 add only cold miss/delete work. Preserve the PRE hot-body inlining
 # choices; docs/rlfix records the complete byte inventory and compile-only trials.
