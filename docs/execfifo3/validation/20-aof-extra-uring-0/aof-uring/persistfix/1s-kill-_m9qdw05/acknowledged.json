@@ -1,0 +1,8 @@
+{
+  "in_window_ack": false,
+  "keys": [
+    "persistfix:window:0",
+    "persistfix:window:1"
+  ],
+  "case": "kill"
+}

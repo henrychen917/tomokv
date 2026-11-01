@@ -94,6 +94,12 @@ job ledgers and result logs. The negative controls modify only a stopped GDB
 inferior and require the intended assertion and exit 1; no broken binary or
 source is published.
 
+`completed-gate-cache-cleanup.json` records the hashes of discarded compiler
+caches and generated exbatch control copies after their jobs completed. The
+required root unit binaries remain available. The exbatch checker regenerates
+missing control copies from those units; gate jobs `rldbg` and `core_tsan_build`
+regenerate their compiler caches through `tests/parbuild.sh`.
+
 Captured compiler/GDB/protocol logs are retained verbatim, including meaningful
 trailing spaces. Source whitespace checks exclude `docs/execfifo3/validation/`;
 the archived logs are checked by their byte digests instead.

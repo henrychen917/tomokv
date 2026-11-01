@@ -2121,5 +2121,162 @@
         "evidence": "docs/execfifo3/validation/18-broad-uring/txn_group_split"
       }
     ]
+  },
+  {
+    "group": "differ-uring",
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "differ-split differ-armed",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/differ-uring-1793509919064900186.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.Fw54rQ",
+    "jobs_evidence": [
+      {
+        "name": "differ-armed-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Fw54rQ/jobs/differ-armed-0",
+        "evidence": "docs/execfifo3/validation/19-differ-uring/differ-armed-0"
+      },
+      {
+        "name": "differ-armed-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Fw54rQ/jobs/differ-armed-1",
+        "evidence": "docs/execfifo3/validation/19-differ-uring/differ-armed-1"
+      },
+      {
+        "name": "differ-equivalence",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Fw54rQ/jobs/differ-equivalence",
+        "evidence": "docs/execfifo3/validation/19-differ-uring/differ-equivalence"
+      },
+      {
+        "name": "differ-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Fw54rQ/jobs/differ-split-0",
+        "evidence": "docs/execfifo3/validation/19-differ-uring/differ-split-0"
+      },
+      {
+        "name": "differ-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Fw54rQ/jobs/differ-split-1",
+        "evidence": "docs/execfifo3/validation/19-differ-uring/differ-split-1"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.Fw54rQ/jobs/release",
+        "evidence": "docs/execfifo3/validation/19-differ-uring/release"
+      }
+    ]
+  },
+  {
+    "group": "aof-extra-uring-0",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "aof-uring aof_frame aoforder",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "uring",
+      "GATE_PROOF_NET_IO": "uring",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_TXN_FUSED": "0"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/aof-extra-uring-0-1793512062824875462.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.ZlY3oL",
+    "jobs_evidence": [
+      {
+        "name": "aof-uring",
+        "returncode": 0,
+        "passed": 54,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.ZlY3oL/jobs/aof-uring",
+        "evidence": "docs/execfifo3/validation/20-aof-extra-uring-0/aof-uring"
+      },
+      {
+        "name": "aof_frame",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.ZlY3oL/jobs/aof_frame",
+        "evidence": "docs/execfifo3/validation/20-aof-extra-uring-0/aof_frame"
+      },
+      {
+        "name": "aoforder",
+        "returncode": 0,
+        "passed": 3,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.ZlY3oL/jobs/aoforder",
+        "evidence": "docs/execfifo3/validation/20-aof-extra-uring-0/aoforder"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.ZlY3oL/jobs/production_units",
+        "evidence": "docs/execfifo3/validation/20-aof-extra-uring-0/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.ZlY3oL/jobs/release",
+        "evidence": "docs/execfifo3/validation/20-aof-extra-uring-0/release"
+      }
+    ]
   }
 ]

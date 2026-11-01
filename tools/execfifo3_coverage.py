@@ -74,6 +74,23 @@ for engine in ('uring','epoll'):
                 expected.update(('multi','1','19',str(repeat)) for repeat in range(1,plan['repeats']+1))
             observed={tuple(leg[:4]) for leg in legs}
             summary['leg_inventories'].append(dict(job=f'differ-{engine}-{mode}-{atomic}',expected=len(expected),actual=len(legs),seeds=plan['manifest']['seeds'],passed=observed==expected and len(legs)==len(expected) and all(leg[4]=='0' for leg in legs),source=str(file)))
+    equivalence=run/'jobs/differ-equivalence/differ'
+    complete=json.loads((equivalence/'complete.json').read_text())
+    expected_cells={f'{mode}-{local}-{reorder}-{atomic}' for mode,local,reorder,atomic in
+                    itertools.product(('1s','2s'),(0,1),(0,1),(0,1))}
+    witnesses=[]
+    for seed in plan['equivalence_seeds']:
+        files=list((equivalence/f'mode-equivalence-{seed}').glob('*/result.json'))
+        cells=[json.loads(file.read_text()) for file in files]
+        good=({row['cell'] for row in cells}==expected_cells and len(cells)==16 and
+              all(row['verdict']=='ok' and row['reached'] and row['knobs']['net-io']==engine for row in cells) and
+              len({row['reply_sha256'] for row in cells})==1)
+        witnesses.append(dict(seed=seed,expected=16,actual=len(cells),passed=good))
+    expected=16*len(plan['equivalence_seeds'])
+    summary['leg_inventories'].append(dict(job=f'differ-{engine}-equivalence',expected=expected,
+        actual=sum(row['actual'] for row in witnesses),witnesses=witnesses,source=str(equivalence),
+        passed=bool(witnesses) and complete['complete'] and complete['comparisons']==expected and
+               all(row['passed'] for row in witnesses)))
 summary['passed']=not missing and not failed and all(r['passed_rows']>0 and r['failed_rows']==0 for r in summary['groups']) and all(r['passed'] for r in summary['leg_inventories']) and all(r['passed'] for r in summary['differ_plans'])
 allocation=dict(logs_with_banners=0,ports=set(),server_cpus=set(),outside_allocation=[])
 for row in rows:

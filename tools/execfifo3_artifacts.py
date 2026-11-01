@@ -19,6 +19,7 @@ def main():
     shutil.copy2(OUT/'original-artifacts/PRE',OUT/'PRE')
     shutil.copy2(OUT/'original-artifacts/FIFO',OUT/'FIFO')
     shutil.copy2(ROOT/'build/tomokv',OUT/'POST')
+    assert sha(OUT/'PRE')=='735cbffb1afa279a4b47ddd42411cbc5d4e25a38653c01150ee15edc5fd6ebca'
     assert sha(OUT/'FIFO')=='ee5aee2768e0e8f8899a90f628a45f8a2ec47cebe3e405dbf9cf21210e9d0b0a'
     record=pad.build(OUT/'pre-source',ROOT,OUT,DOCS/'pad-a.json')
     rows=[]
