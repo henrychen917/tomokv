@@ -6,5 +6,51 @@
     "blockfix2-unit": "a5f9bba8dec5ee815ed2cded8f9a8460e4b2cef542c8e41c39b67c1bca40e4e8",
     "blockfix2-db0-unit": "959e2cd43ebe1f0e58bc9ffede33f1d2b80328bbb329fd0124383f8fdde216cd"
   },
-  "rerun": "supplemental-final"
+  "rerun": "supplemental-final",
+  "placement_checks": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "build/rootcompat/blockfix2-unit",
+        "1s"
+      ],
+      "exit": 0,
+      "output": "PASS BLOCK-SERVE-REFUSED-DROP\n"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "build/rootcompat/blockfix2-unit",
+        "2s"
+      ],
+      "exit": 0,
+      "output": "PASS BLOCK-SERVE-REFUSED-DROP\n"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "build/rootcompat/blockfix2-db0-unit",
+        "1s"
+      ],
+      "exit": 0,
+      "output": "PASS BLOCK-SERVE-REFUSED-DROP\n"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "build/rootcompat/blockfix2-db0-unit",
+        "2s"
+      ],
+      "exit": 0,
+      "output": "PASS BLOCK-SERVE-REFUSED-DROP\n"
+    }
+  ]
 }
