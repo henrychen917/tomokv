@@ -337,3 +337,14 @@ and ASAN under FLIP. Single-owner and same-critical-section ownership laws
 are unchanged; this lane makes no claim that their missing coverage is closed.
 
 DQ=DF=0. This section records a remaining limitation, not new passing evidence.
+
+### V19 — pre-cleanup leak visibility
+
+UNREPAIRED: unconditional PIN release and the post-join client sweep still
+hide the distinction between legitimate cancellation cleanup and runtime leaks.
+Test-only code has no pre-cleanup inventory that identifies those cases. No
+weaker shutdown invariant was introduced. NOT RUN: planted PIN/client leaks
+with a discriminating pre-cleanup observer. A production diagnostic is needed
+before these cleanup passes can serve as leak evidence.
+
+DQ=DF=0. This section records a remaining limitation, not new passing evidence.
