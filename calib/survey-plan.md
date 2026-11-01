@@ -156,7 +156,9 @@ taskset -c 48-63 python3 calib/survey-cmds.py "${short[@]}" \
 ```
 
 The latency check targets the original GET failure, across all fractions and
-both TomoKV modes (24 visits). `--commands all` expands it to all five workloads
+both TomoKV modes (24 visits). The additional coupled-cycle check uses the same
+command with `--commands LPUSH_RPOP` and a new output directory
+`.gate-history/surveyfix/validity-latency-coupled`. `--commands all` expands it to all five workloads
 (120 visits), requiring a valid capacity plateau for every workload. A short
 shared-box calibration may correctly stop before timed cells; retain that
 INVALID result and adjust the calibration rungs in a new, explicitly named run.
@@ -260,9 +262,9 @@ waits with nanosecond-resolution `epoll_pwait2` (1 ns timer slack), and checks
 for due sends during long reply batches. Key placeholder offsets are prepared
 once per script, and dense histogram counters preserve the previous bucket
 boundaries and exact maxima without per-reply tree lookups. It sends immediately and subscribes
-to EPOLLOUT only on backpressure. Each command's sent timestamp is recorded
-when its first byte is accepted by `send`; EAGAIN waits therefore contribute
-to send lag. Linux/glibc must provide `epoll_pwait2`. Every deadline must eventually complete, with at most 20 ms
+to EPOLLOUT only on backpressure. Each command's sent timestamp is taken immediately before the first `send`
+call that accepts any of its bytes; EAGAIN attempts do not stamp it and their
+waits therefore contribute to send lag. Linux/glibc must provide `epoll_pwait2`. Every deadline must eventually complete, with at most 20 ms
 generator lag; a slow server is retained as invalid offered-load evidence, not
 silently sampled at a lower rate.
 
