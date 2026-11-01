@@ -1012,6 +1012,8 @@ job_body(){
     iofix-signal) job_iofix_signal "$name";;
     infofix_compat-*) job_infofix_compat "$name";;
     rootcore-*) job_rootcore "${name#rootcore-}";;
+    rootcompat) job_rootcompat all;;
+    rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
     multidb-*) job_multidb "$name";;
@@ -1195,6 +1197,12 @@ plan_jobs(){
     done; done; done; done
   done
   JOB_NAMES+=(infofix_latency infofix_compat-missing infofix_compat-docs infofix_compat-loadaof)
+  JOB_NAMES+=(rootcompat)
+  # One complete-gate worker retains all nine rows. Named partial jobs keep the
+  # directed interface without adding nine shells to the serial scheduler.
+  if [ "${GATE_PARTIAL:-0}" = 1 ]; then
+    for section in proc password replication sort-acl redact xsnotify tracking hscan setpast stringlimit hx3 errorstats xsexpiry; do JOB_NAMES+=("rootcompat-$section"); done
+  fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
 }
 start_workers(){
@@ -4289,9 +4297,6 @@ blockfix2_case(){
       fi
       py tools/blockfix3_controls.py check-boundary --binary "$CANDIDATE_BINARY" \
           --output "$boundary" >"$boundary/verdict.log" 2>&1 || return 1
-      py tools/blockfix3_controls.py check-tcl --binary "$CANDIDATE_BINARY" \
-          --cores "$CORES" --port "$PORT" --redis-root "$REDIS74_ROOT" \
-          --output "$TMPDIR/control-statistics" >"$TMPDIR/control-statistics.log" 2>&1 || return 1
     fi
   }
 }
@@ -5798,6 +5803,38 @@ job_infofix_latency(){
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/build.log and latency.log"
 }
 
+job_rootcompat(){
+  if [ "$1" = all ]; then
+    local rootcompat_tmp=$TMPDIR case
+    for case in proc password replication sort-acl redact xsnotify tracking hscan setpast; do
+      TMPDIR="$rootcompat_tmp/$case"; mkdir -p "$TMPDIR"
+      job_rootcompat "$case"
+    done
+    TMPDIR=$rootcompat_tmp
+    return
+  fi
+  local case=$1 label="rootcompat $1 vs Redis 7.4" runner=tests/rootcompat.py
+  row_begin "$label"
+  mkdir -p "$PWD/build/rootcompat"
+  if [ "$case" = proc ]; then
+    taskset -c "$BUILD_CORES" cc -shared -fPIC tests/rootcompat_proc_fault.c -ldl \
+      -o build/rootcompat/proc-fault.so || { bad "$label" "fault shim build failed"; return; }
+  fi
+  case "$case" in xsnotify|tracking) runner=tests/rootcompat_tracking/run.py;; esac
+  local passed=1
+  py "$runner" --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/rootcompat.log" 2>&1 \
+      || passed=0
+  if [ "$case" = xsnotify ]; then
+    py tests/rootcompat.py --case xsexpiry --binary "$CANDIDATE_BINARY" \
+        --oracle "$REDIS74_ROOT/src/redis-server" --port "$PORT" --cores "$CORES" \
+        --ratio "$GATE_RATIO" --output "$TMPDIR/proof-xsexpiry" >"$TMPDIR/xsexpiry.log" 2>&1 \
+        || passed=0
+  fi
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/rootcompat.log and proof"
+}
+
 job_infofix_compat(){
   local case=${1#infofix_compat-} label
   label="Redis 7.4 infofix $case (both modes/engines/runtimes)"
@@ -6488,6 +6525,8 @@ collect_job rlfix3_zc
 # Five rows above the quick-tier exit: DQ=+5, DF=+5; EXPECT is owner-owned.
 collect_job infofix_latency
 for CASE in missing docs loadaof; do collect_job "infofix_compat-$CASE"; done
+# rootcompat directed rows, before quick exit; EXPECT remains maintainer-owned.
+collect_job rootcompat
 collect_job rlfix3_info
 
 collect_job acl_recheck

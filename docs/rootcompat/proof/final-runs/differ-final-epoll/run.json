@@ -1,0 +1,33 @@
+{
+  "name": "differ-final-epoll",
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "push",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20300-20309",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/POST"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+    "GATE_DIFFER_NET_IO": "epoll"
+  },
+  "exit": 0,
+  "seconds": 2166.206,
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.xCELb7",
+  "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+}

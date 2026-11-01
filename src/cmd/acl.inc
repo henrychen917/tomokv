@@ -767,13 +767,7 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
 void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReason reason,
                       uint32_t denied_arg, ThreadCtx& thread,
                       AclLogContext context = AclLogContext::Toplevel) {
-    if (reason == AclDeniedReason::Key && (denied_arg & kAclSortOptionDenied)) {
-        // sort.c's own error reply: Redis neither logs it nor counts an ACL denial.
-        reply_err(op.sink(), op.arg(denied_arg & ~kAclSortOptionDenied).eq_icase("by")
-            ? "ERR BY option of SORT denied due to insufficient ACL permissions."
-            : "ERR GET option of SORT denied due to insufficient ACL permissions.");
-        return;
-    }
+    if (acl_reply_sort_option_denied(op, reason, denied_arg)) return;
     LoopSignals& signals = thread.sig();
     const char* username_text = acl_username(user_index);
     const Slice username(username_text, static_cast<uint32_t>(std::strlen(username_text)));
@@ -1389,7 +1383,19 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
         client.acl_user_idx(), spec, op.argc(),
         [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
     if (denied == AclDeniedReason::None) return false;
+    // Redis admits the declared keys now; BY/GET restrictions are a command
+    // error inside EXEC. Its preparation already retains the caller identity.
+    if (denied == AclDeniedReason::Key && (denied_arg & kAclSortOptionDenied) &&
+        multi_session_active(client)) return false;
     return acl_finish_dispatch_denial(loop, client, op, consumed, denied, denied_arg);
+}
+
+bool acl_reply_sort_option_denied(Op& op, AclDeniedReason reason, uint32_t denied_arg) {
+    if (reason != AclDeniedReason::Key || !(denied_arg & kAclSortOptionDenied)) return false;
+    reply_err(op.sink(), op.arg(denied_arg & ~kAclSortOptionDenied).eq_icase("by")
+        ? "ERR BY option of SORT denied due to insufficient ACL permissions."
+        : "ERR GET option of SORT denied due to insufficient ACL permissions.");
+    return true;
 }
 
 AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,

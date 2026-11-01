@@ -1,0 +1,271 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/POST",
+  "sha256": "72a266c7c90d9d35748f499e6ba7055dbe9b8b0d2cf2628660ff52bfdba0a187",
+  "checks": [
+    {
+      "label": "1s-uring-db1 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          15,
+          7
+        ],
+        [
+          11,
+          3
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db1 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "1s-uring-db1 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "label": "1s-uring-db16 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          11,
+          3
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "label": "1s-uring-db16 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db1 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          8,
+          0
+        ],
+        [
+          12,
+          4
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "label": "1s-epoll-db16 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          5,
+          5
+        ],
+        [
+          10,
+          2
+        ]
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db1 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          15,
+          7
+        ],
+        [
+          14,
+          6
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db1 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "label": "2s-uring-db16 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          14,
+          6
+        ],
+        [
+          5,
+          7
+        ]
+      ]
+    },
+    {
+      "label": "2s-uring-db16 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db1 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          3,
+          7
+        ],
+        [
+          14,
+          6
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "label": "2s-epoll-db16 cross-owner rename",
+      "passed": true,
+      "actual": [
+        [
+          7,
+          7
+        ],
+        [
+          12,
+          6
+        ]
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 compact predecessor returns all fields",
+      "passed": true,
+      "actual": [
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 promotion preserves SCAN guarantee",
+      "passed": true,
+      "actual": []
+    }
+  ],
+  "slowlog": {}
+}

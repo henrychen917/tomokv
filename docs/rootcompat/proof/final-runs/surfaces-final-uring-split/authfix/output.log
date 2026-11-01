@@ -1,0 +1,10 @@
+  row budget: 900s; median=-s; no-history-conservative-default; authfix CG4.1 binary config requirepass
+  authfix CG4.1 binary config requirepass              ok
+  row budget: 900s; median=-s; no-history-conservative-default; authfix CG4.2 missing config value refuses boot
+  authfix CG4.2 missing config value refuses boot      ok
+  row budget: 900s; median=-s; no-history-conservative-default; authfix SV4.2 binary requirepass rewrite restart
+  authfix SV4.2 binary requirepass rewrite restart     ok
+  row budget: 900s; median=-s; no-history-conservative-default; authfix SV4.1 slowlog credential redaction (1s)
+  authfix SV4.1 slowlog credential redaction (1s)      ok
+  row budget: 900s; median=-s; no-history-conservative-default; authfix SV4.1 slowlog credential redaction (2s)
+  authfix SV4.1 slowlog credential redaction (2s)      ok

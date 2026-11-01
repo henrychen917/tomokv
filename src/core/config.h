@@ -925,7 +925,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             std::vector<std::string> definition;
             try {
-                for (int arg = begin; arg < end; arg++) definition.emplace_back(args[arg]);
+                for (int arg = begin; arg < end; arg++)
+                    definition.emplace_back(args[arg], lengths ? (*lengths)[arg] : std::strlen(args[arg]));
                 cfg.acl_users.push_back(std::move(definition));
             } catch (const std::bad_alloc&) {
                 std::fprintf(stderr, "out of memory parsing --user\n");

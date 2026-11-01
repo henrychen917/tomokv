@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=rootcompat-xsexpiry; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	90.540000	rootcompat xsexpiry vs Redis 7.4

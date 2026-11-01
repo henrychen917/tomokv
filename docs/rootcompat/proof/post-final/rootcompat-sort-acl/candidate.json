@@ -1,0 +1,679 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/POST",
+  "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+  "checks": [
+    {
+      "label": "1s-uring-db1 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db1 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db1 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db1 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db16 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db16 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db16 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db16 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-uring-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-uring-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db1 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db1 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db16 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db16 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "1s-epoll-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db1 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db1 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db1 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db1 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db16 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db16 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db16 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db16 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-uring-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-uring-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db1 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db1 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db1 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db1 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 queued SORTBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db16 EXEC SORTBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 queued SORTGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db16 EXEC SORTGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 queued SORT_ROBY",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db16 EXEC SORT_ROBY",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR BY option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 queued SORT_ROGET",
+      "passed": true,
+      "actual": "QUEUED"
+    },
+    {
+      "label": "2s-epoll-db16 EXEC SORT_ROGET",
+      "passed": true,
+      "actual": [
+        {
+          "error": "ERR GET option of SORT denied due to insufficient ACL permissions."
+        }
+      ]
+    }
+  ],
+  "slowlog": {}
+}

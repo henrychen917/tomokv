@@ -1,0 +1,327 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/POST",
+  "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341",
+  "checks": [
+    {
+      "label": "1s-uring-db1 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-uring-db1 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-uring-db1 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-uring-db1 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-uring-db1 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db1 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-uring-db16 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-uring-db16 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-uring-db16 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-uring-db16 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-uring-db16 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-db16 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-epoll-db1 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-epoll-db1 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-epoll-db1 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-epoll-db1 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-epoll-db1 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db1 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-epoll-db16 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-epoll-db16 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-epoll-db16 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "1s-epoll-db16 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "1s-epoll-db16 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-db16 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-uring-db1 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-uring-db1 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-uring-db1 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-uring-db1 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-uring-db1 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db1 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-uring-db16 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-uring-db16 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-uring-db16 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-uring-db16 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-uring-db16 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-db16 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-epoll-db1 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-epoll-db1 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-epoll-db1 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-epoll-db1 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-epoll-db1 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db1 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-epoll-db16 configured limit ('SETRANGE', 'small', 1048576, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-epoll-db16 configured limit ('SETRANGE', 'small', 9223372036854775807, 'x')",
+      "passed": true,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-epoll-db16 configured limit ('SETBIT', 'small', 8388608, 1)",
+      "passed": true,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    },
+    {
+      "label": "2s-epoll-db16 above 32-bit representation SETRANGE",
+      "passed": false,
+      "actual": {
+        "error": "ERR string exceeds maximum allowed size (proto-max-bulk-len)"
+      }
+    },
+    {
+      "label": "2s-epoll-db16 above 32-bit representation APPEND",
+      "passed": false,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-db16 above 32-bit representation SETBIT",
+      "passed": false,
+      "actual": {
+        "error": "ERR bit offset is not an integer or out of range"
+      }
+    }
+  ],
+  "slowlog": {}
+}

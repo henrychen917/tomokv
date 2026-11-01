@@ -1,0 +1,2 @@
+  row budget: 900s; median=1.99s; correctness-plan-fallback; rootcompat hscan vs Redis 7.4
+  rootcompat hscan vs Redis 7.4                        ok

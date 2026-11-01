@@ -1,0 +1,32 @@
+{
+  "name": "release-pad-pre",
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20340-20349",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/release/PAD-A"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "rootcompat-replication rootcompat-hscan rootcompat-redact"
+  },
+  "exit": 1,
+  "seconds": 5.253,
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.7oVmxm",
+  "sha256": "28077db134ff36628eb60b1d8ef27fcbf39677da9d69a01b31e985b3d04ebfea"
+}

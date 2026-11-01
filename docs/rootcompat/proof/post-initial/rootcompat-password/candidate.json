@@ -1,0 +1,279 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/POST",
+  "sha256": "afe546b2a3f581b8961d6c01d6b1fd00be9bfc167065673748b1fb6c64212463",
+  "checks": [
+    {
+      "label": "1s-uring-db1 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring-db1 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-uring-db1 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring-db1 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-uring-db16 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring-db16 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-uring-db16 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring-db16 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-epoll-db1 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll-db1 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-epoll-db1 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll-db1 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-epoll-db16 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll-db16 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-epoll-db16 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll-db16 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-uring-db1 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring-db1 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-uring-db1 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring-db1 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-uring-db16 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring-db16 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-uring-db16 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring-db16 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-epoll-db1 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll-db1 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-epoll-db1 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-db1 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll-db1 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-epoll-db16 full binary AUTH embedded",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll-db16 truncated AUTH refused embedded",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-epoll-db16 full binary AUTH leading",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-db16 full authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll-db16 truncated AUTH refused leading",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    }
+  ],
+  "slowlog": {}
+}

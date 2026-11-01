@@ -26,10 +26,18 @@ void operator delete[](void* ptr) noexcept { std::free(ptr); }
 void operator delete[](void* ptr, size_t) noexcept { std::free(ptr); }
 
 #include "hexpire_oom_checks.inc"
+tomo::Shard& netcmd_owned_shard(tomo::Server& server);
 #include "notify_order_checks.inc"
 
 namespace tomo {
 struct NetcmdRegression {
+    static Shard& owned_shard(Server& server) {
+        server.shards_.push_back(std::make_unique<Shard>());
+        Shard& shard = *server.shards_.back();
+        // Serverless fixture: real owner identity without global sink bindings.
+        shard.init_private(&server, 0, TypeLimits{}, StreamLimits{});
+        return shard;
+    }
     // Preparation-only fixtures still satisfy the production sender's complete bind contract.
     // The Ring stays unopened; these cases must never submit or acquire a borrowed value.
     struct Sender {
@@ -945,6 +953,10 @@ struct NetcmdRegression {
         }
     }
 };
+}
+
+tomo::Shard& netcmd_owned_shard(tomo::Server& server) {
+    return tomo::NetcmdRegression::owned_shard(server);
 }
 
 int main(int argc, char** argv) {

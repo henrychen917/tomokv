@@ -1,0 +1,14 @@
+{
+  "normal": 159000,
+  "db0": 161500,
+  "initial_delta": {
+    "normal": 1167,
+    "db0": 1164
+  },
+  "positive_cells": 0,
+  "comparison": "docs/rootcompat/counts-expiry-tuned/comparison.json",
+  "source_hashes": {
+    "src/cmd/scatter_engine.inc": "22bc89469ce68531c108859f18f86ef243dedf41ead655996d0feb735f26065d",
+    "src/cmd/notify.inc": "135f73feb9d447883b1f0c61e70154f13faee3f73ee9830671fac34f4e30d218"
+  }
+}

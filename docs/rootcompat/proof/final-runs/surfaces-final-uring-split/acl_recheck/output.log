@@ -1,0 +1,4 @@
+  row budget: 900s; median=-s; no-history-conservative-default; ACL recheck one-reply battery (2s)
+  ACL recheck one-reply battery (2s)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL recheck one-reply battery (1s)
+  ACL recheck one-reply battery (1s)                   ok

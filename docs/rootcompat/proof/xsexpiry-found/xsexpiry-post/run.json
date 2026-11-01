@@ -1,0 +1,26 @@
+{
+  "name": "xsexpiry-post",
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20320-20329",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/POST"
+  ],
+  "exit": 1,
+  "seconds": 9.550570964813232,
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.pwp5B6",
+  "sha256": "2fe828086c1619a85f1c0726859547f3f334f255ceeccc31041abafe54921341"
+}

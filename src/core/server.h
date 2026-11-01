@@ -308,7 +308,7 @@ public:
         live_tcp_keepalive_.store(cfg.tcp_keepalive, std::memory_order_relaxed);
         store_client_output_buffer_limits(cfg.client_output_buffer_limits);
         refresh_client_cron_armed();
-        security_flags_.store(cfg.requirepass && *cfg.requirepass ? kSecurityAuth : 0,
+        security_flags_.store(!cfg_requirepass(cfg).empty() ? kSecurityAuth : 0,
                               std::memory_order_relaxed);
         protected_mode_.store(cfg.protected_mode != 0, std::memory_order_relaxed);
         live_notify_events_.store(cfg.notify_events, std::memory_order_relaxed);

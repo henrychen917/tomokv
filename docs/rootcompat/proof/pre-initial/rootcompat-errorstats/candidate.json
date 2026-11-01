@@ -1,0 +1,223 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/PRE",
+  "sha256": "2e07ea8a5be37d357ba05370b3a00f4bf473e09a40f91e94016ee8d5953e5309",
+  "checks": [
+    {
+      "label": "1s-uring-db1 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "1s-uring-db1 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "1s-uring-db1 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "1s-uring-db1 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db1 reset prefixes",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "1s-uring-db16 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "1s-uring-db16 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "1s-uring-db16 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "1s-uring-db16 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 reset prefixes",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "1s-epoll-db1 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "1s-epoll-db1 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "1s-epoll-db1 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "1s-epoll-db1 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 reset prefixes",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "1s-epoll-db16 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "1s-epoll-db16 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "1s-epoll-db16 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "1s-epoll-db16 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 reset prefixes",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "2s-uring-db1 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "2s-uring-db1 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "2s-uring-db1 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "2s-uring-db1 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 reset prefixes",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "2s-uring-db16 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "2s-uring-db16 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "2s-uring-db16 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "2s-uring-db16 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 reset prefixes",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "2s-epoll-db1 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "2s-epoll-db1 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "2s-epoll-db1 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "2s-epoll-db1 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 reset prefixes",
+      "passed": true,
+      "actual": {}
+    },
+    {
+      "label": "2s-epoll-db16 directed errors fired",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "label": "2s-epoll-db16 total errors",
+      "passed": false,
+      "actual": "1"
+    },
+    {
+      "label": "2s-epoll-db16 all prefixes",
+      "passed": false,
+      "actual": {
+        "b'errorstat_NOGROUP'": "count=1"
+      }
+    },
+    {
+      "label": "2s-epoll-db16 reset total",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 reset prefixes",
+      "passed": true,
+      "actual": {}
+    }
+  ],
+  "slowlog": {}
+}

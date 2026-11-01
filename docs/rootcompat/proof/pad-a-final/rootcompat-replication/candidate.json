@@ -1,0 +1,151 @@
+{
+  "binary": "/home/user/Projects/cx-rootcompat/build/rootcompat/PAD-A",
+  "sha256": "138cea72cdd2d0b824e76e295675f3f24fff1d06932ac38aa3b3f1db517c07f1",
+  "checks": [
+    {
+      "label": "1s-uring-db1 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "1s-uring-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-uring-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-uring-db16 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "1s-uring-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-uring-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db1 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "1s-epoll-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-epoll-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "1s-epoll-db16 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "1s-epoll-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "1s-epoll-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db1 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "2s-uring-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-uring-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-uring-db16 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "2s-uring-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-uring-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db1 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "2s-epoll-db1 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-epoll-db1 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    },
+    {
+      "label": "2s-epoll-db16 replication field set",
+      "passed": false,
+      "actual": [
+        "master_repl_offset",
+        "role"
+      ]
+    },
+    {
+      "label": "2s-epoll-db16 role",
+      "passed": true,
+      "actual": "master"
+    },
+    {
+      "label": "2s-epoll-db16 master_repl_offset",
+      "passed": true,
+      "actual": "0"
+    }
+  ],
+  "slowlog": {}
+}

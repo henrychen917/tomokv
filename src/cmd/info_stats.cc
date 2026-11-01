@@ -180,7 +180,8 @@ const char* info_config_file() { return g_config_file.c_str(); }
 
 void info_stats_cpu_fields(std::string& body) {
     rusage self{}, children{};
-    if (getrusage(RUSAGE_SELF, &self) || getrusage(RUSAGE_CHILDREN, &children)) std::abort();
+    if (getrusage(RUSAGE_SELF, &self)) self = {};
+    if (getrusage(RUSAGE_CHILDREN, &children)) children = {};
     const auto seconds = [](timeval t) { return double(t.tv_sec) + double(t.tv_usec) / 1000000; };
     // INFO runs on a connection owner. RUSAGE_THREAD here would report that
     // worker, not the process's main thread. Linux exposes the latter by TID.
@@ -188,13 +189,12 @@ void info_stats_cpu_fields(std::string& body) {
     std::string line, ignored;
     std::getline(file, line);
     const auto end = line.rfind(')');
-    if (end == std::string::npos) std::abort();
-    std::istringstream fields(line.substr(end + 2));
+    std::istringstream fields(end == std::string::npos ? std::string{} : line.substr(end + 2));
     for (unsigned i = 0; i < 11; ++i) fields >> ignored;
     uint64_t user = 0, system = 0;
     fields >> user >> system;
-    const long ticks = sysconf(_SC_CLK_TCK);
-    if (!fields || ticks <= 0) std::abort();
+    long ticks = sysconf(_SC_CLK_TCK);
+    if (!fields || ticks <= 0) { user = system = 0; ticks = 1; }
     char out[512];
     const int size = std::snprintf(out, sizeof(out),
         "# CPU\r\nused_cpu_sys:%.6f\r\nused_cpu_user:%.6f\r\n"

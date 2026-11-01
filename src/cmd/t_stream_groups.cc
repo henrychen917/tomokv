@@ -29,18 +29,6 @@ namespace {
 
 constexpr uint32_t kMaxIdText = 128;
 
-// This cold command owns its reply accounting, including replies generated
-// after parking. Never infer errors from the producer's command or count a
-// probe which merely discovers a missing group without sending a reply.
-std::atomic<uint64_t> xreadgroup_nogroup{0};
-std::atomic<uint64_t> xreadgroup_usec{0};
-struct XreadgroupTiming {
-    uint64_t start = now_ns();
-    ~XreadgroupTiming() {
-        xreadgroup_usec.fetch_add((now_ns() - start) / 1000, std::memory_order_relaxed);
-    }
-};
-
 // Redis dirties consumer metadata and emits its keyspace event, but does not
 // signalModifiedKey: creating a consumer must not invalidate tracked reads.
 // A parked XREADGROUP has no retiring Op yet, so it uses the keyless route.
@@ -252,7 +240,6 @@ void maybe_release_groups(StreamVal& stream) {
 }
 
 void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
-    if (xreadgroup) xreadgroup_nogroup.fetch_add(1, std::memory_order_relaxed);
     std::string message = "NOGROUP No such key '";
     message.append(key.p, key.n);
     message += "' or consumer group '";
@@ -1284,11 +1271,6 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
-StreamGroupStats stream_xreadgroup_stats() {
-    return {xreadgroup_nogroup.load(std::memory_order_relaxed),
-            xreadgroup_usec.load(std::memory_order_relaxed)};
-}
-
 StreamVal::~StreamVal() { stream_groups_destroy(groups); }
 
 void stream_groups_destroy(void* groups) { delete static_cast<StreamGroups*>(groups); }
@@ -1368,14 +1350,12 @@ StreamGroupProbe stream_group_prepare_waiter(Shard& shard, Slice key, uint64_t h
 }
 
 void stream_xreadgroup_reply_nogroup(Op& op) {
-    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (stream_parse_xreadgroup(op, parsed))
         reply_nogroup(op, op.arg(parsed.key_arg), op.arg(parsed.group_arg), true);
 }
 
 bool stream_xreadgroup_execute(Shard& shard, Op& op, bool may_block) {
-    XreadgroupTiming timing;
     StreamXreadGroupArgs parsed;
     if (!stream_parse_xreadgroup(op, parsed)) return true;
     const Slice key = op.arg(parsed.key_arg);

@@ -1,0 +1,32 @@
+{
+  "name": "release-units",
+  "gate": "/home/user/Projects/cx-rootcompat/build/gate-run.ipmOrX",
+  "exit": 0,
+  "sha256": "f3511f861a8a9a01ca24eafbb43766dca621e7c3c1f3512119c241b962ed26ed",
+  "environment": {
+    "LC_ALL": "C",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "netcmd_units",
+    "REDIS74_ROOT": "/home/user/Projects/redis"
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "56-63",
+    "--load-cores",
+    "48-55",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20330-20339",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcompat/build/rootcompat/release/POST"
+  ],
+  "log_name": "units-release-expiry"
+}

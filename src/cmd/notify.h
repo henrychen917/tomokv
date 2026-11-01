@@ -161,6 +161,8 @@ struct NotifyPendingExpiry {
 struct NotifyShardState {
     std::deque<NotifyOut> keyless;
     std::deque<NotifyPendingExpiry> elapsed_sets;
+    // Travels with the shard's existing owner state during migration.
+    bool tracking_flush_pending = false;
 };
 
 class NotifyExecutionScope {

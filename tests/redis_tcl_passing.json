@@ -1201,8 +1201,8 @@
         "allow-oom shebang flag": "scriptfix2: shebang/flags parsed; test also needs global OOM admission and SCRIPT-UNDECLARED-KEY owner change.",
         "not enough good replicas": "failed on TomoKV 2s in the survey",
         "reject script do not cause a Lua stack leak": "scriptfix2: global maxmemory admission is an owner/architecture decision; current admission is per-shard object memory.",
-        "LUA redis.error_reply API": "scriptfix2: helper wire behavior fixed; remaining assertion requires INFO-ERRORSTATS (outside this lane).",
-        "LUA redis.error_reply API with empty string": "scriptfix2: helper wire behavior fixed; remaining assertion requires INFO-ERRORSTATS (outside this lane)."
+        "LUA redis.error_reply API": "rootcompat: generic errorstats prototype rejected by zero-cost proof; no command-specific counter remains. Wire replies are covered by scriptfix2.",
+        "LUA redis.error_reply API with empty string": "rootcompat: generic errorstats prototype rejected by zero-cost proof; no command-specific counter remains. Wire replies are covered by scriptfix2."
       }
     },
     "unit/slowlog": {
@@ -2126,7 +2126,7 @@
       "skip_tests": {
         "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
         "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey",
-        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "INFO-ERRORSTATS / INFO-CMDSTAT-FIELDS (D17a/D17b), BLOCK-STREAM-REMOVED-NO-UNBLOCK: promoted using the NOGROUP-only accounting guard. Await rootcompat generic accounting before promotion; no retry."
+        "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP": "rootcompat: removed NOGROUP-only total_error_replies, errorstats and cmdstat timing/failed_calls. Generic error accounting remains unimplemented under the authorized zero-cost fallback."
       }
     },
     "unit/type/string": {
