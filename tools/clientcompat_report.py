@@ -31,7 +31,7 @@ def compare(session=False):
     name='session' if session else 'command'
     for suffix,data in [('totals',rows),('sites',sites)]:
         with (DOC/(name+'-'+suffix+'.csv')).open('w') as f:
-            w=csv.DictWriter(f,fieldnames=list(data[0]));w.writeheader();w.writerows(data)
+            w=csv.DictWriter(f,fieldnames=list(data[0]),lineterminator='\n');w.writeheader();w.writerows(data)
     result=dict(rows=len(rows),equal=sum(r['delta']==0 for r in rows),lower=sum(r['delta']<0 for r in rows),higher=sum(r['delta']>0 for r in rows),min_per_command_delta=min(r['per_command_delta'] for r in rows),max_per_command_delta=max(r['per_command_delta'] for r in rows),changed_symbol_rows=len(sites),pre_server_sha256=before['server_sha256'],post_server_sha256=after['server_sha256'])
     if not session:assert result['higher']==0,result
     return result
