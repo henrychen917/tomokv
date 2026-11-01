@@ -145,6 +145,7 @@ struct Options {
     int port=0,connections=0,threads=0,pipeline=1; u64 keys=0,count=0;
     double seconds=0,rate=0,timeout=60; std::string script,out,raw,ready,go; std::vector<int> cpus;
 };
+static int first_conn(int wid,const Options& o){return u64(o.connections)*wid/o.threads;}
 struct alignas(64) Result {
     u64 completed=0,primary=0,cycles=0,finish=0,within=0,scheduled=0,maxlag=0;
     double cpu=0; Hist rtt,response,lag; std::vector<u64> perop; std::string error;
@@ -206,7 +207,7 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
         need(prctl(PR_SET_TIMERSLACK,1ul)==0,"timer slack");
         ep=epoll_create1(0);need(ep>=0,"epoll_create");
         std::vector<std::unique_ptr<Conn>> clients;
-        for(int i=wid;i<o.connections;i+=o.threads){
+        for(int i=first_conn(wid,o);i<first_conn(wid+1,o);i++){
             auto c=std::make_unique<Conn>();c->id=i;c->seedkey=i;c->fd=dial(o.port);
             epoll_event e{};e.events=EPOLLIN;e.data.ptr=c.get();need(epoll_ctl(ep,EPOLL_CTL_ADD,c->fd,&e)==0,"epoll add");clients.push_back(std::move(c));
         }
@@ -245,8 +246,9 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
             u64 now=ns();need(now<=end+u64(o.timeout*1e9),"client drain timeout");bool live=false;
             u64 wake=now+1000000;
             if(o.rate) {
-                // Connection IDs interleave workers. Within one worker they are
-                // already in deadline order, even when connections % threads != 0.
+                // Contiguous IDs give each worker a short run of due deadlines
+                // per round instead of waking all workers for interleaved slots.
+                // Global spacing and per-connection key order stay unchanged.
                 pace();
                 const Conn& c=*clients[next];
                 if(c.cycle*o.connections+c.id<target){live=true;wake=std::min(wake,deadline(c,o,start,primary_ops));}
@@ -330,7 +332,7 @@ static void selftest(){
     std::vector<int> seen(1500);
     for(int wid=0;wid<o.threads;wid++) {
         std::vector<std::unique_ptr<Conn>> clients;
-        for(int id=wid;id<o.connections;id+=o.threads){auto c=std::make_unique<Conn>();c->id=id;clients.push_back(std::move(c));}
+        for(int id=first_conn(wid,o);id<first_conn(wid+1,o);id++){auto c=std::make_unique<Conn>();c->id=id;clients.push_back(std::move(c));}
         size_t next=0;u64 last=0;
         for(;;) {
             Conn& c=*clients[next];u64 global=c.cycle*o.connections+c.id;
