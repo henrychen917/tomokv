@@ -1,0 +1,28 @@
+{
+  "arm": "PRE",
+  "namespace": "db0",
+  "unit": "tracking",
+  "initial": 12874,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/tracking.cc",
+    "-o",
+    "/home/user/Projects/cx-clientcompat/build/clientcompat/budgets/PRE-db0-tracking.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-clientcompat/build/clientcompat/budgets/PRE-db0-tracking"
+  ],
+  "object_sha256": "68255ccb9bda239a2700af048bda1aa672647ca63eadeac59042c0ac26258bd7"
+}

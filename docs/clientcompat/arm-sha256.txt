@@ -1,0 +1,3 @@
+b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39  build/clientcompat/PRE/tomokv
+01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464  build/clientcompat/POST/tomokv
+8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53  build/clientcompat/PAD-A/tomokv

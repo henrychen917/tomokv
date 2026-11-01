@@ -1,60 +1,205 @@
 ## clientcompat
 
-Work in progress on `cx-clientcompat`, PRE `7d2f8a205`. No push. Correctness
-servers and builds use CPUs 64–79, ports 20400–20499, and `LC_ALL=C`.
-No performance benchmark, load generator, or full iteration gate is run.
+Implemented on `cx-clientcompat`, PRE `7d2f8a205`, production source through
+`79c5ecbe0`. No push. All commands are restricted to CPUs 64–79; builds use
+`-j16`; correctness boots use `LC_ALL=C`, ports 20400–20499, 16 shards and the
+job's declared geometry. No performance benchmark, load generator, or full
+iteration gate was run. Correctness receipts below are partial job receipts,
+not a full gate claim.
 
-### PRE witnesses
+### Sealed arms
 
-The five `clientcompat-*` jobs use gate.sh's own job interface. Each declares
-both modes, both engines, databases 1/16, atomic 0/1, and read-local 0/1 (32
-candidate legs), plus the Redis 7.4.10 oracle. The MULTI read witness reuses
-the four schedules in round4-read/repro-tracking/t2_multitrack.py and checks
-both early invalidations and the mandatory invalidation after EXEC.
+| Arm | Path | SHA-256 |
+|---|---|---|
+| PRE | `build/clientcompat/PRE/tomokv` | `b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39` |
+| POST | `build/clientcompat/POST/tomokv` | `01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464` |
+| PAD-A | `build/clientcompat/PAD-A/tomokv` | `8c487d5ffaf809ce46a23ef52ecfe831e05614a9f37148d0a44df25d48bb2b53` |
 
-* D13: Redis passes; PRE fails the ALL/CLIENT ID postponement assertion.
-* D14: Redis passes; PRE intermittently retains disconnected clients in INFO
-  immediately after a completed CLIENT KILL. Ownership reclamation remains
-  separate from the new display count.
-* D16 / TRACK-MULTI-READS-UNTRACKED: Redis passes; PRE sends the invalidation
-  while the read is only QUEUED. The existing owner reproduction independently
-  established the missing post-EXEC invalidation in all eight geometries.
-* 68d-5: Redis queues ACL; PRE refuses it. Redis queues SSUBSCRIBE but returns
-  `ERR SSUBSCRIBE isn't allowed for a DENY BLOCKING client` for that EXEC child.
-* TRACKING-ENABLE-RACE: the initial 200-round ordinary enable/write search did
-  not reproduce it. The stronger finite LPOS occupation schedule, using the
-  maxmemrace observed-owner geometry, **does reproduce missing invalidations
-  on PRE after TRACKING ON's +OK**; Redis passes. Full counts are pending.
+PAD is kind **A, behavior twin**: PRE compatibility behavior with POST's exact
+ELF section sizes/addresses and symbol table. `tools/clientcompat_pad.py`
+changes the two cold namespace selectors to false, changing four bytes total.
+It restores PRE pause exceptions, delayed INFO count, queue-time tracking,
+MULTI control refusals and immediate TRACKING ON acknowledgement. No ordinary
+GET/SET/INCR/MGET/MSET path calls the selector. POST and PAD have 8,863,271 bytes
+of `.text`; `docs/clientcompat/pad.json` proves their section/symbol equality.
+This is not an inverse control. Debug-only reductions of unrelated unit
+executables preserve all allocated sections; the three sealed arms are intact.
 
-Raw gate directories currently retained under build/: `gate-run.EMDfcI`
-(initial PRE), `gate-run.4JEEF9` (corrected oracle subscription expectation),
-`gate-run.cTSPsL` (directed enable race). PRE binary identity is recorded in
-`docs/clientcompat/pre-sha256.txt`.
+### PRE witnesses and oracle
 
-### Scope decisions and validation still in progress
+Each `clientcompat-*` job declares one Redis 7.4.10 oracle leg and 32 candidate
+legs: 1s/2s × uring/epoll × databases 1/16 × atomic 0/1 × read-local 0/1.
+`tests/clientcompat.py` uses the four schedules from the owner's
+`round4-read/repro-tracking/t2_multitrack.py`. It observes all three phases
+(QUEUED, EXEC, subsequent write) before rejecting a tracking result.
 
-FLUSHALL/FLUSHDB remain refused inside MULTI. `xshard_prepare_flush` owns its
-group placement, WATCH reservations, independent epoch, AOF group and phase-two
-collapse. `execute_flush` requires `txn_group_ready`; `flush_after_decision`
-uses `state.group_attempt()->retry`. EXEC children instead share the parent's
-decision and finish through `xshard_multi_child_complete`. Simply admitting
-the existing FLUSH unit would not compose these lifetimes or order later
-transaction reads/writes. Child-aware lowering is an algorithm change and is
-outside the approved conditional scope. DEBUG RELOAD/LOADAOF remain refused,
-awaiting the database-boundary design B.
+| Item | Redis oracle | PRE failures / 32 | Evidence |
+|---|---|---:|---|
+| D13 pause | PASS | 32 | ALL incorrectly admits CLIENT ID |
+| D14 INFO | PASS | 20 | completed CLIENT KILL still counted disconnected clients |
+| D16 + TRACK-MULTI-READS-UNTRACKED | PASS | 32 | early QUEUED invalidation and missing post-EXEC invalidation |
+| 68d-5 ACL/subscription MULTI | PASS | 32 | ACL refused at queue time |
+| TRACKING-ENABLE-RACE | PASS | 18 | write after ON's +OK lacks invalidation during directed owner occupation |
 
-The Tcl inventory is `docs/clientcompat/tcl-inventory.json`. The manifest
-promotes the old ALL-pause precedence assertion and CLIENT KILL SKIPME's
-immediate connected-client count assertion, subject to the final Tcl run.
-The already-passing tracking transaction response-order assertion remains.
-The tracking #11715 skip also requires tracking-table eviction/cron behavior;
-it is not a direct QUEUED-read enrolment assertion. The FLUSHDB-in-MULTI skip
-remains for the design reason above.
+The initial 200-round ordinary enable/write search did not reproduce the race.
+The stronger bounded LPOS occupation schedule did. Each geometry has 200
+ordinary rounds and at most 12 fresh occupation attempts; failures are never
+converted to skips. The report records observed occupation and later delivery
+controls. The ordered missing invalidation after +OK is the defect witness;
+client timing alone is not claimed to prove a particular owner instruction.
+Raw JSON, oracle assertions and SHA-256s are in
+`docs/clientcompat/pre-witnesses/summary.json` and its compressed archives.
 
-All new rows are collected at the `clientcompat-*` loop before the quick-tier
-exit. **DQ=+5, DF=+5** over 999/1016: maintainer counts should become **1004/1021**.
-EXPECT_QUICK and EXPECT_FULL have not been edited. Tcl promotions add no
-public gate rows.
+### Changes and boundaries
 
-Final POST/PAD-A identities, instruction counts, complete correctness receipts,
-and the maintainer measurement request will be appended after validation.
+* **D13:** ALL postpones CLIENT, RESET and MONITOR. WRITE follows Redis's
+  WRITE/MAY_REPLICATE classification, including PFCOUNT, PUBLISH/SPUBLISH,
+  dynamic scripts and queued EXEC children. DENYOOM remains its separate
+  memory admission rule. Container commands are classified by subcommand:
+  XGROUP HELP is not a write; FUNCTION LOAD/FLUSH/RESTORE/DELETE are writes.
+  The source audit compares 328 executable command/subcommand entries with
+  `/home/user/Projects/redis/src/commands/*.json`; zero static mismatches.
+  Six script forms require dynamic flags and are identified separately.
+  `server.c` command flags and `networking.c` pauseActions/blockPostponeClient
+  are the reference. See `docs/clientcompat/pause-audit/registry.json`.
+* **D14:** a display-only connected count is retired idempotently at disconnect,
+  including self CLIENT KILL. The existing ownership count and migration
+  protocol remain responsible for lifetime/reclamation. The new operations
+  occur only on connection creation/closing, not ordinary commands.
+* **Tracking MULTI:** queuing creates no read membership. EXEC prepares read
+  receipts, observes the executed version certificate, and retires committed
+  receipts in child order. Aborted/retried attempts remove only their pending
+  memberships. This covers OPTIN/OPTOUT/BCAST/NOLOOP/REDIRECT and CACHING both
+  before and inside MULTI. Own writes invalidate earlier reads; later reads
+  can re-enroll the same key. Directed GET;SET and GET;SET;GET cases verify
+  both invalidation and re-enrollment, with and without NOLOOP. WATCH-selected
+  reads forward their original observed handler. The ordinary notify wrapper
+  has no added transaction hook.
+* **68d-5:** ACL and subscription-family commands queue. ACL SETUSER changes to
+  the caller are simulated during permission preparation and applied only
+  after commit; later children receive Redis's EXEC-time NOPERM error when
+  appropriate. IO subscription effects complete in order using the parent's
+  ROB slot, including SUBSCRIBE;PUBLISH;UNSUBSCRIBE and RESP2/RESP3 framing.
+  SSUBSCRIBE queues, then yields Redis's exact DENY BLOCKING child error.
+* **Enable race:** TRACKING ON waits for existing owner configuration mailboxes
+  to acknowledge the notification configuration before replying +OK. The
+  acknowledgement occupies padding in the 960-byte mailbox; no Server array
+  or allocation was added. Only configuration-changing passes publish it.
+  Refresh remains allowed during IO drain, preventing ON/FLIP/LB joins from
+  deadlocking; ExDrain still freezes ownership updates. The 2s witness joins
+  pending ON with FLIP and checks delivery after the move.
+
+Deliberate deviations kept: **FLUSHALL/FLUSHDB inside MULTI remain refused**.
+`xshard_prepare_flush` owns group placement, WATCH reservations, an independent
+epoch, AOF grouping and phase-two collapse. `execute_flush` requires
+`txn_group_ready`; `flush_after_decision` uses the FLUSH attempt's retry state.
+EXEC children share their parent's decision and complete through
+`xshard_multi_child_complete`. Admitting the existing design-A unit would not
+compose these lifetimes or order later transaction reads/writes; child-aware
+lowering is an algorithm change, outside the owner's conditional approval.
+**DEBUG RELOAD/LOADAOF inside MULTI remain refused**, pending design B.
+
+The tracking witness starts tracking before MULTI. Dynamic TRACKING ON/OFF or
+mode changes among EXEC children are not covered by these new receipts; no
+claim of exhaustive coverage of that separate combination is made. The ACL
+ordering witness covers caller SETUSER changes and WATCH abort, not ACL-file
+reloads interleaved with data children. These are explicit validation bounds.
+
+### Instruction census
+
+`tools/clientcompat_counts.py` runs finite serverless scopes, with PRE and POST
+production objects and identical markers. The main product is 160 rows:
+GET/SET/INCR/MGET/MSET × tracking off/on × batch 1/32 × 1s/2s × normal/db0
+namespace × atomic 0/1. Tracking-on scopes include registration and retirement.
+**52 equal, 108 lower, zero higher.** Thus none of the requested ordinary
+command scopes executes added instructions in this census.
+
+The count domain includes all executed functions in the linked executable,
+including outlined STL, and excludes fixture bodies and shared libraries.
+The earlier namespace-only count omitted outlined STL but counted inlined STL;
+that asymmetry is why it was replaced. Original counts and rejected compiler
+trials remain archived. These are instruction counts, not total end-to-end
+cost, cycles, IPC, or throughput measurements.
+
+Representative normal-namespace 2s, atomic 1, batch 1:
+
+| Command | PRE off | POST off | PRE tracking | POST tracking |
+|---|---:|---:|---:|---:|
+| GET | 1556 | 1556 | 3663 | 3640 |
+| SET | 1680 | 1680 | 2634 | 2618 |
+| INCR | 2131 | 2131 | 3384 | 3368 |
+| MGET | 10220 | 10193 | 22992 | 22875 |
+| MSET | 16690 | 16679 | 22721 | 22721 |
+
+`docs/clientcompat/command-totals.csv` contains every arm/cell, and
+`command-sites.csv` attributes all 840 changed symbol rows. The ordinary read
+handler is unchanged. Registry PreserveCaching metadata replaces a repeated
+CLIENT name comparison; writes consume CACHING and return before the irrelevant
+BCAST lookup. Cold EXEC code is isolated in clientcompat.cc. The Makefile pins
+measured xshard compiler budgets per namespace to prevent unrelated inline
+threshold drift; trial recipes and counts are retained under `budgets/`.
+
+A separate 128-row census exercises real MULTI parsing/dispatch/retirement:
+two GET or INCR children, one or several shards, tracking off/on, 1s/2s,
+normal/db0, atomic 0/1, batches 1/4 transactions. All EXEC scopes add work:
+**+214 to +1216.25 instructions per transaction**. Preparation adds ACL shadow
+checks and receipt selection; tracked execution records version observations;
+retirement applies committed IO effects, replays own writes in child order,
+and promotes or cancels receipts. `session-totals.csv` gives every delta and
+`session-sites.csv` attributes all 5104 changed symbol rows, including compiler
+redistribution among outlined helpers. This cost is explicitly on MULTI/EXEC
+and tracking control paths. `instruction-summary.json` ties both products to
+the sealed server SHA-256s; retained build recipes reproduce the probes.
+
+### Correctness validation
+
+Final execution is in progress. This section will be replaced with completed
+receipts before delivery. The sealed POST has passed all 32 legs of pause,
+disconnect, multi-tracking and multi-controls. The sealed broad selection is
+`docs/clientcompat/final-regression-jobs.txt`; its 120 selected jobs and required
+prerequisites include the complete requested command families, Tcl both modes,
+all feature-matrix geometries and multidb/FLIP/LB/transaction ordering jobs.
+Standard differential seeds are running through the gate jobs on both engines.
+The sealed PAD-A runs the same five witnesses as negative controls.
+
+`make all`, all 51 explicitly enumerated production-unit targets, live MDBQSBR
+arms and blockfix control/unit targets built successfully. See
+`production-builds.json`, `production-targets.json` and `freshness.json`.
+`python3 tests/gates_test.py` is being rerun without concurrent compilation.
+Earlier Tcl failures and controls will be recorded, not discarded as noise.
+
+Tcl promotions: old ALL-pause precedence; CLIENT KILL SKIPME's immediate INFO
+count; unsubscribe-inside-MULTI/publish-self. The transaction response-order
+tracking assertion was already passing. `tcl-inventory.json` records named
+known failures/skips in pause, tracking, introspection, info-command and multi.
+Tracking #11715 also depends on tracking-table eviction/cron and stays skipped;
+FLUSHDB-in-MULTI stays skipped for the design reason above.
+
+Five new `clientcompat-*` rows are collected before the quick-tier exit:
+**DQ=+5, DF=+5**, so maintainer constants should change **999/1016 → 1004/1021**.
+`EXPECT_QUICK` and `EXPECT_FULL` were not edited. Tcl promotions add no row.
+
+**NOT RUN:** full `tests/gate.sh iteration`, ABBA/performance tiers,
+`flip_saturated`, and the inline tailgen workload. Those start performance
+benchmarks/load generators reserved to the maintainer by this task. They are
+not included in the partial correctness verdict.
+
+### Maintainer measurement request
+
+Use the gate's own instrument on a quiet box, tracking **off**, with PRE, POST
+and **PAD-A (behavior twin)**. `docs/clientcompat/measure-cells.txt` lists the
+14 generic cells plus 2s GET/SET p1/p32 null cells, with all settings. Begin
+with a PRE/PRE null and retain all legs, matched offered loads and per-cell
+cycles/op, instructions/op and IPC. Use the gate's normal ABBA ordering.
+
+The deciding number is rate at matched offered load (and the declared p1
+latency score), with zero main-command regression. POST must hold against PRE;
+PAD-A separates compatibility behavior from identical POST layout. With
+tracking off and no compatibility operation in these cells, POST/PAD-A should
+be a null. Instruction reductions alone do not establish a win. No throughput
+claim is made in this lane. Append the results as MEASURE-RESULT.
+
+Superseded arms/probes were deleted after retaining SHA-256s and counts.
+`retired-artifacts.json`, `retired-probes.json`, `history/archives.json` and
+`unit-debug-trim.json` record cleanup; debug trimming preserves allocated
+section bytes, addresses and sizes. The three delivered arm files are kept.

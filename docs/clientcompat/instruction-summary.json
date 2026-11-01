@@ -1,0 +1,25 @@
+{
+  "domain": "All executed functions in the linked executable, including out-of-line STL; fixture function bodies and shared libraries excluded. The identical PRE and POST scope markers bound one operation batch.",
+  "commands": {
+    "rows": 160,
+    "equal": 52,
+    "lower": 108,
+    "higher": 0,
+    "min_per_command_delta": -209.0,
+    "max_per_command_delta": 0.0,
+    "changed_symbol_rows": 840,
+    "pre_server_sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "post_server_sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464"
+  },
+  "sessions": {
+    "rows": 128,
+    "equal": 0,
+    "lower": 0,
+    "higher": 128,
+    "min_per_command_delta": 214.0,
+    "max_per_command_delta": 1216.25,
+    "changed_symbol_rows": 5104,
+    "pre_server_sha256": "b0811d7f86321e7c2e98acad2bc7f7dd4d29c1123cfbd56114287990741cdc39",
+    "post_server_sha256": "01436850332f32630782572cdd232fa528a5311b589543187a41becb6820e464"
+  }
+}

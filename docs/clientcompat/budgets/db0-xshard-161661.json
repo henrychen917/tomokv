@@ -1,0 +1,1107 @@
+{
+  "namespace": "db0",
+  "unit": "xshard",
+  "budget": 161661,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=161661",
+    "--param",
+    "max-inline-insns-auto=18",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-clientcompat/build/clientcompat/budgets/db0-xshard-161661.o"
+  ],
+  "object_sha256": "f5c9e8f53820b99ad5b482b012800e19d19f8615775c27705c4f33f627269771",
+  "score": [
+    8,
+    110
+  ],
+  "changed_scope_functions": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": false,
+      "pre_size": 961,
+      "post_size": 947,
+      "differing_bytes": 702,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_119free_state_contentsERNS_12ScatterStateE.part.0",
+      "name": "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]",
+      "hot": false,
+      "pre_size": 1080,
+      "post_size": 1000,
+      "differing_bytes": 334,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 662,
+      "post_size": 662,
+      "differing_bytes": 1,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "hot": false,
+      "pre_size": 17641,
+      "post_size": 17624,
+      "differing_bytes": 15971,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db017notify_take_batchERNS_2OpE",
+      "name": "tomo_db0::notify_take_batch(tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 372,
+      "post_size": 372,
+      "differing_bytes": 3,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN8tomo_db020kvobj_external_bytesILb0EEEmPKNS_5KvObjEPKv.isra.0",
+      "name": "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 634,
+      "post_size": 650,
+      "differing_bytes": 509,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db022notify_tracking_commitERNS_2OpE",
+      "name": "tomo_db0::notify_tracking_commit(tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 265,
+      "post_size": 265,
+      "differing_bytes": 1,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore8hash_keyENS_5SliceE.isra.0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 797,
+      "post_size": 845,
+      "differing_bytes": 196,
+      "targets_equal": false
+    }
+  ],
+  "differences": {
+    "total": 1174,
+    "hot": 14,
+    "changed": 110,
+    "hot_changed": 0,
+    "hot_differing_bytes": 0,
+    "rows": [
+      {
+        "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "hot": false,
+        "pre_size": 383,
+        "post_size": 351,
+        "differing_bytes": 188,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db011PubSubEventD1Ev",
+        "name": "tomo_db0::PubSubEvent::~PubSubEvent()",
+        "hot": false,
+        "pre_size": 728,
+        "post_size": 603,
+        "differing_bytes": 596,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db011PubSubEventD2Ev",
+        "name": "tomo_db0::PubSubEvent::~PubSubEvent()",
+        "hot": false,
+        "pre_size": 728,
+        "post_size": 603,
+        "differing_bytes": 596,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_113add_write_keyERNS_14MultiExecStateERKNS_12MultiCommandEj",
+        "name": "tomo_db0::(anonymous namespace)::add_write_key(tomo_db0::MultiExecState&, tomo_db0::MultiCommand const&, unsigned int)",
+        "hot": false,
+        "pre_size": 2004,
+        "post_size": 1956,
+        "differing_bytes": 1178,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "hot": false,
+        "pre_size": 961,
+        "post_size": 947,
+        "differing_bytes": 702,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_113finish_phase2ERNS_12ScatterStateE",
+        "name": "tomo_db0::(anonymous namespace)::finish_phase2(tomo_db0::ScatterState&)",
+        "hot": false,
+        "pre_size": 494,
+        "post_size": 494,
+        "differing_bytes": 0,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_114allocate_stateERNS_6ServerERNS_6ClientEjNS_14MultiStateKindEm",
+        "name": "tomo_db0::(anonymous namespace)::allocate_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiStateKind, unsigned long)",
+        "hot": false,
+        "pre_size": 1834,
+        "post_size": 1866,
+        "differing_bytes": 1183,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_114allocate_stateERNS_6ServerERNS_6ClientEjNS_14MultiStateKindEm.cold",
+        "name": "tomo_db0::(anonymous namespace)::allocate_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiStateKind, unsigned long) [clone .cold]",
+        "hot": false,
+        "pre_size": 78,
+        "post_size": 78,
+        "differing_bytes": 1,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "hot": false,
+        "pre_size": 11040,
+        "post_size": 11188,
+        "differing_bytes": 10213,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE.cold",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&) [clone .cold]",
+        "hot": false,
+        "pre_size": 90,
+        "post_size": 101,
+        "differing_bytes": 89,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116script_workbenchERNS_6ServerEiRKNS_10TypeLimitsERKNS_12StreamLimitsE",
+        "name": "tomo_db0::(anonymous namespace)::script_workbench(tomo_db0::Server&, int, tomo_db0::TypeLimits const&, tomo_db0::StreamLimits const&)",
+        "hot": false,
+        "pre_size": 1090,
+        "post_size": 1090,
+        "differing_bytes": 0,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072,
+        "differing_bytes": 0,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117prepare_write_keyERNS_6ServerERNS_14MultiExecStateERNS_5ShardENS_5SliceEmjPKvPSt6atomicIjEb.isra.0",
+        "name": "tomo_db0::(anonymous namespace)::prepare_write_key(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned int, void const*, std::atomic<unsigned int>*, bool) [clone .isra.0]",
+        "hot": false,
+        "pre_size": 4003,
+        "post_size": 3978,
+        "differing_bytes": 3733,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117prepare_write_keyERNS_6ServerERNS_14MultiExecStateERNS_5ShardENS_5SliceEmjPKvPSt6atomicIjEb.isra.0.cold",
+        "name": "tomo_db0::(anonymous namespace)::prepare_write_key(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned int, void const*, std::atomic<unsigned int>*, bool) [clone .isra.0] [clone .cold]",
+        "hot": false,
+        "pre_size": 53,
+        "post_size": 53,
+        "differing_bytes": 42,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117release_admissionERNS_14MultiExecStateE",
+        "name": "tomo_db0::(anonymous namespace)::release_admission(tomo_db0::MultiExecState&)",
+        "hot": false,
+        "pre_size": 218,
+        "post_size": 218,
+        "differing_bytes": 2,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117sort_encode_storeERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS7_EERKS1_IhSaIhEERNS0_11ObjectImageE",
+        "name": "tomo_db0::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<unsigned char, std::allocator<unsigned char> > const&, tomo_db0::(anonymous namespace)::ObjectImage&)",
+        "hot": false,
+        "pre_size": 1016,
+        "post_size": 940,
+        "differing_bytes": 950,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117sort_encode_storeERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS7_EERKS1_IhSaIhEERNS0_11ObjectImageE.cold",
+        "name": "tomo_db0::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<unsigned char, std::allocator<unsigned char> > const&, tomo_db0::(anonymous namespace)::ObjectImage&) [clone .cold]",
+        "hot": false,
+        "pre_size": 84,
+        "post_size": 81,
+        "differing_bytes": 38,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_118multi_records_doneERKNS_14MultiExecStateE",
+        "name": "tomo_db0::(anonymous namespace)::multi_records_done(tomo_db0::MultiExecState const&)",
+        "hot": false,
+        "pre_size": 95,
+        "post_size": 95,
+        "differing_bytes": 2,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_119destroy_multi_stateEPNS_14MultiExecStateE.part.0",
+        "name": "tomo_db0::(anonymous namespace)::destroy_multi_state(tomo_db0::MultiExecState*) [clone .part.0]",
+        "hot": false,
+        "pre_size": 599,
+        "post_size": 599,
+        "differing_bytes": 4,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_119free_state_contentsERNS_12ScatterStateE.part.0",
+        "name": "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]",
+        "hot": false,
+        "pre_size": 1080,
+        "post_size": 1000,
+        "differing_bytes": 334,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_121execute_cross_commandERNS_6ServerERNS_14MultiExecStateERNS_12MultiCommandERNS_5ShardEjj",
+        "name": "tomo_db0::(anonymous namespace)::execute_cross_command(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::MultiCommand&, tomo_db0::Shard&, unsigned int, unsigned int)",
+        "hot": false,
+        "pre_size": 3818,
+        "post_size": 3802,
+        "differing_bytes": 3444,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_121prepare_unwatch_stateERNS_6ServerERNS_6ClientEjRNS_12MultiSessionENS_14MultiStateKindENS_15MultiFinalReplyE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_unwatch_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiSession&, tomo_db0::MultiStateKind, tomo_db0::MultiFinalReply)",
+        "hot": false,
+        "pre_size": 327,
+        "post_size": 327,
+        "differing_bytes": 3,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_122classify_multi_commandERNS_12MultiCommandE",
+        "name": "tomo_db0::(anonymous namespace)::classify_multi_command(tomo_db0::MultiCommand&)",
+        "hot": false,
+        "pre_size": 497,
+        "post_size": 554,
+        "differing_bytes": 501,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_123notify_make_publicationEhjhNS_13NotifyEventIdENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_.constprop.0.isra.0",
+        "name": "tomo_db0::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo_db0::NotifyEventId, tomo_db0::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+        "hot": false,
+        "pre_size": 1681,
+        "post_size": 1422,
+        "differing_bytes": 1553,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_123notify_make_publicationEhjhNS_13NotifyEventIdENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_.constprop.0.isra.0.cold",
+        "name": "tomo_db0::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo_db0::NotifyEventId, tomo_db0::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+        "hot": false,
+        "pre_size": 159,
+        "post_size": 127,
+        "differing_bytes": 147,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_126allocate_participant_stateERNS_14MultiExecStateEj",
+        "name": "tomo_db0::(anonymous namespace)::allocate_participant_state(tomo_db0::MultiExecState&, unsigned int)",
+        "hot": false,
+        "pre_size": 1388,
+        "post_size": 1388,
+        "differing_bytes": 6,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE",
+        "name": "tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&)",
+        "hot": false,
+        "pre_size": 662,
+        "post_size": 662,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&)",
+        "hot": false,
+        "pre_size": 3401,
+        "post_size": 3945,
+        "differing_bytes": 2481,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_134initialize_multi_owner_record_refsERNS_14MultiExecStateE",
+        "name": "tomo_db0::(anonymous namespace)::initialize_multi_owner_record_refs(tomo_db0::MultiExecState&)",
+        "hot": false,
+        "pre_size": 349,
+        "post_size": 349,
+        "differing_bytes": 4,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_135clear_unpublished_multi_record_refsERNS_14MultiExecStateE.part.0",
+        "name": "tomo_db0::(anonymous namespace)::clear_unpublished_multi_record_refs(tomo_db0::MultiExecState&) [clone .part.0]",
+        "hot": false,
+        "pre_size": 100,
+        "post_size": 100,
+        "differing_bytes": 3,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db012multi_retireERNS_6ClientERNS_2OpERSt6vectorIPNS_14MultiExecStateESaIS6_EE",
+        "name": "tomo_db0::multi_retire(tomo_db0::Client&, tomo_db0::Op&, std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&)",
+        "hot": false,
+        "pre_size": 2300,
+        "post_size": 2248,
+        "differing_bytes": 444,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db014MultiExecStateD1Ev",
+        "name": "tomo_db0::MultiExecState::~MultiExecState()",
+        "hot": false,
+        "pre_size": 2047,
+        "post_size": 2047,
+        "differing_bytes": 5,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db014MultiExecStateD2Ev",
+        "name": "tomo_db0::MultiExecState::~MultiExecState()",
+        "hot": false,
+        "pre_size": 2047,
+        "post_size": 2047,
+        "differing_bytes": 5,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+        "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+        "hot": false,
+        "pre_size": 17641,
+        "post_size": 17624,
+        "differing_bytes": 15971,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE.cold",
+        "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+        "hot": false,
+        "pre_size": 488,
+        "post_size": 473,
+        "differing_bytes": 454,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db015multi_handle_ioERNS_6ServerERNS_6ClientERNS_2OpEjRPNS_14MultiExecStateE",
+        "name": "tomo_db0::multi_handle_io(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::MultiExecState*&)",
+        "hot": false,
+        "pre_size": 9908,
+        "post_size": 10029,
+        "differing_bytes": 8939,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db015multi_handle_ioERNS_6ServerERNS_6ClientERNS_2OpEjRPNS_14MultiExecStateE.cold",
+        "name": "tomo_db0::multi_handle_io(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::MultiExecState*&) [clone .cold]",
+        "hot": false,
+        "pre_size": 975,
+        "post_size": 974,
+        "differing_bytes": 841,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db016blocking_prepareERNS_6ServerERNS_6ClientERNS_2OpEmRNS_16BlockingDispatchE",
+        "name": "tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)",
+        "hot": false,
+        "pre_size": 6848,
+        "post_size": 6848,
+        "differing_bytes": 0,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db017notify_take_batchERNS_2OpE",
+        "name": "tomo_db0::notify_take_batch(tomo_db0::Op&)",
+        "hot": false,
+        "pre_size": 372,
+        "post_size": 372,
+        "differing_bytes": 3,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE",
+        "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)",
+        "hot": false,
+        "pre_size": 9744,
+        "post_size": 9322,
+        "differing_bytes": 9237,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE.cold",
+        "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*) [clone .cold]",
+        "hot": false,
+        "pre_size": 286,
+        "post_size": 271,
+        "differing_bytes": 262,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db018notify_elapsed_setERNS_5ShardERNS_2OpENS_5SliceE",
+        "name": "tomo_db0::notify_elapsed_set(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Slice)",
+        "hot": false,
+        "pre_size": 2219,
+        "post_size": 2203,
+        "differing_bytes": 1384,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db019multi_prepare_closeERNS_6ServerERNS_6ClientEj",
+        "name": "tomo_db0::multi_prepare_close(tomo_db0::Server&, tomo_db0::Client&, unsigned int)",
+        "hot": false,
+        "pre_size": 309,
+        "post_size": 309,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db019multi_tracking_viewERKNS_14MultiExecStateE",
+        "name": "tomo_db0::multi_tracking_view(tomo_db0::MultiExecState const&)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 58,
+        "differing_bytes": 58,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db020kvobj_external_bytesILb0EEEmPKNS_5KvObjEPKv.isra.0",
+        "name": "unsigned long tomo_db0::kvobj_external_bytes<false>(tomo_db0::KvObj const*, void const*) [clone .isra.0]",
+        "hot": false,
+        "pre_size": 634,
+        "post_size": 650,
+        "differing_bytes": 509,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db020kvobj_external_bytesILb1EEEmPKNS_5KvObjEPKv",
+        "name": "unsigned long tomo_db0::kvobj_external_bytes<true>(tomo_db0::KvObj const*, void const*)",
+        "hot": false,
+        "pre_size": 682,
+        "post_size": 522,
+        "differing_bytes": 520,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db020multi_shutdown_entryERNS_6IoLoopE",
+        "name": "tomo_db0::multi_shutdown_entry(tomo_db0::IoLoop&)",
+        "hot": false,
+        "pre_size": 1603,
+        "post_size": 1603,
+        "differing_bytes": 4,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db020notify_ex_pass_entryERNS_6ServerERNS_5ShardEjRNS_9ThreadCtxERNS_4RingERNS_11LoopSignalsE",
+        "name": "tomo_db0::notify_ex_pass_entry(tomo_db0::Server&, tomo_db0::Shard&, unsigned int, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::LoopSignals&)",
+        "hot": false,
+        "pre_size": 6045,
+        "post_size": 5933,
+        "differing_bytes": 4159,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db020notify_ex_pass_entryERNS_6ServerERNS_5ShardEjRNS_9ThreadCtxERNS_4RingERNS_11LoopSignalsE.cold",
+        "name": "tomo_db0::notify_ex_pass_entry(tomo_db0::Server&, tomo_db0::Shard&, unsigned int, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::LoopSignals&) [clone .cold]",
+        "hot": false,
+        "pre_size": 518,
+        "post_size": 518,
+        "differing_bytes": 278,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db021multi_session_destroyEPNS_12MultiSessionE",
+        "name": "tomo_db0::multi_session_destroy(tomo_db0::MultiSession*)",
+        "hot": false,
+        "pre_size": 305,
+        "post_size": 305,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db022multi_dispatch_attemptILb0EZNS_25multi_dispatch_entry_implILb0EEEbRNS_6IoLoopERNS_6ClientERNS_2OpEjEUlvE_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolES5_S7_PNS_14MultiExecStateEmPbPjRjOT0_",
+        "name": "bool tomo_db0::multi_dispatch_attempt<false, tomo_db0::multi_dispatch_entry_impl<false>(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int)::{lambda()#1}>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::ScatterArenaPool&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo_db0::multi_dispatch_entry_impl<false>(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int)::{lambda()#1}&&)",
+        "hot": false,
+        "pre_size": 1845,
+        "post_size": 1814,
+        "differing_bytes": 1144,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db022multi_dispatch_attemptILb0EZNS_27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEEUlvE0_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolERNS_6ClientERNS_2OpEPNS_14MultiExecStateEmPbPjRjOT0_",
+        "name": "bool tomo_db0::multi_dispatch_attempt<false, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#2}>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::ScatterArenaPool&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#2}&&)",
+        "hot": false,
+        "pre_size": 1729,
+        "post_size": 1814,
+        "differing_bytes": 1402,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db022multi_dispatch_attemptILb0EZNS_27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEEUlvE_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolERNS_6ClientERNS_2OpEPNS_14MultiExecStateEmPbPjRjOT0_",
+        "name": "bool tomo_db0::multi_dispatch_attempt<false, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#1}>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::ScatterArenaPool&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#1}&&)",
+        "hot": false,
+        "pre_size": 1729,
+        "post_size": 1814,
+        "differing_bytes": 1402,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db022multi_dispatch_startedERNS_6ClientEPNS_14MultiExecStateE",
+        "name": "tomo_db0::multi_dispatch_started(tomo_db0::Client&, tomo_db0::MultiExecState*)",
+        "hot": false,
+        "pre_size": 113,
+        "post_size": 113,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db022multi_exec_io_commandsERNS_6IoLoopERNS_14MultiExecStateE",
+        "name": "tomo_db0::multi_exec_io_commands(tomo_db0::IoLoop&, tomo_db0::MultiExecState&)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 1343,
+        "differing_bytes": 1343,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db022multi_exec_io_commandsERNS_6IoLoopERNS_14MultiExecStateE.cold",
+        "name": "tomo_db0::multi_exec_io_commands(tomo_db0::IoLoop&, tomo_db0::MultiExecState&) [clone .cold]",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 110,
+        "differing_bytes": 110,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db022multi_owner_retry_nodeERKNS_4TaskE",
+        "name": "tomo_db0::multi_owner_retry_node(tomo_db0::Task const&)",
+        "hot": false,
+        "pre_size": 41,
+        "post_size": 41,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db022notify_tracking_commitERNS_2OpE",
+        "name": "tomo_db0::notify_tracking_commit(tomo_db0::Op&)",
+        "hot": false,
+        "pre_size": 265,
+        "post_size": 265,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db023multi_aof_emit_fragmentERNS_14MultiExecStateERNS_5ShardE",
+        "name": "tomo_db0::multi_aof_emit_fragment(tomo_db0::MultiExecState&, tomo_db0::Shard&)",
+        "hot": false,
+        "pre_size": 390,
+        "post_size": 390,
+        "differing_bytes": 4,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db023multi_tracking_childrenERNS_14MultiExecStateEPvPFvS2_RNS_2OpEbbbRbjE",
+        "name": "tomo_db0::multi_tracking_children(tomo_db0::MultiExecState&, void*, void (*)(void*, tomo_db0::Op&, bool, bool, bool, bool&, unsigned int))",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 133,
+        "differing_bytes": 133,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db023xshard_snapshot_prepareERKNS_4TaskERNS_5ShardE",
+        "name": "tomo_db0::xshard_snapshot_prepare(tomo_db0::Task const&, tomo_db0::Shard&)",
+        "hot": false,
+        "pre_size": 958,
+        "post_size": 954,
+        "differing_bytes": 174,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db023xshard_snapshot_prepareERKNS_4TaskERNS_5ShardE.cold",
+        "name": "tomo_db0::xshard_snapshot_prepare(tomo_db0::Task const&, tomo_db0::Shard&) [clone .cold]",
+        "hot": false,
+        "pre_size": 60,
+        "post_size": 60,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db024multi_io_child_completedEPv",
+        "name": "tomo_db0::multi_io_child_completed(void*)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 84,
+        "differing_bytes": 84,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db024multi_shutdown_retirableERNS_6ServerERNS_8WbEngineERNS_6ClientERNS_2OpE",
+        "name": "tomo_db0::multi_shutdown_retirable(tomo_db0::Server&, tomo_db0::WbEngine&, tomo_db0::Client&, tomo_db0::Op&)",
+        "hot": false,
+        "pre_size": 199,
+        "post_size": 199,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db025multi_abandon_unpublishedEPNS_14MultiExecStateE",
+        "name": "tomo_db0::multi_abandon_unpublished(tomo_db0::MultiExecState*)",
+        "hot": false,
+        "pre_size": 65,
+        "post_size": 65,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db025multi_dispatch_entry_implILb0EEEbRNS_6IoLoopERNS_6ClientERNS_2OpEj",
+        "name": "bool tomo_db0::multi_dispatch_entry_impl<false>(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int)",
+        "hot": false,
+        "pre_size": 905,
+        "post_size": 1135,
+        "differing_bytes": 771,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db026notify_keymiss_read_lookupERKNS_2OpENS_5SliceE",
+        "name": "tomo_db0::notify_keymiss_read_lookup(tomo_db0::Op const&, tomo_db0::Slice)",
+        "hot": false,
+        "pre_size": 1135,
+        "post_size": 1087,
+        "differing_bytes": 673,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db026notify_tracking_read_stampEPNS_11NotifyBatchENS_5SliceEj",
+        "name": "tomo_db0::notify_tracking_read_stamp(tomo_db0::NotifyBatch*, tomo_db0::Slice, unsigned int)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 390,
+        "differing_bytes": 390,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db027atomic_shutdown_unit_intentERNS_18AtomicScriptIntentE",
+        "name": "tomo_db0::atomic_shutdown_unit_intent(tomo_db0::AtomicScriptIntent&)",
+        "hot": false,
+        "pre_size": 269,
+        "post_size": 269,
+        "differing_bytes": 2,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db027multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopE",
+        "name": "unsigned int tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)",
+        "hot": false,
+        "pre_size": 13102,
+        "post_size": 13400,
+        "differing_bytes": 12704,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db05Shard16watch_place_unitERKSt6vectorINS_8TxnClaimESaIS2_EENS_14TxnReservationEPKNS_18MultiRetryPromoterE",
+        "name": "tomo_db0::Shard::watch_place_unit(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > const&, tomo_db0::TxnReservation, tomo_db0::MultiRetryPromoter const*)",
+        "hot": false,
+        "pre_size": 3105,
+        "post_size": 3105,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db05Shard21watch_all_write_readyEPKv",
+        "name": "tomo_db0::Shard::watch_all_write_ready(void const*)",
+        "hot": false,
+        "pre_size": 767,
+        "post_size": 651,
+        "differing_bytes": 681,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db05Shard21watch_all_write_readyEPKv.cold",
+        "name": "tomo_db0::Shard::watch_all_write_ready(void const*) [clone .cold]",
+        "hot": false,
+        "pre_size": 102,
+        "post_size": 86,
+        "differing_bytes": 83,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db05Shard25watch_promote_unit_waiterERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPKNS_18MultiRetryPromoterE",
+        "name": "tomo_db0::Shard::watch_promote_unit_waiter(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo_db0::MultiRetryPromoter const*)",
+        "hot": false,
+        "pre_size": 333,
+        "post_size": 333,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop12close_clientEPNS_6ClientEb",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "hot": false,
+        "pre_size": 8714,
+        "post_size": 8730,
+        "differing_bytes": 8091,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop13PubSubPendingD1Ev",
+        "name": "tomo_db0::IoLoop::PubSubPending::~PubSubPending()",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 261,
+        "differing_bytes": 261,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop13PubSubPendingD2Ev",
+        "name": "tomo_db0::IoLoop::PubSubPending::~PubSubPending()",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 261,
+        "differing_bytes": 261,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17pubsub_append_ackERNS_2Op4SinkEbbbPKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEmb.isra.0",
+        "name": "tomo_db0::IoLoop::pubsub_append_ack(tomo_db0::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, unsigned long, bool) [clone .isra.0]",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 1316,
+        "differing_bytes": 1316,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo_db0::IoLoop::pubsub_home_publish(tomo_db0::PubSubEvent&, bool)",
+        "hot": false,
+        "pre_size": 3090,
+        "post_size": 2849,
+        "differing_bytes": 2774,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_start_modifyEPNS_6ClientERNS_2OpEbbbPvm",
+        "name": "tomo_db0::IoLoop::pubsub_start_modify(tomo_db0::Client*, tomo_db0::Op&, bool, bool, bool, void*, unsigned long)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 8878,
+        "differing_bytes": 8878,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop20pubsub_begin_pendingEPNS_6ClientEONS0_13PubSubPendingERSt6vectorIPNS_11PubSubEventESaIS7_EE",
+        "name": "tomo_db0::IoLoop::pubsub_begin_pending(tomo_db0::Client*, tomo_db0::IoLoop::PubSubPending&&, std::vector<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >&)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 2202,
+        "differing_bytes": 2202,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop21pubsub_finish_pendingEm",
+        "name": "tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)",
+        "hot": false,
+        "pre_size": 4650,
+        "post_size": 3402,
+        "differing_bytes": 4412,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop26pubsub_handle_home_requestERNS_11PubSubEventE",
+        "name": "tomo_db0::IoLoop::pubsub_handle_home_request(tomo_db0::PubSubEvent&)",
+        "hot": false,
+        "pre_size": 6210,
+        "post_size": 5451,
+        "differing_bytes": 5718,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop26pubsub_home_rebind_patternERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEm",
+        "name": "tomo_db0::IoLoop::pubsub_home_rebind_pattern(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long)",
+        "hot": false,
+        "pre_size": 1061,
+        "post_size": 0,
+        "differing_bytes": 1061,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore17atomic_free_entryEPNS_11AtomicEntryE.isra.0",
+        "name": "tomo_db0::FlatStore::atomic_free_entry(tomo_db0::AtomicEntry*) [clone .isra.0]",
+        "hot": false,
+        "pre_size": 222,
+        "post_size": 225,
+        "differing_bytes": 5,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore24choose_victim_read_localILb1EEEPNS_5KvObjENS_5SliceE",
+        "name": "tomo_db0::KvObj* tomo_db0::FlatStore::choose_victim_read_local<true>(tomo_db0::Slice)",
+        "hot": false,
+        "pre_size": 1883,
+        "post_size": 1821,
+        "differing_bytes": 1726,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0",
+        "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+        "hot": false,
+        "pre_size": 2332,
+        "post_size": 2332,
+        "differing_bytes": 49,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore8hash_keyENS_5SliceE.isra.0",
+        "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+        "hot": false,
+        "pre_size": 797,
+        "post_size": 845,
+        "differing_bytes": 196,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db09ThreadCtx23post_iofused_task_quietEjRKNS_4TaskERNS_11LoopSignalsE",
+        "name": "tomo_db0::ThreadCtx::post_iofused_task_quiet(unsigned int, tomo_db0::Task const&, tomo_db0::LoopSignals&)",
+        "hot": false,
+        "pre_size": 584,
+        "post_size": 506,
+        "differing_bytes": 552,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZN8tomo_db0L26multi_execute_task_trackedERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterE",
+        "name": "tomo_db0::multi_execute_task_tracked(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)",
+        "hot": false,
+        "pre_size": 7524,
+        "post_size": 7567,
+        "differing_bytes": 4658,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNKSt14default_deleteIN8tomo_db07AclPermEEclEPS1_.part.0",
+        "name": "std::default_delete<tomo_db0::AclPerm>::operator()(tomo_db0::AclPerm*) const [clone .part.0]",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 833,
+        "differing_bytes": 833,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt10_HashtableIjSt4pairIKjPN8tomo_db011PubSubEventEESaIS5_ENSt8__detail10_Select1stESt8equal_toIjESt4hashIjENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRKm",
+        "name": "std::_Hashtable<unsigned int, std::pair<unsigned int const, tomo_db0::PubSubEvent*>, std::allocator<std::pair<unsigned int const, tomo_db0::PubSubEvent*> >, std::__detail::_Select1st, std::equal_to<unsigned int>, std::hash<unsigned int>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 339,
+        "differing_bytes": 339,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt10_HashtableImSt4pairIKmN8tomo_db06IoLoop13PubSubPendingEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE12_Scoped_nodeD1Ev",
+        "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::~_Scoped_node()",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 293,
+        "differing_bytes": 293,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt10_HashtableImSt4pairIKmN8tomo_db06IoLoop13PubSubPendingEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE12_Scoped_nodeD2Ev",
+        "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::~_Scoped_node()",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 293,
+        "differing_bytes": 293,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt10_HashtableImSt4pairIKmN8tomo_db06IoLoop13PubSubPendingEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE5eraseENS7_20_Node_const_iteratorIS5_Lb0ELb0EEE",
+        "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending>, false, false>)",
+        "hot": false,
+        "pre_size": 452,
+        "post_size": 452,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZNSt10_HashtableImSt4pairIKmN8tomo_db06IoLoop13PubSubPendingEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRS1_",
+        "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubPending> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 339,
+        "differing_bytes": 339,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt10_HashtableImSt4pairIKmN8tomo_db06IoLoop15PubSubLocalConnEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE12_Scoped_nodeD1Ev",
+        "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::~_Scoped_node()",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 162,
+        "differing_bytes": 162,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt10_HashtableImSt4pairIKmN8tomo_db06IoLoop15PubSubLocalConnEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE12_Scoped_nodeD2Ev",
+        "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_Scoped_node::~_Scoped_node()",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 162,
+        "differing_bytes": 162,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt10_HashtableImSt4pairIKmN8tomo_db06IoLoop15PubSubLocalConnEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRS1_",
+        "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn>, std::allocator<std::pair<unsigned long const, tomo_db0::IoLoop::PubSubLocalConn> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 339,
+        "differing_bytes": 339,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db022PubSubNotificationItemESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo_db0::PubSubNotificationItem, std::allocator<tomo_db0::PubSubNotificationItem> >::_M_realloc_insert<tomo_db0::PubSubNotificationItem>(__gnu_cxx::__normal_iterator<tomo_db0::PubSubNotificationItem*, std::vector<tomo_db0::PubSubNotificationItem, std::allocator<tomo_db0::PubSubNotificationItem> > >, tomo_db0::PubSubNotificationItem&&)",
+        "hot": false,
+        "pre_size": 2153,
+        "post_size": 2153,
+        "differing_bytes": 55,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db022PubSubNotificationItemESaIS1_EE7reserveEm",
+        "name": "std::vector<tomo_db0::PubSubNotificationItem, std::allocator<tomo_db0::PubSubNotificationItem> >::reserve(unsigned long)",
+        "hot": false,
+        "pre_size": 774,
+        "post_size": 752,
+        "differing_bytes": 581,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1EPKcmRKS3_",
+        "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",
+        "hot": false,
+        "pre_size": 209,
+        "post_size": 0,
+        "differing_bytes": 209,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2EPKcmRKS3_",
+        "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&)",
+        "hot": false,
+        "pre_size": 209,
+        "post_size": 0,
+        "differing_bytes": 209,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2EPKcmRKS3_.constprop.0",
+        "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, unsigned long, std::allocator<char> const&) [clone .constprop.0]",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 193,
+        "differing_bytes": 193,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZNSt8__detail9_Map_baseIjSt4pairIKjPN8tomo_db011PubSubEventEESaIS6_ENS_10_Select1stESt8equal_toIjESt4hashIjENS_18_Mod_range_hashingENS_20_Default_ranged_hashENS_20_Prime_rehash_policyENS_17_Hashtable_traitsILb0ELb0ELb1EEELb1EEixERS2_",
+        "name": "std::__detail::_Map_base<unsigned int, std::pair<unsigned int const, tomo_db0::PubSubEvent*>, std::allocator<std::pair<unsigned int const, tomo_db0::PubSubEvent*> >, std::__detail::_Select1st, std::equal_to<unsigned int>, std::hash<unsigned int>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned int const&)",
+        "hot": false,
+        "pre_size": 0,
+        "post_size": 441,
+        "differing_bytes": 441,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+        "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+        "hot": false,
+        "pre_size": 6397,
+        "post_size": 6350,
+        "differing_bytes": 5990,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZZN8tomo_db012_GLOBAL__N_121execute_local_commandERNS_6ServerERNS_14MultiExecStateERNS_12MultiCommandERNS_5ShardEjENUlPvE_4_FUNES9_",
+        "name": "tomo_db0::(anonymous namespace)::execute_local_command(tomo_db0::Server&, tomo_db0::MultiExecState&, tomo_db0::MultiCommand&, tomo_db0::Shard&, unsigned int)::{lambda(void*)#1}::_FUN(void*)",
+        "hot": false,
+        "pre_size": 122,
+        "post_size": 177,
+        "differing_bytes": 169,
+        "targets_equal": false
+      },
+      {
+        "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+        "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+        "hot": false,
+        "pre_size": 1405,
+        "post_size": 1405,
+        "differing_bytes": 43,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterEENKUlvE_clEv",
+        "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)::{lambda()#1}::operator()() const",
+        "hot": false,
+        "pre_size": 183,
+        "post_size": 183,
+        "differing_bytes": 1,
+        "targets_equal": true
+      },
+      {
+        "symbol": "_ZZN8tomo_db0L26multi_execute_task_trackedERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextEPKNS_18MultiRetryPromoterEENKUlvE_clEv",
+        "name": "tomo_db0::multi_execute_task_tracked(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)::{lambda()#1}::operator()() const",
+        "hot": false,
+        "pre_size": 137,
+        "post_size": 137,
+        "differing_bytes": 1,
+        "targets_equal": true
+      }
+    ]
+  }
+}

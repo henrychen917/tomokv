@@ -1,0 +1,137 @@
+[
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe",
+    "sha256": "1eafdd9034e8efb585b4f48d9f786703db3c5128dd30a1185f645df96bb25842",
+    "bytes": 234136720
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-db0/probe.o",
+    "sha256": "ee0ce9bde11ec79edfd6f0eb249d109dd6a3c995fe121593b65eb3fc86efd724",
+    "bytes": 13433488
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-normal/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-normal/probe",
+    "sha256": "b8f29a01f3a1c51b2fc5c4f4b584a77732c80baba199aaa7bbe60c2c99adcfe2",
+    "bytes": 231332984
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-normal/probe.o",
+    "sha256": "36fe2b66d5ef6583dd65144237c9125078fa0338a94c7241808bdbac57e204c7",
+    "bytes": 13300624
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe",
+    "sha256": "dced3a04df8d6fa5abbca77df362b7b1612a9cb367129fdaa9275ead85bfe8ab",
+    "bytes": 234130368
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-session-normal/probe.o",
+    "sha256": "0f881f4e359bab60803319b955c5cd6fa56bd13beb4a4092a513cf2248191a9b",
+    "bytes": 13313248
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/original-main.o",
+    "sha256": "1338a7a9fd87d5d58037fa8c62a3303e1c4a32d70a384189a96a3d261f19c409",
+    "bytes": 26972688
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe",
+    "sha256": "8a50f6f16c3437a1445fdc32dda2e6e8e99e94b7408cae9bb5b5717e661ff319",
+    "bytes": 230196608
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/registry-normal/probe.o",
+    "sha256": "a97fcf396a22b0a21dcd6fea2b9c6e5bd03f173f861bc4c6ec26ba0d1d3f6b86",
+    "bytes": 313632
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-normal/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-normal/probe",
+    "sha256": "addce479b391634cb5a118bf82555f89f1288030388d34a81c2d2a4494c131b9",
+    "bytes": 231973984
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-normal/probe.o",
+    "sha256": "cc29273bcee55d18c649a4a905f27319a854e5537a08fb7daea55c8c552939a0",
+    "bytes": 14786816
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe",
+    "sha256": "4690792cc49de121f5bc182acad040ec474517f7d477c077b83699b5f4c3a597",
+    "bytes": 234765592
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-normal/probe.o",
+    "sha256": "5f4ddd961e665d7a652d6a5bc94d75940bf6ae169824b97ab2af8b5e99e51e1f",
+    "bytes": 14793616
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-db0/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-db0/probe",
+    "sha256": "613c0c11c4eea52c864293a486fe6692b55afe0ea956107fa1ff056ce572606e",
+    "bytes": 231979360
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-db0/probe.o",
+    "sha256": "70849b6f310c73cce0946a8e4353b75ffe42e2e67e7f3bc83a6c5e26f1514b42",
+    "bytes": 14891168
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-db0/original-main.o",
+    "sha256": "e6c55be272c58cc895755ab7306adf61d050ee30240ec9459d65757fa659d703",
+    "bytes": 26966496
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-db0/probe",
+    "sha256": "de75668f3f8eb657b60a3cdaa96619295be89ab76be33aa975738cb16397ce30",
+    "bytes": 231339352
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/PRE-session-db0/probe.o",
+    "sha256": "20176f634c4b97d8b70492720d79e871ba8a2f75de5861cede74689693b24ee7",
+    "bytes": 13421352
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/original-main.o",
+    "sha256": "ce811b3cf4ab8a30c49e82e8cf8b36074f3ca647866180a25484be6ecf84c14b",
+    "bytes": 26979000
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe",
+    "sha256": "ec1ccd8835d1193823e51d05bf7168f468a1cf4049fddfb1bf6d3c50ae7d3248",
+    "bytes": 234770976
+  },
+  {
+    "path": "build/clientcompat/counts/scopes/POST-db0/probe.o",
+    "sha256": "4fc9ac8e8543c8de3c4cd54155c93f6f98a07d34980f7699c1f3e4983ac61a21",
+    "bytes": 14899184
+  }
+]
