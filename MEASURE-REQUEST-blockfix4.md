@@ -33,6 +33,13 @@ candidate passed all five rows on both engines: 108 script attempts, 720 stolen
 move hits, 480 creator hits, 400 stream-removal hits and 51,200 pops per engine.
 These are intermediate receipts; the final binary's receipts are recorded below.
 
+The expanded PRE natural-MVCC witness failed all five aggregate rows again.
+Its eight no-hook legs produced 559 MVCC hits in 670 fresh attempts, including
+34 hit failures and seven other wake failures. In particular, read-local 0
+in 2s reproduced one hang in 103 observed MVCC windows. Failing PRE legs stop
+early after ten defects; POST must complete all 128 attempts per leg and open
+at least one MVCC window in each leg.
+
 `ATOMIC-COMMIT-HOLD` also holds a resumed atomic BLMOVE. Its check requires the
 move to finish immediately after releasing that hold, without a rescue push;
 BLPOP/BRPOP must finish while the hold remains set. This distinction applies
@@ -64,6 +71,15 @@ compilation and GDB tracing shared the lane. Its raw failure log is retained;
 the final rerun passed all 83 tests in 159.888 seconds after compilation and
 tracing finished (`docs/blockfix4/gates-test-final.log`). No timeout or assertion
 was relaxed. `tests/redis_tcl_test.py` also passed its 10 tests.
+
+The complete final io_uring Tcl rerun passed both modes: 39 manifest files and
+1,875 passing assertions per mode (`gate-receipts/tcl-uring-repeat.json`).
+The first run timed out in Lua's script-loading GC test while compilation and
+tracing were active, and also hit the pub/sub unsubscribe assertion in 1s.
+A focused PRE control reproduced that exact pub/sub assertion in 2s;
+its scripting tests passed. This pre-existing pub/sub race is reported and
+left outside this blocking lane. All initial red results and the unchanged
+successful full Tcl rerun are retained; no manifest skip or timeout changed.
 
 ### Cost and arms
 
@@ -130,7 +146,8 @@ makes no throughput claim.
 ### Gate arithmetic and exclusions
 
 DQ = +5, DF = +5. `collect_job blockfix4` is before the quick-tier exit, and
-the job emits exactly five rows. `EXPECT_QUICK=999` and `EXPECT_FULL=1016`
+the job emits exactly five rows: collection line 6293 precedes the quick-tier
+branch at line 6479 (exit at 6483). `EXPECT_QUICK=999` and `EXPECT_FULL=1016`
 are untouched. With only this lane's row change, the maintainer's new values
 would be 1004 and 1021.
 
