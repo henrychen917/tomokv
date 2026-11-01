@@ -147,6 +147,10 @@ CLIENT name comparison; writes consume CACHING and return before the irrelevant
 BCAST lookup. Cold EXEC code is isolated in clientcompat.cc. The Makefile pins
 measured xshard compiler budgets per namespace to prevent unrelated inline
 threshold drift; trial recipes and counts are retained under `budgets/`.
+The subscription/PING correction changes compiler output in db0 `classify_keys`
+and `xshard_prepare`: 32 MGET/MSET scopes add 2–3 instructions per operation
+relative to the preceding candidate, while all remain below PRE. The complete
+symbol deltas are retained in `validation/subscription-ping-counts.json`.
 
 A separate 128-row census exercises real MULTI parsing/dispatch/retirement:
 two GET or INCR children, one or several shards, tracking off/on, 1s/2s,

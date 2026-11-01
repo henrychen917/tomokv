@@ -323,5 +323,591 @@
     }
   ],
   "ordinary_pre_increases": 0,
-  "exec_totals_unchanged": true
+  "exec_totals_unchanged": true,
+  "symbol_changes": [
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        1,
+        0
+      ],
+      "total_delta": 2,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        },
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 1,
+          "per_operation": 1.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        32,
+        0
+      ],
+      "total_delta": 64,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "1s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        },
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 32,
+          "per_operation": 1.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        1,
+        0
+      ],
+      "total_delta": 2,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        },
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 1,
+          "per_operation": 1.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        32,
+        0
+      ],
+      "total_delta": 64,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MGET",
+        "2s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        },
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 32,
+          "per_operation": 1.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        1,
+        0
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        32,
+        0
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "1s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        1,
+        0
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        32,
+        0
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "MSET",
+        "2s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        1,
+        0
+      ],
+      "total_delta": 2,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 1,
+          "per_operation": 1.0
+        },
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        32,
+        0
+      ],
+      "total_delta": 64,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "1s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 32,
+          "per_operation": 1.0
+        },
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        1,
+        0
+      ],
+      "total_delta": 2,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 1,
+          "per_operation": 1.0
+        },
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 2,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        32,
+        0
+      ],
+      "total_delta": 64,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MGET",
+        "2s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "delta": 32,
+          "per_operation": 1.0
+        },
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 64,
+          "per_operation": 2.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        0
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        0
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "1s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        0
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        1,
+        1
+      ],
+      "total_delta": 3,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 3,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        0
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    },
+    {
+      "cell": [
+        "db0",
+        "TRACK-MSET",
+        "2s",
+        32,
+        1
+      ],
+      "total_delta": 96,
+      "symbols": [
+        {
+          "symbol": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+          "delta": 96,
+          "per_operation": 3.0
+        }
+      ]
+    }
+  ]
 }
