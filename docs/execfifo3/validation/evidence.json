@@ -3094,5 +3094,247 @@
         "evidence": "docs/execfifo3/validation/31-notify-fused-epoll/release"
       }
     ]
+  },
+  {
+    "group": "broad-epoll",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "104-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "20600-20699"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "GATE_PROOF_NO_RATES": "1",
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 txn_group_fused txn_group_split notify notifycompat notify_order notify_aof tracking_redirect trackfix_accounting trackfix_order datafix2_watch atomfix5_watch blockfix2 blockfix_structure blockfix_registry blockfix_mkstream rlfix3_zc rlfix3_info readonly",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+      "GATE_NET_IO": "epoll",
+      "GATE_PROOF_NET_IO": "epoll",
+      "GATE_DIFFER_NET_IO": "epoll"
+    },
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "log": "/home/user/Projects/cx-execfifo3/build/execfifo3/validation/broad-epoll-1793514074393632548.log",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi",
+    "jobs_evidence": [
+      {
+        "name": "atomfix5_watch",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/atomfix5_watch",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/atomfix5_watch"
+      },
+      {
+        "name": "blockfix2",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/blockfix2",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/blockfix2"
+      },
+      {
+        "name": "blockfix_mkstream",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/blockfix_mkstream",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/blockfix_mkstream"
+      },
+      {
+        "name": "blockfix_registry",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/blockfix_registry",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/blockfix_registry"
+      },
+      {
+        "name": "blockfix_structure",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/blockfix_structure",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/blockfix_structure"
+      },
+      {
+        "name": "datafix2_watch",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/datafix2_watch",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/datafix2_watch"
+      },
+      {
+        "name": "feature-armed-0",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/feature-armed-0",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/feature-armed-0"
+      },
+      {
+        "name": "feature-armed-1",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/feature-armed-1",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/feature-armed-1"
+      },
+      {
+        "name": "feature-split-0",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/feature-split-0",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/feature-split-0"
+      },
+      {
+        "name": "feature-split-1",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/feature-split-1",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/feature-split-1"
+      },
+      {
+        "name": "fused-0",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/fused-0",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/fused-0"
+      },
+      {
+        "name": "fused-1",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/fused-1",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/fused-1"
+      },
+      {
+        "name": "notify",
+        "returncode": 0,
+        "passed": 6,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/notify",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/notify"
+      },
+      {
+        "name": "notify_aof",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/notify_aof",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/notify_aof"
+      },
+      {
+        "name": "notify_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/notify_order",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/notify_order"
+      },
+      {
+        "name": "notifycompat",
+        "returncode": 0,
+        "passed": 7,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/notifycompat",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/notifycompat"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/production_units",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/production_units"
+      },
+      {
+        "name": "readonly",
+        "returncode": 0,
+        "passed": 4,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/readonly",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/readonly"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/release",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/release"
+      },
+      {
+        "name": "rlfix3_info",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/rlfix3_info",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/rlfix3_info"
+      },
+      {
+        "name": "rlfix3_zc",
+        "returncode": 0,
+        "passed": 8,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/rlfix3_zc",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/rlfix3_zc"
+      },
+      {
+        "name": "trackfix_accounting",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/trackfix_accounting",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/trackfix_accounting"
+      },
+      {
+        "name": "trackfix_order",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/trackfix_order",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/trackfix_order"
+      },
+      {
+        "name": "tracking_redirect",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/tracking_redirect",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/tracking_redirect"
+      },
+      {
+        "name": "txn_group_fused",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/txn_group_fused",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/txn_group_fused"
+      },
+      {
+        "name": "txn_group_split",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execfifo3/build/gate-run.RrEqPi/jobs/txn_group_split",
+        "evidence": "docs/execfifo3/validation/32-broad-epoll/txn_group_split"
+      }
+    ]
   }
 ]

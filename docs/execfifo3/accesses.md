@@ -8,6 +8,8 @@ The scope receipts record object alignment; Shard and owner offsets are unchange
 | --- | ---: | --- | --- |
 | `tomo::TxnKeyQueue::ehead` | 56 | physical shard owner; waiter link/unlink and FIFO gate | not accessed |
 | `tomo::TxnKeyQueue::etail` | 64 | physical shard owner; waiter link/unlink and FIFO gate | not accessed |
+| `tomo::TxnKeyQueue::marks` (moved from 56) | 72 | physical shard owner; queue size and writer-episode handling | not accessed |
+| `tomo::TxnKeyQueue::waiters` (moved from 80) | 96 | physical shard owner; queue size and link/unlink accounting | not accessed |
 | `tomo::TxnWaiter::eprev` | 32 | physical shard owner; waiter link/unlink | not accessed |
 | `tomo::TxnWaiter::enext` | 40 | physical shard owner; waiter link/unlink | not accessed |
 | `tomo::TxnRetryQueues::ready_head` | 40 | owner loop; C1 promotion/drain | not accessed |
@@ -24,6 +26,13 @@ The scope receipts record object alignment; Shard and owner offsets are unchange
 a 64-byte-aligned shard). It is touched only by boundary paths.
 `TxnOwnerCounters::values[20..22]` occupy +160, +168, +176 within the
 existing 192-byte owner slot; no subsequent Server offset changes.
+
+The added EXEC links also move `TxnWaiter::entry` from 32 to 48, its queue
+pointer from 120 to 136, and its waiting byte from 128 to 144. These heap
+records and the moved queue fields are relevant when reservation state exists;
+they are not allocated or touched by the clean-state fixtures. Their physical
+cache-line placement depends on the allocation base. The active-reservation
+slow path is source-audited here, not claimed to have PRE's access footprint.
 
 The plain-writer final gate retains the existing Op hazard bit after a refusal.
 The newly used FIFO counters and queue fields are unreachable with

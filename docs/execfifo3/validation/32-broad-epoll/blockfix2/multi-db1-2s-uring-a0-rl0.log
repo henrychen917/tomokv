@@ -1,0 +1,5 @@
+ORACLE 7.4.10
+ORACLE [[[[{"bytes": "73747265616d"}, [[{"bytes": "312d30"}, [{"bytes": "66"}, {"bytes": "76"}]]]]]]]
+GEOMETRY {"thread_mode": "2s", "net_io": "uring", "atomic": "0", "read_local": "0", "shards": "16"}
+TARGET [[[[{"bytes": "73747265616d"}, [[{"bytes": "312d30"}, [{"bytes": "66"}, {"bytes": "76"}]]]]]]]
+PASS multi
