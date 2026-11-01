@@ -881,9 +881,7 @@ NotifyBatch* notify_take_batch(Op& op) {
     }
     if (!op.has_notify_state()) return nullptr;
     auto* batch = static_cast<NotifyBatch*>(op.notify_state());
-    op.zc_ptr = nullptr;
-    op.zc_len = 0;
-    op.zc_shard = -1;
+    op.detach_notify_state();
     return batch;
 }
 
@@ -955,9 +953,7 @@ void notify_discard_batch(NotifyBatch* batch) { delete batch; }
 void notify_abort_op(Op& op) {
     if (!op.has_notify_state()) return;
     auto* batch = static_cast<NotifyBatch*>(op.notify_state());
-    op.zc_ptr = nullptr;
-    op.zc_len = 0;
-    op.zc_shard = -1;
+    op.detach_notify_state();
     notify_discard_batch(batch);
 }
 

@@ -6,6 +6,7 @@ import hashlib
 from pathlib import Path
 import resource
 import signal
+import select
 import time
 
 from _lib import Conn, RespError, info
@@ -104,6 +105,24 @@ def waitaof(a):
         emit('risky moment', case='WAITAOF after AOF write', hits=1, fsync=a.fsync)
         assert c.must('WAITAOF', 1, 0, 3000) == [1, 0]
         assert c.must('WAITAOF', 0, 0, 1) == [1, 0]
+        observer = Conn('127.0.0.1', a.port, timeout=5)
+        try:
+            assert c.must('CONFIG', 'SET', 'appendfsync', 'no') == b'OK'
+            assert c.must('SET', 'rootcore:unsynced', 'pending') == b'OK'
+            assert c.must('WAITAOF', 0, 0, 1) == [0, 0]
+            assert observer.must('WAITAOF', 0, 0, 1) == [1, 0]
+            assert c.must('WAITAOF', 1, 0, 5) == [0, 0]
+            c.send('WAITAOF', 1, 0, 0)
+            wait(lambda: int(info(observer, 'clients')['blocked_clients']) == 1,
+                 'local fsync waiter parked')
+            emit('risky moment', case='unsynced connection parked; untouched connection acknowledged', hits=1)
+            assert observer.must('CONFIG', 'SET', 'appendfsync', 'always') == b'OK'
+            assert c.read() == [1, 0]
+            assert c.must('MULTI') == b'OK'
+            assert c.must('WAITAOF', 1, 1, 0) == b'QUEUED'
+            assert c.must('EXEC') == [[1, 0]]
+        finally:
+            observer.close()
 
 
 def notify(a):
@@ -131,8 +150,10 @@ def notify(a):
         emit('risky moment', case='notifications with local SORT STORE and XREADGROUP',
              hits=2, pending=pending)
     with boot(a, 'read', opts, existing_data=data) as (_, c, _):
-        assert c.must('LRANGE', 'rootcore:{same}:dest', 0, -1) == [b'1', b'2', b'3']
-        assert c.must('XPENDING', 'rootcore:stream', 'group') == pending
+        recovered = c.must('LRANGE', 'rootcore:{same}:dest', 0, -1)
+        recovered_pending = c.must('XPENDING', 'rootcore:stream', 'group')
+        emit('recovered post-images', sort=recovered, pending=recovered_pending)
+        assert (recovered, recovered_pending) == ([b'1', b'2', b'3'], pending), (recovered, recovered_pending)
 
 
 def misconf(a):
