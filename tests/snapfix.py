@@ -428,7 +428,6 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
         assert final[:2] == [sum(done), sum(done)] and final[2:] == writes, (final, done, writes)
         if not oracle:
             s = stats(c)
-            assert s.get('atomic_txn_order_violations', 0) == 0, s
             assert s['script_keys_armed'] == s['script_keys_released'], 'script PINs leaked'
         result['storm'] = dict(activations=sum(done), writes=writes, saves=saves[0],
                                max_latency=latency.report())
@@ -580,7 +579,6 @@ def case_bgsave_exec(args, directory, mode, engine, atomic, oracle):
         assert final == [sum(incr) + sum(committed), sum(committed), sum(committed)], (final, result)
         if not oracle:
             s = stats(c)
-            assert s.get('atomic_txn_order_violations', 0) == 0, s
             p = stats(c, 'persistence')
             assert p['snapshot_cuts_armed'] > before['snapshot_cuts_armed'], 'no snapshot cut armed'
         result['snapshot'] = storm_snapshot_check(args, directory, mode, engine, atomic, oracle, b,

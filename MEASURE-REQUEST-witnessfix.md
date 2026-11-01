@@ -157,3 +157,11 @@ Added ordinary and EXEC SMOVE no-op destination checks on a pair proved by
 DEBUG geometry to share a shard. Require one successful move, consumed source,
 unchanged destination and an un-aborted destination WATCH. The key discovery
 fails if no such pair is found; it prints the shard and one armed hit. DQ=DF=0.
+
+### V5 — blind transaction-order diagnostic
+
+Removed zero-value `atomic_txn_order_violations` assertions from the six named
+batteries and at412. Their exact data/reply/conservation assertions remain. A
+zero from this counter is not atomicity evidence; the forced AT4-WOUND-1 window
+in `job_txnorder_wound` is the relevant independent discriminator. This does
+not claim the ordinary storms open that window. DQ=DF=0.
