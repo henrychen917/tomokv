@@ -2720,7 +2720,7 @@ job_moverfix(){
         py tests/txn_movers.py 127.0.0.1 "$PORT" --only "$family" \
           >"$TMPDIR/live-$mode-$engine-$databases-$family.log" 2>&1 || rc=1
       done
-      for family in T05 G5; do
+      for family in T05 G5 EXEC; do
         py tests/moverfix.py 127.0.0.1 "$PORT" --only "$family" \
           >"$TMPDIR/live-$mode-$engine-$databases-$family.log" 2>&1 || rc=1
       done

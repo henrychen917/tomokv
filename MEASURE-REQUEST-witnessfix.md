@@ -226,3 +226,19 @@ require their exact immutable error; Redis-backed settings first compare the
 oracle's value and otherwise accept only the exact documented lifetime error,
 with CONFIG-RUNTIME-IMMUTABLE / 68d-4 or TRACK-MAXKEYS-IMMUTABLE / D15 in the
 receipt. Both retained values and transaction rollback remain checked. DQ=DF=0.
+
+CD4.6 baseline result: the added strict Lua probe failed all twelve target legs.
+Redis under explicit en_US.UTF-8 returns `[1,[a,A,b,B,é]]`; this base returns
+`[0,[A,B,a,b,é]]`. The audit already documents that unfixed path (compat §6.12).
+It is now named CD4.6-LUA-COLLATION, with both replies retained and excluded from
+compatibility evidence. The oracle's non-C result must be witnessed; all other
+locale legs remain exact. No claim of a production repair or negative-control
+proof is made for this remaining difference.
+
+### V10 — EXEC-child mover conservation
+
+The existing moverfix job now attempts its previously omitted EXEC battery in
+every mode/engine/database leg, alongside the donor controls. Exact delivery,
+no duplicate or missing members and post-drain state are required; no blind
+counter substitutes for those checks. DQ=DF=0. Baseline validation is pending;
+a reproduced D2/EXEC loss will be reported rather than excused as timing.
