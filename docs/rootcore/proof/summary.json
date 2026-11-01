@@ -1,5 +1,26 @@
 [
   {
+    "name": "aof-final-fused",
+    "engine": "uring",
+    "fused": 1,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "aof_test_sha256": "176385df377d9824a7bab7294ef961f8c14ace7f939f9a8feb3f81c5f72cb203",
+    "started": "2026-11-01T05:37:51.629787+00:00",
+    "ended": "2026-11-01T05:39:59.445778+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.JUohlE",
+    "passed_rows": 109,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=aof-uring aof-epoll; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {},
+    "archive_sha256": "7cb0bc4cd0866bbf01632750f4718aade2bfbd0aa462dfc1244846683acee6cc"
+  },
+  {
     "name": "aof-final-split",
     "engine": "uring",
     "fused": 0,
@@ -18,7 +39,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "9363cab2fc45121e8efd9fe8b227912ac64a438daa7366051a12a7b6c876e50f"
+    "archive_sha256": "52d5ac43e47eb811275214616081daefefb5ea2675e8dbe08c1fba8abf466a4d"
   },
   {
     "name": "aof-pre-fused",
@@ -39,7 +60,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "75782a1c89d325c55936ae6470324b168c56b7ccadc646a8e71902ec33d9e32f"
+    "archive_sha256": "8ce24966d7aaf34a0df5694e2790ce63f8fc3badbab7284f345d7b2b7f2d4d25"
   },
   {
     "name": "aof-pre-split",
@@ -60,7 +81,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "1b57f96529001d7681acd7858bff58d146800b84a9630ddfcacab7948b1e96d7"
+    "archive_sha256": "5a516f2a6a7ca6447ca669c3a9bace92a6f1654eea4fa58957dcb3da8508a23a"
   },
   {
     "name": "directed",
@@ -83,7 +104,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "ab90801d8ed619b1cae0586be5b93a2bf747b28e4dba226a389bd76075095d0c"
+    "archive_sha256": "42a01965809cfafeb80978a5d7ee8e86542657c31081d8160eb0c44b21c3364b"
   },
   {
     "name": "fused-epoll",
@@ -131,7 +152,7 @@
         "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
       ]
     },
-    "archive_sha256": "26707ab52ae09c49804a34d0ebfe28e0aebf129243ea93b7b1086eba399a0548"
+    "archive_sha256": "98c6dec0cf72cce3d6ceb217e2bf3b92b6b47cc6a6c7743f014d5fb8ed451ba7"
   },
   {
     "name": "fused-uring",
@@ -179,7 +200,7 @@
         "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
       ]
     },
-    "archive_sha256": "f1f09e541d2917e21e4d1b846040a71c7e9337b26ae9f46fe6ef4a1fe4d50781"
+    "archive_sha256": "a01327e93a2ac9778800ecd77b5f2ca7225ba83e82277ca2f5b230bf4966d667"
   },
   {
     "name": "main-epoll",
@@ -273,7 +294,7 @@
         "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
       ]
     },
-    "archive_sha256": "fda14af3036b2cba5c4e6412a6180f9574c01489aefb25aca4877e76e6d26d80"
+    "archive_sha256": "287bd99942d297daed87f0ecd6b86fd163f98fa955f3306b0bf4878c25c8c298"
   },
   {
     "name": "main-uring",
@@ -377,7 +398,7 @@
         "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
       ]
     },
-    "archive_sha256": "777b4f291dece41c112d18db0fa382cc61f9563c872ef503c3702c150e5fbbf9"
+    "archive_sha256": "099af4339df97722f9d2a0c50d942db67719b505894104785f4661b217b2418c"
   },
   {
     "name": "notify-order-post",
@@ -398,7 +419,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "aa453532ec8f602afc87a0247783ee663ffbab5bef8ca6b0a484b85c203915d3"
+    "archive_sha256": "6489b4edb8c72c41ee866e6e732ef53e0feda017ee8fb5c2c37cb48ea0c0937b"
   },
   {
     "name": "notify-order-pre",
@@ -419,7 +440,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "b54ac402988840f2f3e28143a5b107aa3f4037c7bbaadaa6d1ade7f58a6a3b41"
+    "archive_sha256": "1702fbe1e5f707ca6fdb23e0cc24e9b129bdb43560fa8f168a2b74985a6db394"
   },
   {
     "name": "txnorder-post-1",
@@ -440,7 +461,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "449da127dd17180baed7d00f9c667409163eaf4388ec9edc6670c998cc875ef3"
+    "archive_sha256": "302098210b6728bab401d2de4040a90534a0e65e9a5b6840b92fe96ddb72f872"
   },
   {
     "name": "txnorder-post-2",
@@ -461,7 +482,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "9f7935bade0902c9d6fe4159bf01437a1f5aef12eba29c5d79cd3f5729f327e3"
+    "archive_sha256": "c9871347124c426f9c4b8adda9c3bf7deaef441db236ca99d897e2b9334d9a57"
   },
   {
     "name": "txnorder-pre-1",
@@ -482,7 +503,7 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "0ca77cd9a891ef1d0b1f5df860d7519d7b42298a1746f733b13c3da226ccaf36"
+    "archive_sha256": "2e727ccbab1013c741cb06aa2b9fc8ea8a8b82ab5de117892d99d355057b9cba"
   },
   {
     "name": "txnorder-pre-2",
@@ -503,6 +524,6 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "0e8ae34b4e60fde7fcc718a1274796111247e71a77343fb43f3d66ca8664e6bc"
+    "archive_sha256": "c6b59e48ba24d5882325ec661d103dbda8775f5008294edbd6f761e2d0424d57"
   }
 ]

@@ -44,7 +44,7 @@
   "differential": {},
   "declared_omissions": {},
   "differential_plan": null,
-  "archive_sha256": "0e8ae34b4e60fde7fcc718a1274796111247e71a77343fb43f3d66ca8664e6bc",
+  "archive_sha256": "c6b59e48ba24d5882325ec661d103dbda8775f5008294edbd6f761e2d0424d57",
   "archive_files": [
     "families.tsv",
     "jobs/production_units/blockfix-cost-build.log",

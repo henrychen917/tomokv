@@ -5,7 +5,11 @@
 Baseline: `7d2f8a2051961a1942735fb6dc9b507d778e09d1`. Branch: `cx-rootcore`.
 Worktree: `/home/user/Projects/cx-rootcore`. No push. Correctness servers and builds
 are restricted to CPUs 16–31; servers use ports 20100–20199 and `LC_ALL=C`.
-No throughput result is claimed. The broader proof is still in progress below.
+Items **1–5, 9 and 12 are closed** within their declared witnesses. Item 10 is
+stopped under the algorithm freeze; item 11 remains partial with a reproduced
+S1 residual. The proof is **not fully green**: those two directed rows remain
+red, and one original AOF-storm timeout remains unexplained despite passing
+matched controls. No throughput result is claimed.
 
 ### Arms and measurement request
 
@@ -67,7 +71,7 @@ from target counts. PRE logs are in `docs/rootcore/pre`; frozen POST logs are in
 | --- | --- | --- | --- | --- |
 | 1 IO4.1-INBOX | Actual producer/drain diagnostic: client 93 and transfer 130 stranded items in 200,000 attempts each | 0 stranded in 200,000 attempts per producer, plus a separate 200,000-pass hard-assert run | `seq_cst` fence after successful queue publication and before the read-first notify check; remove FLIP-only reflag sweep | Hardware race witness is serverless; no claim of reproducing a live busy-server hang |
 | 2 WAKE-FUSED | Task 361, fused 114, quiet+flush 252 stranded items in 200,000 attempts each | 0 stranded in each counting and assertion run | Each task producer uses unconditional ordering RMW `NotifyMask::publish`; the skipped read-first RMW was the source | Periodic depth repair and idle unmasked drain remain under the owner's independent-looker rule; coherence cost awaits measurement |
-| 3 RULEP-LAG | Redundant guard removal, so no new PRE-red prediction | AT-PUB1/atomic unit result recorded in broader proof | Delete `atomic_publish_quiescent` and both production callers; retain ticket publisher mechanism | Existing survivor unit now opens a real two-ticket publication bracket instead of synthesizing a stale publisher |
+| 3 RULEP-LAG | Redundant guard removal, so no new PRE-red prediction | AT-PUB1 passes; atomic_units is 27/27 | Delete `atomic_publish_quiescent` and both production callers; retain ticket publisher mechanism | Existing survivor unit now opens a real two-ticket publication bracket instead of synthesizing a stale publisher |
 | 4 PS4.9 | 4/4 native target legs delete an unreferenced segment, 4 risky hits | 4/4 pass, 8 hits including missing-manifest boots | Rename unreferenced native segments into a private durable quarantine; known rewrite history remains deletable; remove missing-manifest refusal | Quarantine preserves bytes; it does not infer a recovery order for orphaned files |
 | 5 NO-A5 | All 16 target legs lose both local SORT STORE output and XREADGROUP pending state; 32 hits; Redis oracle passes | 16/16 targets and oracle pass, 34 hits | Reuse the existing notification pointer slot without erasing the local cross-shard marker; detach preserves the marker | All eight consumers audited; no spare flag bit and no layout growth |
 | 9 flagged EVAL in EXEC | 16/16 target legs abort the first allow-oom child; 16 target hits; four oracle variants pass | 16/16 target legs × EVAL/EVALSHA × allow-oom/no-writes pass (64 target hits), plus four oracle hits | All ScriptRoute EXEC children enter script preparation inside flag-aware memory admission, as FCALL does | No execution algorithm replacement |
@@ -202,20 +206,28 @@ literal labels were added to the reviewed receipt fixture without using a run
 ledger. Its check remains red **only because EXPECT_FULL is still 1016**;
 missing/extra labels are both none (`docs/rootcore/ledger-fixture.log`).
 
-`tools/rootcore_proof.py` records exact selected jobs, binary SHA and environment
-for directed, main-uring, main-epoll, fused-uring and fused-epoll phases. Only
-selected correctness jobs run, with `GATE_PROOF_NO_RATES=1`; this is not a full
-gate pass or full iteration. The first frozen directed phase, before extending
-WAITAOF with its non-mutation edge, reports seven passing rows including release
-and one red MISCONF row. The later `rootcore-waitaof` job is red on the newly
-witnessed residual below. The final directed phase has six passing rows (including
-release) and two red rows: MISCONF and WAITAOF. The first broad phase completed
-all 77 selected/prerequisite jobs: **544 passing rows, 11 failed rows**. Those
-failures are maxmemrace, nine original AOF rows discussed below, and notify_order.
-Main-epoll completed all 43 jobs with **270 passing rows and one failed row**.
-Supplementary fused-uring and fused-epoll each completed all seven jobs with
-**47 passing rows and zero failed rows**. Remaining supplementary results will
-be appended when complete.
+`tools/rootcore_proof.py` records exact selected jobs, binary SHA and environment.
+All 15 phases completed every requested job. Only selected correctness jobs ran,
+with `GATE_PROOF_NO_RATES=1`; this is not a full gate pass or full iteration.
+Counts include release/prerequisite jobs and come from each phase's ledger;
+repeated controls are separate runs, not additional distinct test coverage.
+
+| Phase(s), counts per phase | Jobs | Passing rows | Failed rows |
+| --- | ---: | ---: | ---: |
+| directed POST | 8 | 6 | 2 |
+| main-uring POST | 77 | 544 | 11 |
+| main-epoll POST | 43 | 270 | 1 |
+| fused-uring / fused-epoll POST | 7 | 47 | 0 |
+| txnorder PRE 1/2 and POST 1/2 | 3 | 2 | 0 |
+| notify-order PRE / POST | 2 | 2 | 0 |
+| AOF PRE split/fused and POST split/fused | 3 | 109 | 0 |
+
+The directed failures are MISCONF and the expanded WAITAOF non-mutation edge.
+Main-uring's failures are maxmemrace, nine original AOF rows discussed below,
+and notify_order. Main-epoll's failure is the transaction AOF storm below.
+`docs/rootcore/final-audit.json` records every phase independently and verifies
+all proof/data archive hashes. Earlier directed results, before the strict
+WAITAOF expansion, remain retained and do not replace the final red row.
 
 The main-epoll `txnorder-fused-1` job has also failed. Its non-AOF cases and
 serverless survivors pass, but the AOF storm (`1s`, atomic=1, databases=16,
@@ -238,8 +250,8 @@ channel full before GCMT publication; if that reproduces, calling the existing
 drain helper in that retry is the smallest candidate fix. That forced-window
 probe is **NOT RUN**, with no measured hits: it is outside the listed fixes,
 and the matched controls did not establish it as this failure's cause. No
-speculative production change was made. Live stack capture was also **NOT RUN**: the host has
-ptrace_scope=1 and this lane has no passwordless privileged debugger. The
+speculative production change was made. Live stack capture was also **NOT RUN**:
+the host has ptrace_scope=1 and this lane has no passwordless privileged debugger. The
 optional observer was stopped without attaching to any server; no system
 debugging policy was changed.
 
@@ -257,27 +269,35 @@ Exact seed plans, coverage records and all per-suite output remain in the phase
 archives. Thus a passing differential part does not claim its omitted SORT
 geometry was exercised.
 
-`python3 tests/gates_test.py` has been run twice. Each attempt has 82 passing
-tests and one failure: the complete single-slot scheduler fixture reaches its
-existing 45-second deadline (exit 124). The second attempt ran without a build
-on its CPUs. The deadline and coverage were not changed. Logs are retained as
-`docs/rootcore/gates-test*.log.gz`; no all-green harness claim is made.
+The final `python3 tests/gates_test.py` run passes **83/83**, exit 0, after the
+correctness servers finish. It uses CPUs 16–31, `LC_ALL=C` and
+`GATE_TEST_PORT=20198`; command/environment/source digests and the complete log
+are in `docs/rootcore/gates-test-final.{json,log.gz}`.
+
+Two earlier attempts each had 82 passing tests and one failure: the complete
+single-slot scheduler fixture reached its existing 45-second deadline (exit
+124). The second attempt ran without a build on its CPUs. Those earlier runs
+used the harness's default port 0 for its dummy listener; the final run pins
+that listener to the allocated band. Actual TomoKV/Redis boots use the assigned
+ports. The deadline and coverage were not changed; earlier logs remain in
+`docs/rootcore/gates-test*.log.gz`.
 
 An isolated control reused the unchanged scheduler test on CPUs 24–27: PRE's
 278 jobs passed in 44.887 seconds; POST's 285 jobs timed out at the unchanged
-45-second bound (45.193 seconds including teardown). Thus the additional seven
-jobs push the serial fixture over an already nearly exhausted deadline. This
-is a harness/inventory failure, not a reproduced server hang. It is documented
-under the owner's rule to leave non-S1 work for later; neither the deadline nor
-the mandatory inventory was weakened. `tools/rootcore_scheduler.py` and
-`docs/rootcore/scheduler` retain the comparison.
+45-second bound (45.193 seconds including teardown). The increased inventory
+crossed an already nearly exhausted deadline in that control; the final pass
+shows its timing sensitivity. This is a harness/inventory failure, not a
+reproduced server hang. It is documented under the owner's rule to leave
+non-S1 work for later; neither the deadline nor the mandatory inventory was
+weakened. `tools/rootcore_scheduler.py` and `docs/rootcore/scheduler` retain the
+comparison.
 
 The final release and all targets in the production-unit build list build with
 exit 0 (`docs/rootcore/rebuild.json`). The ordinary gate helper additionally
 builds both live MDBQSBR arms and the blockfix cost/refusal targets. All **57**
-`make -q` checks pass, including those concrete recursive build roots and extra
-makefiles (`docs/rootcore/freshness.json`). The initial build's stale mangled
-wrapper name was corrected in the unit and linker flag; its journal-refusal
+`make -q` checks pass again at final handoff, including those concrete recursive
+build roots and extra makefiles (`docs/rootcore/freshness.json`). The initial
+build's stale mangled wrapper name was corrected in the unit and linker flag; its journal-refusal
 negative control remains intact. The interrupted initial broader run is kept
 in `docs/rootcore/proof-initial`, not counted as a completed proof phase.
 
@@ -292,14 +312,17 @@ The first main-uring AOF jobs exposed an outdated test scanner: it accepted only
 GCMT in the control stream and rejected the new FUNCTION post-image before
 population wrote its expected-state file. This caused four failed population
 rows and four dependent restart rows across the two engines. One epoll native
-snapshot comparison also failed after its DEBUG LOADAOF prerequisite was skipped;
-its status will be resolved by the full reruns below. Commit `0983330274` teaches
+snapshot comparison also failed after its DEBUG LOADAOF prerequisite was skipped.
+Commit `0983330274` teaches
 the scanner the new record with bounds, dump-header and checksum validation,
 without treating it as a GCMT. Unknown kind, damaged checksum, nonzero FUNCTION
 ticket and frame-overrun controls all fail (`docs/rootcore/aof-scanner.json`).
 The frame diagnostic prints the new kind without decoding its source bytes as
-a GCMT dependency vector. Full PRE/POST AOF jobs in both modes and engines are
-queued in `tools/rootcore_proof.py`; the original failures remain in the archive.
+a GCMT dependency vector. Full PRE/POST AOF reruns in both modes and engines now
+pass: four phases, 109 rows each, including all population, restart and native
+snapshot comparisons. No production change was needed for the earlier snapshot
+mismatch. Its skipped prerequisite and the original failures remain recorded;
+the passing reruns do not rewrite that failed ledger.
 
 The first notify_order run passed 11 of 12 declared geometries (23 cases each).
 The `2s/epoll/atomic=1/read-local=0` leg stopped during publisher placement,
@@ -316,11 +339,14 @@ The complete per-phase omission transcripts are retained in
 phase reports fused SORT differential legs **NOT RUN** because that suite
 requires split 6:2 geometry. Rate-disabled proof also omits the atomic RYOW rate
 comparison and the stream suite's release-only memory/size assertions. The
-legacy atomic OFF controls did run but did not expose their target anomaly:
-SINTERSTORE exhausted four 2.5-second rolls (the log retains 35,837 reads in the
-last roll), and RENAMENX/COPY each ran 64 rounds with a 100,000-us OFF defer.
-Each had zero anomaly hits. These are **inconclusive negative controls**, not
-successful witnesses; this lane does not weaken or rewrite those tests. The
+legacy atomic OFF controls did run. In both split runs, SINTERSTORE exhausted
+four 2.5-second rolls (last-roll reads: 35,837 io_uring / 36,423 epoll), and
+RENAMENX/COPY each ran 64 rounds with a 100,000-us OFF defer. Each of those
+split controls had zero anomaly hits and is **inconclusive**. Fused io_uring
+opened all three controls: SINTERSTORE 11 anomalies in 36,049 reads, RENAMENX
+38 and COPY 52 anomalies. Fused epoll also opened all three: 5 in 36,811 reads,
+14 and 31 anomalies, respectively. MSET-8 and RENAME OFF controls opened in
+all four phases. This lane does not weaken or rewrite those tests. The
 `SKIP fixture` lines in scriptatomic are expected old-behaviour negative-control
 transcripts; its strict live arms ran.
 
@@ -328,7 +354,12 @@ Completed phases' generated persistence data is retained in compressed archives
 under `build/rootcore/data-archives`; `docs/rootcore/data-archives.json` records
 members, SHA-256s and sizes. Every extracted member was hashed against its loose
 source before the loose copy was removed. Text proof and boot logs remain in
-the worktree and in the committed proof archives.
+the worktree and in the committed proof archives. Final `build/` apparent size
+is 11,924,302,451 bytes (11.93 GB); its initial uncompressed all-unit build
+briefly reached about 17 GiB before debug compression and verified data archiving
+brought it below the requested budget. Final checks find no owned TomoKV process
+or listener on ports 20100–20199, unchanged EXPECT constants, unchanged frozen
+arm hashes, and a clean `git diff --check`.
 
 ### Item 11 — remaining non-mutation receipt boundary
 
@@ -401,4 +432,4 @@ This adds an error-recovery state machine across producer serialization and
 writer ownership. Per the task's explicit architecture/algorithm freeze, that
 change is **STOPPED, not implemented**. The S1 refusal remains on POST. Clearing
 the flag or retrying only later chunks would introduce acknowledged record loss.
-The final proof will retain the failing POST row rather than relabel it a pass.
+The final proof retains the failing POST row.

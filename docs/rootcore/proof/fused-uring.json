@@ -87,7 +87,7 @@
     ]
   },
   "differential_plan": null,
-  "archive_sha256": "f1f09e541d2917e21e4d1b846040a71c7e9337b26ae9f46fe6ef4a1fe4d50781",
+  "archive_sha256": "a01327e93a2ac9778800ecd77b5f2ca7225ba83e82277ca2f5b230bf4966d667",
   "archive_files": [
     "families.tsv",
     "jobs/atomic_batteries/done",
