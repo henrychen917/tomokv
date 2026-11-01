@@ -19,7 +19,7 @@ waiter, missing MVCC window, absent stolen-element hit, unexecuted creator,
 wrong value or wrong exact error fails the row. Each attempt uses fresh keys.
 Redis 7.4.10 at `/home/user/Projects/redis/src/redis-server` runs the same scripts.
 
-| Item | PRE witness (io_uring / epoll) | POST per engine, all eight geometries | Mechanism changed | Residual |
+| Item | PRE witness (io_uring / epoll) | POST per matrix, all eight geometries | Mechanism changed | Residual |
 |---|---|---|---|---|
 | 1 SCRIPT-PUSH-NO-WAKE | 36 / 36 script pushes needed a rescue push; held-record cases also missed publication before hold release | 108/108 ordinary/held and 1,024/1,024 natural-MVCC pushes woke without rescue | Deferred native publication marks the shard dirty; script scope restores the previous deferral state and publishes after the last command, or after its outer plain view closes | No ordered ready-key walk |
 | 2 SCRIPT-PUSH-WAKE-POINT | 24 / 24 script replies returned LLEN=0 | 1,132/1,132 script replies returned LLEN=1 | One publication scope covers the complete EVAL/EVALSHA/FCALL activation, including error exits | EXEC-SEES-UNSERVED-STATE remains outside this lane |
@@ -35,24 +35,26 @@ candidate passed all five rows on both engines: 108 script attempts, 720 stolen
 move hits, 480 creator hits, 400 stream-removal hits and 51,200 pops per engine.
 These are intermediate receipts; the final binary's receipts are recorded below.
 
-The final io_uring witness job passed 116/116 legs, including its oracle legs.
-With the complete removal inventory, TomoKV completed 108 ordinary/held script
-pushes and 1,024 natural-MVCC script attempts (1,001 observed MVCC windows), all
-with LLEN=1 and no rescue push; 720/720 stolen-source move windows re-parked
-and consumed the second push; 480 creator wakes returned the oracle's values;
-640 removed-stream hits gave the exact errors (160 WRONGTYPE, 480 NOGROUP);
-all 51,200 MPOPs were non-null. The removal inventory adds ASYNC FLUSHDB,
-ASYNC FLUSHALL and MSET replacement to the original five cases.
-`docs/blockfix4/extended-proof-summary.json` derives these counts from
-`post-extended-uring`. The earlier final-binary run, before adding MSET, is
-retained in `post-uring-summary.json` (560 removal hits, 1,019 MVCC windows).
-The complete job also passed with `--databases 16`, exercising the normal
-namespace in addition to the default DB0 specialization.
-The final epoll DB0 job also passed all 116 legs with the same complete
-inventory and counts: 1,024 natural-MVCC attempts opened 1,021 windows;
-108 script pushes, 720 move windows, 480 creator wakes, 640 exact stream
-errors and 51,200 non-null pops all passed. The normal io_uring run opened
-1,009 natural-MVCC windows. `final-witness-summary.json` records these runs.
+All four final witness matrices passed 116/116 legs each, including the
+oracle legs. The item table gives counts per matrix. Natural-MVCC attempts
+completed all 128 fresh attempts in each of eight legs; every leg opened
+MVCC windows, every script returned LLEN=1, and none needed a rescue push.
+
+| Engine | Command namespace | Receipt | Passing legs | Natural-MVCC windows / attempts |
+|---|---|---|---:|---:|
+| io_uring | DB0 (`--databases 1`) | `post-extended-uring` | 116/116 | 1,001/1,024 |
+| epoll | DB0 | `functional-epoll` | 116/116 | 1,021/1,024 |
+| io_uring | normal (`--databases 16`) | `normal-namespace-uring` | 116/116 | 1,009/1,024 |
+| epoll | normal | `normal-namespace-epoll` | 116/116 | 1,011/1,024 |
+
+These four matrices used identical current witness sources and the final
+candidate hash. `docs/blockfix4/final-witness-summary.json` derives the counts
+from their archives. Totals: 432 ordinary/held script pushes, 4,096 natural
+script attempts (4,042 MVCC windows), 2,880 stolen-source moves, 1,920 creator
+wakes, 2,560 exact stream-removal errors and 204,800 non-null pops.
+The removal inventory adds ASYNC FLUSHDB, ASYNC FLUSHALL and MSET replacement
+to the original five cases. The earlier final-binary io_uring run, before
+adding MSET, remains in `post-uring-summary.json` (560 removal hits).
 
 The expanded PRE gate run, including natural-MVCC witnesses, failed all five
 aggregate rows again.
@@ -76,8 +78,8 @@ under `docs/blockfix4/legacy-receipts/`; none is counted as passing evidence.
 ### Validation
 
 The broad io_uring gate proof passed 334/334 rows; the additional fused debug
-jobs passed 33/33, and fused blocking/atomic/notification jobs passed 19/19
-on each engine. Remaining epoll receipts are pending.
+jobs passed 33/33 on each engine, and fused blocking/atomic/notification jobs
+passed 19/19 on each engine. The remaining broad epoll receipt is pending.
 The production-unit proof passed 30/30 rows. `make all` and all 51 targets in the first
 `job_production_units` make command built; its two MDBQSBR control servers,
 blockfix cost target and both blockfix2 unit targets also built. All five
