@@ -49,7 +49,13 @@ is added. `docs/wave13/tcl-manifest-reconcile.json` records the union.
 - Moved WATCH sessions receive FLUSHALL/FLUSHDB invalidation without losing
   physical alias pins. Added core checks inspect exact alias counts; live checks
   require nil EXEC after those FLUSHes and successful EXEC after CONFIG memory
-  fragments that leave keys unchanged.
+  fragments that leave keys unchanged. Design A's `Shard::watch_flush` captures
+  key existence and sets the dirty bit without removing registrations or alias
+  pins. CONFIG memory fragments do not create WATCH pins: their public Op,
+  scatter barrier and ROB must drain before `flip_drain_idle` permits transfer.
+  The last CONFIG fragment removes its publication claim before reply retirement,
+  and each owner applies the memory configuration before the barrier replies.
+  The WATCH alias exception therefore does not bypass CONFIG completion.
 - Persistence restart rows now compare FUNCTION FLUSH versus FLUSHALL against
   Redis before SAVE/BGSAVE/SHUTDOWN SAVE/DEBUG RELOAD/AOF rewrite. The scheduled
   PS4.4 row retains SET and additionally fails FLUSHALL and FLUSHDB writes at the
