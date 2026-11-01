@@ -257,6 +257,7 @@ void notify_tracking_commit(Op& op);
 
 // IO retirement.  Special states surrender their batch before their existing destructor runs.
 NotifyBatch* notify_take_batch(Op& op);
+void notify_tracking_multi_writes(IoLoop& loop, NotifyBatch* batch, uint64_t writer, uint32_t order);
 uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t order);
 void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer_id = 0);
 void notify_discard_batch(NotifyBatch* batch);

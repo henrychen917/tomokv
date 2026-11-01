@@ -855,14 +855,31 @@ void notify_tracking_commit(Op& op) {
     notify_tracking_seal(batch);
 }
 
+// Replay the committed child's tracking effects before the following read
+// enrolls. GET; SET; GET owes one invalidation and retains the last enrollment.
+// The later whole-batch broadcast is idempotent at this publication stamp;
+// remote IO owners still receive the normal transport exactly once.
+void notify_tracking_multi_writes(IoLoop& loop, NotifyBatch* batch, uint64_t writer,
+                                  uint32_t order) {
+    if (!batch || !batch->tracking_stamp) return;
+    const auto apply = [&](const NotifyRecordImpl& record) {
+        if (!(record.routes & NOTIFY_TRACKING) || record.event == NotifyEventId::Keymiss ||
+            record.order < order || record.order - order >= 0x10000u) return;
+        loop.tracking_invalidate_local(record.key, writer, batch->tracking_stamp);
+    };
+    for (uint32_t i = 0; i < batch->inline_size; ++i) apply(batch->inline_records[i]);
+    for (const auto& record : batch->spill) apply(record);
+}
+
 uint64_t notify_tracking_read_stamp(NotifyBatch* batch, Slice key, uint32_t order) {
     if (!batch || !batch->tracking_stamp) return 0;
     bool before = false, after = false;
     const auto inspect = [&](const NotifyRecordImpl& record) {
         if (!(record.routes & NOTIFY_TRACKING) || record.event == NotifyEventId::Keymiss ||
             !record.key.key_mem_eq(key)) return;
-        before |= record.order < order;
-        after |= record.order >= order;
+        // Passive expiry during this read precedes the returned observation.
+        before |= record.order < order + 0x10000u;
+        after |= record.order >= order + 0x10000u;
     };
     for (uint32_t i = 0; i < batch->inline_size; ++i) inspect(batch->inline_records[i]);
     for (const auto& record : batch->spill) inspect(record);

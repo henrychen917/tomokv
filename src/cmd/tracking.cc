@@ -111,13 +111,6 @@ void tracking_observe_read(Shard& shard, Op& op) {
     observed = std::min(observed, stamp); // each shard slot has exactly one writer
 }
 
-void tracking_execute_read(Shard& shard, Op& op) {
-    // WATCH selects handler_notify even for a read. The tracking receipt uses
-    // that slot as its tag, so forward to the original observed handler.
-    const auto& read = *static_cast<const IoLoop::TrackingRead*>(op.spec);
-    read.original->handler_notify(shard, op);
-}
-
 void tracking_observe_local(Server& server, Op& op) {
     (void)server;
     if (!op.spec || op.spec->handler_notify != tracking_read_marker) return;
@@ -990,27 +983,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     std::sort(state.prefixes.begin(), state.prefixes.end());   // redis reports them sorted
     command_client_set_tracking_view(client, true, static_cast<int64_t>(redirect));
     climon_refresh_armed();
-    // Owners may still be draining a pass whose notification mask predates ON.
-    // Acknowledge only after their existing config refresh has applied this
-    // publication. This cold timer shares WAIT's already-conditional service;
-    // no command handler or unchanging owner pass gains a tracking check.
-    const uint64_t version = srv_->live_config_snapshot(self_->id()).version;
-    if (clientcompat_post() && !srv_->tracking_config_ready(version) &&
-        &op == &client->rob().at(client->rob().dispatch_id())) {
-        try {
-            deferred_timers_.push_back(DeferredTimer{client, client->rob().dispatch_id(),
-                version, 0, {}, DeferredTimerKind::TrackingOn});
-        } catch (const std::bad_alloc&) {
-            reply_err(op.sink(), "ERR out of memory");
-            return ClimonStartResult::Sync;
-        }
-        client->rob().publish();
-        barrier_arm(client, BarrierOwner::PubSub);
-        mark_active(client);
-        return ClimonStartResult::Async;
-    }
-    reply_ok(op.sink());
-    return ClimonStartResult::Sync;
+    return tracking_ack_enable(client, op);
 }
 
 }  // namespace tomo

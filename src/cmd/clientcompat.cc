@@ -6,6 +6,37 @@
 
 namespace tomo {
 
+void tracking_execute_read(Shard& shard, Op& op) {
+    // WATCH selects handler_notify even for a read. The tracking receipt uses
+    // that slot as its tag, so forward to the original observed handler.
+    const auto& read = *static_cast<const IoLoop::TrackingRead*>(op.spec);
+    read.original->handler_notify(shard, op);
+}
+
+IoLoop::ClimonStartResult IoLoop::tracking_ack_enable(Client* client, Op& op) {
+    // Owners may still be draining a pass whose notification mask predates ON.
+    // Acknowledge only after their existing config refresh has applied this
+    // publication. This cold timer shares WAIT's already-conditional service;
+    // no command handler or unchanging owner pass gains a tracking check.
+    const uint64_t version = srv_->live_config_snapshot(self_->id()).version;
+    if (clientcompat_post() && !srv_->tracking_config_ready(version) &&
+        &op == &client->rob().at(client->rob().dispatch_id())) {
+        try {
+            deferred_timers_.push_back(DeferredTimer{client, client->rob().dispatch_id(),
+                version, 0, {}, DeferredTimerKind::TrackingOn});
+        } catch (const std::bad_alloc&) {
+            reply_err(op.sink(), "ERR out of memory");
+            return ClimonStartResult::Sync;
+        }
+        client->rob().publish();
+        barrier_arm(client, BarrierOwner::PubSub);
+        mark_active(client);
+        return ClimonStartResult::Async;
+    }
+    reply_ok(op.sink());
+    return ClimonStartResult::Sync;
+}
+
 void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
     if (!clientcompat_post()) return;
     auto* tracking = climon_conn_find(client.id());
@@ -19,12 +50,12 @@ void IoLoop::tracking_prepare_multi(Client& client, MultiExecState& state) {
     multi_tracking_children(state, &context, [](void* raw, Op& child, bool prebuilt,
             bool, bool, bool&, uint32_t) {
         auto& c = *static_cast<Context*>(raw);
+        if (prebuilt) return;
         if (child.cmd_name().eq_icase("client") && child.argc() == 3 &&
             child.arg(1).eq_icase("caching")) {
             if ((c.tracking->optin && child.arg(2).eq_icase("yes")) ||
                 (c.tracking->optout && child.arg(2).eq_icase("no"))) c.caching = true;
         }
-        if (prebuilt) return;
         c.tracking->caching_armed = c.caching;
         c.loop->tracking_register_read(c.client, *c.tracking, child);
         auto receipt = c.tracking->tracking_reads.find(&child);
@@ -44,7 +75,9 @@ void IoLoop::tracking_finish_multi(Client& client, MultiExecState& state, Notify
     multi_tracking_children(state, &context, [](void* raw, Op& child, bool,
             bool io_local, bool acl, bool& effect_done, uint32_t order) {
         auto& c = *static_cast<Context*>(raw);
-        if (c.committed && io_local && child.cmd_name().eq_icase("client") &&
+        if (c.committed)
+            notify_tracking_multi_writes(*c.loop, c.batch, c.client->id(), order);
+        if (c.committed && io_local && !effect_done && child.cmd_name().eq_icase("client") &&
             c.loop->tracking_client_subcommand(c.client, child) == ClimonStartResult::Sync)
             effect_done = true;
         if (c.committed && io_local && acl && !effect_done) {

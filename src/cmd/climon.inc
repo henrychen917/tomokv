@@ -178,6 +178,8 @@
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);
     void tracking_retire_read(Client& client, Op& op);
+    ClimonStartResult tracking_ack_enable(Client* client, Op& op);
+    friend void notify_tracking_multi_writes(IoLoop&, NotifyBatch*, uint64_t, uint32_t);
     void tracking_prepare_multi(Client& client, MultiExecState& state);
     void tracking_finish_multi(Client& client, MultiExecState& state, NotifyBatch* batch);
     void tracking_retire_exec_read(Client& client, Op& op, NotifyBatch* batch,

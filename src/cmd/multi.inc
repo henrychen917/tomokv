@@ -2791,6 +2791,9 @@ bool multi_exec_io_commands(IoLoop& loop, MultiExecState& state) {
         } else {
             command_set_local_context(&client, loop.self_);
             if (verb == MultiVerb::V_acl) acl_command_entry(loop, client, child);
+            else if (child.cmd_name().eq_icase("client") &&
+                     loop.tracking_client_subcommand(&client, child) !=
+                         IoLoop::ClimonStartResult::NotHandled) {}
             else if (!command_client_pause(*state.server, child, state.now_cut_mono_ms))
                 child.spec->handler(state.server->shard(0), child);
             command_set_local_context(nullptr, nullptr);
