@@ -58,7 +58,7 @@ Validation in progress:
 | Tcl passing-subset job | PASS in 2s and 1s, 39 file jobs each, zero manifest validation errors; `proof/tcl-final/`. This preserves the manifest's existing known setup errors and skips |
 | Broader touched jobs | Running, both modes/engines |
 | Standard differential seeds | Running, both engines |
-| `tests/gates_test.py` | Final isolated rerun running; the first run exceeded fixed scheduler-fixture deadlines during builds |
+| `tests/gates_test.py` | FAIL: 82/83 on two isolated CPU allocations. The one-slot full-inventory fixture exceeds its unchanged 45 s bound; PRE control passes at 44.217 s, POST times out at 45.188 s after nine added jobs. All 293 POST jobs finalized in the first isolated failure. No deadline/assertion was weakened; `proof/gates-test-final.log`, `proof/scheduler-single-controls.json` |
 
 Tcl accounting: the XGROUP DESTROY/NOGROUP counter assertion is re-skipped after guard removal. The two Lua error_reply statistics assertions remain skipped. No other entire upstream test was made passing by these fixes: the combined SLOWLOG privacy test also requires unsupported replication/TLS configs, and the adjacent redaction test requires MIGRATE. Their fixed ACL assertions are covered by the new oracle-directed SLOWLOG/MONITOR job. The first Tcl attempt used the rejected counter prototype; a focused PRE control reproduced its intermittent 2s pubsub unsubscribe failure. Final POST passes the full checked-in manifest in both modes.
 
