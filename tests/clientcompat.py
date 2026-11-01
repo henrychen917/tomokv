@@ -110,7 +110,8 @@ def probe(case, port, rows, oracle, mode=None):
                     # A descheduled driver may outlive the pause before it
                     # observes the socket. Certify the original 180 ms window;
                     # re-arm fresh state, bounded, if it was not observed.
-                    control, b = peer(), peer()
+                    control = a if attempt == 0 else peer()
+                    b = peer()
                     prefix = f'cc:pause:{index}:{attempt}:'
                     actual_command = tuple(arg.replace('cc:', prefix).replace(
                         'cc_pause', f'cc_pause_{index}_{attempt}')
@@ -135,7 +136,8 @@ def probe(case, port, rows, oracle, mode=None):
                     b.close()
                     # In ALL, UNPAUSE itself must wait for expiry.
                     check('pause released', control.cmd('CLIENT', 'UNPAUSE'), b'OK')
-                    control.close()
+                    if control is not a:
+                        control.close()
                     if opened:
                         break
                 check(f'{pause_mode} {command}: pause window opened', opened, True)
