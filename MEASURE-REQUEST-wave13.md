@@ -132,7 +132,11 @@ two instructions per command in xshard_prepare (batch 32: +64), while atomic
 MSET is equal. db0 MGET/MSET are below headline. Native EXEC deltas are −2..+1
 normal and −6..0 db0 per complete activation. Native EVAL/EVALSHA add one
 instruction normal, one to five db0; normal FLUSHALL adds one, db0 is equal.
-These are instruction observations, not throughput claims.
+Including executed Lua VM instructions, EVAL ranges from −4 to +6 per command
+in both namespaces; EVALSHA ranges from −4 to +6 normal and −4 to +10 db0.
+The supplemental FCALL range is −10..+14 normal and −10..+18 db0. The per-function
+decomposition identifies VM lookup/control-path differences separately. These
+are instruction observations, not throughput claims.
 
 All 696 counted native body/stub entries and 432 Lua-inclusive entries match
 their production binary; PRE additionally binds to the supplied headline.
@@ -164,6 +168,13 @@ Completed and failed attempts remain in `docs/wave13/jobs/`.
 The independent `python3 tests/gates_test.py` run passed all 83 main-suite tests
 (and its nested persistence-helper checks); `docs/wave13/gates-test.json` binds
 the log, source, C environment and fixed port 20098.
+The survey native client and all five Python harness selftests passed using
+serverless mock/parser checks (`docs/wave13/survey-selftests.json`); no survey
+load generation was run.
+`make all`, all 51 targets extracted from `job_production_units`, and their
+auxiliary builds passed. All 59 individual `make -q` checks passed, and the
+POST still equals `build/tomokv` byte for byte. The three arm hashes and all ten
+candidate companions remain unchanged (`docs/wave13/delivery-verification.json`).
 
 The primary attempt also exposed candidate packaging omissions: blockfix2 could
 not find its two serverless refusal units beside the frozen POST, and the
@@ -223,8 +234,9 @@ when attributing a POST change to behavior, subject to its stated layout limit.
    Keep this comparison distinct from the wave null.
 3. EXEC: `/home/user/Projects/calib/exec-merit.py`, with POST as candidate in
    two comparisons: supplied headline, then Redis 7.4.10. Use
-   `--conns 64 --threads 16 --cells all --blocks 3 --secs 20`, the same hashed
-   benchtxn, all eight mode/atomic/uncontended-hot cells, pipeline four, two
+   `--conns 64 --threads 16 --cells all --blocks 3 --secs 20` and
+   `--benchtxn /home/user/Projects/cx-wave13/build/benchtxn` (SHA-256
+   `5d16ce5dad63fb30c3e5a3e14abe167875fbb56240c04a2f462229912d7add3c`), all eight mode/atomic/uncontended-hot cells, pipeline four, two
    INCR children and four competing plain writers in hot cells. For Redis,
    select `--redis-io-threads 1` explicitly. Require zero order violations;
    retain EXEC and plain-writer results separately. Neither FIFO lane is present.
