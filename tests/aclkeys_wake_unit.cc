@@ -4,6 +4,7 @@
 #include "src/cmd/acl.h"
 #include "src/cmd/blocking.h"
 #include "src/cmd/xshard.h"
+#include "src/cmd/watch_modified.h"
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -230,23 +231,39 @@ int main(int argc, char** argv) {
         require(resume(), "resume scatter on explicit IO visit");
         unsigned fragments = 0;
         bool finished = false;
-        for (unsigned pass = 0; !finished && pass < 16; ++pass) {
+        std::vector<Task> deferred;
+        for (unsigned pass = 0; !finished && pass < 64; ++pass) {
             for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
-                server.thread(tid).drain_tasks([&](const Task& task) {
-                    require(xshard_execute(task, server.shard(task.shard), *op, tid) == ScatterTaskResult::Complete,
-                            "stream scatter gather");
+                server.thread(tid).drain_tasks([&](const Task& task) { deferred.push_back(task); });
+            }
+            auto pending = std::move(deferred);
+            deferred.clear();
+            for (const auto& task : pending) {
+                    const auto tid = server.worker_of_shard(task.shard);
+                    auto& target = server.shard(task.shard);
+                    const auto executed = target.has_watches()
+                        ? watch_execute_scatter(task, target, *op, tid)
+                        : xshard_execute(task, target, *op, tid);
+                    if (executed != ScatterTaskResult::Complete) {
+                        deferred.push_back(task);
+                        continue;
+                    }
                     const auto result = xshard_complete(server, server.thread(tid), unused_ring, task, *op);
                     if (result == ScatterFinish::Final) finished = true;
-                    else if (result == ScatterFinish::CommitQueued)
+                    else if (result == ScatterFinish::CommitQueued) {
                         xshard_queue_commit(server, server.thread(tid), task);
+                        // The commit batch is thread-local. This fixture visits
+                        // several logical owners on one OS thread: flush while
+                        // still bound to the owner that queued the commit.
+                        xshard_flush_commits(server, server.thread(tid), unused_ring, &finished,
+                            [](void* context, Client*) { *static_cast<bool*>(context) = true; });
+                    }
                     else require(result == ScatterFinish::Waiting, "scatter phase completion");
                     ++fragments;
-                });
-                xshard_flush_commits(server, server.thread(tid), unused_ring, &finished,
-                    [](void* context, Client*) { *static_cast<bool*>(context) = true; });
             }
         }
-        require(finished && (move ? fragments >= 2 : fragments == 1), "complete scatter owner wave");
+        require(finished && deferred.empty() && (move ? fragments >= 2 : fragments == 1),
+                "complete scatter owner wave");
         op->state.store(OpState::Done);
         xshard_retire(server, sender, unused_ring, client, *op, pool, io, nullptr, nullptr, nullptr);
     }

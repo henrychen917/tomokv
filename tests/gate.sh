@@ -1150,7 +1150,7 @@ plan_jobs(){
   done; done
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
-              production_units source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
+              production_units aclkeys_wake source_identity acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -2184,6 +2184,18 @@ for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof
     bad "storage $STORE_CASE regression" "see $TMPDIR/gate-store-build.txt, $TMPDIR/gate-store-$STORE_CASE-build.txt and $TMPDIR/gate-store-$STORE_CASE.txt"
   fi
 done
+}
+
+job_aclkeys_wake(){
+  local label="ACLKEYS3 last-owner-task wake" log="$TMPDIR/aclkeys-wake.log"
+  row_begin "$label"
+  # V1: both database images, split/fused, atomic 0/1 and all eleven schedules.
+  # The unit asserts latch stages 1/2/3 and the final ready-mask notification.
+  taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/aclkeys-wake-unit build/aclkeys-wake-db0-unit \
+      >"$log" 2>&1 \
+      && taskset -c "$CORES" python3 tools/aclkeys3_verify.py "$TMPDIR/aclkeys-wake" \
+          --rounds 1 --cores "$CORES" >>"$log" 2>&1 \
+      && ok "$label" || bad "$label" "see $log"
 }
 
 job_atomic_units(){
@@ -6217,6 +6229,7 @@ collect_job splitlocal_units
 collect_job storage_units
 
 collect_job atomic_units
+collect_job aclkeys_wake
 
 collect_job netcmd_units
 
