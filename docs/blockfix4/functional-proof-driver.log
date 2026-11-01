@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-blockfix4/tools/blockfix4_proof.py", line 56, in <module>
+    if k.startswith(('GATE_', 'BLOCKFIX4_')) or k in ('LC_ALL', 'REDIS74_ROOT')},
+
+  File "/home/user/Projects/cx-blockfix4/tools/blockfix4_proof.py", line 44, in main
+    '--candidate-binary', str(binary)]
+^^^^^^^^^^^^^^^^^
+AssertionError: {PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.YCsAzS'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.By6LIf'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.Wo0qIC'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.7nf12c'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.HD2gCU'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.G0FxZF'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.gtqfbL'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.jex8pv'), PosixPath('/home/user/Projects/cx-blockfix4/build/gate-run.1k5UMT')}
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['python3', 'tools/blockfix4_proof.py', '--tag', 'functional-uring', '--engine', 'uring', '--jobs', 'blockfix4 redis_tcl differ-split differ-armed']' returned non-zero exit status 1.
