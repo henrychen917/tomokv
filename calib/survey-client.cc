@@ -202,21 +202,24 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
         u64 target=o.rate?u64(std::ceil(o.rate*o.seconds/primary_ops)):0;
         std::vector<epoll_event> events(std::max(1,int(clients.size())));
         size_t next=0;
+        auto pace=[&] {
+            // Bound catch-up work so a backlog cannot starve socket progress.
+            for(int batch=0;batch<64;batch++) {
+                Conn& c=*clients[next];
+                if(c.cycle*o.connections+c.id>=target)break;
+                u64 scheduled=deadline(c,o,start,primary_ops);
+                if(ns()<scheduled)break;
+                enqueue(c,ops,scheduled,(c.id+c.cycle*o.connections)%o.keys,res);
+                flush(c,ep);next=(next+1)%clients.size();
+            }
+        };
         while(!abort.load()) {
             u64 now=ns();need(now<=end+u64(o.timeout*1e9),"client drain timeout");bool live=false;
             u64 wake=now+1000000;
             if(o.rate) {
                 // Connection IDs interleave workers. Within one worker they are
                 // already in deadline order, even when connections % threads != 0.
-                // Bound catch-up work so a backlog cannot starve socket progress.
-                for(int batch=0;batch<64;batch++) {
-                    Conn& c=*clients[next];
-                    if(c.cycle*o.connections+c.id>=target)break;
-                    u64 scheduled=deadline(c,o,start,primary_ops);now=ns();
-                    if(now<scheduled)break;
-                    enqueue(c,ops,scheduled,(c.id+(c.cycle)*o.connections)%o.keys,res);
-                    flush(c,ep);next=(next+1)%clients.size();
-                }
+                pace();
                 const Conn& c=*clients[next];
                 if(c.cycle*o.connections+c.id<target){live=true;wake=std::min(wake,deadline(c,o,start,primary_ops));}
             }
@@ -242,7 +245,7 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
                 need(!(events[i].events&(EPOLLERR|EPOLLHUP)),"socket closed/error");
                 if(events[i].events&EPOLLOUT)flush(c,ep);
                 if(events[i].events&EPOLLIN){
-                    char buf[65536];for(;;){ssize_t got=recv(c.fd,buf,sizeof buf,0);
+                    char buf[65536];for(int reads=0;reads<16;reads++){ssize_t got=recv(c.fd,buf,sizeof buf,0);
                         if(got<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;
                         if(got<0&&errno==EINTR)continue;
                         need(got>0,"recv failed/EOF");c.input.append(buf,got);
@@ -261,6 +264,10 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
                             res.rtt.add(done-pending.sent);res.response.add(done-pending.scheduled);res.lag.add(lag);res.maxlag=std::max(res.maxlag,lag);
                             if(raw.is_open()){u64 row[]={c.id,pending.scheduled-start,pending.sent-start,done-start};raw.write((char*)row,sizeof row);need(bool(raw),"raw write");}
                         }
+                        // A ready set can contain many milliseconds of replies.
+                        // Service due sends during parsing, not just after the
+                        // entire epoll batch, without dropping any observation.
+                        if(o.rate&&res.completed%32==0)pace();
                     }c.input.erase(0,p);
                 }
             }
