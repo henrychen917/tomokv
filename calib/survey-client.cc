@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <sched.h>
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <barrier>
 #include <bit>
@@ -26,13 +27,14 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
 using Clock = std::chrono::steady_clock;
 using u64 = uint64_t;
 static u64 ns() { return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count(); }
-static void need(bool yes, const std::string& msg) { if (!yes) throw std::runtime_error(msg); }
+static void need(bool yes, std::string_view msg) { if (!yes) throw std::runtime_error(std::string(msg)); }
 struct Reply { char kind=0; std::string text; std::vector<Reply> array; bool nil=false; };
 // Returns false for a partial frame. Position is advanced only on a complete frame.
 static bool parse(const std::string& s, size_t& pos, Reply& r, int depth=0) {
@@ -80,8 +82,10 @@ static bool equal(const Reply& a, const Reply& b) {
     return true;
 }
 static void check(const Op& op, const Reply& r) {
-    need(r.kind!='-',"server error: "+r.text);
-    if(op.rule=="exact") need(equal(r,op.expected),"unexpected reply: "+canon(r).substr(0,180));
+    if(r.kind=='-')throw std::runtime_error("server error: "+r.text);
+    if(op.rule=="exact") {
+        if(!equal(r,op.expected))throw std::runtime_error("unexpected reply: "+canon(r).substr(0,180));
+    }
     else if(op.rule=="positive") need(r.kind==':' && std::stoll(r.text)>0,"expected positive integer");
     else if(op.rule=="nonnegative") need(r.kind==':' && std::stoll(r.text)>=0,"expected nonnegative integer");
     else if(op.rule=="number") {
@@ -195,6 +199,7 @@ static void flush(Conn& c,int ep) {
 static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barrier<>& ready,
                    std::atomic<u64>& epoch,std::atomic<bool>& abort,Result& res) {
     int ep=-1; bool joined=false;
+    std::ofstream raw;std::vector<std::array<u64,4>> observations;size_t observed=0;
     try {
         cpu_set_t cpu;CPU_ZERO(&cpu);CPU_SET(o.cpus[wid%o.cpus.size()],&cpu);
         need(sched_setaffinity(0,sizeof cpu,&cpu)==0,"worker pinning");
@@ -205,8 +210,17 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
             auto c=std::make_unique<Conn>();c->id=i;c->seedkey=i;c->fd=dial(o.port);
             epoll_event e{};e.events=EPOLLIN;e.data.ptr=c.get();need(epoll_ctl(ep,EPOLL_CTL_ADD,c->fd,&e)==0,"epoll add");clients.push_back(std::move(c));
         }
-        std::ofstream raw;
-        if(!o.raw.empty()){raw.open(o.raw+"."+std::to_string(wid)+".bin",std::ios::binary);need(bool(raw),"raw open");}
+        u64 primary_ops=std::count_if(ops.begin(),ops.end(),[](const Op& x){return x.primary;});
+        u64 target=o.rate?u64(std::ceil(o.rate*o.seconds/primary_ops)):0;
+        if(!o.raw.empty()) {
+            need(o.rate>0,"raw observations require fixed load");
+            raw.open(o.raw+"."+std::to_string(wid)+".bin",std::ios::binary);need(bool(raw),"raw open");
+            u64 cycles=target/o.connections*clients.size();
+            for(const auto& c:clients)cycles+=c->id<target%o.connections;
+            // Pre-touch the exact, finite observation allocation before ready.
+            // Storage stalls must not hold the paced worker off its deadlines.
+            observations.resize(cycles*primary_ops);
+        }
         res.perop.resize(ops.size());
         joined=true; ready.arrive_and_wait();
         while(!epoch.load()&&!abort.load()) std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -214,8 +228,6 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
         u64 start=epoch.load(),end=start+u64(o.seconds*1e9);
         std::this_thread::sleep_until(Clock::time_point(std::chrono::nanoseconds(start)));
         double cpu0=threadcpu();
-        u64 primary_ops=std::count_if(ops.begin(),ops.end(),[](const Op& x){return x.primary;});
-        u64 target=o.rate?u64(std::ceil(o.rate*o.seconds/primary_ops)):0;
         std::vector<epoll_event> events(std::max(1,int(clients.size())));
         size_t next=0;
         auto pace=[&] {
@@ -278,7 +290,10 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
                         if(op.primary){res.primary++;res.within+=done<=end;
                             u64 lag=pending.sent>pending.scheduled?pending.sent-pending.scheduled:0;
                             res.rtt.add(done-pending.sent);res.response.add(done-pending.scheduled);res.lag.add(lag);res.maxlag=std::max(res.maxlag,lag);
-                            if(raw.is_open()){u64 row[]={c.id,pending.scheduled-start,pending.sent-start,done-start};raw.write((char*)row,sizeof row);need(bool(raw),"raw write");}
+                            if(raw.is_open()) {
+                                need(observed<observations.size(),"too many raw observations");
+                                observations[observed++]={c.id,pending.scheduled-start,pending.sent-start,done-start};
+                            }
                         }
                         // A ready set can contain many milliseconds of replies.
                         // Service due sends during parsing, not just after the
@@ -292,6 +307,12 @@ static void worker(int wid,const Options& o,const std::vector<Op>& ops,std::barr
         for(auto& c:clients){need(c->pending.empty()&&c->input.empty()&&c->unsent.empty()&&c->offset==c->output.size(),"undrained connection");need(c->completed>0,"inactive connection");res.cycles+=c->cycle;}
         res.finish=ns();res.cpu=threadcpu()-cpu0;
     }catch(const std::exception& e){res.error=e.what();abort=true;if(!joined)ready.arrive_and_drop();}
+    if(raw.is_open()) {
+        // Retain every completed observation, including a failed run's prefix.
+        raw.write(reinterpret_cast<const char*>(observations.data()),observed*sizeof(observations[0]));
+        raw.close();
+        if(!raw){res.error+=" raw write/close failed";abort=true;}
+    }
     if(ep>=0)close(ep);
 }
 static void selftest(){
