@@ -1,0 +1,185 @@
+{
+  "selected": {
+    "normal": 16835,
+    "db0": 15956
+  },
+  "derivation": "PRE budget + measured IPA size delta + normal 128-insn neighbour. NOFLUSH remapping adds 205 to normal IPA size and budget; its first derived budget retains the prior passing loop counts. db0 unchanged.",
+  "files": {
+    "build/persistfmt/budgets/PRE-db0.cc.085i.inline": {
+      "sha256": "721f023278bbd76b748f6ad62efa2471833dceb06e2b42caac9bc8e450125664",
+      "bytes": 5075250
+    },
+    "build/persistfmt/budgets/PRE-db0.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build/persistfmt/budgets/PRE-normal.log": {
+      "sha256": "07f3d890f5b5f1db4e5d7ac45c67b955f415059769672b95cece59571b36737e",
+      "bytes": 449
+    },
+    "build/persistfmt/budgets/PRE-normal.cc.085i.inline": {
+      "sha256": "9a4ab069f89ab5122e000d4866807fc0c9dcc25d95cd79343f3cee6954c04e7d",
+      "bytes": 5152260
+    },
+    "build/persistfmt/budgets/PRE-db0.o": {
+      "sha256": "51a50270edb2a62a4542a62f36eb819802b19f66e1f1c2abac4a2af6a96b1b06",
+      "bytes": 5031704
+    },
+    "build/persistfmt/budgets/POST-db0.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build/persistfmt/budgets/PRE-normal.o": {
+      "sha256": "fa01c3350baabac4a8d8f7c3f0f7102ba2aba539fb21f931223786626b9d98b9",
+      "bytes": 5015440
+    },
+    "build/persistfmt/budgets/POST-normal.o": {
+      "sha256": "e65772888441b8b032c20cf3e72e57367fbe8a850156cae55139dd74f960b980",
+      "bytes": 5054272
+    },
+    "build/persistfmt/budgets/POST-db0.cc.085i.inline": {
+      "sha256": "cb4b4beb3bd80a4dd958462f4a64b167690f7e383906f60841251672bc35a735",
+      "bytes": 5029148
+    },
+    "build/persistfmt/budgets/POST-db0.o": {
+      "sha256": "844530ac854e0bb49d4e4a2b07631afae5153b7418bd5a36b805e1f3cbac080a",
+      "bytes": 5041680
+    },
+    "build/persistfmt/budgets/POST-normal.cc.085i.inline": {
+      "sha256": "1f39ac80636dfc4fffa4a03f57f038ff093d1859ab7c86033a08280e1a1c8c86",
+      "bytes": 5157271
+    },
+    "build/persistfmt/budgets/POST-normal.log": {
+      "sha256": "07f3d890f5b5f1db4e5d7ac45c67b955f415059769672b95cece59571b36737e",
+      "bytes": 449
+    },
+    "build/persistfmt/budgets/normal-17550/build.log": {
+      "sha256": "07f3d890f5b5f1db4e5d7ac45c67b955f415059769672b95cece59571b36737e",
+      "bytes": 449
+    },
+    "build/persistfmt/budgets/normal-17550/snapshot.o": {
+      "sha256": "1fd588bcb99943886b947a0e7d6411fbb55756e22fd8ae15c8170dde98a9af93",
+      "bytes": 5304680
+    },
+    "build/persistfmt/budgets/normal-17550/complete.ranges": {
+      "sha256": "80b5108e22b8e49a34a9bf6264021e7a0f9076a6df383af92ed4850d82d1f5c4",
+      "bytes": 193535
+    },
+    "build/persistfmt/budgets/normal-17550/probe": {
+      "sha256": "02f1d06a83bed845850f10f56994c0f2435c5b4690cd0fd16cc068be0a58fa9f",
+      "bytes": 230266144
+    },
+    "build/persistfmt/budgets/normal/build.log": {
+      "sha256": "07f3d890f5b5f1db4e5d7ac45c67b955f415059769672b95cece59571b36737e",
+      "bytes": 449
+    },
+    "build/persistfmt/budgets/normal/snapshot.o": {
+      "sha256": "241aec6520544f815f4ac795f5edac2c77202dc5a8f9e39e07614f64ea0ac56f",
+      "bytes": 5181736
+    },
+    "build/persistfmt/budgets/normal/complete.ranges": {
+      "sha256": "efea90273eeb540486463461a55cd6635f7570e4c0080719980372b02b07fe9d",
+      "bytes": 193551
+    },
+    "build/persistfmt/budgets/normal/probe": {
+      "sha256": "32355cd090a4e2dfdd5934d040fe97a72367ae104b534a16cd054e172cb945b8",
+      "bytes": 230217672
+    },
+    "build/persistfmt/budgets/normal-16630/build.log": {
+      "sha256": "07f3d890f5b5f1db4e5d7ac45c67b955f415059769672b95cece59571b36737e",
+      "bytes": 449
+    },
+    "build/persistfmt/budgets/normal-16630/snapshot.o": {
+      "sha256": "a4c84dd3f56902925b150a701eca15f391c6ed2a572a9ebf2e58021673901bcf",
+      "bytes": 5189880
+    },
+    "build/persistfmt/budgets/normal-16630/complete.ranges": {
+      "sha256": "dacd3763afbfce17c8bcc95b3a2fb69077a8e64abf84a7776b8ae1e29725f355",
+      "bytes": 193551
+    },
+    "build/persistfmt/budgets/normal-16630/probe": {
+      "sha256": "3d1a229edcd9615182c4720287c0da0dda7a8cb4e02e3805d57638a8c93e48f3",
+      "bytes": 230221624
+    },
+    "build/persistfmt/budgets/db0-16084/build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build/persistfmt/budgets/db0-16084/snapshot.o": {
+      "sha256": "1a4be8d0ce143e383028c66feabed4f9148308dd0687681a8174c2e773357428",
+      "bytes": 5196888
+    },
+    "build/persistfmt/budgets/db0-16084/complete.ranges": {
+      "sha256": "6dd0e1ec6bcbb6ef23db72e03b2b379b86dbb5b11711509c0624fef9b4f24c29",
+      "bytes": 193565
+    },
+    "build/persistfmt/budgets/db0-16084/probe": {
+      "sha256": "bf8512f05093b65fd20eed0f5453d260ef8e74483d48016d1b922f6076cd946d",
+      "bytes": 230243112
+    },
+    "build/persistfmt/budgets/normal-18600/build.log": {
+      "sha256": "07f3d890f5b5f1db4e5d7ac45c67b955f415059769672b95cece59571b36737e",
+      "bytes": 449
+    },
+    "build/persistfmt/budgets/normal-18600/snapshot.o": {
+      "sha256": "55c755b009e5839d5566a2be6edb7f7fe236ffecc8798063c24bfd34d06829ff",
+      "bytes": 5428496
+    },
+    "build/persistfmt/budgets/normal-18600/complete.ranges": {
+      "sha256": "764317184e6678558043b1238708b79636e0723b6e49d8ad9abcb644fe8a28d0",
+      "bytes": 193535
+    },
+    "build/persistfmt/budgets/normal-18600/probe": {
+      "sha256": "9355496095623e049c7e33d6bc60b6018a2ddef25d70441bb04d4b25aba00bcb",
+      "bytes": 230319664
+    },
+    "build/persistfmt/budgets/db0/build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build/persistfmt/budgets/db0/snapshot.o": {
+      "sha256": "25206d49562467b7c9330ad2eb1b75ab18b5e9ea160469a917bdfe0d509ec2e8",
+      "bytes": 5177736
+    },
+    "build/persistfmt/budgets/db0/complete.ranges": {
+      "sha256": "f152443fc9da155ae2c9e9f84bb830d7712e7ea9de2cb4493443ee331214c042",
+      "bytes": 193565
+    },
+    "build/persistfmt/budgets/db0/probe": {
+      "sha256": "2b127136f4f7a76b78152846790021d3cb3076faacbf225f0f69d7b4feb59275",
+      "bytes": 230235616
+    },
+    "build/persistfmt/budgets/normal-17014/build.log": {
+      "sha256": "07f3d890f5b5f1db4e5d7ac45c67b955f415059769672b95cece59571b36737e",
+      "bytes": 449
+    },
+    "build/persistfmt/budgets/normal-17014/snapshot.o": {
+      "sha256": "401e677893006f4218a671f8d06eb2251285588483c34feb1e1d5eca3ddd6d37",
+      "bytes": 5232096
+    },
+    "build/persistfmt/budgets/normal-17014/complete.ranges": {
+      "sha256": "464381a49aabb8d5efa45cf48fa86c2b14fdec029db2ac218bd4effa3c186e5c",
+      "bytes": 193535
+    },
+    "build/persistfmt/budgets/normal-17014/probe": {
+      "sha256": "2492e9c3bf189233e3d1fd349061127577b9d324bf98a7fe11510a539094c277",
+      "bytes": 230237008
+    },
+    "build/persistfmt/budgets/db0-16468/build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build/persistfmt/budgets/db0-16468/snapshot.o": {
+      "sha256": "ce91faf318c63d2bd64fca35635c344c14a838642e06b5b925d6ddc95868e76d",
+      "bytes": 5244144
+    },
+    "build/persistfmt/budgets/db0-16468/complete.ranges": {
+      "sha256": "b7e0ee674acc1411cec6c7eaf5df93aef59a43791e20c77c468accfa9c01daa6",
+      "bytes": 193565
+    },
+    "build/persistfmt/budgets/db0-16468/probe": {
+      "sha256": "944a94b4e9f7d2c87ca3865abf02ab860b06f2843b6947146c90e709be7dab81",
+      "bytes": 230263024
+    }
+  }
+}

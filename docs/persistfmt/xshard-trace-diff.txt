@@ -1,0 +1,1136 @@
+--- PRE
+
++++ POST
+
+@@ -8,16 +8,16 @@
+
+ 1 push   %r12
+ 1 push   %rbx
+ 1 mov    %rsi,%rbx
+-1 sub    $0x618,%rsp
++1 sub    $0x608,%rsp
+ 1 mov    %rdi,-0x588(%rbp)
+-1 mov    0x8(%r13),%rax
++1 mov    0x0(%r13),%eax
+ 1 mov    (%rsi),%rdi
+ 1 mov    %rdx,-0x5b0(%rbp)
+ 1 mov    %ecx,-0x594(%rbp)
+ 1 mov    %r8,-0x5b8(%rbp)
+ 1 mov    %r9,-0x5c0(%rbp)
+-1 mov    0x0(%r13),%r15d
+-1 mov    %rax,-0x590(%rbp)
++1 mov    0x8(%r13),%r12
++1 mov    %eax,-0x590(%rbp)
+ 1 mov    %fs:0x28,%rax
+ 1 mov    %rax,-0x38(%rbp)
+ 1 xor    %eax,%eax
+@@ -44,46 +44,46 @@
+
+ 1 call   <_ZN8tomo_db012_GLOBAL__N_18classifyERKNS_2OpERNS0_4KindE.isra.0>
+ 1 test   %al,%al
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpq   $0x0,-0x590(%rbp)
+-1 movzbl -0x575(%rbp),%r12d
++1 movzbl -0x575(%rbp),%r15d
++1 test   %r12,%r12
+ 1 setne  %dl
+-1 cmp    $0x3,%r12b
++1 cmp    $0x3,%r15b
+ 1 sete   %al
+ 1 and    %al,%dl
+ 1 mov    %dl,-0x5a0(%rbp)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 lea    -0x4(%r12),%eax
++1 lea    -0x4(%r15),%eax
+ 1 cmp    $0x1,%al
+ 1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    -0x588(%rbp),%rax
+ 1 mov    0x16c08(%rax),%rcx
+-1 mov    %rcx,-0x5f0(%rbp)
++1 mov    %rcx,-0x5e8(%rbp)
+ 1 test   %rcx,%rcx
+-1 setne  -0x595(%rbp)
++1 setne  -0x5da(%rbp)
+ 1 mov    0x174a0(%rax),%rax
+ 1 test   %rax,%rax
+ 1 mov    %rcx,%rax
+ 1 setne  -0x5a8(%rbp)
+ 1 movzbl -0x5a8(%rbp),%edx
++1 or     -0x590(%rbp),%dl
+ 1 shr    $0x3f,%rax
+-1 or     %r15d,%edx
+ 1 or     %al,%dl
+-1 mov    %dl,-0x5e0(%rbp)
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x13,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x9,%r12b
++1 mov    %dl,-0x598(%rbp)
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x13,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x9,%r15b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 movb   $0x0,-0x5a8(%rbp)
+-1 lea    -0xa(%r12),%eax
++1 lea    -0xa(%r15),%eax
+ 1 cmp    $0x3,%al
+ 1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0xf,%r12b
++1 cmp    $0xf,%r15b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    %rbx,%rdi
+ 1 call   <_ZNK8tomo_db02Op8cmd_nameEv>
+ 1 mov    %rax,%rdi
+-1 lea    0x723c92(%rip),%rax
++1 lea    0x72e450(%rip),%rax
+ 1 mov    %rdx,%rsi
+ 1 mov    $0x4,%edx
+ 1 mov    %rax,%rcx
+@@ -91,7 +91,7 @@
+
+ 1 call   <_ZNK8tomo_db05Slice8eq_icaseESt17basic_string_viewIcSt11char_traitsIcEE.isra.0>
+ 1 test   %al,%al
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x31,%r12b
++1 cmp    $0x31,%r15b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 testb  $0x1,0xcc(%rbx)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+@@ -105,29 +105,30 @@
+
+ 1 movq   $0x0,-0x4d0(%rbp)
+ 1 movb   $0x0,-0x574(%rbp)
+ 1 movb   $0x0,-0x573(%rbp)
+-1 movl   $0x0,-0x5f8(%rbp)
+-1 movq   $0x0,-0x600(%rbp)
+-1 lea    -0x24(%r12),%eax
++1 movl   $0x0,-0x5f0(%rbp)
++1 movq   $0x0,-0x5f8(%rbp)
++1 lea    -0x24(%r15),%eax
+ 1 cmp    $0x3,%al
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 vpxor  %xmm0,%xmm0,%xmm0
+ 1 vmovdqu8 %zmm0,-0x420(%rbp)
+ 1 movq   $0xffffffffffffffff,-0x410(%rbp)
+-1 cmp    $0x2d,%r12b
++1 cmp    $0x2d,%r15b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    %r13,%rdi
++1 lea    -0x500(%rbp),%r13
+ 1 call   <_ZNSt12_Vector_baseIdSaIdEED1Ev>
+-1 mov    -0x568(%rbp),%r13
+-1 lea    -0x500(%rbp),%rdi
++1 mov    %r13,%rdi
+ 1 call   <_ZNSt6vectorISt10unique_ptrIN8tomo_db013AofReplayPlanESt14default_deleteIS2_EESaIS5_EED1Ev>
+-1 mov    -0x560(%rbp),%r14
+-1 test   %r14,%r14
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 test   %r13,%r13
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,-0x590(%rbp)
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 vmovdqa 0x7a9b81(%rip),%xmm0
++1 mov    -0x560(%rbp),%r15
++1 test   %r15,%r15
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 mov    -0x568(%rbp),%r15
++1 test   %r15,%r15
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 test   %r14b,%r14b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 vmovdqa 0x7b43ee(%rip),%xmm0
+ 1 cmpb   $0x0,-0x5a0(%rbp)
+ 1 movb   $0x0,-0x510(%rbp)
+ 1 movq   $0x0,-0x568(%rbp)
+@@ -137,10 +138,10 @@
+
+ 1 vpxor  %xmm0,%xmm0,%xmm0
+ 1 vmovdqa %xmm0,-0x500(%rbp)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 lea    -0x2e(%r12),%eax
++1 lea    -0x2e(%r15),%eax
+ 1 movw   $0x0,-0x540(%rbp)
+ 1 movq   $0x1,-0x53c(%rbp)
+-1 mov    %al,-0x596(%rbp)
++1 mov    %al,-0x608(%rbp)
+ 1 cmp    $0x2,%al
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 movq   $0x0,-0x480(%rbp)
+@@ -148,30 +149,30 @@
+
+ 1 movq   $0x0,-0x470(%rbp)
+ 1 movq   $0x0,-0x468(%rbp)
+ 1 movb   $0x0,-0x460(%rbp)
+-1 cmp    $0x10,%r12b
++1 cmp    $0x10,%r15b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 vpxor  %xmm0,%xmm0,%xmm0
+ 1 movq   $0x0,-0x430(%rbp)
+ 1 vmovdqu8 %ymm0,-0x450(%rbp)
+-1 cmp    $0x11,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,-0x5e0(%rbp)
+-1 lea    -0x10(%r12),%eax
+-1 mov    %al,-0x61c(%rbp)
++1 cmp    $0x11,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmpb   $0x0,-0x598(%rbp)
++1 lea    -0x10(%r15),%eax
++1 mov    %al,-0x60c(%rbp)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 lea    -0x370(%rbp),%rcx
+ 1 lea    -0x520(%rbp),%rdx
+-1 mov    %r12d,%esi
++1 mov    %r15d,%esi
+ 1 mov    %rbx,%rdi
+ 1 movq   $0x0,-0x350(%rbp)
+ 1 call   <_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE>
+-1 mov    %al,-0x615(%rbp)
++1 mov    %al,-0x5df(%rbp)
+ 1 test   %al,%al
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    -0x34c(%rbp),%eax
+ 1 lea    -0x40(%rbp),%rdx
+ 1 movq   $0x0,-0x240(%rbp)
+-1 mov    %eax,-0x5e0(%rbp)
++1 mov    %eax,-0x598(%rbp)
+ 1 movabs $0xffffffff00000000,%rax
+ 1 mov    %rax,-0x238(%rbp)
+ 1 lea    -0x230(%rbp),%rax
+@@ -182,27 +183,27 @@
+
+ 31 add    $0x10,%rax
+ 31 cmp    %rdx,%rax
+ 31 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpl   $0x20,-0x5e0(%rbp)
++1 cmpl   $0x20,-0x598(%rbp)
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x5e0(%rbp),%edi
++1 mov    -0x598(%rbp),%edi
+ 1 lea    -0x240(%rbp),%rax
+-1 mov    %rax,-0x608(%rbp)
++1 mov    %rax,-0x600(%rbp)
+ 1 test   %edi,%edi
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 vzeroupper
+-1 mov    -0x608(%rbp),%rcx
++1 mov    -0x600(%rbp),%rdx
+ 1 xor    %r13d,%r13d
+-1 mov    %r12b,-0x617(%rbp)
++1 mov    %r12,-0x618(%rbp)
+ 1 mov    -0x350(%rbp),%r14d
+ 1 mov    %r13d,%r12d
+-1 mov    %r15d,-0x620(%rbp)
+-1 mov    %rcx,%r13
++1 mov    %r15b,-0x60d(%rbp)
++1 mov    %rdx,%r13
+ 1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 8 shl    $0x4,%rax
+-8 imul   -0x368(%rbp,%rax,1),%edx
+-8 add    -0x370(%rbp,%rax,1),%edx
++8 imul   -0x368(%rbp,%rax,1),%ecx
++8 add    -0x370(%rbp,%rax,1),%ecx
+ 8 mov    0xc0(%rbx),%rax
+-8 mov    %edx,%esi
++8 mov    %ecx,%esi
+ 8 mov    %rsi,%r15
+ 8 test   %rax,%rax
+ 8 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+@@ -222,34 +223,30 @@
+
+ 8 mov    %r15d,-0x8(%r13)
+ 8 movzwl %si,%eax
+ 8 mov    %eax,-0x4(%r13)
+-8 mov    -0x5e0(%rbp),%eax
++8 mov    -0x598(%rbp),%eax
+ 8 cmp    %eax,%r12d
+ 8 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 8 test   %r14d,%r14d
+ 8 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 8 mov    -0x36c(%rbp),%eax
+-8 mov    %r12d,%edx
++8 mov    %r12d,%ecx
+ 8 cmp    %eax,%r12d
+ 8 jae    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 8 xor    %eax,%eax
+ 8 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x5a0(%rbp),%rdi
+-1 lea    -0x4e0(%rbp),%r13
+-1 call   <_ZNSt6vectorIjSaIjEED1Ev>
+-1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 movzbl -0x617(%rbp),%r12d
+-1 mov    -0x620(%rbp),%r15d
+-1 cmp    $0x9,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x5e0(%rbp),%edx
++1 movzbl -0x60d(%rbp),%r15d
++1 mov    -0x618(%rbp),%r12
++1 cmp    $0x9,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 mov    -0x598(%rbp),%edx
+ 1 cmp    $0x1,%edx
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x608(%rbp),%rcx
++1 mov    -0x600(%rbp),%rcx
+ 1 sub    $0x2,%edx
+ 1 shl    $0x4,%rdx
+ 1 mov    0xc(%rcx),%edi
+ 1 lea    0x2c(%rcx,%rdx,1),%rsi
+-1 movzbl -0x615(%rbp),%edx
++1 movzbl -0x5df(%rbp),%edx
+ 1 lea    0x1c(%rcx),%rax
+ 7 cmp    %edi,(%rax)
+ 7 sete   %cl
+@@ -257,72 +254,73 @@
+
+ 7 and    %ecx,%edx
+ 7 cmp    %rax,%rsi
+ 7 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 xor    %r13d,%r13d
+-1 mov    %r15d,%eax
++1 xor    %r12d,%r12d
++1 movzbl -0x590(%rbp),%eax
+ 1 xor    $0x1,%eax
+ 1 and    %edx,%eax
+-1 cmp    $0x2d,%r12b
++1 cmp    $0x2d,%r15b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   %al,%al
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x608(%rbp),%rax
++1 mov    -0x600(%rbp),%rax
+ 1 mov    %r9d,%r11d
+-1 mov    -0x5e0(%rbp),%ecx
++1 mov    -0x598(%rbp),%ecx
+ 1 mov    %r9d,%esi
+ 1 mov    %r11,%r10
+ 1 xor    %r8d,%r8d
+ 1 shl    $0x4,%r10
+ 1 add    %rax,%r10
+-1 lea    0x10(%rax),%r13
++1 lea    0x10(%rax),%r12
+ 1 mov    %r10,%rdi
+-1 xchg   %ax,%ax
++1 data16 cs nopw 0x0(%rax,%rax,1)
++1 nopl   (%rax)
+ 8 cmp    %esi,%r9d
+ 8 jae    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 7 mov    %esi,%eax
+-7 mov    0xc(%rdi),%r14d
++7 mov    0xc(%rdi),%r13d
+ 7 sub    %r9d,%eax
+ 7 lea    -0x1(%rax),%edx
+ 7 mov    %r10,%rax
+ 7 add    %r11,%rdx
+ 7 shl    $0x4,%rdx
+-7 add    %r13,%rdx
++7 add    %r12,%rdx
+ 7 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 28 add    $0x10,%rax
+ 28 cmp    %rax,%rdx
+ 28 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-28 cmp    %r14d,0xc(%rax)
++28 cmp    %r13d,0xc(%rax)
+ 28 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 8 inc    %esi
+ 8 add    $0x10,%rdi
+ 8 cmp    %ecx,%esi
+ 8 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x2d,%r12b
++1 cmp    $0x2d,%r15b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 xor    %edx,%edx
+-1 or     %al,-0x595(%rbp)
+-1 cmpb   $0x0,-0x595(%rbp)
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    %r15d,%eax
+-1 movzbl -0x5c8(%rbp),%ecx
++1 or     %al,-0x5da(%rbp)
++1 cmpb   $0x0,-0x5da(%rbp)
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 movzbl -0x590(%rbp),%eax
++1 movzbl -0x5c8(%rbp),%r14d
+ 1 movq   $0x0,-0x548(%rbp)
+ 1 xor    $0x1,%eax
+-1 mov    %al,-0x596(%rbp)
+-1 and    -0x5e8(%rbp),%al
+-1 mov    %cl,-0x590(%rbp)
+ 1 mov    %al,-0x5d8(%rbp)
++1 and    -0x5d9(%rbp),%al
++1 mov    %al,-0x590(%rbp)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    -0x588(%rbp),%rax
+ 1 mov    $0x380,%r13d
+-1 vmovq  0x10368(%rax),%xmm0
+-1 mov    0x10370(%rax),%r14
++1 mov    0x10370(%rax),%rcx
++1 mov    0x10368(%rax),%r10
++1 mov    %rcx,-0x608(%rbp)
+ 1 test   %r8d,%r8d
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    %r8d,%r13d
+ 1 imul   $0x38,%r13,%r13
+ 1 add    $0x380,%r13
+-1 movzbl -0x610(%rbp),%eax
++1 movzbl -0x5db(%rbp),%eax
+ 1 mov    %eax,-0x5a8(%rbp)
+-1 mov    -0x5e0(%rbp),%eax
++1 mov    -0x598(%rbp),%eax
+ 1 test   %eax,%eax
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    %eax,%ecx
+@@ -332,223 +330,222 @@
+
+ 1 shl    $0x5,%rax
+ 1 add    %r13,%rax
+ 1 lea    (%rax,%rcx,4),%r13
+-1 cmp    $0x8,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x1,-0x610(%rbp)
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x13,%r12b
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,-0x597(%rbp)
++1 cmp    $0x8,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmpb   $0x1,-0x5db(%rbp)
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x13,%r15b
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmpb   $0x0,-0x5dd(%rbp)
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   %r11b,%r11b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 movzbl -0x5c8(%rbp),%eax
+-1 mov    %al,-0x590(%rbp)
+ 1 mov    %r13,%rax
++1 movzbl -0x5c8(%rbp),%r14d
+ 1 shr    $0x20,%rax
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    -0x5b0(%rbp),%rdi
+ 1 lea    -0x571(%rbp),%rdx
+ 1 mov    %r13,%rsi
+-1 mov    %r9d,-0x620(%rbp)
+-1 mov    %r8d,-0x61c(%rbp)
++1 mov    %r9d,-0x60c(%rbp)
++1 mov    %r8d,-0x608(%rbp)
+ 1 call   <_ZN8tomo_db016ScatterArenaPool7acquireEmRb>
+-1 mov    -0x61c(%rbp),%r8d
+-1 mov    -0x620(%rbp),%r9d
++1 mov    -0x608(%rbp),%r8d
++1 mov    -0x60c(%rbp),%r9d
+ 1 test   %rax,%rax
+-1 mov    %rax,%r15
++1 mov    %rax,%r12
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    %rax,%rdi
+-1 mov    %r9d,-0x61c(%rbp)
+-1 mov    %r8d,-0x590(%rbp)
++1 mov    %r9d,-0x60c(%rbp)
++1 mov    %r8d,-0x608(%rbp)
+ 1 call   <_ZN8tomo_db012ScatterStateC1Ev>
+ 1 movzbl -0x5c8(%rbp),%eax
+-1 movzbl -0x616(%rbp),%edx
++1 movzbl -0x5e0(%rbp),%edx
+ 1 mov    -0x5a8(%rbp),%ecx
+-1 mov    -0x590(%rbp),%r8d
+-1 mov    -0x61c(%rbp),%r9d
+-1 mov    %r12b,0x2e(%r15)
+-1 mov    %al,0x3b(%r15)
+-1 movzbl -0x5e8(%rbp),%eax
++1 mov    -0x608(%rbp),%r8d
++1 mov    -0x60c(%rbp),%r9d
++1 mov    %r15b,0x2e(%r12)
++1 mov    %al,0x3b(%r12)
++1 movzbl -0x5d9(%rbp),%eax
+ 1 shl    $0x8,%eax
+ 1 or     %edx,%eax
+-1 movzbl -0x598(%rbp),%edx
++1 movzbl -0x5de(%rbp),%edx
+ 1 shl    $0x8,%eax
+ 1 or     %edx,%eax
+ 1 shl    $0x8,%eax
+ 1 or     %ecx,%eax
+-1 mov    %eax,0x4f(%r15)
+-1 movzbl -0x614(%rbp),%eax
++1 mov    %eax,0x4f(%r12)
++1 movzbl -0x5dc(%rbp),%eax
+ 1 test   %al,%al
+-1 mov    %al,0x53(%r15)
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x12,%r12b
++1 mov    %al,0x53(%r12)
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x12,%r15b
+ 1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    $0x1,%eax
+-1 mov    %al,0x31(%r15)
+-1 movzbl -0x614(%rbp),%eax
++1 mov    %al,0x31(%r12)
++1 movzbl -0x5dc(%rbp),%eax
+ 1 mov    -0x588(%rbp),%rcx
+-1 movb   $0x0,0x32(%r15)
+-1 mov    %al,0x5b(%r15)
++1 movb   $0x0,0x32(%r12)
++1 mov    %al,0x5b(%r12)
+ 1 movzbl -0x5a0(%rbp),%eax
+-1 mov    %rcx,0x78(%r15)
+-1 mov    %al,0x48(%r15)
+-1 movzbl -0x5d8(%rbp),%eax
+-1 mov    %al,0x57(%r15)
++1 mov    %rcx,0x78(%r12)
++1 mov    %al,0x48(%r12)
++1 movzbl -0x590(%rbp),%eax
++1 mov    %al,0x57(%r12)
+ 1 test   %al,%al
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 movzbl -0x571(%rbp),%eax
+ 1 mov    -0x588(%rbp),%r14
+-1 vmovd  -0x594(%rbp),%xmm5
++1 vmovd  -0x594(%rbp),%xmm4
+ 1 xor    %edi,%edi
+-1 vmovq  -0x548(%rbp),%xmm6
++1 vmovq  -0x548(%rbp),%xmm5
+ 1 mov    %r9d,-0x5a0(%rbp)
+ 1 mov    %r8d,-0x590(%rbp)
+-1 mov    %al,0x49(%r15)
++1 mov    %al,0x49(%r12)
+ 1 mov    0x10370(%r14),%rax
+ 1 sub    0x10368(%r14),%rax
+-1 movl   $0xffffffff,0xb0(%r15)
++1 movl   $0xffffffff,0xb0(%r12)
+ 1 sar    $0x3,%rax
+-1 vpinsrd $0x1,%eax,%xmm5,%xmm0
++1 vpinsrd $0x1,%eax,%xmm4,%xmm0
+ 1 lea    -0x4a0(%rbp),%rax
+-1 vmovq  %xmm0,0x5c(%r15)
+-1 vpinsrq $0x1,-0x5b8(%rbp),%xmm6,%xmm0
++1 vmovq  %xmm0,0x5c(%r12)
++1 vpinsrq $0x1,-0x5b8(%rbp),%xmm5,%xmm0
+ 1 mov    %rax,%rsi
+ 1 mov    %rax,-0x5a8(%rbp)
+-1 vmovdqu %xmm0,0x68(%r15)
++1 vmovdqu %xmm0,0x68(%r12)
+ 1 call   <clock_gettime@plt>
+ 1 mov    -0x498(%rbp),%rsi
+ 1 imul   $0x3e8,-0x4a0(%rbp),%rcx
+ 1 movabs $0x431bde82d7b634db,%rax
+-1 vmovd  %r13d,%xmm7
+-1 vpinsrd $0x1,-0x5e0(%rbp),%xmm7,%xmm0
++1 vmovd  %r13d,%xmm6
++1 vpinsrd $0x1,-0x598(%rbp),%xmm6,%xmm0
+ 1 mov    -0x590(%rbp),%r8d
+ 1 mov    -0x5a0(%rbp),%r9d
+ 1 imul   %rsi
+ 1 sar    $0x3f,%rsi
+-1 mov    %r8d,0x8c(%r15)
+-1 vmovq  %xmm0,0x80(%r15)
++1 mov    %r8d,0x8c(%r12)
++1 vmovq  %xmm0,0x80(%r12)
+ 1 vpxor  %xmm0,%xmm0,%xmm0
+ 1 sar    $0x12,%rdx
+ 1 sub    %rsi,%rdx
+ 1 add    %rdx,%rcx
+-1 cmpb   $0x0,-0x597(%rbp)
+-1 mov    %rcx,0x118(%r15)
++1 cmpb   $0x0,-0x5dd(%rbp)
++1 mov    %rcx,0x118(%r12)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 movzbl -0x572(%rbp),%eax
+-1 movzbl -0x622(%rbp),%edx
++1 movzbl -0x610(%rbp),%edx
+ 1 vpinsrd $0x1,%r9d,%xmm0,%xmm0
+-1 vmovq  -0x550(%rbp),%xmm5
+-1 vmovq  %xmm0,0x90(%r15)
+-1 vpinsrq $0x1,-0x470(%rbp),%xmm5,%xmm0
+-1 vmovd  -0x480(%rbp),%xmm6
+-1 vmovq  -0x600(%rbp),%xmm7
+-1 vmovdqa -0x4e0(%rbp),%xmm5
++1 vmovq  -0x550(%rbp),%xmm7
++1 vmovq  %xmm0,0x90(%r12)
++1 vpinsrq $0x1,-0x470(%rbp),%xmm7,%xmm0
++1 vmovd  -0x480(%rbp),%xmm4
++1 vmovq  -0x5f8(%rbp),%xmm5
++1 vmovdqa -0x4e0(%rbp),%xmm6
+ 1 mov    -0x5a8(%rbp),%rdi
+ 1 movq   $0x0,-0x4e0(%rbp)
+ 1 movq   $0x0,-0x4d8(%rbp)
+ 1 shl    $0x8,%eax
+ 1 or     %edx,%eax
+-1 movzbl -0x621(%rbp),%edx
+-1 vmovdqa %xmm0,0xf0(%r15)
+-1 vpinsrd $0x1,-0x478(%rbp),%xmm6,%xmm0
++1 movzbl -0x60f(%rbp),%edx
++1 vmovdqa %xmm0,0xf0(%r12)
++1 vpinsrd $0x1,-0x478(%rbp),%xmm4,%xmm0
+ 1 shl    $0x8,%eax
+ 1 or     %edx,%eax
+-1 movzbl -0x618(%rbp),%edx
+-1 vmovq  %xmm0,0x21c(%r15)
+-1 vpinsrq $0x1,-0x558(%rbp),%xmm7,%xmm0
++1 movzbl -0x60e(%rbp),%edx
++1 vmovq  %xmm0,0x21c(%r12)
++1 vpinsrq $0x1,-0x558(%rbp),%xmm5,%xmm0
+ 1 shl    $0x8,%eax
+ 1 or     %edx,%eax
+ 1 mov    -0x4d0(%rbp),%rdx
+ 1 movq   $0x0,-0x4d0(%rbp)
+-1 mov    %eax,0x4a(%r15)
++1 mov    %eax,0x4a(%r12)
+ 1 movzbl -0x574(%rbp),%eax
+-1 vmovdqa %xmm0,0xd0(%r15)
+-1 vmovdqu 0x1f8(%r15),%xmm0
+-1 vmovdqu %xmm5,0x1f8(%r15)
+-1 mov    %al,0x1f0(%r15)
++1 vmovdqa %xmm0,0xd0(%r12)
++1 vmovdqu 0x1f8(%r12),%xmm0
++1 vmovdqu %xmm6,0x1f8(%r12)
++1 mov    %al,0x1f0(%r12)
+ 1 movzbl -0x573(%rbp),%eax
+-1 mov    %al,0x1f1(%r15)
+-1 mov    0x208(%r15),%rax
+-1 mov    %rdx,0x208(%r15)
++1 mov    %al,0x1f1(%r12)
++1 mov    0x208(%r12),%rax
++1 mov    %rdx,0x208(%r12)
+ 1 vmovdqa %xmm0,-0x4a0(%rbp)
+ 1 mov    %rax,-0x490(%rbp)
+ 1 call   <_ZNSt12_Vector_baseIdSaIdEED1Ev>
+ 1 movzwl -0x540(%rbp),%eax
+-1 vmovdqa -0x530(%rbp),%xmm6
+-1 vmovdqa -0x4c0(%rbp),%xmm7
+-1 lea    0x1d0(%r15),%rdi
+-1 mov    %ax,0x210(%r15)
++1 vmovdqu64 -0x3e0(%rbp),%zmm5
++1 vmovdqu64 -0x3b8(%rbp),%zmm6
++1 lea    0x1d0(%r12),%rdi
++1 vmovdqa -0x530(%rbp),%xmm7
++1 vmovdqa -0x4c0(%rbp),%xmm4
++1 mov    %ax,0x210(%r12)
+ 1 mov    -0x53c(%rbp),%rax
+-1 vmovdqa %xmm6,0xe0(%r15)
+-1 vmovdqa %xmm7,0x130(%r15)
++1 vmovdqa %xmm7,0xe0(%r12)
+ 1 vmovdqu -0x418(%rbp),%xmm7
+-1 mov    %rax,0x214(%r15)
++1 vmovdqa %xmm4,0x130(%r12)
++1 mov    %rax,0x214(%r12)
+ 1 mov    -0x4b0(%rbp),%rax
+-1 vmovdqu64 -0x3e0(%rbp),%zmm5
+-1 mov    %rax,0x140(%r15)
++1 vmovdqu64 %zmm5,0x148(%r12)
++1 vmovdqu64 %zmm6,0x170(%r12)
++1 vmovdqu %xmm7,0x1b8(%r12)
++1 mov    %rax,0x140(%r12)
+ 1 movzwl -0x420(%rbp),%eax
+-1 vmovdqu64 %zmm5,0x148(%r15)
+-1 vmovdqu64 -0x3b8(%rbp),%zmm6
+-1 mov    %ax,0x1b0(%r15)
++1 mov    %ax,0x1b0(%r12)
+ 1 movzbl -0x41e(%rbp),%eax
+-1 vmovdqu %xmm7,0x1b8(%r15)
+-1 mov    %al,0x1b2(%r15)
++1 mov    %al,0x1b2(%r12)
+ 1 mov    -0x41c(%rbp),%eax
+-1 mov    %eax,0x1b4(%r15)
++1 mov    %eax,0x1b4(%r12)
+ 1 mov    -0x408(%rbp),%eax
+-1 vmovdqu64 %zmm6,0x170(%r15)
+-1 mov    %eax,0x1c8(%r15)
++1 mov    %eax,0x1c8(%r12)
+ 1 lea    -0x400(%rbp),%rax
+ 1 mov    %rax,%rsi
+-1 mov    %rax,-0x5a0(%rbp)
++1 mov    %rax,-0x590(%rbp)
+ 1 vzeroupper
+ 1 call   <_ZNSt6vectorIjSaIjEEaSERKS1_.isra.0>
+ 1 movzbl -0x3e8(%rbp),%eax
+-1 mov    -0x568(%rbp),%rdx
++1 mov    0x288(%r12),%rdi
++1 mov    %al,0x1e8(%r12)
++1 mov    -0x568(%rbp),%rax
+ 1 movq   $0x0,-0x568(%rbp)
+-1 mov    %al,0x1e8(%r15)
+-1 mov    0x288(%r15),%rax
+-1 mov    %rdx,0x288(%r15)
+-1 test   %rax,%rax
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x560(%rbp),%rdx
+-1 mov    0x290(%r15),%rax
++1 mov    %rax,0x288(%r12)
++1 test   %rdi,%rdi
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 mov    -0x560(%rbp),%rax
++1 mov    0x290(%r12),%rdi
+ 1 movq   $0x0,-0x560(%rbp)
+-1 mov    %rdx,0x290(%r15)
+-1 test   %rax,%rax
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 vmovdqa -0x500(%rbp),%xmm5
+-1 mov    0x298(%r15),%rdi
++1 mov    %rax,0x290(%r12)
++1 test   %rdi,%rdi
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 vmovdqa -0x500(%rbp),%xmm4
++1 mov    0x298(%r12),%rdi
+ 1 movq   $0x0,-0x500(%rbp)
+ 1 movq   $0x0,-0x4f8(%rbp)
+ 1 mov    -0x4f0(%rbp),%rdx
+-1 mov    0x2a0(%r15),%rax
+-1 mov    0x2a8(%r15),%r14
++1 mov    0x2a0(%r12),%rax
++1 mov    0x2a8(%r12),%r14
+ 1 movq   $0x0,-0x4f0(%rbp)
+ 1 mov    %rdi,%r13
+-1 vmovdqu %xmm5,0x298(%r15)
+-1 mov    %rdx,0x2a8(%r15)
++1 vmovdqu %xmm4,0x298(%r12)
++1 mov    %rdx,0x2a8(%r12)
+ 1 cmp    %rax,%rdi
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   %rdi,%rdi
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,-0x595(%rbp)
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 lea    -0x1a(%r12),%eax
++1 cmpb   $0x0,-0x5da(%rbp)
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 lea    -0x1a(%r15),%eax
+ 1 cmp    $0xd,%al
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x8c(%r15),%eax
++1 mov    0x8c(%r12),%eax
+ 1 test   %eax,%eax
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    %eax,%ecx
+-1 lea    0x380(%r15),%r9
++1 lea    0x380(%r12),%r9
+ 1 imul   $0x38,%rcx,%rcx
+ 1 add    $0x380,%rcx
+-1 movzbl 0x4f(%r15),%esi
+-1 mov    0x84(%r15),%edx
+-1 movzbl 0x2e(%r15),%r10d
+-1 mov    %r9,0x228(%r15)
++1 movzbl 0x4f(%r12),%esi
++1 mov    0x84(%r12),%edx
++1 movzbl 0x2e(%r12),%r10d
++1 mov    %r9,0x228(%r12)
+ 1 mov    %esi,%r14d
+ 1 test   %edx,%edx
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+@@ -557,35 +554,37 @@
+
+ 1 mov    %r13,%rcx
+ 1 and    $0xfffffffffffffff8,%rax
+ 1 shl    $0x5,%rcx
+-1 lea    (%r15,%rax,1),%r8
++1 lea    (%r12,%rax,1),%r8
+ 1 add    %rcx,%rax
+-1 lea    (%r15,%rax,1),%r11
++1 lea    (%r12,%rax,1),%r11
+ 1 lea    (%rax,%r13,4),%rcx
+-1 mov    %r8,0x230(%r15)
+-1 mov    %r11,0x238(%r15)
++1 mov    %r8,0x230(%r12)
++1 mov    %r11,0x238(%r12)
+ 1 cmp    $0x8,%r10b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x1,%sil
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 cmp    $0x13,%r10b
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    %r10d,%edi
+-1 mov    %edx,-0x590(%rbp)
++1 mov    %edx,-0x5a0(%rbp)
+ 1 call   <_ZN8tomo_db012_GLOBAL__N_110has_statusENS0_4KindEb>
+-1 mov    -0x590(%rbp),%edx
++1 mov    -0x5a0(%rbp),%edx
+ 1 test   %al,%al
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   %r14b,%r14b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,0x50(%r15)
++1 cmpb   $0x0,0x50(%r12)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 cmp    $0x2d,%r10b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   %r9,%r9
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x8c(%r15),%eax
++1 mov    0x8c(%r12),%eax
+ 1 xor    %edx,%edx
+ 1 test   %eax,%eax
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 nop
++1 nopl   0x0(%rax)
+ 8 mov    %edx,%eax
+ 8 inc    %edx
+ 8 imul   $0x38,%rax,%rax
+@@ -597,17 +596,16 @@
+
+ 8 movq   $0x0,0x20(%rax)
+ 8 movw   $0x0,0x28(%rax)
+ 8 movq   $0x0,0x30(%rax)
+-8 cmp    0x8c(%r15),%edx
++8 cmp    0x8c(%r12),%edx
+ 8 jb     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   %r8,%r8
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x84(%r15),%r14d
++1 mov    0x84(%r12),%r14d
+ 1 xor    %edx,%edx
+ 1 movabs $0xffffffff00000000,%rcx
+ 1 test   %r14d,%r14d
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 data16 cs nopw 0x0(%rax,%rax,1)
+-1 nop
++1 cs nopw 0x0(%rax,%rax,1)
+ 8 mov    %edx,%eax
+ 8 inc    %edx
+ 8 shl    $0x5,%rax
+@@ -616,52 +614,52 @@
+
+ 8 mov    %rcx,0x8(%rax)
+ 8 movq   $0x0,0x10(%rax)
+ 8 movq   $0x0,0x18(%rax)
+-8 cmp    0x84(%r15),%edx
++8 cmp    0x84(%r12),%edx
+ 8 jb     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   %r11,%r11
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x84(%r15),%edx
++1 mov    0x84(%r12),%edx
+ 1 xor    %esi,%esi
+ 1 mov    %r11,%rdi
+ 1 shl    $0x2,%rdx
+ 1 call   <memset@plt>
+-1 mov    0x240(%r15),%rcx
++1 mov    0x240(%r12),%rcx
+ 1 test   %rcx,%rcx
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x248(%r15),%rdi
++1 mov    0x248(%r12),%rdi
+ 1 test   %rdi,%rdi
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x84(%r15),%edx
++1 mov    0x84(%r12),%edx
+ 1 xor    %esi,%esi
+ 1 call   <memset@plt>
+-1 mov    0x250(%r15),%rdi
++1 mov    0x250(%r12),%rdi
+ 1 test   %rdi,%rdi
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x268(%r15),%rdi
++1 mov    0x268(%r12),%rdi
+ 1 test   %rdi,%rdi
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x270(%r15),%rdi
++1 mov    0x270(%r12),%rdi
+ 1 test   %rdi,%rdi
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x2f0(%r15),%rax
++1 mov    0x2f0(%r12),%rax
+ 1 test   %rax,%rax
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x258(%r15),%rdx
++1 mov    0x258(%r12),%rdx
+ 1 test   %rdx,%rdx
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    0x260(%r15),%rdx
++1 mov    0x260(%r12),%rdx
+ 1 test   %rdx,%rdx
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x5e0(%rbp),%r11d
++1 mov    -0x598(%rbp),%r11d
+ 1 test   %r11d,%r11d
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x5e0(%rbp),%ecx
+-1 mov    0x230(%r15),%rax
+-1 mov    -0x608(%rbp),%rdx
++1 mov    -0x598(%rbp),%ecx
++1 mov    0x230(%r12),%rax
++1 mov    -0x600(%rbp),%rdx
+ 1 shl    $0x5,%rcx
+ 1 lea    (%rax,%rcx,1),%r8
+-1 mov    %rcx,-0x590(%rbp)
+-1 nopw   0x0(%rax,%rax,1)
++1 mov    %rcx,-0x5a0(%rbp)
++1 nopl   (%rax)
+ 8 mov    0x8(%rdx),%esi
+ 8 mov    0xc(%rdx),%ecx
+ 8 mov    (%rdx),%rdi
+@@ -674,60 +672,64 @@
+
+ 8 mov    %ecx,-0x14(%rax)
+ 8 cmp    %r8,%rax
+ 8 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x608(%rbp),%rcx
++1 mov    -0x600(%rbp),%rcx
+ 1 lea    -0x240(%rbp),%rax
+ 1 cmp    %rax,%rcx
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,-0x617(%rbp)
++1 cmpb   $0x0,-0x60d(%rbp)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 8 inc    %r8d
+ 8 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 movzbl -0x5e8(%rbp),%eax
+-1 movb   $0x0,-0x598(%rbp)
+-1 movb   $0x0,-0x616(%rbp)
+-1 mov    %al,-0x610(%rbp)
+-1 cmp    $0x16,%r12b
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 lea    -0x2a(%r12),%r14d
++1 mov    -0x590(%rbp),%rdi
++1 lea    -0x4e0(%rbp),%r13
++1 call   <_ZNSt6vectorIjSaIjEED1Ev>
++1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 movzbl -0x5d9(%rbp),%eax
++1 movb   $0x0,-0x5de(%rbp)
++1 movb   $0x0,-0x5e0(%rbp)
++1 mov    %al,-0x5db(%rbp)
++1 cmp    $0x16,%r15b
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 lea    -0x2a(%r15),%r14d
+ 1 movl   $0x0,-0x56c(%rbp)
+ 1 movb   $0x0,-0x572(%rbp)
+ 1 movq   $0x1,-0x550(%rbp)
+ 1 cmp    $0x1,%r14b
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 movzbl -0x5e8(%rbp),%eax
+-1 movb   $0x0,-0x618(%rbp)
+-1 mov    %al,-0x597(%rbp)
+-1 cmp    $0x18,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x19,%r12b
+-1 movb   $0x0,-0x614(%rbp)
+-1 movb   $0x0,-0x621(%rbp)
+-1 sete   -0x622(%rbp)
+-1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x2,-0x596(%rbp)
++1 movzbl -0x5d9(%rbp),%eax
++1 movb   $0x0,-0x60e(%rbp)
++1 mov    %al,-0x5dd(%rbp)
++1 cmp    $0x18,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x19,%r15b
++1 movb   $0x0,-0x5dc(%rbp)
++1 movb   $0x0,-0x60f(%rbp)
++1 sete   -0x610(%rbp)
++1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmpb   $0x2,-0x608(%rbp)
+ 1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    %r12d,%eax
++1 mov    %r15d,%eax
+ 1 and    $0xfffffffb,%eax
+ 1 cmp    $0x28,%al
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x2d,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 test   %r12b,%r12b
++1 cmp    $0x2d,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 test   %r15b,%r15b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 cmp    $0x1,%r8d
+ 1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    (%rbx),%rax
++1 cmpb   $0x0,-0x590(%rbp)
+ 1 mov    0x10(%rax),%eax
+-1 test   %r15b,%r15b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 test   $0x401,%eax
+ 1 movzbl -0x3e8(%rbp),%r11d
+ 1 sete   %al
+-1 cmp    $0x2d,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x13,%r12b
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 lea    -0x1e(%r12),%eax
++1 cmp    $0x2d,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x13,%r15b
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 lea    -0x1e(%r15),%eax
+ 1 cmp    $0x2,%al
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 vzeroupper
+@@ -739,65 +741,71 @@
+
+ 1 vmovdqu8 %zmm0,-0x3e0(%rbp)
+ 1 movq   $0xffffffffffffffff,-0x4b0(%rbp)
+ 1 vmovdqu8 %zmm0,-0x3b8(%rbp)
+-1 cmp    $0x2c,%r12b
++1 cmp    $0x2c,%r15b
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    -0x5a8(%rbp),%esi
+-1 mov    %r12d,%edi
++1 mov    %r15d,%edi
+ 1 call   <_ZN8tomo_db012_GLOBAL__N_110has_statusENS0_4KindEb>
+ 1 test   %al,%al
+-1 lea    -0xf(%r12),%eax
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpq   $0x0,-0x590(%rbp)
+-1 movb   $0x0,-0x617(%rbp)
++1 lea    -0xf(%r15),%eax
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 movb   $0x0,-0x60d(%rbp)
++1 test   %r12,%r12
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    -0x588(%rbp),%rax
+ 1 cmpb   $0x1,0x10a(%rax)
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 lea    -0x25(%r12),%eax
++1 lea    -0x25(%r15),%eax
+ 1 cmp    $0x2,%al
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpq   $0xffffffffffffffff,(%r15)
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0xe,%r12b
++1 xor    %r9d,%r9d
++1 cmpb   $0x0,-0x5db(%rbp)
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 mov    -0x598(%rbp),%eax
++1 cmp    %eax,%r9d
++1 jb     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmpq   $0xffffffffffffffff,(%r12)
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0xe,%r15b
+ 1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    %r15,%rdi
++1 mov    %r12,%rdi
+ 1 call   <_ZN8tomo_db012_GLOBAL__N_120build_initial_groupsERNS_12ScatterStateE>
+ 1 mov    (%rbx),%rsi
+-1 mov    %r15,%rdi
++1 mov    %r12,%rdi
+ 1 call   <_ZN8tomo_db012_GLOBAL__N_123arm_debug_off_hop_delayERNS_12ScatterStateERKNS_2OpE.isra.0>
+-1 cmpl   $0x1,0x88(%r15)
++1 cmpl   $0x1,0x88(%r12)
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    %r15,%rdi
++1 mov    %r12,%rdi
+ 1 call   <_ZN8tomo_db012_GLOBAL__N_127initialize_owner_completionERNS_12ScatterStateE>
+-1 mov    %eax,0x10(%r15)
+-1 cmpb   $0x0,0x52(%r15)
++1 mov    %eax,0x10(%r12)
++1 cmpb   $0x0,0x52(%r12)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    -0x5c0(%rbp),%rbx
+-1 mov    0x88(%r15),%eax
++1 mov    0x88(%r12),%eax
+ 1 mov    %eax,0x8(%rbx)
+-1 movzbl 0x48(%r15),%eax
+-1 mov    %r15,(%rbx)
++1 movzbl 0x48(%r12),%eax
++1 mov    %r12,(%rbx)
+ 1 mov    %al,0xc(%rbx)
+-1 movzbl 0x52(%r15),%eax
++1 movzbl 0x52(%r12),%eax
+ 1 mov    %al,0xd(%rbx)
+-1 cmp    $0x3,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x3,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 xor    %r14d,%r14d
+ 1 mov    $0x1,%ebx
+-1 movb   $0x0,-0x590(%rbp)
+ 1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 cmp    $0x12,%r10b
+ 1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,0x5b(%r15)
++1 cmpb   $0x0,0x5b(%r12)
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 cmp    $0x1,%al
+ 1 setbe  %al
+-1 cmp    $0x12,%r12b
++1 cmp    $0x12,%r15b
+ 1 sete   %dl
+ 1 or     %edx,%eax
+-1 mov    -0x5e0(%rbp),%edx
++1 mov    -0x598(%rbp),%edx
+ 1 test   %edx,%edx
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x5e0(%rbp),%ecx
++1 mov    -0x598(%rbp),%ecx
+ 1 add    %rcx,%r13
+ 1 test   %al,%al
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+@@ -806,23 +814,17 @@
+
+ 1 mov    0x10358(%rcx),%rax
+ 1 sub    0x10350(%rcx),%rax
+ 1 sar    $0x3,%rax
+-1 mov    %rax,%r10
+-1 mov    %eax,%r15d
++1 mov    %rax,%r12
++1 mov    %eax,%r14d
+ 1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    $0xffffffffffffbf08,%rax
+-1 bt     %r12,%rax
++1 bt     %r15,%rax
+ 1 jae    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x3,%r12b
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 xor    %r9d,%r9d
+-1 cmpb   $0x0,-0x610(%rbp)
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    -0x5e0(%rbp),%eax
+-1 cmp    %eax,%r9d
+-1 jb     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 lea    (%r15,%rcx,1),%rax
++1 cmp    $0x3,%r15b
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 lea    (%r12,%rcx,1),%rax
+ 1 add    %r13,%rcx
+-1 mov    %rax,0x248(%r15)
++1 mov    %rax,0x248(%r12)
+ 1 cmp    $0x31,%r10b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 lea    -0xf(%r10),%eax
+@@ -831,29 +833,29 @@
+
+ 1 cmp    $0x12,%r10b
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmpb   $0x0,0x50(%r15)
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 mov    %r12d,%eax
++1 cmpb   $0x0,0x50(%r12)
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 mov    %r15d,%eax
+ 1 and    $0xfffffffb,%eax
+ 1 cmp    $0x2,%al
+ 1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 mov    (%rbx),%rax
+ 1 testl  $0x401,0x10(%rax)
+ 1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0xe,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x12,%r12b
++1 cmp    $0x12,%r15b
+ 1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x7,%r12b
+-1 ja     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 movb   $0x0,-0x5e8(%rbp)
++1 cmp    $0x15,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x16,%r15b
++1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0x7,%r15b
++1 jbe    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 cmp    $0xe,%r15b
++1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+ 1 xor    %r10d,%r10d
+ 1 movb   $0x0,-0x5c8(%rbp)
+ 1 mov    %r10,-0x5d0(%rbp)
+ 1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x15,%r12b
+-1 je     <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
+-1 cmp    $0x16,%r12b
+-1 jne    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>
++1 movb   $0x0,-0x5d9(%rbp)
++1 jmp    <_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE+offset>

@@ -1,0 +1,47 @@
+{
+  "baseline": "7d2f8a2051961a1942735fb6dc9b507d778e09d1",
+  "merges": [
+    {
+      "lane": "cx-flipfix6",
+      "merge": "1bfbeaef35de48faedf5549b69df197a80370aed",
+      "parents": [
+        "7d2f8a2051961a1942735fb6dc9b507d778e09d1",
+        "dc329354286b2b78f775a5514626a039fdc99d8e"
+      ],
+      "lane_commit": "dc329354286b2b78f775a5514626a039fdc99d8e"
+    },
+    {
+      "lane": "cx-persistfmt",
+      "merge": "397e32db091c60c501f7f4b978bf4ae35d23f619",
+      "parents": [
+        "1bfbeaef35de48faedf5549b69df197a80370aed",
+        "b6d3b538bd65ed4d1ecbf420c573e1fcb847174c"
+      ],
+      "lane_commit": "b6d3b538bd65ed4d1ecbf420c573e1fcb847174c"
+    },
+    {
+      "lane": "cx-surveytools",
+      "merge": "5c499a736ffcd155983e0925cac751deb117ad0f",
+      "parents": [
+        "397e32db091c60c501f7f4b978bf4ae35d23f619",
+        "ad96fce78692844060e59369c1b793cd30a63e9d"
+      ],
+      "lane_commit": "ad96fce78692844060e59369c1b793cd30a63e9d"
+    }
+  ],
+  "excluded": [
+    {
+      "lane": "cx-execfifo2",
+      "tip_at_audit": "2461efbbbe2ca8e454cecdda229397396f50e3d1",
+      "tip_is_ancestor": false
+    },
+    {
+      "lane": "cx-execfifo3",
+      "tip_at_audit": "5df89327abb10efb4ea94e7c10959d770dfbc6c7",
+      "tip_is_ancestor": false
+    }
+  ],
+  "production_commit": "68f85e5d52d6889e4669c31eb00b2268c9341f48",
+  "production_diff_after_freeze": "",
+  "note": "Two-parent merge commits retain the lane commits. Excluded lane tips are not ancestors. No lane branch was modified by this integration."
+}

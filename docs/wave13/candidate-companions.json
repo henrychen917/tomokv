@@ -1,0 +1,79 @@
+{
+  "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+  "companions": [
+    {
+      "name": "blockfix-cost",
+      "source": "build/blockfix-cost",
+      "destination": "build/wave13/blockfix-cost",
+      "sha256": "970ac5cba53f068a7b3380a1dfe0b3deaa43e74bf52df784b59b9b3cfae72d9d",
+      "bytes": 107058208
+    },
+    {
+      "name": "blockfix2-unit",
+      "source": "build/blockfix2-unit",
+      "destination": "build/wave13/blockfix2-unit",
+      "sha256": "95c2dc8a72848d35b63cd3ea5e8ce4b5f3317bba6ee12667d31f6057d434272b",
+      "bytes": 108776976
+    },
+    {
+      "name": "blockfix2-db0-unit",
+      "source": "build/blockfix2-db0-unit",
+      "destination": "build/wave13/blockfix2-db0-unit",
+      "sha256": "46b96029a37661853e4bff7d7277a186af70eb9c73c91e18f1aa1e106df20882",
+      "bytes": 211703336
+    },
+    {
+      "name": "moverfix-unit",
+      "source": "build/moverfix-unit",
+      "destination": "build/wave13/moverfix-unit",
+      "sha256": "a2af8a82d05992a850e90d576155d09dc4ef6d3433b5cc788b57e69e8fd1eb10",
+      "bytes": 107087696
+    },
+    {
+      "name": "moverfix-db0-unit",
+      "source": "build/moverfix-db0-unit",
+      "destination": "build/wave13/moverfix-db0-unit",
+      "sha256": "4a6c1de313fc7907bdc2e9ba46229f518802d97ee143bccfb2bb4a62a3f403d1",
+      "bytes": 210018680
+    },
+    {
+      "name": "txnorder-wake-unit",
+      "source": "build/txnorder-wake-unit",
+      "destination": "build/wave13/txnorder-wake-unit",
+      "sha256": "db5c5fe81e4779c65a9c91aa7c9be5895af4faab1eccaca046b26322470633c6",
+      "bytes": 1453544
+    },
+    {
+      "name": "txnorder-episodes",
+      "source": "build/txnorder-episodes",
+      "destination": "build/wave13/txnorder-episodes",
+      "sha256": "b11352d6f20390022a30a9c7312589084f5c023b237c208ae077ff721f7892ec",
+      "bytes": 103859008
+    },
+    {
+      "name": "txnorder-episodes-debug",
+      "source": "build/txnorder-episodes-debug",
+      "destination": "build/wave13/txnorder-episodes-debug",
+      "sha256": "0e5b9f7b0d726b6e3c8fd61d4acbed21346123f062d6bba799fe5684f9392cb5",
+      "bytes": 103993640
+    },
+    {
+      "name": "txnorder-watch-unit",
+      "source": "build/txnorder-watch-unit",
+      "destination": "build/wave13/txnorder-watch-unit",
+      "sha256": "bda9e55c9f4c63843f2fc9c18a80e17cd1d962c3fcd741eda4bb551607c534fa",
+      "bytes": 103650400
+    },
+    {
+      "name": "txnorder-watch-db0-unit",
+      "source": "build/txnorder-watch-db0-unit",
+      "destination": "build/wave13/txnorder-watch-db0-unit",
+      "sha256": "19f9d7815303f5c63c0eb114779b687d7f2e41de6fd6eda83114829a4a6a7135",
+      "bytes": 206626128
+    }
+  ],
+  "cost_binding": "build/wave13/tomokv-POST.blockfix-cost.sha256",
+  "cost_binding_sha256": "b3eeb41bc56c62acddddbacb45cc0031d6c40c3ad523dac1203f050341e8c38d",
+  "reason": "gate.sh locates these production-unit witnesses beside an external candidate binary; the initial blockfix2 refusal row found no sibling binaries.",
+  "production_source_commit": "68f85e5d52d6889e4669c31eb00b2268c9341f48"
+}

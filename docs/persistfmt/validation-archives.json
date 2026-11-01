@@ -1,0 +1,56 @@
+[
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.Ver4C5",
+    "phase": "matrix-uring",
+    "archive": "docs/persistfmt/gate-run.Ver4C5.tar.gz",
+    "sha256": "9c4f6108bdaa7f0d5f04c7ab138addfcc214acea1f5b05f8fe3d7a27dec6137f"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.Oty9Qh",
+    "phase": "matrix-epoll",
+    "archive": "docs/persistfmt/gate-run.Oty9Qh.tar.gz",
+    "sha256": "7ba979906849ae26031c778753bcf8e225b3226f20b62e8057ba5e2e3b48d52c"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.yApXCL",
+    "phase": "fused-uring",
+    "archive": "docs/persistfmt/gate-run.yApXCL.tar.gz",
+    "sha256": "a397b80362a13e130c54552932a041f8f8e58e4d9d984069e69a98f0fbc17031"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.H9UIb0",
+    "phase": "fused-epoll",
+    "archive": "docs/persistfmt/gate-run.H9UIb0.tar.gz",
+    "sha256": "0b51a90a5ec39f721031d602091df103f8843da8ab092e76bb4dd2d6e5011ed0"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.yL6S8o",
+    "phase": "extra-uring",
+    "archive": "docs/persistfmt/gate-run.yL6S8o.tar.gz",
+    "sha256": "7c01d9cd0aa1a354b06e52fdb846d2f98981b21e006feb14bfd11073ab9f293c"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.aLMlhT",
+    "phase": "extra-epoll",
+    "archive": "docs/persistfmt/gate-run.aLMlhT.tar.gz",
+    "sha256": "38b641c1f2b2991d82975f8127a675fa4483f43050f162f97599bde6479bd0f6"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.bIvt6D",
+    "phase": "extra-fused-uring",
+    "archive": "docs/persistfmt/gate-run.bIvt6D.tar.gz",
+    "sha256": "be37283f9d19668923c34b5d6e8d5cb3662a270dc4fba9f676376d83fb6e4c67"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.KHmqp5",
+    "phase": "extra-fused-epoll",
+    "archive": "docs/persistfmt/gate-run.KHmqp5.tar.gz",
+    "sha256": "f9a94600f88e8126420315ba79b0d2aea305244f2c6143a9255dc1e426edf2c4"
+  },
+  {
+    "run_dir": "/home/user/Projects/cx-persistfmt/build/gate-run.dpzCra",
+    "archive": "docs/persistfmt/gate-run.dpzCra.tar.gz",
+    "sha256": "e4b8a653835341f4b9d32fbb61cabd0da60594511ab148d013d098aedb0525ed",
+    "phase": "repair-sidecar"
+  }
+]

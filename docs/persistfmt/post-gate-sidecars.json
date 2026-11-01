@@ -1,0 +1,8 @@
+{
+  "candidate_sha256": "a5a0dc67fb584cab2b9c01ffd137f167913316dd287e338290ab9f4b3b61c41c",
+  "helper_sha256": "45b73cda93109d459281dc78c219f3276e95aa4706c989842ae772c022c84d00",
+  "source_helper": "/home/user/Projects/cx-persistfmt/build/blockfix-cost",
+  "helper": "/home/user/Projects/cx-persistfmt/build/persistfmt/POST/blockfix-cost",
+  "binding": "/home/user/Projects/cx-persistfmt/build/persistfmt/POST/tomokv.blockfix-cost.sha256",
+  "binding_sha256": "0bb171a4791ec24247ba6ec248e2b318c1a87279b93751c070999c522cd35305"
+}

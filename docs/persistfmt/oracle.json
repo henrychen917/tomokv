@@ -1,0 +1,11 @@
+{
+  "root": "/home/user/Projects/redis",
+  "version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746",
+  "files": {
+    "src/redis-server": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "src/rdb.c": "8fa3e00bb5800731704506664d52b1c4200a760a4986305591154eb485b8caef",
+    "src/cluster.c": "c4ee3a68720d5611a6c76e8b316243be970c5efc843f8fe4935cb6bb3275b0c9",
+    "src/functions.c": "8a2008d17c16d5137b1082c0c4191469de48eeab49f6ec00699d563cdb0f2fc8",
+    "src/aof.c": "e2bb132463edee1a673ca3fd2bd397eb0f7138d9f49c241ffd44212e54dc40a2"
+  }
+}

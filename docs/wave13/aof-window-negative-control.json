@@ -1,0 +1,86 @@
+{
+  "post_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+  "scheduling_control_sha256": "317fc687e79979d734453ed37b9bef1ddd91803b64b8307045b9343039e35092",
+  "generated_source_sha256": "87054cadafb61bd8ec73f7dab1b0f4e7e299037c6d680299d3b7ca79c0db5c35",
+  "modified_source_sha256": "755832e66ae2121cdad0a5115d1a0903c85e83439f8c14f207eba4e5dbf082ec",
+  "generator_sha256": "5e3fb1d7b9212fa07ca3dbbea2ba903eb1486159ea7072e3a7d2383af2d05704",
+  "harness_sha256": "fad2951eab38b3d8246926b4c0ab85ab826f82931b8de3a096913c0578838a27",
+  "before": "if (persistfmt_armed() && persistfmt_schedule.load() < 2) {",
+  "after": "if (false && persistfmt_armed() && persistfmt_schedule.load() < 2) {",
+  "build": [
+    "make",
+    "-f",
+    "Makefile",
+    "-f",
+    "tools/persistfmt.mk",
+    "-j16",
+    "PERSISTFMT_SCHEDULE=build/wave13/aof-never-armed",
+    "build/wave13/aof-never-armed/tomokv"
+  ],
+  "note": "Only the gate-owned scheduling twin is mutated; production POST is unchanged.",
+  "exit": 1,
+  "receipt": "docs/wave13/jobs/negative-aof-never-armed.json",
+  "receipt_sha256": "cd71f33bd7b12841fe43a75cdbe06708ed700dda24fc05fc6343b0a3cda95176",
+  "modes": [
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "attempts": 8,
+      "armed": 0,
+      "events_sha256": "4f1a5aa32fed874ee14e2aeac8fc41688fe8793483aa7bfa8f8976248b07694d",
+      "log_sha256": "6c97caf674c2539d818baef0c1d4dfff6ccd06956c422dfe667282e9e484ee65",
+      "verified": true
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "attempts": 8,
+      "armed": 0,
+      "events_sha256": "a3466a65c90c9cfd7e84eac50eb5c3a07921e52fcf7b9a91bf02987cf9411153",
+      "log_sha256": "4781b23ce78286151ade83fd22d46e8c2b1e0715a57d037eff3fbffaf0faab33",
+      "verified": true
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "attempts": 8,
+      "armed": 0,
+      "events_sha256": "efa7278a6927450268a59e949845c7d580eb8d41bf36bb3fe0fae8d78bea148f",
+      "log_sha256": "42a5a8d7f2d10a73c2d3b765ae4a3e059314ab05999caf7acc59e3c51fcff29a",
+      "verified": true
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "attempts": 8,
+      "armed": 0,
+      "events_sha256": "a0294b3e719ebf5f7ff0ba6f2b5c207b51c78cb10ededdb17bc9818bdcd98ada",
+      "log_sha256": "21db6641e3ca76a8552bf2584aff367a351d5a38faac57edd02963ebea4ea9b2",
+      "verified": true
+    }
+  ],
+  "verified": true,
+  "pruned_files": [
+    {
+      "path": "build/wave13/aof-never-armed/aof.cc",
+      "bytes": 153408,
+      "sha256": "755832e66ae2121cdad0a5115d1a0903c85e83439f8c14f207eba4e5dbf082ec"
+    },
+    {
+      "path": "build/wave13/aof-never-armed/aof.o",
+      "bytes": 9707520,
+      "sha256": "df2fd6eb76ba3bfe2ba1b6b088b5d9ea0c80dc3093f4f58562a098b476c87f47"
+    },
+    {
+      "path": "build/wave13/aof-never-armed/db0-aof.o",
+      "bytes": 9755104,
+      "sha256": "343bdcb75dbf72fe8ef691163782ea133b3bd2ccb26cc5876046cf23364ca6cb"
+    },
+    {
+      "path": "build/wave13/aof-never-armed/tomokv",
+      "bytes": 228429232,
+      "sha256": "317fc687e79979d734453ed37b9bef1ddd91803b64b8307045b9343039e35092"
+    }
+  ],
+  "pruned": true
+}

@@ -1,0 +1,57 @@
+{
+  "cpu_affinity": "0-15",
+  "serverless": true,
+  "results": [
+    "survey-client selftest: PASS",
+    "survey_cmds selftest: PASS",
+    "survey_latency selftest: PASS",
+    "survey_memory selftest: PASS",
+    "survey_persist selftest: PASS",
+    "survey_scale selftest: PASS"
+  ],
+  "log": "build/wave13/logs/survey-selftest.log",
+  "log_sha256": "aa2bb36381088574b5713311d599e70a92a1642871dbe690874f8274174eacfb",
+  "files": [
+    {
+      "path": "build/survey-client",
+      "sha256": "cfcf50d277b2bc25e1d926f17949acbe4ac7206081c9f09c332b90e17facef04"
+    },
+    {
+      "path": "calib/survey-client.cc",
+      "sha256": "0d88f34da0df1917430cf59addb8df255f0c5f386a237df08a8bc93e4893ce97"
+    },
+    {
+      "path": "calib/survey-cmds.py",
+      "sha256": "7e2727695b4d9d5ed769c4e8361c14c76fa08bc4ab3d3147be09cc7941a29f73"
+    },
+    {
+      "path": "calib/survey-latency.py",
+      "sha256": "e8d2498f7ed394abb7d3c2dba3f1ad50e705dc7ae99b5b4e91b90630520ec350"
+    },
+    {
+      "path": "calib/survey-memory.py",
+      "sha256": "c5dc9573f8410653998498f4046ecdf54599492a81b14012eff5c427cd0fde86"
+    },
+    {
+      "path": "calib/survey-persist.py",
+      "sha256": "7ecdf6d9da18d17b0a0036c48770b6edc62cab8d1ba454c44a4a752c27f6348f"
+    },
+    {
+      "path": "calib/survey-plan.md",
+      "sha256": "c0c3f38129d745bae8ae0c2f87df90e77a624da5109bfbda37f7bd2c519e5606"
+    },
+    {
+      "path": "calib/survey-scale.py",
+      "sha256": "65af0654cfb04d239f5c061f25e51e1e5ebdc5559ab3b660ae6869968328c305"
+    },
+    {
+      "path": "calib/survey-smoke-proof.json",
+      "sha256": "bfd45424df592824b2719838d1e6265481cebe067adcc8998fc61f1ca03c9430"
+    },
+    {
+      "path": "calib/survey.py",
+      "sha256": "759e400f5b69ab28bb5408d4997e78555ad7a5b1129b999442c14be139cb709c"
+    }
+  ],
+  "not_run": "No survey load-generator or smoke workload; reserved for maintainer."
+}

@@ -1,0 +1,52 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "8-15",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave13/build/wave13/tomokv-POST"
+  ],
+  "cwd": "/home/user/Projects/cx-wave13",
+  "env": {
+    "LANG": "C",
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "acl_recheck aof_frame asan_batteries atomic_batteries atomic_floor auth bplus debug-0 debug-1 dump_restore evict-lfu-armed-0 evict-lfu-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lruclock-split-0 evict-lruclock-split-1 feature-armed-0 feature-armed-1 feature-split-0 feature-split-1 flip flipctl fliplisten fused-0 fused-1 globcase multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 notify readonly release_batteries replyoff respcompat rlcache script_bounds sort txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 wb_policy zc",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_ZC_NET_IO": "epoll",
+    "GATE_SHUTDOWN_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave13/docs/wave13/jobs/landing-epoll.tsv"
+  },
+  "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+  "source_commit": "4b21fb21e4a634895aa076bf0fdb3c99e9c69ca2",
+  "source_diff_sha256": "244e10305d4bad08c087f4588b8f28c0d582434b92c0cf88d6593320e4c9e58b",
+  "gate_sha256": "91035809f47593ae06cfe3284d2fa65df028ea03f8a7ddd61cc505268a3b75b7",
+  "tests_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "started": 1793512993.5547395,
+  "source_tree_sha256": "e96b4c75537b9813949fa01a32538122a310d5b44ffe1a18eb66bc58bec8c7e8",
+  "tests_tools_sha256": "8ebff4461d180214d23aadd8d8fed3b9d9d25ce6541a2d0e88b28a6575079edb",
+  "exit": 1,
+  "seconds": 3188.14559674263,
+  "source_tree_unchanged": true,
+  "tests_tools_unchanged": true,
+  "artifacts": "/home/user/Projects/cx-wave13/build/gate-run.zO0XlD",
+  "summary": [
+    "GATE(PARTIAL): 308 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-epoll.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

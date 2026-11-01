@@ -1,0 +1,238 @@
+{
+  "kind": "A: behavior twin",
+  "behavior": "7d2f8a205 headline behavior",
+  "private_layout": "POST SnapshotManager/SnapshotLoadPlan and Server diagnostic tail fields; unused in PRE",
+  "matched": "POST .text origin/extent and .rodata size; private structure offsets",
+  "limitation": "Individual function/data addresses are not matched; this aggregate control cannot isolate every placement effect.",
+  "padding": {
+    ".text": 46256,
+    ".rodata": 704
+  },
+  "link": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/main.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/net/tls.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/xshard.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/persist/aof.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/genthread.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/reorder.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/cmd/eviction.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/store/flush.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/db0/src/core/version.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/main.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/net/tls.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/xshard.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/persist/aof.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/genthread.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/reorder.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/latency_tracking.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/cmd/eviction.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/store/flush.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/third_party/lua/helpers/lua_cjson.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/third_party/lua/helpers/lua_cmsgpack.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/third_party/lua/helpers/lua_bit.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/third_party/lua/helpers/lua_struct.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/third_party/lua/helpers/strbuf.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/third_party/lua/helpers/fpconv.o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/source/build/src/core/version.o",
+    "-o",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/tomokv",
+    "-Wl,--wrap=main",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm",
+    "/home/user/Projects/cx-wave13/build/wave13/pad-a/padding.o",
+    "-Wl,--section-start=.text=0x2cab0"
+  ],
+  "pre_sections": {
+    ".text": {
+      "address": 182960,
+      "size": 8850599
+    },
+    ".rodata": {
+      "address": 9035776,
+      "size": 638116
+    },
+    ".tdata": {
+      "address": 10547488,
+      "size": 384
+    },
+    ".tbss": {
+      "address": 10547872,
+      "size": 736
+    },
+    ".data": {
+      "address": 10637312,
+      "size": 19321
+    },
+    ".bss": {
+      "address": 10656640,
+      "size": 1189384
+    }
+  },
+  "post_sections": {
+    ".text": {
+      "address": 182960,
+      "size": 8896071
+    },
+    ".rodata": {
+      "address": 9080832,
+      "size": 638820
+    },
+    ".tdata": {
+      "address": 10600736,
+      "size": 384
+    },
+    ".tbss": {
+      "address": 10601120,
+      "size": 736
+    },
+    ".data": {
+      "address": 10690560,
+      "size": 19321
+    },
+    ".bss": {
+      "address": 10709888,
+      "size": 1189384
+    }
+  },
+  "pad_sections": {
+    ".text": {
+      "address": 182960,
+      "size": 8896071
+    },
+    ".rodata": {
+      "address": 9080832,
+      "size": 638820
+    },
+    ".tdata": {
+      "address": 10592544,
+      "size": 384
+    },
+    ".tbss": {
+      "address": 10592928,
+      "size": 736
+    },
+    ".data": {
+      "address": 10682368,
+      "size": 19321
+    },
+    ".bss": {
+      "address": 10701696,
+      "size": 1189384
+    }
+  },
+  "post_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+  "pad_sha256": "2d1abf4553feb009d9f9f6d07f13996f39cc68f7cf7695f4bad598465663f9db",
+  "header_sha256": {
+    "src/snapshot/snapshot.h": "f6f3d035cd6960335d3fb4f92eff3d688a5e2f778d367ccc87c425a3d7d4642f",
+    "src/core/server.h": "0d97ff2eadde9506930a1ed22b76a5c07860712a1dd423b75b0d368e58d973cc"
+  }
+}

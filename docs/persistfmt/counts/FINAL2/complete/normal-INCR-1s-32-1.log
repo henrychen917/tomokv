@@ -1,0 +1,4 @@
+/home/user/Projects/cx-persistfmt/build/persistfmt/counts/trace /home/user/Projects/cx-persistfmt/build/persistfmt/counts/scopes/FINAL2-normal/probe /home/user/Projects/cx-persistfmt/build/persistfmt/counts/scopes/FINAL2-normal/complete.ranges 9970e0 9970f0 000000000002bb20 INCR 1s 32 1 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 37411

@@ -1,0 +1,64 @@
+--- a/tests/datafix1_common.py
++++ b/tests/datafix1_common.py
+@@ -13,13 +13,17 @@
+ 
+ 
+ @contextlib.contextmanager
+-def boot(binary, port, cores, directory, flags=()):
++def boot(binary, port, cores, directory, flags=(), *, locale='C', oracle=False):
+     assert not subprocess.check_output(['ss', '-H', '-ltn', f'sport = :{port}']).strip()
+     directory.mkdir(parents=True, exist_ok=True)
+     argv = ['taskset', '-c', cores, str(Path(binary).resolve()), '--bind', '127.0.0.1',
+             '--port', str(port), '--dir', str(directory.resolve()), '--save', '',
+             '--appendonly', 'no', '--enable-debug-command', 'yes', *flags]
+-    env = dict(os.environ, LANG='en_US.UTF-8', LC_ALL='en_US.UTF-8')
++    # Redis's process-title update overwrites the original /proc environment
++    # area. Keep it intact so the ready oracle's locale can be witnessed too.
++    if oracle:
++        argv += ['--set-proc-title', 'no']
++    env = dict(os.environ, LANG=locale, LC_ALL=locale)
+     with (directory / 'server.log').open('w') as log:
+         p = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT, env=env)
+     print(json.dumps(dict(start=argv, pid=p.pid)), flush=True)
+@@ -34,6 +38,13 @@
+             except (OSError, TimeoutError):
+                 assert time.monotonic() < deadline, 'boot timeout'
+                 time.sleep(.02)
++        # Check the owned, ready server's actual environment, not just the
++        # requested Popen arguments. Retain only these two nonsensitive fields.
++        actual = dict(item.split(b'=', 1) for item in
++                      Path(f'/proc/{p.pid}/environ').read_bytes().split(b'\0') if b'=' in item)
++        boot_locale = {name: actual[name.encode()].decode() for name in ('LANG', 'LC_ALL')}
++        assert boot_locale == {'LANG': locale, 'LC_ALL': locale}, boot_locale
++        print(json.dumps(dict(boot_locale=boot_locale, pid=p.pid)), flush=True)
+         with Conn(port) as c:
+             c.s.settimeout(15)
+             yield c
+@@ -87,6 +98,9 @@
+     args = p.parse_args()
+     args.output.mkdir(parents=True, exist_ok=True)
+     failures = []
++    # The dedicated locale-default witness must retain its non-C environment;
++    # all other batteries use the gate's required C boot environment.
++    boot_locale = 'en_US.UTF-8' if feature == 'CD4.6' else 'C'
+     legs = [('oracle', '2s', 0, 0)] if args.oracle_only else [
+         (engine, mode, local, atomic)
+         for engine in ('epoll', 'uring') for mode, local in (('2s', 0), ('1s', 0), ('1s', 1))
+@@ -95,14 +109,15 @@
+         name = f'{engine}-{mode}-rl{local}-a{atomic}'
+         directory = args.output / name
+         try:
+-            with boot(args.oracle, args.port + 1, args.cores, directory / 'oracle', flags) as oracle:
++            with boot(args.oracle, args.port + 1, args.cores, directory / 'oracle', flags,
++                      locale=boot_locale, oracle=True) as oracle:
+                 target_flags = ['--shards', '16', '--databases', '1',
+                                 '--thread-mode', mode, '--read-local', str(local), '--atomic', str(atomic),
+                                 '--net-io', engine, '--flip-auto', '0', *flags]
+                 if mode == '2s':
+                     target_flags += ['--ratio', args.ratio]
+                 target_context = contextlib.nullcontext(None) if args.oracle_only else boot(
+-                    args.binary, args.port, args.cores, directory / 'target', target_flags)
++                    args.binary, args.port, args.cores, directory / 'target', target_flags, locale=boot_locale)
+                 with target_context as target, (directory / 'replies.jsonl').open('w') as receipt:
+                     pair = Pair(oracle, target, receipt)
+                     battery(pair)

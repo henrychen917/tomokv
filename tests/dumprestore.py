@@ -78,6 +78,8 @@ def case_defs(prefix):
         (prefix + ":set:expanded", "set"),
         (prefix + ":zset:compact", "zset"),
         (prefix + ":zset:expanded", "zset"),
+        (prefix + ":stream:compact", "stream"),
+        (prefix + ":stream:expanded", "stream"),
     ]
 
 
@@ -289,8 +291,11 @@ def live_battery():
     expect(client.cmd("RESTORE", "dr:badencoding", "0", bad_encoding),
            b"-ERR Bad data format", "RDB decoder rejects unsupported type")
     expect(client.cmd("EXISTS", "dr:badencoding"), 0, "unsupported type no mutation")
-    expect(client.cmd("DUMP", "dr:live:stream:compact"),
-           b"-ERR object could not be serialized", "stream DUMP scope cut")
+    payload = client.cmd("DUMP", "dr:live:stream:compact")
+    validate_envelope(payload, "stream DUMP")
+    expect(client.cmd("RESTORE", "dr:stream:copy", 0, payload), b"+OK", "stream RESTORE")
+    expect(observation("dr:stream:copy", "stream"),
+           observation("dr:live:stream:compact", "stream"), "stream round trip")
     expect(client.cmd("FLUSHALL"), b"+OK", "cleanup")
 
 

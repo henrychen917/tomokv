@@ -1,0 +1,82 @@
+{
+  "decision": "likely variant retained: normal recovery remains the common branch; no flatten or forced inlining",
+  "discarded_attempt": "loader-likely and loader-inline receipts used a shared ranges file in concurrent trials and are invalid; loader2-* used one directory per executable and are valid",
+  "files": {
+    "build/persistfmt/loader-trials/inline-db0.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build/persistfmt/loader-trials/inline-db0.o": {
+      "sha256": "9c003235d61ab93f21668e5eca4dcca6932a3f0434d3de5618c730c5c98405f0",
+      "bytes": 5328912
+    },
+    "build/persistfmt/loader-trials/likely-db0.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build/persistfmt/loader-trials/inline-normal.log": {
+      "sha256": "f3a88a57159a253427c03775782d557593d874822988e55b638085f22618832c",
+      "bytes": 499
+    },
+    "build/persistfmt/loader-trials/inline-normal.o": {
+      "sha256": "7f618dad5271b99962878b181d88c80da17b24e99ccfe366ec4510c4b230c7f1",
+      "bytes": 5273280
+    },
+    "build/persistfmt/loader-trials/likely-normal.o": {
+      "sha256": "aecfd2be5fd62ad52720f68f83aa9d7d615c84994b75b2e93079ce22f84634ee",
+      "bytes": 5271664
+    },
+    "build/persistfmt/loader-trials/complete.ranges": {
+      "sha256": "ea1e370ced8557ca5555181fbac5969bae08ea8598aff838ff993daca60ec9ea",
+      "bytes": 193929
+    },
+    "build/persistfmt/loader-trials/likely.cc": {
+      "sha256": "25924d43cbb4066fbc636b0efbbc25209a16f37f90406b143420f0ed2f04c3cb",
+      "bytes": 58761
+    },
+    "build/persistfmt/loader-trials/inline.cc": {
+      "sha256": "86abf6dfe74fb78e4d33c620e81d9de4e8ad89a0893a4b3b76b75ad34e64955b",
+      "bytes": 58791
+    },
+    "build/persistfmt/loader-trials/likely-db0.o": {
+      "sha256": "a1ad361404901a5c6d4b1e4fd47722811f485bf53fbc0e79fe4cc8e53e161385",
+      "bytes": 5326320
+    },
+    "build/persistfmt/loader-trials/likely-normal.log": {
+      "sha256": "1d5baacf304e72b37c8c04bcb227b44fb0b56cd128adbbac688e569cac4e4c27",
+      "bytes": 499
+    },
+    "build/persistfmt/loader-trials/inline-normal/complete.ranges": {
+      "sha256": "4ce68e71324d8833d9939fab649ca65f52efc3236ab32b3275e054fdc9109101",
+      "bytes": 193947
+    },
+    "build/persistfmt/loader-trials/inline-normal/probe": {
+      "sha256": "070a8946e39df64e77674793e454ce61ca7e0dc338ab506ecf4f17c92c9230e9",
+      "bytes": 235645016
+    },
+    "build/persistfmt/loader-trials/inline-db0/complete.ranges": {
+      "sha256": "ea1e370ced8557ca5555181fbac5969bae08ea8598aff838ff993daca60ec9ea",
+      "bytes": 193929
+    },
+    "build/persistfmt/loader-trials/inline-db0/probe": {
+      "sha256": "f5a01a4b0048f0eb9a74fe618e46632aa0aa81e5defc4d65cd48d7fa4b9f71ec",
+      "bytes": 235939488
+    },
+    "build/persistfmt/loader-trials/likely-normal/complete.ranges": {
+      "sha256": "1128355ff68be82548d918dff37551a6cb46589851e92ad35c5cc3cac68abf93",
+      "bytes": 193979
+    },
+    "build/persistfmt/loader-trials/likely-normal/probe": {
+      "sha256": "9bf29c164b7fed3264281d10f3329a3eb13604c79ae7de099dd6cf93d838214a",
+      "bytes": 235649656
+    },
+    "build/persistfmt/loader-trials/likely-db0/complete.ranges": {
+      "sha256": "7e2d3d04fcafbe339556db6e1c3fc4a3d0a0cabfae7a568439c785b6e206ee3f",
+      "bytes": 193961
+    },
+    "build/persistfmt/loader-trials/likely-db0/probe": {
+      "sha256": "c1c846cbd2079abbb6a13d855b81b1b73fe90ee1b28f62b7d89c9066c20b8b6f",
+      "bytes": 235938328
+    }
+  }
+}

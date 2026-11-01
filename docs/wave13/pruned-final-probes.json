@@ -1,0 +1,136 @@
+[
+  {
+    "path": "build/wave13/counts/scopes/final-post-normal",
+    "cells": 122,
+    "probe_sha256": "8d63a9a998633f22b11271fd8e15507bd94c3b026fcb706e10fd4d897b053967",
+    "files": [
+      {
+        "path": "build/wave13/counts/scopes/final-post-normal/build.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-normal/complete.ranges",
+        "bytes": 195903,
+        "sha256": "aa23d5a8ff7ff64586d905f10752bb89df6f9fe9657de1b4a985ee5a316c25c9"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-normal/original-main.o",
+        "bytes": 26985880,
+        "sha256": "8c7dc29d962fbf658d23ec8e5fa264743d1a6f1ba52a05a9e0116261441875bb"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-normal/probe",
+        "bytes": 232922032,
+        "sha256": "8d63a9a998633f22b11271fd8e15507bd94c3b026fcb706e10fd4d897b053967"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-normal/probe.o",
+        "bytes": 14689952,
+        "sha256": "955197a1bf8cf1f2be9303327d81813494a0ace94fcfdb14a305d4de5f241a50"
+      }
+    ]
+  },
+  {
+    "path": "build/wave13/counts/scopes/final-post-db0",
+    "cells": 122,
+    "probe_sha256": "ef092d0d4d5ba6a8dc2de2c7967222581c6f4ba4b71f8b4c5c3a6214394d41ce",
+    "files": [
+      {
+        "path": "build/wave13/counts/scopes/final-post-db0/build.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-db0/complete.ranges",
+        "bytes": 195901,
+        "sha256": "59a54702ef71afd8bab4dec7aefce4b2b8607c1484eb3b7915d5954fa4a09ba0"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-db0/original-main.o",
+        "bytes": 26985880,
+        "sha256": "8c7dc29d962fbf658d23ec8e5fa264743d1a6f1ba52a05a9e0116261441875bb"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-db0/probe",
+        "bytes": 232924160,
+        "sha256": "ef092d0d4d5ba6a8dc2de2c7967222581c6f4ba4b71f8b4c5c3a6214394d41ce"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-post-db0/probe.o",
+        "bytes": 14783312,
+        "sha256": "949a662aef11343d12ccaa8fb8bb398c98d9a712372d1753efb717aca9766ec5"
+      }
+    ]
+  },
+  {
+    "path": "build/wave13/counts/scopes/final-gc-normal",
+    "cells": 48,
+    "probe_sha256": "eb9d5c1f20e0b63a6dbd00392090f73bf17c21bde3d73d9d58f0914c1986021b",
+    "files": [
+      {
+        "path": "build/wave13/counts/scopes/final-gc-normal/build.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-normal/lua.ranges",
+        "bytes": 195903,
+        "sha256": "86a260a45096fa8fc74edad6f07d0cb5cf59173892789caa0ec74b1e99bf939b"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-normal/original-main.o",
+        "bytes": 26985880,
+        "sha256": "8c7dc29d962fbf658d23ec8e5fa264743d1a6f1ba52a05a9e0116261441875bb"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-normal/probe",
+        "bytes": 232925400,
+        "sha256": "eb9d5c1f20e0b63a6dbd00392090f73bf17c21bde3d73d9d58f0914c1986021b"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-normal/probe.o",
+        "bytes": 14694552,
+        "sha256": "e28e816dfb52c43885baf95e108df937ebdc84b2e2624649d2929a0278b15c65"
+      }
+    ]
+  },
+  {
+    "path": "build/wave13/counts/scopes/final-gc-db0",
+    "cells": 48,
+    "probe_sha256": "05e6da0a1776c5943ebad9fe5e947a7a4d636be899c3ec06d093d8cd7600ebfb",
+    "files": [
+      {
+        "path": "build/wave13/counts/scopes/final-gc-db0/build.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-db0/lua.ranges",
+        "bytes": 195901,
+        "sha256": "6ea999cd6a8e173d2a352353c3b9f6cfd4f2399ab11a872880e8fd5719a44b04"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-db0/original-main.o",
+        "bytes": 26985880,
+        "sha256": "8c7dc29d962fbf658d23ec8e5fa264743d1a6f1ba52a05a9e0116261441875bb"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-db0/probe",
+        "bytes": 232926096,
+        "sha256": "05e6da0a1776c5943ebad9fe5e947a7a4d636be899c3ec06d093d8cd7600ebfb"
+      },
+      {
+        "path": "build/wave13/counts/scopes/final-gc-db0/probe.o",
+        "bytes": 14788432,
+        "sha256": "e1b7bbd234d9d3f10b4b8eb64be0cc479b5b7623c0abad3bc2e41d90e5df7adf"
+      }
+    ]
+  },
+  {
+    "path": "build/wave13/pad-a/tomokv",
+    "duplicate_of": "build/wave13/tomokv-PAD-A",
+    "sha256": "2d1abf4553feb009d9f9f6d07f13996f39cc68f7cf7695f4bad598465663f9db",
+    "bytes": 227275672
+  }
+]

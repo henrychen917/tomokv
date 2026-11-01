@@ -1,0 +1,26 @@
+{
+  "receipt": "docs/wave13/jobs/landing-persistfmt-window-v2.json",
+  "files": [
+    {
+      "path": "build/persistfmt/scheduled/aof.cc",
+      "bytes": 153027,
+      "sha256": "602ee4b7798fa884534191344e6a1452f9903fd136f8add559394d7ae7e19e2e"
+    },
+    {
+      "path": "build/persistfmt/scheduled/aof.o",
+      "bytes": 9707840,
+      "sha256": "04f205a5ab2ac1dac404535419f169548015534851ac8a8f87dbc58215bd5bc8"
+    },
+    {
+      "path": "build/persistfmt/scheduled/db0-aof.o",
+      "bytes": 9758728,
+      "sha256": "3f2ed78642c4ad683dca935df1e1587f2aa405a727a360179fa1b53f2add7484"
+    },
+    {
+      "path": "build/persistfmt/scheduled/tomokv",
+      "bytes": 228429808,
+      "sha256": "b5296923753c3588defd16291b00d7185a26e9ddc8617c46cecba7b1594b321c"
+    }
+  ],
+  "note": "Fused epoll FLUSHALL failed all eight fresh latch attempts; other three mode/engine window rows passed."
+}

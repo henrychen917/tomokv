@@ -267,16 +267,12 @@ note("XINFO STREAM FULL exposes entries, group PEL and consumers",
      full[b"length"] == 1 and len(full[b"entries"]) == 1 and len(full[b"groups"]) == 1 and
      pairs(full[b"groups"][0])[b"pel-count"] == 1)
 
-# Stream DUMP is a documented cut under the redis-wire codec (streams have no wire payload yet);
-# lock the cut visibly so a silent behavior change fails here. Group persistence itself is proven
-# by the native snapshot leg above, not by DUMP.
-dump_err = None
-try:
-    admin.cmd("DUMP", "block:g")
-except RuntimeError as e:
-    dump_err = str(e)
-note("group-bearing DUMP reports the documented wire-codec cut",
-     dump_err is not None and "could not be serialized" in dump_err)
+payload = admin.cmd("DUMP", "block:g")
+restored = admin.cmd("RESTORE", "block:g:copy", 0, payload)
+full_copy = pairs(admin.cmd("XINFO", "STREAM", "block:g:copy", "FULL", "COUNT", "10"))
+note("group-bearing DUMP/RESTORE preserves entries, PEL and consumers",
+     restored == b"OK" and full_copy[b"entries"] == full[b"entries"] and
+     full_copy[b"groups"] == full[b"groups"])
 note("XGROUP DESTROY removes group state but keeps the stream",
      admin.cmd("XGROUP", "DESTROY", "block:g", "g") == 1 and
      admin.cmd("EXISTS", "block:g") == 1)

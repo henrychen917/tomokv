@@ -23,6 +23,12 @@ class ThreadCtx;
 
 class SnapshotLoadPlan {
 public:
+    // The db0 dispatch unit needs cold metadata cleanup out of line to preserve
+    // its ordinary-path register allocation. The normal unit retains inlining;
+    // both choices are checked by the command-scope PRE/POST census.
+#if defined(TOMO_SINGLE_DATABASE) && TOMO_SINGLE_DATABASE
+    [[gnu::noinline]] ~SnapshotLoadPlan() = default;
+#endif
     uint32_t routing_version = 1;
     DatabaseMap::Map database_map;
     uint32_t shard_count = 0;
@@ -33,6 +39,10 @@ public:
     uint64_t sip_k0 = 0;
     uint64_t sip_k1 = 0;
     std::vector<std::vector<uint8_t>> sections;
+    std::vector<uint8_t> functions;
+    bool flush = true;
+    bool merge = false;
+    bool functions_loaded = false; // DEBUG prepares the registry before dispatch
 };
 
 std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t expected_shards,
@@ -41,6 +51,8 @@ bool snapshot_load_owned(const SnapshotLoadPlan& plan, Server& server, ThreadCtx
                          std::string& error);
 bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                          std::string& error);
+bool prepare_debug_reload(Server&, Op&, uint32_t owner_io,
+                          std::unique_ptr<SnapshotLoadPlan>&);
 
 class SnapshotManager {
 public:
@@ -172,6 +184,9 @@ private:
     std::string final_path_;
     std::string temp_path_;
     std::string error_;
+    // Empty when no function libraries exist. Present extensions start with the
+    // unchanged 256-byte database map, followed by Redis FUNCTION2 source records.
+    std::vector<uint8_t> function_metadata_;
     std::mutex error_mu_;
     int fd_ = -1;                         // designated writer thread only
     uint64_t frame_count_ = 0;

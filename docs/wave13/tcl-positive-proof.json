@@ -1,0 +1,770 @@
+{
+  "receipt": "docs/wave13/jobs/landing-tcl-quiet.json",
+  "receipt_sha256": "613713571494811ffd2ad60ba8737cc0983e3f34a4edd7261b8aa8a7daab2651",
+  "binary_sha256": "af2ed7e267f11f610b78a38abed942873dd2d1c1a0f303f8fd482cf9e66fc0ee",
+  "manifest_sha256": "4607a48295900101eb463281299bddd4ae671d8ca0ac17d9c41da3fc57bf318c",
+  "runner_sha256": "004e3b9b29b4e4e53d21d922f77e052b3bdfe66873a455148f0b83d4c9e9b997",
+  "modes": {
+    "1s": {
+      "summary": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/redis_tcl/redis-tcl-1s/summary.json",
+      "summary_sha256": "f16b73801fc78e2315960f9a4fc4488a26a5a05d5d281579fe71cbe24c45c1e5",
+      "units": [
+        {
+          "file": "integration/redis-cli",
+          "required_occurrences": 45,
+          "witnessed_occurrences": 45,
+          "named_skips": 5,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "integration/replication-buffer",
+          "required_occurrences": 2,
+          "witnessed_occurrences": 2,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/bitfield",
+          "required_occurrences": 18,
+          "witnessed_occurrences": 18,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/bitops",
+          "required_occurrences": 48,
+          "witnessed_occurrences": 48,
+          "named_skips": 1,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/dump",
+          "required_occurrences": 8,
+          "witnessed_occurrences": 8,
+          "named_skips": 6,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/expire",
+          "required_occurrences": 60,
+          "witnessed_occurrences": 60,
+          "named_skips": 7,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/functions",
+          "required_occurrences": 89,
+          "witnessed_occurrences": 89,
+          "named_skips": 8,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/geo",
+          "required_occurrences": 64,
+          "witnessed_occurrences": 64,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/hyperloglog",
+          "required_occurrences": 24,
+          "witnessed_occurrences": 24,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/introspection",
+          "required_occurrences": 26,
+          "witnessed_occurrences": 26,
+          "named_skips": 11,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": [
+            {
+              "original_failure": {
+                "status": "err",
+                "file": "tests/unit/introspection.tcl",
+                "test": "MONITOR log blocked command only once in tests/unit/introspection.tcl",
+                "data": "MONITOR log blocked command only once in tests/unit/introspection.tcl\nExpected '1793523278.848333 [0 127.0.0.1:35649] \"info\"' to match '*\"blpop\"*\"mylist\"*\"0\"*' (context: type eval line 20 cmd {assert_match {*\"blpop\"*\"mylist\"*\"0\"*} [$rd read]} proc ::test) ",
+                "milliseconds": "0"
+              },
+              "result": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/redis_tcl/redis-tcl-1s/unit/introspection/monitor-retry/unit/introspection/result.json",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "file": "unit/introspection-2",
+          "required_occurrences": 41,
+          "witnessed_occurrences": 41,
+          "named_skips": 6,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/keyspace",
+          "required_occurrences": 37,
+          "witnessed_occurrences": 37,
+          "named_skips": 8,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/latency-monitor",
+          "required_occurrences": 14,
+          "witnessed_occurrences": 14,
+          "named_skips": 1,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/multi",
+          "required_occurrences": 33,
+          "witnessed_occurrences": 33,
+          "named_skips": 20,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/other",
+          "required_occurrences": 21,
+          "witnessed_occurrences": 21,
+          "named_skips": 4,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/pause",
+          "required_occurrences": 15,
+          "witnessed_occurrences": 15,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/protocol",
+          "required_occurrences": 19,
+          "witnessed_occurrences": 19,
+          "named_skips": 6,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/pubsub",
+          "required_occurrences": 32,
+          "witnessed_occurrences": 32,
+          "named_skips": 15,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/quit",
+          "required_occurrences": 3,
+          "witnessed_occurrences": 3,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/scan",
+          "required_occurrences": 25,
+          "witnessed_occurrences": 25,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/scripting",
+          "required_occurrences": 158,
+          "witnessed_occurrences": 158,
+          "named_skips": 40,
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/slowlog",
+          "required_occurrences": 10,
+          "witnessed_occurrences": 10,
+          "named_skips": 8,
+          "setup_errors": [],
+          "fresh_runs": [
+            {
+              "test": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+              "result": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/redis_tcl/redis-tcl-1s/unit/slowlog/fresh/0/unit/slowlog/result.json",
+              "error": null,
+              "exit_code": 0
+            }
+          ],
+          "order_retries": []
+        },
+        {
+          "file": "unit/sort",
+          "required_occurrences": 52,
+          "witnessed_occurrences": 52,
+          "named_skips": 2,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/tracking",
+          "required_occurrences": 41,
+          "witnessed_occurrences": 41,
+          "named_skips": 17,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/hash",
+          "required_occurrences": 74,
+          "witnessed_occurrences": 74,
+          "named_skips": 1,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/incr",
+          "required_occurrences": 31,
+          "witnessed_occurrences": 31,
+          "named_skips": 2,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/list",
+          "required_occurrences": 242,
+          "witnessed_occurrences": 242,
+          "named_skips": 23,
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/list-2",
+          "required_occurrences": 2,
+          "witnessed_occurrences": 2,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/list-3",
+          "required_occurrences": 2,
+          "witnessed_occurrences": 2,
+          "named_skips": 4,
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/set",
+          "required_occurrences": 116,
+          "witnessed_occurrences": 116,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/stream",
+          "required_occurrences": 73,
+          "witnessed_occurrences": 73,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "required_occurrences": 50,
+          "witnessed_occurrences": 50,
+          "named_skips": 2,
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/string",
+          "required_occurrences": 80,
+          "witnessed_occurrences": 80,
+          "named_skips": 2,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/zset",
+          "required_occurrences": 319,
+          "witnessed_occurrences": 319,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/violations",
+          "required_occurrences": 1,
+          "witnessed_occurrences": 1,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/info-command",
+          "required_occurrences": 3,
+          "witnessed_occurrences": 3,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/printver",
+          "required_occurrences": 0,
+          "witnessed_occurrences": 0,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        }
+      ],
+      "required_occurrences": 1878,
+      "witnessed_occurrences": 1878,
+      "named_skips": 211,
+      "passed": true
+    },
+    "2s": {
+      "summary": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/redis_tcl/redis-tcl-2s/summary.json",
+      "summary_sha256": "e75575c5725e20d3baaafc29c01636ccbbd5038145dbd051e329b0b40aa9c471",
+      "units": [
+        {
+          "file": "integration/redis-cli",
+          "required_occurrences": 45,
+          "witnessed_occurrences": 45,
+          "named_skips": 5,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "integration/replication-buffer",
+          "required_occurrences": 2,
+          "witnessed_occurrences": 2,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/bitfield",
+          "required_occurrences": 18,
+          "witnessed_occurrences": 18,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/bitops",
+          "required_occurrences": 48,
+          "witnessed_occurrences": 48,
+          "named_skips": 1,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/dump",
+          "required_occurrences": 8,
+          "witnessed_occurrences": 8,
+          "named_skips": 6,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/expire",
+          "required_occurrences": 60,
+          "witnessed_occurrences": 60,
+          "named_skips": 7,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/functions",
+          "required_occurrences": 89,
+          "witnessed_occurrences": 89,
+          "named_skips": 8,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/geo",
+          "required_occurrences": 64,
+          "witnessed_occurrences": 64,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/hyperloglog",
+          "required_occurrences": 24,
+          "witnessed_occurrences": 24,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/introspection",
+          "required_occurrences": 26,
+          "witnessed_occurrences": 26,
+          "named_skips": 11,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/introspection-2",
+          "required_occurrences": 41,
+          "witnessed_occurrences": 41,
+          "named_skips": 6,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/keyspace",
+          "required_occurrences": 37,
+          "witnessed_occurrences": 37,
+          "named_skips": 8,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/latency-monitor",
+          "required_occurrences": 14,
+          "witnessed_occurrences": 14,
+          "named_skips": 1,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/multi",
+          "required_occurrences": 33,
+          "witnessed_occurrences": 33,
+          "named_skips": 20,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/other",
+          "required_occurrences": 21,
+          "witnessed_occurrences": 21,
+          "named_skips": 4,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/pause",
+          "required_occurrences": 15,
+          "witnessed_occurrences": 15,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/protocol",
+          "required_occurrences": 19,
+          "witnessed_occurrences": 19,
+          "named_skips": 6,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/pubsub",
+          "required_occurrences": 32,
+          "witnessed_occurrences": 32,
+          "named_skips": 15,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/quit",
+          "required_occurrences": 3,
+          "witnessed_occurrences": 3,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/scan",
+          "required_occurrences": 25,
+          "witnessed_occurrences": 25,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/scripting",
+          "required_occurrences": 158,
+          "witnessed_occurrences": 158,
+          "named_skips": 40,
+          "setup_errors": [
+            {
+              "command": "r debug set-disable-deny-scripts 1",
+              "reply": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+              "count": 2
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/slowlog",
+          "required_occurrences": 10,
+          "witnessed_occurrences": 10,
+          "named_skips": 8,
+          "setup_errors": [],
+          "fresh_runs": [
+            {
+              "test": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl",
+              "result": "/home/user/Projects/cx-wave13/build/gate-run.DnSSHr/jobs/redis_tcl/redis-tcl-2s/unit/slowlog/fresh/0/unit/slowlog/result.json",
+              "error": null,
+              "exit_code": 0
+            }
+          ],
+          "order_retries": []
+        },
+        {
+          "file": "unit/sort",
+          "required_occurrences": 52,
+          "witnessed_occurrences": 52,
+          "named_skips": 2,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/tracking",
+          "required_occurrences": 41,
+          "witnessed_occurrences": 41,
+          "named_skips": 17,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/hash",
+          "required_occurrences": 74,
+          "witnessed_occurrences": 74,
+          "named_skips": 1,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/incr",
+          "required_occurrences": 31,
+          "witnessed_occurrences": 31,
+          "named_skips": 2,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/list",
+          "required_occurrences": 242,
+          "witnessed_occurrences": 242,
+          "named_skips": 23,
+          "setup_errors": [
+            {
+              "command": "r config set list-compress-depth 2",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/list-2",
+          "required_occurrences": 2,
+          "witnessed_occurrences": 2,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/list-3",
+          "required_occurrences": 2,
+          "witnessed_occurrences": 2,
+          "named_skips": 4,
+          "setup_errors": [
+            {
+              "command": "config_set list-compress-depth $comp",
+              "reply": "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'",
+              "count": 1
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/set",
+          "required_occurrences": 116,
+          "witnessed_occurrences": 116,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/stream",
+          "required_occurrences": 73,
+          "witnessed_occurrences": 73,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/stream-cgroups",
+          "required_occurrences": 50,
+          "witnessed_occurrences": 50,
+          "named_skips": 2,
+          "setup_errors": [
+            {
+              "command": "r config set $param $val",
+              "reply": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+              "count": 1
+            }
+          ],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/string",
+          "required_occurrences": 80,
+          "witnessed_occurrences": 80,
+          "named_skips": 2,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/type/zset",
+          "required_occurrences": 319,
+          "witnessed_occurrences": 319,
+          "named_skips": 3,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/violations",
+          "required_occurrences": 1,
+          "witnessed_occurrences": 1,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/info-command",
+          "required_occurrences": 3,
+          "witnessed_occurrences": 3,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        },
+        {
+          "file": "unit/printver",
+          "required_occurrences": 0,
+          "witnessed_occurrences": 0,
+          "named_skips": 0,
+          "setup_errors": [],
+          "fresh_runs": [],
+          "order_retries": []
+        }
+      ],
+      "required_occurrences": 1878,
+      "witnessed_occurrences": 1878,
+      "named_skips": 211,
+      "passed": true
+    }
+  },
+  "passed": true
+}

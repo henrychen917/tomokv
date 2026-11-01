@@ -972,6 +972,27 @@ public:
     uint64_t flip_clients_transferred() const {
         return flip_clients_transferred_.load(std::memory_order_relaxed);
     }
+    uint64_t flip_session_clients_transferred() const {
+        return flip_session_clients_transferred_.load(std::memory_order_relaxed);
+    }
+    uint64_t flip_refused_s2() const { return flip_refused_s2_.load(std::memory_order_relaxed); }
+    uint64_t flip_refused_close() const { return flip_refused_close_.load(std::memory_order_relaxed); }
+    void flip_note_session_transferred() {
+        flip_session_clients_transferred_.fetch_add(1, std::memory_order_relaxed);
+    }
+    // One reason/counter per refused episode. A close racing the irreversible
+    // edge either wins this lock and rolls back, or keeps its existing pin until
+    // completion. Never publish cleanup into acknowledged executor lanes.
+    void flip_note_session_refusal(bool s2) {
+        std::lock_guard<std::mutex> lock(flip_error_mu_);
+        const auto stage = flip_stage();
+        if (stage < FlipStage::IoDrain || stage >= FlipStage::ClientCommit) return;
+        bool expected = false;
+        if (!flip_failed_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) return;
+        flip_error_ = s2 ? "ERR FLIP refused: prepared but unpublished MULTI/WATCH state"
+                         : "ERR FLIP refused: a pinned connection closed";
+        (s2 ? flip_refused_s2_ : flip_refused_close_).fetch_add(1, std::memory_order_relaxed);
+    }
     double flip_bucket_weight_spread_before() const {
         return flip_bucket_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
     }
@@ -3884,6 +3905,11 @@ private:
     std::atomic<bool> debug_script_escalate_force_{false};
     std::atomic<uint64_t> debug_script_stage_watch_{0};
     std::atomic<uint64_t> debug_script_stage_watch_tasks_{0};
+
+    // D18 diagnostics: control paths only, at the tail to preserve all existing offsets.
+    alignas(64) std::atomic<uint64_t> flip_session_clients_transferred_{0};
+    std::atomic<uint64_t> flip_refused_s2_{0};
+    std::atomic<uint64_t> flip_refused_close_{0};
 
 };
 

@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "../base/slice.h"
 
@@ -113,6 +114,10 @@ struct FunctionStats {
     uint64_t ro_rejections   = 0;   // FCALL_RO refused for a function without no-writes
 };
 FunctionStats function_stats();
+// Cold snapshot library image. Load compiles the whole image before publishing
+// the registry, so corrupt input cannot expose a partially restored library set.
+bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error);
+bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& error);
 
 // Whether argv[0] of this op is one of the FCALL forms. Routing shares EVAL's numkeys grammar but
 // Redis reports a different message for a malformed count.

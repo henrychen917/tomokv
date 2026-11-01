@@ -1,0 +1,3 @@
+ok	0.000000	release build (+footprint locks)
+ok	3.160000	FLIP session handover S2 and close fences (ASAN+TSAN)
+ok	0.030000	FLIP WATCH alias allocation rollback (db1/db16)

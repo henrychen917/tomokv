@@ -1,0 +1,26 @@
+{
+  "receipt": "docs/wave13/jobs/landing-persistfmt-window.json",
+  "files": [
+    {
+      "path": "build/persistfmt/scheduled/aof.cc",
+      "bytes": 152714,
+      "sha256": "e77b39f81b4911f32b129dfe665679646319b22846b1eb06adeee357d37d6996"
+    },
+    {
+      "path": "build/persistfmt/scheduled/aof.o",
+      "bytes": 9689328,
+      "sha256": "034d1de56665997161ef8ebefa235f734e0ee09709f413e3c3c50db8a82583f9"
+    },
+    {
+      "path": "build/persistfmt/scheduled/db0-aof.o",
+      "bytes": 9727520,
+      "sha256": "cbf53c08fde1a67fffea7c13c4d3c0de277a01d032a289b922417e8e1e58a15c"
+    },
+    {
+      "path": "build/persistfmt/scheduled/tomokv",
+      "bytes": 228400760,
+      "sha256": "d5b223c26d41958ce61a520969f1144956e130a9f3fc955245db986c8f0d4b26"
+    }
+  ],
+  "note": "First trace correction failed all four AOF window rows; retained before rebuilding the timing-only twin."
+}

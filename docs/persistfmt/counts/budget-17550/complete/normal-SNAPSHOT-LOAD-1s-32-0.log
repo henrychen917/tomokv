@@ -1,0 +1,4 @@
+/home/user/Projects/cx-persistfmt/build/persistfmt/counts/trace /home/user/Projects/cx-persistfmt/build/persistfmt/budgets/normal-17550/probe /home/user/Projects/cx-persistfmt/build/persistfmt/budgets/normal-17550/complete.ranges 88e6b0 88e6c0 000000000002bb20 SNAPSHOT-LOAD 1s 32 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production snapshot loop
+COUNT 25899

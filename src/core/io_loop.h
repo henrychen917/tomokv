@@ -308,7 +308,8 @@ public:
     // Called only on this loop's physical thread by the migration control lane. The public split
     // keeps preflight (no state change) distinct from request (source remains owner until an async
     // recv cancellation has acknowledged that the old ring released Client*).
-    bool client_transfer_ready(Client* client, uint32_t destination, std::string& error) const {
+    bool client_transfer_ready(Client* client, uint32_t destination, std::string& error,
+                               bool hold_for_commit = false) const {
         if (!client || destination >= srv_->nthreads() || destination == self_->id()) {
             error = "invalid client transfer owner";
             return false;
@@ -327,7 +328,11 @@ public:
             error = "TLS connection has owner-local engine state";
             return false;
         }
-        if (!client->migration_protocol_idle()) {
+        const auto protocol_idle = [&] {
+            return hold_for_commit ? client->flip_migration_protocol_idle()
+                                   : client->migration_protocol_idle();
+        };
+        if (!protocol_idle()) {
             error = "connection ROB, reply, borrow, or owner-local protocol state is busy";
             return false;
         }
@@ -339,7 +344,7 @@ public:
             error = "connection has transient CLIENT/MONITOR/TRACKING state";
             return false;
         }
-        if (!client_executor_quiesced(client) || !client->migration_protocol_idle()) {
+        if (!client_executor_quiesced(client) || !protocol_idle()) {
             error = "connection has an unfinished executor completion";
             return false;
         }
@@ -1514,7 +1519,7 @@ private:
     template <bool kEp>
     bool request_client_transfer_impl(Client* client, uint32_t destination,
                                       bool hold_for_commit, std::string& error) {
-        if (!client_transfer_ready(client, destination, error)) return false;
+        if (!client_transfer_ready(client, destination, error, hold_for_commit)) return false;
         if (srv_->thread(destination).role() != Role::Ifid &&
             !(srv_->flip_stage() != FlipStage::Idle &&
               srv_->flip_final_role(destination) == Role::Ifid)) {
@@ -1600,7 +1605,7 @@ private:
         if (!target.client_transfer_free_slots(self_->id())) return false;
 
         std::string error;
-        if (!client_transfer_ready(client, destination, error)) {
+        if (!client_transfer_ready(client, destination, error, migration->hold_for_commit)) {
             cancel_client_transfer<kEp>(client);
             return false;
         }
@@ -1627,6 +1632,7 @@ private:
         if (!migration || !migration->catalog || client->recv_armed()) return false;
         const uint32_t destination = migration->destination;
         const bool flip_transfer = migration->hold_for_commit;
+        const bool session_transfer = flip_transfer && client->multi_session();
         ThreadCtx& target = srv_->thread(destination);
         if (!target.client_transfer_free_slots(self_->id())) std::abort();
         if constexpr (kEp) {
@@ -1667,7 +1673,10 @@ private:
             srv_->pubsub_event_created();
             pubsub_post(event->target_io, event);
         }
-        if (flip_transfer) srv_->flip_note_client_transferred(client_id, destination);
+        if (flip_transfer) {
+            srv_->flip_note_client_transferred(client_id, destination);
+            if (session_transfer) srv_->flip_note_session_transferred();
+        }
         erase_client_migration(client);       // pointer comparison only; source never dereferences
         srv_->lb_client_move_committed(client_id, self_->id(), destination);
         return true;
@@ -1738,6 +1747,10 @@ private:
                         : self_->drain_client_transfers(take);
     }
 
+    bool flip_session_drain_refused() const;
+    bool flip_session_close_held();
+    bool closing_client_ready(Client* client);
+
     bool flip_io_drained() const {
         if (!pending_serve_.empty() || !pending_releases_.empty() ||
             !pending_handoffs_.empty() || !deferred_timers_.empty() ||
@@ -1786,7 +1799,7 @@ private:
             if (client->closing()) continue;
             std::string refused;
             if (!client_transfer_ready(
-                    client, srv_->flip_client_destination(self_->id(), ordinal), refused)) {
+                    client, srv_->flip_client_destination(self_->id(), ordinal), refused, true)) {
                 error = refused.empty() ? "a weighted FLIP connection is not transferable" : refused;
                 return false;
             }
@@ -2175,6 +2188,15 @@ private:
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
         flip_reflag_inbound();
         fliplisten_resume();
+        // A pinned close may have refused this epoch earlier in this IO pass.
+        // Do not drop/unpin it in ClientPrepare before rollback retires the FLIP.
+        if (stage < FlipStage::ClientCommit) {
+            std::string failure;
+            if (srv_->flip_failed(failure)) {
+                if (self_->id() == srv_->flip_coordinator()) flip_enter_rollback(failure);
+                return 1;
+            }
+        }
 
         // Each stage action tests Server::flip_stage_owed(), never flip_acked() alone: `stage` was
         // sampled above and may belong to a FLIP that has since finished (flipfix5).
@@ -2182,7 +2204,8 @@ private:
             // A pin left by an earlier FLIP must not hide a detached close from this drain.
             flip_close_pin_ = false;
             fliplisten_quiesce();
-            if (accepts_quiesced() && flip_io_drained() && flip_io_drain_ordered()) {
+            if (!flip_session_drain_refused() && accepts_quiesced() &&
+                flip_io_drained() && flip_io_drain_ordered()) {
                 // From this acknowledgement the plan reads this IO's client vector: hold every
                 // close before it leaves ThreadCtx::clients until the FLIP retires (a converting
                 // IO releases the pin once its ClientPrepare is decided).
@@ -2356,8 +2379,13 @@ private:
                 break;
             case FlipStage::ClientPrepare:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
-                    fliplisten_commit();
-                    flip_publish_stage(FlipStage::ClientCommit);
+                    // Serialize the irreversible edge with the new cold close refusal.
+                    // The listener handover itself and its ordering are unchanged.
+                    std::lock_guard<std::mutex> lock(srv_->flip_error_mu_);
+                    if (!srv_->flip_failed_.load(std::memory_order_acquire)) {
+                        fliplisten_commit();
+                        flip_publish_stage(FlipStage::ClientCommit);
+                    }
                 }
                 break;
             case FlipStage::ClientCommit:
@@ -4628,7 +4656,7 @@ ordinary_shard_ready:
             // terminates.
             if (idx >= active_.size() || active_.at(idx) != c) continue;
             if (done && !c->closing()) { c->set_in_active(false); active_.erase_at(idx); }
-            else if (c->closing() && !tls_output && c->safe_to_release()) {
+            else if (c->closing() && !tls_output && closing_client_ready(c)) {
                 // Both teardown fences need other workers to finish their current passes.
                 // Defer in place: close_client's erase+reinsert retry would revisit this client
                 // forever while this pass holds its own DatabaseWorkScope/ClientWorkScope,

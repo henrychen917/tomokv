@@ -1,0 +1,55 @@
+{
+  "source": "build/flipfix6/negative-PRE",
+  "jobs": {},
+  "files": [
+    {
+      "path": "2s-uring-0-db1-exec/server.argv.json",
+      "bytes": 457,
+      "sha256": "bf1d0e78d241a1aaad45752dffce7cfa59a9c3bf5683e5db61051ec8b006f25d",
+      "archived": true,
+      "archive_member": "2s-uring-0-db1-exec/server.argv.json"
+    },
+    {
+      "path": "2s-uring-0-db1-exec/server.exit.json",
+      "bytes": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab",
+      "archived": true,
+      "archive_member": "2s-uring-0-db1-exec/server.exit.json"
+    },
+    {
+      "path": "2s-uring-0-db1-exec/server.log",
+      "bytes": 10090,
+      "sha256": "211140526bf6cd74f7ee3ddf5a3f26b8907a2460c49e9fedc23f133507adc7a0",
+      "archived": "derived",
+      "source_lines": 43,
+      "omitted_io_tenure_lines": 6,
+      "shutdown_tenure_counts": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 0,
+        "7": 0
+      },
+      "archive_member": "2s-uring-0-db1-exec/server.log.summary"
+    },
+    {
+      "path": "2s-uring-0-db1-exec/witness.json",
+      "bytes": 1629,
+      "sha256": "edaa8e96d9211249553828a18d715bab3839436ee6275c40a5a7de818a778c57",
+      "archived": true,
+      "archive_member": "2s-uring-0-db1-exec/witness.json"
+    },
+    {
+      "path": "results.json",
+      "bytes": 627,
+      "sha256": "8b05dd79b9004c2494bbdc10b688eb54338bca959417953b89f01d56cfa4368c",
+      "archived": true,
+      "archive_member": "results.json"
+    }
+  ],
+  "archive": "docs/flipfix6/negative-PRE-evidence.tar.gz",
+  "archive_sha256": "8dabf7ec30566eaa11b0f2226fe541b330300ded8478cc67d4c8fdfabbc00159"
+}

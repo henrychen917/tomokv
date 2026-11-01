@@ -1,0 +1,7 @@
+{
+  "arm": "FINAL4",
+  "command_cells": 80,
+  "snapshot_cells": 16,
+  "added_command_instructions": false,
+  "added_snapshot_instructions_per_key": false
+}

@@ -3042,6 +3042,16 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_stale_stage_refusals() : 0));
         appendf(body,
+                "flip_session_clients_transferred:%llu\r\n"
+                "flip_refused_s2:%llu\r\n"
+                "flip_refused_close:%llu\r\n",
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_session_clients_transferred() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_refused_s2() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_refused_close() : 0));
+        appendf(body,
                 "foreign_read_unsafe_refs:%llu\r\n"
                 "foreign_read_occupied_cells:%llu\r\n"
                 "foreign_read_wildcard_cells:%llu\r\n"
@@ -3884,9 +3894,9 @@ bool command_config_routes_all_shards(Op& op, bool execution_boundary) {
              (g_server && storesize_field_census(*g_server)));
     if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
-        return op.argc() == 2 &&
-               (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||
-                eq_icase(op.arg(1), "borrowcount"));
+        return (op.argc() >= 2 && eq_icase(op.arg(1), "reload")) ||
+               (op.argc() == 2 && (eq_icase(op.arg(1), "loadaof") ||
+                                   eq_icase(op.arg(1), "borrowcount")));
     return op.argc() >= 2 && eq_icase(op.arg(1), "SET");
 }
 

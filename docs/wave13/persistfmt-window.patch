@@ -1,0 +1,156 @@
+--- a/tools/persistfmt_schedule.py
++++ b/tools/persistfmt_schedule.py
+@@ -4,6 +4,8 @@
+ The owner pauses after finish_completions' failed() guard, before the receipt gate.
+ The faulting writer waits for that pause, then wakes it after changing failure state.
+ The live row holds the writer's diagnostic on a full pipe until the reply is checked.
++Markers distinguish an armed S1 window from a fused FLUSH whose remaining owner
++work is held by the injected writer wait; only the latter may re-arm on fresh state.
+ """
+ from pathlib import Path
+ import sys
+@@ -17,6 +19,19 @@
+     const char* path = std::getenv("TOMO_PERSISTFMT_SCHEDULE");
+     return path && ::access(path, F_OK) == 0;
+ }
++bool persistfmt_marker(const char* suffix, uint32_t producer = UINT32_MAX) {
++    const char* base = std::getenv("TOMO_PERSISTFMT_SCHEDULE");
++    if (!base) std::abort();
++    const std::string path = std::string(base) + suffix;
++    const int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
++    if (fd < 0) { if (errno == EEXIST) return false; std::abort(); }
++    char bytes[96];
++    const int size = std::snprintf(bytes, sizeof(bytes), "%ld %u %u\\n",
++        static_cast<long>(::gettid()), producer, persistfmt_schedule.load());
++    if (size <= 0 || ::write(fd, bytes, static_cast<size_t>(size)) != size) std::abort();
++    if (::close(fd) != 0) std::abort();
++    return true;
++}
+ }
+ '''
+ text = text.replace('namespace tomo {', 'namespace tomo {\n' + declaration, 1)
+@@ -24,6 +39,7 @@
+ assert text.count(before_gate) == 1
+ text = text.replace(before_gate, '''
+         if (persistfmt_armed() && persistfmt_schedule.load() < 2) {
++            persistfmt_marker(".gate", producer);
+             persistfmt_schedule.store(1);
+             while (persistfmt_schedule.load() != 2) std::this_thread::yield();
+         }
+@@ -31,11 +47,14 @@
+ before_fail = 'void AofManager::fail(const char* message, int error) {'
+ assert text.count(before_fail) == 1
+ text = text.replace(before_fail, before_fail + '''
+-    if (persistfmt_armed())
++    bool persistfmt_fault_writer = false;
++    if (persistfmt_armed()) {
++        persistfmt_fault_writer = persistfmt_marker(".fail");
+         while (persistfmt_schedule.load() == 0) std::this_thread::yield();
++    }
+ ''')
+ diagnostic = '    std::fprintf(stderr, "AOF error: %s\\n", message ? message : "AOF failure");'
+ assert text.count(diagnostic) == 1
+-text = text.replace(diagnostic, '    if (persistfmt_armed()) persistfmt_schedule.store(2);\n' + diagnostic)
++text = text.replace(diagnostic, '    if (persistfmt_armed()) { persistfmt_schedule.store(2); if (persistfmt_fault_writer) persistfmt_marker(".diagnostic"); }\n' + diagnostic)
+ destination.parent.mkdir(parents=True, exist_ok=True)
+ destination.write_text(text)
+--- a/tests/persistfmt.py
++++ b/tests/persistfmt.py
+@@ -315,17 +315,42 @@
+ 
+ def aof_failure(command="SET"):
+     h.emit("aof_failure_command", command=command)
+-    # Reuse the exact existing RLIMIT_FSIZE fault. Fill stderr's pipe after boot
+-    # to hold fail() at its first diagnostic: PRE has already cleared recording_.
+-    # A connection on another IO thread must remain gated throughout that window.
++    # A fused FLUSH can still need the writer's owner work after posting its
++    # decision record. The scheduling twin may hold that owner before a receipt
++    # gate exists. Re-arm only this witnessed setup failure, with fresh state.
++    for attempt in range(1, 9):
++        if aof_failure_attempt(command, attempt):
++            return
++    raise AssertionError(f'{command}: fail() logging window never opened in 8 fresh attempts')
++
++
++def aof_failure_attempt(command, attempt):
++    h.emit('aof_failure_attempt', command=command, attempt=attempt)
++    # Reuse the exact existing RLIMIT_FSIZE fault and the four-second arming
++    # bound. No attempt passes without observing the blocked diagnostic window.
+     ARGS.binary = ARGS.scheduled_binary.resolve()
+     h.ARGS.binary = ARGS.binary
+-    schedule = ARGS.artifacts / ('armed-' + command)
+-    schedule.unlink(missing_ok=True)
++    schedule = ARGS.artifacts / f'armed-{command}-try{attempt}'
++    data = ARGS.artifacts / f'failure-{command}-try{attempt}'
++    assert not schedule.exists() and not data.exists(), 'AOF fault attempt must have fresh state'
+     os.environ['TOMO_PERSISTFMT_SCHEDULE'] = str(schedule)
++
++    def markers():
++        found = {}
++        for role in ('fail', 'gate', 'diagnostic'):
++            path = Path(str(schedule) + '.' + role)
++            if path.exists():
++                fields = path.read_text().split()
++                if len(fields) != 3:
++                    found[role] = dict(incomplete=True)
++                    continue
++                tid, producer, stage = map(int, fields)
++                found[role] = dict(tid=tid, producer=producer, stage=stage)
++        return found
++
+     rfd, wfd = os.pipe()
+     try:
+-        with server(extra=h.aof('always'), data=ARGS.artifacts / ('failure-' + command),
++        with server(extra=h.aof('always'), data=data,
+                     fsize=128 * 1024, stderr_fd=wfd) as (s, _):
+             c = h.off_writer(s)
+             assert c.cmd('SET', 'before', 'ok') == b'OK'
+@@ -335,7 +360,7 @@
+                 size = increments[0].stat().st_size
+                 assert size > 80, 'preloaded increment did not persist'
+                 resource.prlimit(s.p.pid, resource.RLIMIT_FSIZE, (size, size))
+-                h.emit('wave13_flush_aof_limit', command=command, bytes=size)
++                h.emit('wave13_flush_aof_limit', command=command, attempt=attempt, bytes=size)
+             schedule.touch()
+             os.set_blocking(wfd, False)
+             try:
+@@ -353,11 +378,28 @@
+                 while True:
+                     blocked = [p for p in Path(f'/proc/{s.p.pid}/task').glob('*/wchan')
+                                if 'pipe_write' in p.read_text()]
+-                    if blocked:
++                    evidence = markers()
++                    fault_tid = evidence.get('diagnostic', {}).get('tid')
++                    if fault_tid in [int(p.parent.name) for p in blocked]:
+                         break
+-                    assert time.monotonic() < deadline, 'fail() logging window never opened'
++                    if time.monotonic() >= deadline:
++                        readable, _, _ = select.select([c.s], [], [], 0)
++                        assert not readable, f'reply/exit before the failure window: {c.read()!r}'
++                        assert evidence.keys() == {'fail'} and evidence['fail']['stage'] == 0, (
++                            'unrecognized missing failure window', evidence)
++                        h.emit('failure_window_unarmed', command=command, attempt=attempt,
++                               markers=evidence, reason='writer held by test latch before any reply gate')
++                        # Only the owned scheduling twin is stopped. This attempt
++                        # is not credited; exhausting all fresh attempts fails.
++                        s.stop(signal.SIGKILL)
++                        return False
+                     time.sleep(.005)
+-                h.emit('failure_window_armed', threads=[str(p.parent) for p in blocked])
++                evidence = markers()
++                assert evidence.keys() == {'fail', 'gate', 'diagnostic'}, evidence
++                assert evidence['fail']['tid'] == evidence['diagnostic']['tid'], evidence
++                assert evidence['gate']['tid'] != evidence['diagnostic']['tid'], evidence
++                h.emit('failure_window_armed', command=command, attempt=attempt,
++                       threads=[str(p.parent) for p in blocked], markers=evidence)
+                 # Wake this IO owner after recording_ changed. Otherwise an idle
+                 # epoll owner can sleep through the held failure window entirely.
+                 c.send('PING')
+@@ -377,6 +419,7 @@
+                 raise AssertionError(f'failed write acknowledged after release: {reply!r}')
+             except (EOFError, OSError):
+                 pass
++        return True
+     finally:
+         os.close(rfd)
+         os.close(wfd)

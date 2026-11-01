@@ -1,0 +1,22 @@
+[
+  {
+    "archive": "docs/persistfmt/gate-run.HOSr6t.tar.gz",
+    "sha256": "c0428f3e88743dfde2dba8f4467fe0d4de7c53d200bc7095099199fa84931589",
+    "bytes": 57890776
+  },
+  {
+    "archive": "docs/persistfmt/gate-run.6xhQxF.tar.gz",
+    "sha256": "f98a6334c35dee4756221edbe777480c6ea4d659d60e09d072e0d44aa26e72db",
+    "bytes": 234921
+  },
+  {
+    "archive": "docs/persistfmt/gate-run.izYwfP.tar.gz",
+    "sha256": "337fb49779b156a340b5392f68e574e2cb6c469fc5722f29b147d5222d89b7e6",
+    "bytes": 265771
+  },
+  {
+    "archive": "docs/persistfmt/gate-run.H6TjUf.tar.gz",
+    "sha256": "f65fcee5757f373c799092a311ac0141af1bda55b27b3595f669a69148e886bd",
+    "bytes": 257803
+  }
+]

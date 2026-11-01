@@ -301,6 +301,8 @@
         "FUNCTION - redis version api in tests/unit/functions.tcl",
         "FUNCTION - test command get keys on fcall in tests/unit/functions.tcl",
         "FUNCTION - test command get keys on fcall_ro in tests/unit/functions.tcl",
+        "FUNCTION - test debug reload different options in tests/unit/functions.tcl",
+        "FUNCTION - test debug reload with nosave and noflush in tests/unit/functions.tcl",
         "FUNCTION - test delete on not exiting library in tests/unit/functions.tcl",
         "FUNCTION - test fcall bad arguments in tests/unit/functions.tcl",
         "FUNCTION - test fcall bad number of keys arguments in tests/unit/functions.tcl",
@@ -377,8 +379,6 @@
       "skip_tests": {
         "FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread": "failed on TomoKV 2s in the survey",
         "FUNCTION - deny oom": "failed on TomoKV 2s in the survey",
-        "FUNCTION - test debug reload different options": "failed on TomoKV 2s in the survey",
-        "FUNCTION - test debug reload with nosave and noflush": "failed on TomoKV 2s in the survey",
         "FUNCTION - test function kill": "failed on TomoKV 2s in the survey",
         "FUNCTION - test function kill not working on eval": "failed on TomoKV 2s in the survey",
         "FUNCTION - test script kill not working on function": "failed on TomoKV 2s in the survey",
@@ -2080,6 +2080,7 @@
         "Blocking XREADGROUP: key deleted in tests/unit/type/stream-cgroups.tcl",
         "Blocking XREADGROUP: key type changed with SET in tests/unit/type/stream-cgroups.tcl",
         "Blocking XREADGROUP: key type changed with transaction in tests/unit/type/stream-cgroups.tcl",
+        "Consumer seen-time and active-time in tests/unit/type/stream-cgroups.tcl",
         "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl",
         "RENAME can unblock XREADGROUP with -NOGROUP in tests/unit/type/stream-cgroups.tcl",
         "RENAME can unblock XREADGROUP with data in tests/unit/type/stream-cgroups.tcl",
@@ -2124,7 +2125,6 @@
       },
       "sha256": "3c701f4315918a9038d63542733806e611603189d4024ce403f501361d710d86",
       "skip_tests": {
-        "Consumer seen-time and active-time": "failed on TomoKV 2s in the survey",
         "XREADGROUP from PEL does not change dirty": "failed on TomoKV 2s in the survey",
         "XREADGROUP of multiple entries changes dirty by one": "failed on TomoKV 2s in the survey"
       }
