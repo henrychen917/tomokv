@@ -168,7 +168,12 @@ The sealed PAD-A negative controls are complete.
 `make all`, all 51 explicitly enumerated production-unit targets, live MDBQSBR
 arms and blockfix control/unit targets built successfully. See
 `production-builds.json`, `production-targets.json` and `freshness.json`.
-`python3 tests/gates_test.py` is being rerun without concurrent compilation.
+`python3 tests/gates_test.py`: **83/83 PASS** in the fully isolated CPU
+allocation (147.185 seconds). Two earlier runs each had the same one-slot
+scheduler 45-second deadline failure during concurrent correctness traffic;
+the unchanged test passed after pausing both gate queues between jobs. The
+PRE self-test also showed this deadline failure. All logs are retained under
+`docs/clientcompat/validation/`; no timeout was widened.
 The draft full Tcl run passed 2s; 1s failed a no-acknowledgement unsubscribe
 assertion and timed out in the 50,000-script GC test during compilation. A
 bounded PRE control reproduced unsubscribe/PUNSUBSCRIBE races in 6 of 20
