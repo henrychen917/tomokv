@@ -18,6 +18,8 @@ def main():
     parser.add_argument('--only', default='')
     parser.add_argument('--no-build', action='store_true')
     parser.add_argument('--session', action='store_true')
+    parser.add_argument('--all-executable', action='store_true',
+                        help='also count out-of-line STL code; keep fixture instructions excluded')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     census.BUILD = root / 'build/clientcompat/counts'
@@ -38,12 +40,23 @@ def main():
     if args.only:
         commands = args.only.split(',')
     rows = []
+    build_label = label
+    if args.all_executable:
+        label += '-elf'
     for namespace in ('normal', 'db0'):
-        binary = (census.BUILD / 'scopes' / (label + '-' + namespace) / 'probe'
-                  if args.no_build else census.build(label, source, objects, namespace,
+        binary = (census.BUILD / 'scopes' / (build_label + '-' + namespace) / 'probe'
+                  if args.no_build else census.build(build_label, source, objects, namespace,
                       'tests/clientcompat_session_scope.cc' if args.session
                       else 'tests/clientcompat_scope.cc'))
         prepared = census.prepare(binary, objects, namespace, 'complete')
+        if args.all_executable:
+            ranges, argv, digest = prepared
+            for row in ranges:
+                row[4] = not ('CoreConcurrencyTest::' in row[3] or row[2] in
+                              ('main', '_Z11scope_beginv', '_Z9scope_endv'))
+            whole = binary.parent/'elf.ranges'
+            whole.write_text(''.join(f'{r[0]:x} {r[1]:x} {int(r[4])}\n' for r in ranges))
+            argv[2] = str(whole)
         cases = list(itertools.product(commands, ('1s', '2s'), (1, 4) if args.session else (1, 32), (0, 1)))
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
             rows += list(pool.map(lambda case: census.trace(
