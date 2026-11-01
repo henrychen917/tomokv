@@ -84,3 +84,9 @@ for name, engine, fused, jobs in phases:
                   exit_code=result.returncode)
     receipt.write_text(json.dumps(record, indent=2) + '\n')
     print('DONE', name, 'exit', result.returncode, flush=True)
+    # Full AOF jobs leave gigabytes of highly compressible generated streams.
+    # Retain/verify them before starting the next phase, keeping build/ bounded.
+    with (root / 'build/rootcore/collected-proof.log').open('w') as log:
+        subprocess.run(['python3', 'tools/rootcore_collect_proof.py'], cwd=root,
+                       stdout=log, stderr=subprocess.STDOUT, check=True)
+    subprocess.run(['python3', 'tools/rootcore_archive_data.py'], cwd=root, check=True)

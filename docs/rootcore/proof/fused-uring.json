@@ -1,0 +1,188 @@
+{
+  "name": "fused-uring",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--ports",
+    "20100-20199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcore/build/tomokv"
+  ],
+  "jobs": {
+    "atomic_batteries": {
+      "done": "0\t4\t0",
+      "ledger": "ok\t25.260000\tatomic torn/window battery\nok\t4.060000\tatomic RYOW/mixed-write battery\nok\t4.240000\tatomic owner-local hazard battery\nok\t0.020000\tatomic shutdown invariants\n"
+    },
+    "debug-0": {
+      "done": "0\t16\t0",
+      "ledger": "ok\t11.170000\tplain-write lost updates (atomic 0)\nok\t0.160000\tlbsignals battery (atomic 0)\nok\t1.490000\tslowlog battery (atomic 0)\nok\t0.060000\tatomfix battery (atomic 0)\nok\t0.150000\tscriptatomic battery (atomic 0)\nok\t14.470000\texecatomic battery (atomic 0)\nok\t11.870000\texeciso battery (atomic 0)\nok\t0.460000\texecfix battery (atomic 0)\nok\t0.120000\tmultires battery (atomic 0)\nok\t0.740000\tmultirace battery (atomic 0)\nok\t30.630000\tsession_monotonic battery (atomic 0)\nok\t0.350000\txacct battery (atomic 0)\nok\t0.020000\txmove battery (atomic 0)\nok\t3.270000\txscript battery (atomic 0)\nok\t2.260000\ttxn_nx battery (atomic 0)\nok\t8.420000\ttxniso battery (atomic 0)\n"
+    },
+    "debug-1": {
+      "done": "0\t16\t0",
+      "ledger": "ok\t6.160000\tplain-write lost updates (atomic 1)\nok\t0.160000\tlbsignals battery (atomic 1)\nok\t1.480000\tslowlog battery (atomic 1)\nok\t0.050000\tatomfix battery (atomic 1)\nok\t0.130000\tscriptatomic battery (atomic 1)\nok\t14.470000\texecatomic battery (atomic 1)\nok\t11.870000\texeciso battery (atomic 1)\nok\t0.460000\texecfix battery (atomic 1)\nok\t0.120000\tmultires battery (atomic 1)\nok\t0.790000\tmultirace battery (atomic 1)\nok\t30.650000\tsession_monotonic battery (atomic 1)\nok\t0.360000\txacct battery (atomic 1)\nok\t0.030000\txmove battery (atomic 1)\nok\t3.270000\txscript battery (atomic 1)\nok\t2.300000\ttxn_nx battery (atomic 1)\nok\t8.470000\ttxniso battery (atomic 1)\n"
+    },
+    "production_units": {
+      "done": "0\t0\t0",
+      "ledger": ""
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "ledger": "ok\t0.010000\trelease build (+footprint locks)\n"
+    },
+    "release_batteries": {
+      "done": "0\t8\t0",
+      "ledger": "ok\t6.630000\ttorture battery\nok\t0.990000\tRYOW battery\nok\t0.030000\tACL category runtime table\nok\t0.030000\tACL LOAD/SAVE no-file errors\nok\t1.030000\tidle loop ceiling (LBSIGNALS, 1s)\nok\t0.040000\tshutdown invariants (nothing stuck)\nok\t0.020000\tdirect-reply fired (direct=N)\nok\t0.030000\tdispatched==executed (N)\n"
+    },
+    "script_bounds": {
+      "done": "0\t2\t0",
+      "ledger": "ok\t0.050000\txscript limit control\nok\t1.040000\txscript window control\n"
+    }
+  },
+  "engine": "uring",
+  "fused": 1,
+  "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+  "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+  "started": "2026-11-01T05:16:20.796967+00:00",
+  "ended": "2026-11-01T05:20:09.741905+00:00",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.vrQUWY",
+  "passed_rows": 47,
+  "failed_rows": [],
+  "notices": [
+    "GATE_ONLY_JOBS=release_batteries atomic_batteries debug-0 debug-1 script_bounds; NOT A RECEIPT"
+  ],
+  "missing_jobs": [],
+  "differential": {},
+  "declared_omissions": {
+    "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+      "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+    ],
+    "jobs/debug-0/gate-lbsignals-0.txt": [
+      "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+      "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+    ],
+    "jobs/debug-0/gate-scriptatomic-0.txt": [
+      "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+    ],
+    "jobs/debug-1/gate-lbsignals-1.txt": [
+      "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+      "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+      "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+    ],
+    "jobs/debug-1/gate-scriptatomic-1.txt": [
+      "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+    ]
+  },
+  "differential_plan": null,
+  "archive_sha256": "1f31ca414e3fdc3c5a89132d53a15efb7bb7420d3815b502b1ff8b7043dcb266",
+  "archive_files": [
+    "families.tsv",
+    "jobs/atomic_batteries/done",
+    "jobs/atomic_batteries/family.tsv",
+    "jobs/atomic_batteries/gate-atomic-hazards.txt",
+    "jobs/atomic_batteries/gate-atomic-ryow.txt",
+    "jobs/atomic_batteries/gate-atomic-torn.txt",
+    "jobs/atomic_batteries/gate-srv-fused.V3K98q",
+    "jobs/atomic_batteries/ledger",
+    "jobs/atomic_batteries/output.log",
+    "jobs/debug-0/done",
+    "jobs/debug-0/family.tsv",
+    "jobs/debug-0/gate-atomfix-0.txt",
+    "jobs/debug-0/gate-atomic-plain-0.txt",
+    "jobs/debug-0/gate-execatomic-0.txt",
+    "jobs/debug-0/gate-execfix-0.txt",
+    "jobs/debug-0/gate-execiso-0.txt",
+    "jobs/debug-0/gate-lbsignals-0.txt",
+    "jobs/debug-0/gate-multirace-0.txt",
+    "jobs/debug-0/gate-multires-0.txt",
+    "jobs/debug-0/gate-scriptatomic-0.txt",
+    "jobs/debug-0/gate-session_monotonic-0.txt",
+    "jobs/debug-0/gate-slowlog-0.txt",
+    "jobs/debug-0/gate-srv-fused.Iye7Fq",
+    "jobs/debug-0/gate-srv-fused.sti0WX",
+    "jobs/debug-0/gate-txn_nx-0.txt",
+    "jobs/debug-0/gate-txniso-0.txt",
+    "jobs/debug-0/gate-xacct-0.txt",
+    "jobs/debug-0/gate-xmove-0.txt",
+    "jobs/debug-0/gate-xscript-0.txt",
+    "jobs/debug-0/ledger",
+    "jobs/debug-0/output.log",
+    "jobs/debug-1/done",
+    "jobs/debug-1/family.tsv",
+    "jobs/debug-1/gate-atomfix-1.txt",
+    "jobs/debug-1/gate-atomic-plain-1.txt",
+    "jobs/debug-1/gate-execatomic-1.txt",
+    "jobs/debug-1/gate-execfix-1.txt",
+    "jobs/debug-1/gate-execiso-1.txt",
+    "jobs/debug-1/gate-lbsignals-1.txt",
+    "jobs/debug-1/gate-multirace-1.txt",
+    "jobs/debug-1/gate-multires-1.txt",
+    "jobs/debug-1/gate-scriptatomic-1.txt",
+    "jobs/debug-1/gate-session_monotonic-1.txt",
+    "jobs/debug-1/gate-slowlog-1.txt",
+    "jobs/debug-1/gate-srv-fused.RU9Mwc",
+    "jobs/debug-1/gate-srv-fused.gnxsD8",
+    "jobs/debug-1/gate-txn_nx-1.txt",
+    "jobs/debug-1/gate-txniso-1.txt",
+    "jobs/debug-1/gate-xacct-1.txt",
+    "jobs/debug-1/gate-xmove-1.txt",
+    "jobs/debug-1/gate-xscript-1.txt",
+    "jobs/debug-1/ledger",
+    "jobs/debug-1/output.log",
+    "jobs/production_units/blockfix-cost-build.log",
+    "jobs/production_units/blockfix2-build.log",
+    "jobs/production_units/build.log",
+    "jobs/production_units/done",
+    "jobs/production_units/family.tsv",
+    "jobs/production_units/ledger",
+    "jobs/production_units/mdbqsbr-live-build.log",
+    "jobs/production_units/output.log",
+    "jobs/release/done",
+    "jobs/release/family.tsv",
+    "jobs/release/ledger",
+    "jobs/release/output.log",
+    "jobs/release_batteries/done",
+    "jobs/release_batteries/family.tsv",
+    "jobs/release_batteries/gate-acl-categories.txt",
+    "jobs/release_batteries/gate-acl-nofile.txt",
+    "jobs/release_batteries/gate-idle-signals.txt",
+    "jobs/release_batteries/gate-ryow.txt",
+    "jobs/release_batteries/gate-srv-fused.kz5xav",
+    "jobs/release_batteries/gate-tort.txt",
+    "jobs/release_batteries/ledger",
+    "jobs/release_batteries/output.log",
+    "jobs/script_bounds/done",
+    "jobs/script_bounds/family.tsv",
+    "jobs/script_bounds/gate-srv-fused.2lhOtA",
+    "jobs/script_bounds/gate-srv-fused.VANoCk",
+    "jobs/script_bounds/gate-xscript-limit.txt",
+    "jobs/script_bounds/gate-xscript-window.txt",
+    "jobs/script_bounds/ledger",
+    "jobs/script_bounds/output.log",
+    "ledger.partial",
+    "ledger.partial.timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "requested_jobs": [
+    "release_batteries",
+    "atomic_batteries",
+    "debug-0",
+    "debug-1",
+    "script_bounds"
+  ]
+}

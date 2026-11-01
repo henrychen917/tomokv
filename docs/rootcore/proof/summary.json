@@ -20,7 +20,149 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "067cddf596ae40000efb3e777b9952ef4451f2f132dbd6bc6c8ce9c000ca52f5"
+    "archive_sha256": "bd95ae61dabd69cc69d89c975d7a5ce09cbde88a8cadc2794768a07518e70eaa"
+  },
+  {
+    "name": "fused-uring",
+    "engine": "uring",
+    "fused": 1,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T05:16:20.796967+00:00",
+    "ended": "2026-11-01T05:20:09.741905+00:00",
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.vrQUWY",
+    "passed_rows": 47,
+    "failed_rows": [],
+    "notices": [
+      "GATE_ONLY_JOBS=release_batteries atomic_batteries debug-0 debug-1 script_bounds; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {},
+    "declared_omissions": {
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/debug-0/gate-lbsignals-0.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-lbsignals-1.txt": [
+        "  SKIP depth is time-gated, not iteration-weighted -- the depth sampler is an executor-queue instrument folded into fused work in 1s",
+        "  SKIP ex busy advanced under load -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP ex depth sampled -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled queue delay EWMA valid -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP sampled oldest-entry age fired -- executor-only attribution is folded into the fused rollup in 1s",
+        "  SKIP no backpressure at this load -- executor-only attribution is folded into the fused rollup in 1s"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ]
+    },
+    "archive_sha256": "1f31ca414e3fdc3c5a89132d53a15efb7bb7420d3815b502b1ff8b7043dcb266"
+  },
+  {
+    "name": "main-epoll",
+    "engine": "epoll",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T04:15:45.493443+00:00",
+    "ended": "2026-11-01T05:16:20.726030+00:00",
+    "exit_code": 1,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.GnyYHs",
+    "passed_rows": 270,
+    "failed_rows": [
+      "txnorder battery (fused, atomic 1)"
+    ],
+    "notices": [
+      "GATE_ONLY_JOBS=feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 release_batteries atomic_batteries debug-0 debug-1 flip fliplisten lb-stationary-1s lb-stationary-2s blockfix_structure blockfix_mkstream multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 script_bounds scriptfix lualibs aof_frame aoforder atomic_floor differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {
+      "differ-armed-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040817 recorded comparison witnesses, 230 legs)",
+        "DIFFER GATE: pass=231 fail=0 runtime=8m47s"
+      ],
+      "differ-armed-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1058133 recorded comparison witnesses, 234 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m48s"
+      ],
+      "differ-equivalence": [
+        "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
+      ],
+      "differ-split-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1064163 recorded comparison witnesses, 235 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m51s"
+      ],
+      "differ-split-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081179 recorded comparison witnesses, 239 legs)",
+        "DIFFER GATE: pass=239 fail=0 runtime=8m51s"
+      ]
+    },
+    "declared_omissions": {
+      "atomic_floor": [
+        "NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)"
+      ],
+      "differ-armed-0": [
+        "  differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=24)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "differ-armed-1": [
+        "  differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=24)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/atomic_batteries/gate-atomic-torn.txt": [
+        "  SKIP OFF control exposes impossible SINTERSTORE image clean run, no mixed image in 36423 reads (kernel-timing geometry)",
+        "  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)",
+        "  SKIP OFF control exposes COPY losing race clean run, losing race never manifested (kernel-timing geometry)"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/feature-armed-0/gate-fusedarmed-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-armed-1/gate-fusedarmed-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-0/gate-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-1/gate-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    "archive_sha256": "a633f3721bd972398dd7ad4aaf9ee2c69ff4f71986546c6dc584f5f717641570"
   },
   {
     "name": "main-uring",
@@ -124,6 +266,6 @@
         "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
       ]
     },
-    "archive_sha256": "09b5a76d021998ce3e215957015be258ad32789b49a42d10f243e13ae8f7eab1"
+    "archive_sha256": "d10a8ba464ecf00aa287768db1915b7199e4f2d98986f6853d1314f20ea7f2ea"
   }
 ]

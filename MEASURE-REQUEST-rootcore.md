@@ -212,7 +212,9 @@ witnessed residual below. The final directed phase has six passing rows (includi
 release) and two red rows: MISCONF and WAITAOF. The first broad phase completed
 all 77 selected/prerequisite jobs: **544 passing rows, 11 failed rows**. Those
 failures are maxmemrace, nine original AOF rows discussed below, and notify_order.
-The epoll and supplementary phase results will be appended when complete.
+Main-epoll completed all 43 jobs with **270 passing rows and one failed row**.
+Supplementary fused-uring completed all seven jobs with **47 passing rows and
+zero failed rows**. Remaining supplementary results will be appended when complete.
 
 The main-epoll `txnorder-fused-1` job has also failed. Its non-AOF cases and
 serverless survivors pass, but the AOF storm (`1s`, atomic=1, databases=16,
