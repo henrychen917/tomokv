@@ -108,7 +108,7 @@ for name in a.creators.split(','):
         argv = build(src, k, payload)
         r = x.cmd(*argv)
         hit = created(r)
-        rec = dict(creator=name, i=i, placement=placed, creator_reply=show(r), hit=hit)
+        rec = dict(creator=name, i=i, key=k, placement=placed, creator_reply=show(r), hit=hit)
         if hit:
             st['hits'] += 1
             streak = 0

@@ -30,6 +30,7 @@ def main():
                BLOCKFIX4_ORACLE=str(Path(a.oracle).resolve()), BLOCKFIX4_CORES=a.cores,
                BLOCKFIX4_ENGINE=a.engine)
     results = []
+    creator_oracle = {}
 
     def run(server, mode, rl, atomic, script, extra, check):
         label = '-'.join(map(str, [server, mode, rl, atomic, len(results)]))
@@ -88,6 +89,9 @@ def main():
             if r.get('hit') and r.get('after_second_push') != 'y':
                 errors.append('stolen-element waiter did not consume the second push')
                 break
+            if 'dst_after' in r and r['dst_after'] != ('[y]' if r['hit'] else '[x]'):
+                errors.append(f"moved destination: {r['dst_after']!r}")
+                break
         return errors
 
     def natural_check(s, records, server):
@@ -104,6 +108,17 @@ def main():
         errors = []
         if set(s['results']) != set(CREATORS.split(',')):
             errors.append('creator inventory incomplete')
+        for r in records:
+            if 'i' not in r or not r.get('hit') or not r.get('served_within_grace'):
+                continue
+            reply = r.get('waiter_reply', '').replace(r['key'], '<key>')
+            name = r['creator']
+            if server == 'redis':
+                if not reply.startswith('[') or '<key>' not in reply:
+                    errors.append(f'{name}: oracle did not return the created collection')
+                creator_oracle.setdefault(name, reply)
+            if name not in creator_oracle or reply != creator_oracle[name]:
+                errors.append(f'{name}: value differs from the oracle: {reply!r}')
         return errors + [f"{name}: {r}" for name, r in s['results'].items()
                          if r['hits'] != 2 or r['served'] != 2 or r['defects']]
 
