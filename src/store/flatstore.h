@@ -2750,7 +2750,7 @@ private:
                     if constexpr (!kSingleDatabase) storesize_replace(cur, o);
                     (void)this->track_expire(h, o);
                 }
-                retire_obj(cur);                            // replace in place; live_ unchanged
+                retire_obj(cur, o);                         // replace in place; live_ unchanged
                 tab_[t][i] = make_word(tag, o);
                 if (fresh) obj_bytes_ += kvobj_size(o);
                 return true;
@@ -3222,7 +3222,7 @@ private:
                     (void)this->track_expire(h, o);
                 }
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
-                retire_obj_read_local(cur);
+                retire_obj_read_local(cur, o);
                 const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
                 obj_bytes_ += added_bytes;
                 if (track_expire && o->expire_at_ms() < 0) {
@@ -3305,9 +3305,9 @@ private:
     // Logical retirement, before QSBR destruction: only the existing external
     // stream type arm signals blocked group readers. String retirement retains
     // its ordinary encoding test and adds no waiter test or callback.
-    size_t retiring_external_bytes(const KvObj* object) {
+    size_t retiring_external_bytes(const KvObj* object, const KvObj* replacement = nullptr) {
         return static_cast<Enc>(object->enc) == Enc::Extern
-            ? kvobj_external_bytes<true>(object, this) : 0;
+            ? kvobj_external_bytes<true>(object, this, replacement) : 0;
     }
 
     // Decode the header ONCE, exactly as unarmed retire_obj() does: the size class computed for
@@ -3315,9 +3315,9 @@ private:
     // auxiliary word, so the free after the grace period does not re-derive it from a header that
     // has gone cold. A published object is immutable, and eviction-meta updates keep
     // the layout bits, so the class cannot change between retire and reclaim.
-    void retire_obj_read_local(KvObj* object) {
+    void retire_obj_read_local(KvObj* object, const KvObj* replacement = nullptr) {
         const size_t capacity = kvobj_capacity(object);
-        const size_t bytes = capacity + retiring_external_bytes(object);
+        const size_t bytes = capacity + retiring_external_bytes(object, replacement);
         obj_bytes_ -= bytes;
         read_local_store_state_armed().retire_sink.retire(
             this, object, capacity, &FlatStore::read_local_reclaim_object);
@@ -3629,9 +3629,9 @@ private:
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
     // The header is decoded once: the class computed for accounting is the sized-free length.
-    void retire_obj(KvObj* o) {
+    void retire_obj(KvObj* o, const KvObj* replacement = nullptr) {
         const size_t capacity = kvobj_capacity(o);
-        const size_t bytes = capacity + retiring_external_bytes(o);
+        const size_t bytes = capacity + retiring_external_bytes(o, replacement);
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
