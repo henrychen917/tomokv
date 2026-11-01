@@ -43,6 +43,8 @@ phases = [
     ('main-epoll', 'epoll', 0, common + differ),
     ('fused-uring', 'uring', 1, 'release_batteries atomic_batteries debug-0 debug-1 script_bounds'.split()),
     ('fused-epoll', 'epoll', 1, 'release_batteries atomic_batteries debug-0 debug-1 script_bounds'.split()),
+    ('notify-order-pre', 'uring', 0, ['notify_order']),
+    ('notify-order-post', 'uring', 0, ['notify_order']),
     # The original AOF scanner only knew GCMT control records. After teaching
     # it the FUNCTION record, rerun both full AOF jobs on each arm and mode.
     ('aof-pre-split', 'uring', 0, ['aof-uring', 'aof-epoll']),
@@ -60,7 +62,8 @@ for name, engine, fused, jobs in phases:
         GATE_ONLY_JOBS=' '.join(jobs), GATE_PROOF_NO_RATES='1',
         GATE_PROOF_NET_IO=engine, GATE_DIFFER_NET_IO=engine,
         GATE_TXN_FUSED=str(fused))
-    candidate = root / 'build/rootcore/PRE' if name.startswith('aof-pre-') else binary
+    use_pre = name.startswith('aof-pre-') or name == 'notify-order-pre'
+    candidate = root / 'build/rootcore/PRE' if use_pre else binary
     candidate_sha = digest(candidate)
     cmd = ['tests/gate.sh', 'full', '--server-cores', '16-23', '--load-cores', '24-31',
            '--ports', '20100-20199', '--candidate-binary', str(candidate)]

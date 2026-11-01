@@ -50,6 +50,11 @@ for receipt in sorted(source.glob('*.json')):
                 or path.name.startswith('gate-srv-')
                 or path.name in ('ledger', 'done', 'ledger.partial', 'plan.sh')):
             selected.append(path)
+            if path.suffix in ('.log', '.txt') and path.name != 'output.log':
+                omitted = [line for line in path.read_text(errors='replace').splitlines()
+                           if re.search(r'\b(?:SKIP|NOT RUN|UNAVAILABLE)\b', line)]
+                if omitted:
+                    omissions[str(path.relative_to(run))] = omitted
     archive = out / (receipt.stem + '.tar.gz')
     with tarfile.open(archive, 'w:gz') as tar:
         for path in selected:

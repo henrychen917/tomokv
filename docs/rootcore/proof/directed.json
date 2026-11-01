@@ -66,7 +66,7 @@
   "differential": {},
   "declared_omissions": {},
   "differential_plan": null,
-  "archive_sha256": "a67119cf0624a39b6b42bbbd5845c5978167cacc2614c76d8ff302751a4404bf",
+  "archive_sha256": "067cddf596ae40000efb3e777b9952ef4451f2f132dbd6bc6c8ce9c000ca52f5",
   "archive_files": [
     "families.tsv",
     "jobs/release/done",

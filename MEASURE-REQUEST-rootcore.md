@@ -178,6 +178,10 @@ allocation, mutex/bookkeeping and polling, and client-close cleanup; FUNCTION
 journaling and quarantine are administrative/persistence work. AOF-off channel
 receipt/journal storage is not allocated. These costs are outside the reported
 command-scope cells and must not be inferred to be free.
+EVAL/EVALSHA preparation inside EXEC now runs within flag-aware admission and
+retains the selected script source through preparation. Lua/EXEC instruction
+deltas were not measured by the five-command census. Client-close receipt
+cleanup is also outside that census.
 
 The locked layouts remain Op=336, Client=1984, ThreadCtx=1408, Shard=1440,
 FlatStore=944, Rob<64>=192, AtomicEntry=144 and Config=624. The production layout
@@ -204,7 +208,11 @@ selected correctness jobs run, with `GATE_PROOF_NO_RATES=1`; this is not a full
 gate pass or full iteration. The first frozen directed phase, before extending
 WAITAOF with its non-mutation edge, reports seven passing rows including release
 and one red MISCONF row. The later `rootcore-waitaof` job is red on the newly
-witnessed residual below. The final directed phase has six passing rows (including release) and two red rows: MISCONF and WAITAOF. Broader phase results will be appended when complete.
+witnessed residual below. The final directed phase has six passing rows (including
+release) and two red rows: MISCONF and WAITAOF. The first broad phase completed
+all 77 selected/prerequisite jobs: **544 passing rows, 11 failed rows**. Those
+failures are maxmemrace, nine original AOF rows discussed below, and notify_order.
+The epoll and supplementary phase results will be appended when complete.
 
 `python3 tests/gates_test.py` has been run twice. Each attempt has 82 passing
 tests and one failure: the complete single-slot scheduler fixture reaches its
@@ -236,6 +244,46 @@ thread's bad-fd exception is cleanup noise following that primary assertion.
 All 48 target legs pass on each arm. The oracle's failure is retained rather
 than changing its assumption/tolerance in this lane (`docs/rootcore/maxmem-pre`
 and the final main-uring archive).
+
+The first main-uring AOF jobs exposed an outdated test scanner: it accepted only
+GCMT in the control stream and rejected the new FUNCTION post-image before
+population wrote its expected-state file. This caused four failed population
+rows and four dependent restart rows across the two engines. One epoll native
+snapshot comparison also failed after its DEBUG LOADAOF prerequisite was skipped;
+its status will be resolved by the full reruns below. Commit `0983330274` teaches
+the scanner the new record with bounds, dump-header and checksum validation,
+without treating it as a GCMT. Unknown kind, damaged checksum, nonzero FUNCTION
+ticket and frame-overrun controls all fail (`docs/rootcore/aof-scanner.json`).
+The frame diagnostic prints the new kind without decoding its source bytes as
+a GCMT dependency vector. Full PRE/POST AOF jobs in both modes and engines are
+queued in `tools/rootcore_proof.py`; the original failures remain in the archive.
+
+The first notify_order run passed 11 of 12 declared geometries (23 cases each).
+The `2s/epoll/atomic=1/read-local=0` leg stopped during publisher placement,
+before its notification cases: the accepted-client total advanced by two instead
+of one. `Peer.__init__` opens its listener without a readiness round trip before
+sampling the initial total, so that listener can arrive with the candidate.
+PRE/POST controls are queued. This non-S1 fixture issue is not silently changed;
+the strict `+1` assertion remains and the unexecuted event leg is not credited.
+
+The complete per-phase omission transcripts are retained in
+`docs/rootcore/proof/*.json`. Beyond the reserved performance work, the first
+phase reports fused SORT differential legs **NOT RUN** because that suite
+requires split 6:2 geometry. Rate-disabled proof also omits the atomic RYOW rate
+comparison and the stream suite's release-only memory/size assertions. The
+legacy atomic OFF controls did run but did not expose their target anomaly:
+SINTERSTORE exhausted four 2.5-second rolls (the log retains 35,837 reads in the
+last roll), and RENAMENX/COPY each ran 64 rounds with a 100,000-us OFF defer.
+Each had zero anomaly hits. These are **inconclusive negative controls**, not
+successful witnesses; this lane does not weaken or rewrite those tests. The
+`SKIP fixture` lines in scriptatomic are expected old-behaviour negative-control
+transcripts; its strict live arms ran.
+
+Completed phases' generated persistence data is retained in compressed archives
+under `build/rootcore/data-archives`; `docs/rootcore/data-archives.json` records
+members, SHA-256s and sizes. Every extracted member was hashed against its loose
+source before the loose copy was removed. Text proof and boot logs remain in
+the worktree and in the committed proof archives.
 
 ### Item 11 — remaining non-mutation receipt boundary
 

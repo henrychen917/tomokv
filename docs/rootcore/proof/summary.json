@@ -20,6 +20,110 @@
     "missing_jobs": [],
     "differential": {},
     "declared_omissions": {},
-    "archive_sha256": "a67119cf0624a39b6b42bbbd5845c5978167cacc2614c76d8ff302751a4404bf"
+    "archive_sha256": "067cddf596ae40000efb3e777b9952ef4451f2f132dbd6bc6c8ce9c000ca52f5"
+  },
+  {
+    "name": "main-uring",
+    "engine": "uring",
+    "fused": 0,
+    "sha256": "d8cdb1dfbc1351b992ccbadb988cee74da5c0b3b6f3221b1f7ff8d58e868234d",
+    "rootcore_test_sha256": "a2560f50d318c6c15c047dff0dfe90033b54bb9a7c38982992669cb9db6c81f4",
+    "started": "2026-11-01T02:48:49.448946+00:00",
+    "ended": "2026-11-01T04:15:45.422176+00:00",
+    "exit_code": 1,
+    "run_directory": "/home/user/Projects/cx-rootcore/build/gate-run.YtFHZQ",
+    "passed_rows": 544,
+    "failed_rows": [
+      "maxmemrace CONFIG SET maxmemory reaches every owner before +OK",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+      "AOF process-restart script replay (epoll, atomic 0)",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+      "AOF process-restart script replay (epoll, atomic 1)",
+      "AOF native snapshot streams byte-exact",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+      "AOF process-restart script replay (uring, atomic 0)",
+      "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+      "AOF process-restart script replay (uring, atomic 1)",
+      "keyspace lazy-expiry order vs Redis 7.4"
+    ],
+    "notices": [
+      "GATE_ONLY_JOBS=feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 release_batteries atomic_batteries debug-0 debug-1 flip fliplisten lb-stationary-1s lb-stationary-2s blockfix_structure blockfix_mkstream multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 script_bounds scriptfix lualibs aof_frame aoforder atomic_floor flip_unit lbplanner_units atomic_units core_units blockfix_registry blockfix2 txnorder_index txnorder_wound txnorder2 txnorder_wake execfair exec1s maxmemrace netio-1s netio-2s persistfix_units persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-uring aof-epoll snapshot-uring snapshot-epoll snapfix_shutdown snapfix_bgsave_script snapfix_bgsave_exec snapfix2_tables scriptfix2 notify notify_order notify_aof serverfix_waitaof differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence; NOT A RECEIPT"
+    ],
+    "missing_jobs": [],
+    "differential": {
+      "differ-armed-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1040947 recorded comparison witnesses, 230 legs)",
+        "DIFFER GATE: pass=231 fail=0 runtime=8m43s"
+      ],
+      "differ-armed-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1058221 recorded comparison witnesses, 234 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m44s"
+      ],
+      "differ-equivalence": [
+        "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
+      ],
+      "differ-split-0": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1064125 recorded comparison witnesses, 235 legs)",
+        "DIFFER GATE: pass=235 fail=0 runtime=8m48s"
+      ],
+      "differ-split-1": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1081219 recorded comparison witnesses, 239 legs)",
+        "DIFFER GATE: pass=239 fail=0 runtime=8m50s"
+      ]
+    },
+    "declared_omissions": {
+      "atomic_floor": [
+        "NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)"
+      ],
+      "differ-armed-0": [
+        "  differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "differ-armed-1": [
+        "  differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "jobs/atomic_batteries/gate-atomic-ryow.txt": [
+        "  SKIP pipelined atomic groups beat the serial round-trip rate -- rate comparison disabled by --no-rate-assertions"
+      ],
+      "jobs/atomic_batteries/gate-atomic-torn.txt": [
+        "  SKIP OFF control exposes impossible SINTERSTORE image clean run, no mixed image in 35837 reads (kernel-timing geometry)",
+        "  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)",
+        "  SKIP OFF control exposes COPY losing race clean run, losing race never manifested (kernel-timing geometry)"
+      ],
+      "jobs/debug-0/gate-scriptatomic-0.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/debug-1/gate-scriptatomic-1.txt": [
+        "SKIP fixture: original non-strict DEBUG refusal ERR fixture: DEBUG disabled"
+      ],
+      "jobs/feature-armed-0/gate-fusedarmed-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-armed-1/gate-fusedarmed-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-0/gate-stream-0.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ],
+      "jobs/feature-split-1/gate-stream-1.txt": [
+        "  SKIP sustained exact trim reaches a memory plateau -- requires --release-build; first=2167 second=2167 after-del=0 baseline=0",
+        "  SKIP one-entry memory floor tracks ~140B design (well below 4.4KiB) -- requires --release-build; measured=128.0B/key audit-kvobj~=140B",
+        "  SKIP growth across the embedded->macro boundary stays amortized-linear -- requires --release-build; usage=5339 for 128 entries (bound 200B/entry)"
+      ]
+    },
+    "archive_sha256": "09b5a76d021998ce3e215957015be258ad32789b49a42d10f243e13ae8f7eab1"
   }
 ]
