@@ -249,7 +249,20 @@
     "flip",
     "fliplisten",
     "flipctl",
-    "atomic_floor"
+    "atomic_floor",
+    "evict-lruclock-split-0",
+    "evict-lruclock-armed-0",
+    "evict-lruclock-split-1",
+    "evict-lruclock-armed-1",
+    "evict-lfu-split-0",
+    "evict-lfu-armed-0",
+    "evict-lfu-split-1",
+    "evict-lfu-armed-1",
+    "readonly",
+    "bplus",
+    "acl_recheck",
+    "rlcache",
+    "globcase"
   ],
   "differ_each_engine": [
     "differ-split",
@@ -317,5 +330,6 @@
   ],
   "idle_last": [
     "flushfix3"
-  ]
+  ],
+  "geometry_audit": "Every direct boot/boot_fused job whose engine comes from GATE_NET_IO is repeated under epoll. Jobs with named mode/engine arms or internal loops retain all those arms. txn_proof_boot jobs additionally run both GATE_TXN_FUSED settings; script_bounds runs both atomic settings. No performance-only job is selected."
 }

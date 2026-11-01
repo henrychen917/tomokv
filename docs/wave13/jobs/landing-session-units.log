@@ -6,3 +6,10 @@ GATE PREFLIGHT: /home/user/Projects/redis74 is not a built vanilla Redis 7.4 che
   or export REDIS74_ROOT=/path/to/redis-7.4.
   The 'generated Redis 7.4 ACL categories' row FAILS with this reason; every other row runs.
 PARTIAL jobs (including prerequisites): release core_tsan_build production_units flipfix6_units
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP session handover S2 and close fences (ASAN+TSAN)
+  FLIP session handover S2 and close fences (ASAN+TSAN) ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP WATCH alias allocation rollback (db1/db16)
+  FLIP WATCH alias allocation rollback (db1/db16)      ok
+GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave13/docs/wave13/jobs/landing-session-units.tsv.partial

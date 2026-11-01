@@ -36,6 +36,9 @@ def main():
     elif a.phase == 'supplements':
         exits.append(run('landing-epoll', sorted(set(MATRIX['each_engine'] + MATRIX['each_mode_engine'])), '--engine', 'epoll'))
         for engine in ('uring', 'epoll'):
+            exits.append(run('landing-footprints-' + engine,
+                             MATRIX['release_footprints_each_engine'],
+                             '--engine', engine, '--release-footprints'))
             exits.append(run('landing-fused-' + engine,
                              sorted(set(MATRIX['each_mode'] + MATRIX['each_mode_engine'])),
                              '--engine', engine, '--fused'))

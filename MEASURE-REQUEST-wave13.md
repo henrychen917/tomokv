@@ -145,10 +145,39 @@ Completed and failed attempts remain in `docs/wave13/jobs/`.
 
 ### Maintainer measurement request
 
-After the correctness and artifact receipts below are complete, use the gate's
-own instrument on the quiet box for the wave null against the supplied headline
-(watch **h05**), the fixed-anchor race, EXEC at 64 connections against both the
-headline and Redis 7.4, the contended-script storm, and the landing gate.
-Retain matched-load rate, cycles/op, IPC and instructions/op for every arm/cell.
-Identity and instruction counts are proxies; the maintainer's merit decides.
-No throughput claim is made here.
+**NOT RUN here: maintainer-owned performance work and full iteration.** Use the
+frozen artifacts above, the gate's matched-offered-load instrument and reviewed
+geometry, with contemporaneous identical-arm nulls. Require zero main-command
+regression. Rate at matched load decides; cycles/op, IPC and instructions/op
+explain it. Investigate identical-arm spread above 2%. PAD-A should stay flat
+when attributing a POST change to behavior, subject to its stated layout limit.
+
+1. Wave null: POST against the supplied headline
+   `/home/user/Projects/bench-bins/tomokv-headline-7d2f8a205`, all unchanged
+   28 cells in `docs/wave13/cells/null28.txt`. Use three blocks for p8g, **h05**
+   and h06; retain the standing three-block notify_exm control and other cell
+   settings. Include rebuilt PRE/PAD-A as the labelled layout comparison.
+   The h05 watch is the maintainer's persistfmt merit addendum.
+2. Fixed-anchor race: POST against
+   `/home/user/Projects/bench-bins/tomokv-headline-991d48f65`, three blocks,
+   `docs/wave13/cells/generic14.txt` plus `readlocal9.txt` and EXEC below.
+   Keep this comparison distinct from the wave null.
+3. EXEC: `/home/user/Projects/calib/exec-merit.py`, with POST as candidate in
+   two comparisons: supplied headline, then Redis 7.4.10. Use
+   `--conns 64 --threads 16 --cells all --blocks 3 --secs 20`, the same hashed
+   benchtxn, all eight mode/atomic/uncontended-hot cells, pipeline four, two
+   INCR children and four competing plain writers in hot cells. For Redis,
+   select `--redis-io-threads 1` explicitly. Require zero order violations;
+   retain EXEC and plain-writer results separately. Neither FIFO lane is present.
+4. Contended script: `/home/user/Projects/calib/script-storm-merit.py`, POST
+   against the supplied headline, `--blocks 3 --secs 30`. Preserve T6: 2s 6:2,
+   16 shards, atomic 0, databases=1, two owners, eight EVAL clients, four EXEC,
+   four WATCH/EXEC and four plain writers. Require exact final values and zero
+   refusals/order violations. Retain each participant class separately.
+5. Landing: maintainer applies **1046/1063**, retains the prepared label fixture,
+   and runs `tests/gate.sh iteration`. Partial correctness jobs do not certify it.
+
+Select scheduled CPU and port arguments explicitly for every instrument; never
+inherit defaults while other lanes run. `docs/wave13/measurement-inputs.json`
+binds the cell files, drivers and reference binaries. No throughput claim is
+made here. Identity and instruction counts are proxies; merit decides.
