@@ -21,7 +21,10 @@ def main():
     p.add_argument('--jobs', default=(ROOT / 'docs/blockfix4/required-jobs.txt').read_text().strip())
     p.add_argument('--fused-debug', action='store_true')
     p.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
+    p.add_argument('--ports', default='20200-20299')
     a = p.parse_args()
+    lo, hi = map(int, a.ports.split('-'))
+    assert 20200 <= lo <= hi <= 20299
     OUT.mkdir(parents=True, exist_ok=True)
     assert not (OUT / (a.tag + '.json')).exists(), a.tag
     binary = a.binary.resolve()
@@ -34,7 +37,7 @@ def main():
         env['GATE_TXN_FUSED'] = '1'
     command = ['taskset', '-c', '32-47', 'tests/gate.sh', 'push',
                '--server-cores', '32-39', '--load-cores', '40-47',
-               '--server-smt', '', '--load-smt', '', '--ports', '20200-20299',
+               '--server-smt', '', '--load-smt', '', '--ports', a.ports,
                '--candidate-binary', str(binary)]
     before = set((ROOT / 'build').glob('gate-run.*'))
     digest = hashlib.sha256(binary.read_bytes()).hexdigest()
