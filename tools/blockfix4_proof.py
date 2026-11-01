@@ -23,6 +23,7 @@ def main():
     p.add_argument('--fused-debug', action='store_true')
     p.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
     p.add_argument('--ports', default='20200-20299')
+    p.add_argument('--server-cores', choices=['32-39', '40-47'], default='32-39')
     a = p.parse_args()
     lo, hi = map(int, a.ports.split('-'))
     assert 20200 <= lo <= hi <= 20299
@@ -37,7 +38,8 @@ def main():
     if a.fused_debug:
         env['GATE_TXN_FUSED'] = '1'
     command = ['taskset', '-c', '32-47', 'tests/gate.sh', 'push',
-               '--server-cores', '32-39', '--load-cores', '40-47',
+               '--server-cores', a.server_cores, '--load-cores',
+               '40-47' if a.server_cores == '32-39' else '32-39',
                '--server-smt', '', '--load-smt', '', '--ports', a.ports,
                '--candidate-binary', str(binary)]
     digest = hashlib.sha256(binary.read_bytes()).hexdigest()
