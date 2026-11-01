@@ -282,5 +282,11 @@
         "bytes": 12108960
       }
     ]
+  },
+  {
+    "path": "build/clientcompat/stage3/tomokv",
+    "sha256": "384eafec9e4cc1cba05a75f742ea4e33bedc173ca8f32dcd6dbe92f7937c1f1c",
+    "bytes": 230137208,
+    "evidence": "history/gates/gate-run.d7LPhU.tar.gz; validation/draft-tcl.json.gz"
   }
 ]
