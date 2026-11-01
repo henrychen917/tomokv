@@ -4201,6 +4201,8 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (state.phase == 2) {
         const bool commit_ready = finish_phase2(state);
+        if (state.blocking_origin && blocking_scatter_repark(server, self, ring, state))
+            return ScatterFinish::Waiting;
         const bool pop_commit_ready = state.aof_group && state.atomic_pop &&
             (state.final_reply == FinalReply::Lmpop ||
              state.final_reply == FinalReply::Zmpop);
@@ -4226,6 +4228,8 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     }
     if (!state.two_hop) return final();
     if (finish_phase1(state, op)) {
+        if (state.blocking_origin && blocking_scatter_repark(server, self, ring, state))
+            return ScatterFinish::Waiting;
         return final();
     }
     if (publish_phase2<IofusedPrivateQueue>(server, self, ring, task, op, state))
@@ -4333,6 +4337,10 @@ void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
                 op.zc_shard = Op::kScatterReplyMarker;
             } else if (state->kind == Kind::Flush) {
                 flush_after_decision(server, self, ring, *state);
+                state = next;
+                continue;
+            } else if (state->blocking_origin &&
+                       blocking_scatter_repark(server, self, ring, *state)) {
                 state = next;
                 continue;
             }

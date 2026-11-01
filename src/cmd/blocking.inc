@@ -1491,6 +1491,21 @@ void blocking_scatter_mutation_published(const Task& task, Shard& shard, Op& op)
     }
 }
 
+bool blocking_scatter_repark(Server& server, ThreadCtx& self, Ring& ring,
+                             ScatterState& state) {
+    BlockingState* block = state.blocking_origin;
+    if (!block || state.final_reply != FinalReply::Nil) return false;
+    // Every scatter task has finished, and an atomic attempt has decided its
+    // read dependencies. Keep the ROB slot and Blocking barrier: no nil reply
+    // may retire a timeout-zero move that lost its source before resumption.
+    server.atomic_apply_close(self.id(), state.apply_open);
+    for (const BlockingKey& key : block->keys)
+        server.shard(key.shard).set_blocking_dirty();
+    block->phase.store(BlockingPhase::RemapRequested, std::memory_order_release);
+    blocking_notify_sender(server, self, ring, block->client);
+    return true;
+}
+
 template <bool IofusedPrivateQueue>
 bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Client& client,
                                ScatterArenaPool& pool) {
@@ -1498,11 +1513,32 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
     for (uint64_t id = client.rob().flush_id(), end = client.rob().dispatch_id(); id != end; id++) {
         Op& op = client.rob().at(id);
         BlockingState* block = op.blocking_state();
+        if (ScatterState* scatter = op.scatter_state(); scatter && scatter->blocking_origin &&
+            scatter->blocking_origin->phase.load(std::memory_order_acquire) ==
+                BlockingPhase::RemapRequested) {
+            block = scatter->blocking_origin;
+            scatter->blocking_origin = nullptr;
+            if (scatter->atomic_group) {
+                free_state_contents(*scatter);
+                if (scatter->snapshot_registered)
+                    pool.unregister_snapshot(server, scatter, self.id());
+                client.atomic_group_finished();
+            }
+            op.detach_scatter_state();
+            op.attach_blocking_state(block);
+            xshard_destroy(scatter, pool, self.id());
+            op.clear_reply();
+        }
         if (block && block->phase.load(std::memory_order_acquire) ==
                          BlockingPhase::RemapRequested &&
             block->active_tasks.load(std::memory_order_acquire) == 0 &&
             block->refs.load(std::memory_order_acquire) == 1) {
             if (server.database_boundary_active()) return false;
+            if (client.closing() || block->cancel_requested.load(std::memory_order_acquire)) {
+                block->phase.store(BlockingPhase::Cancelled, std::memory_order_release);
+                op.state.store(OpState::Done, std::memory_order_release);
+                return true;
+            }
             // Every old owner has dropped its alias. Rebuild routes on the owning IO,
             // retaining the original deadline and resolved XREAD cursors (including '$').
             if constexpr (!kSingleDatabase) multidb_stamp(server, op, block->logical_db);
