@@ -1,0 +1,4 @@
+/home/user/Projects/cx-wave13/build/wave13/counts/trace /home/user/Projects/cx-wave13/build/wave13/fanout-trials/db0-159264-18/probe /home/user/Projects/cx-wave13/build/wave13/fanout-trials/db0-159264-18/complete.ranges 8ab850 8ab860 000000000002bb20 MGET 2s 1 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+COUNT 9961

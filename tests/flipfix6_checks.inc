@@ -152,6 +152,9 @@
         MultiExecState* pending;
         if (watch_pending) pending = prepare({Slice("WATCH"), slice(left)}, MultiIoAction::Dispatch);
         else {
+            if (flush_child)
+                require(flipfix6_command(f, client, {Slice("WATCH"), slice(left)}) == "+OK\r\n",
+                        "wave13 WATCH arms cleanup for rejected FLUSH child");
             prepare({Slice("MULTI")}, MultiIoAction::LocalDone);
             prepare({Slice("INCR"), slice(left)}, MultiIoAction::LocalDone);
             prepare({Slice("INCR"), slice(right)}, MultiIoAction::LocalDone);
@@ -183,14 +186,14 @@
                     "same WATCH S2 resumes and replies exactly once after rollback");
             flipfix6_pins(client, databases);
             require(flipfix6_command(f, client, {Slice("UNWATCH")}) == "+OK\r\n", "resumed S2 cleans all aliases");
-        } else require(flipfix6_command(f, client, {Slice("EXEC")}) == (flush_child ? "*3\r\n:1\r\n:1\r\n+OK\r\n" : "*2\r\n:1\r\n:1\r\n"),
+        } else require(flipfix6_command(f, client, {Slice("EXEC")}) == (flush_child ? "-EXECABORT Transaction discarded because of previous errors.\r\n" : "*2\r\n:1\r\n:1\r\n"),
                        "same EXEC S2 resumes and replies exactly once after rollback");
         require(!client.flip_session_pending() && f.server.atomic_inflight() == 0 &&
                 f.server.atomic_apply_inflight() == 0, "S2 retires all original credits");
         f.io.self_->remove_client(&client); f.io.self_->release_wb_slot(client.wb_slot());
         f.server.client_released(); acl_shutdown(); command_bind_server(nullptr);
         std::printf("ARMED %s S2 db%u atomic%u %s %s: refused at IoDrain, same state resumed\n",
-                    flush_child ? "wave13 EXEC-FLUSH" : "flipfix6", databases, atomic, converting ? "converting" : "surviving", watch_pending ? "WATCH" : "EXEC");
+                    flush_child ? "wave13 FLUSH-queue-error" : "flipfix6", databases, atomic, converting ? "converting" : "surviving", watch_pending ? "WATCH" : "EXEC");
     }
 
     static void flipfix6_close_fence(unsigned databases, bool converting) {
