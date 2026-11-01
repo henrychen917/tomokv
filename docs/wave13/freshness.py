@@ -53,6 +53,11 @@ def main():
                       asserts_sha256=sha(ROOT / ('build/wave13/tomokv-' + arm + '.asserts.tsv')))
             for arm in ('PRE', 'POST', 'PAD-A')}
     assert sha(ROOT / 'build/tomokv') == arms['POST']['sha256']
+    companions = json.loads((DOC / 'candidate-companions.json').read_text())
+    assert companions['binary_sha256'] == arms['POST']['sha256']
+    for row in companions['companions']:
+        assert sha(ROOT / row['source']) == sha(ROOT / row['destination']) == row['sha256'], row
+    subprocess.run(['sha256sum', '-c', str(ROOT / companions['cost_binding'])], cwd=ROOT, check=True)
     result = dict(checked_at=time.time(), cpus='0-15', jobs=16,
                   source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                   production_commit='68f85e5d52d6889e4669c31eb00b2268c9341f48', production_unchanged=True,
@@ -60,6 +65,7 @@ def main():
                   measurement_client=dict(path='build/benchtxn', sha256=sha(ROOT / 'build/benchtxn'),
                                           source_sha256=sha(ROOT / 'tools/benchtxn.cc'), executed=False),
                   fresh_targets=sum(r['exit'] == 0 for r in checks), arms=arms,
+                  candidate_companions=companions,
                   gate_expect_constants=re.findall(r'^EXPECT_(?:QUICK|FULL)=\d+', gate, re.M),
                   build_log_sha256=sha(log),
                   note='The mdbqsbr aggregate is phony; both actual BUILD_ROOT=... all targets are checked separately.')
