@@ -783,14 +783,9 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
                   static_cast<long long>(ts.tv_nsec / 1000),
                   client->session().db_index, addr.c_str());
     out.assign(head);
-    const bool redact = op.cmd_name().eq_icase("auth") ||
-                        (op.cmd_name().eq_icase("hello") && op.argc() > 1);
     for (uint32_t i = 0; i < op.argc(); i++) {
         out.push_back(' ');
-        // AUTH arguments and HELLO's AUTH tail carry credentials; redis prints them as "(redacted)".
-        if (redact && i > 0 &&
-            (op.cmd_name().eq_icase("auth") || op.arg(i - 1).eq_icase("auth") ||
-             (i >= 2 && op.arg(i - 2).eq_icase("auth")))) {
+        if (diagnostic_redact_argument(op, i)) {
             out += "\"(redacted)\"";
             continue;
         }
