@@ -145,8 +145,7 @@ def settle(c):
     wait(lambda: stats(c).get('script_keys_armed', 0) == stats(c).get('script_keys_released', 0),
          'script PINs leaked')
     s = stats(c)
-    for key in ('script_group_occ_giveups', 'script_crossshard_window_refusals',
-                'atomic_txn_order_violations', 'atomic_gauge_underflows'):
+    for key in ('atomic_txn_order_violations', 'atomic_gauge_underflows'):
         assert s.get(key, 0) == 0, (key, s.get(key))
 
 

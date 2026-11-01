@@ -237,11 +237,9 @@ def reservation_counterexample():
         note("that write is DETECTED by read-set validation",
              after.get("script_group_occ_retries", 0) -
              before.get("script_group_occ_retries", 0) >= 1,
-             "retries=+%d giveups=+%d" % (
+             "retries=+%d" % (
                  after.get("script_group_occ_retries", 0) -
-                 before.get("script_group_occ_retries", 0),
-                 after.get("script_group_occ_giveups", 0) -
-                 before.get("script_group_occ_giveups", 0)))
+                 before.get("script_group_occ_retries", 0)))
         note("the activation observed a cut, not one key from each side of the write",
              reply in ([b"pre", b"pre"], [b"post", b"post"]), repr(reply))
         note("the racing writes survive and the activation composes on top of them",
@@ -358,19 +356,12 @@ def cut_window_fifo():
         source_ro = "return {redis.call('GET',KEYS[1]),redis.call('GET',KEYS[2])}"
 
         # ZERO CONTROL, same boot and connections, issued ONE AT A TIME so at most one cut
-        # is registered at any moment. None of these may be refused; a refusal counter that also
-        # fires here would be measuring load, not the window.
-        control_before = stats(admin)
+        # is registered at any moment. Assert the actual replies: the historical
+        # refusal counters have no production callers and cannot witness a defect.
         control = [client.cmd("EVAL", source_ro, "2", *pair) for client in clients]
-        control_after = stats(admin)
         note("zero control: unheld activations are never window-refused",
-             all(r == [b"w", b"w"] for r in control) and
-             control_after.get("script_crossshard_window_refusals", 0) ==
-             control_before.get("script_crossshard_window_refusals", 0),
-             "refusals=+%d bad=%r" % (
-                 control_after.get("script_crossshard_window_refusals", 0) -
-                 control_before.get("script_crossshard_window_refusals", 0),
-                 [r for r in control if r != [b"w", b"w"]][:2]))
+             all(r == [b"w", b"w"] for r in control),
+             "bad=%r" % ([r for r in control if r != [b"w", b"w"]][:2],))
 
         for attempt in range(3):
             before = stats(admin)
@@ -393,7 +384,7 @@ def cut_window_fifo():
                 client.close()
             clients = [Resp() for _ in range(4 * io_threads + 1)]
         note("cut-slot FIFO queues and never refuses",
-             not busy and after.get("script_crossshard_window_refusals", 0) == 0 and
+             not busy and
              after.get("script_crossshard_window_waits", 0) > before.get("script_crossshard_window_waits", 0))
         note("every FIFO waiter receives its snapshot reply",
              not other and len(good) == len(clients),

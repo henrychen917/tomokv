@@ -21,3 +21,11 @@ This is a serverless schedule, not a claim that a live listener hit the race.
 
 DQ=+1, DF=+1: `collect_job aclkeys_wake` is before the quick-tier exit.
 `EXPECT_QUICK`/`EXPECT_FULL` are unchanged and remain maintainer-owned.
+
+### V2 — dead refusal counters
+
+Removed all assertions/diagnostics based on `script_group_occ_giveups` and
+`script_crossshard_window_refusals` from at412, wave8, mode_equivalence, differ
+and xscript. Their existing exact replies, conservation and live wait/retry
+counter checks remain the evidence. No new production counter is needed to
+detect a refused reply. DQ=DF=0. Live and PRE receipts pending.

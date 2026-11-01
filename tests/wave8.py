@@ -148,7 +148,6 @@ redis.sha1hex(cmsgpack.unpack(cmsgpack.pack('wave8')))})"""
         else:
             raise AssertionError('EXEC fast-poll window never opened on three fresh states')
         retry_windows(admin, port, pair, script)
-        assert counters(admin)['script_crossshard_window_refusals'] == 0
         assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
         value = admin.cmd('GET', pair[0])
         frozen = histogram(admin, 'get')

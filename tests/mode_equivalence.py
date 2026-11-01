@@ -288,8 +288,6 @@ def main(argv=None):
                         report['reached'] = True
                         transcript = replay(sock, file, operations, baseline)
                 report['reply_sha256'] = hashlib.sha256(b''.join(transcript)).hexdigest()
-                require(int(info(admin, 'STATS').get('script_crossshard_window_refusals', -1)) == 0,
-                        'drained script replay registered an admission refusal')
             # MULTI and scripts force atomic admission even with --atomic 0. The feature witness
             # requires lifetime atomic_groups==0 in that configuration and therefore needs its
             # own fresh process. Preserve its exact assertions instead of subtracting legitimate

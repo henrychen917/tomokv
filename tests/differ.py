@@ -7305,10 +7305,6 @@ if SUITE == "script":
         diffs += 1
         print("  MECHANISM FAIL generated_cross=%d deltas=%r" %
               (script_cross_generated, deltas))
-    elif after.get("script_group_occ_giveups", 0) != \
-            script_stats_before.get("script_group_occ_giveups", 0):
-        diffs += 1
-        print("  MECHANISM FAIL unexpected OCC giveup")
     elif deltas["script_keys_armed"] != released or live != 0:
         # Reservations must balance: an armed key that was never released would arm every later
         # write to it for the life of the process.
