@@ -39,9 +39,6 @@ import traceback
 from _lib import Conn, RespError, encode, wait_ready
 
 WRITE = "return {redis.call('INCR',KEYS[1]),redis.call('INCR',KEYS[2])}"
-# This base answers an over-full cross-owner script window or an exhausted conflict retry with a
-# refusal instead of queueing. Neither writes anything, so a refusal is counted, never a stall.
-REFUSALS = ('BUSY Cross-shard', 'TRYAGAIN Cross-shard')
 
 
 class Stall(AssertionError):
@@ -244,7 +241,8 @@ def case_shutdown(args, directory, mode, engine, atomic, oracle):
     first = Boot(args, directory, mode, engine, atomic, oracle, aof, 'server')
     acked = [[0, 0]]
     sent = [0]
-    refused = [0]
+    errors = []
+    shutdown_requested = threading.Event()
     lock = threading.Lock()
     try:
         c = first.c
@@ -259,15 +257,15 @@ def case_shutdown(args, directory, mode, engine, atomic, oracle):
                     with lock:
                         sent[0] += 1
                     reply = conn.cmd('EVAL', WRITE, 2, *keys)
-                    if isinstance(reply, RespError) and str(reply).startswith(REFUSALS):
-                        with lock:
-                            refused[0] += 1
-                        continue
                     assert isinstance(reply, list) and len(reply) == 2, reply
                     with lock:
                         acked.append(integers(reply))
-            except (EOFError, ConnectionError, OSError):
-                pass  # SHUTDOWN closed the connection; anything unanswered was never acknowledged
+            except (EOFError, ConnectionError, OSError) as error:
+                # Only an initiated SHUTDOWN may discard an unanswered request.
+                if not shutdown_requested.is_set():
+                    errors.append(repr(error))
+            except Exception as error:
+                errors.append(repr(error))
 
         threads = [threading.Thread(target=storm, args=(x,), daemon=True) for x in storm_conns]
         for t in threads:
@@ -286,6 +284,7 @@ def case_shutdown(args, directory, mode, engine, atomic, oracle):
             wait(lambda: stats(c)['script_stage_owner_tasks'] > before['script_stage_owner_tasks'] and
                  stats(c)['script_keys_armed'] > stats(c)['script_keys_released'],
                  'no cross-owner activation was parked in flight before SHUTDOWN')
+        shutdown_requested.set()
         c.send('SHUTDOWN', 'NOSAVE')
         try:
             reply = c.read()
@@ -296,6 +295,8 @@ def case_shutdown(args, directory, mode, engine, atomic, oracle):
         stop.set()
         for t in threads:
             t.join(timeout=args.stall + 5)
+        assert not errors, ('script worker failed', errors)
+        assert not any(t.is_alive() for t in threads), 'shutdown worker did not finish'
         for x in storm_conns + parked:
             x.close()
         assert exit_status == dict(rc=0, forced=False), ('SHUTDOWN NOSAVE exit', exit_status)
@@ -308,7 +309,7 @@ def case_shutdown(args, directory, mode, engine, atomic, oracle):
         assert values[0] == values[1], ('partial activation survived the restart', values)
         assert values[0] >= top[0] and values[1] >= top[1], ('acknowledged write lost', values, top)
         assert values[0] <= sent[0], ('more activations than were sent', values, sent[0])
-    return dict(restored=values, acknowledged_max=top, sent=sent[0], refused=refused[0],
+    return dict(restored=values, acknowledged_max=top, sent=sent[0],
                 acknowledged=len(acked) - 1)
 
 
@@ -389,7 +390,6 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
             same_owner(c, f'snapfix:sw{i}', owners[i][1]) for i in range(2)]
         c.must('MSET', keys[0], 0, keys[1], 0, writer_keys[0], 0, writer_keys[1], 0)
         done = [0] * 8
-        refused = [0]
         writes = [0, 0]
         saves = [0]
         latency = Latency()
@@ -401,9 +401,6 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
                         began = time.monotonic()
                         reply = x.cmd('EVAL', WRITE, 2, *keys)
                         latency.observe('script', began)
-                        if isinstance(reply, RespError) and str(reply).startswith(REFUSALS):
-                            refused[0] += 1
-                            continue
                         assert isinstance(reply, list) and len(reply) == 2, reply
                         done[i] += 1
             run.__name__ = f'script-{i}'
@@ -433,7 +430,7 @@ def case_bgsave_script(args, directory, mode, engine, atomic, oracle):
             s = stats(c)
             assert s.get('atomic_txn_order_violations', 0) == 0, s
             assert s['script_keys_armed'] == s['script_keys_released'], 'script PINs leaked'
-        result['storm'] = dict(activations=sum(done), refused=refused[0], writes=writes, saves=saves[0],
+        result['storm'] = dict(activations=sum(done), writes=writes, saves=saves[0],
                                max_latency=latency.report())
         result['snapshot'] = storm_snapshot_check(args, directory / 'storm', mode, engine, atomic,
                                                   oracle, b, keys, final[0], 'storm')

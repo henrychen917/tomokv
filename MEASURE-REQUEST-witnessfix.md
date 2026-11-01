@@ -60,3 +60,10 @@ not generic cross-connection order. Remaining OOM/block-chain skips name D10/D11
 Several survey cascades were already promoted between the audit and this base;
 no historical promotion is inferred to be a new witness here.
 DQ=DF=0; Tcl required assertions decrease by three per mode, with explicit skips.
+
+### V18 — snapshot storms must reject refusal replies
+
+Removed BUSY/TRYAGAIN tolerance. Script activations require two-element replies;
+the shutdown worker now propagates assertion failures to the main test instead
+of merely printing a thread exception. Unanswered work at shutdown is still
+distinguished from an error reply already received. DQ=DF=0.
