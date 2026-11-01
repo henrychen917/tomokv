@@ -88,7 +88,10 @@ observed hits are retained in `docs/rootcore/controls/pre-final`.
 
 PAD-A was booted through the same gate interface and preserves PRE failures in
 all five functional witness families: eval 16, segments 4, notify 16, functions
-12, waitaof 32 failing target legs. The seven applicable oracle legs pass. This
+12 in the initial matrix, waitaof 32 failing target legs. The seven applicable
+oracle legs pass. The expanded FUNCTION control also reproduces all 24 target
+failures on PRE and PAD-A; its three oracle policy legs pass on each arm
+(`docs/rootcore/controls/functions-expanded`). This
 is evidence for PRE behaviour, not evidence for an exact cache-layout match.
 Logs: `docs/rootcore/controls/pad-a`.
 
