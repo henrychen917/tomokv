@@ -202,6 +202,21 @@ attempts; the other 36 persistence rows still pass. The gate exits 1.
 build artifacts; `interaction-receipts.json` binds the positive windows.
 No production change was needed.
 
+The merged interaction receipts bind all 64 PING-probed FLIP storm legs,
+eight WATCH/FLUSH/CONFIG live matrices, ten flushfix2 live-FLIP witness legs,
+40 function-persistence boundaries and twelve armed AOF failure windows to the
+frozen POST. The headline's script FIFO and transaction-order checks also pass:
+at412 T6 retains all 27 legs and T10 all 15. The release-footprint reruns require
+all three stream memory assertions in each of eight mode/atomic/engine jobs
+(24 assertions). These receipts are separate from any performance verdict.
+
+The first complete ABBA selftest and the epoll FLIP controller hold check
+overlapped on the same CPUs. The scheduler fixture assumes its server CPUs are
+idle; it hit its unchanged 45-second deadline, while the FLIP check failed to
+arm its complete 30-second hold interval. Both failed attempts remain in
+`docs/wave13/job-issues.json`. Complete isolated reruns are queued with the same
+assertions and bounds; neither overlapping attempt is credited.
+
 The initial seven datafix1 jobs returned passing verdicts but their shared
 helper forced `LC_ALL=en_US.UTF-8` for 120 target/oracle boots. These outcomes
 **do not satisfy the requested C boot environment**;
