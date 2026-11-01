@@ -69,14 +69,23 @@ def main():
     assert read('binding-supplied-headline.json')['passed']
     identity = read('identity/summary.json')
     assert identity['residual'] == 283
-    assert read('interaction-receipts.json')['passed']
-    assert read('aof-window-negative-control.json')['verified']
-    assert read('locale-C-reruns.json')['passed']
-    assert read('gates-test.json')['exit'] == 0
+    interactions = read('interaction-receipts.json')
+    assert interactions['passed'] and interactions['binary_sha256'] == post
+    control = read('aof-window-negative-control.json')
+    assert control['verified'] and control['post_sha256'] == post
+    assert control['harness_sha256'] == sha(ROOT / 'tests/persistfmt.py')
+    assert control['generator_sha256'] == sha(ROOT / 'tools/persistfmt_schedule.py')
+    locale = read('locale-C-reruns.json')
+    assert locale['passed'] and locale['binary_sha256'] == post
+    assert locale['helper_sha256'] == sha(ROOT / 'tests/datafix1_common.py')
+    gates = read('gates-test.json')
+    assert gates['exit'] == 0 and gates['source_sha256'] == sha(ROOT / 'tests/gates_test.py')
     differential = read('differential-proof.json')
     assert len(differential) == 2 and all(row['passed'] for row in differential)
     regressions = read('isolated-regressions.json')
     assert regressions and all(row['verified'] and row['post_sha256'] == post for row in regressions)
+    assert all(row['manifest_sha256'] == sha(ROOT / 'tests/redis_tcl_passing.json') and
+               row['runner_sha256'] == sha(ROOT / 'tests/redis_tcl.py') for row in regressions)
 
     copy = read('abba-copy-replay.json')
     assert copy['passed'] and copy['only_tracked_file_differences'] == ['tests/gate.sh']
@@ -84,6 +93,22 @@ def main():
     assert abba['exit'] == 0 and abba['tests_tools_unchanged'] and abba['source_tree_unchanged']
     assert abba['gate_sha256'] == copy['copy_gate_sha256'] and abba['binary_sha256'] == post
     assert sha(ROOT / 'tests/gate.sh') == copy['root_gate_sha256']
+    primary = read('jobs/landing-primary.json')
+    assert primary['tests_sha256'] == hashlib.sha256(b'').hexdigest()
+    changes = subprocess.check_output(['git', 'diff', '--name-only', primary['source_commit'],
+        'HEAD', '--', 'tests', 'tools', 'calib'], cwd=ROOT, text=True).splitlines()
+    rerun_proofs = {
+        'tests/datafix1_common.py': 'locale-C-reruns.json',
+        'tests/fixtures/nullrefresh-ledger-labels.json': 'jobs/landing-abba-selftest-isolated.json',
+        'tests/persistfmt.py': 'interaction-receipts.json',
+        'tools/persistfmt_schedule.py': 'interaction-receipts.json',
+    }
+    assert set(changes) == set(rerun_proofs), changes
+    changed_files = []
+    for name in changes:
+        before = subprocess.check_output(['git', 'show', primary['source_commit'] + ':' + name], cwd=ROOT)
+        changed_files.append(dict(path=name, before_sha256=hashlib.sha256(before).hexdigest(),
+                                  after_sha256=sha(ROOT / name), rerun_proof=rerun_proofs[name]))
     disk_bytes = int(subprocess.check_output(['du', '-s', '-B1', 'build'], cwd=ROOT).split()[0])
     assert disk_bytes < 40 * 1024**3
     result = dict(binary_sha256=post, row_counts=dict(quick=1046, full=1063, delta=47),
@@ -94,7 +119,7 @@ def main():
                   read_local_zero_delta_cells=len(local_rows), native_cells=244, lua_cells=96,
                   universal_body_identity=False, residual_body_groups=283,
                   not_run=coverage['not_run_performance'] | coverage['constraint_exclusions'],
-                  build_bytes=disk_bytes, inputs=inputs,
+                  build_bytes=disk_bytes, post_primary_harness_changes=changed_files, inputs=inputs,
                   note='All runnable authorized correctness requirements are witnessed. '
                        'The non-C locale row, universal body identity, PAD placement limits, '
                        'performance merit and the full landing iteration remain explicit exceptions.')
