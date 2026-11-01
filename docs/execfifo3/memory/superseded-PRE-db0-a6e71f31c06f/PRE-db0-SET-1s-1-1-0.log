@@ -1,0 +1,23 @@
+Deleted bounded GDB step trace: /home/user/Projects/cx-execfifo3/build/execfifo3/memory-scopes/PRE-db0-SET-1s-1-1-0.log
+SHA-256: 880e58e19de30601badd26a6fba9f00d85287b89509b4bbf73b8a212feca5835
+Exit: 0
+0x00005555558dbe98	2423	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x00005555558dbd63 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183648, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2426
+2426	    }
+0x00005555558dbd68	2426	    }
+0x00005555558dbd71	2426	    }
+0x00005555558dbd77	2426	    }
+0x00005555558dbd7b	2426	    }
+0x00005555558dbd7c	2426	    }
+0x00005555558dbd7e	2426	    }
+0x00005555558dbd80	2426	    }
+0x00005555558dbd82	2426	    }
+0x00005555558dbd84	2426	    }
+0x00005555558dbd85	2426	    }
+0x0000555555dde115 in tomo_db0::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, unsigned int, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const (__closure=__closure@entry=0x7ffffffda800, w=w@entry=0) at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:117
+117	                scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execfifo3/tests/execfifo3_scope.cc:24
+24	[[gnu::noinline]] void scope_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 2222283) exited normally]
+COUNT 920

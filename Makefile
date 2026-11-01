@@ -384,7 +384,11 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # body spillover; the remaining differences are reported for merit review.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131361
+# execfifo3: FIFO/C1 adds 2031 IPA instructions in each fused unit. Keep PRE's
+# absolute inlining allowance: otherwise resp_parse_t outlines parse_len_crlf
+# on ordinary SET/INCR frames (+43/+40 instructions per command in db0).
+# Linked parser/owner memory scopes and the derivation live in docs/execfifo3/.
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=133392
 $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=164652
 # Protofix late-listener bounds, subject to wave9 compile-only re-derivation.
 $(BUILD_ROOT)/src/core/fliplisten.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=46749
@@ -405,7 +409,7 @@ $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 
 # txnorder2: compile-only trials retained in docs/txnorder2/budgets; remaining spillover is explicit.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): db0 genthread compat2 +27
 # and clockcut +64; db0 reorder compat2 +39 and clockcut +128. Re-derived by the budget commit.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=132035 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=134066 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=167496
 # Keep PRE's first (rather than second) tombstone-compaction call inlined in the
 # R7 fused sweep; the cold miss body otherwise changes GCC's tied call ordering.

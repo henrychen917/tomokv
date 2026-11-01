@@ -1,0 +1,56 @@
+[
+  {
+    "cell": "db0-PARSE-INCR-1s-32-1-0",
+    "pre": 21205,
+    "fifo": 22485,
+    "post_trial": 21205,
+    "pre_memory": 7272,
+    "fifo_memory": 7880,
+    "post_memory": 7272
+  },
+  {
+    "cell": "db0-PARSE-INCR-1s-32-1-1",
+    "pre": 24963,
+    "fifo": 26243,
+    "post_trial": 24963,
+    "pre_memory": 8427,
+    "fifo_memory": 9035,
+    "post_memory": 8427
+  },
+  {
+    "cell": "db0-PARSE-INCR-2s-32-1--1",
+    "pre": 18406,
+    "fifo": 18406,
+    "post_trial": 18406,
+    "pre_memory": 5757,
+    "fifo_memory": 5757,
+    "post_memory": 5757
+  },
+  {
+    "cell": "db0-PARSE-SET-1s-32-1-0",
+    "pre": 23669,
+    "fifo": 25045,
+    "post_trial": 23669,
+    "pre_memory": 7784,
+    "fifo_memory": 8488,
+    "post_memory": 7784
+  },
+  {
+    "cell": "db0-PARSE-SET-1s-32-1-1",
+    "pre": 27427,
+    "fifo": 28803,
+    "post_trial": 27427,
+    "pre_memory": 8939,
+    "fifo_memory": 9643,
+    "post_memory": 8939
+  },
+  {
+    "cell": "db0-PARSE-SET-2s-32-1--1",
+    "pre": 20646,
+    "fifo": 20646,
+    "post_trial": 20646,
+    "pre_memory": 6173,
+    "fifo_memory": 6173,
+    "post_memory": 6173
+  }
+]
