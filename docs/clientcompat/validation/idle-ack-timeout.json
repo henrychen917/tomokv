@@ -1,0 +1,40 @@
+{
+  "completed_geometries": [
+    {
+      "leg": "db1-1s-epoll-a0-rl0",
+      "passed": 864,
+      "failed": 0
+    },
+    {
+      "leg": "db1-1s-epoll-a0-rl1",
+      "passed": 864,
+      "failed": 0
+    },
+    {
+      "leg": "db1-1s-epoll-a1-rl0",
+      "passed": 864,
+      "failed": 0
+    },
+    {
+      "leg": "db1-1s-epoll-a1-rl1",
+      "passed": 864,
+      "failed": 0
+    },
+    {
+      "leg": "db1-1s-uring-a0-rl0",
+      "passed": 864,
+      "failed": 0
+    },
+    {
+      "leg": "db1-1s-uring-a0-rl1",
+      "passed": 864,
+      "failed": 0
+    }
+  ],
+  "passed_cases": 5184,
+  "failed_cases": 0,
+  "watchdog_seconds": 900,
+  "job_exit": 124,
+  "complete": false,
+  "reason": "Idle owner and IO acknowledgement polling; corrected without changing any deadline or wire assertion."
+}
