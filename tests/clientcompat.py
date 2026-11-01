@@ -302,6 +302,34 @@ def probe(case, port, rows, oracle, mode=None):
                 check('aborted ACL has no effect', b.cmd('SET', 'cc:acl-order', 'still-allowed'), b'OK')
                 b.close()
                 check('remove ACL caller', a.cmd('ACL', 'DELUSER', user), 1)
+                opened = False
+                for attempt in range(12):
+                    closing = peer(proto)
+                    marker = f'cc:sub-close-ready:{proto}:{attempt}'
+                    channels = [f'cc:sub-close:{proto}:{attempt}:{i}'.encode() for i in range(128)]
+                    check('multi subscription close', closing.cmd('MULTI'), b'OK')
+                    for channel in channels:
+                        check('queue subscription close', closing.cmd('SUBSCRIBE', channel), b'QUEUED')
+                    check('queue close marker', closing.cmd('SET', marker, 'ready'), b'QUEUED')
+                    closing.send('EXEC')
+                    deadline = time.monotonic() + 2
+                    while a.cmd('GET', marker) != b'ready':
+                        assert time.monotonic() < deadline, 'subscription close marker never committed'
+                    window = not bool(select.select([closing.sock], [], [], 0)[0])
+                    opened |= window
+                    closing.close()
+                    deadline = time.monotonic() + 2
+                    while True:
+                        counts = a.cmd('PUBSUB', 'NUMSUB', *channels)[1::2]
+                        if time.monotonic() >= deadline:
+                            break
+                        time.sleep(.01)
+                    check('closed EXEC leaves no subscriptions', counts, [0] * len(channels))
+                    rows.append(dict(subscription_close_window=window, attempt=attempt, oracle=oracle))
+                    if oracle or opened:
+                        break
+                if not oracle:
+                    check('subscription close window opened', opened, True)
         else:
             # Bounded enable-after-OK search. BCAST removes read-enrolment as a
             # confounder; every round proves delivery again on a later write.
