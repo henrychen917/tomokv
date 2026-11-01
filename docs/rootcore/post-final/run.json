@@ -1,0 +1,30 @@
+{
+  "name": "directed",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--ports",
+    "20100-20199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcore/build/tomokv"
+  ],
+  "jobs": [
+    "rootcore-inbox",
+    "rootcore-eval",
+    "rootcore-segments",
+    "rootcore-notify",
+    "rootcore-functions",
+    "rootcore-waitaof",
+    "rootcore-misconf"
+  ],
+  "engine": "uring",
+  "fused": 0,
+  "sha256": "c9b173b64222d38963cfffc85949c6be49e6f6d86aa8f1893793b35ab72ec780",
+  "started": "2026-11-01T02:15:05.849623+00:00",
+  "ended": "2026-11-01T02:16:39.035430+00:00",
+  "exit_code": 1
+}

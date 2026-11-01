@@ -1,0 +1,21 @@
+{
+  "name": "post-waitaof-noop",
+  "arm": "POST",
+  "jobs": "rootcore-waitaof",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "24-31",
+    "--ports",
+    "20190-20199",
+    "--candidate-binary",
+    "/home/user/Projects/cx-rootcore/build/rootcore/POST"
+  ],
+  "started": "2026-11-01T02:29:36.481683+00:00",
+  "ended": "2026-11-01T02:29:50.467056+00:00",
+  "exit_code": 1,
+  "sha256": "c9b173b64222d38963cfffc85949c6be49e6f6d86aa8f1893793b35ab72ec780"
+}

@@ -96,8 +96,10 @@ def segments(a):
 
 
 def waitaof(a):
-    with boot(a, 'waitaof', ['--appendonly', 'yes', '--appendfsync', a.fsync,
-                             '--databases', str(a.databases)]) as (_, c, _):
+    opts = ['--appendonly', 'yes', '--appendfsync', a.fsync, '--databases', str(a.databases)]
+    if not a.oracle:
+        opts += ['--atomic', str(a.atomic)]
+    with boot(a, 'waitaof', opts) as (_, c, _):
         emit('risky moment', case='AOF-enabled local durability query', hits=1)
         result = c.must('WAITAOF', 0, 0, 1)
         assert result == [1, 0], result
@@ -151,6 +153,14 @@ def waitaof(a):
             assert c.must('WAITAOF', 0, 0, 1) == [1, 0]
             assert observer.must('WAITAOF', 0, 0, 1) == [0, 0]
             emit('risky moment', case='unrelated later write does not revoke own fsync', hits=1)
+            observer.must('CONFIG', 'SET', 'appendfsync', 'always')
+            assert c.must('SET', 'rootcore:noop', 'existing') == b'OK'
+            assert c.must('WAITAOF', 1, 0, 3000) == [1, 0]
+            observer.must('CONFIG', 'SET', 'appendfsync', 'no')
+            assert c.must('SET', 'rootcore:noop', 'ignored', 'NX') is None
+            emit('risky moment', case='non-mutating SET NX after own fsync', hits=1)
+            result = c.must('WAITAOF', 0, 0, 1)
+            assert result == [1, 0], ('non-mutating SET NX changed local ack', result)
         finally:
             observer.close()
 
@@ -239,7 +249,7 @@ def main():
                       ('always', 'everysec') if args.case == 'waitaof' else
                       ('everysec', 'no') if args.case == 'misconf' else ('always',)):
             for databases in ((1, 16) if not oracle and args.case in ('eval', 'notify', 'waitaof') else (1,)):
-                for atomic in ((0, 1) if not oracle and args.case in ('eval', 'notify') else (0,)):
+                for atomic in ((0, 1) if not oracle and args.case in ('eval', 'notify', 'waitaof') else (0,)):
                     a = copy.copy(args)
                     a.oracle, a.mode, a.engine, a.fsync = oracle, mode, engine, fsync
                     a.databases, a.atomic = databases, atomic

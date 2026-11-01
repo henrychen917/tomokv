@@ -1,0 +1,108 @@
+{
+  "rootcore-eval": {
+    "pass_legs": 17,
+    "failed_legs": 0,
+    "risky_hits": 68
+  },
+  "rootcore-functions": {
+    "pass_legs": 15,
+    "failed_legs": 0,
+    "risky_hits": 75
+  },
+  "rootcore-inbox": {
+    "diagnostic_passes": [
+      {
+        "kind": "client",
+        "attempts": 200000,
+        "first_misses": 66761,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "client",
+        "attempts": 200000,
+        "first_misses": 85686,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "transfer",
+        "attempts": 200000,
+        "first_misses": 49360,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "transfer",
+        "attempts": 200000,
+        "first_misses": 72764,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "task",
+        "attempts": 200000,
+        "first_misses": 49593,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "task",
+        "attempts": 200000,
+        "first_misses": 97081,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "fused",
+        "attempts": 200000,
+        "first_misses": 57197,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "fused",
+        "attempts": 200000,
+        "first_misses": 94064,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "flush",
+        "attempts": 200000,
+        "first_misses": 93798,
+        "stranded_hits": 0,
+        "consumed": 200000
+      },
+      {
+        "kind": "flush",
+        "attempts": 200000,
+        "first_misses": 65115,
+        "stranded_hits": 0,
+        "consumed": 200000
+      }
+    ],
+    "pass_legs": 10,
+    "failed_legs": 0
+  },
+  "rootcore-misconf": {
+    "pass_legs": 2,
+    "failed_legs": 8,
+    "risky_hits": 10
+  },
+  "rootcore-notify": {
+    "pass_legs": 17,
+    "failed_legs": 0,
+    "risky_hits": 34
+  },
+  "rootcore-segments": {
+    "pass_legs": 4,
+    "failed_legs": 0,
+    "risky_hits": 8
+  },
+  "rootcore-waitaof": {
+    "pass_legs": 34,
+    "failed_legs": 0,
+    "risky_hits": 356
+  }
+}
