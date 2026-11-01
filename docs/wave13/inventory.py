@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Count source declarations at their collector lines, independently of run logs."""
 from collections import Counter
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -51,9 +52,15 @@ if __name__ == '__main__':
     post, pre = inventory(source), inventory(before)
     added = Counter(r['label'] for r in post['rows']) - Counter(r['label'] for r in pre['rows'])
     removed = Counter(r['label'] for r in pre['rows']) - Counter(r['label'] for r in post['rows'])
-    fixture = json.loads((ROOT/'docs/wave13/landing-label-fixture.json').read_text())['labels']
+    fixture_path = ROOT/'tests/fixtures/nullrefresh-ledger-labels.json'
+    fixture = json.loads(fixture_path.read_text())['labels']
+    archived_fixture = json.loads((ROOT/'docs/wave13/landing-label-fixture.json').read_text())['labels']
+    assert Counter(fixture) == Counter(archived_fixture), 'archived and landing label multisets differ'
     result = dict(headline={k:pre[k] for k in ('quick','full','quick_exit_line')},
                   post=post, added=dict(added), removed=dict(removed),
+                  fixture_path=str(fixture_path.relative_to(ROOT)),
+                  fixture_sha256=hashlib.sha256(fixture_path.read_bytes()).hexdigest(),
+                  archived_fixture_labels_match=True,
                   landing_fixture_matches=Counter(fixture)==Counter(r['label'] for r in post['rows']),
                   expected_assignments=re.findall(r'^EXPECT_(?:QUICK|FULL)=\d+',source,re.M))
     (ROOT/'docs/wave13/row-inventory.json').write_text(json.dumps(result,indent=2)+'\n')

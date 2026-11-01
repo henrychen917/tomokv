@@ -5657,6 +5657,9 @@
     "FLIP MULTI WATCH session storm (all legs)": 1
   },
   "removed": {},
+  "fixture_path": "tests/fixtures/nullrefresh-ledger-labels.json",
+  "fixture_sha256": "19a52c1e7384f6dea03da7b9935bbe7212f8efeacd90fdb77f372195d52b4d4b",
+  "archived_fixture_labels_match": true,
   "landing_fixture_matches": true,
   "expected_assignments": [
     "EXPECT_QUICK=999",
