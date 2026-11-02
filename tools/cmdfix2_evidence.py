@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+"""Summarize original receipts; archive red controls as well as green runs."""
+import argparse
+import csv
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import blockfix2_receipts as receipts
+
+ROOT = Path(__file__).resolve().parents[1]
+BUILD = ROOT / 'build/cmdfix2'
+DOC = ROOT / 'docs/cmdfix2'
+
+
+def save(path, value):
+    path.write_text(json.dumps(value, indent=2) + '\n')
+
+
+def instruction_table():
+    def read(arm):
+        return json.loads((DOC / 'instructions' / arm / 'counts.json').read_text())['rows']
+    def key(row):
+        return tuple(row[k] for k in ('namespace', 'command', 'mode', 'batch', 'atomic'))
+    pre = {key(r): r for r in read('PRE')}
+    rows = []
+    for post in read('POST'):
+        before = pre[key(post)]['total']
+        rows.append((*key(post), before, post['total'], post['total'] - before))
+    assert len(rows) == 144 and len(pre) == 144
+    main = [r for r in rows if r[1] in ('GET', 'SET', 'INCR', 'MGET', 'MSET')]
+    assert len(main) == 80 and all(r[-1] == 0 for r in main)
+    with (DOC / 'instructions/table.csv').open('w') as out:
+        writer = csv.writer(out)
+        writer.writerow(('namespace', 'command', 'mode', 'batch', 'atomic', 'PRE', 'POST', 'delta'))
+        writer.writerows(sorted(rows))
+
+
+def gate_runs(archive):
+    output = DOC / 'gate-receipts'; output.mkdir(exist_ok=True)
+    index_path = output / 'index.json'
+    previous = {r['label']: r for r in json.loads(index_path.read_text())} if index_path.exists() else {}
+    overview = []
+    for log in sorted(BUILD.glob('*.log')):
+        contents = log.read_text(errors='replace')
+        matches = re.findall(r'^  artifacts: (.+)$', contents, re.M)
+        if not matches: continue
+        assert len(matches) == 1, log
+        root = Path(matches[0]); rows = []
+        for ledger in sorted(root.glob('jobs/*/ledger')):
+            for line in ledger.read_text().splitlines():
+                status, seconds, label = line.split('\t', 2)
+                rows.append(dict(job=ledger.parent.name, status=status, seconds=seconds, label=label))
+        if not root.exists() and log.stem in previous:
+            rows = [dict(job=job['job'], **row) for job in previous[log.stem]['jobs'] for row in job['rows']]
+        complete = 'GATE(PARTIAL):' in contents
+        record = dict(label=log.stem, source=str(root), complete=complete, archived_only=not root.exists(),
+                      passed=sum(r['status'] == 'ok' for r in rows),
+                      failed=sum(r['status'] != 'ok' for r in rows), rows=rows)
+        overview.append(record)
+        if archive and complete and log.stem not in previous:
+            previous[log.stem] = receipts.collect(log.stem, root, output)
+            shutil.copyfile(log, output / log.name)
+            print('archived', log.stem, record['passed'], record['failed'], flush=True)
+    save(DOC / 'gate-summary.json', overview)
+    if archive: save(index_path, list(previous.values()))
+    return {r['label']: r for r in overview}
+
+
+def witnesses(runs):
+    selected = {'geo': 'pre-final-geo', 'channels': 'pre-channels-final'}
+    result = []
+    for case in ('geo', 'scores', 'hll', 'lcs', 'channels', 'xsetid'):
+        item = dict(case=case)
+        for arm, run in [('PRE', selected.get(case, 'pre-gate')), ('POST', 'post-final-witness')]:
+            path = Path(runs[run]['source']) / 'jobs' / ('cmdfix2-' + case) / 'proof/summary.json'
+            rows = json.loads(path.read_text())
+            assert len(rows) == len({r['leg'] for r in rows}) == 32
+            item[arm] = dict(run=run, checks=sum(r['checks'] for r in rows),
+                            failed_legs=sum(bool(r['failures']) for r in rows),
+                            differences=sum(len(r['failures']) for r in rows),
+                            legs=[dict(leg=r['leg'], checks=r['checks'], differences=len(r['failures']))
+                                  for r in rows])
+        assert item['PRE']['failed_legs'] == 32 and item['POST']['failed_legs'] == 0
+        result.append(item)
+    save(DOC / 'witnesses.json', result)
+
+
+def auditor_summary(archive):
+    folder = BUILD / 'audit-post'; rows = []
+    def objects(path):
+        return [json.loads(line) for line in path.read_text().splitlines() if line.startswith('{')]
+    for path in sorted(folder.glob('*.jsonl')):
+        for row in objects(path):
+            if 'summary' in row:
+                rows.append(dict(file=path.name, **row))
+            elif 'lcs_reply' in row:
+                rows.append(dict(file=path.name, **row))
+    comparisons = []
+    for label in ('T40', 'T47', 'T21', 'T21b'):
+        def result(mode):
+            return next(r['result'] for r in objects(folder / f'{label}-{mode}.jsonl') if r.get('test') == label)
+        oracle = result('oracle')
+        for mode in ('1s', '2s'):
+            candidate = result(mode)
+            assert candidate.keys() == oracle.keys()
+            differences = {k: dict(oracle=oracle[k], candidate=candidate[k])
+                           for k in oracle if oracle[k] != candidate[k]}
+            comparisons.append(dict(test=label, mode=mode, fields=len(oracle), differences=differences))
+    save(DOC / 'auditors.json', dict(data=rows, complex=comparisons))
+    if archive:
+        output = DOC / 'auditor-receipts'; output.mkdir(exist_ok=True)
+        save(output / 'index.json', [receipts.collect(label, BUILD / label, output)
+                                    for label in ('audit-pre-T40', 'audit-post')])
+
+
+def main():
+    assert os.sched_getaffinity(0) <= set(range(100, 112))
+    parser = argparse.ArgumentParser(); parser.add_argument('--archive', action='store_true')
+    args = parser.parse_args()
+    original = receipts.selected
+    receipts.selected = lambda path, root: original(path, root) or (
+        path.suffix == '.jsonl' and not {'checkout', 'data', 'appendonlydir'} & set(path.relative_to(root).parts))
+    instruction_table()
+    runs = gate_runs(args.archive)
+    witnesses(runs)
+    auditor_summary(args.archive)
+    with (DOC / 'arms.sha256').open('w') as out:
+        for arm in ('PRE', 'POST', 'PAD-A', 'PAD-B'):
+            path = BUILD / arm
+            out.write(hashlib.sha256(path.read_bytes()).hexdigest() + '  ' + str(path.relative_to(ROOT)) + '\n')
+
+
+if __name__ == '__main__':
+    main()

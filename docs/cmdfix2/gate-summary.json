@@ -1,0 +1,1898 @@
+[
+  {
+    "label": "pad-a-final-geo",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.OykgPF",
+    "complete": true,
+    "archived_only": false,
+    "passed": 1,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "cmdfix2-geo",
+        "status": "FAIL",
+        "seconds": "163.850000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pad-a-gate",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ePd3F7",
+    "complete": true,
+    "archived_only": false,
+    "passed": 1,
+    "failed": 6,
+    "rows": [
+      {
+        "job": "cmdfix2-channels",
+        "status": "FAIL",
+        "seconds": "497.350000",
+        "label": "cmdfix2 channels vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-geo",
+        "status": "FAIL",
+        "seconds": "30.010000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-hll",
+        "status": "FAIL",
+        "seconds": "5.050000",
+        "label": "cmdfix2 hll vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-lcs",
+        "status": "FAIL",
+        "seconds": "9.300000",
+        "label": "cmdfix2 lcs vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-scores",
+        "status": "FAIL",
+        "seconds": "5.290000",
+        "label": "cmdfix2 scores vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-xsetid",
+        "status": "FAIL",
+        "seconds": "11.470000",
+        "label": "cmdfix2 xsetid vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pad-b-final-geo",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.4oOeK7",
+    "complete": true,
+    "archived_only": false,
+    "passed": 2,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "cmdfix2-geo",
+        "status": "ok",
+        "seconds": "161.360000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pad-b-gate",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.2vp1ow",
+    "complete": true,
+    "archived_only": false,
+    "passed": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "cmdfix2-channels",
+        "status": "ok",
+        "seconds": "4.910000",
+        "label": "cmdfix2 channels vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-geo",
+        "status": "ok",
+        "seconds": "29.470000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-hll",
+        "status": "ok",
+        "seconds": "4.890000",
+        "label": "cmdfix2 hll vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-lcs",
+        "status": "ok",
+        "seconds": "8.850000",
+        "label": "cmdfix2 lcs vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-scores",
+        "status": "ok",
+        "seconds": "4.900000",
+        "label": "cmdfix2 scores vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-xsetid",
+        "status": "ok",
+        "seconds": "5.050000",
+        "label": "cmdfix2 xsetid vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-extra-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.RNhi09",
+    "complete": true,
+    "archived_only": false,
+    "passed": 12,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "atomic_floor",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "tripwire arm/disarm round-trip"
+      },
+      {
+        "job": "atomic_floor",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "pipelined same-conn program order (400 rolls)"
+      },
+      {
+        "job": "authfix",
+        "status": "ok",
+        "seconds": "2.060000",
+        "label": "authfix CG4.1 binary config requirepass"
+      },
+      {
+        "job": "authfix",
+        "status": "ok",
+        "seconds": "7.990000",
+        "label": "authfix CG4.2 missing config value refuses boot"
+      },
+      {
+        "job": "authfix",
+        "status": "ok",
+        "seconds": "2.040000",
+        "label": "authfix SV4.2 binary requirepass rewrite restart"
+      },
+      {
+        "job": "authfix",
+        "status": "ok",
+        "seconds": "0.610000",
+        "label": "authfix SV4.1 slowlog credential redaction (1s)"
+      },
+      {
+        "job": "authfix",
+        "status": "ok",
+        "seconds": "0.610000",
+        "label": "authfix SV4.1 slowlog credential redaction (2s)"
+      },
+      {
+        "job": "datafix1_bitfield",
+        "status": "ok",
+        "seconds": "1.780000",
+        "label": "datafix1 BITFIELD bounds (both engines and modes)"
+      },
+      {
+        "job": "datafix1_locale",
+        "status": "ok",
+        "seconds": "5.840000",
+        "label": "datafix1 SORT locale (both engines and modes)"
+      },
+      {
+        "job": "perfio_stream",
+        "status": "ok",
+        "seconds": "0.120000",
+        "label": "perfio XREADGROUP bounded delivery + Redis metadata (1s)"
+      },
+      {
+        "job": "perfio_stream",
+        "status": "ok",
+        "seconds": "0.100000",
+        "label": "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "job": "rootcompat-stringlimit",
+        "status": "FAIL",
+        "seconds": "4.680000",
+        "label": "rootcompat stringlimit vs Redis 7.4"
+      }
+    ]
+  },
+  {
+    "label": "post-final-witness",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.puyAE2",
+    "complete": true,
+    "archived_only": false,
+    "passed": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "cmdfix2-channels",
+        "status": "ok",
+        "seconds": "5.110000",
+        "label": "cmdfix2 channels vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-geo",
+        "status": "ok",
+        "seconds": "81.660000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-hll",
+        "status": "ok",
+        "seconds": "8.970000",
+        "label": "cmdfix2 hll vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-lcs",
+        "status": "ok",
+        "seconds": "9.400000",
+        "label": "cmdfix2 lcs vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-scores",
+        "status": "ok",
+        "seconds": "9.180000",
+        "label": "cmdfix2 scores vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-xsetid",
+        "status": "ok",
+        "seconds": "5.150000",
+        "label": "cmdfix2 xsetid vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-fused-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.eWzFwZ",
+    "complete": true,
+    "archived_only": false,
+    "passed": 45,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "25.340000",
+        "label": "atomic torn/window battery"
+      },
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "4.080000",
+        "label": "atomic RYOW/mixed-write battery"
+      },
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "4.240000",
+        "label": "atomic owner-local hazard battery"
+      },
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "atomic shutdown invariants"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "12.170000",
+        "label": "plain-write lost updates (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.190000",
+        "label": "lbsignals battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "1.500000",
+        "label": "slowlog battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.070000",
+        "label": "atomfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.150000",
+        "label": "scriptatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "14.480000",
+        "label": "execatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "11.890000",
+        "label": "execiso battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.400000",
+        "label": "execfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.140000",
+        "label": "multires battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.860000",
+        "label": "multirace battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "30.690000",
+        "label": "session_monotonic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.410000",
+        "label": "xacct battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "xmove battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "3.310000",
+        "label": "xscript battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "2.620000",
+        "label": "txn_nx battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "10.280000",
+        "label": "txniso battery (atomic 0)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "6.210000",
+        "label": "plain-write lost updates (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.200000",
+        "label": "lbsignals battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "1.520000",
+        "label": "slowlog battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "atomfix battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.150000",
+        "label": "scriptatomic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "14.510000",
+        "label": "execatomic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "11.900000",
+        "label": "execiso battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.560000",
+        "label": "execfix battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.160000",
+        "label": "multires battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.880000",
+        "label": "multirace battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "30.920000",
+        "label": "session_monotonic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.400000",
+        "label": "xacct battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "xmove battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "3.290000",
+        "label": "xscript battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "3.040000",
+        "label": "txn_nx battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "9.660000",
+        "label": "txniso battery (atomic 1)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "6.660000",
+        "label": "torture battery"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "1.120000",
+        "label": "RYOW battery"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "ACL category runtime table"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "ACL LOAD/SAVE no-file errors"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "1.040000",
+        "label": "idle loop ceiling (LBSIGNALS, 1s)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "shutdown invariants (nothing stuck)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "direct-reply fired (direct=N)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "dispatched==executed (N)"
+      }
+    ]
+  },
+  {
+    "label": "post-fused-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.5fytxD",
+    "complete": true,
+    "archived_only": false,
+    "passed": 45,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "25.280000",
+        "label": "atomic torn/window battery"
+      },
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "4.080000",
+        "label": "atomic RYOW/mixed-write battery"
+      },
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "4.250000",
+        "label": "atomic owner-local hazard battery"
+      },
+      {
+        "job": "atomic_batteries",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "atomic shutdown invariants"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "10.260000",
+        "label": "plain-write lost updates (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.440000",
+        "label": "lbsignals battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "1.710000",
+        "label": "slowlog battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.290000",
+        "label": "atomfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.420000",
+        "label": "scriptatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "14.690000",
+        "label": "execatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "12.150000",
+        "label": "execiso battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "2.690000",
+        "label": "execfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "1.280000",
+        "label": "multires battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "2.240000",
+        "label": "multirace battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "33.940000",
+        "label": "session_monotonic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.750000",
+        "label": "xacct battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "xmove battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "3.560000",
+        "label": "xscript battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "15.370000",
+        "label": "txn_nx battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "12.470000",
+        "label": "txniso battery (atomic 0)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "6.310000",
+        "label": "plain-write lost updates (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.300000",
+        "label": "lbsignals battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "1.610000",
+        "label": "slowlog battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.220000",
+        "label": "atomfix battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.380000",
+        "label": "scriptatomic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "14.620000",
+        "label": "execatomic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "12.200000",
+        "label": "execiso battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "2.240000",
+        "label": "execfix battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "1.290000",
+        "label": "multires battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "1.900000",
+        "label": "multirace battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "31.800000",
+        "label": "session_monotonic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.400000",
+        "label": "xacct battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "xmove battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "3.290000",
+        "label": "xscript battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "2.740000",
+        "label": "txn_nx battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "8.310000",
+        "label": "txniso battery (atomic 1)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "6.730000",
+        "label": "torture battery"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "1.020000",
+        "label": "RYOW battery"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "ACL category runtime table"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.040000",
+        "label": "ACL LOAD/SAVE no-file errors"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "1.040000",
+        "label": "idle loop ceiling (LBSIGNALS, 1s)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "shutdown invariants (nothing stuck)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "direct-reply fired (direct=N)"
+      },
+      {
+        "job": "release_batteries",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "dispatched==executed (N)"
+      }
+    ]
+  },
+  {
+    "label": "post-main-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.WMelbt",
+    "complete": false,
+    "archived_only": false,
+    "passed": 5,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "acl_metadata",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "generated Redis 7.4 ACL categories"
+      },
+      {
+        "job": "differ-armed-0",
+        "status": "ok",
+        "seconds": "569.360000",
+        "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+      },
+      {
+        "job": "differ-split-0",
+        "status": "ok",
+        "seconds": "730.930000",
+        "label": "Redis 7.4 differential part (split, atomic 0)"
+      },
+      {
+        "job": "differ-split-1",
+        "status": "ok",
+        "seconds": "676.330000",
+        "label": "Redis 7.4 differential part (split, atomic 1)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-main-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X",
+    "complete": false,
+    "archived_only": false,
+    "passed": 31,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "acl_metadata",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "generated Redis 7.4 ACL categories"
+      },
+      {
+        "job": "aclkeys_wake",
+        "status": "ok",
+        "seconds": "10.330000",
+        "label": "ACLKEYS3 last-owner-task wake"
+      },
+      {
+        "job": "clientcompat-multi-controls",
+        "status": "ok",
+        "seconds": "446.210000",
+        "label": "clientcompat multi-controls"
+      },
+      {
+        "job": "clientcompat-multi-tracking",
+        "status": "ok",
+        "seconds": "165.490000",
+        "label": "clientcompat multi-tracking"
+      },
+      {
+        "job": "datafix1_geo",
+        "status": "ok",
+        "seconds": "3.360000",
+        "label": "datafix1 GEO grammar (both engines and modes)"
+      },
+      {
+        "job": "differ-split-0",
+        "status": "ok",
+        "seconds": "577.300000",
+        "label": "Redis 7.4 differential part (split, atomic 0)"
+      },
+      {
+        "job": "multifix-1s-epoll",
+        "status": "ok",
+        "seconds": "11.820000",
+        "label": "multifix RESET-IN-MULTI (1s epoll)"
+      },
+      {
+        "job": "multifix-1s-epoll",
+        "status": "ok",
+        "seconds": "11.850000",
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s epoll)"
+      },
+      {
+        "job": "multifix-1s-epoll",
+        "status": "ok",
+        "seconds": "12.170000",
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s epoll)"
+      },
+      {
+        "job": "multifix-1s-epoll",
+        "status": "ok",
+        "seconds": "15.970000",
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s epoll)"
+      },
+      {
+        "job": "multifix-1s-epoll",
+        "status": "ok",
+        "seconds": "29.350000",
+        "label": "multifix PAUSE-IN-MULTI (1s epoll)"
+      },
+      {
+        "job": "multifix-1s-epoll",
+        "status": "ok",
+        "seconds": "12.630000",
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s epoll)"
+      },
+      {
+        "job": "multifix-1s-uring",
+        "status": "ok",
+        "seconds": "11.430000",
+        "label": "multifix RESET-IN-MULTI (1s uring)"
+      },
+      {
+        "job": "multifix-1s-uring",
+        "status": "ok",
+        "seconds": "11.750000",
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (1s uring)"
+      },
+      {
+        "job": "multifix-1s-uring",
+        "status": "ok",
+        "seconds": "12.030000",
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (1s uring)"
+      },
+      {
+        "job": "multifix-1s-uring",
+        "status": "ok",
+        "seconds": "15.990000",
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (1s uring)"
+      },
+      {
+        "job": "multifix-1s-uring",
+        "status": "ok",
+        "seconds": "29.340000",
+        "label": "multifix PAUSE-IN-MULTI (1s uring)"
+      },
+      {
+        "job": "multifix-1s-uring",
+        "status": "ok",
+        "seconds": "12.540000",
+        "label": "multifix PAUSE-EXEC-NOT-HELD (1s uring)"
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "11.760000",
+        "label": "multifix RESET-IN-MULTI (2s epoll)"
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "11.460000",
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s epoll)"
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "11.560000",
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s epoll)"
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "15.330000",
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "28.760000",
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "12.060000",
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      },
+      {
+        "job": "multifix-2s-uring",
+        "status": "ok",
+        "seconds": "11.790000",
+        "label": "multifix RESET-IN-MULTI (2s uring)"
+      },
+      {
+        "job": "multifix-2s-uring",
+        "status": "ok",
+        "seconds": "11.700000",
+        "label": "multifix WATCH-SPURIOUS-INVALIDATION (2s uring)"
+      },
+      {
+        "job": "multifix-2s-uring",
+        "status": "ok",
+        "seconds": "12.190000",
+        "label": "multifix EXEC-REPEATED-KEY-LINEAR (2s uring)"
+      },
+      {
+        "job": "multifix-2s-uring",
+        "status": "ok",
+        "seconds": "15.930000",
+        "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s uring)"
+      },
+      {
+        "job": "multifix-2s-uring",
+        "status": "ok",
+        "seconds": "29.400000",
+        "label": "multifix PAUSE-IN-MULTI (2s uring)"
+      },
+      {
+        "job": "multifix-2s-uring",
+        "status": "ok",
+        "seconds": "12.420000",
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s uring)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-modes-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ElLbdF",
+    "complete": false,
+    "archived_only": false,
+    "passed": 27,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "9.160000",
+        "label": "plain-write lost updates (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.190000",
+        "label": "lbsignals battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "1.520000",
+        "label": "slowlog battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.080000",
+        "label": "atomfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.170000",
+        "label": "scriptatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "14.490000",
+        "label": "execatomic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "11.890000",
+        "label": "execiso battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.370000",
+        "label": "execfix battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.130000",
+        "label": "multires battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.820000",
+        "label": "multirace battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "30.700000",
+        "label": "session_monotonic battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.410000",
+        "label": "xacct battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "xmove battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "3.320000",
+        "label": "xscript battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "1.900000",
+        "label": "txn_nx battery (atomic 0)"
+      },
+      {
+        "job": "debug-0",
+        "status": "ok",
+        "seconds": "9.770000",
+        "label": "txniso battery (atomic 0)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "6.160000",
+        "label": "plain-write lost updates (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.190000",
+        "label": "lbsignals battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "1.510000",
+        "label": "slowlog battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "atomfix battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.160000",
+        "label": "scriptatomic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "14.500000",
+        "label": "execatomic battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "11.900000",
+        "label": "execiso battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.370000",
+        "label": "execfix battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.160000",
+        "label": "multires battery (atomic 1)"
+      },
+      {
+        "job": "debug-1",
+        "status": "ok",
+        "seconds": "0.850000",
+        "label": "multirace battery (atomic 1)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-acl-discovery",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.oLrEkA",
+    "complete": true,
+    "archived_only": true,
+    "passed": 1,
+    "failed": 2,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "0.790000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "0.790000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-acl-discovery2",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.xItt7H",
+    "complete": true,
+    "archived_only": true,
+    "passed": 1,
+    "failed": 2,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "0.910000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "0.810000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-complete-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.o0BqAa",
+    "complete": true,
+    "archived_only": true,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "103.410000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "114.110000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-complete-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.BaoAhd",
+    "complete": true,
+    "archived_only": true,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "104.750000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "113.220000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.qZau7G",
+    "complete": true,
+    "archived_only": true,
+    "passed": 1,
+    "failed": 2,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "102.150000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "107.830000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-final-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.cmsCfu",
+    "complete": true,
+    "archived_only": true,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "156.290000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "182.030000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-final-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.GstpFK",
+    "complete": true,
+    "archived_only": true,
+    "passed": 1,
+    "failed": 2,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "134.800000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "149.130000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-isolated-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.VYmOiK",
+    "complete": true,
+    "archived_only": true,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "156.110000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "144.670000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-receipted-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ZFkKz9",
+    "complete": true,
+    "archived_only": false,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "114.370000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "105.710000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-receipted-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.lUgweL",
+    "complete": true,
+    "archived_only": false,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "114.860000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "100.280000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-tcl-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.LEGdxg",
+    "complete": true,
+    "archived_only": true,
+    "passed": 1,
+    "failed": 2,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "92.980000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "98.150000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "post-trial-gate",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.NxhNvC",
+    "complete": true,
+    "archived_only": true,
+    "passed": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "cmdfix2-channels",
+        "status": "ok",
+        "seconds": "5.110000",
+        "label": "cmdfix2 channels vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-geo",
+        "status": "ok",
+        "seconds": "28.180000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-hll",
+        "status": "ok",
+        "seconds": "4.890000",
+        "label": "cmdfix2 hll vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-lcs",
+        "status": "ok",
+        "seconds": "8.830000",
+        "label": "cmdfix2 lcs vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-scores",
+        "status": "ok",
+        "seconds": "4.910000",
+        "label": "cmdfix2 scores vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-xsetid",
+        "status": "ok",
+        "seconds": "5.110000",
+        "label": "cmdfix2 xsetid vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-channels-final",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.u1PyTB",
+    "complete": true,
+    "archived_only": false,
+    "passed": 1,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "cmdfix2-channels",
+        "status": "FAIL",
+        "seconds": "502.300000",
+        "label": "cmdfix2 channels vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-final-geo",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.G2KgZV",
+    "complete": true,
+    "archived_only": false,
+    "passed": 1,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "cmdfix2-geo",
+        "status": "FAIL",
+        "seconds": "82.200000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-gate",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.uocG2N",
+    "complete": true,
+    "archived_only": false,
+    "passed": 1,
+    "failed": 6,
+    "rows": [
+      {
+        "job": "cmdfix2-channels",
+        "status": "FAIL",
+        "seconds": "518.570000",
+        "label": "cmdfix2 channels vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-geo",
+        "status": "FAIL",
+        "seconds": "28.640000",
+        "label": "cmdfix2 geo vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-hll",
+        "status": "FAIL",
+        "seconds": "4.940000",
+        "label": "cmdfix2 hll vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-lcs",
+        "status": "FAIL",
+        "seconds": "9.390000",
+        "label": "cmdfix2 lcs vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-scores",
+        "status": "FAIL",
+        "seconds": "4.940000",
+        "label": "cmdfix2 scores vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-xsetid",
+        "status": "FAIL",
+        "seconds": "5.050000",
+        "label": "cmdfix2 xsetid vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-stringlimit",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.TOpylq",
+    "complete": true,
+    "archived_only": false,
+    "passed": 1,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "job": "rootcompat-stringlimit",
+        "status": "FAIL",
+        "seconds": "4.690000",
+        "label": "rootcompat stringlimit vs Redis 7.4"
+      }
+    ]
+  },
+  {
+    "label": "pre-tcl-acl-discovery",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.4ss6eM",
+    "complete": true,
+    "archived_only": true,
+    "passed": 1,
+    "failed": 2,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "0.790000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "0.820000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-tcl-pubsub-complete",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.RXeIx7",
+    "complete": true,
+    "archived_only": true,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "7.310000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "8.300000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-tcl-pubsub-isolated",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.kOXyV8",
+    "complete": true,
+    "archived_only": true,
+    "passed": 2,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "8.780000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "9.430000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-tcl-pubsub-receipted",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.RWUUkQ",
+    "complete": true,
+    "archived_only": false,
+    "passed": 3,
+    "failed": 0,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "5.640000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "6.860000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-tcl-pubsub",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.v0df3X",
+    "complete": true,
+    "archived_only": true,
+    "passed": 2,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "redis_tcl",
+        "status": "ok",
+        "seconds": "2.160000",
+        "label": "Redis 7.4.10 Tcl passing subset (2s)"
+      },
+      {
+        "job": "redis_tcl",
+        "status": "FAIL",
+        "seconds": "2.710000",
+        "label": "Redis 7.4.10 Tcl passing subset (1s)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  },
+  {
+    "label": "pre-xsetid-gate",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.Vxm106",
+    "complete": true,
+    "archived_only": true,
+    "passed": 1,
+    "failed": 1,
+    "rows": [
+      {
+        "job": "cmdfix2-xsetid",
+        "status": "FAIL",
+        "seconds": "5.500000",
+        "label": "cmdfix2 xsetid vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "release",
+        "status": "ok",
+        "seconds": "0.000000",
+        "label": "release build (+footprint locks)"
+      }
+    ]
+  }
+]

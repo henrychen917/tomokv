@@ -73,8 +73,12 @@ struct CoreConcurrencyTest {
     for(const char* arg:{"PUBLISH","channel","payload"})need(op->push_arg(Slice(arg,std::strlen(arg))));
     op->spec=command_lookup(op->arg(0));ops.push_back(std::move(op));
    }
+   const auto security = server.security_flags();
    scope_begin();
-   for(auto& op:ops)production_pubsub(&loop,&client,op.get());
+   for(auto& op:ops){
+    if(security)need(!acl_dispatch_entry(loop,client,*op,0,security));
+    production_pubsub(&loop,&client,op.get());
+   }
    scope_end();
    for(auto& op:ops)need(std::string(op->reply.data(),op->reply.size())==":0\r\n");
   }else if(command=="GEOSEARCH"){

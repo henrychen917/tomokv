@@ -164,7 +164,9 @@
     "-lm",
     "/home/user/Projects/cx-cmdfix2/build/cmdfix2/counts/scopes/PRE-normal/probe.o"
   ],
-  "probe_sha256": "a8ac358a2ba59f3e49d07ba11cf9b762394576a3133c9cd53af578acc121b6c8",
+  "probe_sha256": "ec6b206b2fc1381f38428229f7825d92957ce012ab83a8b3fab55b8c16c27e7a",
   "server_sha256": "79f8ca525f3a2050367d84ad74b6413087ed7a67e119b9eb23a47197c0d49f88",
-  "fixture_sha256": "21bf21664e5128a1f1c15b9c01cf6184c660f42b7a9553cf82c19c01558ce519"
+  "fixture_sha256": "7bbe917c4d3015955a71fad8f4bb8fd01a417d8a4f34066485d6912434caa2ee",
+  "debug_compressed": true,
+  "loaded_sections_identical": true
 }

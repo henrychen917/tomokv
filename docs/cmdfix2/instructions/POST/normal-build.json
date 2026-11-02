@@ -164,7 +164,9 @@
     "-lm",
     "/home/user/Projects/cx-cmdfix2/build/cmdfix2/counts/scopes/POST-normal/probe.o"
   ],
-  "probe_sha256": "2a5d02b2b3e8a71b6408a7b8562bf9cecd2bb9ed9be46d6678625fda741aa8c3",
+  "probe_sha256": "5a5c7e52a0d7c3635a5b4f106878f4b65b81ca76baa1ceb30f3d660f3ba14ed7",
   "server_sha256": "7c054d71ac18728be4949c1c3ac916633e99201cf3796c3c60e30cffa61b6472",
-  "fixture_sha256": "21bf21664e5128a1f1c15b9c01cf6184c660f42b7a9553cf82c19c01558ce519"
+  "fixture_sha256": "7bbe917c4d3015955a71fad8f4bb8fd01a417d8a4f34066485d6912434caa2ee",
+  "debug_compressed": true,
+  "loaded_sections_identical": true
 }

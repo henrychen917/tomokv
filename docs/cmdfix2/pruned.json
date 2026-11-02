@@ -1,0 +1,92 @@
+[
+  {
+    "label": "post-tcl-acl-discovery",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.oLrEkA",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-acl-discovery.tar.gz",
+    "archive_sha256": "e27435484e5c913256d07e1706b834c44d89708150ee4ff224692b4fbfe77837"
+  },
+  {
+    "label": "post-tcl-acl-discovery2",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.xItt7H",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-acl-discovery2.tar.gz",
+    "archive_sha256": "3004f0df6acb51ffc5830a2f04155a191dc3b11afb13744e5bb8162db8d5c408"
+  },
+  {
+    "label": "post-tcl-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.qZau7G",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-epoll.tar.gz",
+    "archive_sha256": "0565c3c4465d553b2050d004d7cbe55fe61abfa4b1b11ce4ac44ef19c3773aaf"
+  },
+  {
+    "label": "post-tcl-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.LEGdxg",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-uring.tar.gz",
+    "archive_sha256": "2a227e4db02021877975f4127bd545c95d26dc50dfa9223c127388f48eb4a24c"
+  },
+  {
+    "label": "post-trial-gate",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.NxhNvC",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-trial-gate.tar.gz",
+    "archive_sha256": "aad4c269df3e364da7fc7a3a68f0f26f17be2e65e1e6f59b40b1f6797dc40e50"
+  },
+  {
+    "label": "pre-tcl-acl-discovery",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.4ss6eM",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-tcl-acl-discovery.tar.gz",
+    "archive_sha256": "8e11fb686eb4d48f628ddeea8afe4e8ed5499b224f5008548c7aca91bb14a71b"
+  },
+  {
+    "label": "pre-tcl-pubsub",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.v0df3X",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-tcl-pubsub.tar.gz",
+    "archive_sha256": "00bfcf04aa27fa98c2c0448d72ca7e536f68e7de861222082760fd6cc1f86e8c"
+  },
+  {
+    "label": "pre-xsetid-gate",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.Vxm106",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-xsetid-gate.tar.gz",
+    "archive_sha256": "1aeccee814ce4b8289aeb54a6cfdd2a4e3994ba72cf4044a9a060a39e3ef0b29"
+  },
+  {
+    "label": "post-tcl-complete-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.o0BqAa",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-complete-epoll.tar.gz",
+    "archive_sha256": "9982b9a0f8e125f60779dd931fb1ac5a0f78d1eaded20cd32888c0882adc1fb1"
+  },
+  {
+    "label": "post-tcl-complete-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.BaoAhd",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-complete-uring.tar.gz",
+    "archive_sha256": "6612e3303a7e8dacac41d77d57c85cc5cc76cfc27d0c0620205b6618a88a2e56"
+  },
+  {
+    "label": "post-tcl-final-epoll",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.cmsCfu",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-final-epoll.tar.gz",
+    "archive_sha256": "b6f84c40f37e8e7656cc4a3e5510696fb4fdf7703d4b059d63c291ea404b6db2"
+  },
+  {
+    "label": "post-tcl-final-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.GstpFK",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-final-uring.tar.gz",
+    "archive_sha256": "79d6ebf1c30f66930bd3b8d0bbcfd4f8b9d7a079a8826b25a29fb25f1c34d752"
+  },
+  {
+    "label": "post-tcl-isolated-uring",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.VYmOiK",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-isolated-uring.tar.gz",
+    "archive_sha256": "ae986842676c71707db2599ce4b5a13523dc04406ecd7161ba7bdac99ea6a24c"
+  },
+  {
+    "label": "pre-tcl-pubsub-complete",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.RXeIx7",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-tcl-pubsub-complete.tar.gz",
+    "archive_sha256": "81b99dd81fa3095870b05cb2ba265ebba76df2fac27d0ffbd3ad72ea7a332ebf"
+  },
+  {
+    "label": "pre-tcl-pubsub-isolated",
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.kOXyV8",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-tcl-pubsub-isolated.tar.gz",
+    "archive_sha256": "a4437c360cc63ba232906c1b82bdc14eef8aad3a1c56c14c92734f46a1cc9f02"
+  }
+]
