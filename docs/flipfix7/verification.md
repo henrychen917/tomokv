@@ -75,3 +75,7 @@ Tcl job uses its unchanged passing-subset manifest, not the whole upstream suite
 **STOP:** the unconditional signal-save deadline during an arbitrary stuck
 FLIP needs the frozen ownership handshake to change. Only the repaired output
 wedge is claimed resolved; see [evidence and proposal](shutdown-stop.md).
+
+[Delivery closeout](delivery-closeout.json) records the final 13.908 GiB build
+footprint, the earlier 17.256 GiB transient peak, unchanged expectation constants,
+DQ=DF=+4, and the absence of owned servers/listeners on the assigned ports.
