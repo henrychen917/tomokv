@@ -480,6 +480,10 @@ void instruction_hook(lua_State* state, lua_Debug*) {
     context->instructions += kHookInterval;
     if (context->instructions > kInstructionLimit) {
         context->timed_out = true;
+        // Once exhausted, every resumed Lua line must fail too. A COUNT-only
+        // error can be swallowed forever by pcall/xpcall around an inner loop.
+        // Redis uses the same line-hook transition after SCRIPT KILL.
+        lua_sethook(state, instruction_hook, LUA_MASKLINE, 0);
         luaL_error(state, "script exceeded the %llu instruction limit",
                    static_cast<unsigned long long>(kInstructionLimit));
     }
