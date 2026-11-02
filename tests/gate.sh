@@ -2938,7 +2938,7 @@ job_rlfix5(){
   unit_root=${GATE_RLFIX5_UNITS:-$PWD/build/rlfix5/counts/scopes/post}
   if [ -z "${GATE_RLFIX5_UNITS:-}" ]; then
     if make -q all && cmp -s "$CANDIDATE_BINARY" build/tomokv; then
-      pausable taskset -c "$BUILD_CORES" python3 tools/rlfix5_proof.py build --arm post \
+      pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" -f Makefile -f tools/rlfix5.mk build/rlfix5-scopes \
           >"$TMPDIR/build.log" 2>&1 || true
     else
       echo 'External candidate needs matching GATE_RLFIX5_UNITS' >"$TMPDIR/build.log"

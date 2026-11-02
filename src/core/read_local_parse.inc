@@ -339,8 +339,11 @@
                             : classify_owner_conflict([](const Op&) { return true; });
                         read_local_owner_conflict = read_local_owner_conflict_reason !=
                             ReadLocalFallbackReason::None;
-                        if (read_local_owner_conflict)
-                            rob.extend_current_read_local_owner();
+                        // Every owner read is an ordering predecessor, even without an older
+                        // conflict or a pending local read to demote. Otherwise a younger GET
+                        // can run first and return an older value. The owner-slot overlap check
+                        // remains precise for point routes and conservative for broad routes.
+                        rob.extend_current_read_local_owner();
                         const bool reserve_owner_fenced_current =
                             read_local_owner_conflict && point_route &&
                             (climon_armed_cached_ & kReplaySensitiveClimon) != 0;

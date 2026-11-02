@@ -1,0 +1,530 @@
+[
+  {
+    "label": "monotonic-post",
+    "source": "/home/user/Projects/cx-rlfix5/build/gate-run.4LLi27",
+    "archive": "docs/rlfix5/jobs/monotonic-post.tar.gz",
+    "archive_sha256": "0fd647eb32897b7fc98772bfdef13ea9c9116e32511e2a54392a602f33d9041c",
+    "files": [
+      {
+        "path": "families.tsv",
+        "size": 113,
+        "sha256": "108ada8858d0468425e358d736512ea611e41104f61ab3496752084fef9b04db"
+      },
+      {
+        "path": "jobs/release/done",
+        "size": 6,
+        "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+      },
+      {
+        "path": "jobs/release/family.tsv",
+        "size": 52,
+        "sha256": "c423fa294213dd00c42926bf8ee4443a48493bc9ac7a9db7b9dbaa0ff914150c"
+      },
+      {
+        "path": "jobs/release/ledger",
+        "size": 45,
+        "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+      },
+      {
+        "path": "jobs/release/output.log",
+        "size": 149,
+        "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+      },
+      {
+        "path": "jobs/release/timings",
+        "size": 45,
+        "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/build.log",
+        "size": 344,
+        "sha256": "5f612ed06034f79c5443bc33d7930428f5fa86ad635ab61ab9e0e70a93d48a1c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/done",
+        "size": 6,
+        "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/family.tsv",
+        "size": 61,
+        "sha256": "707f25823eb8d5bc38f32c1a72458eec58c440fba695af6b25a4176cbd82dcdb"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-fused.JmBypC",
+        "size": 10835,
+        "sha256": "e99bcf3a945c843f1012cc9b95d0f39e20c34b142f4cf0d35c6e53c816e6d0c0"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-fused.vY5L9x",
+        "size": 10828,
+        "sha256": "24beb874e6b9c14134e6aaa3f9b1a39b9f864642a3aeb4a746760e7c0c6fc7e9"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-main.ATWoQy",
+        "size": 9998,
+        "sha256": "9b11f7a78e907c5a357447b0c0e4ea33de0cafbe99930f9bd47b4dc581068e43"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-main.o5ZxGc",
+        "size": 9955,
+        "sha256": "3de4203a6a4041c7794902d78624ce33a0d5b44f2d2c890d9aee32dca4f1b194"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/ledger",
+        "size": 68,
+        "sha256": "68650739e497b275195ca9da42d4912eb2c26d9cddb350868693b98773492846"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-1s-epoll.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-1s-uring.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-2s-epoll.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-2s-uring.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/output.log",
+        "size": 276,
+        "sha256": "98a65e2280759b81c01bda8c88107714724ab56c95052a4a073d2f9da8d7cc55"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/timings",
+        "size": 68,
+        "sha256": "68650739e497b275195ca9da42d4912eb2c26d9cddb350868693b98773492846"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-db0.log",
+        "size": 115,
+        "sha256": "02f2c4a3b0c9c69b7b3eb873d647f54703d2f51fbf10a4ad47295485dde8a877"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-normal.log",
+        "size": 115,
+        "sha256": "02f2c4a3b0c9c69b7b3eb873d647f54703d2f51fbf10a4ad47295485dde8a877"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-db0.log",
+        "size": 115,
+        "sha256": "bedd0c285989183cc9b048805acda29934e75d05d6db01f5b155e73ea57dc715"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-normal.log",
+        "size": 115,
+        "sha256": "bedd0c285989183cc9b048805acda29934e75d05d6db01f5b155e73ea57dc715"
+      },
+      {
+        "path": "phases.tsv",
+        "size": 88,
+        "sha256": "4a3c8a65c3463a5ce64def08a6e7c649339fe844d3eb3c7307f477939f4c5ad2"
+      },
+      {
+        "path": "plan.sh",
+        "size": 958,
+        "sha256": "3a29f6cf48256a8b0e63079558299b8b1a87e893ea3555dbfccc8eb75ce0d543"
+      },
+      {
+        "path": "row-timeouts.json",
+        "size": 2005,
+        "sha256": "fc0a1a4d3bb89bf61ceff3dc47631b567ae0814325ccc2322c1bcbe90a07475b"
+      }
+    ],
+    "jobs": [
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "job": "rlfix5-monotonic",
+        "done": "0\t2\t0",
+        "passed": 2,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "9.170000",
+            "label": "rlfix5 monotonic (1s)"
+          },
+          {
+            "status": "ok",
+            "seconds": "9.060000",
+            "label": "rlfix5 monotonic (2s)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "invalid-mutable-attempt",
+    "source": "/home/user/Projects/cx-rlfix5/build/gate-run.qp7yw5",
+    "archive": "docs/rlfix5/jobs/invalid-mutable-attempt.tar.gz",
+    "archive_sha256": "e2c88465672fe55d298e119b207aa7bed822066dcc0df952bd40e571ad44f879",
+    "files": [
+      {
+        "path": "families.tsv",
+        "size": 113,
+        "sha256": "8eac3b4c6d6563d8334d1897a5f5bd3fbcf26bc694bb8302de56beeb0370a2d2"
+      },
+      {
+        "path": "jobs/release/done",
+        "size": 6,
+        "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+      },
+      {
+        "path": "jobs/release/family.tsv",
+        "size": 52,
+        "sha256": "d55d9d86ed58cad46624b6b2b8f796968836b997b1dcd9191de9daf772f28bfb"
+      },
+      {
+        "path": "jobs/release/ledger",
+        "size": 45,
+        "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+      },
+      {
+        "path": "jobs/release/output.log",
+        "size": 149,
+        "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+      },
+      {
+        "path": "jobs/release/timings",
+        "size": 45,
+        "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/build.log",
+        "size": 52,
+        "sha256": "b5dee706f4e07dfaa1e44bfa11ace44a44c784b6b55c38feadb2794ad2b3f818"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/done",
+        "size": 6,
+        "sha256": "a77898b9ae386952ccd27957c57d452e9183c722002e39f7ff32cbba6f720860"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/family.tsv",
+        "size": 61,
+        "sha256": "489d0a0e207546b75ad65ba707f9f9148004d4d9d079a46feb3a2176e0872495"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-fused.2eNXcR",
+        "size": 10775,
+        "sha256": "6204f8d34c8a717a00e2902f73c76787d8ac713f5a1dda663ef9e3219d1621e2"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-fused.jSvtpn",
+        "size": 10819,
+        "sha256": "ead52025928da677641d4d0aec66cfbec5dbb727a1e1f0b0f2d5044f96540253"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-main.3Vs1xz",
+        "size": 10012,
+        "sha256": "c0efadde3dcef0f13e1fee35e74e1fbccaf9d37be9c4c89fd2c437713d8cdc6a"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-main.AY184G",
+        "size": 9941,
+        "sha256": "f1721622b8e8f7402c033f46a6535a08c8a044d15223e45b1cef69a1938f4cb2"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/ledger",
+        "size": 72,
+        "sha256": "82a3ecbd4f2f29355c1d235885ea0e7ff0f498ba1f45dd37c4a53021340dfb98"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-1s-epoll.log",
+        "size": 616,
+        "sha256": "2c1200eadba0b00ac27215547278149eba76ce1110715af2e6dc787c7f5c3eb4"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-1s-uring.log",
+        "size": 616,
+        "sha256": "2c1200eadba0b00ac27215547278149eba76ce1110715af2e6dc787c7f5c3eb4"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-2s-epoll.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-2s-uring.log",
+        "size": 616,
+        "sha256": "2c1200eadba0b00ac27215547278149eba76ce1110715af2e6dc787c7f5c3eb4"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/output.log",
+        "size": 486,
+        "sha256": "d4c55b3073ed301590243f5ed004c21df788f4f1fbafba00f81037eab7e74cea"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/timings",
+        "size": 72,
+        "sha256": "82a3ecbd4f2f29355c1d235885ea0e7ff0f498ba1f45dd37c4a53021340dfb98"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-db0.log",
+        "size": 145,
+        "sha256": "3b1bdd5bc2d83e57e47fd812c24ac507e4d63041b99dfb109c0210b689b90dca"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-normal.log",
+        "size": 148,
+        "sha256": "44a021e366015af603bd7e2a7c577d9e30c4ccd00473d4e54eb81824c1562d21"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-db0.log",
+        "size": 145,
+        "sha256": "3b1bdd5bc2d83e57e47fd812c24ac507e4d63041b99dfb109c0210b689b90dca"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-normal.log",
+        "size": 148,
+        "sha256": "44a021e366015af603bd7e2a7c577d9e30c4ccd00473d4e54eb81824c1562d21"
+      },
+      {
+        "path": "phases.tsv",
+        "size": 88,
+        "sha256": "d76df97445cf0ce5683a6dd19ba71d310d42da4d75f5b32fa7b8309390268ea5"
+      },
+      {
+        "path": "plan.sh",
+        "size": 938,
+        "sha256": "e72a0f863cd2240e9cb148b2dfb2d9025f65c1875e4e4462a03c213e3f95b308"
+      },
+      {
+        "path": "row-timeouts.json",
+        "size": 2005,
+        "sha256": "ffadaad14fe6eaea045e47df692478cdb086cc8416ee5980d0a6494433e986df"
+      }
+    ],
+    "jobs": [
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "job": "rlfix5-monotonic",
+        "done": "0\t0\t2",
+        "passed": 0,
+        "failed": 2,
+        "rows": [
+          {
+            "status": "FAIL",
+            "seconds": "5.400000",
+            "label": "rlfix5 monotonic (1s)"
+          },
+          {
+            "status": "FAIL",
+            "seconds": "9.640000",
+            "label": "rlfix5 monotonic (2s)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "refused-build-attempt",
+    "source": "/home/user/Projects/cx-rlfix5/build/gate-run.fV9h1d",
+    "archive": "docs/rlfix5/jobs/refused-build-attempt.tar.gz",
+    "archive_sha256": "4ef8b125fcf140ad00e8527076a8e39bbb2fe3953aa14b2d7f675a54102b8920",
+    "files": [
+      {
+        "path": "families.tsv",
+        "size": 113,
+        "sha256": "d32adb732ba0ef192e631425e6a3246076cc71b174b7265a45a33ad828c20d9a"
+      },
+      {
+        "path": "jobs/release/done",
+        "size": 6,
+        "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+      },
+      {
+        "path": "jobs/release/family.tsv",
+        "size": 52,
+        "sha256": "3d132b13d3464eb86dda2e0a4cb14c7374e9c4c52e9c7da741bfda884dd74a41"
+      },
+      {
+        "path": "jobs/release/ledger",
+        "size": 45,
+        "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+      },
+      {
+        "path": "jobs/release/output.log",
+        "size": 149,
+        "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+      },
+      {
+        "path": "jobs/release/timings",
+        "size": 45,
+        "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/build.log",
+        "size": 82,
+        "sha256": "bc25ae52047ff43cacb820bea39f512687bad06ae488c786c419b5d1edd10a0e"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/done",
+        "size": 6,
+        "sha256": "a77898b9ae386952ccd27957c57d452e9183c722002e39f7ff32cbba6f720860"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/family.tsv",
+        "size": 61,
+        "sha256": "c699e88ab03120440c2cda9d3e5202f4e02169ec5226d3e24a77b7d37e09c72a"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-fused.iE4vRA",
+        "size": 10849,
+        "sha256": "4f55d0b5da0610a11e98f7e79e9e7657e5af27a3a6e874ae9a3b01d639be719e"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-fused.rZL8kw",
+        "size": 10836,
+        "sha256": "7e4499a4cbffdc82f32239e06d94d3300ff9d7c745a57d5c0258b01176b15db4"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-main.Mv8gCu",
+        "size": 9996,
+        "sha256": "4f8e987bae12356070595a17edd0968d12da7afe13298d2f18687ccca30bb2fa"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/gate-srv-main.XbaZPd",
+        "size": 10017,
+        "sha256": "109b2073409d9b4068ff02416a75cce3e206a3320826912453eb60012613e928"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/ledger",
+        "size": 74,
+        "sha256": "83fc1486230a0c9a2cf0c55b21fc35465eb7818eafec3d549912a8eabfd270ef"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-1s-epoll.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-1s-uring.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-2s-epoll.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/live-monotonic-2s-uring.log",
+        "size": 332,
+        "sha256": "356f8de91f42a517c930a0c08ffd17d675d4a30d56175aa5487a7d25ddc3534c"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/output.log",
+        "size": 486,
+        "sha256": "0b45cc9c177d7ee97a8f08d1868f7e8f7e9bb47b30790f8ab4ee3849c3ac01eb"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/timings",
+        "size": 74,
+        "sha256": "83fc1486230a0c9a2cf0c55b21fc35465eb7818eafec3d549912a8eabfd270ef"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-db0.log",
+        "size": 125,
+        "sha256": "4dc9659c7f73876461fce347147699b62f78d6072ba4d7351bacb740c80be298"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-1s-normal.log",
+        "size": 128,
+        "sha256": "4983d537c900e67a234fe2732871a35700fe2c5f8e7664e2c70b220760b2595a"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-db0.log",
+        "size": 125,
+        "sha256": "4dc9659c7f73876461fce347147699b62f78d6072ba4d7351bacb740c80be298"
+      },
+      {
+        "path": "jobs/rlfix5-monotonic/unit-monotonic-2s-normal.log",
+        "size": 128,
+        "sha256": "4983d537c900e67a234fe2732871a35700fe2c5f8e7664e2c70b220760b2595a"
+      },
+      {
+        "path": "phases.tsv",
+        "size": 88,
+        "sha256": "d3ade9aa167b5b46cf2f10a2356caab4a9107741250970cd99061861a6989771"
+      },
+      {
+        "path": "plan.sh",
+        "size": 958,
+        "sha256": "3a29f6cf48256a8b0e63079558299b8b1a87e893ea3555dbfccc8eb75ce0d543"
+      },
+      {
+        "path": "row-timeouts.json",
+        "size": 2004,
+        "sha256": "f3f97b8e9992dd0239ba33fe35ca4b2ff6d0a5abd1da11f1d27308be34280e37"
+      }
+    ],
+    "jobs": [
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "passed": 1,
+        "failed": 0,
+        "rows": [
+          {
+            "status": "ok",
+            "seconds": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      {
+        "job": "rlfix5-monotonic",
+        "done": "0\t0\t2",
+        "passed": 0,
+        "failed": 2,
+        "rows": [
+          {
+            "status": "FAIL",
+            "seconds": "11.110000",
+            "label": "rlfix5 monotonic (1s)"
+          },
+          {
+            "status": "FAIL",
+            "seconds": "15.350000",
+            "label": "rlfix5 monotonic (2s)"
+          }
+        ]
+      }
+    ]
+  }
+]
