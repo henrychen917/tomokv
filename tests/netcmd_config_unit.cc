@@ -48,12 +48,53 @@ void knob_matrix() {
     // expose actual non-default values; live SET must fail and leave the value intact.
     for (const auto& [name, value] : {
              std::pair{"hll-sparse-max-bytes", "1024"},
-             {"unixsocketperm", "600"}, {"port", "6397"}, {"bind", "127.0.0.2"},
+             {"unixsocketperm", "600"},
              {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"},
-             {"wb-small-pipe", "16"}, {"wb-complete-visits", "3"}}) {
+             {"wb-small-pipe", "16"}, {"wb-complete-visits", "3"},
+             {"daemonize", "yes"}, {"logfile", "build/unused-knob-matrix.log"},
+             {"syslog-enabled", "yes"}, {"syslog-ident", "cfgfix-unit"},
+             {"syslog-facility", "local7"}, {"pidfile", "build/unused-knob-matrix.pid"},
+             {"supervised", "auto"}}) {
         get(name, value);
         set({"CONFIG", "SET", name, value}, false);
         get(name, value);
+    }
+    // This fixture has no live workers or sockets. A same-value SET still
+    // validates mutability and takes the production apply path; cfgfix's live
+    // oracle row exercises actual listener/AOF replacement and rollback.
+    for (const auto& [name, value] : {std::pair{"port", "20197"},
+                                    {"bind", "127.0.0.2"}, {"appendonly", "no"}}) {
+        get(name, value);
+        set({"CONFIG", "SET", name, value}, true);
+        get(name, value);
+    }
+    get("loglevel", "verbose");
+    get("key-load-delay", "17");
+    get("tls-auth-clients", "optional");
+    for (const auto& [name, value] : {std::pair{"loglevel", "debug"},
+                                    {"loglevel", "verbose"}, {"loglevel", "notice"},
+                                    {"loglevel", "warning"}, {"loglevel", "nothing"},
+                                    {"loglevel", "notice"},
+                                    {"key-load-delay", "-2147483648"},
+                                    {"key-load-delay", "2147483647"}, {"key-load-delay", "0"},
+                                    {"tls-auth-clients", "yes"}, {"tls-auth-clients", "no"},
+                                    {"tls-auth-clients", "optional"},
+                                    {"shutdown-on-sigterm", "nosave now"},
+                                    {"shutdown-on-sigint", "nosave now"}}) {
+        set({"CONFIG", "SET", name, value}, true);
+        get(name, value);
+    }
+    for (const auto& [name, invalid] : {std::pair{"loglevel", "trace"},
+                                      {"key-load-delay", "2147483648"},
+                                      {"key-load-delay", "-2147483649"},
+                                      {"key-load-delay", "01"}, {"key-load-delay", "+1"},
+                                      {"tls-auth-clients", "maybe"},
+                                      {"shutdown-on-sigterm", "save nosave"},
+                                      {"shutdown-on-sigint", "now unknown"}}) {
+        const auto before = execute(shard, {"CONFIG", "GET", name});
+        set({"CONFIG", "SET", name, invalid}, false);
+        check(execute(shard, {"CONFIG", "GET", name}) == before,
+              "rejected process/listener setting preserves the committed value");
     }
     // The boot directive is no, but Redis permits live yes/no changes. Rejected
     // values must preserve both states, including through the owner handler.
@@ -226,8 +267,13 @@ void test_config_rewrite() {
                              "set-max-intset-entries"})
         check(body.find(std::string(name) + " ") != std::string::npos, "canonical encoding directive emitted");
     for (const char* directive : {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n",
-                                  "unixsocketperm 600\n", "port 6397\n", "bind 127.0.0.2\n",
-                                  "unixsocket build/unused-knob-matrix.sock\n"})
+                                  "unixsocketperm 600\n", "port 20197\n", "bind 127.0.0.2\n",
+                                  "unixsocket build/unused-knob-matrix.sock\n",
+                                  "daemonize yes\n", "logfile build/unused-knob-matrix.log\n",
+                                  "syslog-enabled yes\n", "syslog-ident cfgfix-unit\n",
+                                  "syslog-facility local7\n", "pidfile build/unused-knob-matrix.pid\n",
+                                  "supervised auto\n", "loglevel notice\n", "key-load-delay 0\n",
+                                  "tls-auth-clients optional\n"})
         check(body.find(directive) != std::string::npos, "boot binding survived rewrite with actual value");
     for (const char* line : {"wb-policy 1\n", "wb-small-pipe 16\n", "wb-complete-visits 3\n"})
         check(body.find(line) != std::string::npos, "writeback boot knobs survive rewrite");
