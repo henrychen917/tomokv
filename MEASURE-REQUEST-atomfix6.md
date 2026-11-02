@@ -119,6 +119,12 @@ window in every arm. `pre-live-results.json` and `post-live-results.json` retain
 all per-phase counts. The final release also passes the fresh two-engine matrix below. Redis 7.4 also passes the same live detector;
 `docs/atomfix6/oracle/result.json` records its counts.
 
+The eight PRE live arms counted 83,620 torn pairs in 6,132,976 MGETs. One of 48
+frozen pairs remained torn through SAVE/restart in each of the 1s/read-local-0/DB1
+and 2s/read-local-0/DB16 arms. The original T10 wide-group detector also failed PRE:
+1,099 torn pairs in 1,059,840 MGETs in 1s. These are observed correctness counts,
+not rates or throughput comparisons.
+
 Maintainer measurement request (NOT RUN by this lane): use the gate's own ABBA
 instrument and matched offered loads, quiet box, LC_ALL=C. Preserve cell geometry,
 seeds, affinity and offered load across each PRE/POST and PAD-A/POST-layout pair.
