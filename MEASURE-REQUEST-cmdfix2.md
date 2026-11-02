@@ -2,9 +2,11 @@
 
 ## cmdfix2
 
-**Broad-job proof refresh in progress.** Directed witnesses, auditor reruns,
-instruction counts and builds below use the final POST. Final broad-job totals
-will be added when the scheduled correctness jobs finish.
+All six requested fixes are implemented. Final directed oracle witnesses pass
+**239,776 checks**. The 14 final selected gate invocations record **832 passes
+and two failed rows**: the unchanged string-limit baseline and one FIFO latency
+guard that did not recur in one serial PRE trial and one serial POST trial.
+Both failed rows remain visible; this is not an all-green gate result.
 
 Branch `cx-cmdfix2`, PRE `9d6ab5526f8fff0c8617e94cf20fa837e15ab0f8`.
 The six initial production fixes end at `77c64b44ae`; `8f94e50a94` completes
@@ -93,11 +95,12 @@ and comparisons are in `docs/cmdfix2/auditor-receipts` and `auditors.json`.
 
 ### Existing gate and Tcl proof
 
-The final job inventory will be `docs/cmdfix2/final-jobs.json`.
+The final job inventory is `docs/cmdfix2/final-jobs.json`.
 `docs/cmdfix2/gate-summary.json` retains the history, with original logs and
 receipts for **every run, including failed controls and superseded arms**.
-These are selected correctness jobs, not a full-gate receipt. Final broad-job
-totals and build freshness are recorded below when all scheduled jobs finish.
+These are selected correctness jobs, not a full-gate receipt. Final totals
+and build freshness are recorded below. The two deliberately stopped V1 broad
+runs are marked as superseded and do not contribute to final totals.
 
 Both engines complete the gate's standard differential seeds 7, 19, 20 and
 23, plus the standard rotating seed (25 for uring, 24 for epoll). Each engine
@@ -113,6 +116,20 @@ three checks × eight mode/engine/namespace legs). The raw failure lines are
 identical. This is the already documented CD5.20/NETFIX-POST-2 clamp, outside
 this lane's S1 scope; its failing row remains visible. All 24 final failure
 lines equal the archived PRE lines (`docs/cmdfix2/stringlimit-baseline.json`).
+
+The final uring selection also has a `txnorder_fifo_live` failure:
+the db1/2s/atomic=1/epoll leg exceeded the existing 20 ms plain-command p100
+guard (34.3967 ms). Its saved final counters match, all 60 windows made
+progress, FIFO waits occurred, and ordering violations are zero. The original
+failure remains a failed row; the other 15 legs pass. After every selected
+gate exited, one serial repetition of that unchanged 60-second test on PRE
+and one on POST both passed, including clean shutdown. Their p100 values were
+1.0541 ms and 4.8348 ms, respectively. These single trials do not explain or
+clear the original failure and do not establish a performance regression or
+gain. No threshold is changed. Exact boot/test arguments, semantic counters,
+original failure and diagnostic receipts are in `fifo-summary.json` and
+`fifo-receipts`. This remains a release caveat for the maintainer's quiet-box
+performance verdict.
 
 Tcl runs the gate's `redis_tcl` job in both modes against unchanged upstream
 `unit/geo`, `unit/hyperloglog`, `unit/acl`, `unit/pubsub`, `unit/type/stream`,
@@ -141,8 +158,10 @@ or a sleep/tolerance. The original failures remain archived. Stream-cgroups'
 pre-existing, exactly named appendonly CONFIG setup error remains explicit in
 the manifest; it is not an assertion pass.
 
-NOT RUN: the full iteration, ABBA/throughput/load-generator work and latency
-benchmarks, reserved for the maintainer. `GATE_PROOF_NO_RATES=1` is used only
+NOT RUN: the full iteration, ABBA/throughput benchmarks, performance load
+generators and standalone latency benchmarks, reserved for the maintainer.
+The existing latency guard within the required FIFO correctness job and its
+two diagnostic trials are reported above. `GATE_PROOF_NO_RATES=1` is used only
 with selected partial jobs. The stream job retains all 16 metadata cases and
 prints NOT RUN for its separate latency benchmark; atomic floor/rate-only
 parts retain their existing partial-proof omissions. No throughput claim is
@@ -242,7 +261,7 @@ rate/latency measurements are NOT RUN by this lane.
 ### Gate row accounting
 
 **DQ = +6; DF = +6.** `tests/gate.sh` collects the six `cmdfix2-*` rows at
-line 6684, before the quick-tier exit at line 6827. Each contributes exactly
+line 6684, before the quick-tier exit block at line 6827. Each contributes exactly
 one row regardless of its 32 internal legs. The line position, rather than
 registration or function position, determines both increments. Starting at
 the user's PRE counts, the owner should set **EXPECT_QUICK 1046 → 1052** and
@@ -265,12 +284,15 @@ rows.
 * `make all` and every one of the **55 `job_production_units` targets** pass,
   along with the live control arms and blockfix supplemental targets. All
   **five `make -q` checks return 0**. The phony live-arm recipe is checked via
-  its two concrete build roots. See `freshness.json` and `local-checks`.
+  its two concrete build roots. See `freshness.json`, the final repeated
+  freshness check in `final-freshness.json`, and `local-checks`.
 * The final epoll broad selection passes **202 rows, zero failures**. Its
   differential subjobs pass **941 rows** (235 split/atomic=0, 239 split/atomic=1,
   231 fused/atomic=0, 235 fused/atomic=1, one mode-equivalence row), with zero
-  failures. The final uring broad selection is still running; its exact rows
-  and failures will be recorded before delivery.
+  failures. The final uring broad selection has **348 passes and one FIFO
+  latency-guard failure**. Its differential subjobs have the same 941 passing
+  rows and zero failures. The failed FIFO row is retained despite both serial
+  diagnostic trials passing.
 * The final related selection passes **82 rows, zero failures**. Each of the
   four notification selections (uring/epoll × 1s/2s) passes **7 rows**, 28
   total, with zero failures.
@@ -281,6 +303,5 @@ rows.
   pass. Debug compression of unit artifacts preserves every allocated ELF
   section; it does not alter any delivered arm. `build/` is about 14 GiB.
 
-The remaining uring and related-job selections are in progress. Their final
-row counts will be added before delivery. Performance work remains NOT RUN
-for the maintainer as specified above.
+All requested correctness selections have completed. The 18 requested
+performance cells remain NOT RUN for the maintainer as specified above.

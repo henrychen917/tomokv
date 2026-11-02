@@ -5105,7 +5105,7 @@
     "label": "post-v2-fused-epoll",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.9b7imI",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 45,
     "failed": 0,
     "rows": [
@@ -5385,7 +5385,7 @@
     "label": "post-v2-fused-uring",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.yby4LQ",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 45,
     "failed": 0,
     "rows": [
@@ -6886,10 +6886,10 @@
   {
     "label": "post-v2-main-uring",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH",
-    "complete": false,
+    "complete": true,
     "archived_only": false,
-    "passed": 317,
-    "failed": 0,
+    "passed": 348,
+    "failed": 1,
     "rows": [
       {
         "job": "acl_metadata",
@@ -8734,6 +8734,150 @@
         "label": "txngroup battery (atomic 1)"
       },
       {
+        "job": "txnorder-fused-0",
+        "status": "ok",
+        "seconds": "48.620000",
+        "label": "txnorder battery (fused, atomic 0)"
+      },
+      {
+        "job": "txnorder-fused-1",
+        "status": "ok",
+        "seconds": "48.550000",
+        "label": "txnorder battery (fused, atomic 1)"
+      },
+      {
+        "job": "txnorder-split-0",
+        "status": "ok",
+        "seconds": "48.560000",
+        "label": "txnorder battery (split, atomic 0)"
+      },
+      {
+        "job": "txnorder-split-1",
+        "status": "ok",
+        "seconds": "48.510000",
+        "label": "txnorder battery (split, atomic 1)"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.560000",
+        "label": "txnorder2 writer episode R1"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder2 writer episode R2"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder2 writer episode R3"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder2 writer episode R4"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "txnorder2 writer episode R5"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "txnorder2 writer episode R6"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "txnorder2 writer episode R7"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.110000",
+        "label": "txnorder2 writer episode R8"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.020000",
+        "label": "txnorder2 writer episode R9"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder2 writer episode R10"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder2 writer episode R11"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "4.600000",
+        "label": "txnorder2 writer episode R12"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "0.060000",
+        "label": "txnorder2 direct RENAME owner join"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "22.830000",
+        "label": "txnorder2 WATCH serve"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "30.500000",
+        "label": "txnorder2 WATCH flush"
+      },
+      {
+        "job": "txnorder2",
+        "status": "ok",
+        "seconds": "27.270000",
+        "label": "txnorder2 WATCH readonly"
+      },
+      {
+        "job": "txnorder_chain",
+        "status": "ok",
+        "seconds": "0.560000",
+        "label": "txnorder chain local"
+      },
+      {
+        "job": "txnorder_chain",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder chain boundary"
+      },
+      {
+        "job": "txnorder_chain",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder chain serve"
+      },
+      {
+        "job": "txnorder_chain",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder chain hot"
+      },
+      {
         "job": "txnorder_fifo",
         "status": "ok",
         "seconds": "0.100000",
@@ -8792,6 +8936,54 @@
         "status": "ok",
         "seconds": "0.080000",
         "label": "txnorder FIFO F10"
+      },
+      {
+        "job": "txnorder_fifo_live",
+        "status": "FAIL",
+        "seconds": "988.540000",
+        "label": "txnorder FIFO live fairness"
+      },
+      {
+        "job": "txnorder_index",
+        "status": "ok",
+        "seconds": "96.540000",
+        "label": "txnorder index oracle"
+      },
+      {
+        "job": "txnorder_index",
+        "status": "ok",
+        "seconds": "2.710000",
+        "label": "txnorder index complexity"
+      },
+      {
+        "job": "txnorder_wake",
+        "status": "ok",
+        "seconds": "0.010000",
+        "label": "txnorder2 busy owner inbox wake"
+      },
+      {
+        "job": "txnorder_wound",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "txnorder wound group"
+      },
+      {
+        "job": "txnorder_wound",
+        "status": "ok",
+        "seconds": "0.070000",
+        "label": "txnorder wound exec"
+      },
+      {
+        "job": "txnorder_wound",
+        "status": "ok",
+        "seconds": "0.030000",
+        "label": "txnorder wound oom"
+      },
+      {
+        "job": "txnorder_wound",
+        "status": "ok",
+        "seconds": "0.110000",
+        "label": "txnorder wound d2"
       }
     ]
   },
@@ -8799,7 +8991,7 @@
     "label": "post-v2-modes-epoll",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ELtYgU",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 57,
     "failed": 0,
     "rows": [
@@ -9151,7 +9343,7 @@
     "label": "post-v2-notify-epoll-1s",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.tpKZw0",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 7,
     "failed": 0,
     "rows": [
@@ -9203,7 +9395,7 @@
     "label": "post-v2-notify-epoll-2s",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.qStjsd",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 7,
     "failed": 0,
     "rows": [
@@ -9255,7 +9447,7 @@
     "label": "post-v2-notify-uring-1s",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.STUJrD",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 7,
     "failed": 0,
     "rows": [
@@ -9307,7 +9499,7 @@
     "label": "post-v2-notify-uring-2s",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.trUwaM",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 7,
     "failed": 0,
     "rows": [
@@ -9359,7 +9551,7 @@
     "label": "post-v2-related",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.vyG45s",
     "complete": true,
-    "archived_only": false,
+    "archived_only": true,
     "passed": 82,
     "failed": 0,
     "rows": [

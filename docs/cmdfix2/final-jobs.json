@@ -1,0 +1,352 @@
+{
+  "post_sha256": "204cc07b6b3da1d35e17d09aa5bbff4e9a26654a281cf46766e2162d66f30b7f",
+  "runs": [
+    {
+      "run": "post-v2-witness",
+      "passed": 7,
+      "failed": 0,
+      "jobs": [
+        "cmdfix2-channels",
+        "cmdfix2-geo",
+        "cmdfix2-hll",
+        "cmdfix2-lcs",
+        "cmdfix2-scores",
+        "cmdfix2-xsetid",
+        "release"
+      ]
+    },
+    {
+      "run": "post-v2-main-uring",
+      "passed": 348,
+      "failed": 1,
+      "jobs": [
+        "acl_metadata",
+        "acl_recheck",
+        "acl_subcommands",
+        "aclfix",
+        "aclkeys_wake",
+        "atomfix5_accounting",
+        "atomfix5_watch",
+        "atomic_batteries",
+        "atomic_units",
+        "auth",
+        "blockfix4",
+        "blockfix_mkstream",
+        "clientcompat-multi-controls",
+        "clientcompat-multi-tracking",
+        "datafix1_geo",
+        "debug-0",
+        "debug-1",
+        "differ-armed-0",
+        "differ-armed-1",
+        "differ-equivalence",
+        "differ-split-0",
+        "differ-split-1",
+        "exec1s",
+        "execfair",
+        "feature-armed-0",
+        "feature-armed-1",
+        "feature-split-0",
+        "feature-split-1",
+        "fused-0",
+        "fused-1",
+        "multifix-1s-epoll",
+        "multifix-1s-uring",
+        "multifix-2s-epoll",
+        "multifix-2s-uring",
+        "release",
+        "release_batteries",
+        "serverfix_acllog",
+        "serverfix_hll",
+        "streamfix",
+        "txn_group_fused",
+        "txn_group_split",
+        "txnorder-fused-0",
+        "txnorder-fused-1",
+        "txnorder-split-0",
+        "txnorder-split-1",
+        "txnorder2",
+        "txnorder_chain",
+        "txnorder_fifo",
+        "txnorder_fifo_live",
+        "txnorder_index",
+        "txnorder_wake",
+        "txnorder_wound"
+      ]
+    },
+    {
+      "run": "post-v2-main-epoll",
+      "passed": 202,
+      "failed": 0,
+      "jobs": [
+        "acl_metadata",
+        "acl_recheck",
+        "acl_subcommands",
+        "aclfix",
+        "atomic_batteries",
+        "atomic_floor",
+        "auth",
+        "authfix",
+        "blockfix4",
+        "blockfix_mkstream",
+        "differ-armed-0",
+        "differ-armed-1",
+        "differ-equivalence",
+        "differ-split-0",
+        "differ-split-1",
+        "feature-armed-0",
+        "feature-armed-1",
+        "feature-split-0",
+        "feature-split-1",
+        "perfio_stream",
+        "release",
+        "release_batteries",
+        "serverfix_acllog",
+        "serverfix_hll",
+        "streamfix"
+      ]
+    },
+    {
+      "run": "post-v2-related",
+      "passed": 82,
+      "failed": 0,
+      "jobs": [
+        "at412-T1",
+        "at412-T10",
+        "at412-T11a",
+        "at412-T11b",
+        "at412-T12",
+        "at412-T13",
+        "at412-T14",
+        "at412-T15",
+        "at412-T16",
+        "at412-T2",
+        "at412-T3",
+        "at412-T4",
+        "at412-T5",
+        "at412-T6",
+        "at412-T7",
+        "at412-T8",
+        "at412-T9",
+        "at412-owner",
+        "blockfix2",
+        "blockfix_registry",
+        "blockfix_structure",
+        "clientfix",
+        "compat2",
+        "compat3",
+        "datafix2_encoding",
+        "datafix2_watch",
+        "dispatch_arity",
+        "dispatch_children",
+        "dispatch_errors",
+        "netcmd_units",
+        "pubtrackfix",
+        "redis_tcl",
+        "release",
+        "rootcompat-redact",
+        "rootcompat-setpast",
+        "rootcompat-sort-acl",
+        "rootcompat-xsnotify"
+      ]
+    },
+    {
+      "run": "post-v2-modes-epoll",
+      "passed": 57,
+      "failed": 0,
+      "jobs": [
+        "debug-0",
+        "debug-1",
+        "fused-0",
+        "fused-1",
+        "release",
+        "txn_group_fused",
+        "txn_group_split",
+        "txnorder-fused-0",
+        "txnorder-fused-1",
+        "txnorder-split-0",
+        "txnorder-split-1"
+      ]
+    },
+    {
+      "run": "post-v2-extra-uring",
+      "passed": 12,
+      "failed": 1,
+      "jobs": [
+        "atomic_floor",
+        "authfix",
+        "datafix1_bitfield",
+        "datafix1_locale",
+        "perfio_stream",
+        "release",
+        "rootcompat-stringlimit"
+      ]
+    },
+    {
+      "run": "post-v2-fused-uring",
+      "passed": 45,
+      "failed": 0,
+      "jobs": [
+        "atomic_batteries",
+        "debug-0",
+        "debug-1",
+        "release",
+        "release_batteries"
+      ]
+    },
+    {
+      "run": "post-v2-tcl-receipted-uring",
+      "passed": 3,
+      "failed": 0,
+      "jobs": [
+        "redis_tcl",
+        "release"
+      ]
+    },
+    {
+      "run": "post-v2-notify-uring-1s",
+      "passed": 7,
+      "failed": 0,
+      "jobs": [
+        "notify",
+        "release"
+      ]
+    },
+    {
+      "run": "post-v2-notify-uring-2s",
+      "passed": 7,
+      "failed": 0,
+      "jobs": [
+        "notify",
+        "release"
+      ]
+    },
+    {
+      "run": "post-v2-fused-epoll",
+      "passed": 45,
+      "failed": 0,
+      "jobs": [
+        "atomic_batteries",
+        "debug-0",
+        "debug-1",
+        "release",
+        "release_batteries"
+      ]
+    },
+    {
+      "run": "post-v2-tcl-receipted-epoll",
+      "passed": 3,
+      "failed": 0,
+      "jobs": [
+        "redis_tcl",
+        "release"
+      ]
+    },
+    {
+      "run": "post-v2-notify-epoll-1s",
+      "passed": 7,
+      "failed": 0,
+      "jobs": [
+        "notify",
+        "release"
+      ]
+    },
+    {
+      "run": "post-v2-notify-epoll-2s",
+      "passed": 7,
+      "failed": 0,
+      "jobs": [
+        "notify",
+        "release"
+      ]
+    }
+  ],
+  "unchanged_stringlimit_failures": [
+    "FAIL 1s-uring-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-uring-db1 above 32-bit representation APPEND 1",
+    "FAIL 1s-uring-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 1s-uring-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-uring-db16 above 32-bit representation APPEND 1",
+    "FAIL 1s-uring-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 1s-epoll-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-epoll-db1 above 32-bit representation APPEND 1",
+    "FAIL 1s-epoll-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 1s-epoll-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 1s-epoll-db16 above 32-bit representation APPEND 1",
+    "FAIL 1s-epoll-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-uring-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-uring-db1 above 32-bit representation APPEND 1",
+    "FAIL 2s-uring-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-uring-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-uring-db16 above 32-bit representation APPEND 1",
+    "FAIL 2s-uring-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-epoll-db1 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-epoll-db1 above 32-bit representation APPEND 1",
+    "FAIL 2s-epoll-db1 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}",
+    "FAIL 2s-epoll-db16 above 32-bit representation SETRANGE {'error': 'ERR string exceeds maximum allowed size (proto-max-bulk-len)'}",
+    "FAIL 2s-epoll-db16 above 32-bit representation APPEND 1",
+    "FAIL 2s-epoll-db16 above 32-bit representation SETBIT {'error': 'ERR bit offset is not an integer or out of range'}"
+  ],
+  "pad_controls": [
+    {
+      "run": "pad-a-v2-final",
+      "case": "geo",
+      "differences": 21728
+    },
+    {
+      "run": "pad-a-v2-final",
+      "case": "scores",
+      "differences": 1120
+    },
+    {
+      "run": "pad-a-v2-final",
+      "case": "hll",
+      "differences": 448
+    },
+    {
+      "run": "pad-a-v2-final",
+      "case": "lcs",
+      "differences": 800
+    },
+    {
+      "run": "pad-a-v2-final",
+      "case": "channels",
+      "differences": 960
+    },
+    {
+      "run": "pad-a-v2-final",
+      "case": "xsetid",
+      "differences": 480
+    },
+    {
+      "run": "pad-b-v2-gate",
+      "case": "geo",
+      "differences": 0
+    },
+    {
+      "run": "pad-b-v2-gate",
+      "case": "scores",
+      "differences": 0
+    },
+    {
+      "run": "pad-b-v2-gate",
+      "case": "hll",
+      "differences": 0
+    },
+    {
+      "run": "pad-b-v2-gate",
+      "case": "lcs",
+      "differences": 0
+    },
+    {
+      "run": "pad-b-v2-gate",
+      "case": "channels",
+      "differences": 0
+    },
+    {
+      "run": "pad-b-v2-gate",
+      "case": "xsetid",
+      "differences": 0
+    }
+  ]
+}

@@ -106,8 +106,8 @@
   },
   {
     "file": "post-v2-main-uring.json",
-    "bytes": 1448,
-    "sha256": "3ab5187d25d5d260c864e1c8081e1c23a3229be74cc1ffd90b35c5b6154ae8c1"
+    "bytes": 1466,
+    "sha256": "040f95dd07fb6f79f27215cca9d1a994ddc10e4092db7ff3bfb5c12386036b94"
   },
   {
     "file": "redis-tcl-test-final.log",

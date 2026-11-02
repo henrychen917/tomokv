@@ -190,5 +190,53 @@
     "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-main-epoll.tar.gz",
     "archive_sha256": "f8a5dbf38f6cea2c1ee848689193bed03ba1d10e46bac3e129a7fe8effec1bf3",
     "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.vyG45s",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-related.tar.gz",
+    "archive_sha256": "fd4f890bb09ebe6af1d6d45cf93936acf8697023f2ab9f87b16656a41a79aace",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ELtYgU",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-modes-epoll.tar.gz",
+    "archive_sha256": "4749892346a73429e9c9511b2dea572dc3c078fd1f04b3badfd8e2433703b575",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.yby4LQ",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-fused-uring.tar.gz",
+    "archive_sha256": "969d2063a7786e15b93376142e5aac80e37e52e8f21cd0ce1cd879a85d6c899c",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.9b7imI",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-fused-epoll.tar.gz",
+    "archive_sha256": "60f58ebfed88fedca083934ea72bc5868580ab25197832b6216d95c2e13420c1",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.STUJrD",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-notify-uring-1s.tar.gz",
+    "archive_sha256": "04c2555c598ffe233df3649b584d6f646e681fdd3fd09403a4bf80e358fe9ef9",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.trUwaM",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-notify-uring-2s.tar.gz",
+    "archive_sha256": "7bb820ed239114e4a428d43937c31261ec97f9bc4f7d2ac9642774f3766a6f3d",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.tpKZw0",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-notify-epoll-1s.tar.gz",
+    "archive_sha256": "9be52d57ba0d49db82775cb8463bcfb5d2fc55ad91ff9f2850d2e98cb7d4ba1e",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.qStjsd",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-v2-notify-epoll-2s.tar.gz",
+    "archive_sha256": "f6238f9be773df7a212bbeaae94c666313ece8dcca72538ccad7a4ca84a8d6a8",
+    "reason": "Completed final job receipts archived and verified; row inventory supports archive fallback."
   }
 ]

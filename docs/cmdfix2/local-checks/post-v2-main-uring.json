@@ -27,5 +27,6 @@
     "CC": "cc -gz=zlib",
     "GATE_LEDGER": "/home/user/Projects/cx-cmdfix2/build/cmdfix2/post-v2-main-uring"
   },
-  "candidate_sha256": "204cc07b6b3da1d35e17d09aa5bbff4e9a26654a281cf46766e2162d66f30b7f"
+  "candidate_sha256": "204cc07b6b3da1d35e17d09aa5bbff4e9a26654a281cf46766e2162d66f30b7f",
+  "exit_code": 1
 }

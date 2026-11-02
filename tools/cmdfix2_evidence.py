@@ -122,10 +122,11 @@ def final_jobs(runs):
         run = runs[name]
         assert run['complete'] and run['rows'], name
         failures = [row for row in run['rows'] if row['status'] != 'ok']
-        if name == 'post-v2-extra-uring':
-            assert len(failures) == 1 and failures[0]['job'] == 'rootcompat-stringlimit', failures
-        else:
-            assert not failures, (name, failures)
+        expected_failures = {
+            'post-v2-extra-uring': ['rootcompat-stringlimit'],
+            'post-v2-main-uring': ['txnorder_fifo_live'],
+        }.get(name, [])
+        assert [row['job'] for row in failures] == expected_failures, (name, failures)
         rows.append(dict(run=name, passed=run['passed'], failed=run['failed'],
                          jobs=sorted({row['job'] for row in run['rows']})))
     old_index = json.loads((DOC/'gate-receipts/index.json').read_text())
@@ -190,6 +191,50 @@ def tcl_summary(runs):
             result.append(dict(engine=engine, mode=mode, files=files, pubsub_fences=fences,
                                summary_sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
     save(DOC/'tcl-summary.json', result)
+
+
+def fifo_summary(runs, archive):
+    """Keep the original failed guard and the two fixed, serial diagnostic trials."""
+    root = Path(runs['post-v2-main-uring']['source'])/'jobs/txnorder_fifo_live'
+
+    def summarize(value):
+        assert value['actual'] == value['expected']
+        assert len(value['windows']) == 60
+        progress = min(min(window['completions']) for window in value['windows'])
+        assert progress > 0
+        assert value['deltas']['atomic_txn_order_violations'] == 0
+        assert value['deltas']['atomic_txn_fifo_waits'] > 0
+        return dict(passed=value.get('pass') is True, windows=60,
+                    minimum_window_progress=progress, final_counters_match=True,
+                    order_violations=0, fifo_waits=value['deltas']['atomic_txn_fifo_waits'],
+                    latency_guard=value['fifo'])
+
+    original = []
+    for path in sorted(root.glob('fifo-*.json')):
+        original.append(dict(leg=path.stem, **summarize(json.loads(path.read_text())),
+                             receipt_sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    assert len(original) == 16
+    failed = [row for row in original if not row['passed']]
+    assert [row['leg'] for row in failed] == ['fifo-1-2s-1-epoll']
+    assert failed[0]['latency_guard']['plain_p100'] > .020
+    assert 'plain p100 exceeds 20 ms' in (root/'fifo-1-2s-1-epoll.log').read_text()
+    folder = BUILD/'fifo-diagnostic'
+    trials = json.loads((folder/'summary.json').read_text())
+    assert [row['arm'] for row in trials] == ['PRE', 'POST']
+    diagnostic = []
+    for trial in trials:
+        assert trial['shutdown_exit_code'] == 0 and trial['exit_code'] in (0, 1)
+        assert trial['binary_sha256'] == hashlib.sha256((BUILD/trial['arm']).read_bytes()).hexdigest()
+        assert trial['test_sha256'] == hashlib.sha256((ROOT/'tests/execfair.py').read_bytes()).hexdigest()
+        record = summarize(trial['result'])
+        assert record['passed'] == (trial['exit_code'] == 0)
+        diagnostic.append(dict(arm=trial['arm'], binary_sha256=trial['binary_sha256'], **record))
+    save(DOC/'fifo-summary.json', dict(original_gate_run='post-v2-main-uring',
+        original_gate_status='FAIL', original_legs=original, serial_diagnostic=diagnostic,
+        interpretation='One trial per arm; these diagnostics do not replace or clear the original failed gate row.'))
+    if archive:
+        output = DOC/'fifo-receipts'; output.mkdir(exist_ok=True)
+        save(output/'index.json', [receipts.collect('fifo-diagnostic', folder, output)])
 
 
 def auditor_summary(archive):
@@ -257,6 +302,7 @@ def main():
     if args.final:
         final_jobs(runs)
         tcl_summary(runs)
+        fifo_summary(runs, args.archive)
     auditor_summary(args.archive)
     if args.archive: local_check_receipts()
     with (DOC / 'arms.sha256').open('w') as out:
