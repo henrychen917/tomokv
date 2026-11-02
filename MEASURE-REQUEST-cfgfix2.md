@@ -196,3 +196,21 @@ The integration lane merges cfgfix2 with wave 14. Overlaps to expect:
 - `src/cmd/t_server.cc` is edited by rootcompat, clientcompat and execfifo3 as
   well as this lane; all six lanes edit `tests/gate.sh`'s `JOB_NAMES` and
   collection lists, so the EXPECT arithmetic is additive across lanes.
+
+### Note added 2026-11-02 ~16:58 -- arm binaries removed with build/
+
+After this report was delivered, the endgame cleanup removed this worktree's
+gitignored `build/` (as it did for the finished `cx-cfgfix`; running lanes kept
+theirs), so the three arm binaries listed under **Arms** no longer exist on
+disk. Everything committed is intact: receipts, census, `docs/cfgfix2/arms.json`
+(SHA-256s and `.text` extents for verification) and this report. To regenerate
+(same absolute paths reproduce the SHA-256s exactly; elsewhere compare `.text`/
+`.data`/`.bss`, since `-g` paths and the INFO git-sha differ):
+
+- POST: a clean `make` of `c1b9b4f120` in this worktree gives `3ed5b292...`
+  (`.text`/`.data`/`.bss` identical to `b525d761`); server source is unchanged
+  from `7f06b7ca54` to HEAD, so a clean HEAD build has the same `.text`.
+- PRE: export `bc80de80b` to `build/cfgfix2/pre-source` and `make` there (the
+  recipe that reproduced `81aa6c32` exactly).
+- PAD-A: then `python3 tools/cfgfix2_pad.py` (reads `build/cfgfix2/pre-source`
+  and `build/tomokv`, writes `build/cfgfix2/arms/tomokv-PAD-A`).
