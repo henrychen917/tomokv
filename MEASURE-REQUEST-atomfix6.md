@@ -144,7 +144,9 @@ Full build commands, object digests and the five changed bytes are recorded in
 
 NOT RUN by authorization: full iteration, ABBA/performance measurements, the
 atomic throughput floor, the memtier-based `flip_saturated` job, and the original
-T01/T03 rate/perf load drivers. Their correctness mechanism is covered by the
+T01/T03 rate/perf load drivers. Also NOT RUN: `efficiency` (release timing/scaling
+measurements) and the full gate's open-loop tailgen client-LB row (requires its
+16-load-core measurement allocation). Their correctness mechanism is covered by the
 held-predecessor serverless witness, ordinary FLIP rows and the pair detectors;
 this is not a claim that their performance criteria passed. The maintainer owns
 those measurements. T07/T08/T10/T15/T16/T17 detectors run with only lifecycle

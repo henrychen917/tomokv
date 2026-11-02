@@ -15,6 +15,8 @@ GROUPS = {
     'park': ['atomfix6_units'],
     'order': ['wave14_order'],
     'notify': ['notify'],
+    'coverage': '''blockfix2 blockfix4 datafix2_notouch infofix_compat-loadaof
+        notifycompat rootcore-misconf dbdefault witness_contracts'''.split(),
     'units': '''atomic_units core_units exbatch_units splitlocal_units lbplanner_units
         flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units'''.split(),
     'atomic': '''atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting
@@ -109,4 +111,7 @@ subprocess.run(['taskset', '-c', '86', 'python3', 'tools/atomfix6_retire.py'], c
 if a.group == 'placement':
     subprocess.run(['python3', __file__, 'notify', '--fused',
                     '--label', 'notify-fused'], check=False)
+if a.group == 'notify' and a.fused:
+    subprocess.run(['python3', __file__, 'coverage',
+                    '--label', 'coverage-final'], check=False)
 raise SystemExit(result.returncode)
