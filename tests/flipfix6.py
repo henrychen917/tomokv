@@ -16,8 +16,15 @@ import threading
 import time
 import traceback
 
-from _lib import RespError, encode
+from _lib import RespError, encode, topology
 import snapfix as s
+
+
+def io_threads(c, expected):
+    roles = topology(c).roles
+    ids = sorted(tid for tid, role in roles.items() if role == 'io')
+    assert len(ids) == expected, (expected, roles)
+    return ids
 
 
 def transaction(c, pair, pipeline=True):
@@ -37,11 +44,12 @@ def transaction(c, pair, pipeline=True):
 def semantics(args, directory, engine, atomic):
     rows = []
     with s.Boot(args, directory, '2s', engine, atomic, False) as b:
-        with contextlib.closing(s.connect(b.port, args.stall, io=0)) as control:
+        initial_io = io_threads(b.c, 6)
+        with contextlib.closing(s.connect(b.port, args.stall, io=initial_io[0])) as control:
             db = 7 if args.databases == 16 else 0
             control.must('SELECT', db)
             for case in ('watch-clean', 'watch-dirty', 'watch-flushall', 'watch-flushdb', 'watch-config', 'queue', 'queue-error', 'discard', 'reset'):
-                with contextlib.closing(s.connect(b.port, args.stall, io=5)) as c:
+                with contextlib.closing(s.connect(b.port, args.stall, io=io_threads(control, 6)[-1])) as c:
                     c.must('SELECT', db)
                     pair, _ = s.keys_for(control, 'flipfix6:semantics:' + case, False, 2)
                     control.must('MSET', pair[0], 0, pair[1], 0)
@@ -90,7 +98,7 @@ def semantics(args, directory, engine, atomic):
                         assert c.must('MULTI') == b'OK'
                         assert c.must('INCR', pair[1]) == b'QUEUED'
                         assert c.must('EXEC') == [1], 'cleanup left a WATCH registration'
-                    assert s.io_thread(c) == 0
+                    assert s.io_thread(c) == io_threads(control, 1)[0]
                     rows.append(dict(case=case, session_moves=moved, flip_seconds=elapsed))
                 # The case's socket just closed: the approved precommit close
                 # refusal may win. Retry on fresh episodes, bounded, never skip.
@@ -111,13 +119,16 @@ def semantics(args, directory, engine, atomic):
 def witness(args, directory, engine, atomic, case):
     result = dict(case=case, flips=[], pings=0, ping_max=0, errors=[], workers=[])
     with s.Boot(args, directory, '2s', engine, atomic, False) as b, contextlib.ExitStack() as stack:
-        # Pin the coordinator on IO 0. The other five IOs all contain sessions.
-        control = stack.enter_context(contextlib.closing(s.connect(b.port, args.stall, io=0)))
-        probe = stack.enter_context(contextlib.closing(s.connect(b.port, args.stall, io=0)))
+        # Multi-domain CPU sets need not number the six IO roles consecutively.
+        # Cover every actual IO; a missing role or unopened session still fails.
+        initial_io = io_threads(b.c, 6)
+        result['initial_io'] = initial_io
+        control = stack.enter_context(contextlib.closing(s.connect(b.port, args.stall, io=initial_io[0])))
+        probe = stack.enter_context(contextlib.closing(s.connect(b.port, args.stall, io=initial_io[0])))
         db = 7 if args.databases == 16 else 0
         clients = []
         for ordinal in range(6 * args.clients_per_io):
-            io = ordinal % 6
+            io = initial_io[ordinal % len(initial_io)]
             c = stack.enter_context(contextlib.closing(s.connect(b.port, args.stall, io=io)))
             c.must('SELECT', db)
             control.must('SELECT', db)

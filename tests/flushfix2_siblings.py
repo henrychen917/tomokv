@@ -289,6 +289,10 @@ def storm(args, directory, mode, engine, atomic, oracle):
     expected_aof = None
     sentinels = {}
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
+    # A successful FLIP storm must finish its last request before its FLUSH peer
+    # closes. Otherwise teardown itself can produce the approved close refusal.
+    # Keep the existing strict reply checks; do not broaden accepted errors.
+    flip_drained = threading.Event() if args.case == 'live-flip' and not oracle else None
     with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
         if aof:
             for db in range(args.databases):
@@ -321,6 +325,8 @@ def storm(args, directory, mode, engine, atomic, oracle):
                               encode('EXEC') + encode('FLUSHALL', args.flush_mode))
                         assert [c.read() for _ in range(5)] == [b'OK', b'QUEUED', b'QUEUED', [b'OK', b'OK'], b'OK']
                     counts['flushes'] += 1
+                if flip_drained is not None:
+                    assert flip_drained.wait(args.stall), 'final FLIP did not drain before peer close'
         def worker(stop):
             with conn(b, args) as c:
                 workpair, _ = s.keys_for(c, 'flushfix2:live', oracle, 2)
@@ -368,16 +374,20 @@ def storm(args, directory, mode, engine, atomic, oracle):
                         stop.wait()
                         return
         def flipper(stop):
-            with conn(b, args) as c:
-                while not stop.is_set():
-                    target = 4 if counts['flips'] % 2 == 0 else 6
-                    reply = c.cmd('FLIP', target, 8-target)
-                    if isinstance(reply, RespError):
-                        assert reply.message.startswith(b'ERR FLIP cannot quiesce a connection:'), reply
-                        counts['flip_refusals'] += 1
-                        continue
-                    assert reply == b'OK', reply
-                    counts['flips'] += 1
+            try:
+                with conn(b, args) as c:
+                    while not stop.is_set():
+                        target = 4 if counts['flips'] % 2 == 0 else 6
+                        reply = c.cmd('FLIP', target, 8-target)
+                        if isinstance(reply, RespError):
+                            assert reply.message.startswith(b'ERR FLIP cannot quiesce a connection:'), reply
+                            counts['flip_refusals'] += 1
+                            continue
+                        assert reply == b'OK', reply
+                        counts['flips'] += 1
+            finally:
+                if flip_drained is not None:
+                    flip_drained.set()
         workers = [flush] + ([] if args.case == 'live-flip' else [worker]) + ([saver] if save else [])
         if args.case in ('live-flip', 'live-flip-cut') and not oracle:
             assert mode == '2s'

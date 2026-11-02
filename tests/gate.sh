@@ -1761,7 +1761,7 @@ job_flipfix6(){
 # Approved S2/close refusals must match their counters and return below one second;
 # all other FLIPs complete. Every transaction reply and final value is checked.
 row_begin "FLIP MULTI WATCH session storm (all legs)"
-local databases sibling_ok=1
+local databases sibling_ok=1 sessions_ok=1
 for databases in 16 1; do
   py tests/flushfix2_siblings.py --case live-flip --databases "$databases" \
       --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
@@ -1769,13 +1769,13 @@ for databases in 16 1; do
       --output "$TMPDIR/flush-live-flip-db$databases" \
       >"$TMPDIR/flush-live-flip-db$databases.log" 2>&1 || sibling_ok=0
 done
-if py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
     --cases exec p1 p2 p3 watch semantics exec-close --seconds 6 \
-    --output "$TMPDIR/flipfix6" >"$TMPDIR/flipfix6.log" 2>&1 && \
-    py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+    --output "$TMPDIR/flipfix6" >"$TMPDIR/flipfix6.log" 2>&1 || sessions_ok=0
+py tests/flipfix6.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
     --cases exec exec-close --clients-per-io 8 --seconds 6 \
-    --output "$TMPDIR/flipfix6-scale" >"$TMPDIR/flipfix6-scale.log" 2>&1 && \
-    [ "$sibling_ok" = 1 ]; then
+    --output "$TMPDIR/flipfix6-scale" >"$TMPDIR/flipfix6-scale.log" 2>&1 || sessions_ok=0
+if [ "$sessions_ok" = 1 ] && [ "$sibling_ok" = 1 ]; then
   ok "FLIP MULTI WATCH session storm (all legs)"
 else
   bad "FLIP MULTI WATCH session storm (all legs)" "see $TMPDIR/flipfix6*.log"

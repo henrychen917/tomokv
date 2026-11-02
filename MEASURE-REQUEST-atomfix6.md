@@ -298,10 +298,23 @@ CPU74-81 / 6:2 geometry has IO thread IDs 0,1,2,3,6,7; the fixture hard-codes 0-
 All 56 session witnesses therefore fail to arm, and its short-circuited scale
 stage does not run. Two FLUSH/FLIP sibling legs also see the approved close refusal
 when one storm thread closes its connection before the final FLIP drains. Original
-results are retained in `proof/placement-uring-default/flip-results.json`; the
-original PRE control and a topology-aware fixture rerun are pending. All eight
+results are retained in `proof/placement-uring-default/flip-results.json`. The
+unchanged PRE control reproduces all 56 unarmed session cases and three rejected
+close refusals in the FLUSH/FLIP siblings. The fixture now discovers all six IO
+roles from DEBUG LBSIGNALS, preserves the session-move assertions, and keeps the
+FLUSH peer open until the final FLIP drains. Its accepted errors and time limits
+are unchanged. The gate runs both session scales even if the first fails; no
+new row is added. The complete corrected POST job is queued. All eight
 eviction jobs, stationary LB in both modes, other FLIP jobs, read-local jobs and
 35 feature-matrix cells in this group pass.
+
+Supplemental blocking-MULTI, FLUSH notification, no-touch, AOF-load, MISCONF,
+database-default and witness-contract jobs pass 25/25 rows. The io_uring
+differential group passes 6/6 gate rows, including 235/239 split comparisons,
+230/234 armed-fused comparisons and 16 mode-equivalence comparisons. Its native
+seed inventory is 7,19,20,23,21. The armed-fused driver deliberately does not run
+the SORT suite because that fixture requires split 6:2 geometry; both split arms
+run it. No custom differential seed or suite reduction was used.
 
 Completed passing persistence jobs retained about 2 GB of dump/AOF test data.
 Those generated data files were hashed and retired after job completion to keep
