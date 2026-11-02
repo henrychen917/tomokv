@@ -3106,5 +3106,197 @@
     "bytes": 53514,
     "sha256": "c6ec2e7f1d317ea4aaa656657480c01bf3bc7d743cecaf4a07f87f2d37c6eab5",
     "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a0-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "718e02f52cc656c321496d7db0ae3f5d3cb0fbab3bfb38959ababd03a4c8bb7b",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/uring-a0-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 35003114,
+    "sha256": "f77a1634d6c1b6923ec3b651d093917d6378239cbc4084c4a078d203e1a988eb",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/uring-a1-d16-r0-signal-0/dump.tomo",
+    "bytes": 35003146,
+    "sha256": "7998c8f53d2640b2e673090e8c2e758d0ee05c1c6e7f748d29e6ea2d8eb12087",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a0-d16-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "44c9624f2ab5ce04fc8a253f6aa7f42728fa5e3be1c8d5d9d86310e4a12b3f66",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/uring-a1-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "9b35edd8dcd1be4c650dd9baa0e0d7092f1a17db6ce4b8394a89b46bb946cea6",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a1-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "300d58fbd871c98540d7416b5652334fb19f0a2d47343c765453c8e07e8bc704",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/uring-a0-d16-r0-signal-0/dump.tomo",
+    "bytes": 35002986,
+    "sha256": "ccb9d8b1d997100fea342ecb7589ef367e79e2e45a9819cd804e60d103abbf05",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a1-d16-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "f6f4537633c8d27898418cdd69c83b6d6b0da577fc64d1c9e5f09f1e0ce601cb",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a1-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "52c3464ea9e93a402cac15d8e82b296f69e784d64d749290d3c8f0f3818e5691",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a1-d16-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "6fc5f16b20f5391be59dfdbfdf96ed5c768dfc4648437dc900efa1a23e47eb37",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a0-d16-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "9aa350dc6670fbdca98a8ffff7e540a69650fa074d79d10aec19c3193103c9e9",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/uring-a1-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "3e31943c262833e4ea687cae088a46acb5aa7898dbed87c42856c7f62bd50795",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/uring-a0-d16-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "d35940da1340230e20e11d7e93bf87035d16b0dab4fa0a0f6f0274967672906a",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a0-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "24869e271fbf8afa28f741b30bdca86fb04265e6cd9b15ec52355edac1a0a665",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/uring-a0-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "1ad9ef255bbc3c4f642592874cf11fc087262f7744794ce5c6bc874df8ee2544",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d16-r1/uring-a1-d16-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "e1f254f96f2e157dcdcbb695d2f959b7eadadfc15e500af7ae027b618a6a1c56",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a0-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "3768b6bffee6e4704d680d1b846bcf59e542ab0ca38a61c285c15d2e7f594bcd",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a0-d1-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "878732ef0fb3c4c1c4a67a780379e3cc6dac4905790867d2fdcc789cb70f1e61",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/uring-a0-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "8eac0f393dc49b1c1a4e1ef0c8c6d85802c4ecf860bddd9034f36f17692014d0",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/uring-a1-d1-r0-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "3aacb14cf5efd8f13637ee53954caa6521f76df68dab74921262b2a55fae03da",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/uring-a0-d1-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "cc2bf8cc665d8250bd696c4fab55cdaa982c676cb06608e4d236d9569de66b68",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a1-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "89f8f97716d734263a7a4c06696daf04706a2c015815d7edffbd720bcdbff638",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a1-d1-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "3076f702c51b26b9375e1506a44f8709eb64f6bbe783afc11ae31b0c663295a9",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r0/uring-a1-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 35003082,
+    "sha256": "86f2f9883a69756fb7ca95fc290bee77f5178bc08c367f7c723932b888fae9e1",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/uring-a1-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 35003082,
+    "sha256": "3b5ff4f5cf98d5d44973cd5269be6c29297d2fc6a8f6f2441a51126cd9b5b56a",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a0-d1-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "fb8b2cd48f8351c57bdddc7be26795d08631f643fc4d9935bdc5329668b6b966",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/uring-a0-d1-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "a7d62bab8cb3e7c884c420a3865587fa6142968251993b77b1233beaec2ab690",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a1-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "964e90465c87e70389c29ba5467545be43764c825b791818615f53e4c1dabd36",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/uring-a0-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 35003114,
+    "sha256": "35088d07ee538c0887596236566aca2707d2b5d1c6334230c655c4f62829492a",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a0-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "740e24a20f6b9527a939beed850c9a1da08e2857e5aadb96dcd2baf705f44c94",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/uring-a1-d1-r1-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "59db91437ee8eafa3250e21f7898434de9a365824286bf7eb7ff82f0b9ba2e4e",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.FMZMQT/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a1-d1-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "a03824cc817caeb1137738797b2f2fa003df84ddc7d194ac2bddda648882426e",
+    "reason": "gate-new-uring-delivery passed; text and saved-data assertions archived"
   }
 ]

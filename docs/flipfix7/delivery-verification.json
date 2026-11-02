@@ -567,13 +567,13 @@
   ],
   "arms": {
     "PRE": "f8116b72a37b6a1200dc5681b7eec43d88828a07175f23202afc6d104907ef0c",
-    "POST": "603b92f52daca1cc71dac2bd1815846be13ebb810f275c1e4110f0d23579e8bf",
-    "PAD-A": "306eba3e6aeab058aeead4b103b7a6c4a2979176d2112d34e9cfcd794dfcff04"
+    "POST": "d443b95831da51c41d8095a529d4e1d3db8ec3fd7dd802c1a3ef34926c47fd21",
+    "PAD-A": "2037a766880f9e94b9bbfac5ba58e2fde9bfe564322f9e764cbb31bc5bd0daad"
   },
   "expected_arms": {
     "PRE": "f8116b72a37b6a1200dc5681b7eec43d88828a07175f23202afc6d104907ef0c",
-    "POST": "603b92f52daca1cc71dac2bd1815846be13ebb810f275c1e4110f0d23579e8bf",
-    "PAD-A": "306eba3e6aeab058aeead4b103b7a6c4a2979176d2112d34e9cfcd794dfcff04"
+    "POST": "d443b95831da51c41d8095a529d4e1d3db8ec3fd7dd802c1a3ef34926c47fd21",
+    "PAD-A": "2037a766880f9e94b9bbfac5ba58e2fde9bfe564322f9e764cbb31bc5bd0daad"
   },
   "arms_match": true,
   "release_matches_post": true,

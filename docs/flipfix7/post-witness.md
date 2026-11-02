@@ -1,7 +1,7 @@
 # Final connection liveness witnesses
 
-POST SHA-256: 603b92f52daca1cc71dac2bd1815846be13ebb810f275c1e4110f0d23579e8bf.
-Gate run DlCRxK: release and three live rows, 4 passed / 0 failed.
+POST SHA-256: d443b95831da51c41d8095a529d4e1d3db8ec3fd7dd802c1a3ef34926c47fd21.
+Gate run FMZMQT: release and three live rows, 4 passed / 0 failed.
 Thirteen episodes per leg, 208 total, with fresh 6:2 / 16-shard boots.
 The original signal-stop campaign was expanded to single SIGINT as well as SIGTERM.
 
@@ -16,22 +16,22 @@ Durations below are correctness stall observations in milliseconds, not rates.
 
 | Engine | RL | Atomic | DBs | Late FLIP | Moving-output FLIP | BLPOP refusal | TLS refusal | Worst PING | SIGTERM / SIGINT recovered |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| uring | 0 | 0 | 1 | 23.644 | 26.124 | 0.093 | 0.836 | 26.080 | 1000 / 1000 |
-| uring | 0 | 0 | 16 | 38.343 | 22.095 | 0.423 | 0.845 | 38.307 | 1000 / 1000 |
-| uring | 0 | 1 | 1 | 27.386 | 22.559 | 20.817 | 17.901 | 27.293 | 1000 / 1000 |
-| uring | 0 | 1 | 16 | 71.948 | 63.748 | 0.296 | 0.159 | 71.815 | 1000 / 1000 |
-| uring | 1 | 0 | 1 | 26.926 | 23.989 | 0.363 | 0.827 | 26.868 | 1000 / 1000 |
-| uring | 1 | 0 | 16 | 30.399 | 82.468 | 0.169 | 0.250 | 82.437 | 1000 / 1000 |
-| uring | 1 | 1 | 1 | 28.199 | 27.867 | 2.319 | 0.131 | 28.180 | 1000 / 1000 |
-| uring | 1 | 1 | 16 | 59.481 | 59.284 | 0.146 | 0.199 | 59.442 | 1000 / 1000 |
-| epoll | 0 | 0 | 1 | 64.581 | 25.280 | 1.618 | 0.600 | 64.465 | 1000 / 1000 |
-| epoll | 0 | 0 | 16 | 55.133 | 82.161 | 0.595 | 0.117 | 82.116 | 1000 / 1000 |
-| epoll | 0 | 1 | 1 | 27.277 | 25.830 | 0.199 | 0.433 | 27.229 | 1000 / 1000 |
-| epoll | 0 | 1 | 16 | 68.583 | 33.226 | 0.510 | 8.243 | 68.520 | 1000 / 1000 |
-| epoll | 1 | 0 | 1 | 43.229 | 24.970 | 0.214 | 0.100 | 43.107 | 1000 / 1000 |
-| epoll | 1 | 0 | 16 | 63.186 | 60.002 | 0.125 | 0.027 | 63.149 | 1000 / 1000 |
-| epoll | 1 | 1 | 1 | 25.711 | 25.965 | 0.113 | 1.789 | 46.034 | 1000 / 1000 |
-| epoll | 1 | 1 | 16 | 60.056 | 81.354 | 0.401 | 1.961 | 81.331 | 1000 / 1000 |
+| uring | 0 | 0 | 1 | 22.267 | 20.666 | 0.026 | 0.029 | 25.230 | 1000 / 1000 |
+| uring | 0 | 0 | 16 | 27.108 | 24.063 | 0.026 | 0.027 | 27.044 | 1000 / 1000 |
+| uring | 0 | 1 | 1 | 20.457 | 27.724 | 17.101 | 13.940 | 27.686 | 1000 / 1000 |
+| uring | 0 | 1 | 16 | 28.711 | 24.597 | 0.026 | 0.026 | 28.675 | 1000 / 1000 |
+| uring | 1 | 0 | 1 | 27.290 | 28.424 | 0.027 | 0.026 | 28.377 | 1000 / 1000 |
+| uring | 1 | 0 | 16 | 28.749 | 24.726 | 0.024 | 0.026 | 28.642 | 1000 / 1000 |
+| uring | 1 | 1 | 1 | 22.826 | 24.812 | 14.014 | 0.025 | 24.741 | 1000 / 1000 |
+| uring | 1 | 1 | 16 | 24.263 | 22.737 | 0.024 | 0.027 | 41.183 | 1000 / 1000 |
+| epoll | 0 | 0 | 1 | 39.033 | 35.518 | 0.023 | 0.024 | 38.935 | 1000 / 1000 |
+| epoll | 0 | 0 | 16 | 27.749 | 26.472 | 0.024 | 0.023 | 27.717 | 1000 / 1000 |
+| epoll | 0 | 1 | 1 | 24.233 | 25.597 | 0.023 | 0.024 | 25.558 | 1000 / 1000 |
+| epoll | 0 | 1 | 16 | 28.142 | 51.849 | 0.023 | 0.024 | 51.799 | 1000 / 1000 |
+| epoll | 1 | 0 | 1 | 34.601 | 41.104 | 0.025 | 0.025 | 41.057 | 1000 / 1000 |
+| epoll | 1 | 0 | 16 | 27.581 | 27.182 | 0.024 | 0.024 | 27.529 | 1000 / 1000 |
+| epoll | 1 | 1 | 1 | 53.327 | 26.132 | 0.023 | 0.023 | 53.270 | 1000 / 1000 |
+| epoll | 1 | 1 | 16 | 38.140 | 37.499 | 0.024 | 0.024 | 38.106 | 1000 / 1000 |
 
 Every blocked/TLS/output conversion refusal is issued from the production IoDrain
 call site with its exact class-specific error; its client retains the original IO.
@@ -46,4 +46,6 @@ episodes does not prove a universal shutdown deadline for an independently stuck
 FLIP install; see [shutdown-stop.md](shutdown-stop.md).
 
 [Raw episode summaries](post-summary.json) and
-[gate ledger](gate-new-final.ledger) retain all counters and replies.
+[gate ledger](gate-new-uring-delivery.ledger) retain all counters and replies.
+
+The readiness-cut fixture additionally passed under both sanitizer configurations; see [readiness-cut.md](readiness-cut.md).
