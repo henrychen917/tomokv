@@ -179,6 +179,10 @@ def trial(args, directory, engine, atomic, case, attempt):
                     if case in ('late', 'late-move'):
                         result['unarmed'] = not (counters.get('flip_late_output', 0) +
                                                  counters.get('flip_output_transferred', 0))
+                        if case == 'late':
+                            # Initial non-draining output could now be retained; that
+                            # is D18.3, not proof of the post-IoDrain publication window.
+                            result['unarmed'] |= counters.get('flip_skipped_output', 0) != 0
                         if case == 'late-move':
                             result['unarmed'] = not counters.get('flip_output_transferred', 0)
                 # Release the blocker and verify EVERY payload, not just the FLIP reply.
