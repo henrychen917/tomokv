@@ -1,0 +1,145 @@
+{
+  "label": "epoll-eof-before",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.PyFuqV",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/epoll-eof-before.tar.gz",
+  "archive_sha256": "caac90ee941b8ba86d3f78e4abfc06a469471ce11d8ec68eef6a793ccdfc5d12",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 113,
+      "sha256": "dce3361b855b5325da2894ffd17312e4b3d9db7410e7e77c406d976f36d52ee3"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "ba08f7dad384f67a55dc9b9c66e04c09edba3998d184fa59b43356593c3dde09"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/wave14_epoll_eof/db0.log",
+      "size": 177,
+      "sha256": "8d6bbcd7d48f5af8983f12581e3189786cb00e4d7adf35b21b1ce9e1ee8ecb89"
+    },
+    {
+      "path": "jobs/wave14_epoll_eof/done",
+      "size": 6,
+      "sha256": "a77898b9ae386952ccd27957c57d452e9183c722002e39f7ff32cbba6f720860"
+    },
+    {
+      "path": "jobs/wave14_epoll_eof/family.tsv",
+      "size": 61,
+      "sha256": "84934e57e278f5600cf041f45c0bfaf13a617268cccd297674c8c2843c32430b"
+    },
+    {
+      "path": "jobs/wave14_epoll_eof/ledger",
+      "size": 97,
+      "sha256": "46734eaa20805be2285720e6f200bb95a0a54f12b56f22bedae16814f7a7dc1f"
+    },
+    {
+      "path": "jobs/wave14_epoll_eof/normal.log",
+      "size": 177,
+      "sha256": "8d6bbcd7d48f5af8983f12581e3189786cb00e4d7adf35b21b1ce9e1ee8ecb89"
+    },
+    {
+      "path": "jobs/wave14_epoll_eof/output.log",
+      "size": 496,
+      "sha256": "049c9dcd4101798bf1f00754aee6d18baf5ea16b6900666d5af76b537f3f41b8"
+    },
+    {
+      "path": "jobs/wave14_epoll_eof/timings",
+      "size": 97,
+      "sha256": "46734eaa20805be2285720e6f200bb95a0a54f12b56f22bedae16814f7a7dc1f"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "e886b2cff55b91283e54587f20204f438d2c1cc64907f7adfc3b162d03958af4"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1194,
+      "sha256": "80676c676d4383b3672bef4b1700f846ecc327560b758463bd1e5cd69091fa50"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 238602,
+      "sha256": "a6fb6ed6faf9aa8405649724b9a0d7899e4ce82b68665e10e25d3ce95f0543e8"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "wave14_epoll_eof",
+      "done": "0\t0\t2",
+      "passed": 0,
+      "failed": 2,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "0.000000",
+          "label": "wave14 epoll coalesced EOF (normal)"
+        },
+        {
+          "status": "FAIL",
+          "seconds": "0.010000",
+          "label": "wave14 epoll coalesced EOF (db0)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv"
+  ],
+  "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+  "exit_code": 1,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.PyFuqV",
+  "engine": "epoll",
+  "fused": false
+}

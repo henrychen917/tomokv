@@ -1019,6 +1019,7 @@ job_body(){
     rootcore-misconf) job_rootcore "misconf known difference MISCONF-NEVER-CLEARS";;
     rootcore-*) job_rootcore "${name#rootcore-}";;
     wave14_order) job_wave14_order;;
+    wave14_epoll_eof) job_wave14_epoll_eof;;
     rootcompat) job_rootcompat all;;
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     multifix-*) job_multifix "$name";;
@@ -1211,7 +1212,7 @@ plan_jobs(){
   # One complete-gate worker retains all nine rows. Named partial jobs keep the
   # directed interface without adding nine shells to the serial scheduler.
   if [ "${GATE_PARTIAL:-0}" = 1 ]; then
-    JOB_NAMES+=(wave14_order)
+    JOB_NAMES+=(wave14_order wave14_epoll_eof)
     for section in proc password replication sort-acl redact xsnotify tracking hscan setpast stringlimit hx3 errorstats xsexpiry; do JOB_NAMES+=("rootcompat-$section"); done
   fi
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
@@ -5817,6 +5818,19 @@ job_wave14_order(){
   else
     bad "wave14 script EXEC wake publication order" "see $TMPDIR/proof.log"
   fi
+}
+
+# Native diagnostic: the caller builds each arm from its own headers/objects.
+# Private partial job only; no addition to the public landing row inventory.
+job_wave14_epoll_eof(){
+  local namespace binary label
+  for namespace in normal db0; do
+    label="wave14 epoll coalesced EOF ($namespace)"
+    binary="${WAVE14_EOF_DIRECTORY:?native EOF arm directory required}/$namespace"
+    row_begin "$label"
+    taskset -c "$CORES" "$binary" >"$TMPDIR/$namespace.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/$namespace.log"
+  done
 }
 
 job_rootcore(){

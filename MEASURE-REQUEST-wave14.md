@@ -26,17 +26,17 @@ The supplied headline path omits one hash character. The existing frozen image
 is `/home/user/Projects/bench-bins/tomokv-headline-105c5818cc`.
 
 The exact source census is **1090 quick / 1107 full**, against 1046/1063:
-**DQ=DF=44**. All additions precede the quick exit at line **6796**.
+**DQ=DF=44**. All additions precede the quick exit at line **6810**.
 
 | Source | Delta | Collector line(s) |
 |---|---:|---|
-| witnessfix | +2 | 6539–6540 |
-| rootcore | +7 | 6450 |
-| blockfix4 | +5 | 6602 |
-| rootcompat | +9 | 6647 |
-| clientcompat | +5 | 6496 |
-| execfifo3, including execfifo2 | +15 | 6666–6668 |
-| Integration FUNCTION capture/replay witness | +1 | 6451 |
+| witnessfix | +2 | 6553–6554 |
+| rootcore | +7 | 6464 |
+| blockfix4 | +5 | 6616 |
+| rootcompat | +9 | 6661 |
+| clientcompat | +5 | 6510 |
+| execfifo3, including execfifo2 | +15 | 6680–6682 |
+| Integration FUNCTION capture/replay witness | +1 | 6465 |
 
 The lane-only sum is 43, giving 1089/1106; the integration witness gives the
 final 1090/1107. The label multiset has 45 additions and one removal because
@@ -56,9 +56,30 @@ Both public rows explicitly say `known difference` and name
 documented observation, not Redis parity or a completed fix.
 
 **Release conditions still unmet:** the requested wake event/invalidation/
-slowlog ordering is red against Redis, and universal headline/isolated-lane
-linked-body equality is not achieved. Details and controls are below. Broad
+slowlog ordering is red against Redis, universal headline/isolated-lane
+linked-body equality is not achieved, and the final epoll Tcl run found a
+parked connection left after peer close. Details and controls are below. Broad
 correctness validation is still running. No throughput claim is made.
+
+### Epoll EOF investigation in progress
+
+The final full Tcl run fails two required list assertions in split epoll.
+Isolated assertion probes and three complete-list samples per arm/mode pass on
+both the candidate and headline; those samples do not replace the failed
+full-suite verdict. A bounded diagnostic then reproduces the same failure in
+fused epoll: before the first fairness scenario starts, an earlier closed
+BRPOPLPUSH connection remains parked. INFO reports two blocked clients where
+the unchanged assertion requires one. The later failure is contaminated by
+that first failure's retained clients. `tcl-fairness-original-failure.json`
+and `jobs/tcl-fairness-capture-r7-1.json` retain the original and captured cases.
+
+A native socketpair check presents data and FIN in one observed epoll edge.
+The short read consumes the bytes, sets `recv_armed`, and leaves no next edge
+to expose EOF. Both namespaces fail exactly at the missing teardown assertion;
+both open-peer mode controls pass. `jobs/epoll-eof-before.json` records the
+gate's private diagnostic job. An isolated candidate preserves FIN in the
+existing deferred-close queue; it is still under review and is **not** part
+of the frozen release below. `epoll-eof-candidate.patch` records that trial.
 
 ### FUNCTION rewrite interaction (confirmed and fixed)
 
