@@ -56,6 +56,9 @@ void openlog(const char *ident, int options, int facility) {
 void syslog(int priority, const char *format, ...) {
     (void)format; record("syslog", "", priority);
 }
+void __syslog_chk(int priority, int flag, const char *format, ...) {
+    (void)flag; (void)format; record("syslog", "", priority);
+}
 void closelog(void) { record("closelog", "", 0); }
 ''')
         subprocess.run(['gcc', '-shared', '-fPIC', '-O2', str(source), '-o', str(hook)], check=True)
