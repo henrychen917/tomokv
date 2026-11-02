@@ -1694,6 +1694,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                 // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
                 // follows returns 0 or the real errno, and close_client is then reached through
                 // the one path that already knows how to tear a connection down.
+                if (ev.events & EPOLLRDHUP) epoll_request_close(c);
                 if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                     c->set_recv_armed(false);
                 if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
