@@ -1,0 +1,34 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21948-21950",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/aof-progress/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/aof-progress/tomokv",
+  "native_sha256": "6412df54c8dfddcf5c088a26e5746887ebc655c27f6b5e990f00f1c38a3bd1f6",
+  "launcher_sha256": "6412df54c8dfddcf5c088a26e5746887ebc655c27f6b5e990f00f1c38a3bd1f6",
+  "engine": "epoll",
+  "jobs": "eoffix_aof",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "eoffix_aof",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/aof-post-native"
+  }
+}
