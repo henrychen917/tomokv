@@ -690,6 +690,64 @@
     ]
   },
   {
+    "label": "persistence-uring-fused",
+    "rc": 0,
+    "passed": 158,
+    "failed": 0,
+    "failures": [],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.zzFLUa",
+    "jobs": [
+      {
+        "name": "aof-epoll",
+        "completion": "0\t54\t0"
+      },
+      {
+        "name": "aof-uring",
+        "completion": "0\t54\t0"
+      },
+      {
+        "name": "aof_frame",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "asan",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "asan_batteries",
+        "completion": "0\t5\t0"
+      },
+      {
+        "name": "dump_restore",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "production_units",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "replyoff",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "snapshot-epoll",
+        "completion": "0\t16\t0"
+      },
+      {
+        "name": "snapshot-uring",
+        "completion": "0\t16\t0"
+      },
+      {
+        "name": "zc",
+        "completion": "0\t4\t0"
+      }
+    ]
+  },
+  {
     "label": "units-final",
     "rc": 0,
     "passed": 54,

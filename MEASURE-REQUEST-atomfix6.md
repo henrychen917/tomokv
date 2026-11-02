@@ -275,7 +275,8 @@ assigned to txnfix4. No ordering assertion was weakened.
 
 The default persistence group passes 228/228 rows, including both AOF and snapshot
 engines, BGSAVE under scripts/EXEC, save/restart, FLUSH, AOF frame/commit order,
-fsync/rewrite matrices and WAIT AOF. Its fused generic-boot follow-up is in progress.
+fsync/rewrite matrices and WAIT AOF. Its fused generic-boot follow-up passes
+158/158 rows, including the ASAN atomic batteries and reply-off/zero-copy jobs.
 
 Completed passing persistence jobs retained about 2 GB of dump/AOF test data.
 Those generated data files were hashed and retired after job completion to keep
