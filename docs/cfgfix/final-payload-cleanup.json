@@ -1,0 +1,382 @@
+[
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/aoffix2-large-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 8464097,
+    "mtime_ns": 1793590365555403570,
+    "sha256": "1d3483ccf8beb302a9c1b08c91f95f09c7707bcfd88df178d2999ca095fc7a3f",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/aoffix2-large_placed-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 5246248,
+    "mtime_ns": 1793590366020405106,
+    "sha256": "ef024f24da22972355cd9d32173adf29336e702b09a8a3cbebbdcbd66f03f5dc",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/gate-aof-epoll-atomic0.UqqVCu/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 14329733,
+    "mtime_ns": 1793590304736203184,
+    "sha256": "8a36399e1aadd99d5cd102374a2bb6ea055b08064664cd797dfea4de2c6e9e19",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/gate-aof-epoll-atomic1.5mBusv/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 14329865,
+    "mtime_ns": 1793590308793216516,
+    "sha256": "329e2d84bf52e65b189a3a6a460c51633633fcf5071357bfe3038de65353748b",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/persistfix/1s-term-1m1fwcxl/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 3006604,
+    "mtime_ns": 1793590322544261742,
+    "sha256": "7d2170fd72b5b45c795418920512fee638b9edde31bb2ebc98fc61e8a66d81c2",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/persistfix/2s-term-wd3w86qb/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 3286812,
+    "mtime_ns": 1793590319071250314,
+    "sha256": "25855c9b50bd3f2fb1b8620d2d770f227c95e5d35c5f0278521286de8144295d",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135350506,
+    "mtime_ns": 1793590324670268739,
+    "sha256": "2b2509c51d3ead12439c1edaff27c7f10f65b4841a4188f32d800e288c659ed9",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135411438,
+    "mtime_ns": 1793590326695275405,
+    "sha256": "4ddecc104b0b074afbb6358cd7dcf1384d1c21478528da26e17a166a9189bd96",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135365308,
+    "mtime_ns": 1793590328778282264,
+    "sha256": "fff90550862e133938bb167117a567e3cf30e42c31c1a57faee4cb068975e076",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/aof-epoll/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135424743,
+    "mtime_ns": 1793590331016289634,
+    "sha256": "70c3a3b09299aeb4729d14198e4272991edff764d451d22f5142836089880f56",
+    "job": "build/gate-run.bgE6rS/jobs/aof-epoll",
+    "passing_private_rows": 54,
+    "ledger_sha256": "92df5a871597d71f55906bc9c6ef30097d2c1b5d397f2da40023a584578d7c57",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459722,
+    "mtime_ns": 1793590254129037341,
+    "sha256": "10152b8b00b881b4192493b0d6942100efb59399a497a60a420413d52c706344",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459722,
+    "mtime_ns": 1793590253240034435,
+    "sha256": "c3b2afe166d1b26aeb123aa55336285b94080ab8d0a1c296a392486914344b35",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459754,
+    "mtime_ns": 1793590253037033772,
+    "sha256": "6b9e16682aedb9e792bdab4850b3c12c15835211ddb931e56dda72949d06e202",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459754,
+    "mtime_ns": 1793590252982033592,
+    "sha256": "cdee2689f4682a5a47da1c00bb37a03b9f5f72e53d7438867c3f9866f07bd21d",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459786,
+    "mtime_ns": 1793590267831082157,
+    "sha256": "29e1e3e13f44517c6b0efdae38c7e4c1afec2e996b520aec693bd980fa9c6905",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459786,
+    "mtime_ns": 1793590266947079264,
+    "sha256": "0c1288a71dff66bc5d2d8a667a747fb43e97be55403e145bceb1c0ab6292a73e",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459754,
+    "mtime_ns": 1793590266741078590,
+    "sha256": "bb6f88952e5705b5938f94b68ff942158c643baff0389a0c32b698dfb497db90",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459754,
+    "mtime_ns": 1793590266699078452,
+    "sha256": "5506c0b165bf687f58400e2fe563e0904dcb74b5ca4d9fa72793deacc3bf9252",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459754,
+    "mtime_ns": 1793590281624127337,
+    "sha256": "f0a64cd1e85312968010a940cb64dc289d2aa5599d47450841ebe68b11ce4547",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459754,
+    "mtime_ns": 1793590280738124433,
+    "sha256": "2864f233e598cdfbe7650d3beb2fa1054fd67feef0778a10601f6f526031140b",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459754,
+    "mtime_ns": 1793590280502123660,
+    "sha256": "317aa48c1ad50149737db4cebc1fb6da09cc11e48f1fc293750c42eebd9dbf68",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459754,
+    "mtime_ns": 1793590280416123378,
+    "sha256": "96ddf83747c37a16a3521c110264648601d16b03cc7c3ee393b27fbf85ed0db8",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459690,
+    "mtime_ns": 1793590295688173471,
+    "sha256": "f59e1b4a3d8abe5c9a6ffe33a0c2e468cc687c1a0fb4c256314580dbcf459f05",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459690,
+    "mtime_ns": 1793590294802170563,
+    "sha256": "311130d106be39bcc2be294e561bc415a964069ef163bfef44c220f2eb8788e4",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459722,
+    "mtime_ns": 1793590294566169788,
+    "sha256": "27acb824d39ab8ce9f2dc48f98f2fe0db32e705c61c48a2130b99428ab5c3e11",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459722,
+    "mtime_ns": 1793590294483169515,
+    "sha256": "13ca18b6c954c523add66850593018976a3fe4ad2e4d507f98199f82c7055ac0",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_commands",
+    "passing_private_rows": 1,
+    "ledger_sha256": "8562c91c225784eeb45199f5234bed7226fb24374980a66137193d3b079651ac",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/active-save-0/data/dump.rdb",
+    "bytes": 21459722,
+    "mtime_ns": 1793590195180845306,
+    "sha256": "de1acf19f9b81b579a0175f0da32fc5008c680f3ee373fce1a27aee8efed75bf",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown",
+    "passing_private_rows": 1,
+    "ledger_sha256": "7f2b8d7bd8edc55f70f934ecb4f8f305473d9492963c760bff1406d4e9b91fea",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown/shutdown-target-1s-uring/active-save-0/data/dump.rdb",
+    "bytes": 21459690,
+    "mtime_ns": 1793590210521895157,
+    "sha256": "facdd787c8a82d022eb728837f4063b567c8a6f1ebc52eaf61d6874275710262",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown",
+    "passing_private_rows": 1,
+    "ledger_sha256": "7f2b8d7bd8edc55f70f934ecb4f8f305473d9492963c760bff1406d4e9b91fea",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/active-save-0/data/dump.rdb",
+    "bytes": 21459754,
+    "mtime_ns": 1793590225648944400,
+    "sha256": "fbb178796f30a20b3a4819ef056492fcaf6d02d0b48073e6ea1018dfa509ce42",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown",
+    "passing_private_rows": 1,
+    "ledger_sha256": "7f2b8d7bd8edc55f70f934ecb4f8f305473d9492963c760bff1406d4e9b91fea",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown/shutdown-target-2s-uring/active-save-0/data/dump.rdb",
+    "bytes": 21459690,
+    "mtime_ns": 1793590240816993862,
+    "sha256": "ec77ec1d30abd5daac798ce1a008e70164f54951f521ed271f466d5fffca8037",
+    "job": "build/gate-run.bgE6rS/jobs/persistfix2_shutdown",
+    "passing_private_rows": 1,
+    "ledger_sha256": "7f2b8d7bd8edc55f70f934ecb4f8f305473d9492963c760bff1406d4e9b91fea",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "mtime_ns": 1787892962146945640,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "mtime_ns": 1787892962148945645,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "mtime_ns": 1787892961334943547,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-1s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "mtime_ns": 1787892962114945557,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-aof",
+    "bytes": 17663696,
+    "mtime_ns": 1787892962146945640,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-check-rdb",
+    "bytes": 17663696,
+    "mtime_ns": 1787892962148945645,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-cli",
+    "bytes": 7735744,
+    "mtime_ns": 1787892961334943547,
+    "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  },
+  {
+    "path": "build/gate-run.bgE6rS/jobs/redis_tcl/redis-tcl-2s/checkout/src/redis-server",
+    "bytes": 17663696,
+    "mtime_ns": 1787892962114945557,
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "job": "build/gate-run.bgE6rS/jobs/redis_tcl",
+    "passing_private_rows": 2,
+    "ledger_sha256": "9536681b5e0adc0b5718a826e7bdd88e1b1bcec4575d1781eb71f7f901b2b206",
+    "disposition": "Delete completed test payload after recording; retain logs, verdicts and JSON receipts."
+  }
+]
