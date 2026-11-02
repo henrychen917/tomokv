@@ -35,9 +35,9 @@ SCOPE += ['feature-cell-' + cell for cell in
           ('split-home-min','fused-home-max-nopin','split-shards-auto')]
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('phase',choices=['new','regression','differ','units','controls','scope']);p.add_argument('--engine',choices=['uring','epoll'],default='uring');args=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('phase',choices=['new','regression','differ','units','controls','scope','borrow']);p.add_argument('--engine',choices=['uring','epoll'],default='uring');args=p.parse_args()
  jobs={'new':NEW,'regression':JOBS,'differ':['differ-split','differ-armed'],
-       'controls':CONTROLS,'scope':SCOPE,'units':UNITS}[args.phase]
+       'controls':CONTROLS,'scope':SCOPE,'units':UNITS,'borrow':['rlfix3_zc']}[args.phase]
  if args.phase=='regression' and args.engine=='epoll':jobs=EPOLL
  if args.phase=='scope' and args.engine=='epoll':
   jobs=['fused-0','fused-1','txn_group_fused','clientfix'] + [job for job in SCOPE if job.startswith('feature-cell-')]

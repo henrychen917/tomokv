@@ -48,8 +48,8 @@ Differential details and final freshness/PAD-A receipts: PENDING.
 NOT RUN: performance/ABBA/full iteration, the `flip_saturated` load generator,
 `atomic_floor`, and LMOVE size-ratio timing; these remain maintainer-owned.
 The standard differential harness also excludes SORT in armed-fused mode
-because that suite requires split 6:2; it is exercised for every seed and atomic
-mode in split mode on both engines. Exclusions are not passes. The upstream
+because that suite requires split 6:2; the standard plan requires it for every
+seed and atomic mode in split mode on both engines. Exclusions are not passes. The upstream
 Tcl job uses its unchanged passing-subset manifest, not the whole upstream suite.
 
 **STOP:** the unconditional signal-save deadline during an arbitrary stuck
