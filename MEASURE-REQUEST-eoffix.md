@@ -1,8 +1,9 @@
 ## eoffix
 
 Worktree `/home/user/Projects/cx-eoffix`, branch `cx-eoffix`, base
-`ea48a6b2721a1d9e5964ab24a32e8b54df611bd5`. No push. This report is being
-completed while the remaining correctness jobs run; pending entries are not passes.
+`ea48a6b2721a1d9e5964ab24a32e8b54df611bd5`. No push. Both EOF defects and
+the reproduced AOF progress deadlock are fixed. The requested proof inventory
+is complete; the separate FIFO timing row remains **FAIL**, as detailed below.
 
 The `final-*` candidate below was superseded during cleanup review: an EOF-state
 allocation failure could retain the synthetic receive hold used during handoff
@@ -10,9 +11,10 @@ rollback. `eof-oom-before` fails that exact assertion in both namespaces;
 `eof-oom-after` passes after clearing the hold in the cold allocation-error path.
 The `complete-*` arms are frozen and pass the directed EOF/AOF checks and all
 12 required Tcl legs. Both standard differential engine matrices and the broad
-live/persistence matrices pass. Source parity and final build freshness pass;
-the remaining whole-job AOF repetitions are running. The FIFO timing row remains
-red and is reported below without a waiver.
+live/persistence matrices pass. Source parity and final build freshness pass.
+Final whole-job AOF repetitions pass **50/50 epoll and 50/50 uring**, with exact
+`DEBUG LOADAOF` replay, clean shutdown and no failure-only observer captures.
+The FIFO timing row remains red and is reported below without a waiver.
 Earlier `final-*` receipts remain intermediate evidence, including their
 successful Tcl and epoll differential runs.
 
@@ -40,8 +42,8 @@ its existing transport shutdown behavior.
 |---|---|---|---|---|
 | Epoll loses EOF | `pre-fin-complete`: both namespaces fail the missing-teardown assertion; open-peer controls pass. `pre-netio-coalesced`: both public epoll rows fail with the exact closed BRPOPLPUSH client still registered. | `complete-eof-aof`: native controls and all four public mode/engine legs pass, 101 checks per netio leg. | Retain RDHUP independently of a short read; use deferred receive/retirement. | Full Tcl ordering results are separate below. |
 | Half-close input loss | `pre-half-replies`: data/reply failures in 1s/2s, uring/epoll, databases 1/16. Redis applies and replies to every original 1/32/65/256/4096 frame. | `complete-eof-aof`: all 90 controls pass (80 TomoKV, 10 Redis), including depth 65,536, a truncated final frame, exact reply order, applied values, client retirement, a non-reading peer and two synchronous-control prefixes. | Drain buffered commands and replies before normal close; bound stalled output. | The non-reading-peer grace is explicit above. |
-| Transaction-AOF timeout | `txn-pre-epoll-cont-14`: row d TimeoutError and 30-second shutdown failure, with failure-only GDB stacks; deterministic `pre-aof-progress-complete` fails all eight pressure/self-writer cases and passes all four open-channel controls. | `complete-eof-aof` passes all 12 native controls; final whole-job repetition is pending. | Publish coarse QSBR progress while an AOF producer waits on its full channel; let GCMT use the existing writer-drain hook. | Independent of EOF. Final whole-job loops remain pending. |
-| Public regression jobs | Public netio fails PRE; the full PRE Tcl run also fails on tracking order, independently of this patch. | EOF/netio checks, all 12 final Tcl legs (three runs per mode/engine), and both standard differential engine matrices pass. Broader jobs are in progress. | Tests retain all 32 wave-14 EOF cases; the first queues data and FIN while every owned server thread is observably stopped. | Intermediate POST tracking failures are retained separately; no assertion or manifest has been weakened. |
+| Transaction-AOF timeout | `txn-pre-epoll-cont-14`: row d TimeoutError and 30-second shutdown failure, with failure-only GDB stacks; deterministic `pre-aof-progress-complete` fails all eight pressure/self-writer cases and passes all four open-channel controls. | `complete-eof-aof` passes all 12 native controls; all 100 complete final gate jobs pass (50 per engine), including exact AOF reload and clean shutdown. | Publish coarse QSBR progress while an AOF producer waits on its full channel; let GCMT use the existing writer-drain hook. | Independent of EOF; no timeout observed in final repetitions. The original wave-14 attempt had no stack, so attribution is to the captured PRE reproduction. |
+| Public regression jobs | Public netio fails PRE; the full PRE Tcl run also fails on tracking order, independently of this patch. | EOF/netio checks, all 12 final Tcl legs (three runs per mode/engine), both standard differential matrices, 226 live rows per engine and 85 persistence/release rows per mode/engine pass. | Tests retain all 32 wave-14 EOF cases; the first queues data and FIN while every owned server thread is observably stopped. | The separate FIFO timing row remains FAIL. Intermediate POST tracking failures are retained; no assertion or manifest was weakened. |
 
 PRE data-loss examples from `pre-half-replies` (both database namespaces):
 
@@ -67,6 +69,13 @@ attempt had a 900-second prerequisite build timeout and is excluded. The final
 interrupted continuation is also excluded. Uring completed 50 iterations: all 50
 AOF/reload/shutdown legs passed; 38 entire jobs passed and 12 failed their row-b
 latency bound. Every failed attempt and observer output is retained.
+
+Final POST completes **50 epoll + 50 uring** iterations of the unchanged
+`txnorder-fused-0` job. Every whole job, row-d AOF check, exact `DEBUG LOADAOF`
+reload and shutdown passes; the failure-only stack observer never fires. The
+loop's replay is an in-process reload, not a process restart. Separate passing
+persistence jobs cover restart recovery. `proof-complete.json` binds these
+counts to the frozen native image and all 120 final selected-job invocations.
 
 In `build/gate-run.0yMfb5`, owner LWP 978298 waits in
 `ReadLocalDeferredQueue::force_oldest_grace` during immutable INCR replacement.
@@ -283,3 +292,21 @@ row d completed. Its raw state is preserved in
 iteration counts. All 46 earlier complete repetitions contain successful AOF,
 exact `DEBUG LOADAOF` replay and clean shutdown evidence (`resumed-prior-iterations.json`).
 The resumed runner refuses to overwrite either completed or interrupted receipts.
+
+The closing coverage audit also passes the unchanged `wait_units` (including
+TSan), `racefix_climon`, `perfio_stream` and `lbplanner_units` gate jobs; see
+`complete-complete-supplement.json`. These retain their own existing leg
+selections and add no public rows. The bounded stream-latency checks are gate
+correctness assertions, not a throughput measurement or improvement claim.
+
+**Final inventory verdict.** `tools/eoffix_verify.py` accounts for **120/120**
+final gate invocations, all 12 Tcl legs, both complete differential matrices,
+both 50-iteration loops, arm/source identity, instruction bindings, builds and
+freshness. It deliberately exits **1**, preserving the unresolved
+`complete-internal` FIFO timing failure. The original comment-parity failure is
+marked resolved only by `complete-source-sync`; no other failed row is waived.
+This is a complete partial-job proof inventory, **not an all-green gate receipt**.
+The final build tree is approximately 14 GiB. Performance measurements, the
+throughput-floor row and the full iteration remain **NOT RUN**, per the owner's
+authorization. All requested correctness families were run; no S1 item is left
+as NOT RUN.

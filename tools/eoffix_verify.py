@@ -28,6 +28,7 @@ def main():
     expected += [f'complete-differ-{engine}' for engine in ('epoll', 'uring')]
     expected += ['complete-internal']
     expected += ['complete-source-sync']
+    expected += ['complete-complete-supplement']
     expected += [f'complete-live-{engine}' for engine in ('epoll', 'uring')]
     expected += [f'complete-mode-{engine}-{mode}' for engine in ('epoll', 'uring')
                  for mode in ('0', '1')]
@@ -78,7 +79,10 @@ def main():
         else:
             valid &= record['exit_code'] == 0 and not failures
         if not valid:
-            errors.append(tag + ': failed verdict, geometry or arm identity')
+            unresolved = [line.split('\t')[-1] for line in failures
+                          if line.split('\t')[-1] not in {item['label'] for item in resolved}]
+            errors.append(tag + ': failed verdict, geometry or arm identity' +
+                          ('; unresolved rows: ' + ', '.join(unresolved) if unresolved else ''))
         rows.append(dict(tag=tag, arm=arm, exit_code=record['exit_code'],
                          passed_rows=sum(line.startswith('ok\t') for line in lines),
                          failures=failures, jobs=record['jobs'],
