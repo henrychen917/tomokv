@@ -9,22 +9,22 @@
   {
     "arm": "POST",
     "path": "build/netfix2/POST",
-    "sha256": "7a533c7c46101494ddca402d484e775e531c6a6e2ca05dab48675fd32f00ca04",
-    "text_bytes": 9028727,
-    "text_sha256": "d075103ec7c12d77cb2efde706b2c7b58f05149983d725cde0f709620e95fc58"
+    "sha256": "f9c45811063331942f58bc927aa6a1a343e201041e55b1f60b44b504a3020838",
+    "text_bytes": 9029159,
+    "text_sha256": "e686229c3c72d7b021ab65808062c6e47c26cbd08577f5a3032960c93f138086"
   },
   {
     "arm": "POST-layout",
     "path": "build/netfix2/POST-layout",
-    "sha256": "a66153b4a0c7ee945650503f53bb6fc320f85b9715206ce1d940ea23858bbce8",
-    "text_bytes": 18049975,
-    "text_sha256": "af284a64e1a7991db126a11c55ba638d0626b75c29b69a707eed3d81f433afda"
+    "sha256": "7966cfd05ad29704d349fb0b675a9ea4aced172978ff789db2ef2d3b1e33d18f",
+    "text_bytes": 18050407,
+    "text_sha256": "565b95c8471a1b6949ed5aef22c60cf1842324646b878819b6c77fa8fb025319"
   },
   {
     "arm": "PAD-A",
     "path": "build/netfix2/PAD-A",
-    "sha256": "5b9b1734a58e655de5648646fed123852cc046263e7168b4169b45701ef67778",
-    "text_bytes": 18049975,
-    "text_sha256": "86841ab639e0e0e15cfa6569ebd61f4fdffe96a54c2b70a020f3ecdff09449da"
+    "sha256": "e26d2dab5b22c2df49a990bea8a49460fee8824d1adac0222e80a16c005dc810",
+    "text_bytes": 18050407,
+    "text_sha256": "36afece14f0be5f207c3421d6b2092591dcd20fabe0e652d7853232bf8e80a0d"
   }
 ]

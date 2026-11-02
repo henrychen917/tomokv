@@ -105,6 +105,7 @@ def process(a, label, mode='2s', engine='uring', db=16, extra=(), limit=None, or
         p = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT,
                              env=env, start_new_session=True, pass_fds=pass_fds)
         p.logpath = directory / 'server.log'
+        p.reorder = a.reorder if not oracle else 0
         try:
             yield p
         finally:
@@ -125,6 +126,8 @@ def ready(a, p):
         try:
             with closing(connect(a)) as c:
                 assert c.must('PING') == b'PONG'
+            if p.reorder:
+                ready_banner(p)
             return
         except OSError:
             time.sleep(.03)
@@ -136,6 +139,8 @@ def ready_banner(p):
     while 'listening on' not in p.logpath.read_text():
         assert p.poll() is None and time.monotonic() < end
         time.sleep(.001)
+    if p.reorder:
+        assert 'reorder=1' in p.logpath.read_text(), p.logpath.read_text()
 
 
 def tls_watch(a, label, mode, engine, db):

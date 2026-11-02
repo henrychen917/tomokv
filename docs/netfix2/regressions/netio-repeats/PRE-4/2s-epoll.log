@@ -1,0 +1,3 @@
+netio(epoll): base checks=37 failures=0; EOF extension next
+netio(epoll): 101 checks, 1 FAILURES
+  FAIL F5 closed blocking pipeline retired its exact client: client 368 never became gone: 'id=368 addr=127.0.0.1:53674 laddr=127.0.0.1:21100 fd=37 name= age=4 idle=5 flags=b db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=60 qbuf-free=16264 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=brpoplpush user=default redir=-1 resp=2 lib-name= lib-ver=\n'
