@@ -414,18 +414,21 @@ def recovered_lost(c, kind, name):
     return not (isinstance(reply, dict) and 'Function not found' in reply['error'])
 
 
-def shutdown_round(kind):
+def shutdown_round(kind, fail=False):
     """PS5.1: a FUNCTION mutation arriving after the final snapshot's registry cut.
 
     The final save's first file sync (epoll: the temp file's fdatasync; io_uring: its
     rename, since the ring submits the sync itself; Redis: the RDB fsync) is delayed two
     seconds with strace. The temp image must already hold the initial library before the
     late commands are sent. Redis acknowledges none of them; neither may TomoKV.
+    With fail, the delayed call also fails (EIO): the save is refused, service resumes,
+    every held command must then complete, and a second clean stop must persist them.
     """
     extra = ['--save', '3600 1']
     syscall = 'fsync' if ARGS.oracle else ('fdatasync' if ARGS.engine == 'epoll' else 'rename')
-    data = OUT / f'shutdown-{kind}-{"redis" if ARGS.oracle else "tomo"}'
-    s = Server(extra, data=data, trace='inject=' + syscall + ':delay_enter=2s:when=1')
+    data = OUT / f'shutdown-{kind}{"-failed" if fail else ""}-{"redis" if ARGS.oracle else "tomo"}'
+    inject = 'inject=' + syscall + (':error=EIO' if fail else '') + ':delay_enter=2s:when=1'
+    s = Server(extra, data=data, trace=inject)
     c = s.c
     assert c.cmd('SET', 'anchor', 'saved') == b'OK'
     assert c.cmd('FUNCTION', 'LOAD', lib('initial', 1)) == b'initial'
@@ -453,6 +456,14 @@ def shutdown_round(kind):
     for t in threads: t.start()
     for t in threads: t.join(6)
     assert all(not t.is_alive() for t in threads)
+    if fail:
+        # The refused final save leaves the server running; nothing may stay held.
+        emit('shutdown_failed_save_replies', kind=kind, replies=replies)
+        assert all(replies.get(name) == ok for name, _, ok in late), replies
+        probe = Resp(ARGS.port, 4)
+        assert probe.cmd('PING') == b'PONG'
+        probe.close()
+        os.kill(s.pid, signal.SIGTERM)
     s.p.wait(8)
     s.stop()
     delays = [line for line in s.tracepath.read_text().splitlines() if '(DELAYED)' in line]
@@ -460,6 +471,13 @@ def shutdown_round(kind):
     emit('shutdown_sync_window', kind=kind, lines=delays)
     ack = [name for name, _, ok in late if replies.get(name) == ok]
     emit('shutdown_function_replies', kind=kind, replies=replies, acknowledged=ack)
+    if fail:
+        with Server(extra, data=data) as recovered:
+            assert recovered.c.cmd('GET', 'anchor') == b'saved'
+            lost = [name for name in ack if recovered_lost(recovered.c, kind, name)]
+            emit('shutdown_failed_save_recovery', kind=kind, acknowledged=ack, lost=lost)
+            assert not lost, ('acknowledged after a refused final save, then lost', kind, lost)
+        return
     with Server(extra, data=data) as recovered:
         assert recovered.c.cmd('GET', 'anchor') == b'saved'
         lost = [name for name in ack if recovered_lost(recovered.c, kind, name)]
@@ -472,12 +490,13 @@ def shutdown_round(kind):
 def shutdown_functions():
     # Every kind runs, so a failing arm reports each mutation kind's own observation.
     failures = []
-    for kind in ('load', 'replace', 'delete', 'restore', 'flush'):
+    for kind, fail in (('load', False), ('replace', False), ('delete', False),
+                       ('restore', False), ('flush', False), ('load', True)):
         try:
-            shutdown_round(kind)
+            shutdown_round(kind, fail)
         except AssertionError as error:
-            failures.append(kind)
-            emit('shutdown_round_failed', kind=kind, error=str(error)[:2000])
+            failures.append(kind + ('-failed-save' if fail else ''))
+            emit('shutdown_round_failed', kind=kind, failed_save=fail, error=str(error)[:2000])
             for s in ACTIVE:
                 if not s.stopped: s.stop(signal.SIGKILL)
     assert not failures, ('PS5.1 kinds failed', failures)
