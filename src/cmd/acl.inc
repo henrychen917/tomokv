@@ -942,7 +942,7 @@ std::vector<AclUser*> acl_sorted_users_locked() {
     return users;
 }
 
-bool acl_save_file_locked() {
+std::string acl_registry_text_locked() {
     std::string contents;
     for (AclUser* user : acl_sorted_users_locked()) {
         contents += "user ";
@@ -951,6 +951,11 @@ bool acl_save_file_locked() {
         contents += acl_describe_image(acl_image(*user));
         contents.push_back('\n');
     }
+    return contents;
+}
+
+bool acl_save_file_locked() {
+    const std::string contents = acl_registry_text_locked();
     timespec ts{};
     ::clock_gettime(CLOCK_REALTIME, &ts);
     const std::string temporary = g_acl_filename + ".tmp-" + std::to_string(::getpid()) + "-" +
@@ -1249,6 +1254,12 @@ bool acl_initialize(Server& server, const Config& config, std::string& error) {
         acl_refresh_security_locked();
     }
     return true;
+}
+
+void acl_config_rewrite(std::string& output) {
+    std::lock_guard<std::mutex> lock(g_acl_mu);
+    // CONFIG REWRITE never owns the contents of an external ACL file.
+    if (g_acl_initialized && g_acl_filename.empty()) output += acl_registry_text_locked();
 }
 
 void acl_shutdown() {

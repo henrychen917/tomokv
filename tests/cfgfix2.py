@@ -139,9 +139,77 @@ def file_case(a, mode, engine):
     return dict(rejected=len(malformed), positive_controls=1)
 
 
+def acl_trial(a, mode, engine, databases, external):
+    label = f'acl-{mode}-{engine}-db{databases}-external{external}'
+    directory = a.output / label
+    directory.mkdir(parents=True, exist_ok=True)
+    config, aclfile = directory / 'server.conf', directory / 'users.acl'
+    users = ('user default on >bootstrap ~* &* +@all\n'
+             'user obsolete on >oldpass ~* &* +@all\n'
+             'user rotate on >discard ~old:* &old:* +get\n')
+    if external:
+        aclfile.write_text(users)
+        config.write_text('aclfile ' + str(aclfile) + '\n')
+    else:
+        config.write_text('requirepass bootstrap\n' + users)
+    extra = ['--databases', str(databases)]
+    if mode != 'redis' and databases == 16:
+        extra += ['--read-local', '1', '--atomic', '1', '--reorder', '1']
+    result = dict(databases=databases, external=external)
+    with Server(a, label, mode, engine, config=config, extra=extra, directory=directory):
+        with closing(n.connect(a.port)) as c:
+            c.must('AUTH', 'bootstrap')
+            assert c.must('ACL', 'DELUSER', 'obsolete') == 1
+            c.must('ACL', 'SETUSER', 'fresh', 'on', '>freshpass', '~fresh:*', '&fresh:*', '+get', '+ping')
+            c.must('ACL', 'SETUSER', 'rotate', 'resetpass', '>second', '>third',
+                   'resetkeys', '~live:*', 'resetchannels', '&live:*', '-@all', '+get', '+set')
+            c.must('ACL', 'SETUSER', 'default', 'resetpass', '>current', '>other')
+            before = sorted(c.must('ACL', 'LIST'))
+            if external:
+                # Only ACL SAVE owns the external file. REWRITE must
+                # also discard obsolete inline directives in its input.
+                c.must('ACL', 'SAVE')
+                acl_bytes = aclfile.read_bytes()
+                with config.open('a') as f:
+                    f.write('USER obsolete on >oldpass ~* &* +@all\n')
+            c.must('CONFIG', 'REWRITE')
+            if external:
+                assert aclfile.read_bytes() == acl_bytes
+                assert not any(line.lower().startswith('user ') for line in config.read_text().splitlines())
+            result['before'] = [line.decode() for line in before]
+    with Server(a, label + '-restart', mode, engine, config=config, extra=extra, directory=directory):
+        with closing(n.connect(a.port)) as c:
+            result['auth_current'] = repr(c.cmd('AUTH', 'current'))
+            # A failure still retains the exact after-image for PRE.
+            if result['auth_current'] != "b'OK'":
+                c.must('AUTH', 'bootstrap')
+            after = sorted(c.must('ACL', 'LIST'))
+            result['after'] = [line.decode() for line in after]
+            result['obsolete'] = repr(c.cmd('AUTH', 'obsolete', 'oldpass'))
+            result['fresh'] = repr(c.cmd('AUTH', 'fresh', 'freshpass'))
+    (directory / "observations.json").write_text(json.dumps(result, indent=2))
+    assert result["before"] == result["after"], result
+    assert result["auth_current"] == "b'OK'" and result["fresh"] == "b'OK'", result
+    assert "WRONGPASS" in result["obsolete"], result
+    return result
+
+def acl_case(a, mode, engine):
+    results = []
+    for databases in (1, 16):
+        for external in (False, True):
+            try:
+                result = acl_trial(a, mode, engine, databases, external)
+                results.append(dict(databases=databases, external=external, passed=True, result=result))
+            except Exception:
+                results.append(dict(databases=databases, external=external, passed=False, error=traceback.format_exc()))
+    (a.output / f"acl-{mode}-{engine}-observations.json").write_text(json.dumps(results, indent=2))
+    assert all(r["passed"] for r in results), results
+    return dict(restart_cases=len(results), exact_registry_roundtrips=len(results))
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--case', required=True, choices=['file'])
+    p.add_argument('--case', required=True, choices=['file', 'acl'])
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', required=True)

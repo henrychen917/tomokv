@@ -11,6 +11,8 @@ ratio 6:2. No performance workload or full iteration gate is authorized here.
 |---|---|---|---|---|
 | CG5.1 | All 12 malformed-file boots admit unauthenticated SET; Redis rejects 3/3 | All 12 rejected; scalar-password control passes in all four mode/engine legs | File variadic arguments cannot become subsequent CLI options; parser diagnostics retain physical line context | Redis defers the unknown-command ACL rule to ACL initialization; this is checked separately from fatal parser diagnostics |
 
+| SV5.2 | 16/16 candidate restart/file cases fail; Redis 4/4 pass | 16/16 candidate cases and Redis 4/4 pass | REWRITE removes all old user directives and serializes a locked live ACL snapshot; external ACL files remain owned by ACL SAVE | Existing ACL grammar limitations remain; no binary-password conversion or redaction code changed |
+
 The new rows use the gate's own selected-job interface. Receipts live under
 `docs/cfgfix2/`. Initial failed verification remains in `build/cfgfix2/`;
 parser regression helpers were updated to use the production per-line API.
