@@ -89,7 +89,7 @@ def argv(a, directory, mode, engine, db, extra, oracle=False):
 
 
 @contextmanager
-def process(a, label, mode='2s', engine='uring', db=16, extra=(), limit=None, oracle=False, pass_fds=()):
+def process(a, label, mode='2s', engine='uring', db=16, extra=(), limit=None, oracle=False, pass_fds=(), preload=None):
     directory = a.output / label
     directory.mkdir(parents=True, exist_ok=True)
     cmd = argv(a, directory, mode, engine, db, extra, oracle)
@@ -97,8 +97,12 @@ def process(a, label, mode='2s', engine='uring', db=16, extra=(), limit=None, or
         cmd = ['prlimit', f'--nofile={limit}:{limit}'] + cmd
     (directory / 'command.json').write_text(json.dumps(cmd))
     with (directory / 'server.log').open('w') as log:
+        env = dict(os.environ, LC_ALL='C')
+        if preload:
+            env['LD_PRELOAD'] = str(preload)
+            env['NETFIX2_WRITER_CPU'] = a.cores.replace(',', '-').split('-')[0]
         p = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT,
-                             env=dict(os.environ, LC_ALL='C'), start_new_session=True, pass_fds=pass_fds)
+                             env=env, start_new_session=True, pass_fds=pass_fds)
         p.logpath = directory / 'server.log'
         try:
             yield p
@@ -323,6 +327,20 @@ def boot(a, label, mode, engine, db):
         log = p.logpath.read_text()
         assert rc == 1, (rc, log)
         assert 'listening on' not in log and 'listening with TLS' not in log, log
+    # Fail the elected writer's reuseport bind after the exclusive boot probe.
+    # Other IO threads can already be in bind_writer waiting for that writer;
+    # they must observe the same shutdown instead of trapping main in join().
+    with process(a, label + '-writer-listener', mode, engine, db,
+                 ['--appendonly', 'yes'], preload=a.bind_fault) as p:
+        try:
+            rc = p.wait(10)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            p.wait()
+            raise AssertionError('boot waiters hung after elected-writer listener failure')
+        log = p.logpath.read_text()
+        assert 'netfix2 injected writer bind failure' in log, 'writer failure window never armed'
+        assert rc == 1 and 'listening on' not in log, (rc, log)
     # Poll log bytes and connect immediately on the banner (auditor T03/T08).
     for attempt in range(5):
         with process(a, f'{label}-ready-{attempt}', mode, engine, db) as p:
@@ -333,7 +351,37 @@ def boot(a, label, mode, engine, db):
             with closing(connect(a)) as c:
                 assert c.must('PING') == b'PONG'
         assert p.returncode == 0
-    return 'exit 1 without ready banner; 5/5 immediate banner connects'
+    return 'AOF and elected-writer bind failures exit 1 without ready banner; 5/5 immediate banner connects'
+
+
+def bind_fault(a):
+    source = a.output / 'bind-fault.c'
+    source.write_text(r'''
+#define _GNU_SOURCE
+#include <dlfcn.h>
+#include <errno.h>
+#include <sched.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <unistd.h>
+int bind(int fd, const struct sockaddr *addr, socklen_t len) {
+    int reuse = 0; socklen_t size = sizeof(reuse);
+    const char *cpu = getenv("NETFIX2_WRITER_CPU");
+    if (cpu && sched_getcpu() == atoi(cpu) &&
+        getsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &reuse, &size) == 0 && reuse) {
+        const char message[] = "netfix2 injected writer bind failure\n";
+        (void)write(2, message, sizeof(message)-1);
+        // Let peer IO threads enter their AOF writer-ready wait first.
+        usleep(200000);
+        errno = EACCES; return -1;
+    }
+    int (*real_bind)(int, const struct sockaddr *, socklen_t) = dlsym(RTLD_NEXT, "bind");
+    return real_bind(fd, addr, len);
+}
+''')
+    library = a.output / 'bind-fault.so'
+    subprocess.run(['cc', '-shared', '-fPIC', '-O2', str(source), '-ldl', '-o', str(library)], check=True)
+    return library
 
 
 def main():
@@ -342,6 +390,8 @@ def main():
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     a = arguments()
     a.certs = certs(a)
+    if a.case == 'boot':
+        a.bind_fault = bind_fault(a)
     results = {}
     failed = []
     test = globals()[a.case.replace('-', '_')]
