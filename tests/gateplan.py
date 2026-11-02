@@ -168,6 +168,11 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     # The iteration budget changes only the measured cells. Normalize every complete gate to
     # the existing full correctness path, so a new purpose cannot bypass full-only batteries.
     purpose = args.tier
+    # Selected correctness proofs need one real 8+2 slot, not the full gate's
+    # measurement headroom. Keep the complete/performance budget unchanged.
+    minimum_physical = (SERVER_PER_SLOT + LOAD_PER_SLOT
+                        if purpose != "perf" and os.getenv("GATE_ONLY_JOBS") and
+                        os.getenv("GATE_PROOF_NO_RATES") == "1" else MIN_PHYSICAL)
     correctness_ratio = measured_ratio("correctness", SERVER_PER_SLOT)
     if os.getenv("GATE_RATIO", correctness_ratio) != correctness_ratio:
         raise ValueError("GATE_RATIO differs from the reviewed correctness geometry; update gate_measurements.json")
@@ -185,9 +190,9 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     server = None if args.server_cores is None else parse_cpu_range(args.server_cores, "--server-cores")
     load = None if args.load_cores is None else parse_cpu_range(args.load_cores, "--load-cores")
     if server is None and load is None:
-        if len(defaults) < MIN_PHYSICAL:
+        if len(defaults) < minimum_physical:
             raise ValueError(f"physical core budget is {len(defaults)}; the gate requires "
-                             f"{MIN_PHYSICAL}-{MAX_PHYSICAL} distinct physical cores")
+                             f"{minimum_physical}-{MAX_PHYSICAL} distinct physical cores")
         count = len(defaults) // (SERVER_PER_SLOT + LOAD_PER_SLOT) * SERVER_PER_SLOT
         server, load = defaults[:count], defaults[count:]
     elif server is None or load is None:
@@ -205,8 +210,8 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     axes = validate_axes(server, args.server_smt, load, args.load_smt or "",
                          topology=topology, check_available=check_available)
     total = len(server) + len(load)
-    if not MIN_PHYSICAL <= total <= MAX_PHYSICAL:
-        raise ValueError(f"physical core budget is {total}; the gate requires {MIN_PHYSICAL}-"
+    if not minimum_physical <= total <= MAX_PHYSICAL:
+        raise ValueError(f"physical core budget is {total}; the gate requires {minimum_physical}-"
                          f"{MAX_PHYSICAL} distinct physical cores")
     count = min(len(server) // SERVER_PER_SLOT, len(load) // LOAD_PER_SLOT)
     if count < 1:
@@ -512,6 +517,16 @@ def self_test():
                 args = parser().parse_args([])
             with self.assertRaisesRegex(ValueError, "physical core budget is 8"):
                 make_plan(args, topology=topology, available=set(range(8)), check_available=False)
+
+        def test_selected_correctness_fits_one_slot(self):
+            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": "release_batteries",
+                                              "GATE_PROOF_NO_RATES": "1"}, clear=True):
+                args = parser().parse_args(['quick', '--server-cores', '0-7', '--load-cores', '8-9'])
+                plan = make_plan(args, topology=topology, available=set(range(10)), check_available=False)
+                self.assertEqual(plan['slot_count'], 1)
+                args.load_cores = '8'
+                with self.assertRaisesRegex(ValueError, 'physical core budget is 9'):
+                    make_plan(args, topology=topology, available=set(range(10)), check_available=False)
 
         def test_unavailable_requested_cpu_fails(self):
             with mock.patch(__name__ + ".permitted_cpus", return_value=set(range(15))):

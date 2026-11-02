@@ -1010,6 +1010,7 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    cmdfix2-*) job_cmdfix2 "${name#cmdfix2-}";;
     iofix-deferred) job_iofix_deferred "$name";;
     iofix-hz) job_iofix_hz "$name";;
     iofix-sleep) job_iofix_sleep "$name";;
@@ -1162,6 +1163,7 @@ plan_jobs(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build pubtrackfix maxmemrace)
   JOB_NAMES+=(clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race)
+  JOB_NAMES+=(cmdfix2-geo cmdfix2-scores cmdfix2-hll cmdfix2-lcs cmdfix2-channels cmdfix2-xsetid)
   for MF_MODE in 1s 2s; do for MF_ENGINE in uring epoll; do
     JOB_NAMES+=("multifix-$MF_MODE-$MF_ENGINE")
     JOB_NAMES+=("climonfix4-$MF_MODE-$MF_ENGINE")
@@ -3094,6 +3096,15 @@ job_aclfix(){
 }
 
 # datafix1: one aggregate row per issue; each battery owns every declared engine/mode leg.
+job_cmdfix2(){
+  local case=$1 label="cmdfix2 $1 vs Redis 7.4 (all legs)"
+  row_begin "$label"
+  py tests/cmdfix2.py --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
+}
+
 job_datafix1_geo(){
   row_begin "datafix1 GEO grammar (both engines and modes)"
   py tests/datafix1_geo.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
@@ -6666,6 +6677,8 @@ collect_job aclfix
 
 collect_job sort
 collect_job datafix1_geo
+# Six S1 witnesses collected before the quick exit: DQ=DF=+6; owner changes EXPECT.
+for case in geo scores hll lcs channels xsetid; do collect_job "cmdfix2-$case"; done
 collect_job datafix1_spop
 collect_job datafix1_lists
 collect_job datafix1_locale
