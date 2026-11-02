@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-normal-INCR-1s-32-1--1.log
+SHA-256: fa1941ff7ad4563206bfe4cd767426eaf978de6ce3895861677442a7acaed435
+Exit: 0
+2483	    }
+0x0000555555d16528	2483	    }
+0x0000555555d16531	2483	    }
+0x0000555555d16537	2483	    }
+0x0000555555d1653b	2483	    }
+0x0000555555d1653c	2483	    }
+0x0000555555d1653e	2483	    }
+0x0000555555d16540	2483	    }
+0x0000555555d16542	2483	    }
+0x0000555555d16544	2483	    }
+0x0000555555d16545	2483	    }
+0x0000555555eTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+28f2a in tomo::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:254
+254	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 2100219) exited normally]
+COUNT 36547

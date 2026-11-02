@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-db0-SMOVE-2s-1-0--1.log
+SHA-256: 65f6f9876f78a7678f2c1b1c41d35e3388e0eac8e16564c80dc951021f7abc28
+Exit: 0
+1630	    cached_[0] = ptr;
+1631	    ++count_;
+0x00005555556c8e1c in tomo_db0::xshard_destroy (state=..., pool=..., owner_io=...) at src/cmd/scatter_engine.inc:2381
+2381	}
+0x00005555556c8e1d	2381	}
+0x00005555556c8e1e	2381	}
+0x00005555556c8e20	2381	}
+0x00005555556c8e22	2381	}
+0x00005555556c8e24	2381	}
+0x0000555555e31218 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:167
+167	    if(activation)scope_end();
+0x0000555555e3121e	166	    xshard_retire(server,server.thread(io),ring,client,*op,pool,io,nullptr,nullptr,nullptr);
+0x0000555555e31222	167	    if(activation)scope_end();
+0x0000555555e31224	167	    if(activation)scope_end();
+0x0000555555e31226	167	    if(activation)scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3303285) exited normally]
+COUNT 2557

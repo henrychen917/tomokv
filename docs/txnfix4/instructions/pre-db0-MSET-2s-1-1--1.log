@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/pre-db0-MSET-2s-1-1--1.log
+SHA-256: 33d9ee1776ccdb18d5455eda9f216ceacd1bd578c8ff7f2f185ba9a0a843f1d6
+Exit: 0
+0x00005555556aa102	569	}
+0x00005555556aa104	569	}
+0x00005555556aa106	569	}
+0x00005555556aa108	569	}
+0x0000555555e30272 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., nTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+=..., atomic=..., slowlog=...) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+277	   for(unsigned i=0;i<n;i++){
+0x0000555555e30279	277	   for(unsigned i=0;i<n;i++){
+277	   for(unsigned i=0;i<n;i++){
+0x0000555555e30088	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e3027e	297	   std::string want="+OK\r\n";
+0x0000555555e30285	297	   std::string want="+OK\r\n";
+0x0000555555e3028c	296	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 2165969) exited normally]
+COUNT 15955

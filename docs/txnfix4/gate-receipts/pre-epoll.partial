@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	113.460000	txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs)
+FAIL	10.860000	txnfix4 CD5.5 multi-key pops abort a WATCH (all legs)
+FAIL	19.140000	txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs)
+FAIL	21.720000	txnfix4 CD5.3 lapsed hash fields during a capture (all legs)
+FAIL	3.630000	txnfix4 TM5.1 execfix proves two owners (all legs)

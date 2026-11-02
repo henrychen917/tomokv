@@ -18,6 +18,18 @@ struct MoverLiveRead {
     ~MoverLiveRead() { store.atomic_set_read_context(epoch, origin); }
 };
 
+// Hop one of a DENYOOM mover (LMOVE, RPOPLPUSH, BLMOVE, BRPOPLPUSH) at atomic 0: Redis takes
+// the OOM decision once, before the command changes anything. Each participating owner admits
+// it against its own budget (evicting first under an eviction policy); a refusal fails hop one,
+// so neither half runs.
+void admit_denyoom_mover(Shard& shard, Op& op, ScatterState& state, const ShardGroup& group) {
+    for (uint32_t i = 0; i < group.count; ++i) {
+        const uint32_t pos = state.key_order[group.begin + i];
+        if (!shard.store().budget_admit(op.arg(state.keys[pos].arg)))
+            state.status[pos] = static_cast<uint8_t>(WorkError::Maxmemory);
+    }
+}
+
 ScatterTaskResult execute_plain_element_mover(const Task& task, Shard& shard, Op& op) {
     auto& state = *task.scatter;
     auto& group = *group_for(state, shard.id());

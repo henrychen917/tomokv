@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-txnfix4/build/txnfix4/commands/post-db0-MSET-1s-1-1--1.log
+SHA-256: 439cb53bb6a9df6571222295b82b2cf8320b5b76e352e82e24004af715a06164
+Exit: 0
+0x00005555556aa320	583	}
+0x00005555556aa321	583	}
+0x00005555556aa322	583	}
+0x00005555556aa324	583	}
+0x00005555556aa326	583	}
+0x00005555556aa328	583	}
+0x0000555555e2b8d3 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=..., atomic=..., slowlog=...) at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:294
+294	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+277	   for(unsigned i=0;i<n;i++){
+0x0000555555e2b8da	277	   for(unsigned i=0;i<n;i++){
+277	   for(unsigned i=0;i<n;i++){
+0x0000555555e2add0	277	   for(unsigned i=0;i<n;i++){
+0x0000555555e2b8df	297	   std::string want="+OK\r\n";
+0x0000555555e2b8e6	297	   std::string want="+OK\r\n";
+0x0000555555e2b8ed	296	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-txnfix4/tests/txnfix4_scope.cc:23
+23	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3075899) exited normally]
+COUNT 16301

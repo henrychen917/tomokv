@@ -846,6 +846,8 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
 bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op);
 void finish_pfcount(ScatterState& state);
 [[gnu::noinline]] ScatterTaskResult execute_plain_element_mover(const Task&, Shard&, Op&);
+[[gnu::noinline, gnu::cold]] void admit_denyoom_mover(Shard&, Op&, ScatterState&,
+                                                   const ShardGroup&);
 [[gnu::noinline]] ScatterTaskResult execute_live_pop(const Task&, Shard&, Op&);
 bool finish_phase1(ScatterState& state, Op& op);
 bool finish_phase2(ScatterState& state);
@@ -3368,11 +3370,6 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     if (image.type == Type::List || image.type == Type::Set)
                         image.entries = CollectionRef(object).entries();
                 }
-                // CD5.4: admit a DENYOOM mover on every participating owner before hop two
-                // changes anything. An over-budget shard evicts or refuses, like Redis.
-                if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
-                    !shard.store().budget_admit(op.arg(key.arg)))
-                    state.status[pos] = static_cast<uint8_t>(WorkError::Maxmemory);
                 if (pos != 0) continue;
 
                 if (state.kind == Kind::Smove) {
@@ -3395,6 +3392,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 if (probed == XshardElementResult::Oom)
                     state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
             }
+            // CD5.4: admit a DENYOOM mover on every participating owner before hop two
+            // changes anything. An over-budget shard evicts or refuses, like Redis.
+            if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false))
+                admit_denyoom_mover(shard, op, state, group);
             return ScatterTaskResult::Complete;
         }
 
