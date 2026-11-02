@@ -166,15 +166,14 @@
                         // from the same pass complete at a newer world and then follow it with an
                         // MGET fallback at the older cut. Leave this frame unconsumed; after the
                         // existing local lane resolves, reparsing samples a fresh pass cut.
-                        if (mget && rob.has_pending_read_local()) break;
-                        if (!mget && !point_route) std::abort();
                         if (mget) {
+                            if (rob.has_pending_read_local()) break;
                             op->hash = FlatStore::hash_key(op->arg(1));
                             op->shard = srv_->router().shard_of(op->hash);
                             read_local_point_prehashed = true;
                             read_local_lane_demand =
                                 std::min<uint32_t>(op->argc() - 1, srv_->nshards());
-                        }
+                        } else if (!point_route) std::abort();
                         read_local_owner_conflict_reason = owner_conflict_for_command();
                         read_local_owner_conflict = read_local_owner_conflict_reason !=
                             ReadLocalFallbackReason::None;
@@ -202,18 +201,23 @@
                             write_conflict = rob.read_local_write_conflicts(
                                 op->hash, read_local_command_touches_hash);
                         }
-                        read_local_eligible = extend_read_local_batch &&
-                            !write_conflict && !read_local_owner_conflict;
-                        if (extend_read_local_batch &&
-                            (write_conflict || read_local_owner_conflict)) {
-                            read_local_fallback_reason = write_conflict
-                                ? read_local_write_fallback_reason(rob)
-                                : read_local_owner_conflict_reason;
-                            read_local_batch = false;
-                        }
-                        if (!extend_read_local_batch) {
+                        if (extend_read_local_batch) {
+                            read_local_eligible = !write_conflict && !read_local_owner_conflict;
+                            if (!read_local_eligible) {
+                                read_local_fallback_reason = write_conflict
+                                    ? read_local_write_fallback_reason(rob)
+                                    : read_local_owner_conflict_reason;
+                                read_local_batch = false;
+                            }
+                        } else {
                             read_local_eligible = true;
-                            if (multi_session_watch_size(conn) != 0) {
+                            if (slowlog_arm_.latency_tracking) {
+                                // Timing requires owner execution, but this read still participates
+                                // in the boot-latched session-ordering protocol. In particular its
+                                // owner slot must survive a later switch back to local execution.
+                                read_local_fallback_reason = ReadLocalFallbackReason::ContextRoute;
+                                read_local_eligible = false;
+                            } else if (multi_session_watch_size(conn) != 0) {
                                 read_local_fallback_reason =
                                     ReadLocalFallbackReason::Watch;
                                 read_local_eligible = false;

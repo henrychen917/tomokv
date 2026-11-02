@@ -125,9 +125,13 @@ struct CoreConcurrencyTest {
         }
         void tracking(bool on) { server.set_latency_tracking(on); io.refresh_notify_config(); }
         void input(Client& c, const std::string& text) {
-            need(c.rpos() == c.rlen()); c.reset_rbuf_at_quiescence(); size_t available = 0;
+            need(c.rpos() == c.rlen());
+            // Published operations may still borrow their arguments. Append the next pass;
+            // only a fully retired ROB permits reuse of the previous input storage.
+            if (c.rob().in_flight() == 0) c.reset_rbuf_at_quiescence();
+            size_t available = 0;
             need(c.read_space_impl<false>(text.size(), available, true, 1u << 20, 0));
-            need(available >= text.size()); std::memcpy(c.rbuf(), text.data(), text.size());
+            need(available >= text.size()); std::memcpy(c.rbuf() + c.rlen(), text.data(), text.size());
             c.commit_read(text.size());
         }
         void parse(Client& c) {

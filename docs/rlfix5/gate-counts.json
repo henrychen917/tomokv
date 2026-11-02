@@ -1,0 +1,17 @@
+{
+  "pre": 1107,
+  "post": 1113,
+  "added": [
+    "rlfix5 monotonic (1s)",
+    "rlfix5 monotonic (2s)",
+    "rlfix5 yes-no (1s)",
+    "rlfix5 yes-no (2s)",
+    "rlfix5 no-yes (1s)",
+    "rlfix5 no-yes (2s)"
+  ],
+  "removed": [],
+  "expect_pre": [
+    "EXPECT_QUICK=1046",
+    "EXPECT_FULL=1063                 # ABBA reports only; self-test remains counted."
+  ]
+}

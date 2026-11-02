@@ -2,6 +2,7 @@
 """Build production-linked RL5 witnesses and finite instruction censuses (no rates)."""
 import argparse
 import bisect
+import csv
 from concurrent.futures import ThreadPoolExecutor
 import gzip
 import json
@@ -50,24 +51,51 @@ def trace(prepared, arm, ns, case):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('action', choices=('build', 'count'))
+    p.add_argument('action', choices=('build', 'count', 'scatter-build', 'scatter-count', 'compare'))
     p.add_argument('--arm', choices=('pre', 'post', 'pad-a'), required=True)
     p.add_argument('--only', default='')
     a = p.parse_args()
     assert len(os.sched_getaffinity(0)) >= 8, 'fixture requires eight inherited CPUs'
     os.environ['LC_ALL'] = 'C'
-    source = ROOT / 'build/rlfix5/pre/source' if a.arm == 'pre' else ROOT
-    objects = ROOT / 'build/rlfix5/pre/objects' if a.arm == 'pre' else ROOT / 'build'
+    if a.action == 'compare':
+        keys = ('namespace', 'command', 'mode', 'batch', 'local', 'tracking')
+        before = {tuple(r[k] for k in keys): r for r in json.loads((DOC / 'pre/counts.json').read_text())['rows']}
+        rows = []
+        for r in json.loads((DOC / a.arm / 'counts.json').read_text())['rows']:
+            old = before[tuple(r[k] for k in keys)]
+            protected = (r['local'] == 0 and r['command'] in ('GET', 'SET', 'INCR', 'MGET', 'MSET')) or (
+                r['local'] == 1 and r['tracking'] == 0 and r['command'] in ('GET', 'MGET'))
+            rows.append(dict(**{k: r[k] for k in keys}, pre=old['total'], post=r['total'],
+                             delta=r['total'] - old['total'], protected=protected))
+        with (DOC.parent / 'count-deltas.csv').open('w') as f:
+            writer = csv.DictWriter(f, fieldnames=list(rows[0])); writer.writeheader(); writer.writerows(rows)
+        protected = [r for r in rows if r['protected']]
+        result = dict(cases=len(rows), protected_cases=len(protected),
+                      positive_protected=[r for r in protected if r['delta'] > 0], rows=rows)
+        census.save(DOC.parent / 'count-deltas.json', result)
+        print('protected', len(protected), 'positive', result['positive_protected'], flush=True)
+        raise SystemExit(bool(result['positive_protected']))
+    source = ROOT / 'build/rlfix5/pre/source' if a.arm in ('pre', 'pad-a') else ROOT
+    objects = ROOT / 'build/rlfix5/pre/objects' if a.arm in ('pre', 'pad-a') else ROOT / 'build'
+    scatter = a.action.startswith('scatter-')
+    label = a.arm + ('-scatter' if scatter else '')
     rows = []
     for ns in ('normal', 'db0'):
-        if a.action == 'build':
-            census.build(a.arm, source, objects, ns, 'tests/rlfix5_scope.cc')
+        if a.action.endswith('build'):
+            census.build(label, source, objects, ns,
+                         'tests/blockfix4_scope.cc' if scatter else 'tests/rlfix5_scope.cc')
             continue
-        binary = BUILD / 'scopes' / (a.arm + '-' + ns) / 'probe'
+        binary = BUILD / 'scopes' / (label + '-' + ns) / 'probe'
         if not (BUILD / 'trace').exists():
             subprocess.run(['g++', '-std=c++20', '-O2', '-g', str(ROOT / 'tools/scriptfix3_trace.cc'),
                             '-o', str(BUILD / 'trace')], check=True)
         prepared = census.prepare(binary, objects, ns, 'lua')
+        if scatter:
+            cases = [(command, mode, batch, atomic) for command in ('MGET', 'MSET')
+                     for mode in ('1s', '2s') for batch in (1, 32) for atomic in (0, 1)]
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                rows += list(pool.map(lambda c: census.trace(prepared, label, ns, 'lua', *c), cases))
+            continue
         verbs = a.only.split(',') if a.only else ('GET', 'SET', 'INCR', 'MGET', 'MSET',
                                                  'STRLEN', 'EXISTS', 'GETRANGE', 'TYPE', 'TTL', 'OBJECT')
         cases = [(cmd, mode, batch, local, tracking) for cmd in verbs
@@ -76,7 +104,7 @@ def main():
         with ThreadPoolExecutor(max_workers=8) as pool:
             rows += list(pool.map(lambda case: trace(prepared, a.arm, ns, case), cases))
     if rows:
-        census.save(DOC / a.arm / 'counts.json', dict(rows=rows))
+        census.save(DOC / label / 'counts.json', dict(rows=rows))
 
 
 if __name__ == '__main__':
