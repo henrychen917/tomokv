@@ -1657,7 +1657,7 @@ row_begin "FLIP socket drain and stationary-client fences (ASAN+UBSAN+TSAN)"
 if unit_ready core-concurrency-unit && \
     ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
     taskset -c "$CORES" ./build/core-concurrency-unit flipfix7 >"$TMPDIR/flipfix7-unit.txt" 2>&1 && \
-    [ "$(grep -c '^ARMED flipfix7 ' "$TMPDIR/flipfix7-unit.txt")" = 8 ] && \
+    [ "$(grep -c '^ARMED flipfix7 ' "$TMPDIR/flipfix7-unit.txt")" = 10 ] && \
     tsan_unit "$CORE_TSAN" core-concurrency-tsan \
         "PASS core concurrency flipfix7 (state assertions fired)" flipfix7; then
   ok "FLIP socket drain and stationary-client fences (ASAN+UBSAN+TSAN)"

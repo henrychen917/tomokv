@@ -225,6 +225,12 @@ bool IoLoop::flip_client_drained(const Client* client, bool coordinator) const {
     const bool stays = enabled && (flip_client_stays(client) ||
         (srv_->flip_stage() == FlipStage::IoDrain &&
          srv_->flip_candidate_target(self_->id()) != Role::Ex && flip_immovable_kind(client)));
+    // Deferred WB frames own their bytes and stay with this IO. In particular,
+    // an invalidation behind the coordinator's unfinished FLIP cannot flush
+    // until FLIP finishes. Only a possible transfer must empty that WB map;
+    // ClientInstall is past every transfer and keeps the installed IO owner.
+    if (!(enabled && (post || stays || coordinator)) && !wb_.migration_ready(*client))
+        return false;
     if (coordinator)
         return client->rob().in_flight() == 1 &&
                (stays || (post ? !client->flip_borrowed_output() :

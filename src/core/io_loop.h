@@ -1801,8 +1801,7 @@ private:
             if (flip_close_pin_ && client->closing()) continue;
             const bool coordinator_op = self_->id() == srv_->flip_coordinator() &&
                 client == flip_client_ && flip_epoch_local_ == srv_->flip_epoch();
-            if (!flip_client_drained(client, coordinator_op) ||
-                !wb_.migration_ready(*client)) return false;
+            if (!flip_client_drained(client, coordinator_op)) return false;
         }
         return true;
     }

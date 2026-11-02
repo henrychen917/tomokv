@@ -161,3 +161,33 @@ static void flipfix7_blocked(unsigned databases, unsigned atomic) {
     acl_shutdown(); command_bind_server(nullptr);
     std::printf("ARMED flipfix7 blocked-continuation db%u atomic%u\n", databases, atomic);
 }
+
+static void flipfix7_coordinator(unsigned databases) {
+    Fixture f(false, 8, 16, databases);
+    Client client(-1); f.client(client);
+    f.server.thread(f.io_id).add_client(&client); f.server.client_accepted();
+    f.server.flip_coordinator_ = f.io_id;
+    f.io.flip_client_ = &client; f.io.flip_epoch_local_ = f.server.flip_epoch();
+    Op& op = prepare(client, {Slice("FLIP"), Slice("7"), Slice("1")}, f.server);
+    client.rob().publish();
+    const std::string push = ">2\r\n+invalidate\r\n*1\r\n$1\r\nk\r\n";
+    require(f.io.wb_.defer_oob(client, push.data(), push.size()),
+            "actual WB frame waits behind the unfinished coordinator command");
+    require(!f.io.wb_.migration_ready(client) &&
+            f.io.wb_.deferred_output_bytes(client) == push.size(), "WB deferral really armed");
+    f.server.flip_stage_.store(FlipStage::IoDrain);
+    require(f.io.flip_io_drained(), "coordinator retains deferred push at initial drain");
+    f.server.flip_stage_.store(FlipStage::ClientInstall);
+    require(f.io.flip_io_drained(), "deferred push cannot deadlock its own FLIP reply");
+    // Ordinary movable state still owes the WB-map fence before commitment.
+    f.io.flip_client_ = nullptr;
+    op.state.store(OpState::Done); client.rob().drain([](Op&) {});
+    f.server.flip_stage_.store(FlipStage::IoDrain);
+    require(!f.io.flip_io_drained(), "movable connection cannot strand its deferred WB frame");
+    f.io.wb_.teardown(client);
+    require(f.io.wb_.deferred_output_bytes(client) == 0, "deferred frame cleanup owns its bytes");
+    f.server.flip_stage_.store(FlipStage::Idle);
+    f.server.thread(f.io_id).remove_client(&client);
+    f.server.thread(f.io_id).release_wb_slot(client.wb_slot()); f.server.client_released();
+    std::printf("ARMED flipfix7 coordinator-frame db%u\n", databases);
+}
