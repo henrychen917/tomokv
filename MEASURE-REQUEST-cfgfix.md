@@ -134,8 +134,13 @@ No new per-operation config synchronization was introduced.
 
 PAD-A starts .text at 0x2cc30 with 8,924,055 bytes, matching POST. PRE .text is 8,896,071 bytes. Full linker receipt: `docs/cfgfix/arms.json`.
 
-Final regression job receipts are pending. The selected matrix is being rerun
-on the final binary after the UNIX completion, negative load-delay and TCP/TLS collision corrections. PRE was rebuilt with
+The final main selected-job pass completed with **362 passing private rows and
+zero failures**. Epoll controls passed 13 rows; fused coverage passed 152, with
+9 further fused-uring and 3 split-uring frame rows. These are job executions,
+including repeated prerequisites, not full gate receipts.
+The additional unit/control jobs, standard-seed differential matrices and quiet
+framework test are still running. Completed receipts are in
+`docs/cfgfix/verification.json`. PRE was rebuilt with
 only a debug-directory prefix map and reproduces its original SHA-256 exactly. All 57 production targets pass `make -q` after rebuilding the TCP/TLS collision
 guard; `docs/cfgfix/freshness-provenance.json` binds the receipt to the final source
 and binary. The preceding receipt is archived separately. These final arms are built from source through
