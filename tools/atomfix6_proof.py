@@ -21,17 +21,20 @@ GROUPS = {
     'features': ['feature-split-0', 'feature-split-1', 'feature-armed-0', 'feature-armed-1',
                  'datafix2_watch', 'moverfix', 'wave14_order', 'clientcompat-multi-tracking',
                  'clientcompat-multi-controls', 'wb_rule_units', 'wbland_units',
-                 'storage_units', 'bugs5']
+                 'storage_units', 'bugs5', 'ring_unit', 'filter_unit', 'wait_units',
+                 'asan_batteries', 'script_bounds', 'scriptfix', 'scriptfix2', 'lualibs']
         + [f'multifix-{m}-{e}' for m in ('1s', '2s') for e in ('uring', 'epoll')]
         + [f'multidb-{m}-{r}-{a}' for m in ('1s', '2s') for r in (0, 1) for a in (0, 1)],
     'persistence': '''snapshot-epoll snapshot-uring snapfix_shutdown snapfix_bgsave_script
         snapfix_bgsave_exec snapfix2_tables aof-epoll aof-uring aof_frame aoforder dump_restore
         persistfmt persistfmt_aof_error persistfix2_lastsave persistfix2_shutdown
         persistfix2_commands persistfix2_errors persistfix_units flushfix2 flushfix3
-        notify_aof rootcore-waitaof'''.split(),
+        notify_aof rootcore-waitaof serverfix_waitaof climonfix'''.split(),
     'placement': '''flip fliplisten flipfix5 flipfix6 flipctl
         lb-stationary-1s lb-stationary-2s readonly rlfix3_info rlfix3_zc rlcache
-        reorder_engagement reorder_sync exbatch_live rldbg wb_mixed slotless rob_portable'''.split()
+        reorder_engagement reorder_sync exbatch_live rldbg wb_mixed slotless rob_portable replyoff zc'''.split()
+        + [f'evict-{section}-{mode}-{a}' for section in ('lfu', 'lruclock')
+           for mode in ('split', 'armed') for a in (0, 1)]
         + [f'feature-cell-{m}-{r}-{c}-{q}-{f}' for m in ('1s', '2s') for r in (0, 1)
            for c in (0, 1) for q in (0, 1) for f in (0, 1)]
         + ['feature-cell-split-home-min', 'feature-cell-fused-home-max-nopin', 'feature-cell-split-shards-auto'],
@@ -52,7 +55,7 @@ if a.fused:
     fused_jobs = {
         'atomic': ['release_batteries', 'atomic_batteries', 'debug-0', 'debug-1'],
         'persistence': ['snapshot-epoll', 'snapshot-uring', 'aof-epoll',
-                        'aof-uring', 'aof_frame', 'dump_restore'],
+                        'aof-uring', 'aof_frame', 'dump_restore', 'asan_batteries', 'replyoff', 'zc'],
     }
     if a.group not in fused_jobs:
         p.error('--fused applies only to the generic atomic/persistence boots')

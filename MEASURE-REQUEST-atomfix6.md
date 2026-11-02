@@ -37,9 +37,6 @@ ticket repair is bounded by the selected maximum; conservative pairwise checks
 retain that ordering too. Existing collapse arms and QSBR retirement remain
 unchanged. Namespace range suffixes are checked for coverage as well.
 
-PRE, POST and PAD-A hashes, command-scope counts, complete correctness receipts,
-DQ/DF and maintainer measurement cells will be appended before delivery.
-
 Parking refinement: both deferred and bounded-retry queues retain a global FIFO
 plus an owner-local index by Client and ROB operation ID. Predecessor checks keep
 the existing exact key/whole-owner predicate but visit only older operations of
@@ -194,3 +191,18 @@ job group passes 54/54 rows; detailed per-job ledgers are retained under `proof/
 
 All 18 AT412 jobs completed successfully in the broad atomic group, including
 their complete built-in matrices; T6 and T10 each passed all 27 legs.
+
+Verification history is retained, including superseded attempts. An initial
+serverless group was intentionally stopped during a build after the compiler
+budget correction (exit 130, no scored rows); `units-final` supersedes it. An
+earlier directed-unit attempt reported ten freshness failures after the config
+comments changed during the build. Rebuilding the affected targets removed those
+stale-artifact failures; the final two-engine directed jobs each pass 21/21.
+These attempts are not included in the final pass counts.
+
+To stay below the disk budget while retaining sanitizer and control artifacts,
+GNU objcopy compressed debug sections in four generated control-object trees.
+Every allocated ELF section was hashed before and after and stayed identical;
+object timestamps are preserved and no executable instruction changed. The
+per-object before/after hashes are in `compressed-control-objects.json`. Release
+PRE/POST objects and all four delivered binary arms were left untouched.
