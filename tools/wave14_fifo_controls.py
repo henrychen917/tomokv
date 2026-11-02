@@ -29,6 +29,11 @@ def main():
         while not (DOC / 'jobs/fifo-final-eight-client-cpus.json').exists():
             assert time.monotonic() < deadline, 'overlapping FIFO attempt did not finalize'
             time.sleep(1)
+        checks = DOC / 'xacct-companion-results.json'
+        while (not checks.exists() or len(json.loads(checks.read_text())) != 3 or
+               not (DOC / 'jobs/abba-xacct-policy-final.json').exists()):
+            assert time.monotonic() < deadline, 'final fixture checks did not release their CPUs'
+            time.sleep(1)
     plans = [
         ('fifo-lane-four-client-cpus-valid',
          '/home/user/Projects/bins/execfifo3-post-6f9af8cd', '0-3', '16-27'),

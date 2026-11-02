@@ -1,7 +1,9 @@
 {
   "wait_for": [
     "final-uring-results.json: seven phases complete",
-    "jobs/fifo-final-eight-client-cpus.json"
+    "jobs/fifo-final-eight-client-cpus.json",
+    "xacct-companion-results.json: three phases complete",
+    "jobs/abba-xacct-policy-final.json"
   ],
   "server_cores": "0-7",
   "load_cores": {
