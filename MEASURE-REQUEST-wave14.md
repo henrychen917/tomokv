@@ -544,13 +544,15 @@ failure remains evidence against restoring its guard-only promotion.
 `python3 tests/gates_test.py`: 77/77 passed. The headline's 83 becomes 77
 because witnessfix removes seven tests of the retired Tcl retry and adds
 one no-retry check; every other lane test method remains. The method inventory
-is recorded in `gates-test-method-inventory.json`. `abba_selftest` passed again in
-a fresh throwaway landing copy with 1090/1107, the final known-difference
-labels, both private EOF diagnostics, and the final complete-case netio
-harness (`jobs/abba-landing-complete.json`). Earlier selftest receipts remain
-in `abba-r7-final-copy.json`. The final
-standalone harness run again passes 77/77 tests; all 12 Tcl observer controls
-pass (`gate-unit-final.json`). Source identity lint passed for all 59 C++ units in both namespaces
+is recorded in `gates-test-method-inventory.json`. The final `abba_selftest`
+passes in a fresh throwaway landing copy with 1090/1107, the final
+known-difference labels, EOF diagnostics, complete-case netio harness and
+corrected XACCT policy (`jobs/abba-resource-final.json`). It explicitly uses
+port 20098 for the harness unit listener. Earlier selftest receipts remain,
+including `abba-r7-final-copy.json` and `jobs/abba-landing-complete.json`.
+The latest standalone harness run passes 77/77 tests with unit port 20099
+(`gate-unit-xacct-final.json`); all 12 Tcl observer controls pass
+(`gate-unit-final.json`). Source identity lint passed for all 59 C++ units in both namespaces
 and six shared C units, including the stable-assertion failure checks. The
 checked-in EXPECT values were never edited.
 
@@ -593,3 +595,12 @@ companions and the throwaway ABBA selftest. Exactly seven are **NOT RUN**
 because they require the reserved load/performance work or share its boot;
 `source-row-coverage.json` names each one and its reason. Private diagnostic
 rows and repeated engine/mode runs do not change the source count.
+
+The final integrity receipt is `handoff-integrity.json`. It rechecks all four
+arm hashes, the production freeze, six two-parent merges, source/fixture
+counts and unchanged EXPECT assignments. Superseded trial objects, source
+trees and step traces were removed after their hashes and counts were saved;
+failed-case evidence is retained. The final build directory is below 40 GiB.
+All remaining throughput work and the full landing iteration are explicitly
+NOT RUN here, as requested. This report is a handoff with open release
+findings, not a green landing receipt.
