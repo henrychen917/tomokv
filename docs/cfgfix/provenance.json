@@ -27,5 +27,9 @@
   "src/core/fliplisten.cc": "9365ffb28bb7b774fc4df7e2eadac3121c2a756a0410bf34102518d6b36bfd6b",
   "tests/netcmd_config_unit.cc": "9f9dcdc486693e3e68ba7fcd82b3d517e8554feb72b9d9c563087e69cb6fbfbc",
   "tests/netcmd_unit.cc": "ec388fcafc0acdc1ebb141be9f05269e64911913043a0ed7db61f7e9571e33ce",
-  "src/core/cfgfix.cc": "b9ad785360435a8e164aff081dd82ffe3bce0ddc87f00c2dc990a5fb77a4f649"
+  "src/core/cfgfix.cc": "b9ad785360435a8e164aff081dd82ffe3bce0ddc87f00c2dc990a5fb77a4f649",
+  "epoll_control_server_cpus": "40-47",
+  "epoll_control_load_cpus": "32-39",
+  "epoll_control_ports": "20150-20199",
+  "clock_overlap": "Independent correctness gates use opposite eight-core server pools and disjoint port pools while long real-clock aging tests wait. No performance scoring."
 }
