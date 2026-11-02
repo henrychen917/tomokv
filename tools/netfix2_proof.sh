@@ -11,7 +11,10 @@ jobs+=' rootcompat-tracking rootcompat-errorstats wave14_epoll_eof wave14_eof_da
 jobs+=' inline_quoted slotless reorder_sync reorder_engagement reorder_identity compat2 core_units persistfix_units exbatch_live wait_units txnorder2 wave8b_off persistfix2_lastsave racefix_counters release_batteries atomic_units aof-uring aof-epoll'
 jobs+=' respresume-fragment-1s-uring respresume-fragment-1s-epoll respresume-fragment-2s-uring respresume-fragment-2s-epoll respresume-cpu-1s-uring respresume-cpu-1s-epoll respresume-cpu-2s-uring respresume-cpu-2s-epoll respresume-neighbour-1s-uring respresume-neighbour-1s-epoll respresume-neighbour-2s-uring respresume-neighbour-2s-epoll'
 mkdir -p build/netfix2/logs
-candidate=(--candidate-binary "$PWD/build/netfix2/POST")
+# Some historical jobs find production units beside the candidate executable.
+# Use that colocated release only when it exactly matches the frozen POST arm.
+cmp -s build/tomokv build/netfix2/POST || { echo 'release differs from frozen POST' >&2; exit 1; }
+candidate=(--candidate-binary "$PWD/build/tomokv")
 if [ "${1:-}" != --regression-only ]; then
 GATE_NETFIX2_REORDER=1 GATE_ONLY_JOBS='netfix2-tls-watch netfix2-exclusive netfix2-fds netfix2-tls-idle netfix2-boot' \
     taskset -c 8-15 tests/gate.sh quick \
