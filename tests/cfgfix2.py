@@ -94,13 +94,16 @@ class Server:
 
 
 def file_case(a, mode, engine):
+    # Redis 7.4's own reason for each rejected physical line (None: deferred ACL load error).
     malformed = [
-        'user alice on >secret ~* +@all --requirepass ""',
-        'save 3600 1 --requirepass ""',
-        'latency-tracking-info-percentiles 50 --requirepass ""',
+        ('user alice on >secret ~* +@all --requirepass ""', None),
+        ('save 3600 1 --requirepass ""', 'Invalid save parameters'),
+        ('latency-tracking-info-percentiles 50 --requirepass ""',
+         'Invalid latency-tracking-info-percentiles parameters'),
+        ('help', 'Bad directive or wrong number of arguments'),
     ]
     results = []
-    for i, line in enumerate(malformed):
+    for i, (line, _) in enumerate(malformed):
         label = f'file-{mode}-{engine}-{i}'
         config = a.output / (label + '.conf')
         config.write_text('# line-number control\nrequirepass cg5-required\n' + line + '\n')
@@ -129,14 +132,16 @@ def file_case(a, mode, engine):
             assert c.must('SET', 'cg5-key', 'value') == b'OK'
     (a.output / f'file-{mode}-{engine}-observations.json').write_text(json.dumps(results, indent=2))
     assert all(not row['booted'] and row['exit_code'] == 1 for row in results), results
-    for line, row in zip(malformed, results):
-        if line.startswith('user '):
+    for (line, reason), row in zip(malformed, results):
+        if reason is None:
             # Redis defers unknown command names until ACL initialization.
             assert '--requirepass' in row['error'] and 'ACL' in row['error'], row
             continue
-        assert '*** FATAL CONFIG FILE ERROR' in row['error'], row
-        assert 'Reading the configuration file, at line 3' in row['error'], row
-        assert "'" + line + "'" in row['error'], row
+        # Redis's exact banner, physical line number, line text and reason.
+        lines = row['error'].splitlines()
+        banner = next(i for i, text in enumerate(lines) if text.startswith('*** FATAL CONFIG FILE ERROR'))
+        assert lines[banner + 1:banner + 4] == [
+            'Reading the configuration file, at line 3', ">>> '" + line + "'", reason], row
     return dict(rejected=len(malformed), positive_controls=1)
 
 

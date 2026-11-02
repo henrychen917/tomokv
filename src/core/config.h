@@ -1757,6 +1757,12 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
         if (words.empty()) continue;
         for (char& c : words[0])
             if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+        // CLI-only: Redis has no such directive, and a file must never exit successfully.
+        if (words[0] == "help") {
+            config_file_error(lineno, first, "Bad directive or wrong number of arguments");
+            ok = false;
+            continue;
+        }
         if (words[0] == "pin") {
             if (words.size() != 2 || (words[1] != "yes" && words[1] != "no")) {
                 config_file_error(lineno, first, "pin wants yes|no");
@@ -1815,8 +1821,13 @@ __attribute__((noipa)) inline int parse_config_file(const std::vector<std::strin
         const int rc = parse_config_args(args, cfg, st, 1, prog, &lengths, diagnostics);
         std::fclose(diagnostics);
         if (rc != kConfigParsed) {
+            // Redis prints the setter's reason alone: drop the CLI-shaped "--name: " prefix.
+            std::string text = reason && *reason ? reason : "Invalid configuration\n";
+            const std::string prefix = std::string(args.empty() ? "" : args[0]) + ": ";
+            if (text.compare(0, prefix.size(), prefix) == 0) text.erase(0, prefix.size());
+            while (!text.empty() && text.back() == '\n') text.pop_back();
             if (lines) config_file_error((*lines)[line_index].number,
-                (*lines)[line_index].text.c_str(), reason ? reason : "Invalid configuration");
+                (*lines)[line_index].text.c_str(), text.c_str());
             else if (reason) std::fputs(reason, stderr);
         }
         std::free(reason);
