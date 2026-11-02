@@ -340,11 +340,13 @@ freshness checks returned zero; `production-freshness.json` records the exact
 lists. Matching native companions are bound beside the frozen POST with their
 hashes in `companions.json`; the release bytes remain unchanged.
 
-The complete uring differential inventory passes: **954 comparisons**, with
-permanent seeds 7/19/20/23 and rotating seed 21, all four seed-19 MULTI
-replays in each atomic-1 lifetime, and every equivalence cell. The gate's strict
-fold validates 490 split/equivalence and 464 armed comparisons. This is the
-selected-job proof, not a full-gate wall-time or landing receipt.
+The complete differential inventory passes on **both engines: 954 comparisons
+each**, with permanent seeds 7/19/20/23 and rotating seed 21 (uring) / 22
+(epoll), all four seed-19 MULTI replays in each atomic-1 lifetime, and every
+equivalence cell. The gate's strict folds validate 490 split/equivalence and
+464 armed comparisons per engine. `differ-final.json` binds each plan, source,
+ordered leg journal and completion. This is the selected-job proof, not a
+full-gate wall-time or landing receipt.
 
 The broad sweep exposed a test-only compiler-launch failure in `rob_portable`: its
 positive portable ROB unit passed, but the planted-control helper treated
