@@ -1,0 +1,20 @@
+{
+  "arm": "PRE",
+  "namespace": "db0",
+  "domain": "lua",
+  "command": "PUBLISH",
+  "mode": "1s",
+  "batch": 1,
+  "atomic": 0,
+  "probe_sha256": "316199662a8a439703523c02884155917f42f7cff8480f7776088989d401281a",
+  "tracer_sha256": "bc2f91d9718e1d5d1bfb6a134210c4661859421bc87ec78cef1403d1b799ec38",
+  "total": 223,
+  "functions": {
+    "tomo_db0::IoLoop::pubsub_start_publish(tomo_db0::Client*, tomo_db0::Op&, bool)": 51,
+    "tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)": 141,
+    "tomo_db0::latency_tracking_start()": 13,
+    "tomo_db0::latency_tracking_finish(unsigned int, tomo_db0::Op const&, unsigned long)": 18
+  },
+  "clock_calls": 0,
+  "excluded_calls": 0
+}
