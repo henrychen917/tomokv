@@ -3,9 +3,9 @@
   "release_candidate": "/home/user/Projects/cx-atomfix6/build/tomokv",
   "release_sha256": "a0c8b0d8678e7732bcef579972b35dbb1071ddfdb2e741900d3f4892918d421c",
   "post_layout": "/home/user/Projects/cx-atomfix6/build/atomfix6/arms/POST-layout",
-  "post_sha256": "01323b988cb78b98b7e2df8d6ecb3895c3ca7e65d8e1e386a188178dc0db7894",
+  "post_sha256": "7c9db23622a3e3aadb48664f9c9acafdfef8e681a3ffba3a53c59546900581d8",
   "pad_a": "/home/user/Projects/cx-atomfix6/build/atomfix6/arms/PAD-A",
-  "pad_sha256": "34e210d11f7fbad4667578523b8e7e5692975d6567f3d5a0b0b9c1b4a23df557",
+  "pad_sha256": "5a5258682210fe3b09544eb6407b648651fc0420c562f3df32efc45d80539112",
   "matching_sections": true,
   "matching_symbols": true,
   "patch_offset": 1035012,
@@ -415,5 +415,11 @@
     "/home/user/Projects/cx-atomfix6/build/pre/third_party/lua/helpers/strbuf.o": "67b6db3dabf13a04d73052581ebacb477c2265ac8d6a1ef6236d3e1fd53ac0aa",
     "/home/user/Projects/cx-atomfix6/build/pre/third_party/lua/helpers/fpconv.o": "3f591d17f80dfd15b3790910a2ff1cbb3d458510295b17eefd472ffea12e9343"
   },
-  "limitation": "The exact twin is POST-layout, not the smaller release image. Measure the release null separately."
+  "limitation": "The exact twin is POST-layout, not the smaller release image. Measure the release null separately.",
+  "postprocess": {
+    "command": "objcopy --preserve-dates --compress-debug-sections=zlib",
+    "receipt": "docs/atomfix6/compressed-pad-images.json",
+    "uncompressed_post_sha256": "01323b988cb78b98b7e2df8d6ecb3895c3ca7e65d8e1e386a188178dc0db7894",
+    "uncompressed_pad_sha256": "34e210d11f7fbad4667578523b8e7e5692975d6567f3d5a0b0b9c1b4a23df557"
+  }
 }

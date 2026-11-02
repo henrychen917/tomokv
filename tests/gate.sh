@@ -1468,10 +1468,22 @@ job_atomfix6_units(){
   for flavor in asan tsan; do
     local sanitizer='-fsanitize=address,undefined'
     [ "$flavor" != tsan ] || sanitizer='-fsanitize=thread'
+    # DB0 delegates the process-wide Lua VM to the normal namespace, exactly as
+    # the release link does. Both namespaces remain fully instrumented; helper C
+    # objects are already in this parbuild and must be linked only once.
+    local -a normal_objects=()
+    if [ "$flavor" = asan ]; then
+      normal_objects=(build/mdbqsbr-asan/src/*/*.o)
+    else
+      for source in build/gate-cache/obj-core-tsan/src_*.o; do
+        case "$source" in *_main.o|*_version.o) continue;; esac
+        normal_objects+=("$source")
+      done
+    fi
     pausable taskset -c "$BUILD_CORES" tests/parbuild.sh "build/atomfix6-park-db0-$flavor" \
         "$PWD/build/gate-cache/obj-atomfix6-db0-$flavor" \
         "-std=c++20 -O1 -g -gz=zlib -march=native -pthread $sanitizer -fno-omit-frame-pointer -no-pie -DTOMO_CORE_CONCURRENCY_TEST -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I." \
-        '-luring -pthread -lssl -lcrypto -lm -Wl,--compress-debug-sections=zlib' \
+        "${normal_objects[*]} -luring -pthread -lssl -lcrypto -lm -Wl,--compress-debug-sections=zlib" \
         tests/atomfix6_park_unit.cc "${sources[@]}" >>"$TMPDIR/build.log" 2>&1 || park_db0_sanitized=0
   done
   for ns in normal db0; do

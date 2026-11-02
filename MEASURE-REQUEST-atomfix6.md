@@ -148,8 +148,8 @@ source hashes and exact arguments are retained with each audit result.
 |---|---|---|
 | PRE | `build/pre/tomokv` | `b09a48348a2f8483f4cf53a07801483edf4962853ee031310b9839da9dfc91ae` |
 | POST | `build/tomokv` | `a0c8b0d8678e7732bcef579972b35dbb1071ddfdb2e741900d3f4892918d421c` |
-| POST-layout | `build/atomfix6/arms/POST-layout` | `01323b988cb78b98b7e2df8d6ecb3895c3ca7e65d8e1e386a188178dc0db7894` |
-| PAD-A | `build/atomfix6/arms/PAD-A` | `34e210d11f7fbad4667578523b8e7e5692975d6567f3d5a0b0b9c1b4a23df557` |
+| POST-layout | `build/atomfix6/arms/POST-layout` | `7c9db23622a3e3aadb48664f9c9acafdfef8e681a3ffba3a53c59546900581d8` |
+| PAD-A | `build/atomfix6/arms/PAD-A` | `5a5258682210fe3b09544eb6407b648651fc0420c562f3df32efc45d80539112` |
 
 Release `.text`: PRE 9,021,623 bytes; POST 9,027,287 bytes (+5,664).
 Both common-image arms have 18,048,551 bytes of `.text`. No PAD-B was built.
@@ -217,7 +217,7 @@ GNU objcopy compressed debug sections in four generated control-object trees.
 Every allocated ELF section was hashed before and after and stayed identical;
 object timestamps are preserved and no executable instruction changed. The
 per-object before/after hashes are in `compressed-control-objects.json`. Release
-PRE/POST objects and all four delivered binary arms were left untouched.
+PRE/POST objects and binaries were left untouched.
 
 The initial broad live FIFO run overlapped debug-section compression on the lane
 cores and failed latency bounds in several legs despite zero reported ordering
@@ -244,3 +244,18 @@ Its logs and binary hashes are in `park-pre-expanded/`.
 A second debug-only compression pass covered 157 generated unit/sanitizer objects
 and saved 513,418,136 bytes. Allocated sections and modification timestamps stayed
 identical; `compressed-unit-objects.json` records every before/after digest.
+
+The two common-image PAD arms were subsequently debug-compressed before their
+first live validation. ELF program headers, every allocated section (including
+its address and file offset), section/symbol equality between twins, and the
+five-byte-only entry difference were all rechecked. The table above gives their
+final hashes; `compressed-pad-images.json` retains the uncompressed hashes and
+checks. This reduces disk use without changing their loaded image or behavior.
+
+The first expanded sanitizer attempt exposed a fixture link omission: DB0's
+scripting objects delegate Lua's process-wide implementation to the normal
+namespace. The DB0 sanitizer link now includes that namespace's fully instrumented
+objects, while linking the C helpers only once. The failed link attempt and its
+four red parked-head rows remain in the feature-group record; a complete unit-job
+rerun is scheduled with the corrected link. Normal-namespace sanitizer runs in
+that attempt already pass both read-local settings.

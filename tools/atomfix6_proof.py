@@ -12,6 +12,7 @@ GROUPS = {
         for m in ('1s', '2s') for r in (0, 1) for d in (1, 16)],
     'pad': ['atomfix6-live-1s-0-1', 'atomfix6-live-2s-0-16'],
     'fifo': ['txnorder_fifo_live'],
+    'park': ['atomfix6_units'],
     'units': '''atomic_units core_units exbatch_units splitlocal_units lbplanner_units
         flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units'''.split(),
     'atomic': '''atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting
@@ -62,6 +63,8 @@ if a.group == 'features':
     with (ROOT / 'docs/atomfix6/gates-test-expanded.log').open('w') as log:
         subprocess.run(['python3', 'tests/gates_test.py'], stdout=log,
                        stderr=subprocess.STDOUT, check=True)
+if a.group == 'persistence' and not a.fused:
+    subprocess.run(['python3', __file__, 'park', '--label', 'expanded-units-final'], check=False)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate
