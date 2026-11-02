@@ -37,6 +37,10 @@ def main():
     assert a.cores in ('8-15', '8,9,10,11,12,13,14,15'), a.cores
     root = a.output.resolve()
     root.mkdir(parents=True, exist_ok=True)
+    binary = Path(a.binary).resolve()
+    (root / 'arm.json').write_text(json.dumps(dict(
+        binary=str(binary), sha256=hashlib.file_digest(binary.open('rb'), 'sha256').hexdigest(),
+        cores=a.cores, affinity=sorted(os.sched_getaffinity(0)), locale='C'), indent=2) + '\n')
     scratch = root / 'work'
     scratch.mkdir(exist_ok=True)
     group, scripts = CASES[a.case]
