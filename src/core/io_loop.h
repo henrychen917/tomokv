@@ -1287,6 +1287,11 @@ private:
             // Do not swallow this silently: a failing accept with no trace is indistinguishable from
             // a hung server, which is exactly how the 1024-connection failure presented.
             self_->sig().accept_err++;
+            if (cqe->res == -EMFILE || cqe->res == -ENFILE) {
+                accept_armed_ref(kind) = false;
+                backoff_accept(kind);
+                return;
+            }
             rearm_accept(cqe, kind);
             return;
         }
@@ -1313,6 +1318,11 @@ private:
             const int fd = ::accept4(listener, nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC);
             if (fd < 0) {
                 if (errno == EINTR) continue;
+                if (errno == EMFILE || errno == ENFILE) {
+                    self_->sig().accept_err++;
+                    backoff_accept(kind);
+                    return taken;
+                }
                 if (errno != EAGAIN && errno != EWOULDBLOCK) self_->sig().accept_err++;
                 return taken;
             }
@@ -4744,7 +4754,7 @@ ordinary_shard_ready:
         else          sig.clear_oldest_age();
     }
 
-    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk, TrackingOn };
+    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk, TrackingOn, AcceptRetry };
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -4753,6 +4763,22 @@ ordinary_shard_ready:
         SlowlogArm slowlog_arm{};
         DeferredTimerKind kind = DeferredTimerKind::WaitZero;
     };
+
+    [[gnu::cold, gnu::noinline]] void backoff_accept(UrKind kind) {
+        // Stop level-triggered readiness as well as uring rearming. The existing
+        // owner-local timer service wakes the issuer; no per-command state or
+        // sleeping worker is introduced. Generation checks discard retired roles.
+        const int fd = kind == UrKind::UnixAccept ? unix_listen_fd_ :
+                       kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
+        if (epoll_) (void)ep_.del(fd);
+        try {
+            deferred_timers_.push_back(DeferredTimer{nullptr, static_cast<uint64_t>(kind),
+                now_ns() / 1000000ull + 100, accept_generation_, {}, DeferredTimerKind::AcceptRetry});
+        } catch (const std::bad_alloc&) {
+            std::fprintf(stderr, "Out of memory scheduling accept retry\n");
+            (void)srv_->request_signal_shutdown();
+        }
+    }
 
     int debug_sleep_timer_start(Client* client, uint64_t op_id, uint64_t delay_us,
                                 uint64_t slow_started_ns, const SlowlogArm& arm) {
@@ -4788,6 +4814,23 @@ ordinary_shard_ready:
         uint32_t completed = 0;
         for (size_t i = 0; i < deferred_timers_.size();) {
             const DeferredTimer timer = deferred_timers_[i];
+            if (timer.kind == DeferredTimerKind::AcceptRetry) {
+                if (now_ms < timer.deadline_ms) { ++i; continue; }
+                deferred_timers_[i] = deferred_timers_.back();
+                deferred_timers_.pop_back();
+                if (timer.slow_started_ns != accept_generation_ || self_->role() != Role::Ifid ||
+                    accept_quiescing_) continue;
+                const UrKind kind = static_cast<UrKind>(timer.op_id);
+                if (epoll_) {
+                    const int fd = kind == UrKind::UnixAccept ? unix_listen_fd_ :
+                                   kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
+                    if (fd >= 0 && !ep_.add(fd, EPOLLIN, ur_tag(kind, nullptr))) backoff_accept(kind);
+                } else {
+                    arm_accept(kind);
+                }
+                ++completed;
+                continue;
+            }
             const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
                 ? srv_->debug_sleep_complete(timer.deadline_ms)
                 : timer.kind == DeferredTimerKind::TrackingOn
@@ -4909,7 +4952,8 @@ ordinary_shard_ready:
         if (client_cron_was_armed_) deadline = std::min(deadline, client_cron_beat_ms_);
         // Connection timers have no external producer to wake their owner.
         for (const auto& timer : deferred_timers_)
-            if (timer.kind == DeferredTimerKind::WaitZero && timer.deadline_ms)
+            if ((timer.kind == DeferredTimerKind::WaitZero ||
+                 timer.kind == DeferredTimerKind::AcceptRetry) && timer.deadline_ms)
                 deadline = std::min(deadline, timer.deadline_ms);
             else if (timer.kind == DeferredTimerKind::TrackingOn)
                 // Owner acknowledgements publish a mailbox word, not an IO
