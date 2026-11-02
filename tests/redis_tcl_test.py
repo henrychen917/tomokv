@@ -11,6 +11,43 @@ from redis_tcl import counts, load_manifest, sha, validate_passing, ROOT
 
 
 class Controls(unittest.TestCase):
+    def test_blocked_failure_receipt_preserves_verdict_and_never_retries(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::cur_test witness
+set ::calls 0
+set ::queries 0
+proc send_data_packet {args} {}
+proc r {args} {
+    incr ::queries
+    error "diagnostic query failed"
+}
+proc wait_for_blocked_clients_count {count {maxtries 100} {delay 10} {idx 0}} {
+    incr ::calls
+    if {$maxtries != 7 || $delay != 3 || $idx != 2} {error "wait arguments changed"}
+    if {$count == 0} {return ready}
+    return -code error -errorcode {BLOCKED TIMEOUT} "original wait failure"
+}
+'''
+        check = r'''
+if {[catch {
+    if {[wait_for_blocked_clients_count 0 7 3 2] ne "ready" || $::queries != 0 || $::calls != 1} {
+        error "successful wait changed or queried the server"
+    }
+    set code [catch {wait_for_blocked_clients_count 1 7 3 2} result options]
+    if {$code != 1 || $result ne "original wait failure" ||
+        [dict get $options -errorcode] ne "BLOCKED TIMEOUT" || $::calls != 2} {
+        error "failed wait changed or was retried"
+    }
+    if {$::queries == 0} {error "failure receipt did not observe state"}
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check,
+            text=True, capture_output=True,
+            env=dict(os.environ, GATE_TCL_BLOCKED_DIAGNOSTIC='1'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('BLOCKED-DIAGNOSTIC test=witness expected=1', result.stdout)
+
     def test_printver_requires_observed_body_output(self):
         row = dict(file='unit/printver', events=[], failed=0, error=None,
                    complete=True, exit_code=0,
