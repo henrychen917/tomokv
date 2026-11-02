@@ -338,7 +338,12 @@ void test_config_rewrite() {
     std::string error;
     check(tomo::config_rewrite(error), "first rewrite");
     std::ifstream in(path); std::string body((std::istreambuf_iterator<char>(in)), {});
-    check(body.find("user reader on nopass ~* +get\n") != std::string::npos, "inline ACL survived rewrite");
+    // SV5.2: REWRITE no longer copies stale inline `user` lines from the original file; it writes
+    // the live ACL registry instead (none here, as this fixture does not initialize ACL). The
+    // full live-registry round trip is covered by the cfgfix2-acl gate witness.
+    check(body.find("user reader on nopass ~* +get\n") == std::string::npos, "stale inline ACL dropped by rewrite");
+    check(body.find("\nuser ") == std::string::npos && body.compare(0, 5, "user ") != 0,
+          "rewrite emits no user line without a live ACL registry");
     check(body.find("load \"/tmp/recovery source.tomo\"\n") != std::string::npos, "recovery source survived rewrite");
     check(body.find("overlap ") == std::string::npos, "rewrite does not emit retired overlap knobs");
     check(body.find("max-ziplist-") == std::string::npos, "stale encoding aliases were replaced");
