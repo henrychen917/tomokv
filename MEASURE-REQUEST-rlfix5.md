@@ -62,7 +62,9 @@ absolute counts/deltas and the non-GET/latency-on costs. The single-key
 parser fixtures include real production parse, lane/owner execution and
 completion; the extra scatter fixture uses eight distinct shards. Counters
 exclude fixture bodies and shared libraries. These are finite instruction
-counts, not throughput measurements. Latency-on cases include initial
+counts, not throughput measurements. `hit-trace-integrity.json` confirms lane
+capture work without owner execution in all 32 PRE/POST hit traces, with 96
+owner-route controls showing that the same filter detects owner execution. Latency-on cases include initial
 connection bookkeeping; they are not a steady-state throughput estimate.
 
 The zero-cost implementation reuses the shared classifier's already-decided
@@ -84,6 +86,10 @@ the same-key fixture. Marking every owner read makes later reads inspect their
 older owner slots. With read-local and tracking both on, the full per-command
 cost table is `docs/rlfix5/costs.md`; this previously skipped ordering work is
 now performed. Those costs are not hidden in the protected hit-path comparison.
+The protected hit traces start with a clean owner queue. In mixed command
+streams, newly populated owner slots can trigger existing conflict scans or
+owner fallbacks on later GET/MGET; those histories are outside this isolated
+hit census.
 
 Frozen arms (all under `build/rlfix5/`):
 
