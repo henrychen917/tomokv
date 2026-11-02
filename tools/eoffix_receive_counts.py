@@ -9,10 +9,11 @@ from wave14_counts import census, trace, save, sha
 ROOT = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('arm', choices=['pre', 'post'])
+p.add_argument('--tag', default='')
 a = p.parse_args()
 assert os.sched_getaffinity(0) <= set(range(8))
 source = ROOT/'build/eoffix/pre-source' if a.arm == 'pre' else ROOT
-label = a.arm+'-receive'
+label = a.arm+'-receive'+('-'+a.tag if a.tag else '')
 rows = []
 for ns in ('normal', 'db0'):
     binary = census.build(label, source, source/'build', ns, 'tests/eoffix_receive_scope.cc')

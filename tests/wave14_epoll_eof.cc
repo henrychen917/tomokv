@@ -48,6 +48,15 @@ struct NetcmdRegression {
                  client.recv_armed(), "actual EOF stops receive admission until input drains");
             need(client.rlen() == sizeof(payload)-1 && !client.closing(),
                  "all buffered input remains available to the ordinary parser");
+            client.set_blocked(true);
+            loop.deferred_timers_.push_back(IoLoop::DeferredTimer{&client, 0, 1, 0, {},
+                IoLoop::DeferredTimerKind::DebugSleepOk});
+            need(!loop.receive_eof_pass(0, 1) && !client.closing(),
+                 "EOF cannot cancel a pending synchronous control command");
+            need(client.rlen() == sizeof(payload)-1 && client.recv_armed(),
+                 "control wait retains its complete buffered suffix and EOF hold");
+            loop.deferred_timers_.pop_back();
+            client.set_blocked(false);
 #else
             need(loop.epoll_closes_.size() == 1 && loop.epoll_closes_[0] == &client,
                  "coalesced EOF queues the parked client for teardown");

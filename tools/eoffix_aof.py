@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('arm', choices=['pre', 'post'])
     parser.add_argument('--tag', required=True)
+    parser.add_argument('--fixture', choices=['aof', 'eof'], default='aof')
     parser.add_argument('--aof-normal', type=Path)
     parser.add_argument('--aof-db0', type=Path)
     args = parser.parse_args()
@@ -32,7 +33,9 @@ def main():
         obj, binary = out/(namespace+'.o'), out/namespace
         compile = original[:first] + ['-I'+str(source), '-I'+str(ROOT)]
         if namespace == 'db0': compile += ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0']
-        compile += ['-c', str(ROOT/'tests/eoffix_aof.cc'), '-o', str(obj)]
+        if args.fixture == 'eof' and args.arm == 'post': compile += ['-DTOMO_EOFFIX']
+        fixture = 'tests/eoffix_aof.cc' if args.fixture == 'aof' else 'tests/wave14_epoll_eof.cc'
+        compile += ['-c', str(ROOT/fixture), '-o', str(obj)]
         link = [x for x in original if not x.endswith('/src/main.o')]
         link[first:first] = [str(obj)]
         replacements = {'src/persist/aof.o': args.aof_normal, 'db0/src/persist/aof.o': args.aof_db0}
