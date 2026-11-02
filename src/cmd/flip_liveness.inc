@@ -34,8 +34,8 @@ bool IoLoop::flip_output_held(const Client* client) const {
 
 bool IoLoop::flip_output_hold() {
     if (!flip_liveness_enabled()) return true;
-    // IoDrain proved no socket send or serve is outstanding. Reserve before
-    // installing any pin; a failed allocation cannot leave a partially held IO.
+    // IoDrain proved each possible mover has no socket send or serve outstanding.
+    // Reserve before pinning; a failed allocation cannot leave a partially held IO.
     if (!flip_held_output_.empty()) std::abort();
     flip_stay_epoch_ = srv_->flip_epoch();
     flip_stayers_.clear();
@@ -49,7 +49,12 @@ bool IoLoop::flip_output_hold() {
     }
     for (Client* client : self_->clients()) {
         if (client->closing()) continue;
-        const auto kind = flip_immovable_kind(client);
+        auto kind = flip_immovable_kind(client);
+        // POLLOUT can change when the peer reads, even within this control pass.
+        // The IO-owned send/output state cannot: IoDrain accepted any remaining
+        // bytes or kernel pointer only on a surviving source. Preserve that
+        // stationary decision rather than pinning a newly writable socket.
+        if (!kind && (client->send_inflight() || !client->nothing_to_write())) kind = 3;
         if (kind) {
             flip_stayers_.push_back(client);
             srv_->flip_skipped_class_[kind - 1].fetch_add(1, std::memory_order_relaxed);

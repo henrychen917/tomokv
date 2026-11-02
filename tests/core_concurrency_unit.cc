@@ -1220,6 +1220,7 @@ int main(int argc, char** argv) {
     else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
     else if (row == "flipfix5") T::flipfix5_all();
     else if (row == "flipfix7") { for (unsigned db : {1u, 16u}) {
+            T::flipfix7_readiness(db);
             T::flipfix7_output(db); T::flipfix7_borrow(db); T::flipfix7_coordinator(db);
             for (unsigned atomic : {0u, 1u}) T::flipfix7_blocked(db, atomic);
         } }

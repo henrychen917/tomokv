@@ -1,0 +1,13 @@
+ARMED flipfix7 readiness-cut db1
+ARMED flipfix7 owned-output db1
+ARMED flipfix7 deferred-borrow db1
+ARMED flipfix7 coordinator-frame db1
+ARMED flipfix7 blocked-continuation db1 atomic0
+ARMED flipfix7 blocked-continuation db1 atomic1
+ARMED flipfix7 readiness-cut db16
+ARMED flipfix7 owned-output db16
+ARMED flipfix7 deferred-borrow db16
+ARMED flipfix7 coordinator-frame db16
+ARMED flipfix7 blocked-continuation db16 atomic0
+ARMED flipfix7 blocked-continuation db16 atomic1
+PASS core concurrency flipfix7 (state assertions fired)

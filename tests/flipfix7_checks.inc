@@ -1,4 +1,46 @@
 // Serverless states at the exact production drain and deferred-serve boundary.
+static void flipfix7_readiness(unsigned databases) {
+    Fixture f(false, 8, 16, databases);
+    std::string error;
+    require(f.server.flip_begin(7, 1, f.io_id, error) &&
+            f.server.flip_final_role(f.io_id) == Role::Ifid, "readiness survivor source");
+    int sockets[2];
+    require(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, sockets) == 0,
+            "readiness socketpair");
+    char payload[8192]{};
+    size_t sent = 0, received = 0;
+    ssize_t n;
+    while ((n = ::send(sockets[0], payload, sizeof(payload), MSG_NOSIGNAL)) > 0) sent += n;
+    require(sent && n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK), "socket really full");
+    Client client(sockets[0]); f.client(client);
+    f.server.thread(f.io_id).add_client(&client); f.server.client_accepted();
+    client.append_borrow_segment(payload, sizeof(payload), f.sid());
+    client.set_send_inflight(true);
+    f.server.flip_stage_.store(FlipStage::IoDrain);
+    require(f.io.flip_immovable_kind(&client) == 3 && f.io.flip_io_drained(),
+            "full socket accepted only as stationary at IoDrain");
+    while ((n = ::recv(sockets[1], payload, sizeof(payload), 0)) > 0) received += n;
+    require(received == sent && n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK) &&
+            f.io.flip_immovable_kind(&client) == 0, "peer drained between the two POLLOUT checks");
+    require(f.io.flip_output_hold() && f.io.flip_client_stays(&client) &&
+            !f.io.flip_output_held(&client) && !client.serve_pending() &&
+            f.io.flip_borrow_held_, "readiness change preserves stationary send and borrow ownership");
+    require(f.server.flip_skipped_class_[2].load() == 1, "readiness survivor counted once");
+    client.set_send_inflight(false); // the marker models an outstanding CQE; no SQE was submitted
+    unsigned releases = 0;
+    client.release_all_segments([&](int32_t sid, const char* ptr) {
+        require(sid == f.sid() && ptr == payload, "readiness borrow identity"); ++releases;
+    });
+    require(releases == 1, "readiness borrow released once");
+    f.server.flip_stage_.store(FlipStage::Rollback); f.io.flip_output_release();
+    require(!f.io.flip_borrow_held_ && f.io.pending_serve_.empty(), "readiness rollback has no synthetic serve");
+    f.server.flip_stage_.store(FlipStage::Idle);
+    f.server.thread(f.io_id).remove_client(&client);
+    f.server.thread(f.io_id).release_wb_slot(client.wb_slot()); f.server.client_released();
+    ::close(sockets[0]); ::close(sockets[1]);
+    std::printf("ARMED flipfix7 readiness-cut db%u\n", databases);
+}
+
 static void flipfix7_output(unsigned databases) {
     Fixture f(false, 8, 16, databases);
     Client client(-1);
