@@ -1,9 +1,36 @@
 [
   {
     "run": "post-v2-main-uring",
+    "job": "differ-armed-0",
+    "verdict": [
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-armed-0/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1042441 recorded comparison witnesses, 230 legs)",
+      "DIFFER GATE: pass=231 fail=0 runtime=9m30s"
+    ]
+  },
+  {
+    "run": "post-v2-main-uring",
+    "job": "differ-armed-1",
+    "verdict": [
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-armed-1/differ"
+    ]
+  },
+  {
+    "run": "post-v2-main-uring",
     "job": "differ-split-0",
     "verdict": [
-      "DIFFER matrix: atomic={0} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-split-0/differ"
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-split-0/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1065682 recorded comparison witnesses, 235 legs)",
+      "DIFFER GATE: pass=235 fail=0 runtime=9m20s"
+    ]
+  },
+  {
+    "run": "post-v2-main-uring",
+    "job": "differ-split-1",
+    "verdict": [
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-split-1/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1082791 recorded comparison witnesses, 239 legs)",
+      "DIFFER GATE: pass=239 fail=0 runtime=9m25s"
     ]
   },
   {
@@ -19,7 +46,17 @@
     "run": "post-v2-main-epoll",
     "job": "differ-armed-1",
     "verdict": [
-      "DIFFER matrix: atomic={1} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-armed-1/differ"
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-armed-1/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1059647 recorded comparison witnesses, 234 legs)",
+      "DIFFER GATE: pass=235 fail=0 runtime=9m05s"
+    ]
+  },
+  {
+    "run": "post-v2-main-epoll",
+    "job": "differ-equivalence",
+    "verdict": [
+      "DIFFER matrix: atomic={} seeds={7 19 20 23 24} legs=0 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-equivalence/differ",
+      "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
     ]
   },
   {

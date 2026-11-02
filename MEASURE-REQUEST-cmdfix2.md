@@ -260,8 +260,11 @@ rows.
   along with the live control arms and blockfix supplemental targets. All
   **five `make -q` checks return 0**. The phony live-arm recipe is checked via
   its two concrete build roots. See `freshness.json` and `local-checks`.
-* Final broad selections and supplemental fused/notification/Tcl selections
-  are running. Their exact rows and failures will be recorded before delivery.
+* The final epoll broad selection passes **202 rows, zero failures**. Its
+  differential subjobs pass **941 rows** (235 split/atomic=0, 239 split/atomic=1,
+  231 fused/atomic=0, 235 fused/atomic=1, one mode-equivalence row), with zero
+  failures. Final uring and supplemental fused/notification/Tcl selections
+  are running; their exact rows and failures will be recorded before delivery.
 * `git diff 9d6ab5526 --check`, gate shell syntax, and Python syntax checks
   pass. Debug compression of unit artifacts preserves every allocated ELF
   section; it does not alter any delivered arm. `build/` is about 14 GiB.
