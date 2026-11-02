@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=release_batteries atomic_floor replyoff aof_frame aof-epoll snapshot-epoll; NOT A RECEIPT

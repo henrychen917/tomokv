@@ -54,7 +54,8 @@ def runtime_identity(before, after):
             start = 12 + ((namesz + 3) & ~3)
             assert kind == 3 and ad[12:12 + namesz] == b'GNU\0'
             assert ad[:start] == bd[:start] and ad[start + descsz:] == bd[start + descsz:]
-            ignored.append((a[4] + start, a[4] + start + descsz, 'GNU build-id descriptor'))
+            ignored.append((a[4] + start, a[4] + start + descsz,
+                            'GNU build-id descriptor (exposed by INFO redis_build_id)'))
         else:
             assert ad == bd, ('allocated section bytes changed', name)
         rows.append(dict(section=name, address=a[3], size=a[5],
@@ -77,8 +78,10 @@ def runtime_identity(before, after):
                 after=str(after.relative_to(ROOT)), before_sha256=digest(left),
                 after_sha256=digest(right), allocated_sections=rows,
                 load_segments=segments, excluded_metadata=ignored,
-                meaning='Identical instructions, allocated data, relocations, addresses and segment layout. '
-                        'Only non-runtime debug metadata, GNU build-id and the section-table offset may differ.')
+                meaning='Identical instructions, nonidentity allocated data, relocations, addresses and segment layout. '
+                        'Only debug metadata, GNU build-id and the section-table offset may differ.',
+                observable_metadata='INFO redis_build_id can reflect the new GNU build-id. '
+                                    'The original frozen POST remains the tested and measurement arm.')
 
 
 def identity_controls(binary):
@@ -151,7 +154,7 @@ def main():
             assert now == row['sha256']
         row['sha256'] = now
     manifest.write_text(json.dumps(identity, indent=2) + '\n')
-    print('Comment-only R7 parity repaired. Rebuilt production runtime equals the frozen POST.')
+    print('Comment-only R7 parity repaired. Rebuilt instructions, nonidentity data and loaded layout equal frozen POST.')
 
 
 if __name__ == '__main__':

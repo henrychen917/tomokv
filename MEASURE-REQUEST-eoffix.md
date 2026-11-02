@@ -246,3 +246,9 @@ rootcore functions, segments, WAITAOF and MISCONF jobs, plus
 `infofix_compat-loadaof`; their own mode/engine matrices and assertions are
 unchanged. The function history checks cover the existing persistence drain's
 interaction with snapshot sealing.
+
+The broad `complete-live-epoll` matrix passes all 226 gate rows, covering the
+four feature batteries, transaction/AOF ordering, client and monitor controls,
+blocking scripts, protocol errors, buffered parsing and reply policy. Its raw
+run is `build/gate-run.Sp1JIE`. Separate persistence/release matrices and the
+equivalent uring jobs are still running or queued.
