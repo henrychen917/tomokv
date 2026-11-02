@@ -1,0 +1,30 @@
+{
+  "revision": "b448f2878b9cd24f57c76c14a96f1386f1ee099f",
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv"
+  ],
+  "exit_code": 0,
+  "source": "/home/user/Projects/cx-wave14/build/wave14/landing-r7-final",
+  "gate_before_sha256": "720398e2d4a4591156469c274d437b430befbaa8723d1efaf97904f3fff49c51",
+  "gate_after_sha256": "a5f583175041ac5d5057a700b0604c9489885e6a0bd300a571fbc2ba4a98f69d",
+  "checked_in_gate_sha256": "720398e2d4a4591156469c274d437b430befbaa8723d1efaf97904f3fff49c51",
+  "expected_quick": 1090,
+  "expected_full": 1107,
+  "status": "COMPLETED"
+}

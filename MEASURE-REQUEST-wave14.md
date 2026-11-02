@@ -79,7 +79,7 @@ to expose EOF. Both namespaces fail exactly at the missing teardown assertion;
 both open-peer mode controls pass. `jobs/epoll-eof-before.json` records the
 gate's private diagnostic job. An isolated candidate preserves FIN in the
 existing deferred-close queue. That trial is **not landed**. Its native
-counterexample passes, but its full Tcl run has unrelated tracking-order
+counterexample passes, but its full Tcl run has separate, unattributed tracking-order
 failures, and a further half-close control does not establish preservation of
 all queued input across close. `epoll-eof-candidate.patch` records the rejected
 trial; none of its source or six selected budget changes enter production.
@@ -398,8 +398,10 @@ failure remains evidence against restoring its guard-only promotion.
 because witnessfix removes seven tests of the retired Tcl retry and adds
 one no-retry check; every other lane test method remains. The method inventory
 is recorded in `gates-test-method-inventory.json`. `abba_selftest` passed again in
-a fresh throwaway landing copy with 1090/1107 and the final known-difference
-labels. Source identity lint passed for all 59 C++ units in both namespaces
+a fresh throwaway landing copy with 1090/1107, the final known-difference
+labels and both private EOF diagnostics (`abba-r7-final-copy.json`). The final
+standalone harness run again passes 77/77 tests; all 12 Tcl observer controls
+pass (`gate-unit-final.json`). Source identity lint passed for all 59 C++ units in both namespaces
 and six shared C units, including the stable-assertion failure checks. The
 checked-in EXPECT values were never edited.
 
