@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import resource
+import re
 import selectors
 import socket
 import ssl
@@ -24,7 +25,8 @@ import _netfix as n
 
 def arguments():
     p = argparse.ArgumentParser()
-    p.add_argument('--case', choices=('tls-watch', 'exclusive', 'fds', 'tls-idle', 'boot'), required=True)
+    p.add_argument('--case', choices=('tls-watch', 'exclusive', 'fds', 'tls-idle', 'boot', 'tcl-fds'), required=True)
+    p.add_argument('--mode', choices=('1s', '2s'))
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', required=True)
@@ -57,8 +59,10 @@ def connect(a, version=None):
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    ctx.minimum_version = ctx.maximum_version = getattr(ssl.TLSVersion, 'TLSv1_' + version)
-    ctx.set_ciphers('ECDHE-RSA-AES128-GCM-SHA256')
+    ctx.minimum_version = ctx.maximum_version = getattr(ssl.TLSVersion, 'TLSv1_' + ('2' if version == 'bio' else version))
+    # CBC cannot use kTLS; this exercises the memory-BIO ciphertext completion
+    # path as well as TLS 1.3's fd BIO and TLS 1.2's fully offloaded path.
+    ctx.set_ciphers('ECDHE-RSA-AES256-SHA384' if version == 'bio' else 'ECDHE-RSA-AES128-GCM-SHA256')
     c = _lib.Conn.__new__(_lib.Conn)
     c.host, c.port = '127.0.0.1', a.port + 1
     raw = socket.create_connection((c.host, c.port), timeout=4)
@@ -85,7 +89,7 @@ def argv(a, directory, mode, engine, db, extra, oracle=False):
 
 
 @contextmanager
-def process(a, label, mode='2s', engine='uring', db=16, extra=(), limit=None, oracle=False):
+def process(a, label, mode='2s', engine='uring', db=16, extra=(), limit=None, oracle=False, pass_fds=()):
     directory = a.output / label
     directory.mkdir(parents=True, exist_ok=True)
     cmd = argv(a, directory, mode, engine, db, extra, oracle)
@@ -94,7 +98,7 @@ def process(a, label, mode='2s', engine='uring', db=16, extra=(), limit=None, or
     (directory / 'command.json').write_text(json.dumps(cmd))
     with (directory / 'server.log').open('w') as log:
         p = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT,
-                             env=dict(os.environ, LC_ALL='C'), start_new_session=True)
+                             env=dict(os.environ, LC_ALL='C'), start_new_session=True, pass_fds=pass_fds)
         p.logpath = directory / 'server.log'
         try:
             yield p
@@ -179,7 +183,7 @@ def exclusive(a, label, mode, engine, db):
     return '3 occupied endpoints refused with exit 1; first instance retained data'
 
 
-def fds(a, label, mode, engine, db):
+def fds_budget(a, label, mode, engine, db):
     with process(a, label, mode, engine, db, tls_args(a), limit=200) as p:
         ready(a, p)
         with closing(connect(a)) as admin:
@@ -209,6 +213,67 @@ def fds(a, label, mode, engine, db):
     return dict(maxclients=mc, own_fds=own, answered=len(replies), rejected=sum(r.startswith(b'-ERR') for r in replies))
 
 
+def fds_backoff(a, label, mode, engine, db):
+    # Leave known inherited descriptors open in this test-only child. This
+    # forces real fd-table exhaustion even when a multishot uring accept has
+    # captured the submitting task's old RLIMIT (prlimit-after-boot is insufficient).
+    inherited = [os.open('/dev/null', os.O_RDONLY) for _ in range(130)]
+    sockets = []
+    try:
+        with process(a, label, mode, engine, db, limit=220, pass_fds=inherited) as p:
+            ready(a, p)
+            with closing(connect(a)) as admin:
+                assert admin.must('PING') == b'PONG'
+                for _ in range(100):
+                    s = socket.create_connection(('127.0.0.1', a.port), timeout=3)
+                    s.sendall(_lib.encode('PING'))
+                    sockets.append(s)
+                time.sleep(.55)
+                assert admin.must('PING') == b'PONG'
+                # Free accepted fds; queued accepts must resume on their timer.
+                for s in sockets:
+                    s.close()
+                sockets.clear()
+                with closing(connect(a)) as resumed:
+                    assert resumed.must('PING') == b'PONG'
+    finally:
+        for s in sockets:
+            s.close()
+        for fd in inherited:
+            os.close(fd)
+    assert p.returncode == 0
+    errors = re.findall(r'accept_err=(\d+)', p.logpath.read_text())
+    assert errors, 'shutdown did not report accept attempts'
+    attempts = int(errors[-1])
+    assert 1 <= attempts <= 256, ('EMFILE window absent or accept busy-spin', attempts)
+    return dict(forced_emfile_attempts=attempts, pending_connection='resumed')
+
+
+def fds(a, label, mode, engine, db):
+    results = {}
+    for test in (fds_budget, fds_backoff):
+        try:
+            results[test.__name__] = test(a, label + '-' + test.__name__, mode, engine, db)
+        except Exception:
+            results[test.__name__] = traceback.format_exc()
+    assert all(isinstance(v, dict) for v in results.values()), results
+    return results
+
+
+def tcl_fds(a, label, mode, engine, db):
+    with process(a, label, mode, engine, db, limit=200) as p:
+        ready(a, p)
+        # The readiness connection must retire before the exact two-client cap.
+        time.sleep(.1)
+        run = subprocess.run(['tclsh', 'tests/netfix2.tcl',
+                              str(Path(a.oracle).resolve().parents[1]), str(a.port)],
+                             capture_output=True, text=True, timeout=15)
+        assert run.returncode == 0, run.stdout + run.stderr
+        assert '6 assertions' in run.stdout
+    assert p.returncode == 0
+    return run.stdout.strip()
+
+
 def tls_idle(a, label, mode, engine, db):
     with process(a, label, mode, engine, db, tls_args(a) + ['--timeout', '1']) as p:
         ready(a, p)
@@ -224,9 +289,12 @@ def tls_idle(a, label, mode, engine, db):
         # output follows the snapshot. Subtract the actual preceding wire reply,
         # not an estimate from another INFO (whose length can change).
         with closing(connect(a)) as admin:
-            for version in (None, '3', '2'):
+            for version in (None, '3', '2', 'bio'):
+                fallback = int(info(admin)[b'tls_ktls_fallback'])
                 with closing(connect(a, version)) as c:
                     assert c.must('PING') == b'PONG'
+                    if version == 'bio':
+                        assert int(info(admin)[b'tls_ktls_fallback']) > fallback, 'memory-BIO fallback never armed'
                     before_body = admin.must('INFO', 'stats')
                     before = dict(l.split(b':', 1) for l in before_body.splitlines() if b':' in l)
                     payload = b'q' * 10000
@@ -239,7 +307,7 @@ def tls_idle(a, label, mode, engine, db):
                     expected = 10 * 10010 + len(before_body) + len(str(len(before_body))) + 5
                     assert outgoing == expected, (version, outgoing, expected)
     assert p.returncode == 0
-    return dict(busy_tls13_pings=pings, exact_byte_paths=3)
+    return dict(busy_tls13_pings=pings, exact_byte_paths=4)
 
 
 def boot(a, label, mode, engine, db):
@@ -277,7 +345,7 @@ def main():
     results = {}
     failed = []
     test = globals()[a.case.replace('-', '_')]
-    for mode in ('2s', '1s'):
+    for mode in (a.mode,) if a.mode else ('2s', '1s'):
         for engine in ('uring', 'epoll'):
             for db in (1, 16):
                 label = f'{a.case}-{mode}-{engine}-db{db}'

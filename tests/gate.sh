@@ -5518,7 +5518,8 @@ reject_boot --port 0 --tls-port "$TLS_PORT" --tls-cert-file "$TLS_DIR/server.crt
     && ok "reject invalid tls-ciphers" || bad "reject invalid tls-ciphers"
 
 tlsboot(){ # auth-mode [extra TLS knobs]
-  local auth=$1 arg previous= thread_mode=; shift
+  local auth=$1 arg previous= thread_mode=2s; shift
+  [ "${GATE_TXN_FUSED:-0}" != 1 ] || thread_mode=fused
   local -a ratio=(--ratio "$GATE_RATIO")
   # Only the value following --thread-mode selects the geometry; unrelated
   # values (for example a password of "fused") must retain the split argv.
@@ -5533,7 +5534,8 @@ tlsboot(){ # auth-mode [extra TLS knobs]
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
   taskset -c $CORES "$CANDIDATE_BINARY" --databases 1 --port "$PORT" --tls-port "$TLS_PORT" \
-      --bind 127.0.0.1 --shards 16 "${ratio[@]}" --protected-mode no --dir "$TLS_DIR" --save '' \
+      --bind 127.0.0.1 --shards 16 --thread-mode "$thread_mode" "${ratio[@]}" \
+      --net-io "${GATE_NET_IO:-uring}" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
       >"$SRVLOG" 2>&1 &
@@ -6033,7 +6035,11 @@ job_redis_tcl(){
     if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
         --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
         --baseport "$((PORT+2))" "${selection[@]}" \
-        --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
+        --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1 &&
+        py tests/netfix2.py --case tcl-fds --mode "$mode" --binary "$CANDIDATE_BINARY" \
+          --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --ratio "$GATE_RATIO" \
+          --port "$PORT" --output "$TMPDIR/netfix2-tcl-$mode" \
+          >"$TMPDIR/netfix2-tcl-$mode.log" 2>&1; then
       say "$label" ok; ledger ok "$label" 0
     else
       passed=0; say "$label" FAIL; ledger FAIL "$label" 0

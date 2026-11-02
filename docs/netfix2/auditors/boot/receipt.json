@@ -1,0 +1,55 @@
+[
+  {
+    "source": "/home/user/Projects/round5-read/tests/io-loop/resp.py",
+    "source_sha256": "b6925c67ee19a29fd3d3120ddd08698e56973cddfdf65a324f2d71f8dc578e5b",
+    "adapted_sha256": "c3c40fe6967701abf54cdbad06e6fb2684ed2a2118ad1142ba672796bc9a98c0"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/io-loop/t02_aof_bind_failure.py",
+    "source_sha256": "b445b32a0767f9c6102f4c31eb8a89da14401e56214d5e690bedd075bb18c6bb",
+    "adapted_sha256": "ea35a108ee65a305bb439f14517fb8d32aa3ac5676c96d259011123b72b755c4"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/io-loop/t02b_aof_bind_banner.sh",
+    "source_sha256": "234de4e9ae3275fe60dc899a31c453b48cae30bcc3327fe29a5a176b1392ea66",
+    "adapted_sha256": "c14bb7760bb274f8a94fb9eec0843fcce6dc42dda356804d587af85a8abb2d30"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/io-loop/t03_banner_race.py",
+    "source_sha256": "956c60d7bd722f0a1b342cae8a5592793afbca0e807026b3bd57d591db1bc089",
+    "adapted_sha256": "fb7febf8249d195532c3b041127bb054dbc8b44cccb441a29b2c434105a9a4cc"
+  },
+  {
+    "script": "t02_aof_bind_failure.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/t02_aof_bind_failure.py"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "t02b_aof_bind_banner.sh",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "bash",
+      "/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/t02b_aof_bind_banner.sh"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "t03_banner_race.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/t03_banner_race.py"
+    ],
+    "exit": 0
+  }
+]

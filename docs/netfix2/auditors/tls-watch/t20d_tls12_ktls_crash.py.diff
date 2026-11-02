@@ -1,0 +1,20 @@
+--- audit/t20d_tls12_ktls_crash.py
++++ confined-POST/t20d_tls12_ktls_crash.py
+@@ -6,7 +6,7 @@
+ r = Results("t20d_tls12_ktls_crash")
+ certs = tls_certs(os.path.join(LOGDIR, "tls"))
+ VAL = b"q" * 20000
+-port, tport = 22240, 22241
++port, tport = 21140, 21141
+ for mode in ("2s", "1s"):
+     args = ["--thread-mode", mode, "--tls-port", str(tport),
+             "--tls-cert-file", os.path.join(certs, "server.crt"),
+@@ -27,6 +27,6 @@
+         res = ("died", repr(e)[:80])
+     t.close(); time.sleep(0.5)
+     alive = s.alive(); rc = s.stop()
+-    r.check("%s TLS1.2 (tls_ktls_active=%s) tracking+WATCH GET: server aborts" % (mode, ktls),
+-            res[0] == "died" and not alive and rc == -6, "client=%s rc=%s" % (res, rc))
++    r.check("%s TLS1.2 (tls_ktls_active=%s) tracking+WATCH GET: server replies and survives" % (mode, ktls),
++            res == ("replied", True) and alive and rc == 0, "client=%s rc=%s" % (res, rc))
+ r.summary()

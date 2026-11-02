@@ -1,0 +1,162 @@
+[
+  {
+    "namespace": "normal",
+    "command": "TLSGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 1037,
+    "post": 1037,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "command": "TLSGET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 21714,
+    "post": 21714,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "command": "TLSGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 1657,
+    "post": 1657,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "command": "TLSGET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 21559,
+    "post": 21559,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "command": "TLSGET-watch",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 1304,
+    "post": 1255,
+    "delta": -49
+  },
+  {
+    "namespace": "normal",
+    "command": "TLSGET-watch",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 28894,
+    "post": 28690,
+    "delta": -204
+  },
+  {
+    "namespace": "normal",
+    "command": "TLSGET-watch",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 1924,
+    "post": 1875,
+    "delta": -49
+  },
+  {
+    "namespace": "normal",
+    "command": "TLSGET-watch",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 28739,
+    "post": 28535,
+    "delta": -204
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 884,
+    "post": 884,
+    "delta": 0
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 20817,
+    "post": 20817,
+    "delta": 0
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 1117,
+    "post": 1117,
+    "delta": 0
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 20275,
+    "post": 20275,
+    "delta": 0
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET-watch",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 1109,
+    "post": 1055,
+    "delta": -54
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET-watch",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 26653,
+    "post": 26289,
+    "delta": -364
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET-watch",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "pre": 1342,
+    "post": 1288,
+    "delta": -54
+  },
+  {
+    "namespace": "db0",
+    "command": "TLSGET-watch",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "pre": 26111,
+    "post": 25747,
+    "delta": -364
+  }
+]

@@ -1,0 +1,11 @@
+--- audit/t12c_fd_reserve_hang.py
++++ confined-POST/t12c_fd_reserve_hang.py
+@@ -7,7 +7,7 @@
+ import os, socket, subprocess, sys, time
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import netlib as nl
+-PORT, TLS = 22577, 22578
++PORT, TLS = 21177, 21178
+ for label, extra in (("2s epoll + tls", ["--thread-mode", "2s", "--net-io", "epoll"] + nl.tls_args(TLS)),
+                      ("2s uring (control)", ["--thread-mode", "2s"])):
+     logpath = os.path.join(nl.WORK, "t12c.log"); log = open(logpath, "wb")

@@ -1,0 +1,11 @@
+--- audit/t03_banner_race.py
++++ confined-POST/t03_banner_race.py
+@@ -5,7 +5,7 @@
+ from resp import *
+ pin_self()
+ N = int(os.environ.get('T03_N', '15'))
+-port = 22022
++port = 21122
+ out = {}
+ for name, args in [('2s-uring', ['--thread-mode', '2s']), ('2s-epoll', ['--thread-mode', '2s', '--net-io', 'epoll']),
+                    ('1s', ['--thread-mode', '1s']), ('2s-rl1', ['--thread-mode', '2s', '--read-local', '1'])]:

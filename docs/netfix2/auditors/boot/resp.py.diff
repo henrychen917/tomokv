@@ -1,0 +1,30 @@
+--- audit/resp.py
++++ confined-POST/resp.py
+@@ -1,21 +1,21 @@
+ #!/usr/bin/env python3
+ """Shared helpers for the round-5 io-loop black-box tests.
+ 
+-Raw RESP over sockets. Servers and clients pinned to cores 64-79, ports 22000-22099 only.
++Raw RESP over sockets. Servers and clients pinned to cores 8-15, ports 21100-21199 only.
+ Never uses pkill; every server is stopped by its own PID and the port is re-checked with ss.
+ """
+ import os, socket, subprocess, time, signal
+ 
+-TOMO = '/home/user/Projects/bench-bins/tomokv-headline-105c5818cc'
++TOMO = '/home/user/Projects/cx-netfix2/build/netfix2/POST'
+ REDIS = '/home/user/Projects/redis/src/redis-server'
+-CORES = '64-79'
+-PORT_MIN, PORT_MAX = 22000, 22099
+-SCRATCH = '/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/r5-ioloop'
++CORES = '8-15'
++PORT_MIN, PORT_MAX = 21100, 21199
++SCRATCH = '/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/work'
+ 
+ 
+ def pin_self():
+     try:
+-        os.sched_setaffinity(0, set(range(64, 80)))
++        os.sched_setaffinity(0, set(range(8, 16)))
+     except OSError:
+         pass
+ 

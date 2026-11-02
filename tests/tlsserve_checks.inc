@@ -303,6 +303,36 @@ template <Transport T> void transport() {
 inline void run() {
     cases = 0;
     transport<Plain>(); transport<Ktls>(); transport<Userspace>();
+    if (selected("suppressing-borrow")) {
+        context = "TLS suppressing drain defensive copy";
+        Ring ring;
+        WbEngine wb;
+        Client c(-1);
+        c.set_tls_slot(0);
+        struct State { std::string payload = "borrowed"; unsigned releases = 0; } state;
+        std::atomic<bool> limits{false};
+        LoopSignals signals;
+        uint32_t now = 10;
+        wb.bind(&ring, &state, [](void* p, int32_t shard, const char* ptr) {
+            auto& s = *static_cast<State*>(p);
+            require(shard == 7 && ptr == s.payload.data(), "suppressed release identity");
+            ++s.releases;
+            s.payload.assign(s.payload.size(), 'X');
+        }, nullptr, [](void*, Client&, Op&) {}, &limits, nullptr,
+        [](void*, Client&) { return false; }, &now, &signals);
+        Op* op = c.rob().acquire();
+        require(op, "suppressed borrow acquired");
+        op->reply.append("$8\r\n", 4);
+        op->zc_ptr = state.payload.data(); op->zc_len = 8; op->zc_shard = 7;
+        c.rob().publish(); op->state.store(OpState::Done, std::memory_order_release);
+        bool allowed = false, borrowed = false;
+        require(wb.prepare_suppressing(c, allowed, false), "suppressed drain ran");
+        require(staged(c, &borrowed) == "$8\r\nborrowed\r\n" && !borrowed &&
+                state.releases == 1 && signals.tls_zc_suppressed == 1,
+                "copied bytes survive release poisoning, no BORROW segment");
+        wb.teardown(c);
+        ++cases;
+    }
     require(cases != 0, "selected-state-entered");
     std::printf("PASS tlsserve: %u deterministic cases (three transports, both tracking states, "
                 "coded/plain, uring/epoll, classified/unclassified serve, prepare API)\n", cases);

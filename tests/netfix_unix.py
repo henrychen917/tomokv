@@ -6,6 +6,7 @@ import socket
 import tempfile
 import traceback
 import _netfix as n
+import netfix2
 
 
 def main():
@@ -32,6 +33,24 @@ def main():
                             original.listen(16)
                         else:
                             original.close()
+                    if kind == 'live' and not oracle:
+                        # NT5.3 release rule: preserve an occupied Unix endpoint.
+                        # Redis's live-path unlink remains recorded by its arm.
+                        inode = path.stat().st_ino
+                        with netfix2.process(a, label, mode, engine,
+                                             extra=['--unixsocket', str(path)]) as proc:
+                            assert proc.wait(15) == 1
+                            assert 'Address already in use' in proc.logpath.read_text()
+                        assert path.stat().st_ino == inode
+                        original.settimeout(3)
+                        with socket.socket(socket.AF_UNIX) as probe:
+                            probe.connect(str(path))
+                            # The exclusive probe also queued a connection.
+                            accepted, _ = original.accept()
+                            accepted.close()
+                        results[label] = 'refused live endpoint; original inode retained'
+                        print('PASS', label, flush=True)
+                        continue
                     with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
                                   extra=['--unixsocket', str(path), '--unixsocketperm', '700']):
                         with closing(n.connect(a.port, unix=path)) as c:

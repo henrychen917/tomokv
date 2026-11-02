@@ -1,0 +1,39 @@
+[
+  {
+    "source": "/home/user/Projects/round5-read/tests/net/netlib.py",
+    "source_sha256": "7709080e3b5f4a04b138026f3f53794c4f811c2acb50caa80b80e39c3c2e857f",
+    "adapted_sha256": "766feedfb56520ef79ead24f50d3b2c5679766b11b98d44d717e51b049d2a18b"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/net/t01_tls_idle_timeout.py",
+    "source_sha256": "a4ea1d93a227ee1db21d0658af75150eb62b1f96e8b673586134114dee6b3dbf",
+    "adapted_sha256": "5ce64b447873e05ff87f2760f490a406850207455b1deb8a7b0640369d422076"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/net/t21_net_bytes.py",
+    "source_sha256": "2ec3bd3611f867c74e5a1c7f43c50e1a5c9085f4181b36e502da27f710ecdc1b",
+    "adapted_sha256": "bf3caf1c676c24148bd09ecc89d6dec1a07005a683580937d3897b2b54ed05d9"
+  },
+  {
+    "script": "t01_tls_idle_timeout.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-idle/t01_tls_idle_timeout.py"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "t21_net_bytes.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-idle/t21_net_bytes.py"
+    ],
+    "exit": 0
+  }
+]

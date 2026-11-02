@@ -1,0 +1,30 @@
+[
+  {
+    "arm": "PRE",
+    "path": "build/netfix2/PRE",
+    "sha256": "bf7a8a616072d0c238117c0361cb189f7ed50ecc9232546c51c175c048b32c51",
+    "text_bytes": 9021623,
+    "text_sha256": "edf49ff51877e40672cfb645d17739719fc1586d8d7ac51dd29bc5fc3f4967c7"
+  },
+  {
+    "arm": "POST",
+    "path": "build/netfix2/POST",
+    "sha256": "54b135f7fe662e0561bb0c34e1a45d9281bf802543418b811f40722de1c07a7a",
+    "text_bytes": 9028871,
+    "text_sha256": "44bfeb4a036e80f1e379a18e6a1936e5db4e6c27436341d779c414a90a239003"
+  },
+  {
+    "arm": "POST-layout",
+    "path": "build/netfix2/POST-layout",
+    "sha256": "736bdcff0d827c730448d7eca43f2cd584e7549c1b2fe394a11ca13af5d05e38",
+    "text_bytes": 18050119,
+    "text_sha256": "32ff7c0b31e5af7a985dc92b7cc493ebe97f79563a39cd801fd1458ec3482c6b"
+  },
+  {
+    "arm": "PAD-A",
+    "path": "build/netfix2/PAD-A",
+    "sha256": "ebb6d767398bebf99bd0d35dab956839e96439d59980903ad0677543cd9c5233",
+    "text_bytes": 18050119,
+    "text_sha256": "d2af00b89126ef213f3a5c9b17c9ccff83d533b984706e2bfa5bf53574d3ec27"
+  }
+]

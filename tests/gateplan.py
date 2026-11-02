@@ -278,7 +278,8 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     if perf["split_ratio"]:
         header += f", reviewed ratio {perf['split_ratio']}"
     if shared:
-        header = 'PARTIAL correctness with shared client/server CPUs; no rates or receipt. ' + header
+        header = (f'PARTIAL correctness: {total} physical CPUs, one slot with 8 server threads '
+                  f'at ratio {correctness_ratio}, shared client CPUs; no rates or receipt')
     if len(server) > len(perf_server):
         header += f" ({len(server)-len(perf_server)} surplus server cores move to ABBA load)"
     return {"tier": tier, "purpose": purpose, "subset": subset,
@@ -351,6 +352,26 @@ def self_test():
     topology.update({1000 + 3 * cpu: group for cpu, group in list(topology.items())})
 
     class PlanningTests(unittest.TestCase):
+        def test_shared_cpus_require_partial_correctness_without_rates(self):
+            flags = ['quick', '--server-cores', '8-15', '--load-cores', '8-15', '--load-smt', '']
+            env = dict(GATE_CORRECTNESS_SHARED_CPUS='1', GATE_PROOF_NO_RATES='1',
+                       GATE_ONLY_JOBS='netfix2-fds')
+            with mock.patch.dict(os.environ, env, clear=True):
+                plan = make_plan(parser().parse_args(flags), topology=topology,
+                                 available=set(topology), check_available=False)
+                self.assertEqual(plan['build_jobs'], 8)
+                self.assertEqual(plan['slot_count'], 1)
+                self.assertEqual(plan['perf']['split_ratio'], '')
+                self.assertEqual(plan['slots'][0]['load_cpus'], '8-15')
+                for mutation in ({'GATE_ONLY_JOBS': ''}, {'GATE_PROOF_NO_RATES': '0'}):
+                    with mock.patch.dict(os.environ, mutation):
+                        with self.assertRaisesRegex(ValueError, 'shared CPUs require'):
+                            make_plan(parser().parse_args(flags), topology=topology,
+                                      available=set(topology), check_available=False)
+                with self.assertRaisesRegex(ValueError, 'shared CPUs require'):
+                    make_plan(parser().parse_args(['perf'] + flags[1:]), topology=topology,
+                              available=set(topology), check_available=False)
+
         def plan(self, *flags, only_jobs=""):
             # Gate workers export their own slice of GATE_*; validation of the planner must use
             # its synthetic topology even when called from one of those workers.

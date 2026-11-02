@@ -1,0 +1,4 @@
+first=redis second=redis: second refused, rc=1 ['2278803:M 02 Nov 2026 13:27:47.338 # Failed listening on port 21198 (tcp), aborting.']
+first=tomo second=tomo: second refused, rc=1 ['bind: Address already in use']
+first=redis second=tomo: second refused, rc=1 ['bind: Address already in use']
+first=tomo second=redis: second refused, rc=1 ['2280826:M 02 Nov 2026 13:27:59.886 # Failed listening on port 21198 (tcp), aborting.']

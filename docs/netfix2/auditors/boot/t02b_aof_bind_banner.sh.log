@@ -1,0 +1,16 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [8,9,10,11,12,13,14,15]
+tomokv-cpp: 8 threads (4 io + 4 ex), 32 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+AOF error: could not create appenddirname
+AOF writer init failed: could not create appenddirname
+io listener activation failed on t3
+AOF writer init failed: 
+io listener activation failed on t2
+AOF writer init failed: 
+io listener activation failed on t1
+AOF writer init failed: 
+io listener activation failed on t0
+io boot failed: io listener activation
+rc=1
+port-closed

@@ -1,0 +1,17 @@
+--- audit/t02b_aof_bind_banner.sh
++++ confined-POST/t02b_aof_bind_banner.sh
+@@ -1,10 +1,10 @@
+ #!/bin/sh
+ # T02b: plain 2s with an unwritable --dir and appendonly yes: full stdout shows the readiness
+ # banner printed before the AOF writer bind fails and the process aborts (exit status 134).
+-D=/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/r5-ioloop/t02x
++D=/home/user/Projects/cx-netfix2/build/netfix2/audit-extra-boot/work/t02x
+ mkdir -p "$D" && chmod 555 "$D"
+-taskset -c 64-79 /home/user/Projects/bench-bins/tomokv-headline-105c5818cc --bind 127.0.0.1 --port 22021 \
++taskset -c 8-15 /home/user/Projects/cx-netfix2/build/netfix2/POST --bind 127.0.0.1 --port 21121 \
+   --save '' --appendonly yes --dir "$D" --thread-mode 2s 2>&1 | grep -v 'thread t'
+-echo "rc=$?"
++echo "rc=${PIPESTATUS[0]}"
+ chmod 755 "$D"
+-ss -ltn | grep -q ':22021 ' && echo port-open || echo port-closed
++ss -ltn | grep -q ':21121 ' && echo port-open || echo port-closed

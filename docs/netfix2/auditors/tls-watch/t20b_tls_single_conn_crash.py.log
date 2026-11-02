@@ -1,0 +1,5 @@
+PASS 2s single TLS conn no WATCH: replies ('replied', True) rc=0
+PASS 2s single TLS conn WATCH mykey: server replies and survives client=('replied', True) alive=True rc=0
+PASS 1s single TLS conn no WATCH: replies ('replied', True) rc=0
+PASS 1s single TLS conn WATCH mykey: server replies and survives client=('replied', True) alive=True rc=0
+== t20b_tls_single_conn_crash: 4 checks, 0 failed

@@ -1,0 +1,71 @@
+[
+  {
+    "source": "/home/user/Projects/round5-read/tests/ex-path/lib.py",
+    "source_sha256": "a3dbb4f11c159e472f6a94929cf1463e435cd2b086ce47282535cc543e304e57",
+    "adapted_sha256": "bd9f5cbcf0c96a4cdcd5f4b4456f92d1aceabae6ff0173344c849bfc93f3fa4a"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/ex-path/t02_tls_watch_borrow.py",
+    "source_sha256": "e6deb98b24fa409045737d2b190abeedb9141cb3bb2d53ddbcb7be24cccb9e1d",
+    "adapted_sha256": "46d4be488a484cd88737edaeb2241ccb20ce68ae4b2961d1a9bf87576124a73a"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/ex-path/t20_tls_tracking_watch_crash.py",
+    "source_sha256": "2682f366b62010908cf1285b4710f219e6fabfcda16b1725b6d61bd373a44c42",
+    "adapted_sha256": "405e12aacd287e670c0594c4c78e8e3bf5c62173d06ce0897affbd65da6f8284"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/ex-path/t20b_tls_single_conn_crash.py",
+    "source_sha256": "4541da558bcddeda61cda813844169a1e635c1255be47e9b6c8e537450779d99",
+    "adapted_sha256": "a573f95ebdd7b68a8e49bc7c59a4730445c4369444f82fa8df419e8b0c5beb06"
+  },
+  {
+    "source": "/home/user/Projects/round5-read/tests/ex-path/t20d_tls12_ktls_crash.py",
+    "source_sha256": "f707b27dc62528637764e4a792500d1362646c866d0b3deb63c4cc761838bf72",
+    "adapted_sha256": "ac320bb55961de1a4c7a2998ea6d1f9550c70d1f24c889ae3ffe9d0ad74bb4ee"
+  },
+  {
+    "script": "t02_tls_watch_borrow.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t02_tls_watch_borrow.py"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "t20_tls_tracking_watch_crash.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t20_tls_tracking_watch_crash.py"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "t20b_tls_single_conn_crash.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t20b_tls_single_conn_crash.py"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "t20d_tls12_ktls_crash.py",
+    "command": [
+      "taskset",
+      "-c",
+      "8-15",
+      "python3",
+      "/home/user/Projects/cx-netfix2/build/netfix2/auditors/tls-watch/t20d_tls12_ktls_crash.py"
+    ],
+    "exit": 0
+  }
+]

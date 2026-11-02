@@ -1,0 +1,5 @@
+tomo-2s {"rc": 1, "secs": 0.07, "tail": ["AOF writer init failed: ", "io listener activation failed on t0", "io boot failed: io listener activation"]}
+tomo-2s-epoll {"rc": 1, "secs": 0.07, "tail": ["AOF writer init failed: ", "io listener activation failed on t2", "io boot failed: io listener activation"]}
+tomo-1s {"rc": 1, "secs": 0.04, "tail": ["AOF writer init failed: ", "AOF writer init failed: ", "unified boot failed: unified listener activation failed"]}
+tomo-2s-rl1 {"rc": 1, "secs": 0.07, "tail": ["AOF writer init failed: ", "AOF writer init failed: ", "split read-local boot failed: read-local IO listener activation failed"]}
+redis {"rc": 1, "secs": 0.01, "tail": ["2611356:M 02 Nov 2026 13:35:48.384 * Running mode=standalone, port=21120.", "2611356:M 02 Nov 2026 13:35:48.384 * Server initialized", "2611356:M 02 Nov 2026 13:35:48.384 # Can't open or create append-only dir appendonlydir: Permission denied"]}
