@@ -1,0 +1,123 @@
+{
+  "phase": "post-netcmd",
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "21800-21849",
+    "--candidate-binary",
+    "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-POST"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "netcmd_units",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-POST",
+  "binary_sha256": "b525d76155ce9a141c66db38789443cb5d19b8d6285245450928305f4a196e91",
+  "returncode": 0,
+  "started": 1793608772.913714,
+  "finished": 1793608779.1955285,
+  "run": "/home/user/Projects/cx-cfgfix2/build/gate-run.LBCxOr",
+  "log": "build/cfgfix2/gate-logs/post-netcmd.log",
+  "log_sha256": "6a57cddea37214d50c829dc54d9122e32bf1c782ec9919b32afb11f062e2dcad",
+  "rows": [
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd regression build"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd streams regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd zpop regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd notify-oom regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd notify-retry regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd flush regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd output regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd pubsub regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd receive regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.04,
+      "label": "netcmd config regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd wb-small-pipe regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "netcmd wb-complete-visits regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "netcmd hexpire-oom regression"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "encodingfix knob"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "encodingfix precedence"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.02,
+      "label": "NET1 serverless bounds + scan + reclamation"
+    }
+  ],
+  "summary": {
+    "ok": 17,
+    "fail": 0
+  }
+}
