@@ -23,6 +23,25 @@ proc send_data_packet {fd status data {elapsed 0}} {
     }
     harness5_send_data_packet $fd $status $data $elapsed
 }
+# Optional failure receipt: query state only after the original bounded wait
+# has failed, then propagate its exact Tcl return options. Never retry it.
+if {[info exists ::env(GATE_TCL_BLOCKED_DIAGNOSTIC)] &&
+    $::env(GATE_TCL_BLOCKED_DIAGNOSTIC) eq "1"} {
+    rename wait_for_blocked_clients_count harness5_wait_for_blocked_clients_count
+    proc wait_for_blocked_clients_count {count {maxtries 100} {delay 10} {idx 0}} {
+        set code [catch {
+            uplevel 1 [list harness5_wait_for_blocked_clients_count $count $maxtries $delay $idx]
+        } result options]
+        if {$code != 0} {
+            puts "BLOCKED-DIAGNOSTIC test=$::cur_test expected=$count result=$result"
+            foreach query {{INFO clients} {CLIENT LIST} {LLEN mylist} {LLEN l1{t}} {LLEN l2{t}} {LLEN l3{t}}} {
+                catch {r $idx {*}$query} observed
+                puts "BLOCKED-DIAGNOSTIC query=$query observed=$observed"
+            }
+        }
+        return -options $options $result
+    }
+}
 '''
 
 def sha(path):
