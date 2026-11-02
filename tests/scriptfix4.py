@@ -470,8 +470,17 @@ def shutdown_round(kind):
 
 
 def shutdown_functions():
+    # Every kind runs, so a failing arm reports each mutation kind's own observation.
+    failures = []
     for kind in ('load', 'replace', 'delete', 'restore', 'flush'):
-        shutdown_round(kind)
+        try:
+            shutdown_round(kind)
+        except AssertionError as error:
+            failures.append(kind)
+            emit('shutdown_round_failed', kind=kind, error=str(error)[:2000])
+            for s in ACTIVE:
+                if not s.stopped: s.stop(signal.SIGKILL)
+    assert not failures, ('PS5.1 kinds failed', failures)
 
 
 def function_cron():
