@@ -289,6 +289,23 @@ def test(a, port, certs, proc, oracle):
         command('CONFIG', 'SET', 'port', str(port))
         with closing(n.connect(port)) as fresh:
             assert fresh.must('PING') == b'PONG'
+        # Exercise an address change independently of a port change. A bind
+        # apply failure must preserve the preceding scalar and old sockets.
+        with closing(socket.socket()) as occupied:
+            occupied.bind(('127.0.0.2', port)); occupied.listen()
+            command('CONFIG', 'SET', 'maxmemory', '12345678', 'bind', '127.0.0.2')
+            command('CONFIG', 'GET', 'maxmemory', 'bind')
+            with closing(n.connect(port)) as fresh:
+                assert fresh.must('PING') == b'PONG'
+        command('CONFIG', 'SET', 'bind', '127.0.0.2')
+        command('CONFIG', 'GET', 'bind')
+        with closing(n._lib.Conn('127.0.0.2', port)) as fresh:
+            assert fresh.must('PING') == b'PONG'
+        assert c.must('PING') == b'PONG'
+        command('CONFIG', 'SET', 'bind', '127.0.0.1')
+        command('CONFIG', 'GET', 'bind')
+        with closing(n.connect(port)) as fresh:
+            assert fresh.must('PING') == b'PONG'
         if not oracle and proc.args[proc.args.index('--thread-mode') + 1] == '2s':
             # Rebind listener homes transferred by FLIP, then transfer them
             # again. Existing connections and fresh accepts must both survive.
@@ -298,6 +315,12 @@ def test(a, port, certs, proc, oracle):
                 with closing(n.connect(port + 1)) as fresh:
                     assert fresh.must('PING') == b'PONG'
                 c.must('CONFIG', 'SET', 'port', str(port))
+                with closing(n.connect(port)) as fresh:
+                    assert fresh.must('PING') == b'PONG'
+                c.must('CONFIG', 'SET', 'bind', '127.0.0.2')
+                with closing(n._lib.Conn('127.0.0.2', port)) as fresh:
+                    assert fresh.must('PING') == b'PONG'
+                c.must('CONFIG', 'SET', 'bind', '127.0.0.1')
                 with closing(n.connect(port)) as fresh:
                     assert fresh.must('PING') == b'PONG'
         # Runtime AOF must capture pre-existing keys, writes after activation,
