@@ -89,3 +89,4 @@ data-gate-run.eYz4re-aof-uring.tar.gz preserved bytes 541570025
 data-gate-run.eYz4re-aof_frame.tar.gz preserved bytes 134300666
 data-gate-run.eYz4re-snapshot-uring.tar.gz preserved bytes 130694536
 identical private tool copies shared: 550
+pre-fifo-attribution exit 1

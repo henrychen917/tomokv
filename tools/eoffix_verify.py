@@ -42,6 +42,7 @@ def main():
         arm = {'complete-layout': 'POST-layout', 'complete-pad': 'PAD-A'}.get(tag, 'POST')
         lines = [line for ledger in record.get('ledgers', {}).values() for line in ledger.splitlines()]
         failures = [line for line in lines if line.startswith('FAIL\t')]
+        resolved = []
         valid = record['native_sha256'] == arms[arm]['sha256']
         valid &= record['env']['LC_ALL'] == 'C'
         valid &= record['env']['GATE_PROOF_NO_RATES'] == '1'
@@ -62,13 +63,18 @@ def main():
         elif tag == 'complete-internal' and failures:
             # Preserve the original red receipt. This one source-only failure
             # is resolved only by the separately required, unchanged gate jobs.
-            valid &= record['exit_code'] == 1 and len(failures) == 1
-            valid &= failures[0].split('\t')[-1] == 'writeback policy clauses witnesses + negative controls'
+            valid &= record['exit_code'] == 1
+            label = 'writeback policy clauses witnesses + negative controls'
+            source_failures = [line for line in failures if line.split('\t')[-1] == label]
             log = (Path(record['directory']) / 'jobs/wbland_units/wbland-clauses.log').read_text()
-            valid &= 'ValueError: stale R7 envelope:' in log
-            valid &= log.count('PASS clauses ') == 50
             sync = read('source-sync-identity.json')
-            valid &= sync['equivalent'] and len(sync['added_comments']) == 2
+            source_resolved = (len(source_failures) == 1 and 'ValueError: stale R7 envelope:' in log and
+                               log.count('PASS clauses ') == 50 and sync['equivalent'] and
+                               len(sync['added_comments']) == 2 and
+                               read('complete-source-sync.json')['exit_code'] == 0)
+            if source_resolved:
+                resolved.append(dict(label=label, followup='complete-source-sync'))
+            valid &= source_resolved and len(failures) == len(source_failures)
         else:
             valid &= record['exit_code'] == 0 and not failures
         if not valid:
@@ -76,7 +82,7 @@ def main():
         rows.append(dict(tag=tag, arm=arm, exit_code=record['exit_code'],
                          passed_rows=sum(line.startswith('ok\t') for line in lines),
                          failures=failures, jobs=record['jobs'],
-                         resolved_by='complete-source-sync' if tag == 'complete-internal' and valid and failures else None))
+                         resolved_failures=resolved))
         if tag.startswith('complete-differ-'):
             parts = ('differ-split-0', 'differ-split-1', 'differ-armed-0',
                      'differ-armed-1', 'differ-equivalence')
@@ -163,6 +169,10 @@ def main():
     output = dict(expected_gate_invocations=len(expected), completed=len(rows), jobs=rows,
                   tcl=tcl, differential=differential, transaction_loops=loop_rows, errors=errors,
                   pre_transaction_loops=pre_loops,
+                  fifo_attribution=dict(pre=read('fifo-complete-pre.json'), post=read('fifo-complete-post.json'),
+                                        pre_overlap=read('fifo-pre-commit-overlap.json'),
+                                        post_overlap=read('fifo-post-commit-overlap.json'),
+                                        verdict='The FIFO timing failure remains a failed POST row; PRE attribution does not waive it.'),
                   performance='NOT RUN: owner-owned measurements and full iteration')
     (DOC / 'proof-complete.json').write_text(json.dumps(output, indent=2) + '\n')
     print('gate invocations', len(rows), '/', len(expected), 'Tcl legs', len(tcl), 'errors', len(errors))

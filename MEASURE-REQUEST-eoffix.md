@@ -204,8 +204,21 @@ five pass, ten fail the existing p99 bound, and one fails the existing 20 ms
 maximum-latency bound (21.348 ms). Exact final values, per-client progress,
 zero ordering violations, the real FIFO window and the share checks all pass
 before those latency assertions. `fifo-complete-post.json` preserves the per-leg
-results. The unchanged complete job on PRE at the same required CPU geometry is
-queued for attribution; this remains an unresolved result until that run completes.
+results. The unchanged complete PRE job at the same required CPU geometry also
+fails: four of 16 legs pass, and all 16 retain exact final values. Eleven PRE
+legs without packaging overlap fail the p99 bound, including both engines and
+both modes (`fifo-complete-pre.json`). Thus the p99 failure class predates this
+patch. POST's single 21.348 ms maximum-latency failure remains unattributed.
+The FIFO row remains **FAIL**; no bound, assertion or FIFO algorithm was changed.
+This is a residual timing result, not a throughput or latency improvement claim.
+
+One leg in each FIFO run overlapped receipt packaging and is excluded as an
+uncontended latency control: PRE db1/1s/atomic1/epoll and POST db1/2s/atomic1/epoll.
+`fifo-{pre,post}-commit-overlap.json` records conservative timestamp windows.
+The unaffected PRE failures above independently establish the existing p99
+failure. The required shared eight-CPU geometry differs from the gate's normal
+disjoint server/load placement; the maintainer's normal geometry is the next
+control before investigating a FIFO policy change.
 
 **Gate accounting.** DQ=0, DF=0. The existing netio rows are strengthened at their
 existing collection lines before the quick exit; private wave14 EOF jobs remain
