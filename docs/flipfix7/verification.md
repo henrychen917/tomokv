@@ -16,6 +16,7 @@ archive records the unchanged POST SHA-256 from `arms.sha256`.
 | Supplementary epoll modes and feature matrix | `gate-run.39Uwiy` | 69 | 0 | [ledger](gate-scope-epoll-delivery.ledger), [archive manifest](gate-scope-epoll-delivery-archive.json) |
 | Standard differential, io_uring | `gate-run.xuUi4m` | 6 | 0 | [ledger](gate-differ-uring-delivery.ledger), [archive manifest](gate-differ-uring-delivery-archive.json) |
 | Standard differential, epoll | `gate-run.kMUOGT` | 6 | 0 | [ledger](gate-differ-epoll-delivery.ledger), [archive manifest](gate-differ-epoll-delivery-archive.json) |
+| Read-local borrow capability, both modes/engines/lanes | `gate-run.2OjXWw` | 9 | 0 | [ledger](gate-borrow-uring-delivery.ledger), [archive manifest](gate-borrow-uring-delivery-archive.json) |
 
 The native regression failures were source/inventory expectations: writeback
 anchors had moved into the FLIP helper, and one DB0 callback was newly outlined.
@@ -54,7 +55,15 @@ its equivalence part. The [differential summary](differential.json) records
 the plans, exclusions and observed command coverage.
 All 61 final production-target freshness checks pass; all three arm hashes and
 the root release identity match: [verification](delivery-verification.json).
-PAD-A and the supplementary borrow capability receipts: PENDING.
+PAD-A reproduced all **12 required negative witnesses from 17 fresh attempts**:
+BLPOP held IoDrain, TLS held ClientPrepare, and late output wedged ClientInstall
+on both engines and both database namespaces (atomic 0, read-local 0). Five
+unarmed late-window attempts were retried on fresh state. Every witnessed
+non-signal connection/payload remained intact when released. Holds include
+debugger time; they are not performance measurements. See the
+[witnesses](pad-a-witnesses.json) and [raw-evidence manifest](pad-a-evidence.json).
+The existing borrow capability job passed all eight mode/engine/lane legs,
+plus its release prerequisite.
 
 NOT RUN: performance/ABBA/full iteration, the `flip_saturated` load generator,
 `atomic_floor`, and LMOVE size-ratio timing; these remain maintainer-owned.
