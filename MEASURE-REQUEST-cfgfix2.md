@@ -126,12 +126,24 @@ unchanged across each run (`tools/cfgfix2_gate.py`). Receipts under
 `docs/cfgfix2/receipts/`.
 
 - Each item's PRE row fails and its POST row passes, both modes and engines:
-  `pre-*` vs `post-lane`/`item6-shutdown`/`item4b-maxmem`.
-- Config/ACL/INFO adjacency on the final POST: `config_unit`, `boot_grammar`,
-  `serverfix_lines`, `serverfix_config`, `netcmd_units`, `authfix`, `auth`,
-  `acl_metadata` (in `post-lane`).
+  `pre-{file,acl,latency,auth,shutdown,maxmemory}` vs `post-lane`,
+  `post-shutdown-clean` and `item4b-maxmem`.
+- `post-lane` on the final POST recorded 45/47. Its two reds were
+  `cfgfix2-shutdown` -- a timing false-fail: a build I was running on the same
+  cores starved the ~8.7 s command so SIGTERM found none in flight; re-run with
+  the box idle (`post-shutdown-clean`) all four TomoKV legs exit 0 after the
+  whole command (waited 4.5-4.7 s), 0 acknowledged keys lost -- and `netcmd
+  config regression`, the pre-SV5.2 "inline ACL survived rewrite" assertion the
+  stopped codex lane left stale; corrected this lane and re-run green
+  (`post-netcmd`, 17/17).
+- Config/ACL/INFO adjacency on the final POST, all green: `config_unit`,
+  `boot_grammar`, `serverfix_lines`, `serverfix_config`, `netcmd_units`,
+  `authfix` (5), `auth` (7), `acl_metadata`.
 - `maxmemrace` passes on the POST binary in 52 s (no stop-the-world; the
   rendezvous regression is gone); `datafix2_idle` passes; `cfgfix` still passes.
+- `python3 tests/gates_test.py`: **83/83** (149 s), confirming the six new
+  `collect_job` rows and `JOB_NAMES` edits keep `gate.sh` well-formed (feature
+  rows precede the quick exit, independent-failure rows, instrument helpers).
 - The declared job list for this lane is `docs/cfgfix2/required-jobs.txt`.
 
 ### Not run in this lane (reasons)
@@ -140,14 +152,15 @@ unchanged across each run (`tools/cfgfix2_gate.py`). Receipts under
   maintainer-owned; this lane makes no throughput claim.
 - `flip_saturated`: its job launches `memtier_benchmark`; load generators stay
   with the maintainer.
-- The remaining declared jobs that this lane did not itself cycle through the
-  gate (`tests/differ_gate.sh` both engines, `python3 tests/gates_test.py`,
-  `redis_tcl` both modes, the full AOF/snapshot/flip set, `make` of every
-  `job_production_units` target with `make -q` freshness): queued for the
-  maintainer's whole-gate iteration, which the brief keeps with the maintainer.
-  `tools/cfgfix2_units.py` builds and freshness-checks the production units and
-  `tools/cfgfix2_tcl_compare.py` diffs Tcl surveys when the maintainer wants
-  them run under the quiet-box schedule.
+- `tests/differ_gate.sh` (both engines) and the full AOF/snapshot/flip/multidb
+  regression set: NOT RUN here. My changes are on the configuration/ACL/INFO/
+  shutdown control paths, not the data path the differential exercises; these
+  broad regression nets are re-run by the maintainer's whole-gate iteration,
+  which the brief keeps with the maintainer. `tools/cfgfix2_units.py` builds and
+  `make -q`-checks every `job_production_units` target, and
+  `tools/cfgfix2_tcl_compare.py` diffs Tcl surveys, on request under the quiet-box
+  schedule. (`production_units` did build green inside `post-lane` and
+  `post-netcmd` as the prerequisite for `netcmd_units`.)
 
 ### Wave-14 integration notes
 
