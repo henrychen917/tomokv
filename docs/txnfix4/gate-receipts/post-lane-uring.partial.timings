@@ -1,0 +1,227 @@
+ok	0.000000	release build (+footprint locks)
+ok	3.480000	pubtrackfix TRACK-BCAST-BATCH
+ok	11.530000	pubtrackfix PUBSUB-REPLY-OFF-PUSH
+ok	8.320000	pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+ok	20.640000	pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY
+ok	52.870000	maxmemrace CONFIG SET maxmemory reaches every owner before +OK
+ok	207.600000	clientcompat pause
+ok	4.750000	clientcompat disconnect
+ok	162.870000	clientcompat multi-tracking
+ok	451.650000	clientcompat multi-controls
+ok	77.120000	clientcompat enable-race
+ok	1.590000	datafix1 RAND/SCAN errors (both engines and modes)
+ok	1.790000	datafix1 HEXPIRE precedence (both engines and modes)
+ok	3.300000	datafix1 list demotion (both engines and modes)
+ok	1.730000	datafix1 SPOP encodings (both engines and modes)
+ok	3.190000	AT4.5 list publisher physical namespaces
+ok	47.310000	flushfix3 idle FLUSH deadlines all eight legs (databases 16)
+ok	46.460000	flushfix3 idle FLUSH deadlines all eight legs (databases 1)
+ok	62.490000	flushfix2 flush-pair FLUSHALL SYNC (databases 16)
+ok	62.480000	flushfix2 flush-pair FLUSHALL SYNC (databases 1)
+ok	62.480000	flushfix2 flush-script FLUSHALL SYNC (databases 16)
+ok	62.490000	flushfix2 flush-script FLUSHALL SYNC (databases 1)
+ok	62.480000	flushfix2 flush-only FLUSHALL SYNC (databases 16)
+ok	62.480000	flushfix2 flush-only FLUSHALL SYNC (databases 1)
+ok	62.500000	flushfix2 namespace FLUSHALL SYNC (databases 16)
+ok	62.500000	flushfix2 namespace FLUSHALL SYNC (databases 1)
+ok	62.500000	flushfix2 namespace FLUSHALL ASYNC (databases 16)
+ok	62.500000	flushfix2 namespace FLUSHALL ASYNC (databases 1)
+ok	62.510000	flushfix2 namespace FLUSHDB SYNC (databases 16)
+ok	62.500000	flushfix2 namespace FLUSHDB SYNC (databases 1)
+ok	62.510000	flushfix2 namespace FLUSHDB ASYNC (databases 16)
+ok	62.490000	flushfix2 namespace FLUSHDB ASYNC (databases 1)
+ok	17.580000	blockfix4 scripts (all modes, read-local and atomic)
+ok	43.990000	blockfix4 moves (all modes, read-local and atomic)
+ok	5.350000	blockfix4 creators (all modes, read-local and atomic)
+ok	9.920000	blockfix4 removed (all modes, read-local and atomic)
+ok	6.230000	blockfix4 mpop (all modes, read-local and atomic)
+ok	34.410000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	37.230000	blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+ok	34.310000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	33.850000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	33.990000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	33.870000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+ok	0.020000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	45.540000	blockfix CC4.19 XINFO structural counts vs Redis 7.4
+ok	38.930000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	46.580000	blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+ok	9.180000	plain-write lost updates (atomic 0)
+ok	0.190000	lbsignals battery (atomic 0)
+ok	1.510000	slowlog battery (atomic 0)
+ok	0.060000	atomfix battery (atomic 0)
+ok	0.150000	scriptatomic battery (atomic 0)
+ok	14.490000	execatomic battery (atomic 0)
+ok	11.900000	execiso battery (atomic 0)
+ok	0.630000	execfix battery (atomic 0)
+ok	0.120000	multires battery (atomic 0)
+ok	0.820000	multirace battery (atomic 0)
+ok	30.690000	session_monotonic battery (atomic 0)
+ok	0.380000	xacct battery (atomic 0)
+ok	0.050000	xmove battery (atomic 0)
+ok	3.300000	xscript battery (atomic 0)
+ok	1.460000	txn_nx battery (atomic 0)
+ok	8.830000	txniso battery (atomic 0)
+ok	6.150000	plain-write lost updates (atomic 1)
+ok	0.180000	lbsignals battery (atomic 1)
+ok	1.510000	slowlog battery (atomic 1)
+ok	0.070000	atomfix battery (atomic 1)
+ok	0.150000	scriptatomic battery (atomic 1)
+ok	14.490000	execatomic battery (atomic 1)
+ok	11.900000	execiso battery (atomic 1)
+ok	0.560000	execfix battery (atomic 1)
+ok	0.150000	multires battery (atomic 1)
+ok	0.860000	multirace battery (atomic 1)
+ok	30.640000	session_monotonic battery (atomic 1)
+ok	0.400000	xacct battery (atomic 1)
+ok	0.050000	xmove battery (atomic 1)
+ok	3.290000	xscript battery (atomic 1)
+ok	2.330000	txn_nx battery (atomic 1)
+ok	9.870000	txniso battery (atomic 1)
+ok	1.410000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	13.760000	atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+ok	1.440000	FLIP session handover S2 and close fences (ASAN+TSAN)
+ok	0.020000	FLIP WATCH alias allocation rollback (db1/db16)
+ok	0.030000	shutdown policy + signal handoff serverless
+ok	0.340000	shutdown persistence (1s, command)
+ok	0.130000	shutdown persistence (1s, sigterm)
+ok	0.140000	shutdown persistence (1s, sigint)
+ok	0.340000	shutdown persistence (2s, command)
+ok	0.130000	shutdown persistence (2s, sigterm)
+ok	0.140000	shutdown persistence (2s, sigint)
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.260000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	3.530000	multidb serverless owners
+ok	0.060000	multidb global namespace boundary
+ok	13.270000	storesize published monitoring
+ok	0.240000	MULTI admin command replies
+ok	0.100000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.020000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.000000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+FAIL	0.000000	armed resize retirement: atomic-growth
+FAIL	0.000000	armed resize retirement: flush-prepared
+ok	6.660000	torture battery
+ok	1.070000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=11922)
+ok	0.040000	dispatched==executed (55522)
+ok	3.680000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	3.660000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	3.640000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	3.650000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	3.570000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	3.570000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	3.560000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	3.570000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	1.200000	hexpread torn (1s)
+ok	3.370000	hexpread replies (1s)
+ok	1.180000	hexpread deferred (1s)
+ok	1.190000	hexpread OBJECT expiry (1s)
+ok	1.190000	hexpread torn (2s)
+ok	3.370000	hexpread replies (2s)
+ok	1.180000	hexpread deferred (2s)
+ok	1.190000	hexpread OBJECT expiry (2s)
+ok	61.880000	datafix2 CD4.14 expired_subkeys vs Redis 7.4
+ok	124.320000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	0.130000	cross-owner SORT battery (atomic 0)
+ok	0.090000	cross-owner SORT battery (atomic 1)
+ok	0.070000	DUMP/RESTORE prepare + native SAVE
+ok	0.050000	DUMP/RESTORE cross-restart round-trip
+ok	0.020000	DUMP/RESTORE restart shutdown invariants
+ok	2.070000	MULTI feature battery
+ok	1.500000	blocking feature battery
+ok	1.780000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	46.640000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants
+ok	22.530000	notification compatibility setbit vs Redis 7.4
+ok	43.120000	notification compatibility setpast vs Redis 7.4
+ok	50.850000	notification compatibility emptystore vs Redis 7.4
+ok	42.790000	notification compatibility writemiss vs Redis 7.4
+ok	43.820000	notification compatibility objectmiss vs Redis 7.4
+ok	144.860000	notification compatibility expiredstore vs Redis 7.4
+ok	57.030000	notification compatibility flush vs Redis 7.4
+ok	38.590000	tracking REDIRECT close vs Redis 7.4
+ok	286.850000	tracking FLUSH reply order vs Redis 7.4
+ok	72.750000	keyspace lazy-expiry order vs Redis 7.4
+ok	55.060000	tracking-only delivery/drop accounting vs Redis 7.4
+ok	222.300000	tracking delayed-write order vs Redis 7.4
+FAIL	520.580000	FLIP MULTI WATCH session storm (all legs)
+ok	0.010000	tripwire arm/disarm round-trip
+ok	0.080000	pipelined same-conn program order (400 rolls)
+ok	13.100000	fused txngroup battery (atomic 1)
+ok	12.960000	txngroup battery (atomic 1)
+ok	84.050000	EXEC fast-lane polls and wave6-wave10 interactions
+ok	3.170000	exec1s refinements (1s, atomic 0)
+ok	3.040000	exec1s refinements (1s, atomic 1)
+ok	3.030000	exec1s refinements (2s, atomic 0)
+ok	3.040000	exec1s refinements (2s, atomic 1)
+ok	0.100000	txnorder FIFO F1
+ok	0.080000	txnorder FIFO F2
+ok	0.080000	txnorder FIFO F3
+ok	0.080000	txnorder FIFO F4
+ok	0.070000	txnorder FIFO F5
+ok	0.150000	txnorder FIFO F6
+ok	0.100000	txnorder FIFO F7
+ok	0.080000	txnorder FIFO F8
+ok	0.070000	txnorder FIFO F9
+ok	0.070000	txnorder FIFO F10
+ok	988.310000	txnorder FIFO live fairness
+ok	0.050000	txnorder chain local
+ok	0.030000	txnorder chain boundary
+ok	0.020000	txnorder chain serve
+ok	0.020000	txnorder chain hot
+ok	98.310000	txnorder index oracle
+ok	2.600000	txnorder index complexity
+ok	0.050000	txnorder wound group
+ok	0.030000	txnorder wound exec
+ok	0.040000	txnorder wound oom
+ok	0.090000	txnorder wound d2
+ok	0.040000	txnorder2 writer episode R1
+ok	0.020000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.030000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.030000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.100000	txnorder2 writer episode R8
+ok	0.030000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.030000	txnorder2 writer episode R11
+ok	4.560000	txnorder2 writer episode R12
+ok	0.040000	txnorder2 direct RENAME owner join
+ok	22.700000	txnorder2 WATCH serve
+ok	30.380000	txnorder2 WATCH flush
+ok	27.820000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake
+ok	49.480000	txnorder battery (fused, atomic 0)
+ok	48.660000	txnorder battery (fused, atomic 1)
+ok	48.790000	txnorder battery (split, atomic 0)
+ok	49.090000	txnorder battery (split, atomic 1)
+ok	1.190000	rootcompat proc vs Redis 7.4
+ok	1.160000	rootcompat password vs Redis 7.4
+ok	1.160000	rootcompat replication vs Redis 7.4
+ok	1.160000	rootcompat sort-acl vs Redis 7.4
+ok	1.160000	rootcompat redact vs Redis 7.4
+ok	459.370000	rootcompat xsnotify vs Redis 7.4
+ok	747.310000	rootcompat tracking vs Redis 7.4
+ok	1.270000	rootcompat hscan vs Redis 7.4
+ok	24.890000	rootcompat setpast vs Redis 7.4

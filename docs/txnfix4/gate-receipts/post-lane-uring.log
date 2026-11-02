@@ -1,0 +1,463 @@
+GATE(full): 13 physical cores; 1 correctness slots = min(8/8 server, 5/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 5 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-txnfix4/build/gate-run.N0sq3o
+PARTIAL jobs (including prerequisites): release core_tsan_build pubtrackfix maxmemrace clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race datafix1_randscan datafix1_hexpire datafix1_lists datafix1_spop production_units list_namespace flushfix3 flushfix2 blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream debug-0 debug-1 atomfix5_watch atomfix5_accounting flipfix6_units climonfix atomic_units release_batteries moverfix hexpread datafix2_subkeys datafix2_watch sort dump_restore notify notifycompat tracking_redirect trackorder notify_order trackfix_accounting trackfix_order flipfix6 atomic_floor txn_group_fused txn_group_split execfair exec1s txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 rootcompat
+PARTIAL jobs (including prerequisites): release core_tsan_build pubtrackfix maxmemrace clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls clientcompat-enable-race datafix1_randscan datafix1_hexpire datafix1_lists datafix1_spop production_units list_namespace flushfix3 flushfix2 blockfix4 blockfix2 blockfix_structure blockfix_registry blockfix_mkstream debug-0 debug-1 atomfix5_watch atomfix5_accounting flipfix6_units climonfix atomic_units release_batteries moverfix hexpread datafix2_subkeys datafix2_watch sort dump_restore notify notifycompat tracking_redirect trackorder notify_order trackfix_accounting trackfix_order flipfix6 atomic_floor txn_group_fused txn_group_split execfair exec1s txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 rootcompat
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix TRACK-BCAST-BATCH
+  pubtrackfix TRACK-BCAST-BATCH                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-REPLY-OFF-PUSH
+  pubtrackfix PUBSUB-REPLY-OFF-PUSH                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT
+  pubtrackfix PUBSUB-IMPLICIT-CONSUMER-EVENT           ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY
+  pubtrackfix PUBSUB-EVICT-ON-MAXMEMORY                ok
+  row budget: 900s; median=-s; no-history-conservative-default; maxmemrace CONFIG SET maxmemory reaches every owner before +OK
+  maxmemrace CONFIG SET maxmemory reaches every owner before +OK ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientcompat pause
+  clientcompat pause                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientcompat disconnect
+  clientcompat disconnect                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientcompat multi-tracking
+  clientcompat multi-tracking                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientcompat multi-controls
+  clientcompat multi-controls                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; clientcompat enable-race
+  clientcompat enable-race                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 RAND/SCAN errors (both engines and modes)
+  datafix1 RAND/SCAN errors (both engines and modes)   ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 HEXPIRE precedence (both engines and modes)
+  datafix1 HEXPIRE precedence (both engines and modes) ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 list demotion (both engines and modes)
+  datafix1 list demotion (both engines and modes)      ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 SPOP encodings (both engines and modes)
+  datafix1 SPOP encodings (both engines and modes)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; AT4.5 list publisher physical namespaces
+  AT4.5 list publisher physical namespaces             ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix3 idle FLUSH deadlines all eight legs (databases 16)
+  flushfix3 idle FLUSH deadlines all eight legs (databases 16) ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix3 idle FLUSH deadlines all eight legs (databases 1)
+  flushfix3 idle FLUSH deadlines all eight legs (databases 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 flush-pair FLUSHALL SYNC (databases 16)
+  flushfix2 flush-pair FLUSHALL SYNC (databases 16)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 flush-pair FLUSHALL SYNC (databases 1)
+  flushfix2 flush-pair FLUSHALL SYNC (databases 1)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 flush-script FLUSHALL SYNC (databases 16)
+  flushfix2 flush-script FLUSHALL SYNC (databases 16)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 flush-script FLUSHALL SYNC (databases 1)
+  flushfix2 flush-script FLUSHALL SYNC (databases 1)   ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 flush-only FLUSHALL SYNC (databases 16)
+  flushfix2 flush-only FLUSHALL SYNC (databases 16)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 flush-only FLUSHALL SYNC (databases 1)
+  flushfix2 flush-only FLUSHALL SYNC (databases 1)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHALL SYNC (databases 16)
+  flushfix2 namespace FLUSHALL SYNC (databases 16)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHALL SYNC (databases 1)
+  flushfix2 namespace FLUSHALL SYNC (databases 1)      ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHALL ASYNC (databases 16)
+  flushfix2 namespace FLUSHALL ASYNC (databases 16)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHALL ASYNC (databases 1)
+  flushfix2 namespace FLUSHALL ASYNC (databases 1)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHDB SYNC (databases 16)
+  flushfix2 namespace FLUSHDB SYNC (databases 16)      ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHDB SYNC (databases 1)
+  flushfix2 namespace FLUSHDB SYNC (databases 1)       ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHDB ASYNC (databases 16)
+  flushfix2 namespace FLUSHDB ASYNC (databases 16)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix2 namespace FLUSHDB ASYNC (databases 1)
+  flushfix2 namespace FLUSHDB ASYNC (databases 1)      ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 scripts (all modes, read-local and atomic)
+  blockfix4 scripts (all modes, read-local and atomic) ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 moves (all modes, read-local and atomic)
+  blockfix4 moves (all modes, read-local and atomic)   ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 creators (all modes, read-local and atomic)
+  blockfix4 creators (all modes, read-local and atomic) ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 removed (all modes, read-local and atomic)
+  blockfix4 removed (all modes, read-local and atomic) ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 mpop (all modes, read-local and atomic)
+  blockfix4 mpop (all modes, read-local and atomic)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+  blockfix2 BLOCK-WAKE-RENAME-SORTSTORE                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+  blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK            ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+  blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS               ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+  blockfix2 MULTI-XREADGROUP-BLOCK-HANG                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 INFO-TOTAL-BLOCKING-KEYS
+  blockfix2 INFO-TOTAL-BLOCKING-KEYS                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+  blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix2 BLOCK-SERVE-REFUSED-DROP
+  blockfix2 BLOCK-SERVE-REFUSED-DROP                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix CC4.19 XINFO structural counts vs Redis 7.4
+  blockfix CC4.19 XINFO structural counts vs Redis 7.4 ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+  blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4 ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+  blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4  ok
+  row budget: 900s; median=-s; no-history-conservative-default; plain-write lost updates (atomic 0)
+  plain-write lost updates (atomic 0)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; lbsignals battery (atomic 0)
+  lbsignals battery (atomic 0)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; slowlog battery (atomic 0)
+  slowlog battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix battery (atomic 0)
+  atomfix battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptatomic battery (atomic 0)
+  scriptatomic battery (atomic 0)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; execatomic battery (atomic 0)
+  execatomic battery (atomic 0)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; execiso battery (atomic 0)
+  execiso battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; execfix battery (atomic 0)
+  execfix battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multires battery (atomic 0)
+  multires battery (atomic 0)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; multirace battery (atomic 0)
+  multirace battery (atomic 0)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; session_monotonic battery (atomic 0)
+  session_monotonic battery (atomic 0)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; xacct battery (atomic 0)
+  xacct battery (atomic 0)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xmove battery (atomic 0)
+  xmove battery (atomic 0)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xscript battery (atomic 0)
+  xscript battery (atomic 0)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; txn_nx battery (atomic 0)
+  txn_nx battery (atomic 0)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; txniso battery (atomic 0)
+  txniso battery (atomic 0)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; plain-write lost updates (atomic 1)
+  plain-write lost updates (atomic 1)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; txn_nx battery (atomic 1)
+  txn_nx battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; txniso battery (atomic 1)
+  txniso battery (atomic 1)                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+  atomfix5 WATCH key count (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)
+  atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP session handover S2 and close fences (ASAN+TSAN)
+  FLIP session handover S2 and close fences (ASAN+TSAN) ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP WATCH alias allocation rollback (db1/db16)
+  FLIP WATCH alias allocation rollback (db1/db16)      ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown policy + signal handoff serverless
+  shutdown policy + signal handoff serverless          ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (1s, command)
+  shutdown persistence (1s, command)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (1s, sigterm)
+  shutdown persistence (1s, sigterm)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (1s, sigint)
+  shutdown persistence (1s, sigint)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (2s, command)
+  shutdown persistence (2s, command)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (2s, sigterm)
+  shutdown persistence (2s, sigterm)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown persistence (2s, sigint)
+  shutdown persistence (2s, sigint)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic commit publication catches up at quiescence
+  atomic commit publication catches up at quiescence   ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix flush witnesses
+  flushfix flush witnesses                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix headers witnesses
+  flushfix headers witnesses                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb serverless owners
+  multidb serverless owners                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb global namespace boundary
+  multidb global namespace boundary                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; storesize published monitoring
+  storesize published monitoring                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI admin command replies
+  MULTI admin command replies                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXECABORT releases WATCH reservation
+  EXECABORT releases WATCH reservation                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: post_apply_probe
+  atomic survivor: post_apply_probe                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: atomic-growth
+unit rehash-waits-unit did not build; see /home/user/Projects/cx-txnfix4/build/gate-run.N0sq3o/jobs/production_units/build.log
+  armed resize retirement: atomic-growth               FAIL (see /home/user/Projects/cx-txnfix4/build/gate-run.N0sq3o/jobs/atomic_units/rlresize-atomic-growth.log)
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: flush-prepared
+unit rehash-waits-unit did not build; see /home/user/Projects/cx-txnfix4/build/gate-run.N0sq3o/jobs/production_units/build.log
+  armed resize retirement: flush-prepared              FAIL (see /home/user/Projects/cx-txnfix4/build/gate-run.N0sq3o/jobs/atomic_units/rlresize-flush-prepared.log)
+  row budget: 900s; median=-s; no-history-conservative-default; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; direct-reply fired (direct=N)
+  direct-reply fired (direct=11922)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatched==executed (N)
+  dispatched==executed (55522)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (1s, uring, databases 1, atomic 0)
+  moverfix conservation (1s, uring, databases 1, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (1s, uring, databases 16, atomic 0)
+  moverfix conservation (1s, uring, databases 16, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (1s, epoll, databases 1, atomic 0)
+  moverfix conservation (1s, epoll, databases 1, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (1s, epoll, databases 16, atomic 0)
+  moverfix conservation (1s, epoll, databases 16, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (2s, uring, databases 1, atomic 0)
+  moverfix conservation (2s, uring, databases 1, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (2s, uring, databases 16, atomic 0)
+  moverfix conservation (2s, uring, databases 16, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (2s, epoll, databases 1, atomic 0)
+  moverfix conservation (2s, epoll, databases 1, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; moverfix conservation (2s, epoll, databases 16, atomic 0)
+  moverfix conservation (2s, epoll, databases 16, atomic 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (1s)
+  hexpread torn (1s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (1s)
+  hexpread replies (1s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (1s)
+  hexpread deferred (1s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (1s)
+  hexpread OBJECT expiry (1s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (2s)
+  hexpread torn (2s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (2s)
+  hexpread replies (2s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (2s)
+  hexpread deferred (2s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (2s)
+  hexpread OBJECT expiry (2s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix2 CD4.14 expired_subkeys vs Redis 7.4
+  datafix2 CD4.14 expired_subkeys vs Redis 7.4         ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix2 CD4.9 write WATCH table vs Redis 7.4
+  datafix2 CD4.9 write WATCH table vs Redis 7.4        ok
+  row budget: 900s; median=-s; no-history-conservative-default; cross-owner SORT battery (atomic 0)
+  cross-owner SORT battery (atomic 0)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; cross-owner SORT battery (atomic 1)
+  cross-owner SORT battery (atomic 1)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; DUMP/RESTORE prepare + native SAVE
+  DUMP/RESTORE prepare + native SAVE                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; DUMP/RESTORE cross-restart round-trip
+  DUMP/RESTORE cross-restart round-trip                ok
+  row budget: 900s; median=-s; no-history-conservative-default; DUMP/RESTORE restart shutdown invariants
+  DUMP/RESTORE restart shutdown invariants             ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility setbit vs Redis 7.4
+  notification compatibility setbit vs Redis 7.4       ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility setpast vs Redis 7.4
+  notification compatibility setpast vs Redis 7.4      ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility emptystore vs Redis 7.4
+  notification compatibility emptystore vs Redis 7.4   ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility writemiss vs Redis 7.4
+  notification compatibility writemiss vs Redis 7.4    ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility objectmiss vs Redis 7.4
+  notification compatibility objectmiss vs Redis 7.4   ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility expiredstore vs Redis 7.4
+  notification compatibility expiredstore vs Redis 7.4 ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility flush vs Redis 7.4
+  notification compatibility flush vs Redis 7.4        ok
+  row budget: 900s; median=-s; no-history-conservative-default; tracking REDIRECT close vs Redis 7.4
+  tracking REDIRECT close vs Redis 7.4                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; tracking FLUSH reply order vs Redis 7.4
+  tracking FLUSH reply order vs Redis 7.4              ok
+  row budget: 900s; median=-s; no-history-conservative-default; keyspace lazy-expiry order vs Redis 7.4
+  keyspace lazy-expiry order vs Redis 7.4              ok
+  row budget: 900s; median=-s; no-history-conservative-default; tracking-only delivery/drop accounting vs Redis 7.4
+  tracking-only delivery/drop accounting vs Redis 7.4  ok
+  row budget: 900s; median=-s; no-history-conservative-default; tracking delayed-write order vs Redis 7.4
+  tracking delayed-write order vs Redis 7.4            ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP MULTI WATCH session storm (all legs)
+  FLIP MULTI WATCH session storm (all legs)            FAIL (see /home/user/Projects/cx-txnfix4/build/gate-run.N0sq3o/jobs/flipfix6/flipfix6*.log)
+NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)
+  row budget: 900s; median=-s; no-history-conservative-default; tripwire arm/disarm round-trip
+  tripwire arm/disarm round-trip                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; pipelined same-conn program order (400 rolls)
+  pipelined same-conn program order (400 rolls)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused txngroup battery (atomic 1)
+  fused txngroup battery (atomic 1)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; txngroup battery (atomic 1)
+  txngroup battery (atomic 1)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXEC fast-lane polls and wave6-wave10 interactions
+  EXEC fast-lane polls and wave6-wave10 interactions   ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 0)
+  exec1s refinements (1s, atomic 0)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (1s, atomic 1)
+  exec1s refinements (1s, atomic 1)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 0)
+  exec1s refinements (2s, atomic 0)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; exec1s refinements (2s, atomic 1)
+  exec1s refinements (2s, atomic 1)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F1
+  txnorder FIFO F1                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F2
+  txnorder FIFO F2                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F3
+  txnorder FIFO F3                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F4
+  txnorder FIFO F4                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F5
+  txnorder FIFO F5                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F6
+  txnorder FIFO F6                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F7
+  txnorder FIFO F7                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F8
+  txnorder FIFO F8                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F9
+  txnorder FIFO F9                                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder FIFO F10
+  txnorder FIFO F10                                    ok
+  row budget: 1440s; median=-s; fifo-16-legs-60s-plus-30s-setup-each; txnorder FIFO live fairness
+  txnorder FIFO live fairness                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain local
+  txnorder chain local                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain boundary
+  txnorder chain boundary                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain serve
+  txnorder chain serve                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain hot
+  txnorder chain hot                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder index oracle
+  txnorder index oracle                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder index complexity
+  txnorder index complexity                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound group
+  txnorder wound group                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound exec
+  txnorder wound exec                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound oom
+  txnorder wound oom                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound d2
+  txnorder wound d2                                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R1
+  txnorder2 writer episode R1                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R2
+  txnorder2 writer episode R2                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R3
+  txnorder2 writer episode R3                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R4
+  txnorder2 writer episode R4                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R5
+  txnorder2 writer episode R5                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R6
+  txnorder2 writer episode R6                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R7
+  txnorder2 writer episode R7                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R8
+  txnorder2 writer episode R8                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R9
+  txnorder2 writer episode R9                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R10
+  txnorder2 writer episode R10                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R11
+  txnorder2 writer episode R11                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 writer episode R12
+  txnorder2 writer episode R12                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 direct RENAME owner join
+  txnorder2 direct RENAME owner join                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 WATCH serve
+  txnorder2 WATCH serve                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 WATCH flush
+  txnorder2 WATCH flush                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 WATCH readonly
+  txnorder2 WATCH readonly                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder2 busy owner inbox wake
+  txnorder2 busy owner inbox wake                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (fused, atomic 0)
+  txnorder battery (fused, atomic 0)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (fused, atomic 1)
+  txnorder battery (fused, atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (split, atomic 0)
+  txnorder battery (split, atomic 0)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder battery (split, atomic 1)
+  txnorder battery (split, atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat proc vs Redis 7.4
+  rootcompat proc vs Redis 7.4                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat password vs Redis 7.4
+  rootcompat password vs Redis 7.4                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat replication vs Redis 7.4
+  rootcompat replication vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat sort-acl vs Redis 7.4
+  rootcompat sort-acl vs Redis 7.4                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat redact vs Redis 7.4
+  rootcompat redact vs Redis 7.4                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat xsnotify vs Redis 7.4
+  rootcompat xsnotify vs Redis 7.4                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat tracking vs Redis 7.4
+  rootcompat tracking vs Redis 7.4                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat hscan vs Redis 7.4
+  rootcompat hscan vs Redis 7.4                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; rootcompat setpast vs Redis 7.4
+  rootcompat setpast vs Redis 7.4                      ok
+GATE(PARTIAL): 224 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/post-lane-uring.partial
