@@ -281,5 +281,5 @@ The prior service-capacity interruption stopped POST epoll iteration 47 before
 row d completed. Its raw state is preserved in
 `docs/eoffix/interrupted-txn-complete-epoll-47/`; it is excluded from complete
 iteration counts. All 46 earlier complete repetitions contain successful AOF,
-exact restart replay and clean shutdown evidence (`resumed-prior-iterations.json`).
+exact `DEBUG LOADAOF` replay and clean shutdown evidence (`resumed-prior-iterations.json`).
 The resumed runner refuses to overwrite either completed or interrupted receipts.

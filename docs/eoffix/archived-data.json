@@ -1838,5 +1838,45 @@
         "sha256": "7f487781ab391d2d342b0d61fcaa2de57768db8cf9575d609485443cf59f12de"
       }
     ]
+  },
+  {
+    "archive": "docs/eoffix/data-gate-run.B7Vb1d-txnorder-fused-0.tar.gz",
+    "files": [
+      {
+        "path": "build/gate-run.B7Vb1d/jobs/txnorder-fused-0/gate-data-fused.3n6qzG/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 42686370,
+        "sha256": "202251ca1239fa6593f4dc79a1007b33191c4c26bf6435d07e9e1492a40f8f25"
+      }
+    ]
+  },
+  {
+    "archive": "docs/eoffix/data-gate-run.UL8QY6-txnorder-fused-0.tar.gz",
+    "files": [
+      {
+        "path": "build/gate-run.UL8QY6/jobs/txnorder-fused-0/gate-data-fused.XvrO8E/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 46196198,
+        "sha256": "8bb9e4294c6505635e1511d9f39039101579628707065a86d25b692ddaf4cba5"
+      }
+    ]
+  },
+  {
+    "archive": "docs/eoffix/data-gate-run.8B3sHk-txnorder-fused-0.tar.gz",
+    "files": [
+      {
+        "path": "build/gate-run.8B3sHk/jobs/txnorder-fused-0/gate-data-fused.WzldZr/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 40787108,
+        "sha256": "612520ef8c7930c5ccbb30b64783ac72ab7e060a5db39d931a689be9ee224527"
+      }
+    ]
+  },
+  {
+    "archive": "docs/eoffix/data-gate-run.f8VbzZ-txnorder-fused-0.tar.gz",
+    "files": [
+      {
+        "path": "build/gate-run.f8VbzZ/jobs/txnorder-fused-0/gate-data-fused.e396XL/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 43373324,
+        "sha256": "e349e221cda20179b7a2b4df8f81ce6e2f14a2a63d65c80edbb972e906496f54"
+      }
+    ]
   }
 ]
