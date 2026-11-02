@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "PRE",
+    "path": "/home/user/Projects/cx-atomfix6/build/pre/tomokv",
+    "sha256": "b09a48348a2f8483f4cf53a07801483edf4962853ee031310b9839da9dfc91ae",
+    "bytes": 235069608
+  },
+  {
+    "arm": "POST",
+    "path": "/home/user/Projects/cx-atomfix6/build/tomokv",
+    "sha256": "a0c8b0d8678e7732bcef579972b35dbb1071ddfdb2e741900d3f4892918d421c",
+    "bytes": 237142704
+  },
+  {
+    "arm": "POST-layout",
+    "path": "/home/user/Projects/cx-atomfix6/build/atomfix6/arms/POST-layout",
+    "sha256": "01323b988cb78b98b7e2df8d6ecb3895c3ca7e65d8e1e386a188178dc0db7894",
+    "bytes": 457596288
+  },
+  {
+    "arm": "PAD-A",
+    "path": "/home/user/Projects/cx-atomfix6/build/atomfix6/arms/PAD-A",
+    "sha256": "34e210d11f7fbad4667578523b8e7e5692975d6567f3d5a0b0b9c1b4a23df557",
+    "bytes": 457596288
+  }
+]

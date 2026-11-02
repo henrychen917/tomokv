@@ -81,3 +81,62 @@ versus 27216-27968 (3552.25-3552.5 versus 425.25-437 per poll). Depth-1 and all
 individual mode/namespace observations are included. Hash-index probe costs can
 vary with allocation addresses. Completed contended operation cycles/IPC remain
 for the maintainer's matched-load measurement.
+
+Gate inventory: 12 serverless rows (6 collapse, 4 parked-head, 2 index-lifetime)
+plus 8 live rows, all collected before the quick-tier exit. Normal-namespace
+parked-head rows additionally run the complete instrumented owner/scatter code
+under ASAN/UBSAN and TSAN; these are assertions within those existing rows.
+**DQ=+20, DF=+20**. Maintainer-owned EXPECT_QUICK=1046 and EXPECT_FULL=1063
+are untouched; the new totals should be **1066 / 1083**. Collection is at
+`tests/gate.sh`'s `collect_job atomfix6_units` and following eight-arm loop,
+above `if [ "$TIER" = quick ]`. The gate planner now permits one unchanged
+8-server/2-load slot for selected correctness jobs on this 13-core allocation;
+complete/performance gates retain their 16-core minimum. Its positive and
+negative planner tests and `tests/gates_test.py` cover that distinction.
+
+The original live witness matrix (before the compiler-only budget correction)
+failed every PRE arm. Its POST matrix passed 8,601,504 MGETs, with zero torn pairs,
+zero at-rest tears and zero restart mismatches, including an armed capture/read
+window in every arm. `pre-live-results.json` and `post-live-results.json` retain
+all per-phase counts. A fresh two-engine matrix on the final release is pending
+in the selected gate sequence. Redis 7.4 also passes the same live detector;
+`docs/atomfix6/oracle/result.json` records its counts.
+
+Maintainer measurement request (NOT RUN by this lane): use the gate's own ABBA
+instrument and matched offered loads, quiet box, LC_ALL=C. Preserve cell geometry,
+seeds, affinity and offered load across each PRE/POST and PAD-A/POST-layout pair.
+Run the 14 generic cells in `docs/lbplanner/generic-cells.txt`, plus 2s GET/SET
+at p1/p32. Also run atomic-1 MSET8/MGET8 at p1/p32 in 1s/2s, read-local 0/1,
+databases 1/16, uncontended and overlapping hot keys. Include the survey's exact
+`strings-MSET8-n100-p32` hot cell and T01 private/rotate shapes in both modes.
+Record rate at matched load, cycles/op, instructions/op and IPC, plus park polls,
+park visits, loop passes/op, admitted groups, queue depth and record visits.
+Ordinary cells must have zero regression; hot-cell stalls must disappear without
+changing ordering or losing a reply. Rate is the performance verdict; the finite
+instruction counts explain only executed work. No throughput gain is claimed.
+
+PAD-A is type **A (behaviour twin)**: PRE behaviour in the exact common
+POST-layout image. `tools/execindex_pad.py` links POST first and a symbol-isolated
+PRE second, then changes only main's five-byte entry jump. ELF sections and
+symbols match exactly. Compare PAD-A with POST-layout, and separately compare
+ordinary PRE with the smaller POST release. This controls the common image's
+size/layout, not every executing PRE function's address relative to its POST
+implementation; do not substitute it for the ordinary release comparison.
+Full build commands, object digests and the five changed bytes are recorded in
+`docs/atomfix6/pad-a.json`.
+
+NOT RUN by authorization: full iteration, ABBA/performance measurements, the
+atomic throughput floor, the memtier-based `flip_saturated` job, and the original
+T01/T03 rate/perf load drivers. Their correctness mechanism is covered by the
+held-predecessor serverless witness, ordinary FLIP rows and the pair detectors;
+this is not a claim that their performance criteria passed. The maintainer owns
+those measurements. T07/T08/T10/T15/T16/T17 detectors run with only lifecycle
+substitution (CPU74-81, port21760, 16 shards, 6:2 split, selected binary); original
+source hashes and exact arguments are retained with each audit result.
+
+| Arm | Artifact | SHA-256 |
+|---|---|---|
+| PRE | `build/pre/tomokv` | `b09a48348a2f8483f4cf53a07801483edf4962853ee031310b9839da9dfc91ae` |
+| POST | `build/tomokv` | `a0c8b0d8678e7732bcef579972b35dbb1071ddfdb2e741900d3f4892918d421c` |
+| POST-layout | `build/atomfix6/arms/POST-layout` | `01323b988cb78b98b7e2df8d6ecb3895c3ca7e65d8e1e386a188178dc0db7894` |
+| PAD-A | `build/atomfix6/arms/PAD-A` | `34e210d11f7fbad4667578523b8e7e5692975d6567f3d5a0b0b9c1b4a23df557` |
