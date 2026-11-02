@@ -177,7 +177,18 @@ def main():
     p.add_argument("--batches", default="1,32")
     p.add_argument("--commands", default="GET,SET,INCR,MGET,MSET,EXEC,EXEC-cross,LMPOP,SMOVE")
     p.add_argument("--namespaces", default="normal,db0")
+    p.add_argument("--jobs", type=int, default=4, help="parallel bounded gdb traces")
+    p.add_argument("--arm", action="append", default=[],
+                   help="extra arm NAME=SOURCE_TREE (objects in SOURCE_TREE/build)")
+    p.add_argument("--out", type=Path, default=None,
+                   help="receipt directory (default docs/txnfix4/instructions)")
     a = p.parse_args();arms=a.arms.split(",")
+    global OUT
+    if a.out is not None:
+        OUT = a.out.resolve();OUT.mkdir(parents=True, exist_ok=True)
+    for spec in a.arm:
+        name, tree = spec.split("=", 1)
+        ARMS[name] = (Path(tree).resolve(), Path(tree).resolve() / "build")
     if not a.trace_only:
         for arm in arms:
             for ns in a.namespaces.split(','):
@@ -190,18 +201,18 @@ def main():
              for atomic in ((0, 1) if command in ("MSET", "EXEC", "EXEC-cross", "LMPOP", "SMOVE")
                             else (1,))
              if not (command in ("EVAL", "LMPOP", "SMOVE") and batch != 1)]
-    with concurrent.futures.ThreadPoolExecutor(4) as pool:
+    with concurrent.futures.ThreadPoolExecutor(a.jobs) as pool:
         rows = list(pool.map(trace, cases))
     save(OUT / ("results-"+a.arms+".json"), rows)
-    if not {"pre", "post"}.issubset(arms): return
+    if "pre" not in arms or len(arms) < 2: return
     pairs=[]
     for row in rows:
-        if row["arm"] != "post":continue
+        if row["arm"] == "pre":continue
         old=next(r for r in rows if r["arm"]=="pre" and all(r[k]==row[k] for k in ("namespace","command","mode","batch","atomic","threshold")))
-        pairs.append({k:row[k] for k in ("namespace","command","mode","batch","atomic","threshold")} | {
+        pairs.append({"arm":row["arm"]} | {k:row[k] for k in ("namespace","command","mode","batch","atomic","threshold")} | {
             "pre":old["total"],"post":row["total"],"delta":row["total"]-old["total"],
             "functions_equal":old["functions"]==row["functions"]})
-    save(OUT / "comparison.json", pairs)
+    save(OUT / ("comparison-" + a.arms + ".json" if a.arms != "pre,post" else "comparison.json"), pairs)
 
 
 if __name__ == "__main__":main()
