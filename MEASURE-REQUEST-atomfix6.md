@@ -289,6 +289,17 @@ The default persistence group passes 228/228 rows, including both AOF and snapsh
 engines, BGSAVE under scripts/EXEC, save/restart, FLUSH, AOF frame/commit order,
 fsync/rewrite matrices and WAIT AOF. Its fused generic-boot follow-up passes
 158/158 rows, including the ASAN atomic batteries and reply-off/zero-copy jobs.
+The separate fused notification/MULTI job passes 7/7.
+
+Placement records 132 passing rows and one `flipfix6` fixture failure. The required
+CPU74-81 / 6:2 geometry has IO thread IDs 0,1,2,3,6,7; the fixture hard-codes 0-5.
+All 56 session witnesses therefore fail to arm, and its short-circuited scale
+stage does not run. Two FLUSH/FLIP sibling legs also see the approved close refusal
+when one storm thread closes its connection before the final FLIP drains. Original
+results are retained in `proof/placement-uring-default/flip-results.json`; the
+original PRE control and a topology-aware fixture rerun are pending. All eight
+eviction jobs, stationary LB in both modes, other FLIP jobs, read-local jobs and
+35 feature-matrix cells in this group pass.
 
 Completed passing persistence jobs retained about 2 GB of dump/AOF test data.
 Those generated data files were hashed and retired after job completion to keep
