@@ -126,6 +126,9 @@ def main():
         if PASS == 'complete':
             run(['python3','tools/eoffix_verify.py'],'complete-proof-inventory',required=True)
     elif a.phase=='regressions':
+        # Make room for persistence fixtures before starting the next server.
+        run(['python3', 'tools/eoffix_retire_layout.py'],
+            'final-layout-object-retirement', required=True)
         # Jobs with an internal all-mode/all-engine matrix run once.
         internal = 'netcmd_units wb_rule_units wbland_units blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake persistfix_units tls netfix_tls slotless wb_mixed inline_quoted ntfix_input crlffix clientcompat-enable-race iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof'
         internal += ' wave14_functions rootcore-functions rootcore-segments rootcore-waitaof rootcore-misconf infofix_compat-loadaof'
