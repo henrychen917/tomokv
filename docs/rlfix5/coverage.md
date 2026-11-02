@@ -45,6 +45,7 @@ separate from exact-value and ordering-invariant checks.
 
 | Exclusion | Status and reason |
 |---|---|
+| Differential SORT in armed-fused geometry | NOT RUN: the standard `differ_gate.sh` suite explicitly requires split 6:2; its split legs remain included on both engines |
 | Full iteration, ABBA and requested performance cells | NOT RUN: maintainer owns performance measurements |
 | `flip_saturated` and its saturation shutdown row | NOT RUN: invokes memtier saturation traffic |
 | `tailgen client-lb outstanding bound` | NOT RUN: invokes the open-loop load generator |
