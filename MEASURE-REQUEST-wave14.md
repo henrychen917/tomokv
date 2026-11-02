@@ -206,13 +206,14 @@ and rejected counts are retained, not presented as the integration cost proof.
 
 ### Tcl reconciliation and negative control
 
-All 22 touched named assertions were attempted three times in each mode
-on the corrected release (132 isolated attempts). `docs/wave14/tcl-r7-audit.md` lists every result and the
-exact reason for retaining a skip. Existing lane promotions all passed six
-attempts. No guard-only promotion is restored merely because six attempts
-happened to pass. Intermittent and consistently failing assertions remain named
-skips. Original run receipts, including failures, are preserved. The earlier
-pre-budget and pre-R7-correction sets of 132 attempts are retained separately.
+All 22 touched named assertions were attempted three times in each mode on
+both engines on the corrected release (**264 isolated attempts**).
+`docs/wave14/tcl-r7-both-engines-audit.md` lists every result and the reason for
+retaining a skip. All three existing lane promotions pass all twelve attempts.
+No guard-only promotion is restored merely because a diagnostic sample passes;
+intermittent and consistently failing assertions remain named skips. Original
+receipts, including failures, are preserved. The earlier pre-budget and
+pre-R7 sets of 132 uring attempts are retained separately.
 The final manifest requires 1876
 assertion occurrences and has 213 named skips, versus 1878/211 on headline:
 three lane promotions and five witnessfix/rootcompat retirements. See
@@ -390,7 +391,7 @@ emitted by the fixed overflow branch. That failed receipt is retained.
 The pre-R7 full Tcl manifest passed in both modes on both uring and epoll;
 these jobs are running again on the final release. Final named-skip probes
 retain their red diagnostic results; all three lane promotions pass 3/3 in
-each mode. `MONITOR log blocked command only once`, for example, was PFP in
+each mode and engine. `MONITOR log blocked command only once`, for example, was PFP in
 the earlier split-mode probes and is PPP in the final probes; the earlier
 failure remains evidence against restoring its guard-only promotion.
 
