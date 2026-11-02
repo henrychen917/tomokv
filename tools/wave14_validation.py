@@ -56,8 +56,10 @@ def phase(name, verify):
                 rows.append(dict(status=status, seconds=float(seconds), label=label))
         assert passed == sum(r['status'] == 'ok' for r in rows), (name, directory)
         assert failed == sum(r['status'] != 'ok' for r in rows), (name, directory)
+        # The gate's zero-exit done record follows successful bounded cleanup.
+        # Nonzero exits need their original teardown log; do not infer a leak.
         jobs.append(dict(job=directory.name, exit_code=rc, passed=passed, failed=failed,
-                         cleaned=(directory / 'cleaned').exists(), rows=rows))
+                         cleanup_proven_by_zero_exit=(True if rc == 0 else None), rows=rows))
     completed = {j['job'] for j in jobs}
     active = [p.name for p in (root / 'claimed').iterdir() if p.name not in completed]
     return dict(tag=name, state='COMPLETE' if record else 'RUNNING',

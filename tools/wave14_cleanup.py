@@ -16,7 +16,12 @@ def main():
     saved={r['job_directory'] for r in records}
     for done in sorted((ROOT/'build').glob('gate-run.*/jobs/*/done')):
         job=done.parent
-        if str(job) in saved or not (job/'cleaned').exists():continue
+        if str(job) in saved:continue
+        # gate.sh publishes done only after cleanup. A zero worker exit proves
+        # cleanup succeeded; job_recover and failed teardown publish nonzero.
+        # There is no separate "cleaned" marker in this gate implementation.
+        fields=done.read_text().split()
+        if len(fields)!=3 or fields[0]!='0' or not (job/'family.tsv').exists():continue
         files=[p for p in job.rglob('*') if p.is_file() and not p.is_symlink()
                and p.suffix in ('.tomo','.aof','.rdb')]
         if sum(p.stat().st_size for p in files)<64*1024*1024:continue
