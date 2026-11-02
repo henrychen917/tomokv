@@ -14,5 +14,29 @@
     "compressed_bytes": 32060354,
     "sha256": "5e4cfbcbe7c367a7139b28ac55af1a80504fc359cab798ab25ac3f42fc9e88e2",
     "reason": "completed rejected inventory check; lossless compression, executable and diffs retained"
+  },
+  {
+    "path": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/negative/POST.d443b95831da.objdump",
+    "gzip": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/negative/POST.d443b95831da.objdump.gz",
+    "bytes": 140644651,
+    "compressed_bytes": 32060354,
+    "sha256": "5e4cfbcbe7c367a7139b28ac55af1a80504fc359cab798ab25ac3f42fc9e88e2",
+    "reason": "completed passing identity check; lossless compression, diffs and audit receipt retained"
+  },
+  {
+    "path": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/identity/fifo-twin.4fbbf76ee749.objdump",
+    "gzip": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/identity/fifo-twin.4fbbf76ee749.objdump.gz",
+    "bytes": 140644693,
+    "compressed_bytes": 32060505,
+    "sha256": "7257d044982de5db28a58c3e7f5c5222e86690f396321a08d0c2f2ce6f5eb6f5",
+    "reason": "completed passing identity check; lossless compression, diffs and audit receipt retained"
+  },
+  {
+    "path": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/identity/POST.d443b95831da.objdump",
+    "gzip": "build/gate-run.IWv7UP/jobs/reorder_identity/receipt/identity/POST.d443b95831da.objdump.gz",
+    "bytes": 140644651,
+    "compressed_bytes": 32060354,
+    "sha256": "5e4cfbcbe7c367a7139b28ac55af1a80504fc359cab798ab25ac3f42fc9e88e2",
+    "reason": "completed passing identity check; lossless compression, diffs and audit receipt retained"
   }
 ]
