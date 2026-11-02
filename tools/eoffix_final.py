@@ -91,7 +91,7 @@ def main():
     if a.phase=='cold':
         gate('final-eof-aof', 'wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s',
              env=dict(WAVE14_EOF_DIRECTORY=str(ROOT/'build/eoffix/final-eof-native'),
-                      EOFFIX_AOF_DIRECTORY=str(ROOT/'build/eoffix/final-aof-native')))
+                      EOFFIX_AOF_DIRECTORY=str(ROOT/'build/eoffix/final-aof-native-v2')))
         gate('final-layout', 'netio-1s netio-2s wave14_eof_data',
              binary=ROOT/'build/eoffix/layout-final/POST-layout')
         gate('final-pad', 'netio-1s netio-2s', binary=ROOT/'build/eoffix/layout-final/PAD-A')

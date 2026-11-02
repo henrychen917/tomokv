@@ -41,12 +41,14 @@ interrupted continuation is also excluded. Uring completed 50 iterations: all 50
 AOF/reload/shutdown legs passed; 38 entire jobs passed and 12 failed their row-b
 latency bound. Every failed attempt and observer output is retained.
 
-In `build/gate-run.0yMfb5`, writer LWP 978298 waits in
+In `build/gate-run.0yMfb5`, owner LWP 978298 waits in
 `ReadLocalDeferredQueue::force_oldest_grace` during immutable INCR replacement.
-Producer LWP 978310 waits in `aof_commit_group` posting ticket 691 to its full
-channel; the remaining workers are idle. The producer pins the old QSBR epoch,
-so the writer cannot finish replacement and drain the channel. SIGTERM cannot
-break that cycle. `txn-pre-epoll-cont-14.tar.gz` preserves stacks and the shutdown
+LWP 978310 waits in `aof_commit_group` posting ticket 691 to its full
+channel; the remaining workers are idle. Fused placement assigns the AOF writer
+to the last thread (t7); creation order maps that worker to LWP 978310. The
+writer waits on its own channel without invoking the existing persistence drain.
+Its pinned QSBR epoch also obstructs owner reclamation. SIGTERM cannot break
+this progress failure. `txn-pre-epoll-cont-14.tar.gz` preserves stacks and the shutdown
 receipt. This is a real AOF/QSBR defect, not an unretired-connection inference.
 
 The existing `drain_for_producer` cold backpressure hook now refreshes the
@@ -55,11 +57,15 @@ capture buffers have been consumed/copied before owner mutation/AOF emission;
 queued lane entries do not retain captured store pointers. This uses the same
 quiescent publication as `force_oldest_grace`, preserving parked status. The
 hook drains persistence only when this producer is the writer. It adds no
-reader retry or per-operation publication. The native witness fills the real
+reader retry or per-operation publication. The QSBR native witness fills the real
 64-slot AOF channel and a real 4096-entry retire ring, proves the producer pins
 the grace, and requires reclamation before releasing one channel slot. Its
 open-channel control requires zero new QSBR publication. Both namespaces and
-both engines reject PRE and accept the candidate.
+both ring engines reject PRE and accept the candidate. A separate self-writer
+control disables read-local, fills the writer's own channel, and requires the
+actual GCMT retry to drain all 64 physical frames. This independently checks the
+missing writer-progress call. These serverless physical-frame controls use
+normal persistence IO; whole gate jobs cover actual uring persistence.
 
 **Tcl attribution.** `pre-tcl-attribution-06` reproduces the rejected trial's
 exact "Different clients using different protocols can track the same key"
@@ -86,10 +92,11 @@ still rejects overlap. All work uses CPUs 0–7, builds use `-j8`, and boots use
 each job retains its own explicit geometry overrides, including txnorder's 4:4
 split shape. These are partial correctness receipts, not a full iteration receipt.
 
-**Instruction evidence.** Finite serverless scopes enter linked production
+**Instruction evidence (final release SHA `29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48`).** Finite serverless scopes enter linked production
 bodies. Counts exclude fixture glue, shared libraries, syscalls and synthetic
 clock calls. Raw traces and exact per-cell totals are in
-`docs/eoffix/instructions/`. No rates, cycles or throughput claims are made.
+`docs/eoffix/instructions/`; `instruction-comparison-final.json` and `.md` retain
+every paired cell. No rates, cycles or throughput claims are made.
 
 | Scope | PRE/POST pairs | Delta |
 |---|---:|---:|
@@ -106,22 +113,26 @@ its ordinary receive cells explicitly use read-local=0 in both arms.
 completed binding receipts are retained before transient probe binaries are
 retired to meet the disk budget. See `retired-artifacts.json`.
 
-**Frozen arms.** `docs/eoffix/arms.json` contains sizes and full digests.
+**Final frozen arms.** `docs/eoffix/arms-final.json` contains sizes and full digests.
 
 | Arm | Path | SHA-256 |
 |---|---|---|
 | PRE | `build/eoffix/pre-rebuilt` | `35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a` |
-| POST | `build/eoffix/post/tomokv` | `d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69` |
-| POST-layout | `build/eoffix/layout/POST-layout` | `d0e234cac6b75d51a121c335e168b641fbfcd12b82f679e6d88827732c1e6121` |
-| PAD-A | `build/eoffix/layout/PAD-A` | `f7b1329bd253d9123a82f720f5565f67be3c981d33e40023897bfed8973ff435` |
+| POST | `build/eoffix/post-final/tomokv` | `29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48` |
+| POST-layout | `build/eoffix/layout-final/POST-layout` | `0df0c25368ad9a9ed18bb9c3195b154a900978276e717374cbce53a3d09b46b5` |
+| PAD-A | `build/eoffix/layout-final/PAD-A` | `bb48b1eb370440d3c05770d6f7dbeefaf3abafff696e909783a6d6a790c5e963` |
 
 PAD is **type A: behavior twin**, PRE behavior in the common POST-layout image.
 POST-layout and PAD-A have identical section/symbol layouts and function addresses;
 only the five-byte main entry jump differs. Its exact comparison arm is
 POST-layout, not the smaller release POST. `.text` sizes: PRE 9,021,623 bytes,
-POST 9,035,799 bytes, both layout twins 18,057,063 bytes. `pad-a.json` preserves
-link/patch proof. PAD-A fails public netio as PRE does; POST-layout passes netio
-and the extended half-close controls.
+POST 9,035,847 bytes, both layout twins 18,057,111 bytes. `pad-a-final.json`
+preserves link/patch proof. Final layout-arm correctness is pending.
+
+The earlier `arms.json` and every intermediate receipt remain retained. Obsolete
+layout/native binaries were retired with digests in `retired-artifacts.json` to
+meet the disk cap. Final arms, rebuilt PRE, the PRE native AOF control, complete
+build recipes and all raw evidence remain available.
 
 **Maintainer measurement request.** Run the 14 generic cells plus 2s GET/SET at
 p1/p32 on uring and epoll. Compare release PRE/POST, retain a byte-identical null,
@@ -129,6 +140,12 @@ and separately compare POST-layout/PAD-A (type A) on those same cells. Matched-l
 rate decides regression; cycles/op, instructions/op and IPC explain it. Measurements,
 performance load generators and the full iteration are **NOT RUN** here: owner-owned
 under the task's runtime authorization. No throughput claim is attached to this diff.
+
+**Build and harness proof.** Final `make all` plus all 55
+`job_production_units` targets and its additional mdbqsbr, blockfix cost and
+blockfix2 targets pass (`final-build.json`). Every corresponding `make -q`
+check passes (`build-freshness-final.json`). `python3 tests/gates_test.py`
+passes 14 + 77 tests (`gates-test-final.json` and `.log`).
 
 **Gate accounting.** DQ=0, DF=0. The existing netio rows are strengthened at their
 existing collection lines before the quick exit; private wave14 EOF jobs remain

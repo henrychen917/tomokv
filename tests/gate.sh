@@ -5847,7 +5847,7 @@ job_wave14_eof_data(){
 job_eoffix_aof(){
   local namespace engine schedule label binary
   for namespace in normal db0; do for engine in epoll uring; do
-    for schedule in open pressure; do
+    for schedule in open pressure writer; do
       label="eoffix AOF QSBR ($namespace, $engine, $schedule)"
       binary="${EOFFIX_AOF_DIRECTORY:?native AOF arm directory required}/$namespace"
       row_begin "$label"
