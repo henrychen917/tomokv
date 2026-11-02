@@ -329,14 +329,22 @@ static void hash_expiry_child() {
     f.full();
     read_armed = 1;
     alarm(1);
+    // hash_ttl_on_access answers read-only commands from hexpread's views first (a parked
+    // version, a capture: CD5.3); this case drives its reaping and deferred retirement, so the
+    // probe carries a write spec. The object is an in/out argument: nullptr means absent.
+    const CommandSpec write_probe("HINCRBY", 4, 4, CmdFlags::Write, nullptr, 1, 1, 1);
     Op op;
-    for (unsigned i = 0; i < 3; i++)
-        require(!hash_ttl_on_access(shard, op, elapsed, false),
+    op.spec = &write_probe;
+    for (unsigned i = 0; i < 3; i++) {
+        KvObj* object = elapsed;
+        require(hash_ttl_on_access(shard, op, object, false) && !object,
                 "all-expired hash read returns absence without retirement");
+    }
     require(shard.store().field_expired() == 0 && hash_ttl_field_count(elapsed) == 1 &&
             shard.store().field_expire_count() == 2 && f.queue.size() == 4096 && f.reclaimed == 0,
             "deferred hash retains its fields, attention and zero expiry side effects");
-    require(hash_ttl_on_access(shard, op, partial, false) == partial &&
+    KvObj* object = partial;
+    require(hash_ttl_on_access(shard, op, object, false) && object == partial &&
             hash_ttl_field_count(partial) == 1 && hash_ttl_field_exists(partial, Slice("g")) &&
             !hash_ttl_field_exists(partial, Slice("f")) && shard.store().field_expired() == 1 &&
             f.queue.size() == 4096, "partial expiry preserves the live field without header retirement");
