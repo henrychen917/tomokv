@@ -26,13 +26,15 @@ def main():
     p.add_argument('--engine', choices=['uring', 'epoll'], default='epoll')
     p.add_argument('--port', type=int, default=21900)
     p.add_argument('--repeat', type=int, default=1)
+    p.add_argument('--start-index', type=int, default=1,
+                   help='First receipt index when continuing an interrupted repetition')
     p.add_argument('--capture', action='store_true')
     p.add_argument('--keep-going', action='store_true')
     p.add_argument('--archive-data', action='store_true',
                    help='Archive completed large AOF data between repeated correctness jobs')
     a = p.parse_args()
     assert os.sched_getaffinity(0) <= set(range(8))
-    assert 21900 <= a.port <= 21997 and a.repeat >= 1
+    assert 21900 <= a.port <= 21997 and a.repeat >= 1 and a.start_index >= 1
     assert not {'flip_saturated', 'efficiency', 'abba', 'nic'} & set(a.jobs.split())
     native = a.binary.resolve(); binary = native
     env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
@@ -60,10 +62,11 @@ int main(int argc, char **argv) {
         env.update(WAVE14_TXNORDER_CAPTURE='1', WAVE14_TXNORDER_NATIVE=str(native))
     DOC.mkdir(parents=True, exist_ok=True)
     failed = False
-    for index in range(1, a.repeat + 1):
-        tag = a.tag + (f'-{index:02d}' if a.repeat > 1 else '')
+    for index in range(a.start_index, a.start_index + a.repeat):
+        tag = a.tag + (f'-{index:02d}' if a.repeat > 1 or a.start_index != 1 else '')
         receipt = DOC/(tag+'.json')
         assert not receipt.exists(), 'never overwrite an attempt'
+        assert not (DOC/(tag+'-started.json')).exists(), 'preserve an interrupted attempt first'
         env['GATE_LEDGER'] = str(DOC/tag)
         command = ['tests/gate.sh', 'full', '--server-cores', '0-7', '--load-cores', '0-7',
             '--server-smt', '', '--load-smt', '', '--ports', f'{a.port}-{a.port+2}',
