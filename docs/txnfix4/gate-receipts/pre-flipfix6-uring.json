@@ -1,0 +1,1729 @@
+{
+  "label": "pre-flipfix6-uring",
+  "source": "/home/user/Projects/cx-txnfix4/build/gate-run.m5d72p",
+  "archive": "/home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/pre-flipfix6-uring.tar.gz",
+  "archive_sha256": "455719ed0fdc67f302478f7bce73f5cd518bae7104e492e5cf95c53df3f81261",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 105,
+      "sha256": "906d51e00d523aa954beba0c65462e718caa04da7792f27bffda9831873cc818"
+    },
+    {
+      "path": "jobs/flipfix6/done",
+      "size": 6,
+      "sha256": "77f2bf63a33e80566057a01fcbee2fadd85fd349ed26ca760071ba574f50e2d6"
+    },
+    {
+      "path": "jobs/flipfix6/family.tsv",
+      "size": 53,
+      "sha256": "84d65a71b4be889ba9e91598f8e56cda1f24ad6e6c2960d9c3d2faf3a370b207"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/server.argv.json",
+      "size": 491,
+      "sha256": "f2ca809c3713661c4c280bada806a3977c341a5b93d13e150744542b37952d79"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/server.log",
+      "size": 6502869,
+      "sha256": "dd6b5bc9ce237d8231fa51735d3c2ae7ce0300a70a1d56d34d2709a0198fea1d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec/witness.json",
+      "size": 1225508,
+      "sha256": "e60b15d2f4673b6ca33002b0f24e4c1d810fb65904919aa6bddd3b8c0202590e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/server.argv.json",
+      "size": 497,
+      "sha256": "1ae31cc66380eb486cc5e2164284029637d894cca1569447d4ff96d176e8d0a5"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/server.log",
+      "size": 5773335,
+      "sha256": "b0a7e53a0a42f6fa49b654355a140a8cf77407a56f38a98ae35622b4531234c4"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-exec-close/witness.json",
+      "size": 1249098,
+      "sha256": "1b1353dcddb1bdbd08931589e9b20037d7882bb7989c197ba933a9405bfb42ea"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/server.argv.json",
+      "size": 489,
+      "sha256": "5957de57d0d9010a286b1c869d85acb78bb9fc162939efef9b684656c679630f"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/server.log",
+      "size": 6918046,
+      "sha256": "1a202565a8a5ff2cbe018d702408bb7f17bd67599553fbd9ea183c3375be029d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p1/witness.json",
+      "size": 1304064,
+      "sha256": "54e78a51709b83c30de89a06e484836c139ea29a0d0d057ae6d3732dd5db6271"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/server.argv.json",
+      "size": 489,
+      "sha256": "2b2bfb0c2e453aa4441df462a4e55859ffdda4f64c2e791f4b87b1748bffcb9f"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/server.log",
+      "size": 6833233,
+      "sha256": "0b25bde85f3f553d3172ff2043fd66e8cac0a5e17c52b5e9f4a51b8ffeb11211"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p2/witness.json",
+      "size": 1287925,
+      "sha256": "01cf6ed81db765fb9598b34ef73f142aede77b00afad2cbfe92d4fcbf71dad09"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/server.argv.json",
+      "size": 489,
+      "sha256": "826f2f891d90a4af03dc3ecb3f9f5368283ebb83d2b0c0e34f5f1d3799f544a7"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/server.log",
+      "size": 6969197,
+      "sha256": "9d7fe3b13431b65440e47cb0140e76364713b3adc95b7cb877e7e4bf9ffc5e9b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-p3/witness.json",
+      "size": 1314241,
+      "sha256": "72faebcd7c83064aa4eca6fcd5ccbca3b0c56b780d56ba7b0559f35b0749f2bd"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-semantics/server.argv.json",
+      "size": 496,
+      "sha256": "501305862484ddfeaee440f8cbec9a221d54ed453cd979e26d45ee32a0950dd7"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-semantics/server.log",
+      "size": 27361,
+      "sha256": "cdcaaf5a9c58252dba838e733aec77edb3e31cbeb0c244dea912055db8f463ad"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/server.argv.json",
+      "size": 492,
+      "sha256": "f29a40f9db6224b3bf5fc0c614a1da6f3a09bd16b63bf091ff8dd63dcca23a6e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/server.log",
+      "size": 6917624,
+      "sha256": "0dbfbcbc23d8fd9acf1307941fd5d023860f8daee698f8385dc84de8af2f9bb0"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db1-watch/witness.json",
+      "size": 1304037,
+      "sha256": "a263d4ddb2ce51d1eab74592171ba7acc55792a0d046b045dff2b41464c2a20d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/server.argv.json",
+      "size": 493,
+      "sha256": "61c1adb7099b1b51159dd67ef55fc277530f6ec83bf3bf2ce34b8f0455c96d4d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/server.log",
+      "size": 6460919,
+      "sha256": "3af8278257c3187c72910216634b9b0ef760e452ed7704ab1c10c1ac7d37829e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec/witness.json",
+      "size": 1217463,
+      "sha256": "72055e736ce8fbc6fa6099691f57212c31c377670914a5389d0e056c4836067d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/server.argv.json",
+      "size": 499,
+      "sha256": "d667b0505dd19e828ffeff78168450db6eaf550ee0e4b3ac3e7f748e6e45cfad"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/server.log",
+      "size": 5477337,
+      "sha256": "f8a1a2741b0bf33653a7baf593762807235e58ef622741fbe57e3653ca18b681"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-exec-close/witness.json",
+      "size": 1225780,
+      "sha256": "8600266c6b5df08d77e80607d652c7411f8f1bebbbfa31522728179b442cca65"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/server.argv.json",
+      "size": 491,
+      "sha256": "5f681d2c2939337eced64ac16a5b6c96784350a665f303fdb4ccbf305dfb27df"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/server.log",
+      "size": 6618240,
+      "sha256": "c243672aa954b58a36745e2a2bcb27e51e343dd2ccb9e6a254e0dd4bf4588f53"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p1/witness.json",
+      "size": 1247277,
+      "sha256": "dfa0bd213ddbf19cca2c2e1d0d7b9267ea8f9443e4f49e889f04c6d195c4476a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/server.argv.json",
+      "size": 491,
+      "sha256": "0b85bb9597f60a164dc321e947315b42d2ec7755f4227c3fef9c3d0299ca1ebe"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/server.log",
+      "size": 6696852,
+      "sha256": "ec4aa735b2a84873a7fb444286f1aa16311ab9dd238207e6d2456e36571922a3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p2/witness.json",
+      "size": 1262306,
+      "sha256": "f141a7251fd0bb950f9f865e6de2c702810d0dfcb1d006fadbfb005e4e9480df"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/server.argv.json",
+      "size": 491,
+      "sha256": "407fe8e4eb43c8cb2526929f788c00f264a0b919ed2943e02694a89b2f24e4a7"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/server.log",
+      "size": 6711898,
+      "sha256": "4cb9693f234bb94eea99d52aec1a689584f53e3cfb1bd7dfa1c61fb4ae653c2e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-p3/witness.json",
+      "size": 1265346,
+      "sha256": "1e49973ada509b325fe9ea1ff1bee0a370e4ffcb212311a1e76708170d26dab6"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-semantics/server.argv.json",
+      "size": 498,
+      "sha256": "15faf209fb71be20e6f6cb85cdf51d3cfa7ee0890f1f0658769fa04c53d7ec90"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-semantics/server.log",
+      "size": 27356,
+      "sha256": "cadeda2ca178f3771d4e604fe7716003496f19a9f4473be82be5f12f3bfd7ec8"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/server.argv.json",
+      "size": 494,
+      "sha256": "e0ec2703474f008bbc1ef00ed2f6ccdb8634f3d3eea9e82f2094f869c6e30336"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/server.log",
+      "size": 6663317,
+      "sha256": "698bfd54aa67521b004a21547bbb40b775b16058e87cba5180cd37215874b484"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-0-db16-watch/witness.json",
+      "size": 1255742,
+      "sha256": "a0e040d5503e62528a10a6b1f1abfcca44f22e15e3e5dd7e6c8ec3487ee4b3ea"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/server.argv.json",
+      "size": 491,
+      "sha256": "378a57273ac2fb6936aa488f37fbb7c4131d5e9efbaabcd0e7e5b36427e5b6bd"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/server.log",
+      "size": 6572942,
+      "sha256": "e49fe3e87efd000638a59be6c4a9004a23057a7bbc903f1041e93cbd9c6c2a59"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec/witness.json",
+      "size": 1238675,
+      "sha256": "cda946674cdb1b67bb6b46526f24c222c9d8b18ec8a0f4d298cea9f636e1cda3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/server.argv.json",
+      "size": 497,
+      "sha256": "241aa171f8e3b0388ea417add7f4a59d50e4cd8a2895f86f0b4fc4e2e54e7fc3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/server.log",
+      "size": 5755531,
+      "sha256": "85604072934abf8e27ef860cab44000ae09d7721bdc4eb98198c809bf7c6f729"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-exec-close/witness.json",
+      "size": 1240517,
+      "sha256": "0b14ee9e56d86e5d545a9c8f72fe8e6459b41250899af3bf75237df84bf6715b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/server.argv.json",
+      "size": 489,
+      "sha256": "d80fce90983abb406f86923cfb29ca623dd5222d9889db99720734355be21908"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/server.log",
+      "size": 6856470,
+      "sha256": "a918e4dbc31b44353063d9dcab69cd07a8b906ec9dbc5d61a2ed2ddaae2ac093"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p1/witness.json",
+      "size": 1292354,
+      "sha256": "69ee795fb568c483e368d2e50e114a1f851c492bbec63601750c8651484179a2"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/server.argv.json",
+      "size": 489,
+      "sha256": "9cc22b45e21bb10fbfe01e00fe93c771e46fb1ec9a79030779b3001c630426fa"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/server.log",
+      "size": 6851649,
+      "sha256": "1ae76e737988db5f7b8a1356e6b315b9d2044a6af237b6ccc162d91da597b4fc"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p2/witness.json",
+      "size": 1291650,
+      "sha256": "eb23f6c946f01cbf0f878dab947ede5101837aa8e1332a4d4d1ca28c1a315ff8"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/server.argv.json",
+      "size": 489,
+      "sha256": "27df4f42a80c2dc2da7fd784af671857e31e8364e5000ccaef64594700b9bebb"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/server.log",
+      "size": 6997040,
+      "sha256": "43901d1ad5c5d7d8f7c5375c7a5d2c2f9f989d9ee9421559fc8b318bf272f6d9"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-p3/witness.json",
+      "size": 1319417,
+      "sha256": "146aab6be6e6028db2653f387d70e88545f4492ccb0e24b716dcc591382bf1d8"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-semantics/server.argv.json",
+      "size": 496,
+      "sha256": "14d293bebed89d89a46df9aaa966ae66824c384d924d9c8af14b50e5dd96e31c"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-semantics/server.log",
+      "size": 27341,
+      "sha256": "fc862825ed108d96b42eba16935ed2c039f3d14c48be5cd696dc71299a8cb431"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/server.argv.json",
+      "size": 492,
+      "sha256": "21c97231c4053378593ecc7e32238193c20b6783b82f3dbe7c7c691130698dd2"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/server.log",
+      "size": 6929880,
+      "sha256": "e28d77fdd87696e68f5b958e4b0e3be0525f170292670eaa7dabab25f375c3aa"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db1-watch/witness.json",
+      "size": 1306356,
+      "sha256": "a9fe6a72ee4f07454378690fe11e78b87697156e3e17924be46c02868c3d67be"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/server.argv.json",
+      "size": 493,
+      "sha256": "c51a1b2b931dec7b0dd5dad3b9410dd0c06f648256e9290f4f2f6ca63cbbcb18"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/server.log",
+      "size": 6356799,
+      "sha256": "2cbd7a83bd3dfdaa54de968b4dce4e4a343ba9cbdf5d1c3b467221d651823522"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec/witness.json",
+      "size": 1197914,
+      "sha256": "59cdc2ab05d8d261849a1928e8d3626f66cc6e91db16be52c3f0a8f7b4d737da"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/server.argv.json",
+      "size": 499,
+      "sha256": "92319ad4b66a09a8d61e3382721eb5dc02844c914f8260abd308d8ec7569db72"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/server.log",
+      "size": 5432147,
+      "sha256": "961fa63eb5cb3fd0871129b44b01f80835dd55495951b7b0f0996a22cea7027d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-exec-close/witness.json",
+      "size": 1225556,
+      "sha256": "62d24354826fe279f87e8e94e8e74ce58d164dfbd2b1308d08c65a06c4153055"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/server.argv.json",
+      "size": 491,
+      "sha256": "bc4e1dcbd7bfaed41b88f6dfd57ccddd89950149ff94ae4567ab381ca6fe5e7c"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/server.log",
+      "size": 6681003,
+      "sha256": "fe12cf8510dac2730a12de1d2ce1367fe258d7b92eb282137d154e6f5e0e67bc"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p1/witness.json",
+      "size": 1259137,
+      "sha256": "1facf62d55a08d13d451dd04e9b1c73c8d0bb732208f380cf893f6d4451a4f8d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/server.argv.json",
+      "size": 491,
+      "sha256": "f3233e76e439e30808c4a45008b14714fa6c2b358d5037d1b358d8f86cfe19ed"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/server.log",
+      "size": 6686650,
+      "sha256": "c47cdd2a0ef4189975fbbaf57865a8bf60b66ad6c07355fa33a6136ac4ef3bcb"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p2/witness.json",
+      "size": 1260223,
+      "sha256": "9976ca910bd43d1af584a2f2fe680dee6e9bb57047081c85026bc201bd38506b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/server.argv.json",
+      "size": 491,
+      "sha256": "5bf5f4d085885c251581924adef04477dcb777eb1d2ff163796456d7cbcb5d5e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/server.log",
+      "size": 6706950,
+      "sha256": "580c97d334e1c170f6916f57688d1f2e3bb59d01e80662b01a19439e05548e2a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-p3/witness.json",
+      "size": 1264339,
+      "sha256": "b4338acaf7fa50661aa87e26cafa1bee771b489f5321e622313cfccb8e2418f1"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-semantics/server.argv.json",
+      "size": 498,
+      "sha256": "4b0d12db67c3b3c5df7e2310a8f16a010bfd60082c114218b7b937d752933dff"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-semantics/server.log",
+      "size": 27366,
+      "sha256": "1f0b99b59a5126efafd139d93ad67aa8c91e1334d64c2aa61172345706589b5b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/server.argv.json",
+      "size": 494,
+      "sha256": "4539f84d6943bfdd971add742479876472a6452991b4c385530b078c66726e09"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/server.log",
+      "size": 6692402,
+      "sha256": "ede552c36aefeb7eabf28b012df888086198490e27d3db658a4400fff1b58e4c"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-epoll-1-db16-watch/witness.json",
+      "size": 1261280,
+      "sha256": "ecf49fac73da923f60de0f3c8b860044a82d96b547eef752e4029f3ebc5303f6"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/server.argv.json",
+      "size": 491,
+      "sha256": "af14a3494209a509df2788e4b8ce77671c235a0d1d935fd5faa93638e336a3d3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/server.log",
+      "size": 7320681,
+      "sha256": "a1095eb68457c80e94b926b71a527cfc80f91b1b7783bfd1ce67656252f501e8"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec/witness.json",
+      "size": 1380844,
+      "sha256": "cd46913c4edac3b652c40b94e0fcdaaa689204ffd2bc584bfbb289c583a9d65c"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/server.argv.json",
+      "size": 497,
+      "sha256": "9f57177b36e3eee30e41a385aef29cd6b63f7cc0be5e2ee35d2516ca1983cfb3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/server.log",
+      "size": 6394556,
+      "sha256": "47c3f630b74844c90c8a9a853b4f7fddb940d660401c1228ce13a8993f59a268"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-exec-close/witness.json",
+      "size": 1367757,
+      "sha256": "efa4d8a3f06bce1198e58316b2f5e43c1d067a001068b4d57c1091ae135a8954"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/server.argv.json",
+      "size": 489,
+      "sha256": "fba86a1564cfea17114ffff60034f035e7a5cf02af1818d67e0b9d77943853e8"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/server.log",
+      "size": 7689677,
+      "sha256": "53b030109cd6449924733eb56144820b7d5c0c007b1549660d8ea91c366b7ffe"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p1/witness.json",
+      "size": 1451026,
+      "sha256": "f969704441dcb0a384152ff44621ab86e72d4b02164254fb93a69611802fcf7b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/server.argv.json",
+      "size": 489,
+      "sha256": "47de884a7299fee632be33b998865b1554a8f827b3e1d7c06166274fb63df753"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/server.log",
+      "size": 7724450,
+      "sha256": "b7d8c7d6d6ce71ef1d8d7efb9de281d7afe091d8604261b08dd2f29b1d1a89cc"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p2/witness.json",
+      "size": 1457463,
+      "sha256": "0549f2f7f1549a6a09c3f4282c384e170228ac1639634f879a88325ae5eb90cd"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/server.argv.json",
+      "size": 489,
+      "sha256": "ef9e92f9877ac03114ca782add5eb2fc3a152e531405f69c5cf3c62e966a7f53"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/server.log",
+      "size": 7766404,
+      "sha256": "d7374c21ce05e3dde19af504d0abc7ba71b88819325340b29de6d5df29c57084"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-p3/witness.json",
+      "size": 1465729,
+      "sha256": "048ff19302a4d32040f821d7b88bc3fb1cd40622208a0d6ab2d8fac3e19e3432"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-semantics/server.argv.json",
+      "size": 496,
+      "sha256": "d2777a72914d39bbaeaff2d89d30a7ead8f2050deaf3ba344a66b0fc4f106c76"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-semantics/server.log",
+      "size": 27363,
+      "sha256": "d6cd23fc4b6935d5055a238e85573fadd3a6fb04055b2c39190eb6bd7a797046"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/server.argv.json",
+      "size": 492,
+      "sha256": "519464d6aa017c3e75c4549626340ec05bc87839591af80b8100cbd7e5619d28"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/server.log",
+      "size": 7641573,
+      "sha256": "94de8a83bc93c26e4644e769d542b2a2a8532a451df0db215ae28d44942dcc42"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db1-watch/witness.json",
+      "size": 1441835,
+      "sha256": "00efe64d13828708b61b539031d0672eb6fb2bd0befada0add80bc659079af6b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/server.argv.json",
+      "size": 493,
+      "sha256": "019ff071b410f419e29dc3d9fd820cef3a233cf7658bf33010184587ebea43aa"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/server.log",
+      "size": 7097941,
+      "sha256": "28f15b40f28b23d2038c4c8b10c8352aa6e5d1e9ba605ff60dcf26ec3baded58"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec/witness.json",
+      "size": 1338603,
+      "sha256": "3b6aa11dcb89491e839e4803206480af3eeab8b091cec26c7b1c41f462d6555d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/server.argv.json",
+      "size": 499,
+      "sha256": "c4c656b096e1193b3f2462a74d072ec885e85d08d7da844df2baaf90e7cb1cc9"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/server.log",
+      "size": 6181996,
+      "sha256": "cb74d23feebe78ea4b898203177210c09c3a02a27850f26e6099e3d6bd22b318"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-exec-close/witness.json",
+      "size": 1336115,
+      "sha256": "423e8bdd52bbe6c85a160102f93dd2395715a59f9e8c26db7a1ee86de25f0464"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/server.argv.json",
+      "size": 491,
+      "sha256": "ec0d3772255698fd76a27abad99b30bf4c11515ca05b11c805d96cbc1c435b56"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/server.log",
+      "size": 7511750,
+      "sha256": "d86fcad58c53db78db213193b0f26e074b307a41f1643877e08ddcf5dfcdecb9"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p1/witness.json",
+      "size": 1417177,
+      "sha256": "b31bf6b3b3473e52874885ab88ef7495b74f93767eab33eb276d5af30b954e18"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/server.argv.json",
+      "size": 491,
+      "sha256": "29100c5a7183d9b071f7caf9700e63c44b0a03a10e5dc3d6ec592a1b81f3edf4"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/server.log",
+      "size": 7484671,
+      "sha256": "672ca195789bf90f6a27aca98604425d33d517425abc2dc0e79c54f88f2c7673"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p2/witness.json",
+      "size": 1411885,
+      "sha256": "489d441f8b5300fada9698e91f1a7cdfb9e5f743840849575332570e6b90eca4"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/server.argv.json",
+      "size": 491,
+      "sha256": "11c7e2259402cf3a5baac4a0a65a017cf54ad81c21fb5e51b94ef6f16001e618"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/server.log",
+      "size": 7520000,
+      "sha256": "d5a2efd2c6afe6ca2049f9bc4d5124755a7fcf8cb318826a4aead03cdd8bb24a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-p3/witness.json",
+      "size": 1419018,
+      "sha256": "3b23a90ad0e07b1cecce0ca78663ff4cfcb41b9798badc9d5e416dc5266826f5"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-semantics/server.argv.json",
+      "size": 498,
+      "sha256": "e289a0131502a7b5ac3036e7e62dd09597c4d683e9088c60960c71cf1744899d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-semantics/server.log",
+      "size": 27361,
+      "sha256": "5c2bca9d5e046d69cee59e74c9301c3c0af24c0cc8a8b6183491d2c61714fd9a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/server.argv.json",
+      "size": 494,
+      "sha256": "c0160b270aeadfe1254c7baf9186165d1c305445f5209e375eb8cb795b1b94a8"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/server.log",
+      "size": 7505604,
+      "sha256": "86d3a8f32b37a5e932e5927e2436b631dc961ea72b5107637da7e9c27463a28b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-0-db16-watch/witness.json",
+      "size": 1416129,
+      "sha256": "9abd3b8baeb29e9f33c3a9afebcbe43670a698c2f70047b8b319eea3e91a1898"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/server.argv.json",
+      "size": 491,
+      "sha256": "1b60d2b5ec739786a81d923ab9519c2f1ccaf86215ec5a1fccc1c67fcfda26a5"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/server.log",
+      "size": 7314451,
+      "sha256": "9034bf6695987ae131745a7e95b291965e49d9a03c2d3481a9d680757e54b4eb"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec/witness.json",
+      "size": 1379705,
+      "sha256": "93b77eb30d9e2efeaa28766d199bbbfa54f2b244e801ccc4560fc89807723a7a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/server.argv.json",
+      "size": 497,
+      "sha256": "e7ce137f30820754ba5156b818630c90d5f547673f93cac6e4182c3000652fa9"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/server.log",
+      "size": 6483770,
+      "sha256": "bdb8b0004b8e98ce0b17c0f08d1383e89d0bc1d2cb6ab0c1047588027789cc02"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-exec-close/witness.json",
+      "size": 1379259,
+      "sha256": "693e87fa7286c7334994891acc7b24d0aa4c2c0e07bb35ba8105d01065c7c473"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/server.argv.json",
+      "size": 489,
+      "sha256": "854f01becee66c46da3899cda68e498ca30d5fef1a55131f7e58269a2cd0bec8"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/server.log",
+      "size": 7810809,
+      "sha256": "4009333ad33e7d3c4d3b6f2104ca780e2013c1c18aec91716a48cc3387a07441"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p1/witness.json",
+      "size": 1474124,
+      "sha256": "0bfc2f10bf556abb32f44f8546ae2ec18fd1655ffbe9f8fc7efeb096e9b56131"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/server.argv.json",
+      "size": 489,
+      "sha256": "9ae38b8d4c50356a79d3beff8f69dc4e167f4f5541a314c32d4c16467dbd9785"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/server.log",
+      "size": 7656241,
+      "sha256": "db4ca34d3cb393bc6b9cf89f97840fd3da9ce8b102eca65af791a5d8aa8fed89"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p2/witness.json",
+      "size": 1444535,
+      "sha256": "bb3a01048a07e2fadb6beddcc44bd21cb0b0a74cb1201f07b7a45a5f40bb7768"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/server.argv.json",
+      "size": 489,
+      "sha256": "610aae1e6bb3d97226f6f3d5bddced50015ce3b905bff4545fd0badba711d546"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/server.log",
+      "size": 7717199,
+      "sha256": "6780b6891a64976dc421732d67c1fec6d957b5bd26d3fcfa9eaa1ddf12a65622"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-p3/witness.json",
+      "size": 1456554,
+      "sha256": "0a3da40dae8ae8985867d416eb6d3975b763fed0ac128d2070010d734ccc0e2b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-semantics/server.argv.json",
+      "size": 496,
+      "sha256": "7711b4702b4b1ba6686ae35b8d5aff1d59cac1a400764df628b7dc6a7dbed656"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-semantics/server.log",
+      "size": 27383,
+      "sha256": "24ba31e3f0b03cbccb6ad0f3878eecad8001fc6d03b800f2ff922f4af0b96e7a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/server.argv.json",
+      "size": 492,
+      "sha256": "b952812379e49e3cc592ad181ab939231ebc0ceb243a838c795f928a170ef5c9"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/server.log",
+      "size": 7705750,
+      "sha256": "9da942b7f946c3e2f5874260dad75b9ce675e476242fc1c7b49ba1ea96703b87"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db1-watch/witness.json",
+      "size": 1454143,
+      "sha256": "585e24fa9e182871719e5b7bd708eacb9db9082561053b647053c252eaf3f643"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/server.argv.json",
+      "size": 493,
+      "sha256": "7425ef4049d28079dcb18a366cb21bb87c04cdac974d09b26c793befdb1ed260"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/server.log",
+      "size": 7074530,
+      "sha256": "c6db2e4b70d85ca03d83d9869c5751385f5dcabd4e8ca8d8c46d9ae25dea480b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec/witness.json",
+      "size": 1334124,
+      "sha256": "9460de7dae4f4fc23c4d9ba05ddb761d5eefcb4645f81e73ffee156fe0480cbc"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/server.argv.json",
+      "size": 499,
+      "sha256": "00e6268a0ce5d5632db084100f0ce7982bc78a3f2720c24cb9b4f563339b434b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/server.log",
+      "size": 6222348,
+      "sha256": "9567378ea33710ee90b5948479a161733ff52cc13b661448d07167a78c56a503"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-exec-close/witness.json",
+      "size": 1350746,
+      "sha256": "21990bef89781b07e41d1f1923075fb21324dfdf295061d37559a1cd23bb8e53"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/server.argv.json",
+      "size": 491,
+      "sha256": "b8c515b961fcb18e7f5906a60834c9aabd0d027b7714f9e52d2fcadb1cf92c9e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/server.log",
+      "size": 7420541,
+      "sha256": "2918a9a086af49f21b2404fec4d6575c6241d022c859aa033c2e4683ddee43b9"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p1/witness.json",
+      "size": 1399852,
+      "sha256": "b41e95f6fe2ca351af83650e64853ba8cef74ec0f0ded810f0b776575be70e99"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/server.argv.json",
+      "size": 491,
+      "sha256": "0ac1955b8023db019d24fa902239f8726a0c0c5e760d62ed22de5330bf9a10b4"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/server.log",
+      "size": 7448280,
+      "sha256": "9c3b7f86b09932ab18476f433a8eab7d045dd87b6d8f919a6bd980fb9e3a4e1e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p2/witness.json",
+      "size": 1405046,
+      "sha256": "78e9016cec2289368add1a257157f6a0f1157f9a22247b4d40656fef2beb8db4"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/server.argv.json",
+      "size": 491,
+      "sha256": "2ae57e6cea6799b374b378f98fbddb02c2e703593de29226eecb4e1b5c1d28ad"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/server.log",
+      "size": 7517871,
+      "sha256": "0922346a3d0f5f5a8d2d8148a0db2bb7b42b7b2f2ce7620a9799b1218d07e892"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-p3/witness.json",
+      "size": 1418502,
+      "sha256": "c88e932fde8ea6029292165648efa47765a909ba186c4f1b94360a3647ca3d74"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-semantics/server.argv.json",
+      "size": 498,
+      "sha256": "07cc171cbab7568f0fcba1f3a7086ff1f70f6a0d7af3fe2fa61dbb234c88106e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-semantics/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-semantics/server.log",
+      "size": 27379,
+      "sha256": "537779c0781d6dd7e8095154692940c46f910a6889c9f4f5b2e35b13694d4806"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/server.argv.json",
+      "size": 494,
+      "sha256": "c2d5da79a0c8ff84551a69bb3b50ea1aab8267f2f3447f728da17319300d7e4b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/server.log",
+      "size": 7532875,
+      "sha256": "0374129df81c2190161eb1c9b1ca3bfe2fd1a8212d2a3a1169441ef90d452509"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/2s-uring-1-db16-watch/witness.json",
+      "size": 1421092,
+      "sha256": "5c21006ae8f11a0e1e6a4351710189260bceeb6521ecc1e7474872ee84352926"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6/results.json",
+      "size": 78023674,
+      "sha256": "924d80431ac6c4021041e80ef36d8cd87300d6d33a0326fe0c486b0ae114574a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec/server.argv.json",
+      "size": 497,
+      "sha256": "9b89b8817a386df5858a0db76fe08f7647ab2487120cea052526b99ac7eeef97"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec/server.log",
+      "size": 1898389,
+      "sha256": "d0ce29dc611676bc716831b9f4b3a709ae5d03934ffc6a6a96a18c547511d6da"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec/witness.json",
+      "size": 365020,
+      "sha256": "f4b1fbac62a9c5dccac5e76d7cd900f6df1a3226971b64321ef825d0fda0b417"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec-close/server.argv.json",
+      "size": 503,
+      "sha256": "809964c27bbad8cb9cd03f3d94633a01fdcefce83945fbda450f9dec04583e17"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec-close/server.log",
+      "size": 1813848,
+      "sha256": "24d6cc7779c94739c831b2668f2ce678d1b121f54ef2280dbb101c2bb96412a1"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db1-exec-close/witness.json",
+      "size": 356295,
+      "sha256": "786acb66dc4f8d21344bf6a45d5d984421c4d6466303267ee9412ddcd508acab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec/server.argv.json",
+      "size": 499,
+      "sha256": "51ff6c5b428a9c5887b6c267a69a2ce3c3cb799f51bb1659ee51890085d73f4f"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec/server.log",
+      "size": 1808248,
+      "sha256": "16fd2992c2e17a0499744391af030537a7536d7dc3aa440252281bd94ab97f4c"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec/witness.json",
+      "size": 348124,
+      "sha256": "3e014736a65bc56e60073255299ab07ffaa74776c5e0600f1a6fcef27687e760"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec-close/server.argv.json",
+      "size": 505,
+      "sha256": "68e984afbc62939dbbb7bf1ad595bba3c7c23199a94d06d343e0a28c43e42b51"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec-close/server.log",
+      "size": 1724048,
+      "sha256": "b7e6a30bf3b4455442d6aa0e0215c4554e4aee71d1bf7dbf8b238b23f005d6c1"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-0-db16-exec-close/witness.json",
+      "size": 344258,
+      "sha256": "db5bebe2fb00a8e40ad43d0d8f58769c357ac6402728d7142f2def8a564267ba"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec/server.argv.json",
+      "size": 497,
+      "sha256": "3c7db9ee6bba8fefb7872083fc08314562397102d1a5134ee9a8bc7af121b4f5"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec/server.log",
+      "size": 1862668,
+      "sha256": "9a447daedeae6ef0c50679cabc3e3bd14fca23668bf42b590c5ce155cde880cc"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec/witness.json",
+      "size": 358190,
+      "sha256": "12be09321fa52c5465375b3a8fe296da2317c5701662f8e5f8720546995848bd"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec-close/server.argv.json",
+      "size": 503,
+      "sha256": "15fd85bfa8ec50812c277f8255e311ec46b9676cd1ed657ea120e13b6af094e0"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec-close/server.log",
+      "size": 1787287,
+      "sha256": "d96cdefce979e5048458ce18718aa51308a423c0d6ea5ff3826b7bcbe1b088cc"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db1-exec-close/witness.json",
+      "size": 350940,
+      "sha256": "bbd3adef9eee86e66565068756379a2a37c99ade88d3db809af55924479a5ee2"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec/server.argv.json",
+      "size": 499,
+      "sha256": "153cd9a3291dbaf20b4e04d0704c068642765f223206799d983392ea91203b1a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec/server.log",
+      "size": 1771705,
+      "sha256": "03de85ad7957056cfefc1d20e59f787fcf7131ee751bda277b8a0bf6a1695ba4"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec/witness.json",
+      "size": 341231,
+      "sha256": "c51e1564996158f915a9b5b85d1f989ded4015cf4d43a91efff0d360a47064e3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec-close/server.argv.json",
+      "size": 505,
+      "sha256": "8bccd50eed4a99c19b7002d9da1cfbd2528ddf1925ce75681503e9af3bb3deb3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec-close/server.log",
+      "size": 1709272,
+      "sha256": "9ad7b00fc03bfa77357d619d49ff725827c90f4de1d1a84a4d29e2c1cc96112a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-epoll-1-db16-exec-close/witness.json",
+      "size": 345085,
+      "sha256": "ad83ea596fd5a58a79c5f831759858b8744d5cca4ba4d5621197395456ff5f01"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec/server.argv.json",
+      "size": 497,
+      "sha256": "f873f26ad36ff216e2c0f4b1c8814aeece78bf62c9815f2114c298fe38733f74"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec/server.log",
+      "size": 1905575,
+      "sha256": "6659c8afd5588d2682c503ae783c3cf789d449cf227d24badbb7ecaef0eee955"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec/witness.json",
+      "size": 366051,
+      "sha256": "dde40702a82cdc2489acb4132c31a9f42a17d3372558c0056055409f7f3b3ce4"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec-close/server.argv.json",
+      "size": 503,
+      "sha256": "d924bace1c2b06dca8de16bb8bc59e25b7770735c7915713b71ea29b1016a75b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec-close/server.log",
+      "size": 1835520,
+      "sha256": "99f09d4e98f201d85829301fbe73174d5ceaa3c4ff77fc84587f70994562960b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db1-exec-close/witness.json",
+      "size": 359416,
+      "sha256": "9bf2668b32a6eab69a2c20eb26382adbcf2b852aac45e67cea7118db684cff43"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec/server.argv.json",
+      "size": 499,
+      "sha256": "1e0f818acb33ebe5ffeaea07fef29235b2675465d32394847434df0d49b15030"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec/server.log",
+      "size": 1862074,
+      "sha256": "b7cf8ec5d52cafb51408ff08b2604c09f1c46343f7ed85f32751282000bfe520"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec/witness.json",
+      "size": 358161,
+      "sha256": "d11c92778a27ad9d3f9b44cf42add72a37cacf391f8835cebf84e0d796b4625b"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec-close/server.argv.json",
+      "size": 505,
+      "sha256": "86037bb73a2c8bdbcfbde0543a0afae5607d13a4d962213255c7e1ae2bc5fed3"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec-close/server.log",
+      "size": 1794493,
+      "sha256": "df6a6f13fc2691935c08823db73655ff57f08d9524e3da0f22f7683884664a54"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-0-db16-exec-close/witness.json",
+      "size": 357049,
+      "sha256": "848aba4e301abc465584847d373fb3f5ebc5629893f4840a9d95c4e4567b8980"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec/server.argv.json",
+      "size": 497,
+      "sha256": "619ed903a9c0f690dcf3234b2603f35c760ec8739bc8a9d843c072ae1e6df367"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec/server.log",
+      "size": 1977846,
+      "sha256": "8e36da4d882a158ac3a832925c50a163e576461d49255c536360b0f3e20e2f8f"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec/witness.json",
+      "size": 379663,
+      "sha256": "f9ca119db159531e6b97301a51605e6847699bfb2b0e57dc07af8e4d59da1775"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec-close/server.argv.json",
+      "size": 503,
+      "sha256": "537c4ee6fd117029e5293e6b7449d6f2e36df44957dfd5134e184b1d97f5962e"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec-close/server.log",
+      "size": 1832361,
+      "sha256": "2132441f4ecccf6259e81f4ce6a29efa24c11a77432cccc851eb04f0ec56d412"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db1-exec-close/witness.json",
+      "size": 358242,
+      "sha256": "4c82be4471279d8b25dd5da89df97ad08d1f9522f631c6857770212f5e2e23bd"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec/server.argv.json",
+      "size": 499,
+      "sha256": "9499a3b73c92b799c977cf76cd8ee0aa439c89ef5f07827a13032e8146574177"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec/server.log",
+      "size": 1843428,
+      "sha256": "ffdfdebffef198be2554a9768cccdf6d0d4548e20276bdf4fa6fd9fc8ae1d2de"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec/witness.json",
+      "size": 354596,
+      "sha256": "d2bbbc4e588b0ef40290e9fdf3f0b31f5c937a55d8218a78d653473b7c03513a"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec-close/server.argv.json",
+      "size": 505,
+      "sha256": "5933286ae9f9b04b7d04162f06a5cd8b9dc865fbdc9793ea6fa6c4a2e900100f"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec-close/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec-close/server.log",
+      "size": 1760871,
+      "sha256": "0c40ab1601db19d3794cf46c74f8aeacaaf1fcd2ad3db5560234af67280a8233"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/2s-uring-1-db16-exec-close/witness.json",
+      "size": 351072,
+      "sha256": "37b1f8f49ae398664c45fe7070a9768a1cbab87cb91c222c40e6540d16571d33"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale/results.json",
+      "size": 6948860,
+      "sha256": "dc3c5a7d2ab8af2ce3e030aeaf92af5558f82dba284f3d1342aefc8810fb2e34"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6-scale.log",
+      "size": 1798,
+      "sha256": "a087c4ac4b4512c6c8654b6ab633960946b0ea724bd9064a8255b0e45553b08d"
+    },
+    {
+      "path": "jobs/flipfix6/flipfix6.log",
+      "size": 6112,
+      "sha256": "2b74aad28e1a1d07502c9be148a9a341a601054ece14413c4d7279e387014b95"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-0/server.argv.json",
+      "size": 493,
+      "sha256": "c3bbc1a970a903721dff5d97ce0dfdec3be4ed5d8335fbaff541a80cfcf6c1e1"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-0/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-0/server.log",
+      "size": 7932894,
+      "sha256": "b6441d231b27e6d7ee18013a456ae935e79b040fa19935484a9a399448a96e61"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-1/server.argv.json",
+      "size": 493,
+      "sha256": "7712626c061c73bc26960e3e808672f20f5fee1bc7be439adb47132f43ae33ef"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-epoll-1/server.log",
+      "size": 7340371,
+      "sha256": "c1290d3247890f595edfb66dfbc9a6b447594ce3e38ac7157b381873814e69d0"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-uring-0/server.argv.json",
+      "size": 493,
+      "sha256": "087f3bac277966a64b5615d244c3ff85cff76ff8c1131e6aa5e846009a376cc6"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-uring-0/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-uring-0/server.log",
+      "size": 8870542,
+      "sha256": "7aa4739ed35054d08d6b6371b4ecea17d2ec76f234ec4c480f0c1110068ba706"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-uring-1/server.argv.json",
+      "size": 493,
+      "sha256": "bb361748acd51dd8c74c69576fdd5dd8e92d5ed82241dc69bc4ade1eedef6131"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-uring-1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/2s-uring-1/server.log",
+      "size": 8918748,
+      "sha256": "63bef78fdf33818ec95cec3e1f0b4a8080616ede422b61c8384dd6b0eec1231c"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/redis-redis-0/server.argv.json",
+      "size": 275,
+      "sha256": "5dec29fe1d65d770d6945aa3a263c8d3e6d4820a7df523109115c122a450643c"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/redis-redis-0/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/redis-redis-0/server.log",
+      "size": 1179,
+      "sha256": "09eaa0100cf1843dedca6d4df266b1bbee4bd3aebccad1fb8e07c8fc972a31d4"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1/results.json",
+      "size": 3783,
+      "sha256": "58f47cb9a5d46b9910295f96bae92e511d63e9e66e4acb97fc7ae791f4424a41"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db1.log",
+      "size": 2585,
+      "sha256": "87f05c43eb479dbafe12f4fff9d02f322d8d3512edd2ae727c5e1d6defb09fb1"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-0/server.argv.json",
+      "size": 495,
+      "sha256": "8d336f5de7ac802f106af4066927aba52b5a2b80fb809a2c26297bb4e45aaf48"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-0/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-0/server.log",
+      "size": 7792850,
+      "sha256": "38a2b5befe160e0c176b918ca4968f66d5f27e344227362cb0b0baeb5ea21396"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-1/server.argv.json",
+      "size": 495,
+      "sha256": "b516d30e52a323c7baf84af756fd560dab035d9852156cf3986f7389e8614291"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-epoll-1/server.log",
+      "size": 7746227,
+      "sha256": "c0f69ad0d63d47ee04aa540d717639ea63a4704ed29d2e3c121650df139dffee"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-uring-0/server.argv.json",
+      "size": 495,
+      "sha256": "d110e502ec8c669d45b3a3267e36693c4016242686ca3abb5a8111a334976d35"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-uring-0/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-uring-0/server.log",
+      "size": 8413977,
+      "sha256": "15b4e48cee3f5a7c0041224474832c60c14208fe7c109b422337edbd497facd3"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-uring-1/server.argv.json",
+      "size": 495,
+      "sha256": "39ad5efbce4e191f5e197b1d4efb00f88709910bc224662a932acdae575f4fb6"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-uring-1/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/2s-uring-1/server.log",
+      "size": 8469221,
+      "sha256": "6397a22d9da44bbd9097bde2c23a1b98aeac61a494f1ca0322a23be89abddec7"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/redis-redis-0/server.argv.json",
+      "size": 276,
+      "sha256": "5a97e5a7d463962182ab758c2bfe17319ccc765c90bb5535e1e95d3a43fd5313"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/redis-redis-0/server.exit.json",
+      "size": 27,
+      "sha256": "2e4ff43e5853ca127a45e361d8fd20d4efe1ccae3cfd1db503ea5b0eb21312ab"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/redis-redis-0/server.log",
+      "size": 1179,
+      "sha256": "f68fee6c42207aec33274b26a82c6d4d4d0f592d116c13f58f5e98279fcc6cb8"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16/results.json",
+      "size": 5434,
+      "sha256": "ff179b8f0aa310b6e033d5ed31b85a8db190e4be28e851d3f4620c4ea8c10a26"
+    },
+    {
+      "path": "jobs/flipfix6/flush-live-flip-db16.log",
+      "size": 4396,
+      "sha256": "a84f944553353583744943511521a6f79ff61cdcf7d771c8778590be0ca37fb8"
+    },
+    {
+      "path": "jobs/flipfix6/ledger",
+      "size": 58,
+      "sha256": "0ad4af609b85d792e597c07a13523eeda0ec4f1e8e480e9cc8088a9054338c26"
+    },
+    {
+      "path": "jobs/flipfix6/output.log",
+      "size": 247,
+      "sha256": "07ca67fecff4ccf6bcc47977a8b6ce01167664f7038afb5ffc57eb517f950f1e"
+    },
+    {
+      "path": "jobs/flipfix6/timings",
+      "size": 58,
+      "sha256": "0ad4af609b85d792e597c07a13523eeda0ec4f1e8e480e9cc8088a9054338c26"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "e2e847d00da7af186b1e1bf9cf9053c7aaa6cf1520f9c6f7e4afff3187ceb80e"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "74995815a85174d1e033acd762c721d5c00d288d715c9f1db81233af53bd2e30"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1224,
+      "sha256": "5a8a3016f56006988a6894092bd7275c64ad9adfa4a80609d69c628bce2e4c8e"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 175783,
+      "sha256": "4bd2d59379c7fe8e7634f43993b3208762244b31820742ec05943a33f96cba4b"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "flipfix6",
+      "done": "0\t0\t1",
+      "passed": 0,
+      "failed": 1,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "520.690000",
+          "label": "FLIP MULTI WATCH session storm (all legs)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "61-73",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "61-68",
+    "--load-cores",
+    "69-73",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21400-21499",
+    "--candidate-binary",
+    "/home/user/Projects/cx-txnfix4/build/txnfix4/pre-source/build/tomokv"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_ONLY_JOBS": "flipfix6 ",
+    "GATE_LEDGER": "/home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/pre-flipfix6-uring"
+  },
+  "binary": "/home/user/Projects/cx-txnfix4/build/txnfix4/pre-source/build/tomokv",
+  "binary_sha256": "737dd31040e35a371456af6775ebb07f001e719b7102cd12d6c188be9649e1fb",
+  "exit_code": 1
+}
