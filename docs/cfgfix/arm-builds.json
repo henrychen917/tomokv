@@ -1,0 +1,74 @@
+{
+  "steps": [
+    {
+      "label": "final-unix-build",
+      "command": [
+        "make",
+        "-j16",
+        "all",
+        "CXX=g++"
+      ],
+      "started": 1793581225.1565971,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793581304.5862813
+    },
+    {
+      "label": "pre-rebuild",
+      "command": [
+        "make",
+        "-j16",
+        "all",
+        "CXX=g++"
+      ],
+      "started": 1793581304.5865808,
+      "cwd": "/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source",
+      "returncode": 0,
+      "finished": 1793581382.6396434
+    },
+    {
+      "label": "pre-rebuild-prefix",
+      "command": [
+        "make",
+        "-B",
+        "-j16",
+        "all",
+        "CXX=g++ -fdebug-prefix-map=/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source=/home/user/Projects/cx-cfgfix",
+        "CC=cc -fdebug-prefix-map=/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source=/home/user/Projects/cx-cfgfix"
+      ],
+      "started": 1793581537.849556,
+      "cwd": "/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source",
+      "returncode": 0,
+      "finished": 1793581616.0790062
+    },
+    {
+      "label": "pad-unix",
+      "command": [
+        "python3",
+        "tools/cfgfix_pad.py"
+      ],
+      "started": 1793581616.3204377,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793581624.6636705
+    },
+    {
+      "label": "counts-unix",
+      "command": [
+        "python3",
+        "tools/cfgfix_counts.py",
+        "POST"
+      ],
+      "started": 1793581624.6639202,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793581674.3464496
+    }
+  ],
+  "pre_reproduction": {
+    "initial_rebuilt_sha256": "9a2f716ff1348603260c490251d289d4c0afee643f51fd55a4fa3790b515424f",
+    "original_and_final_sha256": "97f0d76e3782485ae2e2f797805484ef09eb52752a5019935d1bc409d4fb4fd1",
+    "initial_difference": "Only .note.gnu.build-id, .debug_info, .debug_line and .debug_line_str differ. Code and data sections are byte-identical at identical addresses.",
+    "correction": "Map the archive debug directory back to the original build directory. No code-generation or optimization flag changes."
+  }
+}
