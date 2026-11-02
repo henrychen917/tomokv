@@ -11,6 +11,36 @@ from redis_tcl import counts, load_manifest, sha, validate_passing, ROOT
 
 
 class Controls(unittest.TestCase):
+    def test_acl_only_admits_the_first_live_api_block_without_changing_bodies(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::calls {}
+proc send_data_packet {args} {}
+proc start_server {options {code undefined}} {
+    lappend ::calls [list $options $code]
+    uplevel 1 $code
+}
+'''
+        check = r'''
+if {[catch {
+    set witness 0
+    start_server {tags {"acl external:skip"}} {incr witness}
+    start_server {overrides {user "default on"} tags {acl external:skip}} {incr witness}
+    if {$witness != 2 || [lindex $::calls 0] ne {{tags acl} {incr witness}} ||
+        [lindex $::calls 1] ne {{overrides {user "default on"} tags {acl external:skip}} {incr witness}}} {
+        error "ACL adapter changed a body, scope, or later block"
+    }
+    set ::cmdfix2_acl_first_block 1
+    if {![catch {start_server {tags other} {incr witness}} failure] ||
+        $failure ne "unit/acl first-block setup changed" || $witness != 2} {
+        error "changed upstream setup was accepted"
+    }
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check, text=True,
+            capture_output=True, env=dict(os.environ, TOMO_TCL_ACL_FIRST_BLOCK='1'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_blocked_failure_receipt_preserves_verdict_and_never_retries(self):
         from redis_tcl import HOOK
         setup = r'''

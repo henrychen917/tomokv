@@ -60,10 +60,9 @@ def geo(p):
                 for opts in options:
                     # ANY and unsorted traversal must agree too: do not sort away a wrong subset.
                     p.cmd('GEOSEARCH', 'random', *search, *opts)
-                    if unit == 'km':
-                        for dist in ([], ['STOREDIST']):
-                            p.cmd('GEOSEARCHSTORE', 'random-dst', 'random', *search, *opts, *dist)
-                            stored(p, 'random-dst')
+                    for dist in ([], ['STOREDIST']):
+                        p.cmd('GEOSEARCHSTORE', 'random-dst', 'random', *search, *opts, *dist)
+                        stored(p, 'random-dst')
 
 
 def scores(p):

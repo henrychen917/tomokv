@@ -8,6 +8,23 @@ sys.path.insert(0, str(ROOT/'tests'))
 from _lib import Conn
 
 HOOK = r'''
+# unit/acl's first block only uses live command APIs. Admit that block on our
+# owned external listener; later blocks requiring config files/restarts retain
+# upstream's external:skip. Test bodies and assertions remain byte-identical.
+if {[info exists ::env(TOMO_TCL_ACL_FIRST_BLOCK)] && $::env(TOMO_TCL_ACL_FIRST_BLOCK) eq "1"} {
+    set ::cmdfix2_acl_first_block 1
+    rename start_server cmdfix2_start_server
+    proc start_server {options {code undefined}} {
+        if {$::cmdfix2_acl_first_block} {
+            set ::cmdfix2_acl_first_block 0
+            if {$options ne {tags {"acl external:skip"}}} {
+                error "unit/acl first-block setup changed"
+            }
+            dict set options tags {acl}
+        }
+        return [uplevel 1 [list cmdfix2_start_server $options $code]]
+    }
+}
 # Receipt observer only: forwards every original packet unchanged.
 rename send_data_packet harness5_send_data_packet
 proc send_data_packet {fd status data {elapsed 0}} {
@@ -167,6 +184,7 @@ def run_file(args, tree, unit, only=None, extra=(), server_args=()):
             # gate.sh uses LC_ALL=C. Upstream files contain UTF-8 test names;
             # bind their decoding so the same assertion inventory survives it.
             test=subprocess.Popen(client,cwd=tree,env=dict(os.environ,HARNESS5_TCL_EVENTS=str(event_path),
+                                  TOMO_TCL_ACL_FIRST_BLOCK='1' if unit == 'unit/acl' else '0',
                                   LANG='C.UTF-8', LC_ALL='C.UTF-8'),
                                   stdout=tl,stderr=subprocess.STDOUT,start_new_session=True)
             try: rc=test.wait(timeout=args.file_timeout)

@@ -6009,12 +6009,15 @@ job_redis_tcl(){
   local selection=(--manifest "$manifest" --arm-smove)
   # Focused regression controls use this same runner/watchdog/ledger in a
   # PARTIAL job. Complete gates always require the checked-in full manifest.
-  if [ -n "${GATE_TCL_MANIFEST:-}${GATE_TCL_PROBE_TESTS:-}" ] && [ "${GATE_PARTIAL:-0}" != 1 ]; then
+  if [ -n "${GATE_TCL_MANIFEST:-}${GATE_TCL_PROBE_TESTS:-}${GATE_TCL_ONLY_FILES:-}" ] && [ "${GATE_PARTIAL:-0}" != 1 ]; then
     echo 'Tcl diagnostic selection is only valid for partial correctness controls' >&2
     return 2
   fi
   if [ -n "${GATE_TCL_PROBE_TESTS:-}" ]; then
     selection=(--probe-tests "$GATE_TCL_PROBE_TESTS")
+  fi
+  if [ -n "${GATE_TCL_ONLY_FILES:-}" ]; then
+    selection=(--only-files "$GATE_TCL_ONLY_FILES")
   fi
   for mode in 2s 1s; do
     label="Redis 7.4.10 Tcl passing subset ($mode)"
