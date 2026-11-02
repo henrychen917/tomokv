@@ -1021,6 +1021,364 @@
           "applied": 64
         }
       ]
+    },
+    {
+      "tag": "epoll-eof-data-headline-complete",
+      "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+      "rows": [
+        {
+          "leg": "oracle-normal-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 65,
+          "applied": 65
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 256,
+          "applied": 256
+        },
+        {
+          "leg": "oracle-normal-db1",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 4096,
+          "applied": 3808
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 32,
+          "applied": 32
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 4096,
+          "applied": 4096
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 1,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 32,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 1,
+          "applied": 1
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 32,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ],
+      "failures": [
+        {
+          "leg": "1s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db1",
+          "count": 4096,
+          "applied": 3808
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-uring-db16",
+          "count": 4096,
+          "applied": 3313
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "1s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db1",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-uring-db16",
+          "count": 256,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 1,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 32,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 65,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 256,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db1",
+          "count": 4096,
+          "applied": 64
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 32,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 65,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 256,
+          "error": "AssertionError('required state not observed: half-closed client retired')"
+        },
+        {
+          "leg": "2s-epoll-db16",
+          "count": 4096,
+          "applied": 64
+        }
+      ]
     }
   ],
   "public_rows_added": 0,
