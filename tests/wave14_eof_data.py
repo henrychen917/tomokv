@@ -11,20 +11,21 @@ from _lib import Conn, encode
 from persistfix2 import boot, wait
 
 
-def probe(a, admin, count, suffix=b''):
-    key = f'wave14:fin:{count}:{int(bool(suffix))}'
+def probe(a, admin, count, suffix=b'', control=()):
+    key = f'wave14:fin:{count}:{int(bool(suffix))}' + (f':{control}' if control else '')
     assert admin.must('DEL', key) == 0
     client = Conn('127.0.0.1', a.port)
     identity = client.must('CLIENT', 'ID')
     replies = []
     error = None
     try:
-        client.sock.sendall(encode('INCR', key) * count + suffix)
+        prefix = encode(*control) if control else b''
+        client.sock.sendall(prefix + encode('INCR', key) * count + suffix)
         client.sock.shutdown(socket.SHUT_WR)
         # Keep the read half open, so an RST cannot explain discarded input.
         client._read_deadline = time.monotonic() + 10
         try:
-            for _ in range(count):
+            for _ in range(count + bool(control)):
                 replies.append(client.read())
             assert client.file.read(1) == b'', 'reply stream did not end'
         except Exception as failure:
@@ -35,9 +36,10 @@ def probe(a, admin, count, suffix=b''):
         value = admin.must('GET', key)
     finally:
         client.close()
+    expected = ([b'OK'] if control else []) + list(range(1, count + 1))
     return dict(count=count, applied=int(value or b'0'), replies=len(replies),
-                ordered=replies == list(range(1, count + 1)), error=error,
-                partial_suffix=bool(suffix))
+                ordered=replies == expected, error=error,
+                partial_suffix=bool(suffix), control=list(control))
 
 
 def stalled_reply(a, admin):
@@ -92,6 +94,15 @@ def main():
                 except Exception as error:
                     row = dict(leg=leg.output.name, kind='stalled-reply', error=repr(error))
                     rows.append(row); failures.append(row); print(row, flush=True)
+                for control in [('DEBUG', 'SLEEP', '.02'), ('CLIENT', 'TRACKING', 'ON')]:
+                    try:
+                        row = dict(leg=leg.output.name, **probe(leg, admin, 65, control=control))
+                        rows.append(row); print(row, flush=True)
+                        if row['count'] != row['applied'] or not row['ordered'] or row['error']:
+                            failures.append(row)
+                    except Exception as error:
+                        row = dict(leg=leg.output.name, control=list(control), error=repr(error))
+                        rows.append(row); failures.append(row); print(row, flush=True)
         except Exception as error:
             failures.append(dict(leg=leg.output.name, error=repr(error)))
         (a.output/'results.json').write_text(json.dumps(dict(rows=rows, failures=failures), indent=2)+'\n')

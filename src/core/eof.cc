@@ -79,8 +79,21 @@ bool IoLoop::receive_eof_pass(size_t index, uint64_t now_ms) {
     // A blocked command cannot consume future input after FIN. Cancel it using
     // the existing close path, just as Redis does. Incomplete final frames and
     // peers which no longer read replies cannot retain a connection forever.
+    bool control_pending = false;
+    if (client->blocked()) {
+        for (const auto& pending : deferred_timers_)
+            if (pending.client == client &&
+                (pending.kind == DeferredTimerKind::DebugSleepOk ||
+                 pending.kind == DeferredTimerKind::TrackingOn)) {
+                control_pending = true;
+                break;
+            }
+    }
+    // These are synchronous commands whose owner acknowledgements use a timer,
+    // not a blocked list/stream wait. EOF cannot cancel their buffered suffix.
+    if (control_pending) timer.deadline_ms = now_ms + kEofStallMs;
     const bool stalled = now_ms >= timer.deadline_ms && output != 0;
-    if (client->closing() || client->blocked() || drained || stalled) {
+    if (client->closing() || (client->blocked() && !control_pending) || drained || stalled) {
         receive_eof_forget(client);
         close_client(client);
         if (epoll_) (void)wb_.take_send_failure();
