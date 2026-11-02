@@ -1,0 +1,47 @@
+{
+  "original_job": "merged-final-uring/flipfix6",
+  "errors": [
+    {
+      "file": "build/gate-run.xWvRR3/jobs/flipfix6/flush-live-flip-db16.log",
+      "case": "live-flip",
+      "leg": "2s-epoll-1",
+      "databases": 16,
+      "command": "FLUSHALL",
+      "flush_mode": "SYNC",
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2.py\", line 229, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 386, in storm\n    assert not errors and counts['flushes'], (counts, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'flushes': 29750, 'work': 0, 'saves': 0, 'flips': 29750, 'flip_refusals': 0, 'cancelled_saves': 0}, ['flipper: Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-wave14/tests/snapfix.py\", line 213, in wrap\\n    fn(stop)\\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 376, in flipper\\n    assert reply.message.startswith(b\\'ERR FLIP cannot quiesce a connection:\\'), reply\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: ERR FLIP refused: a pinned connection closed\\n'])\n",
+      "pass": false,
+      "attempts": [
+        {
+          "passed": false,
+          "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2.py\", line 229, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 386, in storm\n    assert not errors and counts['flushes'], (counts, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'flushes': 29750, 'work': 0, 'saves': 0, 'flips': 29750, 'flip_refusals': 0, 'cancelled_saves': 0}, ['flipper: Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-wave14/tests/snapfix.py\", line 213, in wrap\\n    fn(stop)\\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 376, in flipper\\n    assert reply.message.startswith(b\\'ERR FLIP cannot quiesce a connection:\\'), reply\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: ERR FLIP refused: a pinned connection closed\\n'])\n"
+        }
+      ],
+      "seconds": 4.061
+    },
+    {
+      "file": "build/gate-run.xWvRR3/jobs/flipfix6/flush-live-flip-db1.log",
+      "case": "live-flip",
+      "leg": "2s-uring-1",
+      "databases": 1,
+      "command": "FLUSHALL",
+      "flush_mode": "SYNC",
+      "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2.py\", line 229, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 386, in storm\n    assert not errors and counts['flushes'], (counts, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'flushes': 28124, 'work': 0, 'saves': 0, 'flips': 28288, 'flip_refusals': 0, 'cancelled_saves': 0}, ['flipper: Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-wave14/tests/snapfix.py\", line 213, in wrap\\n    fn(stop)\\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 376, in flipper\\n    assert reply.message.startswith(b\\'ERR FLIP cannot quiesce a connection:\\'), reply\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: ERR FLIP refused: a pinned connection closed\\n'])\n",
+      "pass": false,
+      "attempts": [
+        {
+          "passed": false,
+          "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2.py\", line 229, in main\n    value = CASES[args.case](args, directory, mode, engine, atomic, oracle)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 386, in storm\n    assert not errors and counts['flushes'], (counts, errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ({'flushes': 28124, 'work': 0, 'saves': 0, 'flips': 28288, 'flip_refusals': 0, 'cancelled_saves': 0}, ['flipper: Traceback (most recent call last):\\n  File \"/home/user/Projects/cx-wave14/tests/snapfix.py\", line 213, in wrap\\n    fn(stop)\\n  File \"/home/user/Projects/cx-wave14/tests/flushfix2_siblings.py\", line 376, in flipper\\n    assert reply.message.startswith(b\\'ERR FLIP cannot quiesce a connection:\\'), reply\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: ERR FLIP refused: a pinned connection closed\\n'])\n"
+        }
+      ],
+      "seconds": 4.079
+    }
+  ],
+  "production_changed": false,
+  "policy": "Only exact approved S2/pinned-close errors or OK, each below one second; reply counts equal both server refusal-counter deltas.",
+  "negative_controls": 7,
+  "sources": {
+    "tests/flipfix6.py": "da4c54128ad33cf902c1bd481aa42a078ba4169b695fc3ee2b1aa99066f30ce7",
+    "tests/flushfix2_siblings.py": "219244cf69c0adb260a4638c5bfd6e321238719d7e6feee1989aa21760d78ba5"
+  },
+  "supplement": "flip-refusal-contract-final"
+}

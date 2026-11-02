@@ -14,6 +14,7 @@ import time
 import flushfix2 as f
 import snapfix as s
 from _lib import Conn, RespError, encode
+from flipfix6 import post_flip_reply, refusal_counters
 
 ORACLE = {}
 
@@ -289,6 +290,8 @@ def storm(args, directory, mode, engine, atomic, oracle):
     expected_aof = None
     sentinels = {}
     counts = dict(flushes=0, work=0, saves=0, flips=0, flip_refusals=0, cancelled_saves=0)
+    flip_observed = dict(flip_refused_s2=0, flip_refused_close=0)
+    flip_max_seconds = 0
     with s.Boot(args, directory, mode, engine, atomic, oracle, extra=extra) as b:
         if aof:
             for db in range(args.databases):
@@ -368,16 +371,22 @@ def storm(args, directory, mode, engine, atomic, oracle):
                         stop.wait()
                         return
         def flipper(stop):
+            nonlocal flip_max_seconds
             with conn(b, args) as c:
+                before = s.stats(c)
                 while not stop.is_set():
                     target = 4 if counts['flips'] % 2 == 0 else 6
+                    began = time.monotonic()
                     reply = c.cmd('FLIP', target, 8-target)
-                    if isinstance(reply, RespError):
-                        assert reply.message.startswith(b'ERR FLIP cannot quiesce a connection:'), reply
+                    elapsed = time.monotonic() - began
+                    flip_max_seconds = max(flip_max_seconds, elapsed)
+                    reason = post_flip_reply(reply, elapsed)
+                    if reason is not None:
+                        flip_observed[reason] += 1
                         counts['flip_refusals'] += 1
                         continue
-                    assert reply == b'OK', reply
                     counts['flips'] += 1
+                refusal_counters(flip_observed, before, s.stats(c))
         workers = [flush] + ([] if args.case == 'live-flip' else [worker]) + ([saver] if save else [])
         if args.case in ('live-flip', 'live-flip-cut') and not oracle:
             assert mode == '2s'
@@ -411,7 +420,7 @@ def storm(args, directory, mode, engine, atomic, oracle):
                 b.c.must('SELECT', db)
                 keys = sorted(b.c.must('KEYS', '*'))
                 assert (keys, b.c.must('MGET', *keys) if keys else [], b.c.must('DBSIZE')) == expected
-    return dict(**counts, snapshots_checked=len(saved),
+    return dict(**counts, **flip_observed, flip_max_seconds=flip_max_seconds, snapshots_checked=len(saved),
                 aof_sentinels=sum(map(len, sentinels.values())), aof_namespaces=len(sentinels))
 
 

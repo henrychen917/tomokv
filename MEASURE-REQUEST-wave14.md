@@ -215,6 +215,20 @@ and rejected counts are retained, not presented as the integration cost proof.
   at most five seconds for the actual OOM, accepting only interim `+OK` and
   recording its count. All 48 TomoKV legs are unchanged.
 
+### FLUSH/FLIP companion refusal contract
+
+The broad final flipfix6 row exposed a stale test-side whitelist in its
+FLUSH/FLIP companion. Two legs received the approved immediate `pinned
+connection closed` refusal when a storm connection closed, but the companion
+accepted only the obsolete `cannot quiesce` guard. The server is unchanged.
+The companion now shares flipfix6's exact reply policy, requires every FLIP to
+return below one second, and matches S2/close reply counts to both server
+counter deltas. Seven negative controls reject legacy/unknown errors, slow
+replies, absent counters and forged counter counts. Existing exec-close legs
+still require actual close refusals to occur. The complete live job is running
+again as `flip-refusal-contract-final`; the original red receipt remains in
+`flip-refusal-contract.json`. No public row or EXPECT change is needed.
+
 ### Tcl reconciliation and negative control
 
 All 22 touched named assertions were attempted three times in each mode on
@@ -334,7 +348,9 @@ not POST-release**. Use the pair as a separate layout control; retain the releas
 wave null. `pad-a-r7.json` contains the link and exact patch proof. Both PAD-A
 and POST-layout passed the gate's netio checks in both modes/engines and
 default-namespace checks in both modes (four public rows per arm including
-release). PRE was rebuilt byte-for-byte for the replacement twin;
+release). Those control-arm checks predate the EOF extension; the final
+release's complete EOF verdicts are reported separately above. PRE was rebuilt
+byte-for-byte for the replacement twin;
 `pre-reproduction.json` binds that reconstruction. `arms-r7.json` and
 `arms-r7.sha256` bind all four final images.
 

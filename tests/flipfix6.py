@@ -12,12 +12,59 @@ import contextlib
 import json
 import os
 from pathlib import Path
+import sys
 import threading
 import time
 import traceback
 
 from _lib import RespError, encode
 import snapfix as s
+
+
+REFUSALS = {
+    b'ERR FLIP refused: prepared but unpublished MULTI/WATCH state': 'flip_refused_s2',
+    b'ERR FLIP refused: a pinned connection closed': 'flip_refused_close',
+}
+
+
+def post_flip_reply(reply, seconds):
+    assert 0 <= seconds < 1, ('FLIP did not return promptly', seconds, reply)
+    if reply == b'OK':
+        return None
+    assert isinstance(reply, RespError) and reply.message in REFUSALS, reply
+    return REFUSALS[reply.message]
+
+
+def refusal_counters(observed, before, after):
+    for counter in REFUSALS.values():
+        assert counter in before and counter in after, ('missing FLIP counter', counter)
+        assert after[counter] - before[counter] == observed[counter], (
+            counter, observed[counter], before[counter], after[counter])
+
+
+def refusal_self_test():
+    zero = {counter: 0 for counter in REFUSALS.values()}
+    one = dict(zero, flip_refused_close=1)
+    assert post_flip_reply(b'OK', .1) is None
+    for message, counter in REFUSALS.items():
+        assert post_flip_reply(RespError(message), .1) == counter
+    refusal_counters(one, zero, one)
+    invalid = [
+        lambda: post_flip_reply(RespError(b'ERR FLIP cannot quiesce a connection: busy'), .1),
+        lambda: post_flip_reply(RespError(b'ERR unrelated'), .1),
+        lambda: post_flip_reply(RespError(b'ERR FLIP refused: a pinned connection closed'), 1),
+        lambda: post_flip_reply(b'OK', 1),
+        lambda: refusal_counters(one, zero, zero),
+        lambda: refusal_counters(zero, zero, one),
+        lambda: refusal_counters(zero, {}, zero),
+    ]
+    for control in invalid:
+        try:
+            control()
+        except AssertionError:
+            continue
+        raise AssertionError('invalid FLIP witness accepted')
+    print('PASS FLIP witness: exact reasons, subsecond replies, matching counters; seven negative controls')
 
 
 def transaction(c, pair, pipeline=True):
@@ -196,13 +243,10 @@ def witness(args, directory, engine, atomic, case):
                 reply = control.cmd('FLIP', target, 8 - target)
                 result['flips'].append(dict(seconds=time.monotonic() - begin,
                     reply=reply.message.decode() if isinstance(reply, RespError) else reply.decode()))
-                if isinstance(reply, RespError):
-                    if args.expect == 'pre':
-                        break
-                    assert reply.message in (
-                        b'ERR FLIP refused: prepared but unpublished MULTI/WATCH state',
-                        b'ERR FLIP refused: a pinned connection closed'), reply
-                else:
+                if isinstance(reply, RespError) and args.expect == 'pre':
+                    break
+                reason = post_flip_reply(reply, result['flips'][-1]['seconds'])
+                if reason is None:
                     live_io = target
         finally:
             stop.set()
@@ -237,7 +281,7 @@ def witness(args, directory, engine, atomic, case):
             s2 = sum('prepared but unpublished' in r['reply'] for r in result['flips'])
             closes = sum('a pinned connection closed' in r['reply'] for r in result['flips'])
             assert successes + s2 + closes == len(result['flips']), result
-            assert s2 == result['flip_refused_s2'] and closes == result['flip_refused_close'], result
+            refusal_counters(dict(flip_refused_s2=s2, flip_refused_close=closes), before, after)
             if case == 'exec-close':
                 assert closes > 0 and result.get('closes', 0) > 0, ('close refusal never armed', result)
             assert result['sessions_moved'] > 0, ('no session connection moved', result)
@@ -247,6 +291,9 @@ def witness(args, directory, engine, atomic, case):
 
 
 def main():
+    refusal_self_test()
+    if sys.argv[1:] == ['--self-test']:
+        return 0
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--binary', required=True)
     p.add_argument('--cores', default='32-39')
