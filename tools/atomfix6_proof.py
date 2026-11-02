@@ -73,6 +73,9 @@ if a.group == 'persistence' and not a.fused:
 if a.group == 'persistence' and a.fused:
     subprocess.run(['python3', __file__, 'order', '--binary', str(ROOT / 'build/pre/tomokv'),
                     '--label', 'wave14-order-PRE'], check=False)
+if a.group == 'differ' and a.engine == 'uring':
+    subprocess.run(['python3', __file__, 'notify', '--fused',
+                    '--label', 'notify-fused'], check=False)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate
@@ -108,9 +111,6 @@ with (out / 'gate.log').open('w') as log:
 (out / 'exit.json').write_text(json.dumps(dict(rc=result.returncode)) + '\n')
 print(label, 'exit', result.returncode, 'log', out / 'gate.log', flush=True)
 subprocess.run(['taskset', '-c', '86', 'python3', 'tools/atomfix6_retire.py'], check=True)
-if a.group == 'placement':
-    subprocess.run(['python3', __file__, 'notify', '--fused',
-                    '--label', 'notify-fused'], check=False)
 if a.group == 'notify' and a.fused:
     subprocess.run(['python3', __file__, 'coverage',
                     '--label', 'coverage-final'], check=False)
