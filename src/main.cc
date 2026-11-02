@@ -199,10 +199,10 @@ int main(int argc, char** argv) {
     cfg.conf_path = conf_path;   // retained for CONFIG REWRITE; points into argv, which outlives us
     if (conf_path) {
         std::vector<size_t> conf_line_ends;
-        if (!load_conf_file(conf_path, token_store, &conf_line_ends)) return 1;
-        const int rc = parse_config_file(token_store, conf_line_ends, cfg, parse_state, argv[0]);
+        std::vector<ConfigFileLine> conf_lines;
+        if (!load_conf_file(conf_path, token_store, &conf_line_ends, &conf_lines)) return 1;
+        const int rc = parse_config_file(token_store, conf_line_ends, cfg, parse_state, argv[0], &conf_lines);
         if (rc != kConfigParsed) {
-            if (rc == kConfigError) std::fprintf(stderr, "(while parsing %s)\n", conf_path);
             return rc == kConfigHelp ? 0 : 1;
         }
     }

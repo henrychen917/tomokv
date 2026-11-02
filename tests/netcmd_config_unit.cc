@@ -417,11 +417,10 @@ void test_writeback_knob(const char* name, tomo::Config& cfg) {
         std::string error;
         check(tomo::config_rewrite(error), "writeback knob rewrite succeeds");
         std::vector<std::string> loaded;
-        check(tomo::load_conf_file(cfg.conf_path, loaded), "writeback rewritten file loads");
-        std::vector<const char*> argv;
-        for (const auto& arg : loaded) argv.push_back(arg.c_str());
+        std::vector<size_t> line_ends;
+        check(tomo::load_conf_file(cfg.conf_path, loaded, &line_ends), "writeback rewritten file loads");
         tomo::Config reparsed; tomo::ConfigParseState reparse_state;
-        check(tomo::parse_config_args(argv, reparsed, reparse_state, 1, "rewrite") == tomo::kConfigParsed &&
+        check(tomo::parse_config_file(loaded, line_ends, reparsed, reparse_state, "rewrite") == tomo::kConfigParsed &&
               value(reparsed) == boot, "writeback REWRITE reboots actual value");
     }
     for (const std::string& input : std::vector<std::string>{"-1", "-0", "+1", "01", "00", "1x", "1.0",

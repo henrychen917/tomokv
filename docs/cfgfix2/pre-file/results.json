@@ -1,0 +1,35 @@
+[
+  {
+    "mode": "redis",
+    "engine": "oracle",
+    "result": {
+      "rejected": 3,
+      "positive_controls": 1
+    },
+    "passed": true
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 159, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 130, in file_case\n    assert all(not row['booted'] and row['exit_code'] == 1 for row in results), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: malformed config booted; see observations"
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 159, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 130, in file_case\n    assert all(not row['booted'] and row['exit_code'] == 1 for row in results), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: malformed config booted; see observations"
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 159, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 130, in file_case\n    assert all(not row['booted'] and row['exit_code'] == 1 for row in results), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: malformed config booted; see observations"
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 159, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 130, in file_case\n    assert all(not row['booted'] and row['exit_code'] == 1 for row in results), results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: malformed config booted; see observations"
+  }
+]
