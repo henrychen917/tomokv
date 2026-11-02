@@ -14,6 +14,7 @@ from pathlib import Path
 import resource
 import socket
 import subprocess
+import threading
 import time
 import traceback
 
@@ -207,9 +208,71 @@ def acl_case(a, mode, engine):
     return dict(restart_cases=len(results), exact_registry_roundtrips=len(results))
 
 
+def latency_case(a, mode, engine):
+    results = []
+    for databases in (1, 16):
+        label = f'latency-{mode}-{engine}-db{databases}'
+        extra = ['--latency-tracking', 'yes', '--databases', str(databases)]
+        if mode != 'redis' and databases == 16:
+            extra += ['--read-local', '1', '--atomic', '1', '--reorder', '1']
+        result = dict(databases=databases, writes=0, reads=0, mixed=[], errors=[])
+        with Server(a, label, mode, engine, extra=extra):
+            count = 512
+            values = [' '.join([value] * count) for value in ('10', '90')]
+            with closing(n.connect(a.port)) as c:
+                c.must('CONFIG', 'SET', 'latency-tracking-info-percentiles', values[0])
+                c.must('PING')
+            # Four independently connected readers avoid a request/reply pair
+            # settling into a phase that always misses the short publication.
+            stop, ready = threading.Event(), threading.Barrier(5)
+            def write():
+                try:
+                    with closing(n.connect(a.port)) as c:
+                        ready.wait(5)
+                        for i in range(3200):
+                            if stop.is_set():
+                                break
+                            c.must('CONFIG', 'SET', 'latency-tracking-info-percentiles', values[i % 2])
+                            result['writes'] += 1
+                except BaseException as e:
+                    result['errors'].append(repr(e))
+                finally:
+                    stop.set()
+            def read():
+                try:
+                    with closing(n.connect(a.port)) as c:
+                        ready.wait(5)
+                        deadline = time.monotonic() + 45
+                        while not stop.is_set() and time.monotonic() < deadline:
+                            text = c.must('INFO', 'latencystats').decode()
+                            rows = dict(line.split(':', 1) for line in text.splitlines() if ':' in line)
+                            row = rows.get('latency_percentiles_usec_ping')
+                            assert row is not None, text
+                            labels = [part.split('=')[0] for part in row.split(',') if part]
+                            result['reads'] += 1
+                            if labels not in [['p10'] * count, ['p90'] * count]:
+                                result['mixed'].append(labels)
+                                break
+                except BaseException as e:
+                    result['errors'].append(repr(e))
+                finally:
+                    stop.set()
+            workers = [threading.Thread(target=write)] + [threading.Thread(target=read) for _ in range(4)]
+            for worker in workers:
+                worker.start()
+            for worker in workers:
+                worker.join(60)
+            assert not any(worker.is_alive() for worker in workers), result
+        results.append(result)
+    (a.output / f'latency-{mode}-{engine}-observations.json').write_text(json.dumps(results, indent=2))
+    assert all(r['reads'] > 0 and r['writes'] > 0 and not r['errors'] and not r['mixed']
+               for r in results), results
+    return results
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--case', required=True, choices=['file', 'acl'])
+    p.add_argument('--case', required=True, choices=['file', 'acl', 'latency'])
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', required=True)
