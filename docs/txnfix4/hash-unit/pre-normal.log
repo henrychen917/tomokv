@@ -1,0 +1,17 @@
+FAIL HGET: uncaptured $-1\r\n | captured $1\r\n5\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HMGET: uncaptured *2\r\n$-1\r\n$4\r\nlive\r\n | captured *2\r\n$1\r\n5\r\n$4\r\nlive\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HGETALL: uncaptured *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n | captured *4\r\n$1\r\nf\r\n$1\r\n5\r\n$4\r\nkeep\r\n$4\r\nlive\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HLEN: uncaptured :1\r\n | captured :2\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HEXISTS: uncaptured :0\r\n | captured :1\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HSTRLEN: uncaptured :0\r\n | captured :1\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HKEYS: uncaptured *1\r\n$4\r\nkeep\r\n | captured *2\r\n$1\r\nf\r\n$4\r\nkeep\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HVALS: uncaptured *1\r\n$4\r\nlive\r\n | captured *2\r\n$1\r\n5\r\n$4\r\nlive\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HSCAN: uncaptured *2\r\n$1\r\n0\r\n*2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n | captured *2\r\n$1\r\n0\r\n*4\r\n$1\r\nf\r\n$1\r\n5\r\n$4\r\nkeep\r\n$4\r\nlive\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HRANDFIELD: uncaptured *1\r\n$4\r\nkeep\r\n | captured *1\r\n$1\r\nf\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+PASS HTTL: uncaptured *1\r\n:-2\r\n | captured *1\r\n:-2\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HINCRBY: uncaptured :1\r\n | captured :6\r\n | after capture *4\r\n$4\r\nkeep\r\n$4\r\nlive\r\n$1\r\nf\r\n$1\r\n1\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HINCRBYFLOAT: uncaptured $3\r\n1.5\r\n | captured $3\r\n6.5\r\n | after capture *4\r\n$4\r\nkeep\r\n$4\r\nlive\r\n$1\r\nf\r\n$3\r\n1.5\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HSETNX: uncaptured :1\r\n | captured :0\r\n | after capture *4\r\n$4\r\nkeep\r\n$4\r\nlive\r\n$1\r\nf\r\n$3\r\nnew\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+FAIL HSET: uncaptured :1\r\n | captured :0\r\n | after capture *4\r\n$4\r\nkeep\r\n$4\r\nlive\r\n$1\r\nf\r\n$3\r\nset\r\n vs *4\r\n$1\r\nf\r\n$3\r\nset\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+PASS HPERSIST: uncaptured *1\r\n:-2\r\n | captured *1\r\n:-2\r\n | after capture *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n vs *2\r\n$4\r\nkeep\r\n$4\r\nlive\r\n
+CD5.3 unit (normal): 2/16 commands match the uncaptured shard
