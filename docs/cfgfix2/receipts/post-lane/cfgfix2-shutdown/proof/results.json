@@ -1,0 +1,64 @@
+[
+  {
+    "mode": "redis",
+    "engine": "oracle",
+    "result": {
+      "members": 6000000,
+      "calibrated_seconds": 4.57,
+      "waited": [
+        4.32,
+        4.32
+      ],
+      "acknowledged": 20021
+    },
+    "passed": true
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "result": {
+      "members": 300000,
+      "calibrated_seconds": 4.88,
+      "waited": [
+        5.08,
+        4.89
+      ],
+      "acknowledged": 20055
+    },
+    "passed": true
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "result": {
+      "members": 300000,
+      "calibrated_seconds": 4.88,
+      "waited": [
+        4.67,
+        4.77
+      ],
+      "acknowledged": 20023
+    },
+    "passed": true
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "passed": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 698, in main\n    row.update(result=globals()[a.case + '_case'](a, mode, engine), passed=True)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-cfgfix2/tests/cfgfix2.py\", line 556, in shutdown_case\n    assert leg['waited_seconds'] >= floor, ('shutdown did not wait for the command', result)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ('shutdown did not wait for the command', {'members': 300000, 'calibrated_seconds': 5.57, 'none': {'exit_code': 0, 'waited_seconds': 0.11, 'long_reply': 'closed', 'watchdog': False}, 'aof': {'exit_code': 0, 'waited_seconds': 0.06, 'long_reply': 'closed', 'watchdog': False, 'acknowledged': 20057, 'tail_acknowledged': 57, 'missing': 0, 'source_members': 300000, 'trial_exists': 0}})\n"
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "result": {
+      "members": 300000,
+      "calibrated_seconds": 4.91,
+      "waited": [
+        4.62,
+        4.72
+      ],
+      "acknowledged": 20022
+    },
+    "passed": true
+  }
+]

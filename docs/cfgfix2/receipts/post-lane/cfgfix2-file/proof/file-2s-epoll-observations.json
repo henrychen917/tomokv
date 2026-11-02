@@ -1,0 +1,22 @@
+[
+  {
+    "booted": false,
+    "exit_code": 1,
+    "error": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\n--net-io epoll: using syscall persistence (no io_uring ring)\nError in ACL SETUSER modifier '--requirepass': Unknown command or category name in ACL\n"
+  },
+  {
+    "booted": false,
+    "exit_code": 1,
+    "error": "\n*** FATAL CONFIG FILE ERROR (Redis 7.4.10) ***\nReading the configuration file, at line 3\n>>> 'save 3600 1 --requirepass \"\"'\nInvalid save parameters\nTomoKV 1.0-cpp (Redis 7.4.10 compatible)\n"
+  },
+  {
+    "booted": false,
+    "exit_code": 1,
+    "error": "\n*** FATAL CONFIG FILE ERROR (Redis 7.4.10) ***\nReading the configuration file, at line 3\n>>> 'latency-tracking-info-percentiles 50 --requirepass \"\"'\nInvalid latency-tracking-info-percentiles parameters\nTomoKV 1.0-cpp (Redis 7.4.10 compatible)\n"
+  },
+  {
+    "booted": false,
+    "exit_code": 1,
+    "error": "\n*** FATAL CONFIG FILE ERROR (Redis 7.4.10) ***\nReading the configuration file, at line 3\n>>> 'help'\nBad directive or wrong number of arguments\nTomoKV 1.0-cpp (Redis 7.4.10 compatible)\n"
+  }
+]

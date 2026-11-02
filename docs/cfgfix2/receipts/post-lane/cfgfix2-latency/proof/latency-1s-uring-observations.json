@@ -1,0 +1,22 @@
+[
+  {
+    "databases": 1,
+    "shards": 16,
+    "writes": 1600,
+    "reads": 14395,
+    "torn": 0,
+    "corrupt": 0,
+    "first": null,
+    "errors": []
+  },
+  {
+    "databases": 16,
+    "shards": 16,
+    "writes": 1600,
+    "reads": 4804,
+    "torn": 0,
+    "corrupt": 0,
+    "first": null,
+    "errors": []
+  }
+]

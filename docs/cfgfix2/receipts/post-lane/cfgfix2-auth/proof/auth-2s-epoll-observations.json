@@ -1,0 +1,22 @@
+[
+  {
+    "databases": 1,
+    "toggles": 31237,
+    "connections": 75191,
+    "noauth": 75191,
+    "admitted": 0,
+    "other": 0,
+    "first": null,
+    "errors": []
+  },
+  {
+    "databases": 16,
+    "toggles": 31249,
+    "connections": 74875,
+    "noauth": 74875,
+    "admitted": 0,
+    "other": 0,
+    "first": null,
+    "errors": []
+  }
+]
