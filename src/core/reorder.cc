@@ -1864,6 +1864,8 @@ void IoLoop::r7_on_recv(Client* c, int res) {
         } else if (res == -ECANCELED) {
             (void)finish_client_transfer<kEp>(c);
         } else {
+            // Rollback normally re-arms reception. EOF already released the
+            // original kernel pin; hold admission across that rollback.
             const bool eof = res == 0 && !c->is_tls() && !c->closing();
             if (eof) c->set_recv_armed(true);
             cancel_client_transfer<kEp>(c);

@@ -1,0 +1,287 @@
+{
+  "equivalent": true,
+  "before": "build/eoffix/post-complete/tomokv",
+  "after": "build/tomokv",
+  "before_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+  "after_sha256": "785bd072f91c0371e6fc00acbc91b5b982feb282b5c1a51079d4c38b55002c53",
+  "allocated_sections": [
+    {
+      "section": ".bss",
+      "address": 10873728,
+      "size": 1189384,
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "section": ".data",
+      "address": 10854400,
+      "size": 19321,
+      "before_sha256": "273bee6632213b9361cf30f3aa5561db5004f9889eed3197eb8487cc6cd49221",
+      "after_sha256": "273bee6632213b9361cf30f3aa5561db5004f9889eed3197eb8487cc6cd49221"
+    },
+    {
+      "section": ".data.rel.ro",
+      "address": 10765728,
+      "size": 85168,
+      "before_sha256": "efbc7be8060c7e4d6aaf3c1e2fe5b94d29e6e2355c0eb3f385c3ae25283b5e48",
+      "after_sha256": "efbc7be8060c7e4d6aaf3c1e2fe5b94d29e6e2355c0eb3f385c3ae25283b5e48"
+    },
+    {
+      "section": ".dynamic",
+      "address": 10850896,
+      "size": 608,
+      "before_sha256": "2b6eaad71f02659a0b936758b361bb4fd3370b3d5b1749ee26c4426370d85d64",
+      "after_sha256": "2b6eaad71f02659a0b936758b361bb4fd3370b3d5b1749ee26c4426370d85d64"
+    },
+    {
+      "section": ".dynstr",
+      "address": 10728,
+      "size": 8426,
+      "before_sha256": "50fd5ccf60f9e2b328d688ca002341079561e10cbc794dba6c21593db7d2f3ad",
+      "after_sha256": "50fd5ccf60f9e2b328d688ca002341079561e10cbc794dba6c21593db7d2f3ad"
+    },
+    {
+      "section": ".dynsym",
+      "address": 1344,
+      "size": 9384,
+      "before_sha256": "2101ab343ff3e43f554fbf3394d7b7d671842577389a51a79b045daa7de4fc24",
+      "after_sha256": "2101ab343ff3e43f554fbf3394d7b7d671842577389a51a79b045daa7de4fc24"
+    },
+    {
+      "section": ".eh_frame",
+      "address": 9956824,
+      "size": 649416,
+      "before_sha256": "b6eccf3409ac495ff1eb672844f2f7fb10f1006914990be8579ca1c66dd108ef",
+      "after_sha256": "b6eccf3409ac495ff1eb672844f2f7fb10f1006914990be8579ca1c66dd108ef"
+    },
+    {
+      "section": ".eh_frame_hdr",
+      "address": 9859812,
+      "size": 97012,
+      "before_sha256": "eaf72c2bdc0c5a0a38e62723cd6846f2a4ec6c5860a8645b0d7ff5bac0499241",
+      "after_sha256": "eaf72c2bdc0c5a0a38e62723cd6846f2a4ec6c5860a8645b0d7ff5bac0499241"
+    },
+    {
+      "section": ".fini",
+      "address": 9218984,
+      "size": 13,
+      "before_sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8",
+      "after_sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8"
+    },
+    {
+      "section": ".fini_array",
+      "address": 10765720,
+      "size": 8,
+      "before_sha256": "aaafd20e1b71837542b11ac63321ab2f44bd845cc4959dfd16beeb0f09c977d1",
+      "after_sha256": "aaafd20e1b71837542b11ac63321ab2f44bd845cc4959dfd16beeb0f09c977d1"
+    },
+    {
+      "section": ".gcc_except_table",
+      "address": 10606240,
+      "size": 155980,
+      "before_sha256": "31ce311770b30db61587f3857e34888aaf78d6cd3e8dae8d77057a01f38915aa",
+      "after_sha256": "31ce311770b30db61587f3857e34888aaf78d6cd3e8dae8d77057a01f38915aa"
+    },
+    {
+      "section": ".gnu.hash",
+      "address": 1000,
+      "size": 344,
+      "before_sha256": "6aca4565ab74272ccd2532a16d654527c1d03a8a581dd071daa4aef0cf4b754b",
+      "after_sha256": "6aca4565ab74272ccd2532a16d654527c1d03a8a581dd071daa4aef0cf4b754b"
+    },
+    {
+      "section": ".gnu.version",
+      "address": 19154,
+      "size": 782,
+      "before_sha256": "c136b098fce63c00e624c8b648a22944a5ad27c89c49903e151a64add5d4f564",
+      "after_sha256": "c136b098fce63c00e624c8b648a22944a5ad27c89c49903e151a64add5d4f564"
+    },
+    {
+      "section": ".gnu.version_r",
+      "address": 19936,
+      "size": 784,
+      "before_sha256": "917922699e580d76b1cfacb7e81aa2c92aac41e085325f0de507ad03c9604b22",
+      "after_sha256": "917922699e580d76b1cfacb7e81aa2c92aac41e085325f0de507ad03c9604b22"
+    },
+    {
+      "section": ".got",
+      "address": 10851504,
+      "size": 2888,
+      "before_sha256": "1ca1f6fdf9a4faa68eed623f70a613c3f3f8a4cab15b6e68d3cbc25c76aa873a",
+      "after_sha256": "1ca1f6fdf9a4faa68eed623f70a613c3f3f8a4cab15b6e68d3cbc25c76aa873a"
+    },
+    {
+      "section": ".init",
+      "address": 172032,
+      "size": 27,
+      "before_sha256": "b988dd62faf95ef07ce8dc58710970da763b17e86b347899baeeb4e62bb45a21",
+      "after_sha256": "b988dd62faf95ef07ce8dc58710970da763b17e86b347899baeeb4e62bb45a21"
+    },
+    {
+      "section": ".init_array",
+      "address": 10764896,
+      "size": 824,
+      "before_sha256": "73a09ab540c4bf5269324fcd5158995bd298b993a79f9ac96c48e2102da8abbe",
+      "after_sha256": "73a09ab540c4bf5269324fcd5158995bd298b993a79f9ac96c48e2102da8abbe"
+    },
+    {
+      "section": ".interp",
+      "address": 848,
+      "size": 28,
+      "before_sha256": "9097c98ea70f6f3b01d50145eb72bf55ad1f4e9713bccf27bd6405d6254eed00",
+      "after_sha256": "9097c98ea70f6f3b01d50145eb72bf55ad1f4e9713bccf27bd6405d6254eed00"
+    },
+    {
+      "section": ".note.ABI-tag",
+      "address": 964,
+      "size": 32,
+      "before_sha256": "6e48317ad93a8ac2dc04321465ede06d1274543fc8ab172e68171a9d684bb313",
+      "after_sha256": "6e48317ad93a8ac2dc04321465ede06d1274543fc8ab172e68171a9d684bb313"
+    },
+    {
+      "section": ".note.gnu.build-id",
+      "address": 928,
+      "size": 36,
+      "before_sha256": "0d95ba385af58af07e819264284841c3b5a62eae22172b222bb79dfdecc9dcf7",
+      "after_sha256": "06e8c31ff7f2b64e0f684a80fb57c23adaef13ad5b8cd82abde02b7f3db6e539"
+    },
+    {
+      "section": ".note.gnu.property",
+      "address": 880,
+      "size": 48,
+      "before_sha256": "67098b0bd64a1f8fdb6594ba06e1fb1fd39e5d20334df6e6957967935b509beb",
+      "after_sha256": "67098b0bd64a1f8fdb6594ba06e1fb1fd39e5d20334df6e6957967935b509beb"
+    },
+    {
+      "section": ".plt",
+      "address": 172064,
+      "size": 5456,
+      "before_sha256": "18afe73415b891428b788dcfd3c9d14e8f7d07f229fca8e060c51474ee715695",
+      "after_sha256": "18afe73415b891428b788dcfd3c9d14e8f7d07f229fca8e060c51474ee715695"
+    },
+    {
+      "section": ".plt.got",
+      "address": 177520,
+      "size": 32,
+      "before_sha256": "077d5d233159579c3dc8deee4cfa97ff95fc51b27962408313f9b9d3feea34d2",
+      "after_sha256": "077d5d233159579c3dc8deee4cfa97ff95fc51b27962408313f9b9d3feea34d2"
+    },
+    {
+      "section": ".plt.sec",
+      "address": 177552,
+      "size": 5440,
+      "before_sha256": "0d476ec2c85eab43e6c61d46d147341828d60c1a563e316d779bd7da161ca712",
+      "after_sha256": "0d476ec2c85eab43e6c61d46d147341828d60c1a563e316d779bd7da161ca712"
+    },
+    {
+      "section": ".rela.dyn",
+      "address": 20720,
+      "size": 141072,
+      "before_sha256": "92363007c38bbda5052826f4a63509dd02b112caa98671cf4244e83223d61fac",
+      "after_sha256": "92363007c38bbda5052826f4a63509dd02b112caa98671cf4244e83223d61fac"
+    },
+    {
+      "section": ".rela.plt",
+      "address": 161792,
+      "size": 8160,
+      "before_sha256": "519c14eb01a53e3057ae107af9a8b4b5a1332cf96dc2916a98c426b19d8edb0e",
+      "after_sha256": "519c14eb01a53e3057ae107af9a8b4b5a1332cf96dc2916a98c426b19d8edb0e"
+    },
+    {
+      "section": ".rlfence",
+      "address": 9218871,
+      "size": 112,
+      "before_sha256": "8ee870ea7ce98e1ff796f73b01416a6cf128b2374691274a902d2896a5b21a3a",
+      "after_sha256": "8ee870ea7ce98e1ff796f73b01416a6cf128b2374691274a902d2896a5b21a3a"
+    },
+    {
+      "section": ".rodata",
+      "address": 9220096,
+      "size": 639716,
+      "before_sha256": "2cc5c9925b4af25ace7dcbc1e3151c9f591370d5ff8fbb8873ccbe89953f8d06",
+      "after_sha256": "2cc5c9925b4af25ace7dcbc1e3151c9f591370d5ff8fbb8873ccbe89953f8d06"
+    },
+    {
+      "section": ".tbss",
+      "address": 10764896,
+      "size": 768,
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "section": ".tdata",
+      "address": 10764512,
+      "size": 384,
+      "before_sha256": "bb4cae4d9b6ce85ed5aa9323c516d943a48e0edea373e161629e9c6aa23a61c3",
+      "after_sha256": "bb4cae4d9b6ce85ed5aa9323c516d943a48e0edea373e161629e9c6aa23a61c3"
+    },
+    {
+      "section": ".text",
+      "address": 182992,
+      "size": 9035879,
+      "before_sha256": "19a9c67141dd771406c2fe4593df5a5a96f4cffc4fe80df6c5f5427aff6032e4",
+      "after_sha256": "19a9c67141dd771406c2fe4593df5a5a96f4cffc4fe80df6c5f5427aff6032e4"
+    }
+  ],
+  "load_segments": [
+    {
+      "offset": 0,
+      "bytes": 169952,
+      "normalized_sha256": "2ac7c98f202f8d6c43bd41b9e28ed24c06b30ef36074d37118d3fc7c7f5080ad"
+    },
+    {
+      "offset": 172032,
+      "bytes": 9046965,
+      "normalized_sha256": "b31cfbe67bacb5c4266dd738e6f493ce223f25ec007f3e9e9664f5ef27354a94"
+    },
+    {
+      "offset": 9220096,
+      "bytes": 1542124,
+      "normalized_sha256": "da0dca72e70b4e3a5f5b8f783bf48468ed93e220982cbe4663ff0d04f7014afa"
+    },
+    {
+      "offset": 10764512,
+      "bytes": 109209,
+      "normalized_sha256": "529aebb06bf66e27e89ec4e5423f4a8746ff32fd1353d69c6dd4536909f7ff46"
+    }
+  ],
+  "excluded_metadata": [
+    [
+      40,
+      48,
+      "ELF section-table offset"
+    ],
+    [
+      944,
+      964,
+      "GNU build-id descriptor (exposed by INFO redis_build_id)"
+    ]
+  ],
+  "meaning": "Identical instructions, nonidentity allocated data, relocations, addresses and segment layout. Only debug metadata, GNU build-id and the section-table offset may differ.",
+  "observable_metadata": "INFO redis_build_id can reflect the new GNU build-id. The original frozen POST remains the tested and measurement arm.",
+  "negative_controls": [
+    {
+      "section": ".text",
+      "rejected": true,
+      "reason": "('allocated section bytes changed', '.text')"
+    },
+    {
+      "section": ".rodata",
+      "rejected": true,
+      "reason": "('allocated section bytes changed', '.rodata')"
+    },
+    {
+      "section": ".data",
+      "rejected": true,
+      "reason": "('allocated section bytes changed', '.data')"
+    }
+  ],
+  "source": "src/core/reorder.cc",
+  "source_before_sha256": "aece326ab1407d86b2b2acf81178a4b1f8861fb20eec79b7c04f7059e82dd718",
+  "source_after_sha256": "27cfd246557ec592c41e38dedde54a5134f03380dc648274a5bbd6f058616f0f",
+  "added_comments": [
+    "            // Rollback normally re-arms reception. EOF already released the",
+    "            // original kernel pin; hold admission across that rollback."
+  ],
+  "rebuilt_copy": "build/eoffix/post-comment-sync/tomokv"
+}

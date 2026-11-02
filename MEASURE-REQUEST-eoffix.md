@@ -9,8 +9,10 @@ allocation failure could retain the synthetic receive hold used during handoff
 rollback. `eof-oom-before` fails that exact assertion in both namespaces;
 `eof-oom-after` passes after clearing the hold in the cold allocation-error path.
 The `complete-*` arms are frozen and pass the directed EOF/AOF checks and all
-12 required Tcl legs. Both standard differential engine matrices pass;
-the broader final proof is running.
+12 required Tcl legs. Both standard differential engine matrices and the broad
+live/persistence matrices pass. Source parity and final build freshness pass;
+the remaining whole-job AOF repetitions are running. The FIFO timing row remains
+red and is reported below without a waiver.
 Earlier `final-*` receipts remain intermediate evidence, including their
 successful Tcl and epoll differential runs.
 
@@ -186,18 +188,24 @@ under the task's runtime authorization. No throughput claim is attached to this 
 
 **Build and harness proof.** Final `make all` plus all 55
 `job_production_units` targets and its additional mdbqsbr, blockfix cost and
-blockfix2 targets pass (`complete-build.json`). Final `make -q` freshness and
-`python3 tests/gates_test.py` are queued after the remaining jobs. Earlier
-freshness and 14 + 77 harness tests passed; those receipts remain retained.
+blockfix2 targets pass (`complete-build.json`, then `comment-sync-build.json`).
+Final `make -q` freshness passes all target groups (`freshness-release-*-driver.json`).
+`python3 tests/gates_test.py` passes all 14 identity checks and 77 gate-verdict tests
+(`gates-test-release-complete-driver.json`). Earlier receipts remain retained.
 
 The broader `complete-internal` run found a source-parity failure in
 `wbland_units`: the generated R7 receive method omitted two explanatory comments
 present in the ordinary method. All 50 native clause outcomes and all 16 path
-outcomes passed before the exact source check rejected that drift. Regeneration,
-a fresh build, byte comparisons of the allocated sections and loaded segments,
-and the unchanged `wbland_units`/`reorder_sync` jobs are queued at the final build
-boundary. No runtime-equivalence or resolved-failure claim is made until those
-checks complete; the original red receipt will remain retained.
+outcomes passed before the exact source check rejected that drift. Regeneration
+adds exactly those two comments. The fresh build has identical instructions,
+nonidentity allocated data, function addresses and loaded segment layout;
+only debug metadata, the GNU build-id and the ELF section-table offset differ.
+The comparison rejects independently poisoned text, rodata and data controls
+(`source-sync-identity.json`). The unchanged `wbland_units` and `reorder_sync`
+jobs pass in `complete-source-sync.json`; the original red receipt is retained.
+The rebuilt binary is `build/eoffix/post-comment-sync/tomokv`, SHA-256
+`785bd072f91c0371e6fc00acbc91b5b982feb282b5c1a51079d4c38b55002c53`.
+The frozen POST remains the runtime proof and measurement arm.
 
 The same broader run completed all 16 one-minute `txnorder_fifo_live` legs:
 five pass, ten fail the existing p99 bound, and one fails the existing 20 ms
@@ -245,8 +253,8 @@ rejected 99-case receipt remains available; no original gate assertion was remov
 
 `clientfix.py` now honors the selected `GATE_NET_IO` in its owned server boots;
 its prior implementation silently used uring even in an epoll job invocation.
-This changes no assertion or public row count. The final clientfix jobs will
-therefore record actual boots on both engines.
+This changes no assertion or public row count. The final clientfix jobs record
+actual passing boots on both engines.
 
 The `atomic_floor` job now uses the existing `txn_proof_boot` helper so its
 400-roll pipeline-order check honors `GATE_TXN_FUSED=1`. Its default split
@@ -265,5 +273,13 @@ four feature batteries, transaction/AOF ordering, client and monitor controls,
 blocking scripts, protocol errors, buffered parsing and reply policy. Their raw
 runs are `build/gate-run.Sp1JIE` and `build/gate-run.uryRDw`. All four separate
 persistence/release matrices (both modes and both engines) pass all 85 rows each.
-The internal matrix reports 179 passing rows and the two retained failures
-described above: comment parity and FIFO latency.
+The internal matrix reports 179 passing rows and two original failures:
+comment parity (resolved by the unchanged follow-up jobs) and FIFO latency
+(still red).
+
+The prior service-capacity interruption stopped POST epoll iteration 47 before
+row d completed. Its raw state is preserved in
+`docs/eoffix/interrupted-txn-complete-epoll-47/`; it is excluded from complete
+iteration counts. All 46 earlier complete repetitions contain successful AOF,
+exact restart replay and clean shutdown evidence (`resumed-prior-iterations.json`).
+The resumed runner refuses to overwrite either completed or interrupted receipts.
