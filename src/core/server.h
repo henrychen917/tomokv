@@ -972,6 +972,8 @@ public:
     uint64_t flip_clients_transferred() const {
         return flip_clients_transferred_.load(std::memory_order_relaxed);
     }
+    uint64_t flip_late_output() const { return flip_late_output_.load(std::memory_order_relaxed); }
+    uint64_t flip_output_transferred() const { return flip_output_transferred_.load(std::memory_order_relaxed); }
     uint64_t flip_session_clients_transferred() const {
         return flip_session_clients_transferred_.load(std::memory_order_relaxed);
     }
@@ -3908,6 +3910,8 @@ private:
     alignas(64) std::atomic<uint64_t> flip_session_clients_transferred_{0};
     std::atomic<uint64_t> flip_refused_s2_{0};
     std::atomic<uint64_t> flip_refused_close_{0};
+    std::atomic<uint64_t> flip_late_output_{0};
+    std::atomic<uint64_t> flip_output_transferred_{0};
 
 };
 

@@ -76,6 +76,9 @@ def trial(args, directory, engine, atomic, case, attempt):
         try:
             held = conn(4 if case in ('blocked', 'tls') else 1, True)
             control, probe, writer = conn(0), conn(0), conn(5)
+            observer = conn(0)
+            if args.arm == 'post':
+                assert 'flip_late_output' in s.stats(observer), 'POST binary lacks the liveness fix'
             if case == 'tls':
                 for _ in range(96):
                     c = stack.enter_context(contextlib.closing(tls.Conn('127.0.0.1', args.port+1,
@@ -88,13 +91,13 @@ def trial(args, directory, engine, atomic, case, attempt):
             control.raw(b''.join(encode('SET', f'flipfix7:ack:{i}', 'saved') for i in range(1000)))
             assert [control.read() for _ in range(1000)] == [b'OK'] * 1000
             result['acknowledged'] = 1000
-            target = (1, 7) if case in ('blocked', 'tls') else (7, 1)
+            target = (1, 7) if case in ('blocked', 'tls', 'late-move') else (7, 1)
             keys = []
             if case == 'blocked':
                 held.send('BLPOP', 'flipfix7:list', 0)
                 s.wait(lambda: s.stats(control, 'clients').get('blocked_clients') == 1,
                        'BLPOP never blocked')
-            elif case in ('late', 'signal', 'output'):
+            elif case in ('late', 'late-move', 'signal', 'output'):
                 keys = [(f'flipfix7:{i:04}:'.encode() + b'x' * 8192)[:8192] for i in range(1024)]
                 elements = [f'e{x}' for x in range(3000)]
                 for i in range(0, len(keys), 16):
@@ -112,6 +115,19 @@ def trial(args, directory, engine, atomic, case, attempt):
                     time.sleep(.05)
                 else:
                     time.sleep((.004, .008, .001, .016, .002, .032)[attempt % 6])
+            signal_watch = None
+            if case == 'signal' and args.arm == 'post':
+                def send_signal():
+                    until = time.monotonic() + 1
+                    while time.monotonic() < until and b.proc.poll() is None:
+                        report = observer.must('FLIP')
+                        status = dict(zip(report[::2], report[1::2]))
+                        if status.get(b'moving') == 1:
+                            result['signal_during_flip'] = True
+                            b.proc.send_signal(signal.SIGTERM)
+                            return
+                signal_watch = threading.Thread(target=send_signal, daemon=True)
+                signal_watch.start()
             start = time.monotonic()
             control.send('FLIP', *target)
             ft = thread_read(control, result, 'flip')
@@ -119,14 +135,21 @@ def trial(args, directory, engine, atomic, case, attempt):
             probe.send('PING')
             pt = thread_read(probe, result, 'ping')
             ft.join(1)
-            if ft.is_alive():
+            if ft.is_alive() and b.proc.poll() is None:
                 diag = snapshot(b, args, directory)
                 result['stage'] = diag['stage']
                 result['clauses'] = [{k: c[k] for k in ('io', 'id_', 'send_inflight_',
                     'barrier_owners_', 'connection_flags_', 'tls_slot_', 'obuf_bytes_')}
                     for c in diag['clients'] if c['obuf_bytes_'] or c['connection_flags_'] & 128
                     or c['tls_slot_'] != 4294967295]
-            if case == 'signal':
+            if signal_watch:
+                signal_watch.join(2)
+                if result.get('signal_during_flip'):
+                    result['signal_exit'] = b.wait_exit(12)
+                    result['saved'] = (directory / 'dump.tomo').exists()
+                else:
+                    result['unarmed'] = True
+            if case == 'signal' and args.arm == 'pre':
                 # PRE must have crossed commit; never count a precommit refusal as IO5.1.
                 if 'ClientInstall' not in result.get('stage', ''):
                     result['unarmed'] = True
@@ -138,6 +161,14 @@ def trial(args, directory, engine, atomic, case, attempt):
                 ft.join(6)
                 if ft.is_alive():
                     result['wedge'] = True
+                if args.arm == 'post' and not ft.is_alive():
+                    counters = s.stats(observer)
+                    result['counters'] = {k: v for k, v in counters.items() if k.startswith('flip_')}
+                    if case in ('late', 'late-move'):
+                        result['unarmed'] = not (counters.get('flip_late_output', 0) +
+                                                 counters.get('flip_output_transferred', 0))
+                        if case == 'late-move':
+                            result['unarmed'] = not counters.get('flip_output_transferred', 0)
                 # Release the blocker and verify EVERY payload, not just the FLIP reply.
                 if keys:
                     held.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 << 20)
@@ -198,7 +229,7 @@ def main():
     for engine in args.engines.split(','):
         for atomic in map(int, args.atomics.split(',')):
             for case in args.cases.split(','):
-                for attempt in range(48 if case in ('late','signal') else 1):
+                for attempt in range(48 if case in ('late','late-move','signal') else 1):
                     directory = args.output / f'{engine}-a{atomic}-d{args.databases}-r{args.read_local}-{case}-{attempt}'
                     try:
                         row = trial(args, directory, engine, atomic, case, attempt)
@@ -215,7 +246,15 @@ def main():
                         assert row.get('flip_seconds', 99) >= 1, row
                         assert 'stage' in row and row['clauses'], row
                     else:
-                        assert row['flip_seconds'] < 1 and row['ping_seconds'] < 1, row
+                        if case != 'signal':
+                            assert row['flip_seconds'] < 1 and row['ping_seconds'] < 1, row
+                        if row.get('unarmed'):
+                            continue
+                        if case == 'signal':
+                            assert row['signal_exit'] == dict(rc=0, forced=False), row
+                            assert row['saved'] and row['reloaded_acknowledged'] == 1000, row
+                        else:
+                            assert row['flip_seconds'] < 1 and row['ping_seconds'] < 1, row
                     rows.append(row)
                     break
                 else:

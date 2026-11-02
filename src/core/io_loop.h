@@ -331,6 +331,8 @@ public:
             return false;
         }
         const auto protocol_idle = [&] {
+            if (hold_for_commit && flip_output_held(client))
+                return client->flip_held_output_idle();
             return hold_for_commit ? client->flip_migration_protocol_idle()
                                    : client->migration_protocol_idle();
         };
@@ -1653,6 +1655,7 @@ private:
         // among source touches. A failed transport push after the capacity check is an invariant
         // failure: attempting rollback would make ownership ambiguous.
         const uint64_t client_id = client->id();
+        if (flip_transfer) flip_output_detach(client);
         self_->release_wb_slot(client->wb_slot());
         // Destination epoll readiness may arrive as soon as the owner store publishes. This
         // sentinel keeps those events inert until the pre-reserved client/catalog/WB install.
@@ -1741,6 +1744,7 @@ private:
                 std::abort();
             }
             client->set_wb_slot(self_->assign_wb_slot(client));
+            flip_output_adopt(client);
             // Epoll's actual registration was installed during reversible preflight. io_uring
             // needs no registration; arm_recv below retries harmless SQ starvation.
             mark_active(client);
@@ -1750,6 +1754,16 @@ private:
                         : self_->drain_client_transfers(take);
     }
 
+    bool flip_output_hold();
+    void flip_output_prepare();
+    void flip_output_unhold(Client* client);
+    bool flip_output_plan();
+    void flip_output_release();
+    void flip_output_adopt(Client* client);
+    void flip_output_detach(Client* client);
+    bool flip_output_held(const Client* client) const;
+    void flip_output_observe();
+    bool flip_post_drain() const;
     bool flip_session_drain_refused() const;
     bool flip_session_close_held();
     bool closing_client_ready(Client* client);
@@ -1779,10 +1793,13 @@ private:
             const bool coordinator_op = self_->id() == srv_->flip_coordinator() &&
                 client == flip_client_ && flip_epoch_local_ == srv_->flip_epoch();
             if (coordinator_op) {
-                if (client->rob().in_flight() != 1 || client->send_inflight() ||
-                    client->serve_pending() || !client->nothing_to_write() ||
+                if (client->rob().in_flight() != 1 ||
+                    (!flip_post_drain() && (client->send_inflight() ||
+                     client->serve_pending() || !client->nothing_to_write())) ||
                     !wb_.migration_ready(*client)) return false;
-            } else if (!client->flip_drain_idle() || !wb_.migration_ready(*client)) {
+            } else if (!(flip_post_drain() ? client->flip_execution_idle()
+                                          : client->flip_drain_idle()) ||
+                       !wb_.migration_ready(*client)) {
                 return false;
             }
         }
@@ -1822,6 +1839,7 @@ private:
                                            srv_->flip_client_destination(self_->id(), ordinal),
                                            !converting_to_ex);
             srv_->flip_forget_planned_client(self_->id(), ordinal);
+            flip_output_unhold(client);
             flip_dropped_local_++;
         }
     }
@@ -2180,6 +2198,7 @@ private:
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
         fliplisten_resume();
+        flip_output_prepare();
         // A pinned close may have refused this epoch earlier in this IO pass.
         // Do not drop/unpin it in ClientPrepare before rollback retires the FLIP.
         if (stage < FlipStage::ClientCommit) {
@@ -2197,7 +2216,7 @@ private:
             flip_close_pin_ = false;
             fliplisten_quiesce();
             if (!flip_session_drain_refused() && accepts_quiesced() &&
-                flip_io_drained() && flip_io_drain_ordered()) {
+                flip_io_drained() && flip_io_drain_ordered() && flip_output_hold()) {
                 // From this acknowledgement the plan reads this IO's client vector: hold every
                 // close before it leaves ThreadCtx::clients until the FLIP retires (a converting
                 // IO releases the pin once its ClientPrepare is decided).
@@ -2206,6 +2225,8 @@ private:
             }
         } else if (stage == FlipStage::IoPrepare &&
                    flip_owed(stage)) {
+            if (!flip_output_plan())
+                srv_->flip_note_failure("ERR FLIP could not reserve socket-output handover");
             if (!fliplisten_prepare())
                 srv_->flip_note_failure("ERR FLIP could not register destination listeners");
             if (!prepare_client_transfer_capacity(srv_->flip_incoming_clients(self_->id())))
@@ -2287,19 +2308,23 @@ private:
             fliplisten_install();
             if (srv_->flip_source_clients(self_->id()))
                 commit_prepared_client_transfers_impl<kEp>();
+            // Ownership is already published: discard source pointers without dereferencing.
+            flip_held_output_.clear();
             srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::ClientInstall &&
                    flip_owed(stage)) {
             const bool converting_to_ex =
                 srv_->flip_candidate_target(self_->id()) == Role::Ex;
-            // EX is frozen now, so this second full IO drain is the transit barrier for notify,
+            // EX is frozen now, so this execution/transit drain fences notify,
             // pub/sub, tracking, and client-scatter messages which were posted just after a peer's
             // earlier IoDrain acknowledgement. The global event count prevents every consumer
             // from acknowledging while a payload is still between queues. Listener accepts stay
             // cancelled until the final quota check and retained-descriptor admission barrier.
             if (flip_io_drained() && self_->client_transfers_quiesced() &&
-                (!converting_to_ex || accepts_quiesced()))
+                (!converting_to_ex || accepts_quiesced())) {
+                flip_output_observe();
                 srv_->flip_ack(self_->id(), stage);
+            }
         } else if (stage == FlipStage::RoleReady &&
                    flip_owed(stage)) {
             refresh_save_cron_writer();
@@ -2318,6 +2343,7 @@ private:
             fliplisten_quiesce();
             if (client_transfers_prepared() && accepts_quiesced()) {
                 cancel_prepared_client_transfers_impl<kEp>();
+                flip_output_release();
                 if (converting_to_ex && !restore_accepts_after_rollback()) return 1;
                 srv_->flip_ack(self_->id(), stage);
             }
@@ -5431,6 +5457,9 @@ public:
     // Cold config cache at the tail: established IO members retain their offsets.
     uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;
     IdleBuffers idle_buffers_;
+    // A cold deferred-serve queue. serve_pending is its existing lifetime and
+    // deduplication pin, so ordinary command/send paths acquire no new branch.
+    std::vector<Client*> flip_held_output_;
 };
 
 }  // namespace tomo
