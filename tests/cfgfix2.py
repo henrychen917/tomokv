@@ -22,7 +22,7 @@ import _netfix as n
 
 
 class Server:
-    def __init__(self, a, label, mode, engine, *, config=None, extra=(), directory=None):
+    def __init__(self, a, label, mode, engine, *, config=None, extra=(), directory=None, shards=16):
         self.a, self.label = a, label
         self.directory = (directory or a.output / label).resolve()
         self.directory.mkdir(parents=True, exist_ok=True)
@@ -33,7 +33,7 @@ class Server:
         cmd += ['--bind', '127.0.0.1', '--port', str(a.port), '--save', '',
                 '--appendonly', 'no', '--dir', str(self.directory)]
         if mode != 'redis':
-            cmd += ['--thread-mode', mode, '--shards', '16', '--net-io', engine]
+            cmd += ['--thread-mode', mode, '--shards', str(shards), '--net-io', engine]
             if mode == '2s':
                 cmd += ['--ratio', a.ratio]
         cmd += list(extra)
@@ -209,65 +209,100 @@ def acl_case(a, mode, engine):
 
 
 def latency_case(a, mode, engine):
+    """SV5.1: INFO LATENCYSTATS must copy one complete percentile list.
+
+    One writer alternates 512 copies of p10 with 512 copies of p90 while four
+    independent readers poll INFO. Any other label list, or a reply that is not
+    ASCII text, is a torn read. 1s keeps the gate's 16 shards. 2s uses two
+    shards at the gate ratio: with 16 shards the second executor's locked
+    validation of its own CONFIG fragments masks the unlocked shard-0 rebuild
+    on PRE, so that geometry cannot discriminate.
+    """
     results = []
+    count, minimum_writes, minimum_seconds = 512, 1600, 2.0
     for databases in (1, 16):
         label = f'latency-{mode}-{engine}-db{databases}'
         extra = ['--latency-tracking', 'yes', '--databases', str(databases)]
         if mode != 'redis' and databases == 16:
             extra += ['--read-local', '1', '--atomic', '1', '--reorder', '1']
-        result = dict(databases=databases, writes=0, reads=0, mixed=[], errors=[])
-        with Server(a, label, mode, engine, extra=extra):
-            count = 512
+        shards = 2 if mode == '2s' else 16
+        result = dict(databases=databases, shards=None if mode == 'redis' else shards,
+                      writes=0, reads=0, torn=0, corrupt=0, first=None, errors=[])
+        with Server(a, label, mode, engine, extra=extra, shards=shards):
             values = [' '.join([value] * count) for value in ('10', '90')]
             with closing(n.connect(a.port)) as c:
                 c.must('CONFIG', 'SET', 'latency-tracking-info-percentiles', values[0])
                 c.must('PING')
-            # Four independently connected readers avoid a request/reply pair
-            # settling into a phase that always misses the short publication.
+                if mode != 'redis':
+                    shown = dict(zip(*[iter(c.must('CONFIG', 'GET', 'thread-mode', 'net-io',
+                                                   'databases', 'read-local'))] * 2))
+                    assert shown == {b'thread-mode': mode.encode(), b'net-io': engine.encode(),
+                                     b'databases': str(databases).encode(),
+                                     b'read-local': b'1' if databases == 16 else b'0'}, shown
             stop, ready = threading.Event(), threading.Barrier(5)
+            lock = threading.Lock()
+
             def write():
                 try:
                     with closing(n.connect(a.port)) as c:
-                        ready.wait(5)
-                        for i in range(3200):
-                            if stop.is_set():
-                                break
+                        ready.wait(10)
+                        began = time.monotonic()
+                        i = 0
+                        while i < minimum_writes or time.monotonic() - began < minimum_seconds:
+                            i += 1
                             c.must('CONFIG', 'SET', 'latency-tracking-info-percentiles', values[i % 2])
-                            result['writes'] += 1
+                            result['writes'] = i
+                            if time.monotonic() - began > 60:
+                                break
                 except BaseException as e:
-                    result['errors'].append(repr(e))
+                    with lock:
+                        result['errors'].append('writer: ' + type(e).__name__ + ': ' + str(e)[:200])
                 finally:
                     stop.set()
+
             def read():
                 try:
                     with closing(n.connect(a.port)) as c:
-                        ready.wait(5)
-                        deadline = time.monotonic() + 45
-                        while not stop.is_set() and time.monotonic() < deadline:
-                            text = c.must('INFO', 'latencystats').decode()
-                            rows = dict(line.split(':', 1) for line in text.splitlines() if ':' in line)
-                            row = rows.get('latency_percentiles_usec_ping')
-                            assert row is not None, text
-                            labels = [part.split('=')[0] for part in row.split(',') if part]
-                            result['reads'] += 1
-                            if labels not in [['p10'] * count, ['p90'] * count]:
-                                result['mixed'].append(labels)
-                                break
+                        ready.wait(10)
+                        while not stop.is_set():
+                            raw = c.must('INFO', 'latencystats')
+                            labels = None
+                            try:
+                                text = raw.decode('ascii')
+                                rows = dict(line.split(':', 1) for line in text.splitlines() if ':' in line)
+                                row = rows.get('latency_percentiles_usec_ping', '')
+                                labels = [part.split('=')[0] for part in row.split(',') if part]
+                            except UnicodeDecodeError:
+                                pass
+                            with lock:
+                                result['reads'] += 1
+                                if labels is None:
+                                    result['corrupt'] += 1
+                                if labels not in (['p10'] * count, ['p90'] * count):
+                                    result['torn'] += 1
+                                    if result['first'] is None:
+                                        result['first'] = dict(
+                                            labels=-1 if labels is None else len(labels),
+                                            after_writes=result['writes'], read=result['reads'])
                 except BaseException as e:
-                    result['errors'].append(repr(e))
-                finally:
-                    stop.set()
+                    with lock:
+                        result['errors'].append('reader: ' + type(e).__name__ + ': ' + str(e)[:200])
+
             workers = [threading.Thread(target=write)] + [threading.Thread(target=read) for _ in range(4)]
             for worker in workers:
                 worker.start()
             for worker in workers:
-                worker.join(60)
+                worker.join(90)
             assert not any(worker.is_alive() for worker in workers), result
+            with closing(n.connect(a.port)) as c:
+                assert c.must('PING') == b'PONG'
         results.append(result)
     (a.output / f'latency-{mode}-{engine}-observations.json').write_text(json.dumps(results, indent=2))
-    assert all(r['reads'] > 0 and r['writes'] > 0 and not r['errors'] and not r['mixed']
-               for r in results), results
-    return results
+    # Non-vacuous: every leg completed its writes with concurrent readers.
+    assert all(r['writes'] >= minimum_writes and r['reads'] >= 400 and not r['errors'] and
+               not r['torn'] and not r['corrupt'] for r in results), results
+    return [dict(databases=r['databases'], shards=r['shards'], writes=r['writes'], reads=r['reads'])
+            for r in results]
 
 
 def main():
