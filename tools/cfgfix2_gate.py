@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Run selected tests/gate.sh jobs for lane cfgfix2 and archive the partial receipt.
 
-Correctness only: CPUs 32-47 (server 32-39, load 40-47), ports 21800-21899, LC_ALL=C.
+Correctness only: CPUs 32-47 (pool a: server 32-39, load 40-47, ports 21800-21849;
+pool b mirrors it on ports 21850-21899), LC_ALL=C.
 No rate scoring, ABBA, NIC or full tier. Usage:
   tools/cfgfix2_gate.py PHASE --binary PATH [--engine uring|epoll] JOB...
 The receipt lands in docs/cfgfix2/receipts/PHASE.json; the job outputs named by
@@ -30,6 +31,9 @@ def main():
     p.add_argument('phase')
     p.add_argument('jobs', nargs='+')
     p.add_argument('--binary', required=True)
+    p.add_argument('--tier', default='quick', choices=['quick', 'full'])
+    p.add_argument('--pool', default='a', choices=['a', 'b'],
+                   help='a: server 32-39, load 40-47, ports 21800-21849; b: the mirror, 21850-21899')
     p.add_argument('--engine', choices=['uring', 'epoll'])
     p.add_argument('--keep', action='append', default=[],
                    help='job output file glob to archive (relative to the job directory)')
@@ -48,8 +52,10 @@ def main():
     for item in a.env:
         name, value = item.split('=', 1)
         env[name] = value
-    command = ['taskset', '-c', '32-47', 'tests/gate.sh', 'quick', '--server-cores', '32-39',
-               '--load-cores', '40-47', '--load-smt', '', '--ports', '21800-21899',
+    server, load, ports = (('32-39', '40-47', '21800-21849') if a.pool == 'a' else
+                           ('40-47', '32-39', '21850-21899'))
+    command = ['taskset', '-c', '32-47', 'tests/gate.sh', a.tier, '--server-cores', server,
+               '--load-cores', load, '--load-smt', '', '--ports', ports,
                '--candidate-binary', str(binary)]
     before = sha(binary)
     log = logdir / (a.phase + '.log')
