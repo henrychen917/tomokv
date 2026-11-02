@@ -3522,6 +3522,301 @@
       }
     },
     {
+      "phase": "differ-uring",
+      "command": [
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "40-47",
+        "--load-cores",
+        "32-39",
+        "--load-smt",
+        "",
+        "--ports",
+        "20150-20199"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+        "GATE_DIFFER_NET_IO": "uring"
+      },
+      "binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+      "log": "build/cfgfix/parallel-differ-uring.log",
+      "started": 1793591901.0316806,
+      "note": "Independent correctness jobs on two eight-core server pools; no rate scoring.",
+      "returncode": 0,
+      "finished": 1793594114.999627,
+      "log_sha256": "bd27a33e7c57c932f4f58e56e9b3a7b9fd74b5a7188e24d22fd3319a77d640ff",
+      "run": "build/gate-run.rS3alY",
+      "jobs": [
+        {
+          "job": "differ-armed-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+            }
+          ],
+          "ledger_sha256": "fa7647a268a2b7a36ced7ca6dc1baf0579b7399b17253eea6bc802609702a99e",
+          "output_sha256": "8a37fbac252c8779192e1fdd33c242b41c1f84ed2c2884131337904b4a63163a",
+          "differ_completion": {
+            "schema": 1,
+            "part": "armed-0",
+            "run": "full:gate-run.rS3alY",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 230,
+            "complete": true
+          },
+          "differ_completion_sha256": "e5da70e8b40abf84ae6b50ed6db35fdf69a785618b85fffb20a41747f7cc7ce7",
+          "differ_leg_count": 230,
+          "differ_legs_sha256": "4bb5432e6e8563356f275c9dc0fa1f5b13b03becdb8b0fec730576fef746fdf3"
+        },
+        {
+          "job": "differ-armed-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+            }
+          ],
+          "ledger_sha256": "cbb9d275d21b6d62f9f8e2fa3026e2fe397c05d13466ce33a0b5330e74006896",
+          "output_sha256": "85f9a8f99bb53cd7d2f801349abc477c8dcbc3e899f20c612d19f7194c5d37e9",
+          "differ_completion": {
+            "schema": 1,
+            "part": "armed-1",
+            "run": "full:gate-run.rS3alY",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 234,
+            "complete": true
+          },
+          "differ_completion_sha256": "0bd3a35c9734246bed06c12f5ee4be921dd6fa2dbe430bc786e36b7f35e529d5",
+          "differ_leg_count": 234,
+          "differ_legs_sha256": "f8e85a95d6d61b8510e6f56199f2391c40246b3e6e7c5132365cbf1337ccf3f7"
+        },
+        {
+          "job": "differ-equivalence",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "mode equivalence part (all execution modes and knobs)"
+            }
+          ],
+          "ledger_sha256": "7998b935c76521c4e43d852317f4b8b801724f9477f587e47f42ae76e13edecb",
+          "output_sha256": "de9aaca95c7ebbf729b700826e90bdab0c3dc6cad34a782059c8865af3027687",
+          "differ_completion": {
+            "schema": 1,
+            "part": "equivalence",
+            "run": "full:gate-run.rS3alY",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 16,
+            "complete": true
+          },
+          "differ_completion_sha256": "adf6da0f3257550f765621af06b11f581ce4854e713241b67df019cd10177717",
+          "differ_leg_count": 0,
+          "differ_legs_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "job": "differ-split-0",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (split, atomic 0)"
+            }
+          ],
+          "ledger_sha256": "659ee09f94c01a45cfa8479d77da88c2c1b21caf3a1caad51bbbc36ec58a2bcb",
+          "output_sha256": "0c4fae287ca1c02a60fc0cd6558250b1f4fdc1c0cf75bc5e5b61484e3166a2be",
+          "differ_completion": {
+            "schema": 1,
+            "part": "split-0",
+            "run": "full:gate-run.rS3alY",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 235,
+            "complete": true
+          },
+          "differ_completion_sha256": "d78530009d2c55b8378682463a0aa798e965850fe922c1cf64e5983c17842cd9",
+          "differ_leg_count": 235,
+          "differ_legs_sha256": "b5ce8c6ca9645fe7f88a2b90a6824c29c2827fc056fa45ab07a16f5aec06907e"
+        },
+        {
+          "job": "differ-split-1",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 differential part (split, atomic 1)"
+            }
+          ],
+          "ledger_sha256": "47e4b22fcb6d7c24655fb27f8b2505e839d58951c2a48a42ed060b74cb7e69fe",
+          "output_sha256": "d77c13690eb53d3bb8e2cd7594b436d8191b4fb533838c23dfcbc69c80c9a9c2",
+          "differ_completion": {
+            "schema": 1,
+            "part": "split-1",
+            "run": "full:gate-run.rS3alY",
+            "seeds": [
+              7,
+              19,
+              20,
+              23,
+              21
+            ],
+            "comparisons": 239,
+            "complete": true
+          },
+          "differ_completion_sha256": "4acf859956db4e33dd4cdf432ded25463df302a833713d77bb8e828cfbc23d08",
+          "differ_leg_count": 239,
+          "differ_legs_sha256": "ac18c8e763424edcf3623a089c73796c1d01f07828f95e5e3612fa0b02579655"
+        },
+        {
+          "job": "release",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "release build (+footprint locks)"
+            }
+          ],
+          "ledger_sha256": "bd0492a9e284e7d3b6f8b74ab489c7a63c36601da9c659934e747cd62aa02d4f",
+          "output_sha256": "5a148f30bdfedaacb37136535336c4450e95898a38c9d9fdc33ec355fae184c5"
+        }
+      ],
+      "private_job_row_totals": {
+        "ok": 6
+      },
+      "differ_plan": {
+        "schema": 1,
+        "manifest": {
+          "run": "full:gate-run.rS3alY",
+          "permanent": [
+            7,
+            19,
+            20,
+            23
+          ],
+          "failed": [],
+          "rotating": 21,
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21
+          ],
+          "history": "/home/user/Projects/cx-cfgfix/.gate-history/differ"
+        },
+        "suites": [
+          "string",
+          "list",
+          "set",
+          "zset",
+          "hash",
+          "hexpire",
+          "edgetime",
+          "xshard",
+          "xmove",
+          "bitmap",
+          "hll",
+          "bitfield",
+          "cgaps",
+          "stream",
+          "script",
+          "streamgrp",
+          "zsetops",
+          "geo",
+          "doubles",
+          "scan",
+          "multi",
+          "encodingfix",
+          "edgeenc",
+          "edgeproto",
+          "cmdgap",
+          "cmdgap2",
+          "sort",
+          "servertail",
+          "arity",
+          "storeorder",
+          "infofix",
+          "multidb",
+          "blocking",
+          "pubsub",
+          "fanout",
+          "spubsub",
+          "notify",
+          "wiredump",
+          "climon",
+          "compatintro",
+          "aclsel",
+          "aclkeys",
+          "cmdmeta",
+          "s6fix",
+          "ccfix",
+          "psfix",
+          "monitor"
+        ],
+        "repeats": 4,
+        "equivalence_seeds": [
+          21
+        ]
+      },
+      "differ_plan_sha256": "ef8057a243ebd0a960c0517b49b955f5eca6448980384fe48424ee83702c7038",
+      "differ_inventory_checks": {
+        "split": {
+          "schema": 1,
+          "group": "split",
+          "parts": [
+            "split-0",
+            "split-1",
+            "equivalence"
+          ],
+          "start": 1793591901.942937,
+          "end": 1793594114.5295088,
+          "seconds": 2212.586571931839,
+          "comparisons": 490,
+          "complete": true
+        },
+        "armed": {
+          "schema": 1,
+          "group": "armed",
+          "parts": [
+            "armed-0",
+            "armed-1"
+          ],
+          "start": 1793593023.291597,
+          "end": 1793594092.3919306,
+          "seconds": 1069.1003336906433,
+          "comparisons": 464,
+          "complete": true
+        }
+      },
+      "differ_inventory_note": "Read-only gate fold validates all planned legs and equivalence replies; this is not a full-tier timeout or receipt claim."
+    },
+    {
       "phase": "tls-collision-fixed",
       "command": [
         "tests/gate.sh",
