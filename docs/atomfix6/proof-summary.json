@@ -576,6 +576,24 @@
     ]
   },
   {
+    "label": "notify-fused",
+    "rc": 0,
+    "passed": 7,
+    "failed": 0,
+    "failures": [],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.oQgByl",
+    "jobs": [
+      {
+        "name": "notify",
+        "completion": "0\t6\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      }
+    ]
+  },
+  {
     "label": "persistence-uring-default",
     "rc": 0,
     "passed": 228,
@@ -740,6 +758,298 @@
       {
         "name": "snapshot-uring",
         "completion": "0\t16\t0"
+      },
+      {
+        "name": "zc",
+        "completion": "0\t4\t0"
+      }
+    ]
+  },
+  {
+    "label": "placement-uring-default",
+    "rc": 1,
+    "passed": 132,
+    "failed": 1,
+    "failures": [
+      "FLIP MULTI WATCH session storm (all legs)"
+    ],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.NxIi6s",
+    "jobs": [
+      {
+        "name": "asan",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "bplus",
+        "completion": "0\t8\t0"
+      },
+      {
+        "name": "compat3",
+        "completion": "0\t6\t0"
+      },
+      {
+        "name": "evict-lfu-armed-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "evict-lfu-armed-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "evict-lfu-split-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "evict-lfu-split-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "evict-lruclock-armed-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "evict-lruclock-armed-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "evict-lruclock-split-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "evict-lruclock-split-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "exbatch_live",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-0-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-0-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-0-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-0-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-1-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-1-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-1-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-0-1-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-0-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-0-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-0-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-0-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-1-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-1-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-1-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-1s-1-1-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-0-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-0-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-0-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-0-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-1-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-1-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-1-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-0-1-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-0-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-0-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-0-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-0-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-1-0-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-1-0-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-1-1-0",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-2s-1-1-1-1",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-fused-home-max-nopin",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-split-home-min",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-cell-split-shards-auto",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "flip",
+        "completion": "0\t9\t0"
+      },
+      {
+        "name": "flipctl",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "flipfix5",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "flipfix6",
+        "completion": "0\t0\t1"
+      },
+      {
+        "name": "fliplisten",
+        "completion": "0\t4\t0"
+      },
+      {
+        "name": "hexpread",
+        "completion": "0\t8\t0"
+      },
+      {
+        "name": "lb-stationary-1s",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "lb-stationary-2s",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "notify",
+        "completion": "0\t6\t0"
+      },
+      {
+        "name": "production_units",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "readonly",
+        "completion": "0\t4\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "reorder_engagement",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "reorder_sync",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "replyoff",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "rlcache",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "rldbg",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "rlfix3_info",
+        "completion": "0\t8\t0"
+      },
+      {
+        "name": "rlfix3_zc",
+        "completion": "0\t8\t0"
+      },
+      {
+        "name": "rob_portable",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "slotless",
+        "completion": "0\t4\t0"
+      },
+      {
+        "name": "wb_mixed",
+        "completion": "0\t4\t0"
       },
       {
         "name": "zc",

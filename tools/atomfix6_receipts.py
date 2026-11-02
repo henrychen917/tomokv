@@ -40,6 +40,29 @@ for folder in sorted((DOC / 'proof').iterdir()):
             if job.name == 'wave14_order':
                 for source, name in [('proof/results.json', 'results.json'), ('proof.log', 'proof.log')]:
                     if (job / source).exists(): shutil.copyfile(job / source, dest / name)
+            if job.name == 'flipfix6':
+                for source in job.glob('*.log'):
+                    shutil.copyfile(source, dest / source.name)
+                legs = []
+                for source in sorted(job.glob('*/results.json')):
+                    for row in json.loads(source.read_text()):
+                        result = row.get('result', {})
+                        compact = dict(suite=source.parent.name, leg=row.get('leg'),
+                            passed=row.get('pass', False), error=row.get('error'))
+                        if isinstance(result, list): compact['semantics'] = result
+                        elif result:
+                            flips = result.get('flips', [])
+                            workers = result.get('workers', [])
+                            compact.update(flips=len(flips),
+                                flip_max=max((r['seconds'] for r in flips), default=0),
+                                successful_flips=sum(r['reply'] == 'OK' for r in flips),
+                                workers=len(workers), io_before=sorted({r['io_before'] for r in workers}),
+                                worker_max_gap=max((r['max_gap'] for r in workers), default=0),
+                                **{k: result.get(k) for k in ('ping_max', 'sessions_moved',
+                                    'clients_moved', 'flip_refused_s2', 'flip_refused_close', 'errors')})
+                        if 'value' in row: compact['value'] = row['value']
+                        legs.append(compact)
+                if legs: save(folder / 'flip-results.json', legs)
             if job.name == 'atomfix6_units':
                 parked = []
                 for source in sorted(job.glob('*.log')):

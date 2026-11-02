@@ -1,0 +1,16 @@
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (1s)
+  hexpread torn (1s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (1s)
+  hexpread replies (1s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (1s)
+  hexpread deferred (1s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (1s)
+  hexpread OBJECT expiry (1s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (2s)
+  hexpread torn (2s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (2s)
+  hexpread replies (2s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (2s)
+  hexpread deferred (2s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (2s)
+  hexpread OBJECT expiry (2s)                          ok

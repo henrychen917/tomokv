@@ -1,0 +1,18 @@
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok

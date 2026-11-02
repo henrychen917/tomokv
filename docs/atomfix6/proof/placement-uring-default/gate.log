@@ -1,0 +1,271 @@
+GATE(full): 13 physical cores; 1 correctness slots = min(8/8 server, 5/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 5 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-atomfix6/build/gate-run.NxIi6s
+PARTIAL jobs (including prerequisites): release asan rldbg production_units evict-lruclock-split-0 evict-lruclock-armed-0 evict-lruclock-split-1 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-armed-0 evict-lfu-split-1 evict-lfu-armed-1 flipctl rob_portable slotless wb_mixed lb-stationary-1s lb-stationary-2s reorder_sync reorder_engagement exbatch_live readonly hexpread compat3 bplus rlfix3_zc rlfix3_info notify flip fliplisten flipfix5 flipfix6 replyoff zc rlcache feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto
+PARTIAL jobs (including prerequisites): release asan rldbg production_units evict-lruclock-split-0 evict-lruclock-armed-0 evict-lruclock-split-1 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-armed-0 evict-lfu-split-1 evict-lfu-armed-1 flipctl rob_portable slotless wb_mixed lb-stationary-1s lb-stationary-2s reorder_sync reorder_engagement exbatch_live readonly hexpread compat3 bplus rlfix3_zc rlfix3_info notify flip fliplisten flipfix5 flipfix6 replyoff zc rlcache feature-cell-1s-0-0-0-0 feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-0 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-0 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-0 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-0 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-0 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-0 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-0 feature-cell-1s-1-1-1-1 feature-cell-2s-0-0-0-0 feature-cell-2s-0-0-0-1 feature-cell-2s-0-0-1-0 feature-cell-2s-0-0-1-1 feature-cell-2s-0-1-0-0 feature-cell-2s-0-1-0-1 feature-cell-2s-0-1-1-0 feature-cell-2s-0-1-1-1 feature-cell-2s-1-0-0-0 feature-cell-2s-1-0-0-1 feature-cell-2s-1-0-1-0 feature-cell-2s-1-0-1-1 feature-cell-2s-1-1-0-0 feature-cell-2s-1-1-0-1 feature-cell-2s-1-1-1-0 feature-cell-2s-1-1-1-1 feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=47.735s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); ASAN build
+  ASAN build                                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local ownership-invariant build
+  read-local ownership-invariant build                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 0)
+  eviction lruclock battery (split, atomic 0)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 0)
+  eviction lruclock battery (fused+armed, atomic 0)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 1)
+  eviction lruclock battery (split, atomic 1)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 1)
+  eviction lruclock battery (fused+armed, atomic 1)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 0)
+  eviction lfu battery (split, atomic 0)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 0)
+  eviction lfu battery (fused+armed, atomic 0)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 1)
+  eviction lfu battery (split, atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 1)
+  eviction lfu battery (fused+armed, atomic 1)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+  row budget: 900s; median=-s; no-history-conservative-default; ROB portable completion without BMI
+  ROB portable completion without BMI                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (1s, epoll)
+  slotless remote completions (1s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (1s, uring)
+  slotless remote completions (1s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (2s, epoll)
+  slotless remote completions (2s, epoll)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; slotless remote completions (2s, uring)
+  slotless remote completions (2s, uring)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (1s, epoll)
+  writeback mixed replies and live knob bounds (1s, epoll) ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (1s, uring)
+  writeback mixed replies and live knob bounds (1s, uring) ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (2s, epoll)
+  writeback mixed replies and live knob bounds (2s, epoll) ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback mixed replies and live knob bounds (2s, uring)
+  writeback mixed replies and live knob bounds (2s, uring) ok
+  row budget: 900s; median=-s; no-history-conservative-default; stationary balanced LB holds still (1s)
+  stationary balanced LB holds still (1s)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; stationary balanced LB holds still (2s)
+  stationary balanced LB holds still (2s)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 generated envelope parity
+  R7 generated envelope parity                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 production engagement (both database runtimes)
+  R7 production engagement (both database runtimes)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication and WATCH lifecycle (1s)
+  exbatch publication and WATCH lifecycle (1s)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; exbatch publication and WATCH lifecycle (2s)
+  exbatch publication and WATCH lifecycle (2s)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=0
+  read-only resize split read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=1
+  read-only resize split read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=0
+  read-only resize fused read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=1
+  read-only resize fused read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (1s)
+  hexpread torn (1s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (1s)
+  hexpread replies (1s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (1s)
+  hexpread deferred (1s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (1s)
+  hexpread OBJECT expiry (1s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread torn (2s)
+  hexpread torn (2s)                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread replies (2s)
+  hexpread replies (2s)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread deferred (2s)
+  hexpread deferred (2s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; hexpread OBJECT expiry (2s)
+  hexpread OBJECT expiry (2s)                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.12 pubsub vs Redis 7.4
+  compat3 CC4.12 pubsub vs Redis 7.4                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.13 pending vs Redis 7.4
+  compat3 CC4.13 pending vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.14 history vs Redis 7.4
+  compat3 CC4.14 history vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.16 grammar vs Redis 7.4
+  compat3 CC4.16 grammar vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.5 glob vs Redis 7.4
+  compat3 CC4.5 glob vs Redis 7.4                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.17 flags vs Redis 7.4
+  compat3 CC4.17 flags vs Redis 7.4                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; B+ held-group GET/MGET filter battery
+  B+ held-group GET/MGET filter battery                ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local lane admission battery
+  read-local lane admission battery                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local MGET fence battery (1s)
+  read-local MGET fence battery (1s)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local GET miss battery (1s)
+  read-local GET miss battery (1s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local one-key delete battery (1s)
+  read-local one-key delete battery (1s)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local MGET fence battery (2s)
+  read-local MGET fence battery (2s)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local GET miss battery (2s)
+  read-local GET miss battery (2s)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local one-key delete battery (2s)
+  read-local one-key delete battery (2s)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, epoll, read-local 0)
+  read-local borrow capability (1s, epoll, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, epoll, read-local 1)
+  read-local borrow capability (1s, epoll, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, uring, read-local 0)
+  read-local borrow capability (1s, uring, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (1s, uring, read-local 1)
+  read-local borrow capability (1s, uring, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, epoll, read-local 0)
+  read-local borrow capability (2s, epoll, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, epoll, read-local 1)
+  read-local borrow capability (2s, epoll, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, uring, read-local 0)
+  read-local borrow capability (2s, uring, read-local 0) ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local borrow capability (2s, uring, read-local 1)
+  read-local borrow capability (2s, uring, read-local 1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, epoll, read-local 0)
+  INFO selective collection (1s, epoll, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, epoll, read-local 1)
+  INFO selective collection (1s, epoll, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, uring, read-local 0)
+  INFO selective collection (1s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, uring, read-local 1)
+  INFO selective collection (1s, uring, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, epoll, read-local 0)
+  INFO selective collection (2s, epoll, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, epoll, read-local 1)
+  INFO selective collection (2s, epoll, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, uring, read-local 0)
+  INFO selective collection (2s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, uring, read-local 1)
+  INFO selective collection (2s, uring, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (io-ex, complete)
+  FLIP listener conservation (io-ex, complete)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (io-ex, rollback)
+  FLIP listener conservation (io-ex, rollback)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (ex-io, complete)
+  FLIP listener conservation (ex-io, complete)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (ex-io, rollback)
+  FLIP listener conservation (ex-io, rollback)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP stale stage storm (all legs)
+  FLIP stale stage storm (all legs)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP MULTI WATCH session storm (all legs)
+  FLIP MULTI WATCH session storm (all legs)            FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.NxIi6s/jobs/flipfix6/flipfix6*.log)
+  row budget: 900s; median=1.23s; correctness-plan-fallback; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0) ok
+  row budget: 900s; median=1.24s; correctness-plan-fallback; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1) ok
+  row budget: 900s; median=1.35s; correctness-plan-fallback; zc borrow battery
+  zc borrow battery                                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc fired (zc_sends=N)
+  zc fired (zc_sends=20)                               ok
+  row budget: 900s; median=1.4s; correctness-plan-fallback; zc borrow battery under ASAN
+  zc borrow battery under ASAN                         ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc ASAN clean
+  zc ASAN clean                                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed block-cache churn battery
+  armed block-cache churn battery                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local ownership invariants
+  read-local ownership invariants                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-0-0
+  feature 1s-0-0-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-0-1
+  feature 1s-0-0-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-1-0
+  feature 1s-0-0-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-1-1
+  feature 1s-0-0-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-0-0
+  feature 1s-0-1-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-0-1
+  feature 1s-0-1-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-1-0
+  feature 1s-0-1-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-1-1
+  feature 1s-0-1-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-0-0
+  feature 1s-1-0-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-0-1
+  feature 1s-1-0-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-1-0
+  feature 1s-1-0-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-1-1
+  feature 1s-1-0-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-0-0
+  feature 1s-1-1-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-0-1
+  feature 1s-1-1-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-1-0
+  feature 1s-1-1-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-1-1
+  feature 1s-1-1-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-0-0
+  feature 2s-0-0-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-0-1
+  feature 2s-0-0-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-1-0
+  feature 2s-0-0-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-1-1
+  feature 2s-0-0-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-0-0
+  feature 2s-0-1-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-0-1
+  feature 2s-0-1-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-1-0
+  feature 2s-0-1-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-1-1
+  feature 2s-0-1-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-0-0
+  feature 2s-1-0-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-0-1
+  feature 2s-1-0-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-1-0
+  feature 2s-1-0-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-1-1
+  feature 2s-1-0-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-0-0
+  feature 2s-1-1-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-0-1
+  feature 2s-1-1-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-1-0
+  feature 2s-1-1-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-1-1
+  feature 2s-1-1-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature split-home-min
+  feature split-home-min                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature fused-home-max-nopin
+  feature fused-home-max-nopin                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature split-shards-auto
+  feature split-shards-auto                            ok
+GATE(PARTIAL): 132 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/placement-uring-default/ledger.tsv.partial

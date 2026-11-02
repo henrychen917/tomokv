@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP MULTI WATCH session storm (all legs)
+  FLIP MULTI WATCH session storm (all legs)            FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.NxIi6s/jobs/flipfix6/flipfix6*.log)

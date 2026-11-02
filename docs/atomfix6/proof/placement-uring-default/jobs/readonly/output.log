@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=0
+  read-only resize split read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=1
+  read-only resize split read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=0
+  read-only resize fused read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=1
+  read-only resize fused read-local=1                  ok
