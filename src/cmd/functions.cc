@@ -299,10 +299,13 @@ private:
 
 FunctionRegistry g_functions;
 // Successful FUNCTION LOAD/DELETE/FLUSH/RESTORE commands, as Redis's server.dirty++. Each is
-// counted after its registry change: a snapshot reads the total before copying the registry,
-// so a counted change is always in that copy. Replay and snapshot loads are not changes.
-std::atomic<uint64_t> g_function_save_changes{0};
-void note_function_change() { g_function_save_changes.fetch_add(1, std::memory_order_relaxed); }
+// counted after its registry change: a snapshot reads its change cut before copying the
+// registry, so a counted change is always in that copy. Replay and snapshot loads are not
+// changes. Shard counters are atomic and only ever summed; shard 0 carries registry changes,
+// which keeps the inlined save-schedule arithmetic unchanged.
+void note_function_change() {
+    if (Server* server = command_server()) server->shard(0).note_save_change();
+}
 
 // A registry command that met the final shutdown cut. Wait without applying it: a successful
 // save stops the server, and the connection closes without an acknowledgement, as Redis never
@@ -1229,10 +1232,6 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
-
-uint64_t function_save_changes() {
-    return g_function_save_changes.load(std::memory_order_relaxed);
-}
 
 void function_final_cut(uint64_t epoch) { g_functions.final_cut(epoch); }
 
