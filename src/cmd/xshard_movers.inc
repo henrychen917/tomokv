@@ -27,6 +27,8 @@ ScatterTaskResult execute_plain_element_mover(const Task& task, Shard& shard, Op
     if (state.key_order[group.begin] == 1 &&
         state.direct_ready.load(std::memory_order_acquire) == 0)
         return ScatterTaskResult::Defer;
+    // CD5.4: hop one admitted a DENYOOM mover; neither half is refused for memory now.
+    MoverMemoryScope mover_memory(shard.store());
     MoverLiveRead live(shard.store(), state);
     for (uint32_t i = 0; i < group.count; ++i) {
         const uint32_t pos = state.key_order[group.begin + i];

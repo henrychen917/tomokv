@@ -13,13 +13,15 @@ wherever the expectation is Redis's own; same-shard, same-owner and cross-owner 
 placements, proved per boot with DEBUG SHARDS on the FINAL key names, and are ignored by Redis.
 
 oom        CD5.4. SMOVE, LMOVE, RPOPLPUSH, BLMOVE, BRPOPLPUSH, RENAME, RENAMENX (and MOVE with 16
-           databases) under noeviction and volatile-lru, with two triggers: `over` (maxmemory 1,
-           every shard over budget) and `edge` (maxmemory 1mb, the destination shard filled until
-           200/50/10/1-byte SETs are refused, the auditor's L-T3 shape). Redis 7.4: a DENYOOM mover
-           (LMOVE, RPOPLPUSH, BLMOVE, BRPOPLPUSH) is refused before it changes anything when the
-           server is over budget, SMOVE/RENAME/RENAMENX/MOVE have no DENYOOM and always run, and no
-           command applies only half of a move. `edge` may leave a TomoKV shard just under budget,
-           where a DENYOOM mover may run; it may never lose or duplicate the element.
+           databases) under noeviction and volatile-lru, with three triggers: `over` (maxmemory 1:
+           the source's shard is over budget), `edge` (maxmemory 1mb, the destination shard filled
+           until 200/50/10/1-byte SETs are refused, the auditor's L-T3 shape) and `dst-over` (the
+           same fill, then maxmemory 512kb: only the destination shard is over budget). Redis 7.4:
+           a DENYOOM mover (LMOVE, RPOPLPUSH, BLMOVE, BRPOPLPUSH) is refused before it changes
+           anything when the server is over budget, SMOVE/RENAME/RENAMENX/MOVE have no DENYOOM and
+           always run, and no command applies only half of a move. `edge` may leave a TomoKV shard
+           just under budget, where a DENYOOM mover may run; it may never lose or duplicate the
+           element.
 watch      CD5.5. A watched key popped by a two-key LMPOP/ZMPOP/BLMPOP/BZMPOP aborts the watcher's
            EXEC. Controls: a pop that takes the OTHER key, and a pop of an empty key, commit it.
 crash      CD5.6. The six aborting Z-T6 shapes (WATCH, a two-key pop of the watched key, then a
@@ -282,6 +284,10 @@ def oom_case(c, server, verb, placement, policy, trigger, prefix, emit):
             shard = None if server.oracle else shards_of(dst_conn, [dst])[0][0]
             fill = (fill_shard(dst_conn, shard, f'{prefix}:fill') if shard is not None else
                     fill_global(c, f'{prefix}:fill'))
+            if trigger == 'dst-over':
+                # Halve the budget: the filled destination shard is now over it, while a
+                # separate source shard holding three small elements is not.
+                c.must('CONFIG', 'SET', 'maxmemory', '512kb')
         reply = c.cmd(*args)
         after = read()
         c.must('CONFIG', 'SET', 'maxmemory', 0)
@@ -303,7 +309,7 @@ def oom_case(c, server, verb, placement, policy, trigger, prefix, emit):
     unchanged = refused and after == before
     if not denyoom:
         passed, expected = moved, 'runs: a mover without DENYOOM is never refused for memory'
-    elif trigger == 'over':
+    elif trigger in ('over', 'dst-over'):
         passed, expected = unchanged, 'refused before any change'
     else:
         passed, expected = moved or unchanged, 'refused unchanged or moved completely'
@@ -334,7 +340,7 @@ def case_oom(c, server, leg, emit):
     placements = ('oracle',) if server.oracle else PLACEMENTS
     failures, checks = [], 0
     for policy in ('noeviction', 'volatile-lru'):
-        for trigger in ('over', 'edge'):
+        for trigger in ('over', 'edge', 'dst-over'):
             for verb in verbs:
                 for placement in placements:
                     prefix = f'txnfix4:{verb}:{policy}:{trigger}:{placement}'

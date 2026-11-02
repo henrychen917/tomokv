@@ -425,6 +425,26 @@ bool is_element_mover(Kind kind) {
     return kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush;
 }
 
+// CD5.4. Redis takes the OOM decision once, before a command changes anything (DENYOOM), and
+// never refuses a running command half way; SMOVE, RENAME, RENAMENX and MOVE have no DENYOOM at
+// all. A two-key mover's owner task therefore installs with this shard's budget lifted, so a
+// refused destination can never follow an applied source change. The eviction cycle and the
+// next gated write pay any overshoot back, exactly as for an admitted FUNCTION.
+class MoverMemoryScope {
+    FlatStore& store_;
+    uint64_t previous_;
+public:
+    explicit MoverMemoryScope(FlatStore& store)
+        : store_(store), previous_(store.script_exchange_memory_limit(UINT64_MAX)) {}
+    ~MoverMemoryScope() { store_.script_exchange_memory_limit(previous_); }
+    MoverMemoryScope(const MoverMemoryScope&) = delete;
+    MoverMemoryScope& operator=(const MoverMemoryScope&) = delete;
+};
+
+bool is_two_key_mover(Kind kind) {
+    return is_element_mover(kind) || kind == Kind::Rename || kind == Kind::Renamenx;
+}
+
 WorkError element_work_error(XshardElementResult result) {
     switch (result) {
         case XshardElementResult::Ok:
@@ -3344,6 +3364,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     if (image.type == Type::List || image.type == Type::Set)
                         image.entries = CollectionRef(object).entries();
                 }
+                // CD5.4: admit a DENYOOM mover on every participating owner before hop two
+                // changes anything. An over-budget shard evicts or refuses, like Redis.
+                if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
+                    !shard.store().budget_admit(op.arg(key.arg)))
+                    state.status[pos] = static_cast<uint8_t>(WorkError::Maxmemory);
                 if (pos != 0) continue;
 
                 if (state.kind == Kind::Smove) {
@@ -3374,6 +3399,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return execute_live_pop(task, shard, op);
             if (!state.atomic_apply && is_element_mover(state.kind))
                 return execute_plain_element_mover(task, shard, op);
+            // CD5.4: a RENAME/RENAMENX/MOVE source erase may already have run on its own owner.
+            std::optional<MoverMemoryScope> mover_memory;
+            if (state.kind == Kind::Rename || state.kind == Kind::Renamenx)
+                mover_memory.emplace(shard.store());
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
