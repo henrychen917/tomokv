@@ -320,9 +320,12 @@ def stopping(args):
         'python3', str(Path(__file__).with_name('flipfix7.py')), '--binary', str(args.binary),
         '--cores', args.cores, '--port', str(args.port), '--output', str(args.output / 'window'),
         '--arm', 'post', '--cases', 'signal' if args.case == 'sigterm' else 'sigint',
-        '--engines', args.net_io, '--atomics', '0', '--databases', '16', '--read-local', '0',
+        '--engines', args.net_io, '--atomics', '0', '--databases', '1', '--read-local', '0',
+        '--sanitizer', args.sanitizer,
         '--signal-bound', str(args.stop_bound), '--second-bound', str(args.second_bound),
-    ], env=dict(os.environ, LC_ALL='C'), check=True)
+    ], env=dict(os.environ, LC_ALL='C', ASAN_OPTIONS='detect_leaks=0:abort_on_error=1',
+                UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',
+                TSAN_OPTIONS=args.tsan_options), check=True)
 
 
 def controllers(args):

@@ -18,6 +18,7 @@ import time
 import traceback
 
 from _lib import Conn, RespError, encode
+from flipfix import SANITIZER_MARKS
 import snapfix as s
 import tls
 
@@ -275,6 +276,8 @@ def trial(args, directory, engine, atomic, case, attempt):
             if b.exit is None:
                 b.stop()
             result['exit'] = b.exit
+            log_text = b.log.read_text(errors='replace')
+            assert not any(marker in log_text for marker in SANITIZER_MARKS), log_text[-4000:]
     if case in ('signal', 'signal-int') and result.get('signal_exit'):
         with s.Boot(args, directory, '2s', engine, atomic, False, name='restart') as restart:
             values = restart.c.must('MGET', *[f'flipfix7:ack:{i}' for i in range(1000)])
@@ -297,6 +300,7 @@ def main():
     ap.add_argument('--stall', type=float, default=30)
     ap.add_argument('--signal-bound', type=float, default=12)
     ap.add_argument('--second-bound', type=float, default=.75)
+    ap.add_argument('--sanitizer', choices=('none', 'asan', 'tsan'), default='none')
     args = ap.parse_args()
     os.environ['LC_ALL'] = 'C'
     args.output.mkdir(parents=True, exist_ok=True)
@@ -306,6 +310,8 @@ def main():
     def launch(*a, **kw):
         if isinstance(a[0], list) and str(Path(args.binary).resolve()) in a[0]:
             kw['preexec_fn'] = lambda: ctypes.CDLL(None).prctl(0x59616d61, ctypes.c_ulong(-1).value, 0, 0, 0)
+            if args.sanitizer == 'tsan':
+                a = (['setarch', 'x86_64', '-R', *a[0]], *a[1:])
         return popen(*a, **kw)
     subprocess.Popen = launch
     rows = []
@@ -329,8 +335,11 @@ def main():
                         assert row.get('flip_seconds', 99) >= 1, row
                         assert 'stage' in row and row['clauses'], row
                     else:
+                        assert row['ping_seconds'] < 1, row
                         if case not in ('signal', 'signal-int', 'sigint'):
-                            assert row['flip_seconds'] < 1 and row['ping_seconds'] < 1, row
+                            assert row['flip_seconds'] < 1 and row['ping'] == "b'PONG'", row
+                        if case in ('late', 'late-move'):
+                            assert row['flip'] == "b'OK'", row
                         if row.get('unarmed'):
                             continue
                         if case == 'sigint':
