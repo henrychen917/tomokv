@@ -124,8 +124,11 @@ awaiting a FLIP reply. The resulting pinned-close refusal is already an approved
 server path. Both the old test and that refusal function are identical to PRE;
 `docs/cfgfix/flip-storm-cleanup-witness.json` retains the failing leg. The fixture
 now owns both sockets until all workers join and requires both to answer PING.
-Its accepted runtime errors are unchanged. Full PRE and POST `flipfix6` job reruns
-are queued; the original additional pass retains its 52 passes and one failure.
+Its accepted runtime errors are unchanged. Full PRE and POST `flipfix6` reruns
+both pass **82/82 legs**. Each arm retains all 72 transaction/close legs and the
+ten sibling/oracle legs; all eight native sibling legs require both clients
+alive after joining. `docs/cfgfix/flip-storm-cleanup-fixed.json` records those
+receipts. The original additional pass retains its 52 passes and one failure.
 
 ### Verification and artifacts
 
@@ -148,7 +151,7 @@ zero failures**. Epoll controls passed 13 rows; fused coverage passed 152, with
 9 further fused-uring and 3 split-uring frame rows. These are job executions,
 including repeated prerequisites, not full gate receipts.
 The additional unit/control pass recorded 52 passes and the one fixture failure
-described above; its repaired-row PRE/POST reruns are in progress. Supplemental
+described above; the full affected row now passes on PRE and POST. Supplemental
 epoll notification/multidb coverage passed 31 rows. Both differential engines
 passed all 938 suite/seed/atomic comparisons and 16 equivalence cells per engine.
 The permanent seeds are 7, 19, 20 and 23; the gate selected rotating seed 21 for
@@ -170,6 +173,10 @@ pass the final `make -q` recheck (`docs/cfgfix/freshness-final.json`);
 `freshness-provenance.json` binds the preceding receipt to the same final source
 and binary. These final arms are built from source through
 `80a7559fda` (later commits change tests/documentation only). `tests/gate.sh` EXPECT constants remain untouched.
+Final hashes, text extents, instruction deltas and the row calculation are checked
+again in `docs/cfgfix/artifact-verification.json`. No owned correctness server or
+runner remains, and no listener remains on ports 20100–20199.
+
 One public cfgfix row is collected at `tests/gate.sh:6336`, before the quick-tier
 exit at line 6574: DQ=+1, DF=+1.
 From PRE 1046/1063, the maintainer should set 1047/1064. Tcl promotions and expanded

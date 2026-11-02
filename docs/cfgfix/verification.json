@@ -4443,6 +4443,143 @@
       "framework_seconds": 143.678,
       "framework_failure_artifacts": [],
       "framework_note": "Serverless scheduler/watchdog negative controls, not production gate rows."
+    },
+    {
+      "phase": "flip-cleanup-PRE",
+      "command": [
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "32-39",
+        "--load-cores",
+        "40-47",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20149",
+        "--candidate-binary",
+        "/home/user/Projects/cx-cfgfix/build/cfgfix/arms/tomokv-PRE"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "flipfix6"
+      },
+      "binary_sha256": "97f0d76e3782485ae2e2f797805484ef09eb52752a5019935d1bc409d4fb4fd1",
+      "test_sha256": "ad7bd1a41d285c77d954af7721a9e8cd036deabaf499dc00fbc44a1f1039c489",
+      "started": 1793596078.2103,
+      "returncode": 0,
+      "finished": 1793596608.5809703,
+      "log": "build/cfgfix/flip-cleanup-PRE.log",
+      "log_sha256": "a3139711a98ad77b5f6814ae5e8eeead2c2fc6cbf6b34f6aebf765fcc161a2ff",
+      "run": "build/gate-run.TA0nXX",
+      "jobs": [
+        {
+          "job": "flipfix6",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "FLIP MULTI WATCH session storm (all legs)"
+            }
+          ],
+          "ledger_sha256": "947ad38803fd44bc65eeb361f95e5226f706159486f38846407d4dd03fe5c007",
+          "output_sha256": "860a66f4cff84fbf63d278e79b04c2b5c1d9b129dd8d4854f840e133c44e7b9c"
+        },
+        {
+          "job": "release",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "release build (+footprint locks)"
+            }
+          ],
+          "ledger_sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724",
+          "output_sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+        }
+      ],
+      "private_job_row_totals": {
+        "ok": 2
+      }
+    },
+    {
+      "phase": "flip-cleanup-POST",
+      "command": [
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "40-47",
+        "--load-cores",
+        "32-39",
+        "--load-smt",
+        "",
+        "--ports",
+        "20150-20199"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "flipfix6"
+      },
+      "binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+      "test_sha256": "ad7bd1a41d285c77d954af7721a9e8cd036deabaf499dc00fbc44a1f1039c489",
+      "started": 1793596078.4579375,
+      "returncode": 0,
+      "finished": 1793596611.6719851,
+      "log": "build/cfgfix/flip-cleanup-POST.log",
+      "log_sha256": "9618b911152aade8900d6e7aab718c33f5f8a4dbc470af9a9453eb401e4f8347",
+      "run": "build/gate-run.3gxmHC",
+      "jobs": [
+        {
+          "job": "flipfix6",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "FLIP MULTI WATCH session storm (all legs)"
+            }
+          ],
+          "ledger_sha256": "f1898b4a631158ef86055e6b3a42959174d225aae739a9a710f367b9f740988a",
+          "output_sha256": "860a66f4cff84fbf63d278e79b04c2b5c1d9b129dd8d4854f840e133c44e7b9c"
+        },
+        {
+          "job": "release",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "release build (+footprint locks)"
+            }
+          ],
+          "ledger_sha256": "bd0492a9e284e7d3b6f8b74ab489c7a63c36601da9c659934e747cd62aa02d4f",
+          "output_sha256": "5a148f30bdfedaacb37136535336c4450e95898a38c9d9fdc33ec355fae184c5"
+        }
+      ],
+      "private_job_row_totals": {
+        "ok": 2
+      }
+    }
+  ],
+  "resolved_failures": [
+    {
+      "phase": "additional-config-units",
+      "failed_job": "flipfix6",
+      "cause": "The live-flip sibling closed a worker socket before its peer finished its final FLIP.",
+      "fix_commit": "aa8d735896",
+      "rerun_phases": [
+        "flip-cleanup-PRE",
+        "flip-cleanup-POST"
+      ],
+      "required_legs_per_arm": 82,
+      "passing_legs_per_arm": 82,
+      "receipt": "docs/cfgfix/flip-storm-cleanup-fixed.json"
+    },
+    {
+      "phase": "gates_test",
+      "failed_test": "SchedulerWiring.test_one_slot_uses_the_same_queue_without_losing_coverage",
+      "cause": "The single logical slot used one of its four owned CPUs; all jobs completed but collection exceeded the existing deadline.",
+      "fix_commit": "e84932d765",
+      "rerun_phase": "gates-test-fixture-cpus",
+      "passing_tests": 83,
+      "deadline_changed": false,
+      "receipt": "docs/cfgfix/framework-fixed.json"
     }
   ]
 }
