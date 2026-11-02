@@ -32,5 +32,6 @@
   "epoll_control_load_cpus": "32-39",
   "epoll_control_ports": "20150-20199",
   "clock_overlap": "Independent correctness gates use opposite eight-core server pools and disjoint port pools while long real-clock aging tests wait. No performance scoring.",
-  "remaining_phase_overlap": "After epoll controls complete, the freed eight-core pool runs fused checks and io_uring differential; epoll differential uses the first pool after its additional-unit phase. Gates framework tests run only after both pools finish."
+  "remaining_phase_overlap": "After epoll controls complete, the freed eight-core pool runs fused checks and io_uring differential; epoll differential uses the first pool after its additional-unit phase. Gates framework tests run only after both pools finish.",
+  "tests/flushfix2_siblings.py": "ad7bd1a41d285c77d954af7721a9e8cd036deabaf499dc00fbc44a1f1039c489"
 }

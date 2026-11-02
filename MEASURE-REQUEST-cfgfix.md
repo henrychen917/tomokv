@@ -118,6 +118,15 @@ cycle to finish before asserting the old limit; candidate setup, reply assertion
 and non-vacuous busy windows remain unchanged. This is the exact test-only fix
 from integration commit `b4b63b97c3`, including keeper-thread cleanup on failure.
 
+The additional control pass exposed a second existing fixture issue: the live-FLIP
+sibling closes its flusher socket at stop while the other worker can still be
+awaiting a FLIP reply. The resulting pinned-close refusal is already an approved
+server path. Both the old test and that refusal function are identical to PRE;
+`docs/cfgfix/flip-storm-cleanup-witness.json` retains the failing leg. The fixture
+now owns both sockets until all workers join and requires both to answer PING.
+Its accepted runtime errors are unchanged. Full PRE and POST `flipfix6` job reruns
+are queued; the original additional pass retains its 52 passes and one failure.
+
 ### Verification and artifacts
 
 Serverless command census: **0 added instructions in 48/48 cells**. Forty cells
@@ -138,8 +147,9 @@ The final main selected-job pass completed with **362 passing private rows and
 zero failures**. Epoll controls passed 13 rows; fused coverage passed 152, with
 9 further fused-uring and 3 split-uring frame rows. These are job executions,
 including repeated prerequisites, not full gate receipts.
-The additional unit/control jobs, standard-seed differential matrices and quiet
-framework test are still running. Completed receipts are in
+The additional unit/control pass recorded 52 passes and the one fixture failure
+described above. The repaired-row reruns, standard-seed differential matrices,
+quiet framework test and supplemental epoll coverage are pending. Completed receipts are in
 `docs/cfgfix/verification.json`. PRE was rebuilt with
 only a debug-directory prefix map and reproduces its original SHA-256 exactly. All 57 production targets pass `make -q` after rebuilding the TCP/TLS collision
 guard; `docs/cfgfix/freshness-provenance.json` binds the receipt to the final source

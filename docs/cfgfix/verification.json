@@ -2210,6 +2210,423 @@
       }
     },
     {
+      "phase": "additional-config-units",
+      "command": [
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "32-39",
+        "--load-cores",
+        "40-47",
+        "--load-smt",
+        "",
+        "--ports",
+        "20100-20199"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "netcmd_units core_units flipfix_units flipfix5_units flipfix6_units flipfix5 flipfix6 serverfix_lines serverfix_scalar latencyfix_grammar serverfix_hll serverfix_slowlog serverfix_acllog dbdefault datafix1_locale authfix iofix-signal netcap infofix_compat-loadaof"
+      },
+      "binary_sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
+      "started": 1793592326.2450988,
+      "returncode": 1,
+      "finished": 1793593158.7601066,
+      "log": "build/cfgfix/additional-config-units.log",
+      "log_sha256": "b20aaefb46a3322838b200756f23438da27bfdc0a214d43a6d5e563d6e04de85",
+      "run": "build/gate-run.ZFCllJ",
+      "jobs": [
+        {
+          "job": "authfix",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "authfix CG4.1 binary config requirepass"
+            },
+            {
+              "status": "ok",
+              "label": "authfix CG4.2 missing config value refuses boot"
+            },
+            {
+              "status": "ok",
+              "label": "authfix SV4.2 binary requirepass rewrite restart"
+            },
+            {
+              "status": "ok",
+              "label": "authfix SV4.1 slowlog credential redaction (1s)"
+            },
+            {
+              "status": "ok",
+              "label": "authfix SV4.1 slowlog credential redaction (2s)"
+            }
+          ],
+          "ledger_sha256": "12b3942c17a0d2ce6a6c6778f70bdcac9e1f349081e52da0f41a503faae9a8c1",
+          "output_sha256": "dde6be66c0158b0c85a3d4a363b2d149a56613edc6fdc89d7b2ab94b15a12a66"
+        },
+        {
+          "job": "core_tsan_build",
+          "done": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "job": "core_units",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "core concurrency watch"
+            },
+            {
+              "status": "ok",
+              "label": "core concurrency lifetime"
+            },
+            {
+              "status": "ok",
+              "label": "core concurrency drain"
+            },
+            {
+              "status": "ok",
+              "label": "core concurrency route"
+            },
+            {
+              "status": "ok",
+              "label": "core concurrency snapshot"
+            },
+            {
+              "status": "ok",
+              "label": "core concurrency config"
+            },
+            {
+              "status": "ok",
+              "label": "core concurrency notify"
+            },
+            {
+              "status": "ok",
+              "label": "read-local topology demotion (1s)"
+            },
+            {
+              "status": "ok",
+              "label": "read-local topology demotion (2s)"
+            }
+          ],
+          "ledger_sha256": "8e4f3ffddf5d5b6c9eb1527fd7533b0edcfd203efb630e7421b09b19a99aea8d",
+          "output_sha256": "930d4933cc41fc494397cf0e91f2024341526f407016e198d306f6d4525f1877"
+        },
+        {
+          "job": "datafix1_locale",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "datafix1 SORT locale (both engines and modes)"
+            }
+          ],
+          "ledger_sha256": "5e08b71f9ba4e9ee0dba7d63b996e4a1ea950ee1a139a1bef44b6dd381dba899",
+          "output_sha256": "730f57ef53517982f54decd6ad1f752527a2a72ba8cf8afa5fc6d33e9dcfbd44"
+        },
+        {
+          "job": "dbdefault",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis default databases 16 (both modes)"
+            }
+          ],
+          "ledger_sha256": "1fe0477bbdbfb533316ca8fcba2fcceedc0b7a3fdef53567072cff5a480d5be0",
+          "output_sha256": "5169308be3726a0590a3300ea11b42482be42e1c6226a6de96bc0221815949c5"
+        },
+        {
+          "job": "flipfix5",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "FLIP stale stage storm (all legs)"
+            }
+          ],
+          "ledger_sha256": "669648831006f41873213d78c7ca7c51d3fc7b9c62119c9b4f5740ec4c222973",
+          "output_sha256": "241a18adab968737507a6723581914663fc3de8bacdb182515b15af558fe482c"
+        },
+        {
+          "job": "flipfix5_units",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "FLIP stale stage sample refused (ASAN+TSAN)"
+            },
+            {
+              "status": "ok",
+              "label": "FLIP stale stage planted pre-fix controls fail"
+            }
+          ],
+          "ledger_sha256": "3e2e0c8be1d65a893f29a68cc4c148f37ecff8422ab82ba2bf426629a3906d29",
+          "output_sha256": "de4c2c677a0247035cd7494301994493558e864cbb5882cf200e11d1260ecfc0"
+        },
+        {
+          "job": "flipfix6",
+          "done": true,
+          "rows": [
+            {
+              "status": "FAIL",
+              "label": "FLIP MULTI WATCH session storm (all legs)"
+            }
+          ],
+          "ledger_sha256": "84770633c84789cfb8f3985fd857fab40f5029524acebb22b90ffcb7e06b3b51",
+          "output_sha256": "c67fa76156f3c3d1933468360940dc276372b4fc5ea6d6d256342d8b80082643"
+        },
+        {
+          "job": "flipfix6_units",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "FLIP session handover S2 and close fences (ASAN+TSAN)"
+            },
+            {
+              "status": "ok",
+              "label": "FLIP WATCH alias allocation rollback (db1/db16)"
+            }
+          ],
+          "ledger_sha256": "a28de477a1e7a469db1f6969cf1fac50f489e7ef7065fc19c4364ff600df9016",
+          "output_sha256": "8f9ca762bfff54d8751197a5e979e0fd8ba255abdbd3fd8bb4637b20ab1ea692"
+        },
+        {
+          "job": "flipfix_units",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "FLIP planned-connection close lifetime (ASAN+TSAN)"
+            },
+            {
+              "status": "ok",
+              "label": "FLIP fingerprint publication (ASAN+TSAN)"
+            }
+          ],
+          "ledger_sha256": "e20d1bb5bb1bbe0645f67123458db041e806385d504f65f91806a68f593d5b3f",
+          "output_sha256": "0c6aee5523676a59f453026abccb492b9bc7f7ae4a83ccde820b8bcc538df25a"
+        },
+        {
+          "job": "infofix_compat-loadaof",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "Redis 7.4 infofix loadaof (both modes/engines/runtimes)"
+            }
+          ],
+          "ledger_sha256": "cd15bbf8add94a274b8b518227ffe3e52d0f2ca62ad00ed059f444c2acff524e",
+          "output_sha256": "d27b9cadb023e24cb5a9882367cf46c828d116a8e26281abbdf9885be4cf553c"
+        },
+        {
+          "job": "iofix-signal",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "iofix IO4.17 immediate signal shutdown"
+            }
+          ],
+          "ledger_sha256": "0c0144bffb9c0a986e716147d0734b3b76b25497249149cf6e76a3f0e922c534",
+          "output_sha256": "bfb1c2264a5d2afacaa356c5c79295a3bec889a228b60b4844c281cec02c1cf5"
+        },
+        {
+          "job": "latencyfix_grammar",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "latencyfix LAT-HIST-1 knob grammar"
+            }
+          ],
+          "ledger_sha256": "4fec321bf269cd9ab753f9a4dd26a7fc6deff472614e97c617f594840e28fd9a",
+          "output_sha256": "f881639e323ce93b493090eced8ef10b60fd1147587ad05891993343e87ab2c4"
+        },
+        {
+          "job": "netcap",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "NET1 inline + query cap (1s, uring)"
+            },
+            {
+              "status": "ok",
+              "label": "NET1 inline + query cap (1s, epoll)"
+            },
+            {
+              "status": "ok",
+              "label": "NET1 inline + query cap (2s, uring)"
+            },
+            {
+              "status": "ok",
+              "label": "NET1 inline + query cap (2s, epoll)"
+            }
+          ],
+          "ledger_sha256": "405fa48e915d917e6406e0b83b55d8d0f58488f189a6b78dc1c86dd9a682276f",
+          "output_sha256": "0453c16fff8929f741aebb98ea207a457ee7491a8a1a1dc95deabb710e38cfd7"
+        },
+        {
+          "job": "netcmd_units",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "netcmd regression build"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd streams regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd zpop regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd notify-oom regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd notify-retry regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd flush regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd output regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd pubsub regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd receive regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd config regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd wb-small-pipe regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd wb-complete-visits regression"
+            },
+            {
+              "status": "ok",
+              "label": "netcmd hexpire-oom regression"
+            },
+            {
+              "status": "ok",
+              "label": "encodingfix knob"
+            },
+            {
+              "status": "ok",
+              "label": "encodingfix precedence"
+            },
+            {
+              "status": "ok",
+              "label": "NET1 serverless bounds + scan + reclamation"
+            }
+          ],
+          "ledger_sha256": "07647d20ac963c7d9df85bc838c73d088a8457b598334587f8131bd52f99046c",
+          "output_sha256": "0eeca2f803611480e261a8e5cf051d5dff68de01491eac53f4d4dc058aacb20b"
+        },
+        {
+          "job": "production_units",
+          "done": true,
+          "rows": [],
+          "ledger_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "job": "release",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "release build (+footprint locks)"
+            }
+          ],
+          "ledger_sha256": "bd0492a9e284e7d3b6f8b74ab489c7a63c36601da9c659934e747cd62aa02d4f",
+          "output_sha256": "5a148f30bdfedaacb37136535336c4450e95898a38c9d9fdc33ec355fae184c5"
+        },
+        {
+          "job": "serverfix_acllog",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "serverfix CC4.26 disabled ACL log allocation"
+            }
+          ],
+          "ledger_sha256": "2492789b3c3803ee1b69748a57789e0539be2f9654d5c3816e7216e34aa3ea61",
+          "output_sha256": "764cd643bc0dafa980a002ba3e71323887960a11d8572bd614ef08b64e3eadd7"
+        },
+        {
+          "job": "serverfix_hll",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "serverfix SV4.8 HyperLogLog self-test controls"
+            }
+          ],
+          "ledger_sha256": "5dc0a9224f615c8823e271ed0234dc83b7c48cd1473359255143862d9b7f858e",
+          "output_sha256": "7f7c0cef798b9adc8287872961e335d45c70e827974b1be129b175301e370260"
+        },
+        {
+          "job": "serverfix_lines",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "serverfix CG4.3 physical config lines"
+            }
+          ],
+          "ledger_sha256": "c50d6e5da3b4490d49c75e74ba428c2da18a60f204e5b06f924d11176d10616b",
+          "output_sha256": "1f4568d8722eec9a7f6b54b95463a1b2f72b4a0eb19810dbe23bbafe7db71d8e"
+        },
+        {
+          "job": "serverfix_scalar",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "serverfix CG4.4 shared scalar grammar"
+            }
+          ],
+          "ledger_sha256": "0ba03d006f3663c851732e1eb992e62b1a2301ab490538e323328802b0fc5a85",
+          "output_sha256": "97c963d25c68e8757d384b36040465e621c6eb3e9c94084a4c2709f3f0a7e2bc"
+        },
+        {
+          "job": "serverfix_slowlog",
+          "done": true,
+          "rows": [
+            {
+              "status": "ok",
+              "label": "serverfix SV4.14 disabled slowlog allocation"
+            }
+          ],
+          "ledger_sha256": "baa7e06557d59cb85b626abaa5eae128b077e9b69a2107521d8b6ced4109168b",
+          "output_sha256": "3cd1f49fd2bfd9db32f8d7cf475e5987f0fb7ed5c6f8dbf5af62a98158bba200"
+        }
+      ],
+      "private_job_row_totals": {
+        "ok": 52,
+        "FAIL": 1
+      }
+    },
+    {
       "phase": "fused-epoll",
       "command": [
         "tests/gate.sh",
