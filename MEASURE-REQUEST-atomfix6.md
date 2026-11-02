@@ -206,3 +206,9 @@ Every allocated ELF section was hashed before and after and stayed identical;
 object timestamps are preserved and no executable instruction changed. The
 per-object before/after hashes are in `compressed-control-objects.json`. Release
 PRE/POST objects and all four delivered binary arms were left untouched.
+
+The initial broad live FIFO run overlapped debug-section compression on the lane
+cores and failed latency bounds in several legs despite zero reported ordering
+violations and exact final values. The latency failures are retained, not waived.
+Complete PRE and POST FIFO jobs are queued with no concurrent lane compilation
+or artifact compression to distinguish a candidate defect from that overlap.

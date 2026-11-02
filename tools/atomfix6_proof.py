@@ -11,6 +11,7 @@ GROUPS = {
     'lane': ['atomfix6_units'] + [f'atomfix6-live-{m}-{r}-{d}'
         for m in ('1s', '2s') for r in (0, 1) for d in (1, 16)],
     'pad': ['atomfix6-live-1s-0-1', 'atomfix6-live-2s-0-16'],
+    'fifo': ['txnorder_fifo_live'],
     'units': '''atomic_units core_units exbatch_units splitlocal_units lbplanner_units
         flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units'''.split(),
     'atomic': '''atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting
@@ -48,6 +49,13 @@ p.add_argument('--label', default='')
 p.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
 a = p.parse_args()
 assert set(os.sched_getaffinity(0)) <= set(range(74, 87))
+if a.group == 'atomic' and a.fused:
+    # The initial FIFO run overlapped control-object debug compression. Retain
+    # that failed latency evidence, then run the complete unchanged job for both
+    # arms with no concurrent lane build or artifact processing.
+    for arm, binary in [('PRE', ROOT / 'build/pre/tomokv'), ('POST', ROOT / 'build/tomokv')]:
+        subprocess.run(['python3', __file__, 'fifo', '--binary', str(binary),
+                        '--label', f'fifo-{arm}-idle'], check=False)
 jobs = GROUPS[a.group]
 if a.fused:
     # These jobs use txn_proof_boot. Other selected jobs already enumerate
