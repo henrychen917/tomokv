@@ -1,9 +1,25 @@
 [
   {
+    "run": "post-v2-main-uring",
+    "job": "differ-split-0",
+    "verdict": [
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 25} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH/jobs/differ-split-0/differ"
+    ]
+  },
+  {
     "run": "post-v2-main-epoll",
     "job": "differ-armed-0",
     "verdict": [
-      "DIFFER matrix: atomic={0} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-armed-0/differ"
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-armed-0/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1042331 recorded comparison witnesses, 230 legs)",
+      "DIFFER GATE: pass=231 fail=0 runtime=9m18s"
+    ]
+  },
+  {
+    "run": "post-v2-main-epoll",
+    "job": "differ-armed-1",
+    "verdict": [
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-armed-1/differ"
     ]
   },
   {

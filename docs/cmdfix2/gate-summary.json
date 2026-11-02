@@ -76,11 +76,17 @@
   {
     "label": "pad-a-v2-final",
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ngF7tp",
-    "complete": false,
+    "complete": true,
     "archived_only": false,
     "passed": 1,
-    "failed": 4,
+    "failed": 6,
     "rows": [
+      {
+        "job": "cmdfix2-channels",
+        "status": "FAIL",
+        "seconds": "505.860000",
+        "label": "cmdfix2 channels vs Redis 7.4 (all legs)"
+      },
       {
         "job": "cmdfix2-geo",
         "status": "FAIL",
@@ -104,6 +110,12 @@
         "status": "FAIL",
         "seconds": "8.960000",
         "label": "cmdfix2 scores vs Redis 7.4 (all legs)"
+      },
+      {
+        "job": "cmdfix2-xsetid",
+        "status": "FAIL",
+        "seconds": "4.890000",
+        "label": "cmdfix2 xsetid vs Redis 7.4 (all legs)"
       },
       {
         "job": "release",
@@ -5006,7 +5018,7 @@
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L",
     "complete": false,
     "archived_only": false,
-    "passed": 4,
+    "passed": 5,
     "failed": 0,
     "rows": [
       {
@@ -5014,6 +5026,12 @@
         "status": "ok",
         "seconds": "0.120000",
         "label": "generated Redis 7.4 ACL categories"
+      },
+      {
+        "job": "differ-armed-0",
+        "status": "ok",
+        "seconds": "559.030000",
+        "label": "Redis 7.4 differential part (armed fused, atomic 0)"
       },
       {
         "job": "differ-split-0",
@@ -5040,9 +5058,21 @@
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.EcuSmH",
     "complete": false,
     "archived_only": false,
-    "passed": 25,
+    "passed": 30,
     "failed": 0,
     "rows": [
+      {
+        "job": "acl_metadata",
+        "status": "ok",
+        "seconds": "0.050000",
+        "label": "generated Redis 7.4 ACL categories"
+      },
+      {
+        "job": "aclkeys_wake",
+        "status": "ok",
+        "seconds": "21.510000",
+        "label": "ACLKEYS3 last-owner-task wake"
+      },
       {
         "job": "clientcompat-multi-controls",
         "status": "ok",
@@ -5054,6 +5084,12 @@
         "status": "ok",
         "seconds": "167.500000",
         "label": "clientcompat multi-tracking"
+      },
+      {
+        "job": "datafix1_geo",
+        "status": "ok",
+        "seconds": "3.800000",
+        "label": "datafix1 GEO grammar (both engines and modes)"
       },
       {
         "job": "multifix-1s-epoll",
@@ -5152,6 +5188,18 @@
         "label": "multifix SLOWLOG-EXEC-BODY-NOT-LOGGED (2s epoll)"
       },
       {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "29.070000",
+        "label": "multifix PAUSE-IN-MULTI (2s epoll)"
+      },
+      {
+        "job": "multifix-2s-epoll",
+        "status": "ok",
+        "seconds": "12.120000",
+        "label": "multifix PAUSE-EXEC-NOT-HELD (2s epoll)"
+      },
+      {
         "job": "multifix-2s-uring",
         "status": "ok",
         "seconds": "11.280000",
@@ -5200,7 +5248,7 @@
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.vyG45s",
     "complete": false,
     "archived_only": false,
-    "passed": 12,
+    "passed": 16,
     "failed": 0,
     "rows": [
       {
@@ -5232,6 +5280,30 @@
         "status": "ok",
         "seconds": "154.670000",
         "label": "at412 T5"
+      },
+      {
+        "job": "at412-T6",
+        "status": "ok",
+        "seconds": "813.230000",
+        "label": "at412 T6"
+      },
+      {
+        "job": "at412-T7",
+        "status": "ok",
+        "seconds": "37.110000",
+        "label": "at412 T7"
+      },
+      {
+        "job": "at412-T8",
+        "status": "ok",
+        "seconds": "4.090000",
+        "label": "at412 T8"
+      },
+      {
+        "job": "at412-T9",
+        "status": "ok",
+        "seconds": "3.860000",
+        "label": "at412 T9"
       },
       {
         "job": "pubtrackfix",

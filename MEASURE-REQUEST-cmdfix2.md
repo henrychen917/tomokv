@@ -98,19 +98,18 @@ original logs and receipts for **every run, including failed controls**.
 These are selected correctness jobs, not a full-gate receipt. Final broad-job
 totals and build freshness are recorded below when all scheduled jobs finish.
 
-Both engines complete the gate's standard differential seeds 7, 19, 20 and 23,
-plus the standard rotating seed (21 for uring, 22 for epoll). Each engine has
-941 passing differential rows and zero failures, including mode equivalence:
-**8,504,602 recorded comparison witnesses** in total. Each lifetime observes
-232 of the 245 registered commands; the exact observed/unobserved inventory is
-retained, rather than claiming universal command coverage. See
-`docs/cmdfix2/differential.json` and the original differential receipts.
+Both engines are running the gate's standard differential seeds 7, 19, 20 and
+23, plus the standard rotating seed (25 for uring, 24 for epoll). Final totals
+will be recorded after both runs complete. The exact observed/unobserved
+command inventory is retained in `docs/cmdfix2/differential.json` and the
+original differential receipts.
 
-The additional `rootcompat-stringlimit` job reports exactly the same 24
-failures on PRE and POST (SETRANGE/APPEND/SETBIT above the 32-bit representation,
+The additional `rootcompat-stringlimit` job reported exactly the same 24
+failures on PRE and the first POST (SETRANGE/APPEND/SETBIT above the 32-bit representation,
 three checks × eight mode/engine/namespace legs). The raw failure lines are
 identical. This is the already documented CD5.20/NETFIX-POST-2 clamp, outside
-this lane's S1 scope; its failing row remains visible.
+this lane's S1 scope; its failing row remains visible. The final POST rerun is
+pending and must match all 24 original failure lines.
 
 Tcl runs the gate's `redis_tcl` job in both modes against unchanged upstream
 `unit/geo`, `unit/hyperloglog`, `unit/acl`, `unit/pubsub`, `unit/type/stream`,
@@ -252,18 +251,17 @@ rows.
 
 * Final directed witnesses: **239,776 checks across 192 legs, zero failures**;
   the same six witnesses produce **25,536 differences on PRE**.
-* Final Tcl receipts: **311 required assertions per mode/engine leg**, 1,244
-  total, with exactly one verified PUNSUBSCRIBE completion fence per leg.
+* Final Tcl reruns are pending: the manifest requires **311 assertions per
+  mode/engine leg**, 1,244 total, with exactly one verified PUNSUBSCRIBE
+  completion fence per leg.
 * `python3 tests/gates_test.py`: **77 tests pass**. The Tcl runner's 14
   serverless controls and gate planner self-tests also pass.
 * `make all` and every one of the **55 `job_production_units` targets** pass,
   along with the live control arms and blockfix supplemental targets. All
   **five `make -q` checks return 0**. The phony live-arm recipe is checked via
   its two concrete build roots. See `freshness.json` and `local-checks`.
-* The epoll broad selection passes **202 rows, zero failures**. Supplemental
-  fused uring/epoll selections pass 45 rows each; the epoll mode/order
-  selection passes 57 rows. The separate extra selection has 12 passes and
-  the one unchanged PRE/POST string-limit failure described above.
+* Final broad selections and supplemental fused/notification/Tcl selections
+  are running. Their exact rows and failures will be recorded before delivery.
 * `git diff 9d6ab5526 --check`, gate shell syntax, and Python syntax checks
   pass. Debug compression of unit artifacts preserves every allocated ELF
   section; it does not alter any delivered arm. `build/` is about 14 GiB.

@@ -137,15 +137,25 @@ def final_jobs(runs):
     post = (Path(runs['post-v2-extra-uring']['source'])/member).read_text()
     failures = lambda text: [line for line in text.splitlines() if line.startswith('FAIL ')]
     assert len(failures(pre)) == 24 and failures(pre) == failures(post)
+    witness_rows = json.loads((DOC/'witnesses.json').read_text())
+    pad_rows = []
     for name, expected in [('pad-a-v2-final', 6), ('pad-b-v2-gate', 0)]:
         assert runs[name]['complete'] and runs[name]['failed'] == expected
         if expected:
             assert {row['job'] for row in runs[name]['rows'] if row['status'] != 'ok'} == {
                 'cmdfix2-'+case for case in ('geo', 'scores', 'hll', 'lcs', 'channels', 'xsetid')}
+        for witness in witness_rows:
+            path = Path(runs[name]['source'])/'jobs'/('cmdfix2-'+witness['case'])/'proof/summary.json'
+            legs = json.loads(path.read_text())
+            assert len(legs) == len({leg['leg'] for leg in legs}) == 32
+            differences = sum(len(leg['failures']) for leg in legs)
+            target = witness['PRE' if expected else 'POST']['differences']
+            assert differences == target, (name, witness['case'], differences, target)
+            pad_rows.append(dict(run=name, case=witness['case'], differences=differences))
     save(DOC/'final-jobs.json', dict(
         post_sha256=hashlib.sha256((BUILD/'POST').read_bytes()).hexdigest(),
         runs=rows, unchanged_stringlimit_failures=failures(post),
-        pad_a_run='pad-a-v2-final', pad_b_run='pad-b-v2-gate'))
+        pad_controls=pad_rows))
 
 
 def auditor_summary(archive):

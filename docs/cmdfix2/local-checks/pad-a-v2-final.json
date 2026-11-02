@@ -25,5 +25,6 @@
     "CC": "cc -gz=zlib",
     "GATE_LEDGER": "/home/user/Projects/cx-cmdfix2/build/cmdfix2/pad-a-v2-final"
   },
-  "candidate_sha256": "68431818fe79fff1fdfabde597922c898af41bc3cdc06d8e6bda77ee39cb6255"
+  "candidate_sha256": "68431818fe79fff1fdfabde597922c898af41bc3cdc06d8e6bda77ee39cb6255",
+  "exit_code": 1
 }
