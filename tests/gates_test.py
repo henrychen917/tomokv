@@ -1181,7 +1181,22 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             fixture_cpus = list(map(str, (_cpus or self.fixture_cpus)[:4]))
             cpu_list = ','.join(fixture_cpus)
             count = slots or len(fixture_cpus)
-            slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
+            if count == 1:
+                # A slot is a worker queue, not a CPU. Give the serial control
+                # its four already-owned CPUs so each real watchdog can start
+                # beside its parent. Pinning both to one CPU made 289 complete
+                # jobs consume 44s, leaving no time for the real collector.
+                # Keep one worker, the complete inventory and the 45s deadline.
+                ranges = []
+                for cpu in map(int, fixture_cpus):
+                    if ranges and ranges[-1][1] + 1 == cpu:
+                        ranges[-1][1] = cpu
+                    else:
+                        ranges.append([cpu, cpu])
+                slot_cpus = [','.join(str(lo) if lo == hi else f'{lo}-{hi}'
+                                      for lo, hi in ranges)]
+            else:
+                slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',
                 f'ALL_BUILD_CORES={cpu_list}',
@@ -1211,7 +1226,9 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             if result.returncode:
                 output += preserve_failure(result.stdout, result.stderr)
             self.assertEqual(result.returncode, 0, output)
+            from _gate_process import cpus as parse_cpus
             observed_cpus = set()
+            observed_slots = set()
             try:
                 # Collector rows enumerate scored jobs. The three build prerequisites do
                 # not emit rows in this fixture, but must still run and finalize cleanly:
@@ -1226,7 +1243,8 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 for job in (directory / 'jobs').iterdir():
                     assigned_slot, observed_cpu = (job / 'fixture-affinity').read_text().split()
                     self.assertEqual(observed_cpu, slot_cpus[int(assigned_slot)], job.name)
-                    observed_cpus.add(observed_cpu)
+                    observed_cpus.update(map(str, parse_cpus(observed_cpu)))
+                    observed_slots.add(int(assigned_slot))
             except (AssertionError, IndexError, ValueError, OSError) as exc:
                 # A worker can fail before job_body records its affinity and still publish
                 # a recovered completion. Retain its output/ledger before TemporaryDirectory
@@ -1266,6 +1284,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             return dict(ledger=(''.join(f'{v}\t{label}\n' for v, duration, label in timed_rows)).encode(),
                         output=output, counts=counts, script_bytes=len(script.encode()),
                         fixture_cpus=set(fixture_cpus), observed_cpus=observed_cpus,
+                        observed_slots=observed_slots,
                         dependency_reached=dependency_reached,
                         dependency_handshake=dependency_handshake,
                         dependency_failure=dependency_failure,
@@ -1422,7 +1441,8 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
         self.assertEqual({row[1] for row in result['families']}, {'0'})
-        self.assertEqual(len(result['observed_cpus']), 1)
+        self.assertEqual(result['observed_slots'], {0})
+        self.assertEqual(result['observed_cpus'], result['fixture_cpus'])
         self.assertEqual(result['cleaned'], set(self.canonical))
 
     def test_failed_prerequisite_cannot_leave_the_queue_waiting_forever(self):
