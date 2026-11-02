@@ -443,4 +443,4 @@ Pidfiles are removed on orderly exit. Hidden settings require an exact CONFIG GE
 | `loglevel` | R | debug, verbose, notice, warning, nothing | `notice` | Boot/GET/SET | Process sidecar | Minimum diagnostic level. |
 | `pidfile` | R | String | Empty | Boot/GET | Process sidecar | PID file; daemon default `/var/run/redis.pid`. |
 | `supervised` | R | upstart, systemd, auto, no | `no` | Boot/GET | Process sidecar | Supervisor readiness; successful supervision suppresses daemonization. |
-| `key-load-delay` | R | Integer INT_MIN..INT_MAX | `0` | Boot/GET/SET, hidden | Process sidecar | Microsecond delay for each native snapshot key load; nonpositive disables. |
+| `key-load-delay` | R | Integer INT_MIN..INT_MAX | `0` | Boot/GET/SET, hidden | Process sidecar | Positive values delay each loaded key/command by that many microseconds. Negative values sample a one-microsecond delay with probability 1/abs(value); zero disables. |

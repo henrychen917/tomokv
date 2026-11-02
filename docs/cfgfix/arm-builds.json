@@ -63,6 +63,57 @@
       "cwd": "/home/user/Projects/cx-cfgfix",
       "returncode": 0,
       "finished": 1793581674.3464496
+    },
+    {
+      "label": "final-delay-build",
+      "command": [
+        "make",
+        "-j16",
+        "all",
+        "CXX=g++"
+      ],
+      "started": 1793582763.2481062,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793582768.6583347
+    },
+    {
+      "label": "pre-delay-prefix",
+      "command": [
+        "make",
+        "-B",
+        "-j16",
+        "all",
+        "CXX=g++ -fdebug-prefix-map=/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source=/home/user/Projects/cx-cfgfix",
+        "CC=cc -fdebug-prefix-map=/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source=/home/user/Projects/cx-cfgfix"
+      ],
+      "started": 1793582768.6586344,
+      "cwd": "/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source",
+      "returncode": 0,
+      "finished": 1793582846.404063
+    },
+    {
+      "label": "pad-delay",
+      "command": [
+        "python3",
+        "tools/cfgfix_pad.py"
+      ],
+      "started": 1793582846.646883,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793582854.9993486
+    },
+    {
+      "label": "counts-delay",
+      "command": [
+        "python3",
+        "tools/cfgfix_counts.py",
+        "POST"
+      ],
+      "started": 1793582854.9996254,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793582904.533947
     }
   ],
   "pre_reproduction": {

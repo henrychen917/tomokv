@@ -164,7 +164,7 @@
     "-lm",
     "/home/user/Projects/cx-cfgfix/build/cfgfix/counts/scopes/POST-normal/probe.o"
   ],
-  "probe_sha256": "0f675593e7ac435dc8e301d106659ba7a1d6bafb944663143b72ce7a76126544",
-  "server_sha256": "ec4a0b07d2e44d86a3203970cd61e4f7439e7243f671ebc64295b4a8206a1d4f",
+  "probe_sha256": "2a6b60bd7e9c9fad2e8f858da3b1c16d518b44178f96926b3527311622452f7e",
+  "server_sha256": "39ecc4aa17bc2cb82913f17e7ceb1810112da4e757c714f46986683a63e13652",
   "fixture_sha256": "12d54acb8d55b871576235ab607df25a0cce8eaf79a085c560190cf64a7a1727"
 }
