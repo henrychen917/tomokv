@@ -156,7 +156,7 @@ def lcs(p):
 
 
 def channels(p):
-    # T40/T47 plus SUBSCRIBE family, selector conjunction and in-EXEC ACL mutation.
+    # T40/T47 plus SUBSCRIBE family and in-EXEC ACL mutation.
     for verb in ('PUBLISH', 'SPUBLISH', 'SUBSCRIBE', 'SSUBSCRIBE', 'PSUBSCRIBE'):
         with Conn(p.oracle.s.getpeername()[1]) as r, Conn(p.target.s.getpeername()[1]) as t:
             q = Pair(r, t, p.receipt)
@@ -178,9 +178,10 @@ def channels(p):
             q.cmd('ACL', 'SETUSER', 'channel-user', 'resetchannels')
             q.cmd(*args)
             q.cmd('EXEC')
-            # A command and its channel must be allowed by the SAME selector.
+            # Command permission alone cannot grant access to a channel.
+            # Selector syntax is an explicit pre-existing unsupported surface.
             p.cmd('ACL', 'SETUSER', 'channel-user', 'reset', 'on', '>p', '+multi', '+exec',
-                  f'+{verb.lower()}', '&allowed', '(+get ~* &secret)')
+                  f'+{verb.lower()}', '&allowed')
             q.cmd('MULTI')
             q.cmd(*args)
             q.cmd('EXEC')

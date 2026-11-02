@@ -711,8 +711,24 @@ uint32_t acl_sort_restricted_option(uint32_t argc, GetArg&& get_arg, bool readon
 }
 
 template <typename GetArg>
-AclDeniedReason acl_check_keys(const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
+AclDeniedReason acl_check_arguments(const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
                                GetArg&& get_arg, uint32_t* denied_arg) {
+    // Admission runs before MULTI queues an IO-local command. EXEC uses this
+    // same predicate against both live ACLs and its preceding SETUSER shadow.
+    // Check within one selector, so command and channel grants cannot be mixed.
+    if (!(perm.flags & AclAllChannels)) {
+        const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
+        const bool publish = command.eq_icase("publish") || command.eq_icase("spublish");
+        const bool pattern = command.eq_icase("psubscribe");
+        if (publish || pattern || command.eq_icase("subscribe") || command.eq_icase("ssubscribe")) {
+            const uint32_t end = publish ? std::min(argc, 2u) : argc;
+            for (uint32_t arg = 1; arg < end; ++arg) {
+                if (acl_channel_allowed(perm, get_arg(arg), pattern)) continue;
+                if (denied_arg) *denied_arg = arg;
+                return AclDeniedReason::Channel;
+            }
+        }
+    }
     if (perm.flags & AclAllKeys) return AclDeniedReason::None;
     using Arguments = std::remove_reference_t<GetArg>;
     // The declared keys first (SORT's source and final STORE target, as sortGetKeys): Redis's
@@ -746,14 +762,18 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
 
     bool command_allowed = false;
     uint32_t first_denied_arg = UINT32_MAX;
+    AclDeniedReason argument_denied = AclDeniedReason::Key;
     auto check = [&](const AclSelector& selector) {
         if (!acl_command_allowed(selector, spec, argc > 1 ? get_arg(1) : Slice{})) return false;
         command_allowed = true;
         uint32_t candidate = UINT32_MAX;
-        const AclDeniedReason denied = acl_check_keys(
+        const AclDeniedReason denied = acl_check_arguments(
             selector, spec, argc, get_arg, &candidate);
         if (denied == AclDeniedReason::None) return true;
-        if (first_denied_arg == UINT32_MAX) first_denied_arg = candidate;
+        if (first_denied_arg == UINT32_MAX || denied > argument_denied) {
+            first_denied_arg = candidate;
+            argument_denied = denied;
+        }
         return false;
     };
     if (check(*permissions)) return AclDeniedReason::None;
@@ -761,7 +781,7 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
         if (check(selector)) return AclDeniedReason::None;
     if (!command_allowed) return AclDeniedReason::Command;
     if (denied_arg) *denied_arg = first_denied_arg;
-    return AclDeniedReason::Key;
+    return argument_denied;
 }
 
 void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReason reason,
@@ -1417,19 +1437,23 @@ AclDeniedReason acl_check_multi(uint32_t user_index, const CommandSpec& spec,
     else if (!(spec.flags & CmdFlags::AclExempt)) {
         bool granted = false;
         uint32_t first = UINT32_MAX;
+        AclDeniedReason argument_denied = AclDeniedReason::Key;
         const auto check = [&](const AclSelector& selector) {
             if (!acl_command_allowed(selector, spec, argv.size() > 1 ? arg(1) : Slice{})) return false;
             granted = true;
             uint32_t candidate = UINT32_MAX;
-            if (acl_check_keys(selector, spec, argv.size(), arg, &candidate) ==
-                AclDeniedReason::None) return true;
-            if (first == UINT32_MAX) first = candidate;
+            const auto reason = acl_check_arguments(selector, spec, argv.size(), arg, &candidate);
+            if (reason == AclDeniedReason::None) return true;
+            if (first == UINT32_MAX || reason > argument_denied) {
+                first = candidate;
+                argument_denied = reason;
+            }
             return false;
         };
         bool allowed = check(*permissions);
         for (const auto& selector : permissions->selectors) allowed |= check(selector);
         if (!allowed) {
-            denied = granted ? AclDeniedReason::Key : AclDeniedReason::Command;
+            denied = granted ? argument_denied : AclDeniedReason::Command;
             if (denied_arg) *denied_arg = first;
         }
     }
