@@ -12,7 +12,7 @@ namespace tomo {
 
 void multi_database_stats(Shard&, DatabaseStatsTable&, uint64_t cut, uint64_t origin_conn_id);
 
-enum class MultiVerb : uint8_t { Other, V_acl, V_blmpop, V_blpop, V_brpop, V_bzmpop, V_bzpopmax, V_bzpopmin, V_debug, V_del, V_discard, V_echo, V_exec, V_exists, V_flushall, V_flushdb, V_mget, V_move, V_mset, V_msetnx, V_multi, V_ping, V_psubscribe, V_publish, V_punsubscribe, V_scan, V_select, V_sort, V_sort_ro, V_spublish, V_ssubscribe, V_subscribe, V_sunsubscribe, V_swapdb, V_touch, V_unlink, V_unsubscribe, V_unwatch, V_watch, V_xreadgroup };
+enum class MultiVerb : uint8_t { Other, V_acl, V_blmpop, V_blpop, V_brpop, V_bzmpop, V_bzpopmax, V_bzpopmin, V_debug, V_del, V_discard, V_echo, V_exec, V_exists, V_flushall, V_flushdb, V_mget, V_move, V_mset, V_msetnx, V_multi, V_ping, V_psubscribe, V_publish, V_punsubscribe, V_scan, V_select, V_sort, V_sort_ro, V_spublish, V_ssubscribe, V_subscribe, V_sunsubscribe, V_swapdb, V_touch, V_unlink, V_unsubscribe, V_unwatch, V_watch, V_xreadgroup, V_pfcount, V_pfmerge };
 MultiVerb multi_verb(const CommandSpec* spec) {
     static const auto by_id = [] {
         std::array<MultiVerb, kAclCommandCategoryCount> result{};
@@ -55,6 +55,8 @@ MultiVerb multi_verb(const CommandSpec* spec) {
         if (const auto* row = command_lookup(Slice("unwatch"))) result[row->id] = MultiVerb::V_unwatch;
         if (const auto* row = command_lookup(Slice("watch"))) result[row->id] = MultiVerb::V_watch;
         if (const auto* row = command_lookup(Slice("xreadgroup"))) result[row->id] = MultiVerb::V_xreadgroup;
+        if (const auto* row = command_lookup(Slice("pfcount"))) result[row->id] = MultiVerb::V_pfcount;
+        if (const auto* row = command_lookup(Slice("pfmerge"))) result[row->id] = MultiVerb::V_pfmerge;
         return result;
     }();
     return spec && spec->id < by_id.size() ? by_id[spec->id] : MultiVerb::Other;
@@ -814,7 +816,15 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     bool same = true;
     for (size_t i = 1; i < command.key_shards.size(); i++)
         same &= command.key_shards[i] == command.key_shards[0];
-    if (same) return MultiCommandKind::Local;
+    if (same) {
+        // The ordinary scatter dispatcher deliberately retains HLL gather/merge
+        // even on one shard. Its local handlers cannot perform these operations.
+        // Reuse that same lowering inside EXEC (including its transaction cut).
+        if (command.queued.verb == MultiVerb::V_pfmerge ||
+            (command.queued.verb == MultiVerb::V_pfcount && command.key_args.size() > 1))
+            return MultiCommandKind::Unsupported;
+        return MultiCommandKind::Local;
+    }
     if ((command.queued.verb == MultiVerb::V_mget)) return MultiCommandKind::Mget;
     if ((command.queued.verb == MultiVerb::V_mset)) return MultiCommandKind::Mset;
     if ((command.queued.verb == MultiVerb::V_msetnx)) return MultiCommandKind::Msetnx;
