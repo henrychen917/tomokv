@@ -98,6 +98,16 @@ not a lane interaction. `epoll-eof-decision.json` binds the source comparison,
 trial decision and controls. The parked-close and half-close issues remain
 unresolved release findings. Private diagnostic jobs add no public rows.
 
+The added netio EOF extension also exposes the stuck BRPOPLPUSH client in
+both modes. Its first placement aborted before section G; those two skipped
+section-G executions are recorded as **NOT RUN in that attempt**. The extension
+now follows the original battery and records every fresh case's failure without
+aborting later cases. `jobs/netio-final-all-cases.json` covers all four
+mode/engine combinations: all 37 base checks pass, and all 32 EOF cases run.
+Uring passes every case; epoll retains six failed EOF cases in 1s and five in
+2s. Both public netio rows remain red. `netio-final-all-cases.json` binds the
+complete counts and `netio-final-failures.json` preserves the earlier failure.
+
 Compile-only trial receipts retain 20 initial and 38 nearby compilations plus
 40 distinct linked selections. The best rejected trial preserved all ten
 GET/SET/MGET/MSET groups and all parser groups relative to the frozen merged
