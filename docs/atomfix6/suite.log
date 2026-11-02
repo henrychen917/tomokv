@@ -1,0 +1,4 @@
+lane-uring-default exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/lane-uring-default/gate.log
+{'group': 'lane', 'engine': 'uring', 'fused': False, 'rc': 0}
+lane-epoll-default exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/lane-epoll-default/gate.log
+{'group': 'lane', 'engine': 'epoll', 'fused': False, 'rc': 0}

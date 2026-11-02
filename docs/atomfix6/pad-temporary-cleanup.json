@@ -1,0 +1,1 @@
+{"path": "build/atomfix6/arms/pad-objects", "bytes": 688243440, "reason": "Renamed temporary objects are reproducible from retained PRE objects and pad-symbols.map; both linked arms remain."}

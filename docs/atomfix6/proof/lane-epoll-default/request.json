@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "74-86",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "74-81",
+    "--load-cores",
+    "82-86",
+    "--load-smt",
+    "",
+    "--server-smt",
+    "",
+    "--ports",
+    "21740-21749",
+    "--candidate-binary",
+    "/home/user/Projects/cx-atomfix6/build/tomokv"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "atomfix6_units atomfix6-live-1s-0-1 atomfix6-live-1s-0-16 atomfix6-live-1s-1-1 atomfix6-live-1s-1-16 atomfix6-live-2s-0-1 atomfix6-live-2s-0-16 atomfix6-live-2s-1-1 atomfix6-live-2s-1-16",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_TXN_FUSED": "0",
+    "GATE_LEDGER": "/home/user/Projects/cx-atomfix6/docs/atomfix6/proof/lane-epoll-default/ledger.tsv",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+    "GATE_DIFFER_ORACLE_CORES": "74-81"
+  }
+}

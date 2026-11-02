@@ -10,9 +10,9 @@ No throughput measurements or full iteration gate are authorized for this lane.
 
 | Item | PRE witness | POST result | Mechanism changed | Residual |
 |---|---|---|---|---|
-| AT5.1 / AT5.2 | Direct audit schedule: 8/8 torn reads and 8/8 lost winners in each namespace | 0/8 torn, 0/8 lost in each namespace; ASAN/UBSAN and TSAN pass | Reject prefix collapse if any retained decided lower-ticket occurrence overlaps a selected key | Live detector and full job proofs pending; owner signs off at landing |
-| S1-SURVEY-MSET8 | 256 held MSET8 tasks: eight passes, 8 polls, 2,019 parked-list visits, in both modes/namespaces | Eight passes, 64 head polls, zero follower scans; all 256 tasks remain held. Queue lifetime ASAN/UBSAN and TSAN pass | Per-connection park index / oldest-operation polling, bounded to the ordinary owner batch | Live and instruction-count proofs pending |
-| AT5.10 | Pending | Pending | Directed gate rows | EXPECT constants remain untouched |
+| AT5.1 / AT5.2 | Direct audit schedule: 8/8 torn reads and 8/8 lost winners in each namespace | 0/8 torn, 0/8 lost in each namespace; both sanitizers pass; final live matrix 0/22,735,280 torn MGETs | Reject prefix collapse if any retained decided lower-ticket occurrence overlaps a selected key | Broader job proofs in progress; MVCC owner signs off at landing |
+| S1-SURVEY-MSET8 | 256 held MSET8 tasks: eight passes, 8 polls, 2,019 parked-list visits, in both modes/namespaces | Eight passes, 64 head polls, zero follower scans; all 256 tasks remain held. Queue lifetime ASAN/UBSAN and TSAN pass | Per-connection park index / oldest-operation polling, bounded to the ordinary owner batch | Atomic-0 scopes unchanged; completed hot-cell performance remains maintainer-owned; AT5.3/AT5.4 unchanged |
+| AT5.10 | All 8 PRE live arms fail; direct collapse and park units fail | Both engines pass 21/21 directed gate rows, 16 live arms total; captures armed and restart values exact | 12 serverless + 8 live rows | DQ=+20, DF=+20; EXPECT constants untouched |
 | AT5.8 | Comments claimed atomic 0 was allocation-free | Claims now describe optional write groups, retained EXEC/script/read-cut machinery and winner preservation | `tomokv.conf`, `config.h` comments only | Base still implements live CONFIG SET atomic; this lane does not change that runtime policy |
 
 The record witness uses real FlatStore install, resolve and collapse methods.
@@ -98,8 +98,7 @@ The original live witness matrix (before the compiler-only budget correction)
 failed every PRE arm. Its POST matrix passed 8,601,504 MGETs, with zero torn pairs,
 zero at-rest tears and zero restart mismatches, including an armed capture/read
 window in every arm. `pre-live-results.json` and `post-live-results.json` retain
-all per-phase counts. A fresh two-engine matrix on the final release is pending
-in the selected gate sequence. Redis 7.4 also passes the same live detector;
+all per-phase counts. The final release also passes the fresh two-engine matrix below. Redis 7.4 also passes the same live detector;
 `docs/atomfix6/oracle/result.json` records its counts.
 
 Maintainer measurement request (NOT RUN by this lane): use the gate's own ABBA
@@ -160,3 +159,33 @@ tasks and calls the existing unpublished-group cancellation arm, which releases
 prepare-time owner completion pins. Its observed window and production behavior
 are unchanged. Final ASAN/UBSAN and TSAN parked-head rows pass in both modes;
 contended instruction receipts were regenerated after that fixture correction.
+
+Final-release live matrix, through `atomfix6-live-*` jobs (each row: steady,
+wide eight-shard MSET, BGSAVE, at-rest SAVE and restart). Every row has zero torn
+pairs in every phase, zero at-rest inconsistencies and zero restart mismatches.
+Capture reads count only replies sampled while capture progress was observed.
+
+| Engine | Mode | Read-local | Databases | MGETs | Capture-overlap MGETs | Torn / rest / restart |
+|---|---|---|---|---:|---:|---|
+| uring | 1s | 0 | 1 | 1,770,816 | 703,616 | 0 / 0 / 0 |
+| uring | 1s | 0 | 16 | 2,054,880 | 953,248 | 0 / 0 / 0 |
+| uring | 1s | 1 | 1 | 1,941,488 | 915,552 | 0 / 0 / 0 |
+| uring | 1s | 1 | 16 | 1,188,752 | 237,264 | 0 / 0 / 0 |
+| uring | 2s | 0 | 1 | 1,120,640 | 69,936 | 0 / 0 / 0 |
+| uring | 2s | 0 | 16 | 1,279,680 | 101,872 | 0 / 0 / 0 |
+| uring | 2s | 1 | 1 | 973,968 | 62,208 | 0 / 0 / 0 |
+| uring | 2s | 1 | 16 | 1,000,416 | 62,432 | 0 / 0 / 0 |
+| epoll | 1s | 0 | 1 | 1,673,856 | 534,144 | 0 / 0 / 0 |
+| epoll | 1s | 0 | 16 | 2,222,720 | 1,040,912 | 0 / 0 / 0 |
+| epoll | 1s | 1 | 1 | 1,213,584 | 243,392 | 0 / 0 / 0 |
+| epoll | 1s | 1 | 16 | 1,940,464 | 835,872 | 0 / 0 / 0 |
+| epoll | 2s | 0 | 1 | 1,149,024 | 128,464 | 0 / 0 / 0 |
+| epoll | 2s | 0 | 16 | 1,161,952 | 88,336 | 0 / 0 / 0 |
+| epoll | 2s | 1 | 1 | 1,031,152 | 70,176 | 0 / 0 / 0 |
+| epoll | 2s | 1 | 16 | 1,011,888 | 91,392 | 0 / 0 / 0 |
+
+`make -q` passes for all 55 primary targets in `job_production_units`, and
+for `make all`. The gate helper also built its mdbqsbr live controls and blockfix
+auxiliary targets. Target inventory and individual freshness results are in
+`docs/atomfix6/production-{targets.txt,freshness.json}`. The broader serverless
+job group passes 54/54 rows; detailed per-job ledgers are retained under `proof/`.
