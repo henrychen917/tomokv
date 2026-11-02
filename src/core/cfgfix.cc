@@ -47,11 +47,12 @@ bool notify_supervisor(const char* message) {
     const auto size = log_state.notify_socket.size();
     if (size >= sizeof(address.sun_path)) return false;
     std::memcpy(address.sun_path, log_state.notify_socket.c_str(), size + 1);
-    if (address.sun_path[0] == '@') address.sun_path[0] = 0;
+    const bool abstract = address.sun_path[0] == '@';
+    if (abstract) address.sun_path[0] = 0;
     const int fd = ::socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
     if (fd < 0) return false;
     const bool okay = ::sendto(fd, message, std::strlen(message), MSG_NOSIGNAL,
-        reinterpret_cast<sockaddr*>(&address), offsetof(sockaddr_un, sun_path) + size + 1) >= 0;
+        reinterpret_cast<sockaddr*>(&address), offsetof(sockaddr_un, sun_path) + size + !abstract) >= 0;
     ::close(fd);
     return okay;
 }

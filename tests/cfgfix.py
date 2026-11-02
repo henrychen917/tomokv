@@ -18,7 +18,11 @@ import _netfix as n
 @contextmanager
 def environment(**values):
     previous = {key: os.environ.get(key) for key in values}
-    os.environ.update(values)
+    for key, value in values.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
     try:
         yield
     finally:
@@ -78,6 +82,33 @@ void closelog(void) { record("closelog", "", 0); }
                 before = receipt.stat().st_size
                 assert isinstance(c.cmd('CONFIG', 'SET', 'port', a.port + 2), n._lib.RespError)
                 assert receipt.stat().st_size == before, 'filtered warning reached syslog'
+
+
+def supervisor_trial(a, mode, engine):
+    # The supplied Redis oracle lacks libsystemd. Verify the native notification
+    # protocol on private filesystem and abstract sockets, including their
+    # different sockaddr lengths. No host supervisor is contacted.
+    messages = {}
+    for abstract in (False, True):
+        short = Path('build/cfgfix') / f'notify-{os.getpid()}-{mode}-{engine}.sock'
+        address = '@cfgfix-' + str(os.getpid()) + '-' + mode + '-' + engine if abstract else str(short.resolve())
+        wire_address = '\0' + address[1:] if abstract else address
+        with closing(socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)) as receiver:
+            receiver.bind(wire_address)
+            receiver.settimeout(5)
+            try:
+                with environment(NOTIFY_SOCKET=address, UPSTART_JOB=None):
+                    with n.server(a, f'supervisor-{mode}-{engine}-{abstract}', mode=mode, engine=engine,
+                                  extra=('--supervised', 'auto')):
+                        lines = []
+                        while 'READY=1' not in lines:
+                            lines += receiver.recv(4096).decode().splitlines()
+                        assert any(line.startswith('STATUS=') for line in lines), lines
+                        messages[str(abstract)] = lines
+            finally:
+                if not abstract:
+                    short.unlink()
+    (a.output / f'supervisor-{mode}-{engine}.json').write_text(json.dumps(messages, indent=2))
 
 
 def plain(value):
@@ -156,6 +187,8 @@ def process_trial(a, mode, engine, oracle):
         assert os.waitstatus_to_exitcode(status) == 0, status
     assert not pidfile.exists(), 'daemon pidfile was not removed'
     syslog_trial(a, mode, engine, oracle)
+    if not oracle:
+        supervisor_trial(a, mode, engine)
 
 
 def test(a, port, certs, proc, oracle):
