@@ -311,8 +311,11 @@ for i in range(32):
                                if line.startswith('process_id:')))
             os.kill(stopped, signal.SIGSTOP)
             deadline = time.monotonic() + 2
-            while not all('\nState:\tT' in p.read_text()
-                          for p in Path(f'/proc/{stopped}/task').glob('*/status')):
+            while True:
+                threads = list(Path(f'/proc/{stopped}/task').glob('*/status'))
+                assert threads, 'server disappeared before the coalesced EOF window'
+                if all('\nState:\tT' in p.read_text() for p in threads):
+                    break
                 assert time.monotonic() < deadline, 'server threads did not stop'
                 time.sleep(.001)
         c.send_raw(request + request)

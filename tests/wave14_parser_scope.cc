@@ -143,7 +143,7 @@ struct CoreConcurrencyTest {
                         need(count<batch);tasks[count++]=task;
                     });
                     if constexpr(Fused) {
-                        if(local&&(command=="GET"||command=="MGET")) {
+                        if(local&&command=="GET") {
                             need(count==0);need(production_local_drain(&loops[io],batch)==batch);
                         } else need(count==batch);
                     } else need(count==batch);
@@ -160,7 +160,7 @@ struct CoreConcurrencyTest {
                 // In a traced run there is exactly one turn and one owner.
                 if(!parse)scope_begin();
                 if constexpr(Fused) {
-                    if(!(parse&&local&&(command=="GET"||command=="MGET")))production_fused(&loop,tasks,batch);
+                    if(!(parse&&local&&command=="GET"))production_fused(&loop,tasks,batch);
                 } else production_split(&loop,tasks,batch);
                 if(!parse)scope_end();
                 need(client.rob().drain([&](Op& op) {

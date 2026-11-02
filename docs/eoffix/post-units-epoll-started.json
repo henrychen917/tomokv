@@ -1,0 +1,35 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21939-21941",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/tomokv",
+  "native_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "launcher_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "engine": "epoll",
+  "jobs": "netcmd_units climonfix blockfix4 blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake aof_frame aoforder persistfix_units fused-0 fused-1 txn_group_fused txn_group_split tls netfix_tls wb_policy respresume-fragment-1s-epoll respresume-fragment-2s-epoll respresume-cpu-1s-epoll respresume-cpu-2s-epoll respresume-neighbour-1s-epoll respresume-neighbour-2s-epoll",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_SHUTDOWN_NET_IO": "epoll",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "netcmd_units climonfix blockfix4 blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake aof_frame aoforder persistfix_units fused-0 fused-1 txn_group_fused txn_group_split tls netfix_tls wb_policy respresume-fragment-1s-epoll respresume-fragment-2s-epoll respresume-cpu-1s-epoll respresume-cpu-2s-epoll respresume-neighbour-1s-epoll respresume-neighbour-2s-epoll",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/post-units-epoll"
+  }
+}

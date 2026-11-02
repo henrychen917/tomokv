@@ -27,6 +27,7 @@ def main():
     p.add_argument('--port', type=int, default=21900)
     p.add_argument('--repeat', type=int, default=1)
     p.add_argument('--capture', action='store_true')
+    p.add_argument('--keep-going', action='store_true')
     a = p.parse_args()
     assert os.sched_getaffinity(0) <= set(range(8))
     assert 21900 <= a.port <= 21997 and a.repeat >= 1
@@ -56,6 +57,7 @@ int main(int argc, char **argv) {
         subprocess.run(['cc', '-O2', str(source), '-o', str(binary)], check=True)
         env.update(WAVE14_TXNORDER_CAPTURE='1', WAVE14_TXNORDER_NATIVE=str(native))
     DOC.mkdir(parents=True, exist_ok=True)
+    failed = False
     for index in range(1, a.repeat + 1):
         tag = a.tag + (f'-{index:02d}' if a.repeat > 1 else '')
         receipt = DOC/(tag+'.json')
@@ -89,7 +91,10 @@ int main(int argc, char **argv) {
         receipt.write_text(json.dumps(record, indent=2)+'\n')
         print(tag, 'exit', result.returncode, 'captures', record.get('captures', []), flush=True)
         if result.returncode:
-            raise SystemExit(result.returncode)
+            failed = True
+            if not a.keep_going:
+                raise SystemExit(result.returncode)
+    raise SystemExit(int(failed))
 
 
 if __name__ == '__main__':

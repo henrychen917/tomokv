@@ -1,0 +1,62 @@
+[
+  {
+    "path": "build/eoffix/counts/scopes/pre-ordinary-normal",
+    "probe_sha256": "51bd6b9eb2ab8d28ae6485d01c611cf78353f34f50b88fcb36c31b747eea8151",
+    "reason": "All entered bodies bound; counts, raw traces, build recipe and binding retained. Retire transient probe objects to keep build below 15G."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/pre-ordinary-db0",
+    "probe_sha256": "c6dee33c7ca6d2ecf164e392b540acabf4bbc3855ff221819c64e1d3fc5aa126",
+    "reason": "All entered bodies bound; counts, raw traces, build recipe and binding retained. Retire transient probe objects to keep build below 15G."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-ordinary-normal",
+    "probe_sha256": "1ece4225a30b0c936c56b8e5f361f801fdf162bd31c2de1ce521974d7ff34093",
+    "reason": "All entered bodies bound; counts, raw traces, build recipe and binding retained. Retire transient probe objects to keep build below 15G."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-ordinary-db0",
+    "probe_sha256": "fc7b3ae11a67c7f24cada91641c1a751538a4fe722285f5a3eebe6ac453e6177",
+    "reason": "All entered bodies bound; counts, raw traces, build recipe and binding retained. Retire transient probe objects to keep build below 15G."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/pre-receive-normal",
+    "probe_sha256": "f216498078e6b180ef59a82d2c2afffaca50f87a07a686ae5ce1dedffe8b9e2f",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/pre-receive-db0",
+    "probe_sha256": "468dbc6605a97b769d0763f921654a2b752016afee5d0a1866560b12bc67549f",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-receive-normal",
+    "probe_sha256": "1fe6204d442bad941ad42401bc934c83fa5978e539e61a2e1b7d6e6f39ef74f7",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-receive-db0",
+    "probe_sha256": "a5dce17d5b62d19f1a958b5077a63316b60d9b2044476b3dd7b787c067a4109b",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/pre-parser-final-normal",
+    "probe_sha256": "c9f798ffc3ee84977fa88cddc345ab2694ffa4a67da2523dafec1a86e2458cc1",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/pre-parser-final-db0",
+    "probe_sha256": "8a971329c9ded7a67e6f393c991821fdb960cca6f5a328736652c59869843c86",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-parser-final-normal",
+    "probe_sha256": "20ef4ca77776ea8b33efb245c94fa2bc99e4d73402c63550b78bb7a0332b470e",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-parser-final-db0",
+    "probe_sha256": "78629fafbff9ecdfdc148949d96e3ac9464460e999380d9fbe2244091507b673",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  }
+]
