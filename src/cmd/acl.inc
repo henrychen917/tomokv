@@ -1293,11 +1293,11 @@ void acl_shutdown() {
     g_acl_server = nullptr;
 }
 
-void acl_update_default_requirepass(Server&, Slice password) {
+bool acl_update_default_requirepass(Server&, Slice password) {
     std::lock_guard<std::mutex> lock(g_acl_mu);
-    if (!g_acl_initialized) return;
+    if (!g_acl_initialized) return false;
     AclUser* user = acl_slot(kAclDefaultUser);
-    if (!user) return;
+    if (!user) return false;
     user->passwords.clear();
     if (password.empty()) user->flags |= AclUserNoPass;
     else {
@@ -1305,6 +1305,7 @@ void acl_update_default_requirepass(Server&, Slice password) {
         user->passwords.push_back(auth_password_digest(password));
     }
     acl_refresh_security_locked();
+    return g_acl_server != nullptr;
 }
 
 bool acl_authenticate(Slice username, Slice password, uint32_t& user_index) {

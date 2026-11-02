@@ -1,0 +1,48 @@
+{
+  "phase": "pre-auth",
+  "command": [
+    "taskset",
+    "-c",
+    "32-47",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "32-39",
+    "--load-cores",
+    "40-47",
+    "--load-smt",
+    "",
+    "--ports",
+    "21800-21899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-PRE"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "cfgfix2-auth",
+    "GATE_PROOF_NO_RATES": "1"
+  },
+  "binary": "/home/user/Projects/cx-cfgfix2/build/cfgfix2/arms/tomokv-PRE",
+  "binary_sha256": "81aa6c321760aa92568c9b4430b12274ab2ada92091e54a77d497d2293bcd329",
+  "returncode": 1,
+  "started": 1793600659.7733855,
+  "finished": 1793600694.3232765,
+  "run": "/home/user/Projects/cx-cfgfix2/build/gate-run.TtL1e9",
+  "log": "build/cfgfix2/gate-logs/pre-auth.log",
+  "log_sha256": "1530338c0dc3ab131b5cd66877ade0e0f44214f1372667529e1929c7689ba730",
+  "rows": [
+    {
+      "status": "ok",
+      "seconds": 0.0,
+      "label": "release build (+footprint locks)"
+    },
+    {
+      "status": "FAIL",
+      "seconds": 32.88,
+      "label": "cfgfix2 auth (oracle, both modes and engines)"
+    }
+  ],
+  "summary": {
+    "ok": 1,
+    "fail": 1
+  }
+}

@@ -310,9 +310,101 @@ def latency_case(a, mode, engine):
             for r in results]
 
 
+def auth_case(a, mode, engine):
+    """CC5.7: CONFIG SET requirepass must never open an unauthenticated window.
+
+    With the default user off, authentication is required whatever requirepass
+    says. One administrator toggles requirepass between "" and a password while
+    connector threads open fresh connections and send GET without AUTH. Every
+    reply must be NOAUTH, as on Redis.
+    """
+    results = []
+    toggles_wanted, seconds_wanted, connectors = 2000, 3.0, 6
+    for databases in (1, 16):
+        label = f'auth-{mode}-{engine}-db{databases}'
+        extra = ['--requirepass', 'cc57-boot', '--databases', str(databases)]
+        if mode != 'redis' and databases == 16:
+            extra += ['--read-local', '1', '--atomic', '1', '--reorder', '1']
+        result = dict(databases=databases, toggles=0, connections=0, noauth=0, admitted=0,
+                      other=0, first=None, errors=[])
+        with Server(a, label, mode, engine, extra=extra):
+            with closing(n.connect(a.port)) as admin:
+                admin.must('AUTH', 'cc57-boot')
+                admin.must('ACL', 'SETUSER', 'cc57-admin', 'on', '>cc57-admin', '~*', '&*', '+@all')
+                admin.must('AUTH', 'cc57-admin', 'cc57-admin')
+                admin.must('ACL', 'SETUSER', 'default', 'off')
+                with closing(n.connect(a.port)) as probe:
+                    assert str(probe.cmd('GET', 'cc57-key')).find('NOAUTH') >= 0
+                stop, ready = threading.Event(), threading.Barrier(connectors + 1)
+                lock = threading.Lock()
+
+                def toggle():
+                    try:
+                        ready.wait(10)
+                        began = time.monotonic()
+                        i = 0
+                        while i < toggles_wanted or time.monotonic() - began < seconds_wanted:
+                            i += 1
+                            admin.must('CONFIG', 'SET', 'requirepass', '' if i % 2 else 'cc57-pass')
+                            result['toggles'] = i
+                            if time.monotonic() - began > 60:
+                                break
+                    except BaseException as e:
+                        with lock:
+                            result['errors'].append('toggle: ' + type(e).__name__ + ': ' + str(e)[:200])
+                    finally:
+                        stop.set()
+
+                def connect():
+                    request = b'*2\r\n$3\r\nGET\r\n$8\r\ncc57-key\r\n'
+                    try:
+                        ready.wait(10)
+                        while not stop.is_set():
+                            with socket.create_connection(('127.0.0.1', a.port), timeout=5) as sock:
+                                sock.sendall(request)
+                                reply = b''
+                                while not reply.endswith(b'\r\n'):
+                                    chunk = sock.recv(256)
+                                    if not chunk:
+                                        break
+                                    reply += chunk
+                            with lock:
+                                result['connections'] += 1
+                                if reply.startswith(b'-NOAUTH'):
+                                    result['noauth'] += 1
+                                    continue
+                                if reply.startswith(b'$') or reply.startswith(b'_'):
+                                    result['admitted'] += 1
+                                else:
+                                    result['other'] += 1
+                                if result['first'] is None:
+                                    result['first'] = dict(reply=reply[:60].decode('ascii', 'replace'),
+                                                           after_toggles=result['toggles'])
+                    except BaseException as e:
+                        with lock:
+                            result['errors'].append('connect: ' + type(e).__name__ + ': ' + str(e)[:200])
+
+                workers = [threading.Thread(target=toggle)] + [
+                    threading.Thread(target=connect) for _ in range(connectors)]
+                for worker in workers:
+                    worker.start()
+                for worker in workers:
+                    worker.join(90)
+                assert not any(worker.is_alive() for worker in workers), result
+                admin.must('CONFIG', 'SET', 'requirepass', 'cc57-pass')
+                with closing(n.connect(a.port)) as probe:
+                    assert str(probe.cmd('GET', 'cc57-key')).find('NOAUTH') >= 0
+        results.append(result)
+    (a.output / f'auth-{mode}-{engine}-observations.json').write_text(json.dumps(results, indent=2))
+    assert all(r['toggles'] >= toggles_wanted and r['connections'] >= 1000 and not r['errors'] and
+               r['noauth'] == r['connections'] for r in results), results
+    return [dict(databases=r['databases'], toggles=r['toggles'], connections=r['connections'])
+            for r in results]
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--case', required=True, choices=['file', 'acl', 'latency'])
+    p.add_argument('--case', required=True, choices=['file', 'acl', 'latency', 'auth'])
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', required=True)
