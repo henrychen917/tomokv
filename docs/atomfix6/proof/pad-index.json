@@ -1,0 +1,12 @@
+[
+  {
+    "arm": "POST-layout",
+    "rc": 0,
+    "expected_rc": 0
+  },
+  {
+    "arm": "PAD-A",
+    "rc": 1,
+    "expected_rc": 1
+  }
+]

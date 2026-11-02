@@ -46,5 +46,17 @@
     "engine": "uring",
     "fused": false,
     "rc": 1
+  },
+  {
+    "group": "differ",
+    "engine": "uring",
+    "fused": false,
+    "rc": 0
+  },
+  {
+    "group": "differ",
+    "engine": "epoll",
+    "fused": false,
+    "rc": 0
   }
 ]

@@ -11,9 +11,18 @@ Earlier harness runs left `GATE_TEST_PORT` unset, so that one fixture used an
 ephemeral port; all actual TomoKV/Redis correctness servers used the assigned range.
 No throughput measurements or full iteration gate are authorized for this lane.
 
+The production fixes and directed witnesses are complete. The final release has
+zero torn pairs in **26,634,208 MGETs** across its 16 live matrix arms and 14
+original-auditor reruns, with exact frozen and restored values. All 40 requested
+atomic-0 instruction scopes are unchanged. Broader verification retains two
+unresolved criteria: FIFO maximum latency and baseline publication ordering;
+their PRE controls and exact failures are reported below. This is not a claim
+that the complete gate is green. Performance measurement and owner approval of
+the MVCC guard remain landing requirements.
+
 | Item | PRE witness | POST result | Mechanism changed | Residual |
 |---|---|---|---|---|
-| AT5.1 / AT5.2 | Direct audit schedule: 8/8 torn reads and 8/8 lost winners in each namespace | 0/8 torn, 0/8 lost in each namespace; both sanitizers pass; final live matrix 0/22,735,280 torn MGETs | Reject prefix collapse if any retained decided lower-ticket occurrence overlaps a selected key | Broader job proofs in progress; MVCC owner signs off at landing |
+| AT5.1 / AT5.2 | Direct audit schedule: 8/8 torn reads and 8/8 lost winners in each namespace | 0/8 torn, 0/8 lost in each namespace; both sanitizers pass; final live matrix 0/22,735,280 torn MGETs | Reject prefix collapse if any retained decided lower-ticket occurrence overlaps a selected key | FIFO latency / publication-order criteria remain red; MVCC owner signs off at landing |
 | S1-SURVEY-MSET8 | 256 held MSET8 tasks: eight passes, 8 polls, 2,019 parked-list visits, in both modes/namespaces | Eight passes, 64 head polls, zero follower scans; all 256 tasks remain held. Queue lifetime ASAN/UBSAN and TSAN pass | Per-connection park index / oldest-operation polling, bounded to the ordinary owner batch | Atomic-0 scopes unchanged; completed hot-cell performance remains maintainer-owned; AT5.3/AT5.4 unchanged |
 | AT5.10 | All 8 PRE live arms fail; direct collapse and park units fail | Both engines pass 21/21 directed gate rows, 16 live arms total; captures armed and restart values exact | 12 serverless + 8 live rows | DQ=+20, DF=+20; EXPECT constants untouched |
 | AT5.8 | Comments claimed atomic 0 was allocation-free | Claims now describe optional write groups, retained EXEC/script/read-cut machinery and winner preservation | `tomokv.conf`, `config.h` comments only | Base still implements live CONFIG SET atomic; this lane does not change that runtime policy |
@@ -153,6 +162,15 @@ implementation; do not substitute it for the ordinary release comparison.
 Full build commands, object digests and the five changed bytes are recorded in
 `docs/atomfix6/pad-a.json`.
 
+The common-image live controls ran through the same gate jobs, at read-local 0
+in 1s/DB1 and 2s/DB16. POST-layout passed both, with **0/3,407,312** torn reads,
+armed captures and exact frozen/restored values. PAD-A failed both on actual
+torn reads, **54,183/2,968,128** overall: 47,969 in 1s and 6,214 in 2s. Its 1s
+arm retained two torn pairs at rest and after SAVE/restart. Both PAD-A captures
+were observed; these are valid negative controls, not boot failures. Per-phase
+receipts are in `proof/pad-{POST-layout,PAD-A}/live-results.json`. These reads
+are separate from the ordinary release's 26,634,208-read total above.
+
 NOT RUN by authorization: full iteration, ABBA/performance measurements, the
 atomic throughput floor, the memtier-based `flip_saturated` job, and the original
 T01/T03 rate/perf load drivers. Also NOT RUN: `efficiency` (release timing/scaling
@@ -173,8 +191,9 @@ source hashes and exact arguments are retained with each audit result.
 
 Release `.text`: PRE 9,021,623 bytes; POST 9,027,287 bytes (+5,664).
 Both common-image arms have 18,048,551 bytes of `.text`. No PAD-B was built.
-The final gate harness tests pass 77/77 (396.099 s); the earlier 229.374 s
-run also passed. These are correctness runtimes, not throughput measurements.
+The final gate harness tests pass **77/77** (184.759 s), with their socket-pair
+fixture pinned to 21798. Earlier harness runs also passed and remain in the
+record. These are correctness runtimes, not throughput measurements.
 
 Completed auditor reruns: 14 POST detector invocations, 3,898,928 counted MGETs,
 zero torn pairs/errors, and twelve T17 rounds with 0/16 pairs differing at rest
@@ -215,10 +234,14 @@ Capture reads count only replies sampled while capture progress was observed.
 | epoll | 2s | 1 | 1 | 1,031,152 | 70,176 | 0 / 0 / 0 |
 | epoll | 2s | 1 | 16 | 1,011,888 | 91,392 | 0 / 0 / 0 |
 
-`make -q` passes for all 55 primary targets in `job_production_units`, and
-for `make all`. The gate helper also built its mdbqsbr live controls and blockfix
-auxiliary targets. Target inventory and individual freshness results are in
-`docs/atomfix6/production-{targets.txt,freshness.json}`. The broader serverless
+The final `make -j13 all` plus all 55 primary `job_production_units` targets
+passes. `make -q` passes for each, all ten atomfix6 Makefile units, and the blockfix,
+blockfix2 and complete-owner ASAN auxiliary targets. The final check driver passes
+**76/76 checks**, including the harness, builds, freshness, diff whitespace and
+all four delivered SHA-256 identities. Receipts are in
+`docs/atomfix6/final-checks/{results.json,*.log}`; the primary target inventory is
+`docs/atomfix6/production-targets.txt`. The gate helper also built its mdbqsbr
+live controls. The broader serverless
 job group passes 54/54 rows; detailed per-job ledgers are retained under `proof/`.
 
 All 18 AT412 jobs completed successfully in the broad atomic group, including
@@ -271,6 +294,10 @@ its address and file offset), section/symbol equality between twins, and the
 five-byte-only entry difference were all rechecked. The table above gives their
 final hashes; `compressed-pad-images.json` retains the uncompressed hashes and
 checks. This reduces disk use without changing their loaded image or behavior.
+The final harness launcher observed the first PAD result and started before the
+second control completed, so its early fixture checks briefly overlapped PAD-A.
+There was no concurrent performance measurement; all correctness receipts and
+both PAD outcomes are retained.
 
 The first expanded sanitizer attempt exposed a fixture link omission: DB0's
 scripting objects delegate Lua's process-wide implementation to the normal
@@ -315,15 +342,26 @@ eviction jobs, stationary LB in both modes, other FLIP jobs, read-local jobs and
 35 feature-matrix cells in this group pass.
 
 Supplemental blocking-MULTI, FLUSH notification, no-touch, AOF-load, MISCONF,
-database-default and witness-contract jobs pass 25/25 rows. The io_uring
-differential group passes 6/6 gate rows, including 235/239 split comparisons,
-230/234 armed-fused comparisons and 16 mode-equivalence comparisons. Its native
-seed inventory is 7,19,20,23,21. The armed-fused driver deliberately does not run
+database-default and witness-contract jobs pass 25/25 rows. Both io_uring and
+epoll differential groups pass 6/6 gate rows: each completes 235/239 split
+comparisons, 230/234 armed-fused comparisons and 16 mode-equivalence comparisons,
+for **954 per engine, 1,908 total**, with zero differences. The native seed
+inventories are 7,19,20,23,21 (uring) and 7,19,20,23,22 (epoll); the final seed
+rotates under the standard driver. The armed-fused driver deliberately does not run
 the SORT suite because that fixture requires split 6:2 geometry; both split arms
 run it. No custom differential seed or suite reduction was used.
 
-Completed passing persistence jobs retained about 2 GB of dump/AOF test data.
-Those generated data files were hashed and retired after job completion to keep
-`build/` near 14 GB; all logs, results, required binaries and source objects remain.
+Completed passing persistence jobs retained 3,793,840,850 bytes in 101 dump/AOF
+test payloads. Those generated data files were hashed and retired after job
+completion; all logs, results, required binaries and source objects remain.
 `retired-persistence-data.json` records the paths, sizes, hashes and passing job
 completion status for every removed payload.
+
+Large completed-test server logs and detailed FLIP result files are retained as
+gzip archives. All 98 files passed byte-for-byte round-trip verification, saving
+742,152,982 bytes; `archived-large-evidence.json` maps every original path to its
+archive and both hashes. Reconstructing the 82 compact FLIP receipts from those
+archives gives the identical SHA-256. No delivered binary changed. Final `build/`
+allocation is **14.930 GiB** (16,030,830,592 bytes). `final-state.json` records
+the unchanged EXPECT constants, no remaining worktree executables and no
+listeners on ports 21700-21799.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Collect completed lane receipts, retaining failures and exact count denominators."""
 import ast
+import gzip
 import json
 from pathlib import Path
 import re
@@ -50,8 +51,12 @@ for folder in sorted((DOC / 'proof').iterdir()):
                 for source in job.glob('*.log'):
                     shutil.copyfile(source, dest / source.name)
                 legs = []
-                for source in sorted(job.glob('*/results.json')):
-                    for row in json.loads(source.read_text()):
+                for source in sorted([*job.glob('*/results.json'),
+                                      *job.glob('*/results.json.gz')]):
+                    data = source.read_bytes()
+                    if source.suffix == '.gz':
+                        data = gzip.decompress(data)
+                    for row in json.loads(data):
                         result = row.get('result', {})
                         compact = dict(suite=source.parent.name, leg=row.get('leg'),
                             passed=row.get('pass', False), error=row.get('error'))

@@ -25,3 +25,13 @@ notify-fused exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/noti
 Retired completed-test payloads: 0 files, 0 bytes
 coverage-final exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/coverage-final/gate.log
 Retired completed-test payloads: 0 files, 0 bytes
+differ-uring-default exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/differ-uring-default/gate.log
+Retired completed-test payloads: 0 files, 0 bytes
+{'group': 'differ', 'engine': 'uring', 'fused': False, 'rc': 0}
+flipfix6-PRE-original exit 1 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/flipfix6-PRE-original/gate.log
+Retired completed-test payloads: 0 files, 0 bytes
+flipfix6-POST-topology exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/flipfix6-POST-topology/gate.log
+Retired completed-test payloads: 0 files, 0 bytes
+differ-epoll-default exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/differ-epoll-default/gate.log
+Retired completed-test payloads: 0 files, 0 bytes
+{'group': 'differ', 'engine': 'epoll', 'fused': False, 'rc': 0}
