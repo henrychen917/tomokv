@@ -2,3 +2,26 @@ lane-uring-default exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proo
 {'group': 'lane', 'engine': 'uring', 'fused': False, 'rc': 0}
 lane-epoll-default exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/lane-epoll-default/gate.log
 {'group': 'lane', 'engine': 'epoll', 'fused': False, 'rc': 0}
+atomic-uring-default exit 1 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/atomic-uring-default/gate.log
+{'group': 'atomic', 'engine': 'uring', 'fused': False, 'rc': 1}
+fifo-PRE-idle exit 1 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/fifo-PRE-idle/gate.log
+fifo-POST-idle exit 1 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/fifo-POST-idle/gate.log
+atomic-uring-fused exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/atomic-uring-fused/gate.log
+{'group': 'atomic', 'engine': 'uring', 'fused': True, 'rc': 0}
+unit debug compression: 157 objects, saved bytes 513418136
+PRE held-head witness: all eight mode/namespace/read-local arms fail as expected
+features-uring-default exit 1 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/features-uring-default/gate.log
+{'group': 'features', 'engine': 'uring', 'fused': False, 'rc': 1}
+expanded-units-final exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/expanded-units-final/gate.log
+persistence-uring-default exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/persistence-uring-default/gate.log
+{'group': 'persistence', 'engine': 'uring', 'fused': False, 'rc': 0}
+wave14-order-PRE exit 1 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/wave14-order-PRE/gate.log
+persistence-uring-fused exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/persistence-uring-fused/gate.log
+{'group': 'persistence', 'engine': 'uring', 'fused': True, 'rc': 0}
+placement-uring-default exit 1 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/placement-uring-default/gate.log
+Retired completed-test payloads: 0 files, 0 bytes
+{'group': 'placement', 'engine': 'uring', 'fused': False, 'rc': 1}
+notify-fused exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/notify-fused/gate.log
+Retired completed-test payloads: 0 files, 0 bytes
+coverage-final exit 0 log /home/user/Projects/cx-atomfix6/docs/atomfix6/proof/coverage-final/gate.log
+Retired completed-test payloads: 0 files, 0 bytes

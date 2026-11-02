@@ -222,6 +222,56 @@
     ]
   },
   {
+    "label": "coverage-final",
+    "rc": 0,
+    "passed": 25,
+    "failed": 0,
+    "failures": [],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.wV0h3B",
+    "jobs": [
+      {
+        "name": "blockfix2",
+        "completion": "0\t7\t0"
+      },
+      {
+        "name": "blockfix4",
+        "completion": "0\t5\t0"
+      },
+      {
+        "name": "datafix2_notouch",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "dbdefault",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "infofix_compat-loadaof",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "notifycompat",
+        "completion": "0\t7\t0"
+      },
+      {
+        "name": "production_units",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "rootcore-misconf",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "witness_contracts",
+        "completion": "0\t1\t0"
+      }
+    ]
+  },
+  {
     "label": "expanded-units-final",
     "rc": 0,
     "passed": 13,

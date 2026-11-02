@@ -1,0 +1,10 @@
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 scripts (all modes, read-local and atomic)
+  blockfix4 scripts (all modes, read-local and atomic) ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 moves (all modes, read-local and atomic)
+  blockfix4 moves (all modes, read-local and atomic)   ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 creators (all modes, read-local and atomic)
+  blockfix4 creators (all modes, read-local and atomic) ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 removed (all modes, read-local and atomic)
+  blockfix4 removed (all modes, read-local and atomic) ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix4 mpop (all modes, read-local and atomic)
+  blockfix4 mpop (all modes, read-local and atomic)    ok
