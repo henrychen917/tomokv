@@ -2,6 +2,7 @@
 """NT4.17 portable ROB: compile a throwaway missing-fence-clear control."""
 import os
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -19,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix="rob-portable-control-") as temporary:
     source.write_text('#ifdef __BMI__\n#error portable control unexpectedly enables BMI\n#endif\n'
                       + '#include "' + str(root / "tests/rlfence_unit.cc") + '"\n')
     binary = work / "unit"
-    subprocess.run([os.environ.get("CXX", "g++"), "-std=c++20", "-O2", "-pthread",
+    subprocess.run([*shlex.split(os.environ.get("CXX", "g++")), "-std=c++20", "-O2", "-pthread",
                     "-mno-bmi", "-mno-bmi2", "-I" + str(work), "-I" + str(root),
                     str(source), "-o", str(binary)], check=True, timeout=90)
     result = subprocess.run([str(binary)], capture_output=True, text=True, timeout=10)

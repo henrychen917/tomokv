@@ -345,3 +345,11 @@ permanent seeds 7/19/20/23 and rotating seed 21, all four seed-19 MULTI
 replays in each atomic-1 lifetime, and every equivalence cell. The gate's strict
 fold validates 490 split/equivalence and 464 armed comparisons. This is the
 selected-job proof, not a full-gate wall-time or landing receipt.
+
+The broad sweep exposed a test-only compiler-launch failure in `rob_portable`: its
+positive portable ROB unit passed, but the planted-control helper treated
+`g++ -gz=zlib` as one executable filename. The helper now tokenizes `CXX`
+with `shlex.split`, retaining direct argument execution. The same gate job
+passes on rerun, including the intended missing-fence-clear assertion failure
+(`jobs/portable-compiler-fixed.json`, two rows including release). The original
+broad-run row remains recorded as failed; this is not a production change.
