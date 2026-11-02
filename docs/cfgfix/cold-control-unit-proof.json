@@ -1,0 +1,21 @@
+{
+  "gate_job": "build/gate-run.Y9qgQ7/jobs/netcmd_units",
+  "verdict": "ok\t0.070000\tnetcmd config regression",
+  "binary": "build/netcmd-unit",
+  "binary_sha256": "14808917bde17271f575850ea13669c766decf5587be44e3a23d51e2ed8a0a1c",
+  "production_source_sha256": "b9ad785360435a8e164aff081dd82ffe3bce0ddc87f00c2dc990a5fb77a4f649",
+  "test_source_sha256": "9f9dcdc486693e3e68ba7fcd82b3d517e8554feb72b9d9c563087e69cb6fbfbc",
+  "checks": [
+    "18 production completion-filter cases retain UNIX/client/persistence CQEs while fencing replaced TCP/TLS accepts.",
+    "Zero load delay makes no nanosleep call.",
+    "Positive 1700001 microseconds requests one second plus 700001000 nanoseconds.",
+    "Negative -1 requests exactly four one-microsecond sleeps in four calls; it cannot pass when the delay mechanism is absent.",
+    "Negative -8 matches the Redis debugDelay seeded rand() sampling rule over 128 calls; fixture asserts both sleeping and non-sleeping outcomes."
+  ],
+  "logs": {
+    "build/gate-run.Y9qgQ7/jobs/netcmd_units/gate-netcmd-config.txt": {
+      "sha256": "b6c827134d2f58f8bbd65f57b8dfdd7631d18a8036f663fbdd127d1963f0f7ac",
+      "text": "ok: atomic fingerprint boot=0, three runtime toggles with active work\nok: atomic fingerprint boot=1, three runtime toggles with active work\nsignal wake 2s uring tls=0: nonwriter=1 late-drained=1 terminal=1\nsignal wake 2s uring tls=1: nonwriter=1 late-drained=1 terminal=1\nsignal wake 2s epoll tls=0: nonwriter=1 late-drained=1 terminal=1\nsignal wake 1s uring tls=0: nonwriter=1 late-drained=1 terminal=1\nsignal wake 1s uring tls=1: nonwriter=1 late-drained=1 terminal=1\nsignal wake 1s epoll tls=0: nonwriter=1 late-drained=1 terminal=1\nok: netcmd config\n"
+    }
+  }
+}
