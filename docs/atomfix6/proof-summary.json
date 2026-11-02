@@ -576,6 +576,120 @@
     ]
   },
   {
+    "label": "persistence-uring-default",
+    "rc": 0,
+    "passed": 228,
+    "failed": 0,
+    "failures": [],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.gVOpHR",
+    "jobs": [
+      {
+        "name": "aof-epoll",
+        "completion": "0\t54\t0"
+      },
+      {
+        "name": "aof-uring",
+        "completion": "0\t54\t0"
+      },
+      {
+        "name": "aof_frame",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "aoforder",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "climonfix",
+        "completion": "0\t7\t0"
+      },
+      {
+        "name": "dump_restore",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "flushfix2",
+        "completion": "0\t14\t0"
+      },
+      {
+        "name": "flushfix3",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "notify_aof",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "persistfix2_commands",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "persistfix2_errors",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "persistfix2_lastsave",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "persistfix2_shutdown",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "persistfix_units",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "persistfmt",
+        "completion": "0\t40\t0"
+      },
+      {
+        "name": "persistfmt_aof_error",
+        "completion": "0\t4\t0"
+      },
+      {
+        "name": "production_units",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "rootcore-waitaof",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "serverfix_waitaof",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "snapfix2_tables",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "snapfix_bgsave_exec",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "snapfix_bgsave_script",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "snapfix_shutdown",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "snapshot-epoll",
+        "completion": "0\t16\t0"
+      },
+      {
+        "name": "snapshot-uring",
+        "completion": "0\t16\t0"
+      }
+    ]
+  },
+  {
     "label": "units-final",
     "rc": 0,
     "passed": 54,
@@ -660,6 +774,26 @@
       {
         "name": "release",
         "completion": "0\t1\t0"
+      }
+    ]
+  },
+  {
+    "label": "wave14-order-PRE",
+    "rc": 1,
+    "passed": 1,
+    "failed": 1,
+    "failures": [
+      "wave14 script EXEC wake publication order"
+    ],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.L24rOJ",
+    "jobs": [
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "wave14_order",
+        "completion": "0\t0\t1"
       }
     ]
   }

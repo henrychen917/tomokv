@@ -103,4 +103,5 @@ with (out / 'gate.log').open('w') as log:
     result = subprocess.run(argv, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
 (out / 'exit.json').write_text(json.dumps(dict(rc=result.returncode)) + '\n')
 print(label, 'exit', result.returncode, 'log', out / 'gate.log', flush=True)
+subprocess.run(['taskset', '-c', '86', 'python3', 'tools/atomfix6_retire.py'], check=True)
 raise SystemExit(result.returncode)
