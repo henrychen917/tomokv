@@ -14,7 +14,7 @@ archive records the unchanged POST SHA-256 from `arms.sha256`.
 | Epoll regression | `gate-run.zTNT0e` | 195 | 0 | [ledger](gate-regression-epoll-delivery.ledger), [archive manifest](gate-regression-epoll-delivery-archive.json) |
 | Supplementary modes, upstream Tcl and feature matrix | `gate-run.O2arLe` | 82 | 0 | [ledger](gate-scope-uring-delivery.ledger), [archive manifest](gate-scope-uring-delivery-archive.json) |
 | Supplementary epoll modes and feature matrix | `gate-run.39Uwiy` | 69 | 0 | [ledger](gate-scope-epoll-delivery.ledger), [archive manifest](gate-scope-epoll-delivery-archive.json) |
-| Standard differential, io_uring | PENDING | — | — | — |
+| Standard differential, io_uring | `gate-run.xuUi4m` | 6 | 0 | [ledger](gate-differ-uring-delivery.ledger), [archive manifest](gate-differ-uring-delivery-archive.json) |
 | Standard differential, epoll | PENDING | — | — | — |
 
 The native regression failures were source/inventory expectations: writeback
@@ -46,7 +46,11 @@ compatibility also selects and verifies the engine. Other directed jobs retain
 their own declared leg matrices; the new FLIP rows cover the full sixteen-leg
 2s engine/read-local/atomic/database product.
 
-Differential details and final freshness/PAD-A receipts: PENDING.
+The io_uring standard differential plan passed 938 suite/seed legs and all 16
+mode-equivalence cells, using permanent seeds 7, 19, 20, 23 and rotating seed 21.
+Its four atomic-mode lifetimes and equivalence part each have a completion
+receipt; [differential summary](differential.json) retains the plan and coverage.
+Epoll differential, final freshness and PAD-A receipts: PENDING.
 
 NOT RUN: performance/ABBA/full iteration, the `flip_saturated` load generator,
 `atomic_floor`, and LMOVE size-ratio timing; these remain maintainer-owned.
