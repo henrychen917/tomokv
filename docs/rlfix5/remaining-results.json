@@ -79,5 +79,38 @@
     ],
     "exit_code": 0,
     "expected_exit": 0
+  },
+  {
+    "tag": "fused-epoll",
+    "command": [
+      "python3",
+      "tools/rlfix5_validate.py",
+      "fused-epoll",
+      "--jobs-file",
+      "/home/user/Projects/cx-rlfix5/docs/rlfix5/jobs-fused-extra.txt",
+      "--engine",
+      "epoll",
+      "--binary",
+      "/home/user/Projects/cx-rlfix5/build/rlfix5/POST",
+      "--fused"
+    ],
+    "exit_code": 0,
+    "expected_exit": 0
+  },
+  {
+    "tag": "pad-a-witness",
+    "command": [
+      "python3",
+      "tools/rlfix5_validate.py",
+      "pad-a-witness",
+      "--jobs-file",
+      "/home/user/Projects/cx-rlfix5/docs/rlfix5/jobs-ordering.txt",
+      "--engine",
+      "uring",
+      "--binary",
+      "/home/user/Projects/cx-rlfix5/build/rlfix5/PAD-A"
+    ],
+    "exit_code": 1,
+    "expected_exit": 1
   }
 ]
