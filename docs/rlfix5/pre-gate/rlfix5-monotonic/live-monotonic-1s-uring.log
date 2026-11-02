@@ -1,0 +1,11 @@
+STRLEN attempt 0 held-owner True replies (9, b'v1')
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix5/tests/rlfix5.py", line 165, in <module>
+    if a.case == "monotonic": monotonic(a.host, a.port, a.oracle)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-rlfix5/tests/rlfix5.py", line 101, in monotonic
+    expect(actual, (old_reply, get_reply))
+  File "/home/user/Projects/cx-rlfix5/tests/rlfix5.py", line 18, in expect
+    assert actual == wanted, (actual, wanted)
+           ^^^^^^^^^^^^^^^^
+AssertionError: ((9, b'v1'), (9, b'new-value'))

@@ -1,0 +1,5 @@
+FAIL rlfix5 fixture line 204
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+reply=$9
+new-value
+reply=+OK
