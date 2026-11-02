@@ -89,7 +89,7 @@ under ASAN/UBSAN and TSAN; these are assertions within those existing rows.
 **DQ=+20, DF=+20**. Maintainer-owned EXPECT_QUICK=1046 and EXPECT_FULL=1063
 are untouched; the new totals should be **1066 / 1083**. Collection is at
 `tests/gate.sh`'s `collect_job atomfix6_units` and following eight-arm loop,
-above `if [ "$TIER" = quick ]`. The gate planner now permits one unchanged
+at lines 6549-6552, above the quick-tier exit at line 6893. The gate planner now permits one unchanged
 8-server/2-load slot for selected correctness jobs on this 13-core allocation;
 complete/performance gates retain their 16-core minimum. Its positive and
 negative planner tests and `tests/gates_test.py` cover that distinction.
@@ -140,3 +140,23 @@ source hashes and exact arguments are retained with each audit result.
 | POST | `build/tomokv` | `a0c8b0d8678e7732bcef579972b35dbb1071ddfdb2e741900d3f4892918d421c` |
 | POST-layout | `build/atomfix6/arms/POST-layout` | `01323b988cb78b98b7e2df8d6ecb3895c3ca7e65d8e1e386a188178dc0db7894` |
 | PAD-A | `build/atomfix6/arms/PAD-A` | `34e210d11f7fbad4667578523b8e7e5692975d6567f3d5a0b0b9c1b4a23df557` |
+
+Release `.text`: PRE 9,021,623 bytes; POST 9,027,287 bytes (+5,664).
+Both common-image arms have 18,048,551 bytes of `.text`. No PAD-B was built.
+The final gate harness tests pass 77/77 (396.099 s); the earlier 229.374 s
+run also passed. These are correctness runtimes, not throughput measurements.
+
+Completed auditor reruns: 14 POST detector invocations, 3,898,928 counted MGETs,
+zero torn pairs/errors, and twelve T17 rounds with 0/16 pairs differing at rest
+in every round and pending records draining to zero. Native T17 prints no MGET
+denominator, so its rounds are not included in that read total. T16 restored both
+dumps with 0/16 inconsistent pairs. T15's capture phases had 0/31,872 (1s) and
+0/23,328 (2s) torn reads, with capture samples observed in both. Exact per-case
+counts are in `docs/atomfix6/audit/counts.json` and the original result logs.
+
+The complete-owner ASAN run found a fixture teardown leak from calling destroy
+on prepared-but-never-executed scatter states. The fixture now removes all held
+tasks and calls the existing unpublished-group cancellation arm, which releases
+prepare-time owner completion pins. Its observed window and production behavior
+are unchanged. Final ASAN/UBSAN and TSAN parked-head rows pass in both modes;
+contended instruction receipts were regenerated after that fixture correction.

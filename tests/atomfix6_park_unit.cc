@@ -87,7 +87,10 @@ struct CoreConcurrencyTest {
         while (!loop->atomic_deferred_.empty()) loop->atomic_deferred_.pop_front();
         for (auto& epoch : epochs) epoch.store(1, std::memory_order_release);
         server.shard(0).store().atomic_shutdown_release_records();
-        for (auto* state : states) xshard_destroy(state, pool, 0);
+        // Every fixture task remained held and has now been removed; none was
+        // published to an owner inbox or installed a record. Release prepare's
+        // owner-completion sentinels through the production cancellation arm.
+        for (auto* state : states) xshard_abandon_unpublished(state, pool, 0);
         pool.reap_deferred();
         command_bind_server(nullptr);
         std::printf("atomfix6 park mode=%s namespace=%s tasks=%u passes=%u polls=%llu scans=%llu\n",

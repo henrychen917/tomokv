@@ -1,0 +1,16 @@
+
+=================================================================
+==1123382==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 4194304 byte(s) in 256 object(s) allocated from:
+    #0 0x71accb0fcf1d in posix_memalign ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+    #1 0x708e7b in tomo::ScatterArenaPool::acquire(unsigned long, bool&) src/cmd/scatter_engine.inc:1589
+    #2 0x9f47bd in tomo::ScatterPrepare tomo::xshard_prepare_body<false>(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) src/cmd/scatter_engine.inc:2085
+    #3 0x9f47bd in tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) src/cmd/scatter_engine.inc:2295
+    #4 0x65b88d in bool tomo::CoreConcurrencyTest::run<true>() (/home/user/Projects/cx-atomfix6/build/atomfix6-park-asan+0x65b88d) (BuildId: bc4cf5541b2e3478e8ede4fb7b47dcacaa89fede)
+    #5 0x40d5fd in main tests/atomfix6_park_unit.cc:102
+    #6 0x71acc9a2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x71acc9a2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x40d104 in _start (/home/user/Projects/cx-atomfix6/build/atomfix6-park-asan+0x40d104) (BuildId: bc4cf5541b2e3478e8ede4fb7b47dcacaa89fede)
+
+SUMMARY: AddressSanitizer: 4194304 byte(s) leaked in 256 allocation(s).

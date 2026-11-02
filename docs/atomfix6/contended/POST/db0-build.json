@@ -24,6 +24,7 @@
   ],
   "link": [
     "g++",
+    "-Wl,--compress-debug-sections=zlib",
     "-std=c++20",
     "-O2",
     "-g",
@@ -166,7 +167,7 @@
     "-lm",
     "/home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/POST-db0/probe.o"
   ],
-  "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+  "probe_sha256": "e84ed5482d2f00b49996560a45b18f381ef43273dd6fe7be666732122f07fd40",
   "server_sha256": "a0c8b0d8678e7732bcef579972b35dbb1071ddfdb2e741900d3f4892918d421c",
-  "fixture_sha256": "111c125e465d49e6636f5e44f8b3fd4067d67642da8214a756494380eaf3db43"
+  "fixture_sha256": "4461ca850bcacc21ca8bbb776bf43ee1ce3be5fd76f6711b869af1e6d043e729"
 }

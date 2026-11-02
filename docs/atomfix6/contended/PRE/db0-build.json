@@ -24,6 +24,7 @@
   ],
   "link": [
     "g++",
+    "-Wl,--compress-debug-sections=zlib",
     "-std=c++20",
     "-O2",
     "-g",
@@ -166,7 +167,7 @@
     "-lm",
     "/home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/PRE-db0/probe.o"
   ],
-  "probe_sha256": "d71d26e6c9a36019069b79e48132b052ba378bb2d6612db3b6c41720b8730248",
+  "probe_sha256": "f0d7177ba4d92357f3d0682c97d031e186301276812843d19b59620108338f5b",
   "server_sha256": "b09a48348a2f8483f4cf53a07801483edf4962853ee031310b9839da9dfc91ae",
-  "fixture_sha256": "111c125e465d49e6636f5e44f8b3fd4067d67642da8214a756494380eaf3db43"
+  "fixture_sha256": "4461ca850bcacc21ca8bbb776bf43ee1ce3be5fd76f6711b869af1e6d043e729"
 }

@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GROUPS = {
     'lane': ['atomfix6_units'] + [f'atomfix6-live-{m}-{r}-{d}'
         for m in ('1s', '2s') for r in (0, 1) for d in (1, 16)],
+    'pad': ['atomfix6-live-1s-0-1', 'atomfix6-live-2s-0-16'],
     'units': '''atomic_units core_units exbatch_units splitlocal_units lbplanner_units
         flip_unit flipfix_units flipfix5_units flipfix6_units flushfix2_units flushfix3_units'''.split(),
     'atomic': '''atomic_batteries atomic_floor atomfix5_watch atomfix5_accounting
@@ -39,6 +40,7 @@ p.add_argument('group', choices=GROUPS)
 p.add_argument('--engine', choices=['uring', 'epoll'], default='uring')
 p.add_argument('--fused', action='store_true')
 p.add_argument('--label', default='')
+p.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
 a = p.parse_args()
 assert set(os.sched_getaffinity(0)) <= set(range(74, 87))
 label = a.label or f'{a.group}-{a.engine}-' + ('fused' if a.fused else 'default')
@@ -55,7 +57,7 @@ env = dict(os.environ, LC_ALL='C', GATE_PROOF_NO_RATES='1',
            GATE_DIFFER_ORACLE_CORES='74-81')
 argv = ['taskset', '-c', '74-86', 'tests/gate.sh', 'full', '--server-cores', '74-81',
         '--load-cores', '82-86', '--load-smt', '', '--server-smt', '',
-        '--ports', '21740-21749', '--candidate-binary', str(ROOT / 'build/tomokv')]
+        '--ports', '21740-21749', '--candidate-binary', str(a.binary.resolve())]
 (out / 'request.json').write_text(json.dumps(dict(argv=argv,
     env={k: v for k, v in env.items() if k.startswith(('GATE_', 'REDIS74_', 'LC_ALL'))}), indent=2) + '\n')
 with (out / 'gate.log').open('w') as log:
