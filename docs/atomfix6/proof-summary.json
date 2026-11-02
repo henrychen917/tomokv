@@ -188,6 +188,40 @@
     ]
   },
   {
+    "label": "atomic-uring-fused",
+    "rc": 0,
+    "passed": 45,
+    "failed": 0,
+    "failures": [],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.fHX6Jz",
+    "jobs": [
+      {
+        "name": "atomic_batteries",
+        "completion": "0\t4\t0"
+      },
+      {
+        "name": "debug-0",
+        "completion": "0\t16\t0"
+      },
+      {
+        "name": "debug-1",
+        "completion": "0\t16\t0"
+      },
+      {
+        "name": "production_units",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "release_batteries",
+        "completion": "0\t8\t0"
+      }
+    ]
+  },
+  {
     "label": "fifo-POST-idle",
     "rc": 1,
     "passed": 1,

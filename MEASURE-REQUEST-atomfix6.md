@@ -234,3 +234,13 @@ The broad atomic group completed 133 passing rows and one failed FIFO latency
 row. This includes all 18 AT412 jobs, the atomic/torn/RYOW/owner-hazard batteries,
 both group modes, execfair, exec1s, FIFO units and all other transaction-order
 jobs. The isolated PRE/POST FIFO controls above retain that residual explicitly.
+
+The separate fused atomic group passes 45/45 rows. After expanding the parked-head
+fixture, `tests/gates_test.py` again passes 77/77 (185.025 s). The expanded PRE
+fixture fails as required in all eight mode / namespace / read-local combinations;
+each observes 8 polls and 2,019 scans over eight owner passes with 256 tasks held.
+Its logs and binary hashes are in `park-pre-expanded/`.
+
+A second debug-only compression pass covered 157 generated unit/sanitizer objects
+and saved 513,418,136 bytes. Allocated sections and modification timestamps stayed
+identical; `compressed-unit-objects.json` records every before/after digest.
