@@ -41,6 +41,7 @@ def main():
                            post=r['total'], delta=r['total']-old[key(r)]['total']) for r in rows]
         scope.save(scope.DOC / 'comparison.json', comparison)
         print('Nonzero deltas:', [r for r in comparison if r['delta']], flush=True)
+        assert len(comparison) == 80 and not any(r['delta'] for r in comparison), comparison
 
 
 if __name__ == '__main__':

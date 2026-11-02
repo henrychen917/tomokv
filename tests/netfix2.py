@@ -27,6 +27,7 @@ def arguments():
     p = argparse.ArgumentParser()
     p.add_argument('--case', choices=('tls-watch', 'exclusive', 'fds', 'tls-idle', 'boot', 'tcl-fds'), required=True)
     p.add_argument('--mode', choices=('1s', '2s'))
+    p.add_argument('--reorder', type=int, choices=(0, 1), default=0)
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', required=True)
@@ -82,7 +83,7 @@ def argv(a, directory, mode, engine, db, extra, oracle=False):
            '--appendonly', 'no', '--dir', str(directory)]
     if not oracle:
         cmd += ['--thread-mode', mode, '--net-io', engine, '--shards', '16',
-                '--databases', str(db), '--client-lb', '0']
+                '--databases', str(db), '--client-lb', '0', '--reorder', str(a.reorder)]
         if mode == '2s':
             cmd += ['--ratio', a.ratio]
     return cmd + list(extra)
@@ -128,6 +129,13 @@ def ready(a, p):
         except OSError:
             time.sleep(.03)
     raise AssertionError('boot deadline expired')
+
+
+def ready_banner(p):
+    end = time.monotonic() + 20
+    while 'listening on' not in p.logpath.read_text():
+        assert p.poll() is None and time.monotonic() < end
+        time.sleep(.001)
 
 
 def tls_watch(a, label, mode, engine, db):
@@ -179,8 +187,12 @@ def exclusive(a, label, mode, engine, db):
                     raise AssertionError(f'second {transport} server booted on occupied endpoint')
                 log = second.logpath.read_text()
                 assert rc == 1 and 'Address already in use' in log, (rc, log)
+                if transport != 'unix':
+                    assert 'Could not create server TCP listening socket ' in log, log
                 assert 'listening on' not in log and 'listening with TLS' not in log, log
-            with closing(n.connect(a.port, unix=path if transport == 'unix' else None)) as c:
+            live = connect(a, '3') if transport == 'tls' else n.connect(
+                a.port, unix=path if transport == 'unix' else None)
+            with closing(live) as c:
                 assert c.must('SET', 'isolation', 'first') == b'OK'
                 assert c.must('GET', 'isolation') == b'first'
         assert first.returncode == 0
@@ -289,28 +301,42 @@ def tls_idle(a, label, mode, engine, db):
                 pings += 1
                 time.sleep(.1)
             assert pings >= 20
-        # Exact plaintext byte accounting: INFO's own input is included, its
-        # output follows the snapshot. Subtract the actual preceding wire reply,
-        # not an estimate from another INFO (whose length can change).
-        with closing(connect(a)) as admin:
-            for version in (None, '3', '2', 'bio'):
-                fallback = int(info(admin)[b'tls_ktls_fallback'])
-                with closing(connect(a, version)) as c:
-                    assert c.must('PING') == b'PONG'
-                    if version == 'bio':
-                        assert int(info(admin)[b'tls_ktls_fallback']) > fallback, 'memory-BIO fallback never armed'
-                    before_body = admin.must('INFO', 'stats')
-                    before = dict(l.split(b':', 1) for l in before_body.splitlines() if b':' in l)
-                    payload = b'q' * 10000
-                    for _ in range(10):
-                        assert c.must('ECHO', payload) == payload
-                    after = info(admin)
-                    incoming = int(after[b'total_net_input_bytes']) - int(before[b'total_net_input_bytes'])
-                    outgoing = int(after[b'total_net_output_bytes']) - int(before[b'total_net_output_bytes'])
-                    assert incoming == 10 * len(_lib.encode('ECHO', payload)) + len(_lib.encode('INFO', 'stats')), (version, incoming)
-                    expected = 10 * 10010 + len(before_body) + len(str(len(before_body))) + 5
-                    assert outgoing == expected, (version, outgoing, expected)
     assert p.returncode == 0
+    # Fresh servers make every application byte known. Receiving a PONG does
+    # not prove its send CQE was accounted on another IO owner; a subtractive
+    # baseline can therefore include a late warm-up reply. Account absolutely
+    # from boot, including every INFO reply, and require exact convergence.
+    for version in (None, '3', '2', 'bio'):
+        with process(a, label + '-bytes-' + str(version), mode, engine, db, tls_args(a)) as p:
+            ready_banner(p)  # no readiness PING or untracked application bytes
+            with closing(connect(a)) as admin, closing(connect(a, version)) as c:
+                payload = b'q' * 10000
+                incoming = outgoing = 0
+                for _ in range(10):
+                    assert c.must('ECHO', payload) == payload
+                    incoming += len(_lib.encode('ECHO', payload))
+                    outgoing += 10010
+                end = time.monotonic() + 3
+                while True:
+                    body = admin.must('INFO', 'stats')
+                    counters = dict(l.split(b':', 1) for l in body.splitlines() if b':' in l)
+                    incoming += len(_lib.encode('INFO', 'stats'))
+                    actual_in = int(counters[b'total_net_input_bytes'])
+                    actual_out = int(counters[b'total_net_output_bytes'])
+                    assert actual_in <= incoming and actual_out <= outgoing, (
+                        version, actual_in, incoming, actual_out, outgoing)
+                    matched = actual_in == incoming and actual_out == outgoing
+                    outgoing += len(body) + len(str(len(body))) + 5
+                    if matched:
+                        break
+                    assert time.monotonic() < end, ('byte counters never converged', version,
+                                                   actual_in, incoming, actual_out, outgoing)
+                    time.sleep(.01)
+                if version == '2':
+                    assert int(counters[b'tls_ktls_active']) == 1, 'kTLS byte arm never armed'
+                if version == 'bio':
+                    assert int(counters[b'tls_ktls_fallback']) == 1, 'memory-BIO byte arm never armed'
+        assert p.returncode == 0
     return dict(busy_tls13_pings=pings, exact_byte_paths=4)
 
 
@@ -344,10 +370,7 @@ def boot(a, label, mode, engine, db):
     # Poll log bytes and connect immediately on the banner (auditor T03/T08).
     for attempt in range(5):
         with process(a, f'{label}-ready-{attempt}', mode, engine, db) as p:
-            end = time.monotonic() + 20
-            while 'listening on' not in p.logpath.read_text():
-                assert p.poll() is None and time.monotonic() < end
-                time.sleep(.001)
+            ready_banner(p)
             with closing(connect(a)) as c:
                 assert c.must('PING') == b'PONG'
         assert p.returncode == 0

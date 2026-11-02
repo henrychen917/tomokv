@@ -2422,10 +2422,13 @@ unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate
 
 job_netfix2(){
   local case=${1#netfix2-} label="netfix2 ${1#netfix2-}"
+  local reordered=()
+  [ "${GATE_NETFIX2_REORDER:-0}" != 1 ] || reordered=(--mode 1s --reorder 1)
   row_begin "$label"
   py tests/netfix2.py --case "$case" --binary "$CANDIDATE_BINARY" \
       --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
       --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      "${reordered[@]}" \
       >"$TMPDIR/proof.log" 2>&1 \
     && ok "$label" || bad "$label" "see $TMPDIR/proof.log"
 }

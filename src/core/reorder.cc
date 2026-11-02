@@ -1579,6 +1579,10 @@ bool IoLoop::r7_drive_tls(Client* c) {
             // Only decrypted bytes enter the RESP buffer. Ciphertext counts are committed to
             // the BIO in on_tls_recv and can never reach this cursor.
             c->commit_read(result.bytes);
+            self_->sig().net_input_bytes.store(
+                self_->sig().net_input_bytes.load(std::memory_order_relaxed) + result.bytes,
+                std::memory_order_relaxed);
+            c->set_last_interaction_s(cached_now_s_);
             if (query_buffer_exceeded(*c)) { close_client(c); return false; }
             self_->sig().tls_plaintext_input_bytes += result.bytes;
             decrypted = true;
@@ -1631,6 +1635,11 @@ uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
         const int fd = ::accept4(listener, nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC);
         if (fd < 0) {
             if (errno == EINTR) continue;
+            if (errno == EMFILE || errno == ENFILE) {
+                self_->sig().accept_err++;
+                backoff_accept(kind);
+                return taken;
+            }
             if (errno != EAGAIN && errno != EWOULDBLOCK) self_->sig().accept_err++;
             return taken;
         }
@@ -1733,6 +1742,11 @@ void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
         // Do not swallow this silently: a failing accept with no trace is indistinguishable from
         // a hung server, which is exactly how the 1024-connection failure presented.
         self_->sig().accept_err++;
+        if (cqe->res == -EMFILE || cqe->res == -ENFILE) {
+            accept_armed_ref(kind) = false;
+            backoff_accept(kind);
+            return;
+        }
         rearm_accept(cqe, kind);
         return;
     }
@@ -1908,7 +1922,6 @@ template <bool kEp, bool Fused>
 void IoLoop::r7_on_tls_recv(Client* c, int res) {
     TOMO_R7_PATH();
     c->set_recv_armed(false);
-    if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
     TlsConn* tls = tls_engine(c);
     if (!tls) { close_client(c); return; }
     if (c->dead()) { tls->abandon_input(); return; }
@@ -3199,9 +3212,9 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
         return 0;
     }
 
-    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, IoLoop::make_reuseport_listener);
+    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener);
     const bool tls_port_ok = port_ok &&
-        probe_boot_listener(cfg, cfg.tls_port, true, IoLoop::make_reuseport_listener);
+        probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener);
     if (!port_ok || !tls_port_ok) {
         std::perror(port_ok ? "bind tls-port" : "bind");
         stop_workers();
