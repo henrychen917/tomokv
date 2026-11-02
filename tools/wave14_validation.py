@@ -38,6 +38,9 @@ def phase(name, verify):
     requested = start['env']['GATE_ONLY_JOBS'].split()
     finished = base / (name + '.json')
     record = json.loads(finished.read_text()) if finished.exists() else None
+    superseded_path = DOC/'superseded-sweeps.json'
+    superseded = next((row for row in json.loads(superseded_path.read_text())
+                       if row['tag'] == name), None) if superseded_path.exists() else None
     if record:
         assert record['binary_sha256'] == start['binary_sha256']
         if verify:
@@ -62,7 +65,8 @@ def phase(name, verify):
                          cleanup_proven_by_zero_exit=(True if rc == 0 else None), rows=rows))
     completed = {j['job'] for j in jobs}
     active = [p.name for p in (root / 'claimed').iterdir() if p.name not in completed]
-    return dict(tag=name, state='COMPLETE' if record else 'RUNNING',
+    return dict(tag=name, state=('SUPERSEDED' if superseded else 'COMPLETE') if record else 'RUNNING',
+        superseded_reason=superseded['reason'] if superseded else None,
         binary_sha256=start['binary_sha256'], run_directory=str(root),
         requested=requested, unfinished=[n for n in requested if n not in completed],
         active=active, jobs=jobs, failed_jobs=[j['job'] for j in jobs if j['exit_code'] or j['failed']],

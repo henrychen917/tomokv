@@ -2,15 +2,15 @@
 
 ## wave14 integration
 
-**Late validation correction in progress:** the broad sweep caught a stale R7
+**Late validation correction:** the broad sweep caught a stale R7
 generated owner envelope. Clientcompat changed the ordinary owner's LB freeze
 condition to `ExDrain` so TRACKING acknowledgements can progress during
 `IoDrain`, but its generated R7 copy still froze during both stages. The copy
-is now regenerated from the ordinary owner; the existing parity row has a
-directed stale-condition negative control. The earlier frozen-arm receipts
-below remain historical until the replacement binary, identity/budget checks,
-instruction binding and correctness jobs finish. No EXPECT or public row
-count changes accompany this correction.
+is now regenerated from the ordinary owner. Both the source parity check and
+the actual owner fixture reject the old condition. The new release is frozen
+at `a0e4d122e8`; complete selected correctness sweeps are running again.
+Earlier receipts remain historical, including the explicitly interrupted
+superseded sweeps. No EXPECT or public row count changes accompany this fix.
 
 Integrated on `cx-wave14`, based on `105c5818cc`. No push. All six
 lane reports were read before integration. Merge order: witnessfix, rootcore,
@@ -102,10 +102,11 @@ or Redis pass is claimed. `order-all-lanes-comparison.json` includes every arm's
 exact sequence and all unmatched cases; `jobs/order-matched-all-*.json` binds
 the complete controls. The earlier single-geometry red receipts remain too.
 
-The final EXEC-enrolled diagnostic also runs all sixteen geometries:
-**144/144 replies pass, 0/144 event/invalidation sequences pass, and 68/144
-slowlog sequences pass** against Redis. `jobs/wake-order-final.json` retains
-that separate fixture and its oracle. These red diagnostics are not promoted,
+The corrected release's EXEC-enrolled diagnostic also runs all sixteen geometries:
+**144/144 replies pass, 0/144 event/invalidation sequences pass, and 70/144
+slowlog sequences pass** against Redis. `jobs/wake-order-r7.json` retains
+that fixture and its oracle; the earlier arm passed 68 slowlog sequences.
+These red diagnostics are not promoted,
 tolerated as Redis passes, or hidden in a green gate row.
 
 ### Initial command census and budget criterion
@@ -122,6 +123,14 @@ and rejected counts are retained, not presented as the integration cost proof.
 
 ### Other semantic interactions
 
+- The generated R7 owner now inherits clientcompat's `ExDrain`-only LB freeze.
+  An actual owner fixture arms an unacknowledged TRACKING publication, requires
+  progress during `IoDrain`, requires the later publication to remain frozen
+  during `ExDrain`, and checks completion in `Idle`, with read-local off/on in
+  both namespaces. Replacing only the generated owner object with its old
+  version fails exactly at the IO-drain receipt assertion. Source parity,
+  runtime engagement, split-local checks and writeback controls pass afterward.
+  The correction changes six R7 function groups and zero ordinary groups.
 - `post_client` and `post_client_transfer` both publish the queue entry, execute
   the rootcore sequentially consistent fence, then set the notification mask.
   flipfix6's transfer still moves session ownership through the same queue. The
@@ -154,12 +163,13 @@ and rejected counts are retained, not presented as the integration cost proof.
 ### Tcl reconciliation and negative control
 
 All 22 touched named assertions were attempted three times in each mode
-(132 isolated attempts). `docs/wave14/tcl-final-audit.md` lists every final-binary result and the
+on the corrected release (132 isolated attempts). `docs/wave14/tcl-r7-audit.md` lists every result and the
 exact reason for retaining a skip. Existing lane promotions all passed six
 attempts. No guard-only promotion is restored merely because six attempts
 happened to pass. Intermittent and consistently failing assertions remain named
-skips. Original run receipts, including failures, are preserved. The earlier 132
-pre-budget attempts are retained separately. The final manifest requires 1876
+skips. Original run receipts, including failures, are preserved. The earlier
+pre-budget and pre-R7-correction sets of 132 attempts are retained separately.
+The final manifest requires 1876
 assertion occurrences and has 213 named skips, versus 1878/211 on headline:
 three lane promotions and five witnessfix/rootcompat retirements. See
 `tcl-manifest-reconcile.json`.
@@ -167,8 +177,8 @@ three lane promotions and five witnessfix/rootcompat retirements. See
 The normal Tcl gate job rejects a throwaway binary that discards CLIENT's
 subcommand name. Both modes fail the unchanged upstream `CLIENT LIST with IDs`
 assertion: actual `cmd=client`, required `cmd=client|list`. This is an assertion
-failure, not a timeout or missing window. See `tcl-planted-final-witness.json` and
-`tcl-regression-final-build.json`; the control was rebuilt from final objects. The first invocation was rejected by the gate's
+failure, not a timeout or missing window. See `tcl-planted-r7-witness.json` and
+`tcl-regression-r7-build.json`; the control was rebuilt from final objects. The first historical invocation was rejected by the gate's
 16-physical-core resource preflight and booted nothing; the valid invocation
 uses 16 of the authorized cores.
 
@@ -179,14 +189,18 @@ then 232 nearby budget choices, yielding 150 distinct linked candidates.
 Twelve budgets changed. Recipes, IPA size estimates, canonical object digests,
 strict linked scores and selected values are retained under
 `docs/wave14/budgets/` and `budget-linked-scores.json.gz`. No trial ran a server.
+The R7 correction adds two IPA size units in each affected translation unit.
+Eight further compile-only trials retain the existing budgets: the derived
++2 settings emit identical functions, while the selected link changes only
+six R7 bodies. `r7-budget-trials.json` records every trial and the decision.
 
 All **10 GET/SET/MGET/MSET handler groups equal the headline**. The complete
-inventory contains 10,730 groups: 8,272 equal headline, 1,721 changed groups equal
-an isolated lane POST, and **737 residual groups**. Of the wider 89 command-hot
+inventory contains 10,730 groups: 8,270 equal headline, 1,721 changed groups equal
+an isolated lane POST, and **739 residual groups**. Of the wider 89 command-hot
 helper groups, 42 equal headline, 16 equal a lane, and 31 remain composite or
 compiler differences. The inventory does not hide these behind address,
 source-line, member-offset, register or opcode masking. Every changed body,
-size and attribution is in `identity-final/changed-bodies.md` and its JSON
+size and attribution is in `identity-release-r7/changed-bodies.md` and its JSON
 companion. Single-lane mismatches and unisolated compiler changes remain
 explicit; universal lane-POST equality is an **unmet criterion**, not a pass.
 
@@ -202,7 +216,7 @@ LPUSH/RPUSH cover batch 1/32, both modes, both namespaces and both atomic
 settings. Additional scopes cover read-local GET, uncontended single/cross-owner
 EXEC, warm EVAL/EVALSHA, empty/nonempty FLUSHALL and execfifo3's parser scopes.
 The full PRE/POST table and every per-function delta are in
-`instruction-comparison.md` and `instruction-comparison.json`.
+`instruction-comparison-r7.md` and `instruction-comparison-r7.json`.
 
 | Scope | Added executable instructions per command, min…max |
 |---|---:|
@@ -213,7 +227,7 @@ The full PRE/POST table and every per-function delta are in
 | MSET | −121…+6 |
 | LPUSH / RPUSH, no waiters | −21.5…−17 |
 | Read-local GET | 0…0 |
-| Warm EVAL / EVALSHA, single owner | −74…−38 |
+| Warm EVAL / EVALSHA, single owner | −78…−38 |
 | Warm EVAL / EVALSHA, cross owner | +81…+138 |
 | Uncontended EXEC, single owner | +325…+451 |
 | Uncontended EXEC, cross owner | +404…+522 |
@@ -229,7 +243,11 @@ fixture glue, shared libraries, syscalls and synthetic clock calls are excluded.
 It does not claim full network-loop cost, cycles, IPC or throughput.
 All **1,243 PRE and 1,264 POST entered body/stub groups** bind to their production
 arm. Actual executed clone addresses are checked, and the assembly read-local
-fence retains its bytes and resolved jump targets. See `scope-binding-*.json`.
+fence retains its bytes and resolved jump targets. See `scope-binding-pre.json`
+and `scope-binding-post-r7.json`. The fresh census differs from the earlier
+POST census in 14 Lua cells by exactly five instructions, solely in `luaH_get`;
+every other count is unchanged. Both actual observations are retained in
+`r7-census-differences.json`, without rounding away the Lua variation.
 
 The first parser attempt used an affinity subset excluding its declared CPUs
 0–7 and failed before entering a measured scope. The completed attempt uses
@@ -245,20 +263,23 @@ binary remains available independently.
 | Arm | Path | SHA-256 |
 |---|---|---|
 | PRE | `build/wave14/pre/tomokv` | `eb46b9718b4642fc78d3139f9e903c934bd0f47f3867267ea003af3f30ef5814` |
-| POST | `build/wave14/post/tomokv` | `cc31f86e579a33a926fee80a6d5551b021eed8a3b7d4cc112df39c1480f61168` |
-| POST-layout | `build/wave14/layout/POST-layout` | `fc61c94d5ebe3a007da5488ef5575c445ac658a836bc81b8838ad2b490041a17` |
-| PAD-A | `build/wave14/layout/PAD-A` | `01d6ff1af40b652503b0bd4a036bb18c3afb69632d25c5a36d50d2dddf666644` |
+| POST | `build/wave14/post-r7/tomokv` | `c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e` |
+| POST-layout | `build/wave14/layout-r7/POST-layout` | `e17dfa2cc9b48e9cdbdda1dbe8cc59175d043c1a3295063ba285a4b3a9a9dbd5` |
+| PAD-A | `build/wave14/layout-r7/PAD-A` | `b701dcca90283c33d42b3d71efa9f1cd65c18ea29e56edc4906b47dc6ef24077` |
 
-POST's production source and Makefile are frozen at `2720a2b8a7`; later commits
+POST's production source and Makefile are frozen at `a0e4d122e8`; later commits
 add fixtures, receipts and reporting. PAD is **(A) behaviour twin**. POST-layout
 links POST first and a symbol-isolated PRE second; PAD-A changes only the
 five-byte entry jump to PRE. Their sections, symbols and every function address
 are identical. Both namespaces take PRE's entry/dispatch. The common image is
 larger than the release candidate, so **the exact twin of PAD-A is POST-layout,
 not POST-release**. Use the pair as a separate layout control; retain the release
-wave null. `pad-a.json` contains the link and exact patch proof. PAD-A passed
-the gate's netio checks in both modes/engines and default-namespace checks in
-both modes (four public rows including release).
+wave null. `pad-a-r7.json` contains the link and exact patch proof. Both PAD-A
+and POST-layout passed the gate's netio checks in both modes/engines and
+default-namespace checks in both modes (four public rows per arm including
+release). PRE was rebuilt byte-for-byte for the replacement twin;
+`pre-reproduction.json` binds that reconstruction. `arms-r7.json` and
+`arms-r7.sha256` bind all four final images.
 
 ### Maintainer measurement request — NOT RUN here
 
@@ -314,7 +335,7 @@ claim is made.
 
 ### Completed directed receipts
 
-The final candidate passes the 27 forced FUNCTION-history legs (3 Redis fsync
+The pre-R7 candidate passed the 27 forced FUNCTION-history legs (3 Redis fsync
 policies plus 24 TomoKV mode/engine/namespace/policy legs), all 48 maxmemrace
 legs, and the expanded keyless-tracking matrix: 80 candidate overflow legs,
 including 32 EXEC-enrolment legs, each armed with zero missing invalidations.
@@ -322,11 +343,12 @@ The first stricter cap attempt used the obsolete drop counter and was stopped
 as a fixture failure; the repaired predicate observes the null invalidation
 emitted by the fixed overflow branch. That failed receipt is retained.
 
-The full Tcl manifest passes in both modes on both uring and epoll. Final named-skip probes
+The pre-R7 full Tcl manifest passed in both modes on both uring and epoll;
+these jobs are running again on the final release. Final named-skip probes
 retain their red diagnostic results; all three lane promotions pass 3/3 in
-each mode. `MONITOR log blocked command only once`, for example, is PFP in
-final split-mode probes, confirming why its earlier six-pass sample did not
-justify restoring the guard-only promotion.
+each mode. `MONITOR log blocked command only once`, for example, was PFP in
+the earlier split-mode probes and is PPP in the final probes; the earlier
+failure remains evidence against restoring its guard-only promotion.
 
 `python3 tests/gates_test.py`: 77/77 passed. The headline's 83 becomes 77
 because witnessfix removes seven tests of the retired Tcl retry and adds
@@ -346,17 +368,21 @@ rows including release.
 
 All 55 primary `job_production_units` targets built, plus mdbqsbr live controls,
 blockfix-cost and both blockfix2 units. `make -q all` and all four target-group
-freshness checks returned zero; `production-freshness.json` records the exact
+freshness checks returned zero; `production-freshness-r7.json` records the exact
 lists. Matching native companions are bound beside the frozen POST with their
-hashes in `companions.json`; the release bytes remain unchanged.
+hashes in `companions-r7.json`; the release bytes remain unchanged. Two gate
+launches overlapped the instrumented R7 object build. Serial recompilation
+produced byte-identical objects in both namespaces and the installed TSAN image
+matches its source image (`tsan-build-overlap-verification.json`).
 
-The complete differential inventory passes on **both engines: 954 comparisons
+The pre-R7 complete differential inventory passed on **both engines: 954 comparisons
 each**, with permanent seeds 7/19/20/23 and rotating seed 21 (uring) / 22
 (epoll), all four seed-19 MULTI replays in each atomic-1 lifetime, and every
 equivalence cell. The gate's strict folds validate 490 split/equivalence and
 464 armed comparisons per engine. `differ-final.json` binds each plan, source,
 ordered leg journal and completion. This is the selected-job proof, not a
-full-gate wall-time or landing receipt.
+full-gate wall-time or landing receipt. Both complete inventories are running
+again on the final release.
 
 The broad sweep exposed a test-only compiler-launch failure in `rob_portable`: its
 positive portable ROB unit passed, but the planted-control helper treated

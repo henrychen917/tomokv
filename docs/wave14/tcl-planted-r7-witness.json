@@ -1,0 +1,28 @@
+[
+  {
+    "mode": "1s",
+    "binary_sha256": "8a358788aef3c09fb17cca020b38d0008679103b6a4e71d541cb19a3f2cfc8db",
+    "receipt": "/home/user/Projects/cx-wave14/build/gate-run.tb2hbv/jobs/redis_tcl/redis-tcl-1s/summary.json",
+    "receipt_sha256": "47ae4577d2c6410dafbd93027e8098eebe89f8651be85f293e19ac5c2f55dc40",
+    "assertion": {
+      "status": "err",
+      "file": "tests/unit/introspection.tcl",
+      "test": "CLIENT LIST with IDs in tests/unit/introspection.tcl",
+      "data": "CLIENT LIST with IDs in tests/unit/introspection.tcl\nExpected 'id=2 addr=127.0.0.1:42889 laddr=127.0.0.1:20093 fd=37 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=41 qbuf-free=16240 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=' to match 'id=2 * cmd=client|list *' (context: type eval line 4 cmd {assert_match \"id=$myid * cmd=client|list *\" [lindex $cl 0]} proc ::test) ",
+      "milliseconds": "0"
+    }
+  },
+  {
+    "mode": "2s",
+    "binary_sha256": "8a358788aef3c09fb17cca020b38d0008679103b6a4e71d541cb19a3f2cfc8db",
+    "receipt": "/home/user/Projects/cx-wave14/build/gate-run.tb2hbv/jobs/redis_tcl/redis-tcl-2s/summary.json",
+    "receipt_sha256": "074f4e4a735d99e93bc7c745d3951c4a0339729351304ccd3f0b0eef65b5ac4a",
+    "assertion": {
+      "status": "err",
+      "file": "tests/unit/introspection.tcl",
+      "test": "CLIENT LIST with IDs in tests/unit/introspection.tcl",
+      "data": "CLIENT LIST with IDs in tests/unit/introspection.tcl\nExpected 'id=2 addr=127.0.0.1:34193 laddr=127.0.0.1:20093 fd=35 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=41 qbuf-free=16240 argv-mem=0 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=18368 events=r cmd=client user=default redir=-1 resp=2 lib-name= lib-ver=' to match 'id=2 * cmd=client|list *' (context: type eval line 4 cmd {assert_match \"id=$myid * cmd=client|list *\" [lindex $cl 0]} proc ::test) ",
+      "milliseconds": "0"
+    }
+  }
+]

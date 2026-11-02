@@ -1,0 +1,2097 @@
+[
+  {
+    "job_directory": "/home/user/Projects/cx-wave14/build/gate-run.ZGRCFQ/jobs/persistfix2_commands",
+    "done": "0\t1\t0\n",
+    "archive": "build/wave14/data-archives/gate-run.ZGRCFQ-persistfix2_commands.tar.gz",
+    "archive_sha256": "d52f2ffaefeb4889459ca9a0d7d36ea51b7b9ae3779cf2b3fb3352dfcd144779",
+    "original_bytes": 348151139,
+    "archive_bytes": 5742206,
+    "members": [
+      {
+        "path": "commands-oracle-2s-epoll/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "8abeb4e06792c109521b35dd422c2eb8ca7f1e41429941e398eaf1b15d93c3eb"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 38985,
+        "sha256": "35f20a8e0427ebbb8f44fcc0525657748d91232958382a4adae46cd7ce729915"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 118,
+        "sha256": "2d624eba32d62af2d16ca2d9d650f8d70617eebad62821ba52d186b1310933dc"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "0922aa7195babef3ac392bcd432037fdd2850a3772087115df9019bc632b861e"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+        "bytes": 89,
+        "sha256": "6c83829121595ceb99bc025e7fa2b225839ceb385cb7d6c16e78ead35da0603e"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+        "bytes": 59073,
+        "sha256": "5cd4c3fdb544b1a00b04cbe54734a3c1fab893a9ee5a74b85d0a34a10e1346b1"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/scheduled-1-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "206c8a94f27df3922e6cfa7d46a4139a8f769ef9f0abc3b0d6742f2d1659d3f8"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 158985,
+        "sha256": "974e348f27c6b6251c3668bd54557f8af6eba879496fdc6e7bc2a16de1917c34"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/bgsave-grammar/data/dump.rdb",
+        "bytes": 89,
+        "sha256": "b88d7c0f3a96e2e73ebdc1e4de985c2d6e61d19f346755919de82bf8f07cc4f2"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/scheduled-0-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "fc509d4e94b1297d7746b4ebd863558fe2d866cc496706454b025e9c33e8bc03"
+      },
+      {
+        "path": "commands-oracle-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+        "bytes": 158985,
+        "sha256": "775d79e2da0c12b3cc1f9fad9c3970cd70c1cd7a9a9fd7c43af6c6b4a0635f69"
+      },
+      {
+        "path": "commands-oracle-1s-uring/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "b5428d7c1f5ec1ff812c32037f4708a91471cad1c5267165228f00170d1cc2d0"
+      },
+      {
+        "path": "commands-oracle-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 38985,
+        "sha256": "301e458dedeb97dfb35052f30b8166ccaf0532a20aecab55474b761253b6f1aa"
+      },
+      {
+        "path": "commands-oracle-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 118,
+        "sha256": "f052dd16b3eb14c84c5adef9e82926faf9a072595d817e783304779d6358afb0"
+      },
+      {
+        "path": "commands-oracle-1s-uring/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "0fdad44e28574569bdfea6389c25de4c5af67e4efc297926bcbab17ca33daeca"
+      },
+      {
+        "path": "commands-oracle-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+        "bytes": 89,
+        "sha256": "7bc0250badc86b9d1a93a7a1d755cb22c50a21e2105ee0377d01200faf29cdc8"
+      },
+      {
+        "path": "commands-oracle-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+        "bytes": 59073,
+        "sha256": "5cd4c3fdb544b1a00b04cbe54734a3c1fab893a9ee5a74b85d0a34a10e1346b1"
+      },
+      {
+        "path": "commands-oracle-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-uring/scheduled-1-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "4e18518a1f448e5d8a05780b29cd6c4ff927ab27020b26c57d368cbcad491087"
+      },
+      {
+        "path": "commands-oracle-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 158985,
+        "sha256": "77da14c232556f079352599b64d1ca47d2c281db75fdb51bd2d87c35e3c54381"
+      },
+      {
+        "path": "commands-oracle-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-uring/bgsave-grammar/data/dump.rdb",
+        "bytes": 89,
+        "sha256": "9c695e0aeb92cde4eba14b49a7d6200d505430ae95e41da376307e3d50405cc6"
+      },
+      {
+        "path": "commands-oracle-1s-uring/scheduled-0-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "41838c0e789fe4751dc5cbbb163b65c1dc571a3c25be2cf3383c5cd80d645f8a"
+      },
+      {
+        "path": "commands-oracle-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+        "bytes": 158985,
+        "sha256": "880f2032382020026c94bee86fcc314febd12ddc51618da11caa02b3b4ddf147"
+      },
+      {
+        "path": "commands-oracle-2s-uring/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "c075a05651a3bcb79e7f38bd651b3316dc966a8dcfcd3e89e6ed8681543b3367"
+      },
+      {
+        "path": "commands-oracle-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 38985,
+        "sha256": "58e05066163b37324fe9dc4de8f7ff15e2c977641acc31c5c25232fbf77b72fe"
+      },
+      {
+        "path": "commands-oracle-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 118,
+        "sha256": "3bedf53d3a9a768d7a9d1912b582d9c0cd40484fc1ca5b5b525e02c1bf5066d4"
+      },
+      {
+        "path": "commands-oracle-2s-uring/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "6c67b9a69ce45acad4e92abc06f4a151039a81679c44f17b8bd8e4b0df0774ae"
+      },
+      {
+        "path": "commands-oracle-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 38985,
+        "sha256": "7fb911952b8f0318ee2d2016bbbe13ed6bc9fc425190f911542bc0b093fc3eea"
+      },
+      {
+        "path": "commands-oracle-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-uring/scheduled-1-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "49955ba6c24c04afc671f9826979923dc1cd995ac50419a88570a3ff45c0512e"
+      },
+      {
+        "path": "commands-oracle-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 158985,
+        "sha256": "8afdd64541974a23514c6874b4a6de8cc710afa24ee0ce835694a5dab4ffeb7c"
+      },
+      {
+        "path": "commands-oracle-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-2s-uring/bgsave-grammar/data/dump.rdb",
+        "bytes": 89,
+        "sha256": "d0227eddb6eb8ee4eec8abe56df4cdebbf24bfec789f57d66ee9f498f969371d"
+      },
+      {
+        "path": "commands-oracle-2s-uring/scheduled-0-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "39b7f413bc47315d5a101db378b84a21009e46e764363da57292647c63f0ae84"
+      },
+      {
+        "path": "commands-oracle-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+        "bytes": 158985,
+        "sha256": "3f125431eb61289f99d0622c6d14b815025a72a8f50bd6a39508a9c69079455d"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "7a20617ea178d52ffc19dd4d27c47c8ad5779ec3fc12808cf149e09a6c145fa0"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 38985,
+        "sha256": "3ab7915ee33b0f4214ef199d4243600c262cd49b432521b22483d3d5ba8546e8"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 118,
+        "sha256": "a55506ffe71c710258b6be45d7eccd3740edd3d7165ee370161a6846fae198e1"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 38985,
+        "sha256": "9e51889a0ba090b6115370c92863af269f4efb6c46b79d4f71e60797870aa5a7"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+        "bytes": 89,
+        "sha256": "19e1e706216d1009f47c45e7b0ad3c834fb9b2b0565416d773fc69e17d755843"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+        "bytes": 59073,
+        "sha256": "5cd4c3fdb544b1a00b04cbe54734a3c1fab893a9ee5a74b85d0a34a10e1346b1"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/scheduled-1-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "efe7b4a252de87fedd9a1cb29c88cfe59f268e5be47989a96ebf381a0cbf42f7"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+        "bytes": 158985,
+        "sha256": "b6c5a26fcc7f6cde2fa18f3d0ddb5e9bd1c8640368ea75cdb0613f6028375795"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/bgsave-grammar/data/dump.rdb",
+        "bytes": 89,
+        "sha256": "26f4509db2f920b280855dedc24e8b2c3ed38a78cb0faf7d06008e2881a02384"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/scheduled-0-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "4ce3dd4b6b75b672f8e693eae5dc398d6d139b4d93e27bb749e89c59f49edab4"
+      },
+      {
+        "path": "commands-oracle-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+        "bytes": 158985,
+        "sha256": "5818080dc401133234c836cab61cf689d6d4c85f956cb529ce5472a557ffab24"
+      },
+      {
+        "path": "commands-target-2s-epoll/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "6d50f9cdb09d140815de23702d8b347eeb3a7ef96f307ef48a015759c511c371"
+      },
+      {
+        "path": "commands-target-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "6685ef6e36cb18d77cdd1e01d3ae0250330067d857d05e01211d5f9d703579d7"
+      },
+      {
+        "path": "commands-target-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "9adee3c14b85b82a972356e3715764612709bd532a643135f00e643e3a683f14"
+      },
+      {
+        "path": "commands-target-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 677,
+        "sha256": "f4072a3b4833d2cce3a06c5ef92d8d6f158741cbcd1586bbf03a5d1b4a387435"
+      },
+      {
+        "path": "commands-target-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "3da0ff6a13a785cc4d608dd1b25580ace600646384e0bf3ef057d37b17369b63"
+      },
+      {
+        "path": "commands-target-2s-epoll/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "bbdb009ce727756bd2ab8121a1cb1c08dc2d3fd832d188e1644350e80434727a"
+      },
+      {
+        "path": "commands-target-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "261bce0a6e475ab82ed5298d4f19b54299a4c022357f9f9c8ca60cb36a131afb"
+      },
+      {
+        "path": "commands-target-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "2645cafea5ccd05bae6e7064d196b4cf41d7f2f56173d2c71329bc5e68fb295c"
+      },
+      {
+        "path": "commands-target-2s-epoll/scheduled-1-0/data/dump.rdb",
+        "bytes": 21459690,
+        "sha256": "d1c665573a43b78449c48327c00d80145ac81247c4a70b0c9b9e4265019ef508"
+      },
+      {
+        "path": "commands-target-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 21459690,
+        "sha256": "17841b575954470a9c33136ee87710346b3029daa05902972eb39684033da8c8"
+      },
+      {
+        "path": "commands-target-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "ab308492ce4adb0d9e97b8f9f52f8660fa6b33d27ff83de663ab344314f1d870"
+      },
+      {
+        "path": "commands-target-2s-epoll/bgsave-grammar/data/dump.rdb",
+        "bytes": 624,
+        "sha256": "9f47894e10895ff3a91ebc509be9966db8d3acaa2e980e66afd799388e90dccf"
+      },
+      {
+        "path": "commands-target-2s-epoll/scheduled-0-0/data/dump.rdb",
+        "bytes": 21459690,
+        "sha256": "6d86d30012ea76bb67f524f19202660915694c633a238978cde6ce77e934c51c"
+      },
+      {
+        "path": "commands-target-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "fb8c871e84ea2f2985203640ef74907ae60a76aee5ab2637e34c659b47579308"
+      },
+      {
+        "path": "commands-target-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 21459690,
+        "sha256": "389fab88e756da2f30e0bb6d52a7fa5ddfb59cf4550a39dd5993388d7a6a219b"
+      },
+      {
+        "path": "commands-target-2s-uring/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "29b9fbd4703db5d7ec3c5f5fb1aead28632778678b3cfa83e9b3a7b12e42985d"
+      },
+      {
+        "path": "commands-target-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "d4382413eb1badb019f3edc3d9036ed00064615cdb92d7f1c9ae64b5736b7183"
+      },
+      {
+        "path": "commands-target-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "14fb111654186fb28c9eb41b8af2fdd7066795f56fc1756407d144b9d1e1b0c9"
+      },
+      {
+        "path": "commands-target-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 677,
+        "sha256": "f6a3cbd74083841ab9dcebb5db5e3ce2d18623e23852dca8566f2507f0c5c6f7"
+      },
+      {
+        "path": "commands-target-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "0770877372dd3b18fee48eeb9004f40c35c2dad8a745bdaab19005bd6bf47523"
+      },
+      {
+        "path": "commands-target-2s-uring/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "ade0788c4c5a13056c64b73896167379dc3db7801603fdbe253c7d12870af146"
+      },
+      {
+        "path": "commands-target-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "fe5dc7cfaa6137ce723a769a799c0ab283bc18a86f18db2f973ef7d725c5dcbe"
+      },
+      {
+        "path": "commands-target-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "4e894235203d91b2c701ce7d36cf5abd9ed187df9f9ae952cc0b5b69d187d435"
+      },
+      {
+        "path": "commands-target-2s-uring/scheduled-1-0/data/dump.rdb",
+        "bytes": 21459722,
+        "sha256": "1e3d1f687b908241ffe9223ae125caa108962349bc069a922960bab2fe5f1f17"
+      },
+      {
+        "path": "commands-target-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 21459722,
+        "sha256": "4dcc98e6dd6d3031ab4b13d486a62451cbc777ce69a106597a234cef96a38240"
+      },
+      {
+        "path": "commands-target-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "5ee10f6f8efb8ddfa14b1f80febf759d5e3f2ac3795018792fa54f9ab208d7b3"
+      },
+      {
+        "path": "commands-target-2s-uring/bgsave-grammar/data/dump.rdb",
+        "bytes": 624,
+        "sha256": "8b9df97021cc52a864a7b8ae23b69645ad7fa52cbfc20d41e04371452906f639"
+      },
+      {
+        "path": "commands-target-2s-uring/scheduled-0-0/data/dump.rdb",
+        "bytes": 21459690,
+        "sha256": "0df1fa6900a45399b11d3efd8668a3ba9b52e4fba7328f86d6ec253cf9573c3c"
+      },
+      {
+        "path": "commands-target-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "44e87a6453e04beb8ab3f432d49d25e23c07897ae87867d86b44989f1612ca35"
+      },
+      {
+        "path": "commands-target-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 21459690,
+        "sha256": "86b1ab3beb8561e6c7e596fb9f2fc46fed354f1ab2fdacda98e4c43c1f657836"
+      },
+      {
+        "path": "commands-target-1s-uring/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "502a5ef525f3712db06a549e5d657fade94a47606cf343740e9243a8770e44d5"
+      },
+      {
+        "path": "commands-target-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "8c577627e51f4044943a281a5ab8fb51633afc1bdfb154908a82d7d5bfe6903e"
+      },
+      {
+        "path": "commands-target-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "a792e1a4a3307befef602fed1f8e7f8fc978699551de49f75b39c37dc565d3ed"
+      },
+      {
+        "path": "commands-target-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 677,
+        "sha256": "da08eff4b6889df50b13baffe8b75b44e869315e8c38952d119bcd60ce1ad217"
+      },
+      {
+        "path": "commands-target-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "dab48ee41026c9f8e5463a4df75ebea302b177644cca4ceb6108ca1d7cd3c130"
+      },
+      {
+        "path": "commands-target-1s-uring/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "e2854eab3a5a312ff8aa66906ce73c36bee5e22ab9d8f01f3757bf836e5d03ad"
+      },
+      {
+        "path": "commands-target-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "2f118302cc334ec385d34950287ffb8b51109cd649dc592942ec6eaa6b1388bb"
+      },
+      {
+        "path": "commands-target-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "31ec1f5c5d1d175ecba47ca7fcdd4aff611192d99dbc783b88a0807d1b7977b9"
+      },
+      {
+        "path": "commands-target-1s-uring/scheduled-1-0/data/dump.rdb",
+        "bytes": 21459786,
+        "sha256": "049f512c6ad4bc0000496c0b8c4d428a05be2f1114816440635d8b36fd7a53cd"
+      },
+      {
+        "path": "commands-target-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 21459786,
+        "sha256": "42bfa70f47443e3d0481080c498c61158311448943b61f95a8733b5c1b27a9fe"
+      },
+      {
+        "path": "commands-target-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "8f84ee4f394bb87387a2aed44a0a156303393d887c103254c9f6cc60e40a2432"
+      },
+      {
+        "path": "commands-target-1s-uring/bgsave-grammar/data/dump.rdb",
+        "bytes": 624,
+        "sha256": "472fd0b1a15fdfdddf0009c0c23e48081379a1287519d48b1b4a4f0cddd8cd88"
+      },
+      {
+        "path": "commands-target-1s-uring/scheduled-0-0/data/dump.rdb",
+        "bytes": 21459658,
+        "sha256": "fc5267db3b78957d68adc15efb6e257e7f92bebadde0c17230e521e3593362b6"
+      },
+      {
+        "path": "commands-target-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "6fa7a300adb48041489d7bff4ac1e06a5319e7bf32ab5aff0575d5742295b0fe"
+      },
+      {
+        "path": "commands-target-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 21459658,
+        "sha256": "2dc12639edbfb681b3a237dd2e32f6b31cad8703387842165c85b7fc0d34135b"
+      },
+      {
+        "path": "commands-target-1s-epoll/save-during-rewrite-0/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "9d618ea1cf441719789c7be171c674394089044bb00f9718a7e71562d6aa2359"
+      },
+      {
+        "path": "commands-target-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "78a8c6942e576ba5bbc1a115be2e245bebe3f123dbcae50b434684e2e52b1ec9"
+      },
+      {
+        "path": "commands-target-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "daccd33e3c8e364ebf37bfe70698a216a33f27816d717314bbe5cc5a55f5edff"
+      },
+      {
+        "path": "commands-target-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 677,
+        "sha256": "df5142739882ad74ed9b19f2b7e4de93f50b3da03fda7faa97e7a1b716191825"
+      },
+      {
+        "path": "commands-target-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "73c5f4d85347e4f43a070a914b5d0a4c0e4dec20a46cad5490d60475963f9a08"
+      },
+      {
+        "path": "commands-target-1s-epoll/save-during-rewrite-1/data/dump.rdb",
+        "bytes": 97514,
+        "sha256": "2ff6df152499ecd4a3e810a22d06a6f8b1e8e7a7312abf4e6c5bddd9706c98cd"
+      },
+      {
+        "path": "commands-target-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 97514,
+        "sha256": "24e4822c1112e869bf0797c9430d9f0c83d229d8ae8ff260a1f30845c96ace3c"
+      },
+      {
+        "path": "commands-target-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "6091e2015e9ebd386d9cd1eb464c62e97426dc9e989fbbcd4f405c5314cd5bf6"
+      },
+      {
+        "path": "commands-target-1s-epoll/scheduled-1-0/data/dump.rdb",
+        "bytes": 21459658,
+        "sha256": "da8c1209c555f883b9c36543c609119e6712403ad67b25cb8751aa492f5cec57"
+      },
+      {
+        "path": "commands-target-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 21459658,
+        "sha256": "e5c30b355552c94bb2d5966917755cd4eb0e8013e56b83a758b4c4e8985288f1"
+      },
+      {
+        "path": "commands-target-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "77a7e72686368c3794deae38471250eaeaf3814b91e9d75e960326dec3a1332e"
+      },
+      {
+        "path": "commands-target-1s-epoll/bgsave-grammar/data/dump.rdb",
+        "bytes": 624,
+        "sha256": "3f50b3033b09ba82fe5c2aa150c2f4e36e58a410f97dff4533916b3f6ef0e178"
+      },
+      {
+        "path": "commands-target-1s-epoll/scheduled-0-0/data/dump.rdb",
+        "bytes": 21459722,
+        "sha256": "b1fe3d68012d54430a2433430802008ebc9e3758fe8d540d213c7230d6892e46"
+      },
+      {
+        "path": "commands-target-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "3cea446e29870be272a8e3a154ec12d012161d3a6b923b60408804b463e5fb83"
+      },
+      {
+        "path": "commands-target-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 21459722,
+        "sha256": "aa73536ec0384e83bbbec1528ccce287fcd48977fc2e0bed3fc1586ab50751e8"
+      }
+    ]
+  },
+  {
+    "job_directory": "/home/user/Projects/cx-wave14/build/gate-run.ZGRCFQ/jobs/persistfix2_shutdown",
+    "done": "0\t1\t0\n",
+    "archive": "build/wave14/data-archives/gate-run.ZGRCFQ-persistfix2_shutdown.tar.gz",
+    "archive_sha256": "b497773683d4d61cd02faaef71a7624d88e4d09afc2809818906da2b7c3aecde",
+    "original_bytes": 86503656,
+    "archive_bytes": 1381844,
+    "members": [
+      {
+        "path": "shutdown-target-2s-uring/command-4-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "f097ee97f7e64ae9a71ca99ca67353515150e1aafdbc2b5d230681633040f8fe"
+      },
+      {
+        "path": "shutdown-target-2s-uring/command-1-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "989b2db238dcc7cbba5b692627ca2a0537b1d9c37ca78110d670f88b04020c51"
+      },
+      {
+        "path": "shutdown-target-2s-uring/command-0-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "654fcf842f9a479647e4a965b3e01f6310e6b9c22e46de72c8a8ffe8d8590f6d"
+      },
+      {
+        "path": "shutdown-target-2s-uring/wave7-blocked-save/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "9518c426fd55781e8de0f56c48b60fd7884d7c7366d20f73f0648f6da8b56d05"
+      },
+      {
+        "path": "shutdown-target-2s-uring/command-7-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "07e6fde8b0d9b61163ae9bcd0cc290215eb9a0b8a14abbf3f4dafa315cc51e86"
+      },
+      {
+        "path": "shutdown-target-2s-uring/command-3-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "1b0f3e254e62b1483846b8d7560f287fbf25f6fd2e4e1a34a9cca4a256e5895c"
+      },
+      {
+        "path": "shutdown-target-2s-uring/command-2-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "c9a35170db4a9cf927991a2985c129b1e5bc5c31e13f7bd180f3ec813ad5a584"
+      },
+      {
+        "path": "shutdown-target-2s-uring/active-save-0/data/dump.rdb",
+        "bytes": 21459722,
+        "sha256": "c7f935ff164c0ca473b6518a340a343bb373f20c43e7a4e2f51b0e34ed4f20c9"
+      },
+      {
+        "path": "shutdown-target-2s-uring/command-6-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "05140b1cd224fb74823a00c50533dfe7bde5a7da36c223fa67dfc1a3ae9dc7d2"
+      },
+      {
+        "path": "shutdown-target-2s-uring/command-10-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "702ecb16a8aeb0501fff6197ce4253075ca474a8b9a04e22a5b587bec5e2f445"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-4-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "36e52e9bc1e20f86ea1d55317d99dc2789fd274f9fe4e184ea83f6a9004b7f1c"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-1-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "e3d948b22cb7a34cff52bc9259373ae320103e09b4e4f02ebe10948c0143c747"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-0-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "1bf9d1254c1b89c3d4d7e0991698eff0fe38b2d2d2499ae53cdbafa3988ac676"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/wave7-blocked-save/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "1d509f0a1a79105023678e329b35f53f282292848e4556590cb25bb02c14cead"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-7-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "8b454172fe86da4b85deb441c7b1a8117caae1cfa1c7fd61e63618836fa79d9d"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-3-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "ce7507ca3dfdc53957647303bab38d1f1db6fedc918858b98876e963230a28ad"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-2-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "1325e3888abf46fc17573329dd9765ee4661d66b7b99f0d137bfeef9f21aec0e"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/active-save-0/data/dump.rdb",
+        "bytes": 21459754,
+        "sha256": "12957bd9aa8671373aef870535bf34bd1101f691016a4602c50557124d26ebc0"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-6-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "a37d4e6ca611861af1d4c172e923cb05459b2cc039fee7fd7420e3ea5e31e358"
+      },
+      {
+        "path": "shutdown-target-1s-epoll/command-10-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "1961adbf02c8c7d434b0dd7033d30ea6764657a8b617df12d63040b50af7ae93"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-4-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "4689b4c44206dbabc61050924920c861fb80a4fd373d4c182ab1e474d8f18cb2"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-1-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "29f35975d5c8e90924641d6399a40ee8bb464e47df30f48d8e0a404de4efe4b5"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-0-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "02cace1b4aeb6dc05440ed25514faef7b9bbd48bc885e335b5ad3f0a4adefd2d"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/wave7-blocked-save/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "19c85705ddb5f8a284cde72f616d168576c695df7690654cf9dea33104bbdc52"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-7-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "7ebe55877910a5efc3dde454745c2217d6b3a0534c3651f06234c35480af4db4"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-3-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "da9a22a5873f70227a9f8a5faca7d91ea5c9c40fc7760c5e4e55bb259a313fc9"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-2-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "20e82eacaa6fd70884199379eaac52910f23a9a518ab35b02a3a1eeff764fdd3"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/active-save-0/data/dump.rdb",
+        "bytes": 21459722,
+        "sha256": "cf7cbc802705b60cf67dabe78f85e2c0f2f136ceb747c4d86f8eb137294df677"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-6-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "6689e901296687ea5830cfa267befdf29f738d7daf7b7cb7d8fe15fe2b0a3a7c"
+      },
+      {
+        "path": "shutdown-target-2s-epoll/command-10-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "17915927aa0892ef0a892e5119710f10143191c4d4daa44543e49ed9f98a5c41"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-4-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "5d214581fc1166ad5340801a97f7b2cf8f676ecbbe47e5fdd9e06dac5281e335"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-1-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "8a1a0787693dc444082de888d585013bbe3cc52e7c8f94d0417e49f79296745b"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-0-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "fca9d99a6c287542038cc2d48d59a5d98a6cb5e4d475187e243d894b5874dfda"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/wave7-blocked-save/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "61e572968b33d475d0e072d03af94d03626fb2f4b20535860a7cf2da09f8ca52"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-7-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "19bc554397588e04f2be1ae9401b3468ac8aa525e665ca49b03e9e9f0fb1a83e"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-3-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "c243040e0b1aa26380afc986d5073b29f2861a8874570cf06ea49273502e37e0"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-2-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "8a1c02b03cc16ec3cdaf2dc28f376870b9e6de65c5a84e517717926a09c67fde"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/active-save-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "ba6577986830597daeea6f5f5db4a1aeacd092a10fd5c753125a1cb16ac4b24b"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-6-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "0c48c0c6d8456ead7833b54733ea77e06e3eda7a23122be3a14425a4783b7f00"
+      },
+      {
+        "path": "shutdown-oracle-2s-uring/command-10-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "e23e133d8454fef8150888943b0561503050fe1e7e5324d99ef5263b87136666"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-4-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "5c48ad99c3af24bc120346ea9ecc19afb2d3f3c3240e5b7a6103b3a823fb7bce"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-1-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "0aad6a8a66508e2a52c3e54d3c9facb9f926088ad5965e6131cdae426c0e184c"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-0-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "80596e93a8ae4825c46ff0ea58f58a321f2269d8f7e5b45f6748de743fe17b11"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/wave7-blocked-save/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "39a58797522e5bb25cffcb11f0b6c517eae6b0bc31fc6488b4ecc2dd7508601a"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-7-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "a229744f5bd9fd676082d686f2c72d055930d6748f9fdf06bba0656ba407c455"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-3-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "325c690efcca944f53e6904f3f7c14cf02a0af5c0fa21fc965f94844279fd7b3"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-2-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "e8689770c480cfd4e5181998894c6cc323898d838d16fbd060fec772dd20258d"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/active-save-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "68c2b0cc69b717506eaecb72f0a2aa6513c63efefb24f3a5272b3412bc5bcc26"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-6-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "24f8683a0907ed50a973ef4b385aef168951805d1744424b439b1f8ac55710b9"
+      },
+      {
+        "path": "shutdown-oracle-1s-epoll/command-10-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "a35348f1f76961e531eb0df2cdb36c3f152dd62e53c1e8642466f20cea83181c"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-4-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "6bdf1d0b31f6e5fe6527c7ae0cd71ec3078ce8cc7865e774f47b97e41db75d62"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-1-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "9f9e261290fa0a01d3be1b532bac21989d945b50dd7067ac4d898c00233cadd8"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-0-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "9f9e261290fa0a01d3be1b532bac21989d945b50dd7067ac4d898c00233cadd8"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/wave7-blocked-save/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "e69a2fa150679aa3975a7484961f1d1016aafc2146bfe312dea092d5dc43b399"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-7-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "44c10dfcaf3c1a4d1c05a6c83cb4cb5a0327c14b12e4b9ca55260943038b8f8b"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-3-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "b11ecf0eb16b4cba6d086daea3e2a7dc453c2b27d6931f9f397465eeb139c20e"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-2-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "4eeb40d8df55d1dd5fff74ce59c8a04b13e8d85c6e5188ac515acaf1a6e00d77"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/active-save-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "576060693c6a08980ebedf1cfba916f8ac01545c54b1495538f8d542183dea7b"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-6-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "d5d6ac3fe48eb6b8c8c2d54333f00c557f3c63a44604ec6c76e4afea51f95de1"
+      },
+      {
+        "path": "shutdown-oracle-2s-epoll/command-10-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "44c10dfcaf3c1a4d1c05a6c83cb4cb5a0327c14b12e4b9ca55260943038b8f8b"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-4-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "a163d3d5260c7b2a1c6fdd30575cff65a8cbe13a8e27e62ae694ca4a9170253d"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-1-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "f7341a4faabaa7990ee221aaa1fd90f77299b4ffdda379b01348f3fcfccabeef"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-0-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "09bc32634ca5f9599451e7c47ebdfb1ec5126e71edfd314e121967f92d2f8906"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/wave7-blocked-save/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "27a004b6cd684696e54fc8faa66767ea1992933493db7162e2030b868a97b767"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-7-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "f4a8b40d21a6af17417d0653f519c64f8cd83c8a60f4174bf05da754f408de12"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-3-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "51a31684e4be02b4d8fd957732ce6873b615d0b2f2eb0bc6bb085c735d700bc2"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-2-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "51a31684e4be02b4d8fd957732ce6873b615d0b2f2eb0bc6bb085c735d700bc2"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/active-save-0/data/dump.rdb",
+        "bytes": 158985,
+        "sha256": "0fa32f02ecd822b6e3b8174b6563e8ab3eaa952f53c142946efaf3ac670fc2c9"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-6-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "9a49f450c7dc56dd85b04e953ca459308914ca201bcf64141ca8e5d779acb261"
+      },
+      {
+        "path": "shutdown-oracle-1s-uring/command-10-0/data/dump.rdb",
+        "bytes": 120,
+        "sha256": "784834afc3f761abde499b0913b79da825b8ebecf48b17ba59d589ea575eddc8"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-4-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "89a863abe71ad09cde532519d1119ff17108e370eed4b9089fa6453cda2e2d67"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-1-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "7f7396f4c3d27974fbac0f0aef6f567336b88f5a72f8c47156bd8555547bd0f3"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-0-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "a940c8ba0512f599953793dfd0a9da14f5bd784a006333425069d11cd395a633"
+      },
+      {
+        "path": "shutdown-target-1s-uring/wave7-blocked-save/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "7c3488c005714e195e1723ad0d40971d668e60583d532070241bf98ddaf49209"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-7-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "e10a440f45142aaad7608d6034ecc39c6402b58c02f74aea5617e9fe88467a80"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-3-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "02820d2a028c2f2069950f307de9d57cec9706bb46d5aeba90b9430d68055f84"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-2-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "70ca276b24d86e877694f9a28e99d3118164032270c9610cd0a976d2a8510db1"
+      },
+      {
+        "path": "shutdown-target-1s-uring/active-save-0/data/dump.rdb",
+        "bytes": 21459754,
+        "sha256": "c3e61ff8543130ea7da7653757d4445eae421bbacb8944aac07946d16c917c75"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-6-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "2f8d15e40ad57dd5dfb2e20e6e4fc13332d883d97c9d5e8f9e78a8ec764d6920"
+      },
+      {
+        "path": "shutdown-target-1s-uring/command-10-0/data/dump.rdb",
+        "bytes": 679,
+        "sha256": "35b26ff393782c848299c5516956c7f07c0b086ec2b28b30d4d360ce50f69516"
+      }
+    ]
+  },
+  {
+    "job_directory": "/home/user/Projects/cx-wave14/build/gate-run.ZGRCFQ/jobs/aof-epoll",
+    "done": "0\t54\t0\n",
+    "archive": "build/wave14/data-archives/gate-run.ZGRCFQ-aof-epoll.tar.gz",
+    "archive_sha256": "71b824f5bdc04601d1203eac426fa5eff3e68396bf7c86d9fa798b8e9dc00113",
+    "original_bytes": 597471800,
+    "archive_bytes": 12333032,
+    "members": [
+      {
+        "path": "gate-aof-epoll-atomic1.ujbiq2/dump.tomo",
+        "bytes": 394358,
+        "sha256": "56ea702f003c1abba4f0a814f0537280ff4306998e6611b341b053c3bf59e570"
+      },
+      {
+        "path": "gate-aof-epoll-atomic0.CiNuTd/dump.tomo",
+        "bytes": 394358,
+        "sha256": "2900ea2038531eb53f10832f8a035e8219a1c10b21e1a533dee54dda005ace6a"
+      },
+      {
+        "path": "gate-aof-rewrite-before-manifest.gV2ohN/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 111704,
+        "sha256": "3512c862fe705fe4b4aedff73218524b0e323f651b594a32c118dcab01cea5aa"
+      },
+      {
+        "path": "gate-aof-rewrite-before-manifest.gV2ohN/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "b878dceb61a48e6c7d80371872a2b8cf2ca4ce55c74337f850fc5f606d66b696"
+      },
+      {
+        "path": "gate-aof-rewrite-before-manifest.gV2ohN/appendonlydir/quarantine.4Ch43K/appendonly.aof.2.base.tomo",
+        "bytes": 92528,
+        "sha256": "f2fe740c53362b0f45d6f3eeb0a366559a68b31145d21e2023524ff62843b4e3"
+      },
+      {
+        "path": "aoffix2-error-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 168,
+        "sha256": "f4cc9c638710d0d553a7328b8077b5995c48e879682f556bbfe3fd6e53d79ece"
+      },
+      {
+        "path": "aoffix2-latency-always-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "6965f48e7debd1554e65c4f827c2fe38bedc2b6085a3ba459552239ddbe3dabf"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-group-vector.c2nFzh/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "3b4b5f8ba0f9f3226732a337d957f86dde8f7efd59ec1c90b3af6c625e158e2d"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-group-vector.c2nFzh/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64372,
+        "sha256": "932683ed0db6a2799ffb0bcb737bd2aa5342b69481db3f05d954c1ac50432981"
+      },
+      {
+        "path": "aoffix2-snapshot-1s-epoll/data/dump.tomo",
+        "bytes": 669,
+        "sha256": "5db5c00accb68dd67b9128e5d74fe156558719dfac16f73bfe81c94aad994127"
+      },
+      {
+        "path": "aoffix2-snapshot-1s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 168,
+        "sha256": "6f9141c82e054a0abf461f7a20774e78eba60d138cc00b671ce6835ec457fde4"
+      },
+      {
+        "path": "aoffix2-snapshot-1s-epoll/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 669,
+        "sha256": "5db5c00accb68dd67b9128e5d74fe156558719dfac16f73bfe81c94aad994127"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-manifest.xSzu7b/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "3b4b5f8ba0f9f3226732a337d957f86dde8f7efd59ec1c90b3af6c625e158e2d"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-manifest.xSzu7b/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64372,
+        "sha256": "b17327e6ce71bada9daab7b878baade727ab12fce82d1fad58211e8ef1772373"
+      },
+      {
+        "path": "savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135411549,
+        "sha256": "9b7497660d177e71423e0c5453607ed92927d61ada62f71ae11c2bf2e29d2d17"
+      },
+      {
+        "path": "savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 2087,
+        "sha256": "70900bda04ac002888a9757c633bdd90e5a546f0413a80370b993b72f96b426a"
+      },
+      {
+        "path": "aoffix2-latency-everysec-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "b899b30e5a14df754147f02251ce73a284331b05e95f499abd64ef962e1fefcd"
+      },
+      {
+        "path": "aoffix2-latency-always-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "c0ee53bdae2ae6f9390979f051c8e4fa488e3fa20c13e359d7b0ee079b2a3abe"
+      },
+      {
+        "path": "aoffix2-resurrection-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 2972,
+        "sha256": "183325e28eddf8fa73c90b54b81d0b81fd8cc05208eeb353873533dea499a432"
+      },
+      {
+        "path": "persistfix/1s-kill-w4y9z8zi/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 6968,
+        "sha256": "4aa2ea1a361806d5135555b7ecc9548900f7e60f66242dc548334621157c639f"
+      },
+      {
+        "path": "persistfix/2s-kill-myum9j74/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 6968,
+        "sha256": "638e3319cf337c18e6877b644f198beca911779fe5e821d5cc48f9e011468348"
+      },
+      {
+        "path": "persistfix/1s-term-29e8wcud/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 5702242,
+        "sha256": "ceac04556221e2c0c6e23b93f4a7c28c7827627d7b6781f84898d7315d1b4760"
+      },
+      {
+        "path": "persistfix/2s-term-ab2147h7/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 3918416,
+        "sha256": "ccd749f0df96755d216b41b8bfa62cfe747c915a0fa3974a0cfd4635c9fdb83f"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-record-length.F0ySNq/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "3b4b5f8ba0f9f3226732a337d957f86dde8f7efd59ec1c90b3af6c625e158e2d"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-record-length.F0ySNq/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64372,
+        "sha256": "32e62b2b00b1ffdc3241b3ff75d000a5c2460d19f6672de85e8d7f19864d1978"
+      },
+      {
+        "path": "gate-aof-epoll-atomic1.ujbiq2/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 14330369,
+        "sha256": "771ec00bd650c31ae1111dafbc1497aa48aede50f8abcccbb52940520e44463a"
+      },
+      {
+        "path": "savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135370378,
+        "sha256": "ba3826166a7c141749b23b8d542da85185177ddd39bdff7c075d85cf94c97422"
+      },
+      {
+        "path": "savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 7430,
+        "sha256": "725b65261a05f5e6b5d6ea1fba6b647b3e6deae68ef47ab856e30eb49a406a51"
+      },
+      {
+        "path": "gate-aof-rewrite-1.gxgHbd/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "3b4b5f8ba0f9f3226732a337d957f86dde8f7efd59ec1c90b3af6c625e158e2d"
+      },
+      {
+        "path": "gate-aof-rewrite-1.gxgHbd/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64372,
+        "sha256": "b17327e6ce71bada9daab7b878baade727ab12fce82d1fad58211e8ef1772373"
+      },
+      {
+        "path": "aoffix2-latency-everysec-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "7fd79ddef2380a61689a2a57f5dcd47d84679185335285514475a5a006803ef0"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-0/appendonlydir/has space.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "5912918d795af2fefaf4b0dc3953cc87d3840657baa83a7ff32b74e7f5fd5d76"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "f0d54e6e8b6dceda67e3830fb5c247f5936f953cda20ebd0f704da53030aab41"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "a2a899a2f4fe106d9bf514e708a0bf588a37cf92ad3a73d20526199fd632a103"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "6c35fb5e87c012030237c8533ad0f62004f3a4414ebbf1a2efceec6a44c659f2"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-2/appendonlydir/single'quote.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "83cf6740cce5c79ca717bdf4378879e0845d6795db04560a47104079c53a27f7"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-2/appendonlydir/single'quote.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "af2d88682e98d5a33b2a983db278af240c858a154ed1add61b43e587feee9cb5"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "46d7bed02d0928526187ac783ff15e5ba22c80749d17960f00ba9bf30db80cf9"
+      },
+      {
+        "path": "aoffix2-filename-1s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "134dc98b3ecd461a66ca002fb699b2f8efe7a3043593ab510bd821dfb900a298"
+      },
+      {
+        "path": "aoffix2-manifest_missing-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "bf4728b8a399533ad93aefb9f907cd947da4982fde4d903b97ed77e7d4324a8e"
+      },
+      {
+        "path": "aoffix2-manifest_missing-2s-epoll/data/appendonlydir/quarantine.ZKJBxz/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "b67a9ec7fde76b2bb7c68623bc26ff03c61ad7b7468589d1eb35881996c18949"
+      },
+      {
+        "path": "aoffix2-manifest_missing-2s-epoll/data/appendonlydir/quarantine.ZKJBxz/appendonly.aof.2.incr.tomo",
+        "bytes": 171,
+        "sha256": "e686c8991ff719e6e895ef46c249491f967e8381d388d211644fa84010d34589"
+      },
+      {
+        "path": "gate-aof-rewrite-before-mark.OnXi5u/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 111024,
+        "sha256": "f3941e27f9ff39d36cfb1488f92bba0d737c5856591082c331962ac5ad32fc23"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-0/appendonlydir/has space.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "3bd08b6cafea94414572478ff6501524dd8bb910f718815fe5ae514c43cb71af"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "5488ad7d17b6ae5fa85ea40a0791c5a20f557e0f5b9d1d6c46a791c76228048c"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "a66a86e020da0ddd1d131ab285c240d30999620f8df41182db430816cac3a303"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "222e36c4e7c5728d8ccd8f928e513208e79ea5d7171779cba7833ad7072d689d"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-2/appendonlydir/single'quote.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "9517ea1579d379cd670e4b009c195bceb70e1728be3a2c777d2260b88fe3c8f4"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-2/appendonlydir/single'quote.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "07f30a834b9f15afbd8881899abae1a629cb9b3fd60980859b66de0fd7b89925"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "b7334ea48238157c469548137051bd3748ce56a5d1b12c06244d09f5b8671a40"
+      },
+      {
+        "path": "aoffix2-filename-2s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "deeda289edde9f7ba6fc8371362dadcf36c3ddf0ca4e7965b58f0a0e222d625b"
+      },
+      {
+        "path": "aoffix2-exec_tickets-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7886,
+        "sha256": "233b686fa15da31045be15810269b4b85b7533b1ae850492558f5f28a9ce8a4a"
+      },
+      {
+        "path": "gate-aof-no-sync-epoll.KgGahI/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 27236,
+        "sha256": "ad2cfd10e4118306636ac2c9fae5d492381df41635f8d5c8aa3cc7c448307fe7"
+      },
+      {
+        "path": "gate-aof-rewrite-after-manifest.ueaNSB/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 92528,
+        "sha256": "c2d30ea69229b1ebf7111b89c476baf39e43839c0f0ac5a379c27bec0606a603"
+      },
+      {
+        "path": "gate-aof-rewrite-after-manifest.ueaNSB/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "bc443807ffd95c6a02a21b351bb14cbd7e9ea67b7a2395c1799bf41db14bc5ec"
+      },
+      {
+        "path": "gate-aof-rewrite-after-manifest.ueaNSB/appendonlydir/quarantine.NEJUx6/appendonly.aof.1.incr.tomo",
+        "bytes": 111416,
+        "sha256": "18147809460c99b6b096a5a55f2c879d3155410cdd17cbf1a55d590f1ff25edb"
+      },
+      {
+        "path": "gate-aof-trigger-1.Ipg0VV/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 80,
+        "sha256": "bd0db402195b5755173a723591a5b56ee1dcf7ae6e4f5a859df78c8cf2807ffb"
+      },
+      {
+        "path": "gate-aof-trigger-1.Ipg0VV/appendonlydir/appendonly.aof.4.base.tomo",
+        "bytes": 308112,
+        "sha256": "8c6580487fbd3b5c5547690702acadfd3a98157c6ebf2f1edd489088d4f0f990"
+      },
+      {
+        "path": "gate-aof-trigger-0.jXoqbp/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 80,
+        "sha256": "d96295833450641ed4000de450ebe4eb39423d5ce40b83fdd755d421c6ec37a3"
+      },
+      {
+        "path": "gate-aof-trigger-0.jXoqbp/appendonlydir/appendonly.aof.4.base.tomo",
+        "bytes": 308112,
+        "sha256": "d1d7253d6a15864bdd0f7cb4b9d4242ade58aadcb01290da8d881283d129d699"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-base.BCSN6M/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "6b0ae4526b2a3262f005052baba064ed860bab8a6c763732c55730ddc82f1f31"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-base.BCSN6M/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64372,
+        "sha256": "b17327e6ce71bada9daab7b878baade727ab12fce82d1fad58211e8ef1772373"
+      },
+      {
+        "path": "gate-aof-rewrite-0.l1RqvI/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 169840,
+        "sha256": "a21c65ea3b55883ad8684712945cd7bcfd30d21933923cb98c89d1a27231cd68"
+      },
+      {
+        "path": "gate-aof-rewrite-0.l1RqvI/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 58300,
+        "sha256": "a4c401470a097c6b83de20b16ab12a3a12298eddfadca7f281dcea2cd8cef1a6"
+      },
+      {
+        "path": "aoffix2-tickets-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7742,
+        "sha256": "18312ab63f00bc5af3c65451d73b37248653b1e247237869337058913c174f60"
+      },
+      {
+        "path": "aoffix2-error-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 168,
+        "sha256": "285ed8d1b5e1e8656b57131055d72821a4a28bc780bd7ecb8713a6afcab0769a"
+      },
+      {
+        "path": "aoffix2-manifest_missing-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "e29053b5c9d2aaea7e3ef108fc4cd5aa689166b5b42447477771816c2109e395"
+      },
+      {
+        "path": "aoffix2-manifest_missing-1s-epoll/data/appendonlydir/quarantine.aENhwJ/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "82d7d36ad3b5193f2b2489540dd501d369beb3af30d6efb29644b77c39d5d8ef"
+      },
+      {
+        "path": "aoffix2-manifest_missing-1s-epoll/data/appendonlydir/quarantine.aENhwJ/appendonly.aof.2.incr.tomo",
+        "bytes": 171,
+        "sha256": "2ac074a7d62c6637aca382100563cf60171defccb53953d45ba9a0fddd36cf37"
+      },
+      {
+        "path": "gate-aof-group-epoll.5O8Hdu/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 23915,
+        "sha256": "50b06c9c55a6db51330a8e107d4c1d6cac939ac7027dfb0cce378d49eb256413"
+      },
+      {
+        "path": "aoffix2-large_placed-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 5246248,
+        "sha256": "57d799251f4988e814d4e9d6cb3b2d64efb2336e29234f7377fd11ecce29e9f6"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-interior.3JsvS2/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 111697,
+        "sha256": "dfce9888909f9d2f669134f74739549ec6d2cf9420ada190db7ab103c41f8276"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-interior.3JsvS2/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "b878dceb61a48e6c7d80371872a2b8cf2ca4ce55c74337f850fc5f606d66b696"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-interior.3JsvS2/appendonlydir/quarantine.4Ch43K/appendonly.aof.2.base.tomo",
+        "bytes": 92528,
+        "sha256": "f2fe740c53362b0f45d6f3eeb0a366559a68b31145d21e2023524ff62843b4e3"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "5316ba4f98413ea170698bd4613b16e9797cbc82afb94c61112a60d2f58538e1"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 169,
+        "sha256": "28f498383b961dbecb7884269c2ebd6bf759fed5616c17d29d2be20656318da3"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.3.incr.tomo",
+        "bytes": 169,
+        "sha256": "4ec927c6127b75fab98037bd4a2ec8e85c4040ed8366d38c263e7ce03ecfb223"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 171,
+        "sha256": "f208faf8b69480f9f9f2a2ecdce8832a8a6a209e75e61c29f891df5e908e3d59"
+      },
+      {
+        "path": "aoffix2-exec_tickets-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7454,
+        "sha256": "a49d5015fc3ef1461861703705011d88e1df1bed0e5b44cfbfe923e4c7bbd5f0"
+      },
+      {
+        "path": "aoffix2-tickets-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7310,
+        "sha256": "52b6859b7fc41b84225bb03a2b8ec5a935f3f5719e05a3391c011a91aedd3703"
+      },
+      {
+        "path": "gate-aof-everysec-epoll.LjnOTG/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 104708,
+        "sha256": "fd2f2f04b7ad709317484fb6d82df352071412954a034b8663806582387d1015"
+      },
+      {
+        "path": "gate-aof-epoll-atomic0.CiNuTd/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 14330117,
+        "sha256": "b361575108374446939d1730f25b6b5e61c4e26f505d8f0f3edb493eaba1441e"
+      },
+      {
+        "path": "aoffix2-resurrection-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 3018,
+        "sha256": "6035fe5770777ff81d7b5c59a692e90dd423fa0b2daa08fd79a64374e48f34ac"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "5e2885c528abd9004db30e1846abd548a1362e20a04b715293abb4ebea2fe2d7"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 169,
+        "sha256": "61213d4b150ee283222d44583099007f9d886867e0cab2c53b090b718f118ed8"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.3.incr.tomo",
+        "bytes": 169,
+        "sha256": "33c821626e07021a6231532357f44fb51d7ef40c8f81a48dc79ab83665926158"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 171,
+        "sha256": "48851bf7fb49542b29cd12ecf1b30049b96f094c25b1b2a9480887a918869255"
+      },
+      {
+        "path": "aoffix2-large-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 8464097,
+        "sha256": "0802d25f37b52f7a6e766aa7b8c67f7e25c91493652beba62fbb5d945f096d9c"
+      },
+      {
+        "path": "gate-aof-always-epoll.Ge7U9l/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 104228,
+        "sha256": "d8efc8f7141f150ee75cfee153beed7b2ba72916fa27609bb23d6c7fdcdbdaff"
+      },
+      {
+        "path": "savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135365041,
+        "sha256": "78de628367d79fda7f28f742d0e2c38f6f897728c481f4a063094f63599180d3"
+      },
+      {
+        "path": "savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 8423,
+        "sha256": "f4f284c0e887627f1f2ccaf64afaa00b088329fab2d3b74c5ea038db134ce5ff"
+      },
+      {
+        "path": "aoffix2-snapshot-2s-epoll/data/dump.tomo",
+        "bytes": 669,
+        "sha256": "c09c1e72dc9854be961941b038a9ba6ff9a3e470ac0ac476f47cae0e158f6003"
+      },
+      {
+        "path": "aoffix2-snapshot-2s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 168,
+        "sha256": "5eb19c1771062181055b4e3deca167e285378a5121c6f3c8ce5c965dd89235a1"
+      },
+      {
+        "path": "aoffix2-snapshot-2s-epoll/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 669,
+        "sha256": "c09c1e72dc9854be961941b038a9ba6ff9a3e470ac0ac476f47cae0e158f6003"
+      },
+      {
+        "path": "savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135419844,
+        "sha256": "0cf1484e47964feffc1ddf34aee3884b745b6939b09e739dc0f8e3e6cb2113f8"
+      },
+      {
+        "path": "savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 6053,
+        "sha256": "a1e25c1235073b18d899e96f546f59e503c08cbf9f28c4e60bdab829615c6af7"
+      }
+    ]
+  },
+  {
+    "job_directory": "/home/user/Projects/cx-wave14/build/gate-run.ZGRCFQ/jobs/aof-uring",
+    "done": "0\t54\t0\n",
+    "archive": "build/wave14/data-archives/gate-run.ZGRCFQ-aof-uring.tar.gz",
+    "archive_sha256": "2457a70c6db275cfc1b717e24e2dea1324faabc031b8741aa189969f15d0a045",
+    "original_bytes": 593733486,
+    "archive_bytes": 11587995,
+    "members": [
+      {
+        "path": "gate-aof-uring-atomic0.ZT0S44/dump.tomo",
+        "bytes": 394358,
+        "sha256": "e7dcc492359b2f767f227d3c1cc592e7dd3e00e8c001e5ab051960e858eb9122"
+      },
+      {
+        "path": "gate-aof-uring-atomic1.Kff8qA/dump.tomo",
+        "bytes": 394358,
+        "sha256": "931af01c621d72ef43c93d371c7fdab4f64e8bdce1b0fd2aeebbb1d28b9e9966"
+      },
+      {
+        "path": "aoffix2-error-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 131072,
+        "sha256": "82a944f19b9b5d689304cc69df34a69302cdf5f0c4dd16abbcb310445fd7abeb"
+      },
+      {
+        "path": "gate-aof-always-uring.6JYV69/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 104788,
+        "sha256": "e51d0afaeab37e11b594766212f1cc2f14984f9ca5b84aad4ed800afc0e96874"
+      },
+      {
+        "path": "aoffix2-large_placed-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 5246248,
+        "sha256": "0cb1c46f6ef42d5637e7edf33761a435455562696f85ef763468d11bbd5e6b72"
+      },
+      {
+        "path": "savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135414756,
+        "sha256": "4732501eb63d8d46f2482f1203316ec45865e3ca031e8720663366c5d893be8d"
+      },
+      {
+        "path": "savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 5423,
+        "sha256": "f929fbfb2cfb6475959d69f717884c057486c68989e547385fac833eb04a2db1"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-0/appendonlydir/has space.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "23e4ac4026ea8e646c59b2089aecef564557495bcb48f2ec1bbf91f84bc17711"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "aca812e0d4aebe85ac3f6a26918c3ed944ecf83288c47894f071f2395385ea24"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-1/appendonlydir/quote\"slash\\.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "0afec8e680b9e2ece7bb7d955d310a04fc876f29375ad19619a4f6d60af0ee24"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-1/appendonlydir/quote\"slash\\.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "46eb3602fd98691238f08c75f77e35e969165d4c67698e2398b5c1d343b98fba"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-2/appendonlydir/single'quote.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "5a948fa0aeaeac6345bba5ec7a635966b0cc23e5e7cf7c43e576736bcfb8f359"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-2/appendonlydir/single'quote.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "a8460f87671531d703b9ba843432736ba942c0f5519c5d0df39a8ed8b3171cce"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-3/appendonlydir/tabs\tlines\n.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "edc0e9ae4bc2115f5682489976b43d4766f0c0cfcbfa7f18c021b6f0b85e4ae9"
+      },
+      {
+        "path": "aoffix2-filename-2s-uring/filename-3/appendonlydir/tabs\tlines\n.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "f3cf6bc058c9d1428c91e2cc7f20bc8ffb36fd2416ec6e87015ce046677a9511"
+      },
+      {
+        "path": "gate-aof-group-uring.G4FPA9/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 23543,
+        "sha256": "64dc4009fd4c09667edd14fe4e576c3d97442a87bab4609ce03750db931bdb6e"
+      },
+      {
+        "path": "aoffix2-snapshot-1s-uring/data/dump.tomo",
+        "bytes": 669,
+        "sha256": "089fad8b866ff0f86ab79a55bfa722203cf30719a1c03fe2680440cb0a844011"
+      },
+      {
+        "path": "aoffix2-snapshot-1s-uring/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 168,
+        "sha256": "09ed5a48309f30f10fc6506acd3668a612a6544c3a80670140bf87a6c12b34b0"
+      },
+      {
+        "path": "aoffix2-snapshot-1s-uring/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 669,
+        "sha256": "089fad8b866ff0f86ab79a55bfa722203cf30719a1c03fe2680440cb0a844011"
+      },
+      {
+        "path": "persistfix/2s-kill-t3oqiua7/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 6968,
+        "sha256": "22952a70e4927b519ce4565786b14340dcba63ce816e46e8abb60b97b96a3895"
+      },
+      {
+        "path": "persistfix/1s-term-dmx17521/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 3492320,
+        "sha256": "33957661b89e33c973eb84b82752b96758d62a2a9bec235e7d0d305bcd30e2b5"
+      },
+      {
+        "path": "persistfix/1s-kill-6xmlp7ee/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 6968,
+        "sha256": "f4a1242dfcd807a361e8a8647315f51549d36775dc1b6acd3ad0f09f6655f5b1"
+      },
+      {
+        "path": "persistfix/2s-term-34wppkra/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 2129084,
+        "sha256": "e7dad5bc0666a2984d1b440ff2241f50d2e26e245af66a9e75e2e80153e6b19a"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-group-vector.9O0Fyi/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "b56cbd07fcaf4bfd10cb8ea4a93c3fb55b2b15642cfcbd4afc1924230f09b223"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-group-vector.9O0Fyi/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64764,
+        "sha256": "33b84e6eab60e7baa5494bcf2f2d60e44f4bf3e1679419411cab8b310719d25f"
+      },
+      {
+        "path": "aoffix2-manifest_missing-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "b1bb93e2e2554b6431fa91af685014c372e9ce7dea79a92c252ccb939264b45f"
+      },
+      {
+        "path": "aoffix2-manifest_missing-1s-uring/data/appendonlydir/quarantine.y4ekM9/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "9eb60bd5e6f701acaf5a7d95fa4ee1bb5c4660f4f77693a4057b209d3b82a379"
+      },
+      {
+        "path": "aoffix2-manifest_missing-1s-uring/data/appendonlydir/quarantine.y4ekM9/appendonly.aof.2.incr.tomo",
+        "bytes": 171,
+        "sha256": "7124a4ebcf92ba275b2cd1ee8e9b2239a49804e4b6035061d977c6279077f6e1"
+      },
+      {
+        "path": "aoffix2-error-2s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 131072,
+        "sha256": "bd7de900f0bacd2057e603bdb84ca0c367cd7e7759566b06533937e52e36dedc"
+      },
+      {
+        "path": "gate-aof-rewrite-1.WDtMvJ/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "b56cbd07fcaf4bfd10cb8ea4a93c3fb55b2b15642cfcbd4afc1924230f09b223"
+      },
+      {
+        "path": "gate-aof-rewrite-1.WDtMvJ/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64764,
+        "sha256": "9358285a09c18f5895d8a821ff3865ebfa879231d29716c16f5a09ec2f8abfd1"
+      },
+      {
+        "path": "savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135364117,
+        "sha256": "9e8bba9e76dccc10ccf5a66a7c56ebe439ac9ebf4e2cc6bd721340e2307c90b0"
+      },
+      {
+        "path": "savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 4916,
+        "sha256": "6a6b368c0e0be75fd257bb4b423b217e711b77137e98d17a67f7a22d10ac92a5"
+      },
+      {
+        "path": "aoffix2-latency-always-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "f017cd70ce113e1632bfc8ce934cc0e9757cae7f824fb46fe445ebcf9497d07b"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-0/appendonlydir/has space.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "794e4dc8e85eed8d65ed9fc92a5131a7173e88a0a5b57731e0ad914b8d27ab4f"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "c7eb6debceb27e6a6dd9f50aac227eb3b9a14429cbbfa7a11cfe7acef879d369"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-1/appendonlydir/quote\"slash\\.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "b0147b92812f6cdd5d85b228cbae3de598d447f47a1916212591c464db798740"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-1/appendonlydir/quote\"slash\\.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "1ff92d34cc571fdf1de63bd30f1ec0b8f589fa4231638aa93b371d2328b1fa6d"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-2/appendonlydir/single'quote.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "6243f49fc4163a273041a90c5cebe00e73f29fb0f6a21381baffcf7ea552fabf"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-2/appendonlydir/single'quote.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "3d61bab3d3e93693a3838c8cabf8155a39f90c50bb299747083c18a9e7eed57d"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-3/appendonlydir/tabs\tlines\n.aof.2.base.tomo",
+        "bytes": 662,
+        "sha256": "c9d2fe07ce11cac4d39c0cf35a63e352137a3bc022c57e119bdc13caa5cdce79"
+      },
+      {
+        "path": "aoffix2-filename-1s-uring/filename-3/appendonlydir/tabs\tlines\n.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "1c60bdebd56756712ac79e7c310675ff3a56fdca296cf138795bc54b0e96b4e1"
+      },
+      {
+        "path": "aoffix2-tickets-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7454,
+        "sha256": "eb73a3e474cac777bb9653214c4dc9195cd4ed14a1fb637300b3b1c1a0e9aea1"
+      },
+      {
+        "path": "aoffix2-resurrection-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 5280,
+        "sha256": "ec696c00abd19dbdb6d27d3c263a96ffa1b48213e85f4f261874bddae2b3a1a4"
+      },
+      {
+        "path": "gate-aof-uring-atomic0.ZT0S44/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 14330157,
+        "sha256": "fd9a66d3c736f80d8412bc85dec884689959f438e2c910a7d3c9f42661ffce20"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-record-length.dJ3CCN/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "b56cbd07fcaf4bfd10cb8ea4a93c3fb55b2b15642cfcbd4afc1924230f09b223"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-record-length.dJ3CCN/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64764,
+        "sha256": "d1da47350312311410388dddcbb97b5b71bbecb5f9c0714728131545946d7907"
+      },
+      {
+        "path": "aoffix2-manifest_missing-2s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 80,
+        "sha256": "e7959f46bb62045134b77c92ecb534b4542558892c77a607c206ac435ddc4e66"
+      },
+      {
+        "path": "aoffix2-manifest_missing-2s-uring/data/appendonlydir/quarantine.74pL3J/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "b9aa98631132966fae68523a3b99b5e0d85c4ba4ebbf7e1a3fa2ab9879236cb8"
+      },
+      {
+        "path": "aoffix2-manifest_missing-2s-uring/data/appendonlydir/quarantine.74pL3J/appendonly.aof.2.incr.tomo",
+        "bytes": 171,
+        "sha256": "9472bec27b51d9e0c467ed31365ddcd11251590115bb344753e99bc20e84140c"
+      },
+      {
+        "path": "gate-aof-uring-atomic1.Kff8qA/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 14330329,
+        "sha256": "f5ceb9777e6298ff16b06886a48a64972066ad5f70bcf60994d5eb06d67aceaf"
+      },
+      {
+        "path": "aoffix2-tickets-2s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7742,
+        "sha256": "658ce4275c3f91261f6f002edfd37ec36869c0af5b046c5742dc86c645c471d2"
+      },
+      {
+        "path": "aoffix2-snapshot-2s-uring/data/dump.tomo",
+        "bytes": 669,
+        "sha256": "c31401460f3700052d52058ac4ecf369f8f48b1bd446ca2204bb290ba9e83e2e"
+      },
+      {
+        "path": "aoffix2-snapshot-2s-uring/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 168,
+        "sha256": "3e993f05fb9ea57670ab8fc6189db0026a135fabf560bde901b94df744df0deb"
+      },
+      {
+        "path": "aoffix2-snapshot-2s-uring/data/appendonlydir/appendonly.aof.1.base.tomo",
+        "bytes": 669,
+        "sha256": "c31401460f3700052d52058ac4ecf369f8f48b1bd446ca2204bb290ba9e83e2e"
+      },
+      {
+        "path": "gate-aof-no-sync-uring.jcPfqi/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 27236,
+        "sha256": "1aaf6493cd6399d271f63904cb22c704a9bccc7789abbde7d6d0877fcea7222b"
+      },
+      {
+        "path": "gate-aof-rewrite-0.Dyz1kD/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "ad9591b550ab6199925114b7b523d16cee50e355fe23400b35b61206a4eb8885"
+      },
+      {
+        "path": "gate-aof-rewrite-0.Dyz1kD/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 53940,
+        "sha256": "41d71c74af1e415071dd69ebab2336fd86cfca720e1ef0bd4cd71f6189c172aa"
+      },
+      {
+        "path": "aoffix2-exec_tickets-2s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7454,
+        "sha256": "20f8b9038e99fe142401540ea497bc32fe90b604030dd558e9d14c82007a31ea"
+      },
+      {
+        "path": "gate-aof-trigger-0.ky9wMg/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 80,
+        "sha256": "01745155ae8010a58cda67bd5472fefabdb42bca1b606ba7b84fe5483570db70"
+      },
+      {
+        "path": "gate-aof-trigger-0.ky9wMg/appendonlydir/appendonly.aof.4.base.tomo",
+        "bytes": 308112,
+        "sha256": "ffa878695325c678b441436544c03e7b457e0211cadc8e739ea34a47d1a03cd5"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-interior.BdmEHu/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 111993,
+        "sha256": "a446018c39e1ef309282cc6002b6942793b69be2e3818f8698c8c4ab624e1953"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-interior.BdmEHu/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "cbfe66bd3755b6bfbf86bb86023de0954d759aee679d88678eee97bd7c04548d"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-interior.BdmEHu/appendonlydir/quarantine.kCPQYp/appendonly.aof.2.base.tomo",
+        "bytes": 92528,
+        "sha256": "22b4dd81c7cfb6cc896eaea4e10be6e907fb30e27263c3c4fb2f9991ba39b23a"
+      },
+      {
+        "path": "aoffix2-large-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 8464097,
+        "sha256": "8f4051688c5919484ba284a58ba4dd588fb538a8d387d024eb542bc57a4e7536"
+      },
+      {
+        "path": "gate-aof-rewrite-before-mark.DpClca/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 111760,
+        "sha256": "57902afd308c597b342676ba1e9d228042dc0d6e730eb6b5bd79956c2a1ac144"
+      },
+      {
+        "path": "gate-aof-trigger-1.vRuNKy/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 80,
+        "sha256": "5fe5e7331100f1284b62e3d7874e236959c19a2d9f6b32f47f086792a3b27fba"
+      },
+      {
+        "path": "gate-aof-trigger-1.vRuNKy/appendonlydir/appendonly.aof.4.base.tomo",
+        "bytes": 308112,
+        "sha256": "c62ba5b76e4d1e51173077e778e3409254b1bf25cfdbb80a68269362c63e29ef"
+      },
+      {
+        "path": "gate-aof-everysec-uring.Hja6PV/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 104428,
+        "sha256": "80b6a928b11b5a7eae5b1c75fa6c735cc4d7a12788a7011084d55aa9fbcf184b"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-base.C5EPSb/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "b30b5c9a6593346df12909c47f51cd03982803b4ece41212094637f2c3e4a1da"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-base.C5EPSb/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64764,
+        "sha256": "9358285a09c18f5895d8a821ff3865ebfa879231d29716c16f5a09ec2f8abfd1"
+      },
+      {
+        "path": "aoffix2-exec_tickets-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 7742,
+        "sha256": "703ece0febeab5904008389951cd9f50323c88500c6de5d3c433f4c7d067e4b5"
+      },
+      {
+        "path": "aoffix2-latency-always-2s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "2e51ab34051f283c6ca978e1299cc865a5087eb8a91000970e910f6fba84e43e"
+      },
+      {
+        "path": "gate-aof-rewrite-after-manifest.lpNqaG/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 92528,
+        "sha256": "b9d2e93d0dc1846b5e681bccca0fb3b1e48d5498722cac0c6839891a991013a2"
+      },
+      {
+        "path": "gate-aof-rewrite-after-manifest.lpNqaG/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "0fd87b865d9639cff8ac3652bb7a6a6b5c1552d4127dd432e2a6de6576bcef0a"
+      },
+      {
+        "path": "gate-aof-rewrite-after-manifest.lpNqaG/appendonlydir/quarantine.OZFvds/appendonly.aof.1.incr.tomo",
+        "bytes": 112408,
+        "sha256": "961eac6bfc69d58b5d4abdb0b3941d38e08db5c47dc6a731ed38e5d2e70a2220"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-manifest.VRsP2a/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 173488,
+        "sha256": "b56cbd07fcaf4bfd10cb8ea4a93c3fb55b2b15642cfcbd4afc1924230f09b223"
+      },
+      {
+        "path": "gate-aof-rewrite-corrupt-manifest.VRsP2a/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 64764,
+        "sha256": "9358285a09c18f5895d8a821ff3865ebfa879231d29716c16f5a09ec2f8abfd1"
+      },
+      {
+        "path": "aoffix2-latency-everysec-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "e20b37f0395d4cba28c12588ec95b61b03bd75f81e1b099751701b4ee8792463"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "80d89ed9cf758f7701065ec516485a05f576034664267c4f3dfa8702c711cd57"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 169,
+        "sha256": "390af3ac01e6cb95861478c342a47dbd0cc10fa3e094cd6cc263ab37b82dc115"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.3.incr.tomo",
+        "bytes": 169,
+        "sha256": "c53c35cee2fbe09e0042cf7dc003ff8dae12a5e2716d696af92645f0fe7568c0"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 171,
+        "sha256": "6df238eafa8a9407559dd64b20b7aef4a1ffae90dae9988f410af082b4a9909e"
+      },
+      {
+        "path": "aoffix2-latency-everysec-2s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 4858,
+        "sha256": "24bd0db64877cffcec5fefe98ca8f827f965ff0bb3cd93ed235813228fac2d11"
+      },
+      {
+        "path": "aoffix2-resurrection-2s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 5144,
+        "sha256": "6632e458379f69c13fc29b07cc41faaee70b7273d68e65250765db05cbfbaec1"
+      },
+      {
+        "path": "gate-aof-rewrite-before-manifest.RiwabT/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 112000,
+        "sha256": "6ae0f0b437acf1803a54d00f7c41e85daddee38ef0da4df67f97cd49e6dc565b"
+      },
+      {
+        "path": "gate-aof-rewrite-before-manifest.RiwabT/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 80,
+        "sha256": "cbfe66bd3755b6bfbf86bb86023de0954d759aee679d88678eee97bd7c04548d"
+      },
+      {
+        "path": "gate-aof-rewrite-before-manifest.RiwabT/appendonlydir/quarantine.kCPQYp/appendonly.aof.2.base.tomo",
+        "bytes": 92528,
+        "sha256": "22b4dd81c7cfb6cc896eaea4e10be6e907fb30e27263c3c4fb2f9991ba39b23a"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-uring/data/appendonlydir/appendonly.aof.2.base.tomo",
+        "bytes": 665,
+        "sha256": "0b37ab186f5f189151ff4c07a67a3604fc1f2fad2cb3b3c99d3beb853a7fdc91"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-uring/data/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 169,
+        "sha256": "fa21f36dd761ee89c76d9cdf9d386dfe33235f105227760bdba6ed2cb7bf00bc"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-uring/data/appendonlydir/appendonly.aof.3.incr.tomo",
+        "bytes": 169,
+        "sha256": "408f87107418ed9f20fbd7a31c6389eb7567db3a716d5aabfdae459d6c616c6c"
+      },
+      {
+        "path": "aoffix2-rewrite_fail2-2s-uring/data/appendonlydir/appendonly.aof.4.incr.tomo",
+        "bytes": 171,
+        "sha256": "03825bd27a9907f4dcad53392e2aab88762ab19485c5bb4d9a5a35d86ee0ca28"
+      },
+      {
+        "path": "savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135369364,
+        "sha256": "58ae44194ecbbb0176fbf87f32da217202c87b90c31407b5b365be994154884d"
+      },
+      {
+        "path": "savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 5738,
+        "sha256": "f8d114a1d2111f0cb5f022fb31efdedfdc46e2ea8bf1d18f50c4fda7bb572600"
+      },
+      {
+        "path": "savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+        "bytes": 135411879,
+        "sha256": "22f5003b3768242fddb3ba3413170db693eee6606ddc5ddac031f6da5fe131de"
+      },
+      {
+        "path": "savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+        "bytes": 5834,
+        "sha256": "ab67ccf772b9cc41dfe42e95cff635d3510dab14622b45734a8cfddeec503450"
+      }
+    ]
+  },
+  {
+    "job_directory": "/home/user/Projects/cx-wave14/build/gate-run.ZGRCFQ/jobs/snapshot-epoll",
+    "done": "0\t16\t0\n",
+    "archive": "build/wave14/data-archives/gate-run.ZGRCFQ-snapshot-epoll.tar.gz",
+    "archive_sha256": "37c4ce823d3e5379ec9a38c519ff8751aa4598ac0f59cd45f3c88017d51ad7ca",
+    "original_bytes": 138506924,
+    "archive_bytes": 4039950,
+    "members": [
+      {
+        "path": "gate-snapshot-epoll.UFfm3Q/cut.tomo",
+        "bytes": 900761,
+        "sha256": "1ad9190af67ec194e385350d875619113d51fe3293b8bd4cdd3fc1db1cc8c591"
+      },
+      {
+        "path": "gate-snapshot-race-epoll.Y6Ypcv/race.tomo",
+        "bytes": 6350521,
+        "sha256": "323cb0a697bb92583b1c87d82958cf0642f882c3e7ee6ee7f98b4fdbddb11610"
+      },
+      {
+        "path": "gate-snapshot-groups-epoll.2ncAbw/groups.tomo",
+        "bytes": 358344,
+        "sha256": "8695e9ec0807a1b011cf40e8551bc36067d19d711738fddac72c632b7ba4e1b6"
+      },
+      {
+        "path": "gate-snapshot-typed-epoll.Gkh84q/typed.tomo",
+        "bytes": 202858,
+        "sha256": "a41095392ecf45b6f6a71daae9389b76c591a991a61cc71715eb284c30a4d9a5"
+      },
+      {
+        "path": "savefix-acks-1s-command/attempt-1/dump.tomo",
+        "bytes": 32673618,
+        "sha256": "2535496c61025bb7f1759a58eb087dc95209393a5b8279d7af2fb561ec87d803"
+      },
+      {
+        "path": "savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+        "bytes": 32673554,
+        "sha256": "788770f8a4249e28744023b995f2bf6d596f1d9544d62eb24ec13a42cefdb725"
+      },
+      {
+        "path": "savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+        "bytes": 32673650,
+        "sha256": "c8daeb48a81e685556e76df82dc295a71b8fb7ab951719b5cf02a1cab43c2508"
+      },
+      {
+        "path": "savefix-acks-2s-command/attempt-1/dump.tomo",
+        "bytes": 32673618,
+        "sha256": "5595be120bcd1e55b5b1f1575d653691a059d52045d95cf782d42a8a8616dfdd"
+      }
+    ]
+  },
+  {
+    "job_directory": "/home/user/Projects/cx-wave14/build/gate-run.ZGRCFQ/jobs/snapshot-uring",
+    "done": "0\t16\t0\n",
+    "archive": "build/wave14/data-archives/gate-run.ZGRCFQ-snapshot-uring.tar.gz",
+    "archive_sha256": "33168dbc404ac22e6f6e2cf7c65caeed5ef4297b4728bc908b272cbc29088dea",
+    "original_bytes": 138507140,
+    "archive_bytes": 4045491,
+    "members": [
+      {
+        "path": "gate-snapshot-groups-uring.vMGDcZ/groups.tomo",
+        "bytes": 358464,
+        "sha256": "a99dfc034d98dc7813ef678f5aed5fbb2fe1ba9306004d30c0d45b7b36c6d603"
+      },
+      {
+        "path": "gate-snapshot-typed-uring.ROqxYO/typed.tomo",
+        "bytes": 202858,
+        "sha256": "14aeb813d3d1e52072c2d224273b40f623bde85b37022e5813c31641c36736b5"
+      },
+      {
+        "path": "gate-snapshot-race-uring.xZqYBw/race.tomo",
+        "bytes": 6350489,
+        "sha256": "5ba7ab348475473f74f89f2cf062ab9182dbe1e1163a36c08eb6dfe8b5542758"
+      },
+      {
+        "path": "gate-snapshot-uring.PYZYJS/cut.tomo",
+        "bytes": 900761,
+        "sha256": "05d108817ae4af09cefb3149474401e062b99febca462c9815d56f9bf53bca7a"
+      },
+      {
+        "path": "savefix-acks-1s-command/attempt-1/dump.tomo",
+        "bytes": 32673682,
+        "sha256": "55cdb2aebe2ac6e7dc76c29882ac75ffa8dbc27725ac63c8636bd1ef47df08d9"
+      },
+      {
+        "path": "savefix-acks-2s-sigterm/attempt-1/dump.tomo",
+        "bytes": 32673650,
+        "sha256": "833051f70514c1428649df42dcd20fe6d55cfe6927bcc6e43bf67a97395424b9"
+      },
+      {
+        "path": "savefix-acks-1s-sigterm/attempt-1/dump.tomo",
+        "bytes": 32673586,
+        "sha256": "42ba40f4b2a68822177f05a1a7d284ddde3151a5b2eb41c02eb1d5bf3ce08962"
+      },
+      {
+        "path": "savefix-acks-2s-command/attempt-1/dump.tomo",
+        "bytes": 32673650,
+        "sha256": "f5caa126cda72294cce51f7082922993f03a7add61cb970c0d664f9ad8129b4f"
+      }
+    ]
+  }
+]

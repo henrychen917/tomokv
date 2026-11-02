@@ -1,0 +1,205 @@
+{
+  "label": "tcl-planted-r7",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.tb2hbv",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/tcl-planted-r7.tar.gz",
+  "archive_sha256": "452504f60e15730f800c811c7cab805b4e49a6e12873a2a7e4954340b6f5da68",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 106,
+      "sha256": "defbe69fa86916693bcd9868f844ed623ad76b6aa6bfccfcbb99424f746ae0aa"
+    },
+    {
+      "path": "jobs/redis_tcl/done",
+      "size": 6,
+      "sha256": "a77898b9ae386952ccd27957c57d452e9183c722002e39f7ff32cbba6f720860"
+    },
+    {
+      "path": "jobs/redis_tcl/family.tsv",
+      "size": 54,
+      "sha256": "318bd6878c8eef3436cc7746d815dcba06a3ab1e45fe4d5315251d267de49adf"
+    },
+    {
+      "path": "jobs/redis_tcl/ledger",
+      "size": 102,
+      "sha256": "f2c805f7a545ddcb59b9aab021ef4b4876eadf5d2a07460d3aefcb9dc2f4ec67"
+    },
+    {
+      "path": "jobs/redis_tcl/output.log",
+      "size": 321,
+      "sha256": "2fda62b85660519d5066e13c26679f4425e1c204e67e605c4760b8865b3bf740"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/summary.json",
+      "size": 29936,
+      "sha256": "47ae4577d2c6410dafbd93027e8098eebe89f8651be85f293e19ac5c2f55dc40"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/introspection/events.tsv",
+      "size": 7940,
+      "sha256": "7775d098d3f2b56b120fec950a0b21e05202f856a398e33fcff66c1a813f4f01"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/introspection/result.json",
+      "size": 13004,
+      "sha256": "cfdfc77b88348341cdd661441d8f0a045505d540fa1585de62e8ca606538ceb4"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/introspection/server.log",
+      "size": 10755,
+      "sha256": "5cfb9fdb73b80f8326459798981a9fd530e5955da678d2dbb3daf58e21391bc4"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/introspection/skip.txt",
+      "size": 1363,
+      "sha256": "d9925e5f16d02e836f8a995789156ea76a19760476fdec4964b98f9aa3e15285"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s/unit/introspection/suite.log",
+      "size": 5161,
+      "sha256": "6fdefe7f6b4c9cdec5046f5bb994d3e82ee2960bf2e366ec2435c78638b5b425"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-1s.log",
+      "size": 64,
+      "sha256": "91fac9a5b43264d625a53b854ce41da9d2e9154e3181e276fa17c48237f4fe4c"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/summary.json",
+      "size": 29970,
+      "sha256": "074f4e4a735d99e93bc7c745d3951c4a0339729351304ccd3f0b0eef65b5ac4a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/introspection/events.tsv",
+      "size": 7940,
+      "sha256": "8112ba0cb1586cf63c56c2911b72b740787fbfa25f89b526b3bde8014d80506b"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/introspection/result.json",
+      "size": 13030,
+      "sha256": "b92a97dda83e8125a0447b2dc839e136eaccae5ed64fd1ff8a6d9f53da859011"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/introspection/server.log",
+      "size": 9737,
+      "sha256": "3a6e89c49a2ecc9b326d1f00970847b13752d0b5ae02f4b01aa95c150593fa94"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/introspection/skip.txt",
+      "size": 1363,
+      "sha256": "d9925e5f16d02e836f8a995789156ea76a19760476fdec4964b98f9aa3e15285"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s/unit/introspection/suite.log",
+      "size": 5161,
+      "sha256": "5c95f0758cf8d8ec35dac60f3ad39ba85342ff8fb0e3d68e7c2e3a9efe25d66a"
+    },
+    {
+      "path": "jobs/redis_tcl/redis-tcl-2s.log",
+      "size": 64,
+      "sha256": "eb70e544b68af6a8f7d57fec3d391fcfb01aa47c5a769374c172a73a54decca0"
+    },
+    {
+      "path": "jobs/redis_tcl/timings",
+      "size": 102,
+      "sha256": "f2c805f7a545ddcb59b9aab021ef4b4876eadf5d2a07460d3aefcb9dc2f4ec67"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "68852df727cb58b6d76ea5637da1287748de1727072e22d41847b854606b1533"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "4b269d5be2ccb0ebb5e92800aa1b08ab0f110c45e95110ef57273c09c6e24db8"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1214,
+      "sha256": "fcb5aa859c0eab85bd80b2565662510d01c88cd51f05ed54c06bc698a157f069"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 236254,
+      "sha256": "fcce44978440746de9603b87df6331c4a8d90f15c617dd9767bb2d7453dd837a"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "redis_tcl",
+      "done": "0\t0\t2",
+      "passed": 0,
+      "failed": 2,
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "0.750000",
+          "label": "Redis 7.4.10 Tcl passing subset (2s)"
+        },
+        {
+          "status": "FAIL",
+          "seconds": "0.760000",
+          "label": "Redis 7.4.10 Tcl passing subset (1s)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "16-23",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/tcl-regression-r7/tomokv"
+  ],
+  "binary_sha256": "8a358788aef3c09fb17cca020b38d0008679103b6a4e71d541cb19a3f2cfc8db",
+  "exit_code": 1,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.tb2hbv",
+  "engine": "uring",
+  "fused": false
+}
