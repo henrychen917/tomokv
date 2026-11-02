@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -103,6 +104,47 @@ def jobs(a):
     print(a.tag, result.returncode, sum(job['passed'] for job in record['jobs']), failures, flush=True)
     return bool(result.returncode or failures)
 
+def landing_selftest(a):
+    """Exercise final landing counts in a disposable committed-source copy."""
+    import blockfix2_receipts as receipts
+    revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+    source = BUILD / a.tag
+    source.mkdir(exist_ok=False)
+    archive = subprocess.Popen(['git', 'archive', revision], stdout=subprocess.PIPE)
+    subprocess.run(['tar', '-x', '-C', str(source)], stdin=archive.stdout, check=True)
+    archive.stdout.close()
+    assert archive.wait() == 0
+    gate = source / 'tests/gate.sh'
+    before = sha(gate)
+    text = gate.read_text()
+    for name, old, new in [('EXPECT_QUICK', 1046, 1090), ('EXPECT_FULL', 1063, 1107)]:
+        text, count = re.subn(r'(?m)^'+name+'='+str(old)+r'\b', name+'='+str(new), text)
+        assert count == 1
+    gate.write_text(text)
+    env = dict(os.environ, LC_ALL='C', GATE_ONLY_JOBS='abba_selftest',
+        GATE_PROOF_NO_RATES='1', GATE_LEDGER=str(source/'ledger'),
+        REDIS74_ROOT='/home/user/Projects/redis', CXX='g++ -gz=zlib', CC='cc -gz=zlib')
+    command = ['taskset', '-c', '0-31', 'tests/gate.sh', 'full',
+        '--server-cores', '16-23', '--load-cores', '0-7', '--server-smt', '',
+        '--load-smt', '', '--ports', '20093-20095', '--candidate-binary', str(a.binary.resolve())]
+    logfile = source / 'selftest.log'
+    with logfile.open('w') as log:
+        result = subprocess.run(command, cwd=source, env=env, stdout=log, stderr=subprocess.STDOUT)
+    paths = re.findall(r'^  artifacts: (.+)$', logfile.read_text(), re.M)
+    assert len(paths) == 1, 'gate did not create a job receipt'
+    record = receipts.collect(a.tag, Path(paths[0]), DOC/'jobs')
+    record.update(revision=revision, command=command, exit_code=result.returncode,
+        binary_sha256=sha(a.binary), gate_before_sha256=before,
+        gate_after_sha256=sha(gate), checked_in_gate_sha256=sha(ROOT/'tests/gate.sh'),
+        expected_quick=1090, expected_full=1107)
+    save(DOC/'jobs'/(a.tag+'.json'), record)
+    assert sha(ROOT/'tests/gate.sh') == before, 'checked-in EXPECT source changed'
+    assert sha(Path(record['archive'])) == record['archive_sha256']
+    if result.returncode == 0:
+        shutil.rmtree(source)
+    print(a.tag, result.returncode, flush=True)
+    return result.returncode
+
 def main():
     assert os.sched_getaffinity(0) <= set(range(32)), 'wave14 CPU boundary'
     os.environ['LC_ALL'] = 'C'
@@ -124,6 +166,9 @@ def main():
     jp.add_argument('--server-cores', default='0-23')
     jp.add_argument('--load-cores', default='24-31')
     jp.add_argument('--ports', default='20000-20089')
+    lp = sub.add_parser('landing-selftest')
+    lp.add_argument('--tag', required=True)
+    lp.add_argument('--binary', type=Path, default=BUILD/'post-r7/tomokv')
     a = p.parse_args()
     if a.phase == 'inventory': inventory()
     elif a.phase == 'identity':
@@ -131,5 +176,6 @@ def main():
         sys.argv = ['identity', str(a.binary), str(DOC/a.tag)]
         identity.main()
     elif a.phase == 'jobs': raise SystemExit(jobs(a))
+    elif a.phase == 'landing-selftest': raise SystemExit(landing_selftest(a))
 
 if __name__ == '__main__': main()
