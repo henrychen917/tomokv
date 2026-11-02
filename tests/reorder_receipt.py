@@ -18,7 +18,10 @@ import r7shadow_noop
 from r7shadow_pad import twin
 
 
-def controls(binary, output):
+def controls(binary, output, inventory):
+    def check_inventory(candidate):
+        r7shadow_noop.exec1s_inventory(candidate, snapshot_capped=True, wave14=True,
+                                      flipfix7=inventory == 'flipfix7')
     # These are disposable parsed instruction images, never executable mutants.
     post = copy.copy(binary)
     post.groups = copy.deepcopy(binary.groups)
@@ -32,21 +35,21 @@ def controls(binary, output):
     else:
         raise AssertionError('missing-symbol negative control passed')
     post.groups = copy.deepcopy(binary.groups)
-    r7shadow_noop.exec1s_inventory(post, snapshot_capped=True, wave14=True)
+    check_inventory(post)
     # LAT-HIST-1 adds an outlined fused executor, not permission to lose a body.
     del post.groups['bool tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)']
     try:
-        r7shadow_noop.exec1s_inventory(post, snapshot_capped=True, wave14=True)
+        check_inventory(post)
     except AssertionError as error:
-        assert 'wave14 named inventory differs' in str(error), str(error)
+        assert inventory + ' named inventory differs' in str(error), str(error)
     else:
         raise AssertionError('missing latencyfix outlined-body control passed')
     post.groups = copy.deepcopy(binary.groups)
     del post.groups['unsigned int tomo::ExLoopT<true>::fused_owner_turn<false>()']
     try:
-        r7shadow_noop.exec1s_inventory(post, snapshot_capped=True, wave14=True)
+        check_inventory(post)
     except AssertionError as error:
-        assert 'wave14 named inventory differs' in str(error), str(error)
+        assert inventory + ' named inventory differs' in str(error), str(error)
     else:
         raise AssertionError('missing exec1s owner-turn control passed')
     capped = [name for name in binary.groups if '::ThreadCtx::drain_tasks_capped<' in name or
@@ -56,11 +59,25 @@ def controls(binary, output):
         post.groups = copy.deepcopy(binary.groups)
         del post.groups[name]
         try:
-            r7shadow_noop.exec1s_inventory(post, snapshot_capped=True, wave14=True)
+            check_inventory(post)
         except AssertionError as error:
-            assert 'wave14 named inventory differs' in str(error), str(error)
+            assert inventory + ' named inventory differs' in str(error), str(error)
         else:
             raise AssertionError('missing capped snapshot drain control passed: ' + name)
+    if inventory == 'flipfix7':
+        post.groups = copy.deepcopy(binary.groups)
+        del post.groups[r7shadow_noop.FLIPFIX7_CALLBACK]
+        try:
+            check_inventory(post)
+        except AssertionError as error:
+            assert 'flipfix7 named inventory differs' in str(error), str(error)
+        else:
+            raise AssertionError('missing flipfix7 DB0 callback control passed')
+        post.groups = copy.deepcopy(binary.groups)
+        post.groups[r7shadow_noop.FLIPFIX7_CALLBACK][0]['encodings'][0] += ' ff'
+        rows = audit.compare(binary, post, output)
+        assert any(not row['equal'] and row['name'] == r7shadow_noop.FLIPFIX7_CALLBACK
+                   for row in rows), 'changed flipfix7 DB0 callback opcode control passed'
     # The added DB0 scan is a required production body, never an allowance.
     scans = [name for name in binary.groups if name.startswith(
         'unsigned long tomo_db0::FlatStore::scan<tomo_db0::xshard_execute(')]
@@ -68,9 +85,9 @@ def controls(binary, output):
     post.groups = copy.deepcopy(binary.groups)
     del post.groups[scans[0]]
     try:
-        r7shadow_noop.exec1s_inventory(post, snapshot_capped=True, wave14=True)
+        check_inventory(post)
     except AssertionError as error:
-        assert 'wave14 named inventory differs' in str(error), str(error)
+        assert inventory + ' named inventory differs' in str(error), str(error)
     else:
         raise AssertionError('missing wave14 DB0 scan control passed')
     post.groups = copy.deepcopy(binary.groups)
@@ -148,6 +165,7 @@ if __name__ == '__main__':
     parser.add_argument('binary', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--engagement', action='store_true')
+    parser.add_argument('--inventory', choices=('wave14', 'flipfix7'), default='flipfix7')
     args = parser.parse_args()
     if args.engagement:
         engagement(args.binary, args.output)
@@ -158,9 +176,9 @@ if __name__ == '__main__':
     (args.output / 'twin.json').write_text(json.dumps(receipt, indent=2) + '\n')
     subprocess.run([sys.executable, str(Path(__file__).with_name('r7shadow_noop.py')),
                     str(pad), str(args.binary), str(args.output / 'identity'),
-                    '--inventory', 'wave14'], check=True)
+                    '--inventory', args.inventory], check=True)
     negative = args.output / 'negative'
     negative.mkdir(exist_ok=True)
     binary = audit.Binary(args.binary, negative, literal_pools=True)
     r7shadow_noop.off_roles(binary)
-    controls(binary, negative)
+    controls(binary, negative, args.inventory)
