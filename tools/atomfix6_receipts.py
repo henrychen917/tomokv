@@ -30,6 +30,8 @@ for folder in sorted((DOC / 'proof').iterdir()):
             record['failures'].append(fields[-1])
     if roots:
         run = Path(roots[-1]); record['run'] = str(run)
+        for source in run.glob('differ-*.json'):
+            shutil.copyfile(source, folder / source.name)
         record['jobs'] = []
         for job in sorted((run / 'jobs').iterdir()):
             if not job.is_dir(): continue
@@ -37,6 +39,10 @@ for folder in sorted((DOC / 'proof').iterdir()):
             dest.mkdir(parents=True, exist_ok=True)
             for name in ('ledger', 'done', 'output.log', 'timings', 'family.tsv'):
                 if (job / name).exists(): shutil.copyfile(job / name, dest / name)
+            if job.name.startswith('differ-'):
+                for name in ('legs.tsv', 'complete.json', 'seeds.json', 'summary.json'):
+                    if (job / 'differ' / name).exists():
+                        shutil.copyfile(job / 'differ' / name, dest / name)
             if job.name == 'wave14_order':
                 for source, name in [('proof/results.json', 'results.json'), ('proof.log', 'proof.log')]:
                     if (job / source).exists(): shutil.copyfile(job / source, dest / name)
