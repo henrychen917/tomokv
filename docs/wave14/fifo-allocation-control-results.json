@@ -1,0 +1,50 @@
+[
+  {
+    "tag": "fifo-lane-four-client-cpus",
+    "command": [
+      "python3",
+      "tools/wave14.py",
+      "jobs",
+      "--tag",
+      "fifo-lane-four-client-cpus",
+      "--engine",
+      "uring",
+      "--jobs",
+      "txnorder_fifo_live",
+      "--binary",
+      "/home/user/Projects/bins/execfifo3-post-6f9af8cd",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "0-3",
+      "--ports",
+      "20093-20095"
+    ],
+    "binary_sha256": "6f9af8cdb5e6491437565b587451fcdcf5c5ddce1ee5d654bc0c1d9d73dc08b8",
+    "exit_code": 1
+  },
+  {
+    "tag": "fifo-final-eight-client-cpus",
+    "command": [
+      "python3",
+      "tools/wave14.py",
+      "jobs",
+      "--tag",
+      "fifo-final-eight-client-cpus",
+      "--engine",
+      "uring",
+      "--jobs",
+      "txnorder_fifo_live",
+      "--binary",
+      "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv",
+      "--server-cores",
+      "16-23",
+      "--load-cores",
+      "0-7",
+      "--ports",
+      "20093-20095"
+    ],
+    "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "exit_code": 1
+  }
+]

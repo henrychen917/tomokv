@@ -1,0 +1,155 @@
+{
+  "label": "merged-final-script-bounds-a0-uring-1s",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.yyrivs",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/merged-final-script-bounds-a0-uring-1s.tar.gz",
+  "archive_sha256": "88ff79301bb7160fbf286bca57c7b6c998bd560299b78f815b8c8a72ea2573d6",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 110,
+      "sha256": "f4b7dfba22fe48da91e22b7a7709897a8a08f148ef0d90ca68e339716e73d0e5"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "79d2abd20357d3e9e90bf48960c4103053b95035057e06e13ae07bf86ccf75f7"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/script_bounds/done",
+      "size": 6,
+      "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+    },
+    {
+      "path": "jobs/script_bounds/family.tsv",
+      "size": 58,
+      "sha256": "853d3740705a43789a4acf6167d99eab2dc93d84203d2314a9bdd38d650e08dd"
+    },
+    {
+      "path": "jobs/script_bounds/gate-srv-fused.7eNAqY",
+      "size": 10658,
+      "sha256": "1912f79392c7493ada23451193c26755338755b630bbaa2687e47269139dcffd"
+    },
+    {
+      "path": "jobs/script_bounds/gate-srv-fused.VvkL2l",
+      "size": 10794,
+      "sha256": "afceb95e9867bc8c18f41f354a876f60e599c8b03c970deebbdb02454fc139cc"
+    },
+    {
+      "path": "jobs/script_bounds/gate-xscript-limit.txt",
+      "size": 386,
+      "sha256": "f1b54d29e42d31727f30fb5601f869824f3ad2e59ce81b8c1333095eccd73d85"
+    },
+    {
+      "path": "jobs/script_bounds/gate-xscript-window.txt",
+      "size": 469,
+      "sha256": "30e734578e66e6e3588a0b9a110716e4bbe2e6405b852d6e11cbe5c5ad7e36bc"
+    },
+    {
+      "path": "jobs/script_bounds/ledger",
+      "size": 69,
+      "sha256": "b4d75581836f35ab7888a158019b63b12f0850b70364a40bb6655ea320610e0c"
+    },
+    {
+      "path": "jobs/script_bounds/output.log",
+      "size": 284,
+      "sha256": "22ba20596f4db65ee21e996a294898ccf18cedcf67220551cbc6192edba687e1"
+    },
+    {
+      "path": "jobs/script_bounds/timings",
+      "size": 69,
+      "sha256": "b4d75581836f35ab7888a158019b63b12f0850b70364a40bb6655ea320610e0c"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "f82be3144c74503a8b4721448ffd842bb021cf49ce51c685164522231d7cce96"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1224,
+      "sha256": "e11c39b8367a6e500b1191c9d9e436ce846b463ea085a5b5db295784aad6baf5"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 289886,
+      "sha256": "96a1ea3aea7cba7c7f34bdd84dd6272bb4614fa4f970e48c785ec26b4cfe9a7c"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "script_bounds",
+      "done": "0\t2\t0",
+      "passed": 2,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "xscript limit control"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.040000",
+          "label": "xscript window control"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-15",
+    "--load-cores",
+    "16-23",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20000-20089",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv"
+  ],
+  "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.yyrivs",
+  "engine": "uring",
+  "fused": true
+}
