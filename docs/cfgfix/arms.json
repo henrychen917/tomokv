@@ -4,9 +4,9 @@
   "matched": "POST .text start and total size",
   "text": {
     "address": 183344,
-    "size": 8923911
+    "size": 8924055
   },
-  "padding": 27840,
+  "padding": 27984,
   "limitation": "Size control only: internal function placement and data sections retain PRE layout. This is not an exact symbol-layout twin.",
   "link": [
     "g++",
@@ -162,18 +162,18 @@
     },
     "POST": {
       "path": "/home/user/Projects/cx-cfgfix/build/cfgfix/arms/tomokv-POST",
-      "sha256": "39ecc4aa17bc2cb82913f17e7ceb1810112da4e757c714f46986683a63e13652",
+      "sha256": "01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3",
       "text": {
         "address": 183344,
-        "size": 8923911
+        "size": 8924055
       }
     },
     "PAD-A": {
       "path": "/home/user/Projects/cx-cfgfix/build/cfgfix/arms/tomokv-PAD-A",
-      "sha256": "b4af92b03c261cc762d112a14e9b7a58284819350de216bf94db0d1ba08c3d1f",
+      "sha256": "ba567335d4633b8d3ab150389864ca1f570eda5e496bf1736547534271de9c94",
       "text": {
         "address": 183344,
-        "size": 8923911
+        "size": 8924055
       }
     }
   }

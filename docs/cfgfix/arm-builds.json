@@ -114,6 +114,57 @@
       "cwd": "/home/user/Projects/cx-cfgfix",
       "returncode": 0,
       "finished": 1793582904.533947
+    },
+    {
+      "label": "final-collision-build",
+      "command": [
+        "make",
+        "-j16",
+        "all",
+        "CXX=g++"
+      ],
+      "started": 1793587523.8525517,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793587539.268971
+    },
+    {
+      "label": "pre-collision-prefix",
+      "command": [
+        "make",
+        "-B",
+        "-j16",
+        "all",
+        "CXX=g++ -fdebug-prefix-map=/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source=/home/user/Projects/cx-cfgfix",
+        "CC=cc -fdebug-prefix-map=/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source=/home/user/Projects/cx-cfgfix"
+      ],
+      "started": 1793587539.2693226,
+      "cwd": "/home/user/Projects/cx-cfgfix/build/cfgfix/pre-source",
+      "returncode": 0,
+      "finished": 1793587624.5189624
+    },
+    {
+      "label": "pad-collision",
+      "command": [
+        "python3",
+        "tools/cfgfix_pad.py"
+      ],
+      "started": 1793587624.7715025,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793587633.4550104
+    },
+    {
+      "label": "counts-collision",
+      "command": [
+        "python3",
+        "tools/cfgfix_counts.py",
+        "POST"
+      ],
+      "started": 1793587633.4556186,
+      "cwd": "/home/user/Projects/cx-cfgfix",
+      "returncode": 0,
+      "finished": 1793587685.524904
     }
   ],
   "pre_reproduction": {

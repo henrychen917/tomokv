@@ -1,7 +1,7 @@
 [
   {
     "phase": "broad-regression-before-tls-guard",
-    "log": "final-regression.log",
+    "log": "pre-collision-regression.log",
     "command": [
       "/bin/bash",
       "tests/gate.sh",
@@ -42,6 +42,7 @@
     "started": 1793584561.8049667,
     "note": "Overlaps the independent uring clock jobs. Correctness only; no performance measurements.",
     "returncode": 0,
-    "finished": 1793585801.995087
+    "finished": 1793585801.995087,
+    "log": "pre-collision-epoll-controls.log"
   }
 ]

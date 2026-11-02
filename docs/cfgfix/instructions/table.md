@@ -1,6 +1,6 @@
 # Command-scope instruction census
 
-PRE `97f0d76e3782485ae2e2f797805484ef09eb52752a5019935d1bc409d4fb4fd1`; POST `39ecc4aa17bc2cb82913f17e7ceb1810112da4e757c714f46986683a63e13652`.
+PRE `97f0d76e3782485ae2e2f797805484ef09eb52752a5019935d1bc409d4fb4fd1`; POST `01813fe2a5534ffcce92bb03992d648c74125e7281949c53dad6b125b69526a3`.
 
 Serverless complete production command scope; excludes libc/kernel time and explicitly records clock/library calls. This is instruction accounting, not a cycles, IPC, latency or throughput result.
 
