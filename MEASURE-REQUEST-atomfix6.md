@@ -63,7 +63,9 @@ fail on PRE and pass on POST without timing or throughput thresholds.
 Instruction preservation: `docs/atomfix6/counts/comparison-final.json` contains
 all 80 PRE/POST command scopes. Every one of the 40 atomic-0 scopes is exactly
 unchanged: GET/SET/INCR/MGET/MSET, 1s/2s, normal/db0, batches 1/32. All 16 atomic-1
-MGET/MSET uncontended scopes are also unchanged. The scope follows all executable
+MGET/MSET uncontended scopes are also unchanged. These command scopes use
+read-local 0; MGET/MSET touch eight shards with 64-byte values. The live
+correctness matrix separately covers read-local 0/1. The scope follows all executable
 production functions, including outlined STL wrappers, excluding fixture glue
 and shared-library internals. These are instruction counts, not cycles or rates;
 they do not establish a throughput result or price asynchronous reclamation.
