@@ -15,6 +15,22 @@ ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / 'docs/rlfix5/jobs'
 
 
+def retire_private_builds(root):
+    """Drop archived, completed jobs' disposable ELF files; retain release outputs."""
+    assert root.parent == ROOT / 'build' and root.name.startswith('gate-run.')
+    retired = []
+    for path in sorted(root.rglob('*')):
+        if not path.is_file() or path.is_symlink():
+            continue
+        with path.open('rb') as file:
+            if file.read(4) != b'\x7fELF':
+                continue
+        retired.append(dict(path=str(path.relative_to(root)), bytes=path.stat().st_size,
+                            sha256=sha(path)))
+        path.unlink()
+    return retired
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('tag')
@@ -78,6 +94,7 @@ def main():
     record.update(metadata, exit_code=result.returncode)
     assert sha(binary) == digest, 'candidate changed during proof'
     assert sha(boot_binary) == digest, 'boot copy changed during proof'
+    record['retired_build_artifacts'] = retire_private_builds(root)
     (DOC / (a.tag + '.json')).write_text(json.dumps(record, indent=2) + '\n')
     print(a.tag, 'exit', result.returncode, 'passed', sum(j['passed'] for j in record['jobs']),
           'failed', sum(j['failed'] for j in record['jobs']), flush=True)
