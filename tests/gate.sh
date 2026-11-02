@@ -1678,7 +1678,7 @@ done; done
 if [ "$good" = 1 ]; then ok "$title"
 else bad "$title" "see $TMPDIR/flipfix7-*.log"; fi
 }
-job_flipfix7_output(){ flipfix7_live late,late-move,signal,output,output-stay,borrow,borrow-stay "FLIP late and non-draining output (all 2s legs)"; }
+job_flipfix7_output(){ flipfix7_live late,late-move,signal,signal-int,output,output-stay,borrow,borrow-stay "FLIP late and non-draining output (all 2s legs)"; }
 job_flipfix7_blocked(){ flipfix7_live blocked,blocked-stay,blmove-stay "FLIP blocked connection liveness (all 2s legs)"; }
 job_flipfix7_tls(){ flipfix7_live tls,tls-stay "FLIP TLS connection liveness (all 2s legs)"; }
 

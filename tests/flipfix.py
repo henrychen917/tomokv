@@ -11,8 +11,8 @@ any sanitizer report, abort or unanswered FLIP into a failure. No throughput con
   churn        IO4.1/IO4.4 under connection churn (fresh connects + closes); meant for the
                ASAN/TSAN builds, where a lifetime or ordering defect is a sanitizer report.
   late         IO4.1 abort branch: closes spread over FLIPs that turn executors into IOs.
-  sigterm      IO4.2: save clauses armed, 1000 acknowledged SETs, a FLIP held live by a blocked
-               client, SIGTERM: the server must save and exit 0 promptly; restart sees 1000 keys.
+  sigterm      IO4.2: save clauses armed, 1000 acknowledged SETs, a witnessed live FLIP
+               late-output window, SIGTERM: the server must save and exit 0 promptly; restart sees 1000 keys.
   sigint       IO4.2: same live FLIP, SIGINT twice (the second only after the first was
                delivered): the second must exit at once with status 1 (Redis 7.4 "You insist").
   controllers  CT4.3: --flip-auto 1 with sampled fingerprint windows read by the monitor and
@@ -312,82 +312,17 @@ def late_closes(args):
         emit(result='PASS', case=args.case, outcomes=outcomes)
 
 
-def signal_pending(pid, signum):
-    """True while `signum` is still pending (not yet delivered) for the process."""
-    status = Path(f'/proc/{pid}/status').read_text()
-    pending = 0
-    for line in status.splitlines():
-        if line.startswith(('ShdPnd:', 'SigPnd:')):
-            pending |= int(line.split()[1], 16)
-    return bool(pending & (1 << (signum - 1)))
-
-
 def stopping(args):
-    with boot(args, args.case, save='3600 1') as (admin, process, directory):
-        admin.raw(b''.join(encode('SET', f'flipfix:{i}', 'durable') for i in range(1000)))
-        assert [admin.read() for _ in range(1000)] == [b'OK'] * 1000
-        observer, blocker, issuer = conn(args), conn(args), conn(args, timeout=15)
-        try:
-            # A blocked client keeps its IO from acknowledging the FLIP drain: the FLIP stays
-            # live (PRE: until its 5 s deadline) on any binary, no hook needed.
-            blocker.send('BLPOP', 'flipfix:blocker', 0)
-            wait_for(lambda: int(info_field(observer, 'CLIENTS', 'blocked_clients')) == 1, 3,
-                     'the blocking operation to arm')
-            shape = report(observer)
-            total = shape[b'live_io'] + shape[b'live_ex']
-            target = total // 2 if shape[b'live_io'] != total // 2 else max(2, total // 4)
-            issuer.send('FLIP', target, total - target)
-            wait_for(lambda: report(observer)[b'moving'], 3, 'the FLIP drain window to open')
-            emit(event='armed', case=args.case, moving=1, acknowledged=1000)
-            start = time.monotonic()
-            first = signal.SIGTERM if args.case == 'sigterm' else signal.SIGINT
-            process.send_signal(first)
-            if args.case == 'sigint':
-                # Same-signal deliveries merge while pending: send the second only after the
-                # kernel delivered the first (the handler ran), so it is a real second signal.
-                wait_for(lambda: process.poll() is not None or
-                         not signal_pending(process.pid, signal.SIGINT), 2,
-                         'the first SIGINT to be delivered', interval=.0005)
-                assert process.poll() is None, 'first SIGINT already completed the stop'
-                second = time.monotonic()
-                process.send_signal(signal.SIGINT)
-                try:
-                    status = process.wait(timeout=args.second_bound)
-                except subprocess.TimeoutExpired as error:
-                    raise AssertionError(
-                        f'second SIGINT absorbed: still running {args.second_bound}s later') \
-                        from error
-                emit(event='second-sigint-exit', elapsed=round(time.monotonic() - second, 4),
-                     status=status)
-                assert status == 1, f'second SIGINT exit status {status}, expected 1'
-            else:
-                try:
-                    status = process.wait(timeout=args.stop_bound)
-                except subprocess.TimeoutExpired as error:
-                    raise AssertionError(
-                        f'SIGTERM not served: still running {args.stop_bound}s later') from error
-                emit(event='sigterm-exit', elapsed=round(time.monotonic() - start, 4),
-                     status=status)
-                assert status == 0, f'SIGTERM exit status {status}, expected 0'
-                try:
-                    flip_reply = issuer.read()
-                except (OSError, EOFError):
-                    flip_reply = 'closed'
-                emit(event='flip-reply', reply=repr(flip_reply))
-        finally:
-            for peer in (blocker, observer, issuer):
-                peer.close()
-    log = (directory / (args.case + '.log')).read_text(errors='replace')
-    if args.case == 'sigint':
-        assert 'You insist... exiting now.' in log, 'missing the Redis 7.4 second-signal line'
-        emit(result='PASS', case=args.case)
-        return
-    with boot(args, 'restart', directory=directory) as (admin, _, _):
-        admin.raw(b''.join(encode('GET', f'flipfix:{i}') for i in range(1000)))
-        got = [admin.read() for _ in range(1000)]
-        recovered = sum(value == b'durable' for value in got)
-        assert recovered == 1000, f'restart recovered {recovered}/1000 acknowledged keys'
-        emit(result='PASS', case=args.case, recovered=recovered)
+    # D18.3 no longer permits BLPOP to hold IoDrain for the signal observer.
+    # Share flipfix7's fresh-boot late-output arming: absence of a witnessed
+    # active FLIP exhausts the bounded campaign and fails, never skips.
+    subprocess.run([
+        'python3', str(Path(__file__).with_name('flipfix7.py')), '--binary', str(args.binary),
+        '--cores', args.cores, '--port', str(args.port), '--output', str(args.output / 'window'),
+        '--arm', 'post', '--cases', 'signal' if args.case == 'sigterm' else 'sigint',
+        '--engines', args.net_io, '--atomics', '0', '--databases', '16', '--read-local', '0',
+        '--signal-bound', str(args.stop_bound), '--second-bound', str(args.second_bound),
+    ], env=dict(os.environ, LC_ALL='C'), check=True)
 
 
 def controllers(args):

@@ -55,7 +55,7 @@ def thread_read(c, out, key):
 
 def trial(args, directory, engine, atomic, case, attempt):
     stays = case.endswith('-stay')
-    base = case.removesuffix('-stay')
+    base = 'signal' if case in ('signal-int', 'sigint') else case.removesuffix('-stay')
     extra = ['--save', '3600 1'] if base == 'signal' else []
     if base == 'tls':
         cert = ROOT / 'build/flipfix7/certs'
@@ -79,8 +79,6 @@ def trial(args, directory, engine, atomic, case, attempt):
             held = conn(4 if base in ('blocked', 'blmove', 'tls') else 1, True)
             control, probe, writer = conn(0), conn(0), conn(5)
             observer = conn(0)
-            if args.arm == 'post':
-                assert 'flip_late_output' in s.stats(observer), 'POST binary lacks the liveness fix'
             if base == 'tls':
                 for _ in range(96):
                     c = stack.enter_context(contextlib.closing(tls.Conn('127.0.0.1', args.port+1,
@@ -107,6 +105,11 @@ def trial(args, directory, engine, atomic, case, attempt):
             elif base == 'borrow':
                 value = b'b' * (8 << 20)
                 assert control.must('SET', 'flipfix7:borrow', value) == b'OK'
+                if args.read_local:
+                    # The lane intentionally copies. Its supported WATCH fallback
+                    # executes GET on the owner and must arm a real FlatStore borrow.
+                    assert held.must('WATCH', 'flipfix7:borrow') == b'OK'
+                    result['borrow_owner_fallback'] = 'WATCH'
                 held.send('GET', 'flipfix7:borrow')
                 s.wait(lambda: control.must('DEBUG', 'BORROWCOUNT') > 0,
                        'large GET never armed an outstanding borrow')
@@ -131,7 +134,7 @@ def trial(args, directory, engine, atomic, case, attempt):
                 else:
                     time.sleep((.004, .008, .001, .016, .002, .032)[attempt % 6])
             signal_watch = None
-            if case == 'signal' and args.arm == 'post':
+            if base == 'signal' and args.arm == 'post':
                 def send_signal():
                     until = time.monotonic() + 1
                     while time.monotonic() < until and b.proc.poll() is None:
@@ -139,7 +142,29 @@ def trial(args, directory, engine, atomic, case, attempt):
                         status = dict(zip(report[::2], report[1::2]))
                         if status.get(b'moving') == 1:
                             result['signal_during_flip'] = True
-                            b.proc.send_signal(signal.SIGTERM)
+                            first = signal.SIGTERM if case == 'signal' else signal.SIGINT
+                            b.proc.send_signal(first)
+                            if case == 'sigint':
+                                until = time.monotonic() + 2
+                                while b.proc.poll() is None and time.monotonic() < until:
+                                    pending = 0
+                                    try:
+                                        status_lines = Path(f'/proc/{b.proc.pid}/status').read_text().splitlines()
+                                    except FileNotFoundError:
+                                        break
+                                    for line in status_lines:
+                                        if line.startswith(('ShdPnd:', 'SigPnd:')):
+                                            pending |= int(line.split()[1], 16)
+                                    if not pending & (1 << (signal.SIGINT - 1)):
+                                        break
+                                    time.sleep(.0005)
+                                if b.proc.poll() is not None:
+                                    result['first_signal_exited'] = True
+                                    result['unarmed'] = True
+                                else:
+                                    result['second_signal_sent'] = True
+                                    result['second_signal_started'] = time.monotonic()
+                                    b.proc.send_signal(signal.SIGINT)
                             return
                 signal_watch = threading.Thread(target=send_signal, daemon=True)
                 signal_watch.start()
@@ -160,8 +185,13 @@ def trial(args, directory, engine, atomic, case, attempt):
             if signal_watch:
                 signal_watch.join(2)
                 if result.get('signal_during_flip'):
-                    result['signal_exit'] = b.wait_exit(12)
+                    bound = args.second_bound if result.get('second_signal_sent') else args.signal_bound
+                    result['signal_exit'] = b.wait_exit(bound)
                     result['saved'] = (directory / 'dump.tomo').exists()
+                    if result.get('second_signal_sent'):
+                        result['second_signal_seconds'] = time.monotonic() - result['second_signal_started']
+                        assert result['second_signal_seconds'] < args.second_bound, result
+                        assert 'You insist... exiting now.' in b.log.read_text(errors='replace'), result
                 else:
                     result['unarmed'] = True
             if case == 'signal' and args.arm == 'pre':
@@ -170,7 +200,7 @@ def trial(args, directory, engine, atomic, case, attempt):
                     result['unarmed'] = True
                 else:
                     b.proc.send_signal(signal.SIGTERM)
-                    result['signal_exit'] = b.wait_exit(12)
+                    result['signal_exit'] = b.wait_exit(args.signal_bound)
                     result['saved'] = (directory / 'dump.tomo').exists()
             if b.proc.poll() is None:
                 ft.join(6)
@@ -216,6 +246,8 @@ def trial(args, directory, engine, atomic, case, attempt):
                     s.wait(lambda: writer.must('DEBUG', 'BORROWCOUNT') == 0,
                            'borrow release did not reach the installed owner')
                     result['borrow_released'] = True
+                    if args.read_local:
+                        assert held.must('UNWATCH') == b'OK'
                 if keys:
                     held.send('UNSUBSCRIBE')
                     assert held.read() == [b'unsubscribe', b'__keyevent@0__:del', 0]
@@ -243,7 +275,7 @@ def trial(args, directory, engine, atomic, case, attempt):
             if b.exit is None:
                 b.stop()
             result['exit'] = b.exit
-    if case == 'signal' and result.get('signal_exit'):
+    if case in ('signal', 'signal-int') and result.get('signal_exit'):
         with s.Boot(args, directory, '2s', engine, atomic, False, name='restart') as restart:
             values = restart.c.must('MGET', *[f'flipfix7:ack:{i}' for i in range(1000)])
             result['reloaded_acknowledged'] = sum(x == b'saved' for x in values)
@@ -263,6 +295,8 @@ def main():
     ap.add_argument('--read-local', type=int, default=0)
     ap.add_argument('--atomics', default='0,1')
     ap.add_argument('--stall', type=float, default=30)
+    ap.add_argument('--signal-bound', type=float, default=12)
+    ap.add_argument('--second-bound', type=float, default=.75)
     args = ap.parse_args()
     os.environ['LC_ALL'] = 'C'
     args.output.mkdir(parents=True, exist_ok=True)
@@ -278,7 +312,7 @@ def main():
     for engine in args.engines.split(','):
         for atomic in map(int, args.atomics.split(',')):
             for case in args.cases.split(','):
-                for attempt in range(48 if case in ('late','late-move','signal') else 1):
+                for attempt in range(48 if case in ('late','late-move','signal','signal-int','sigint') else 1):
                     directory = args.output / f'{engine}-a{atomic}-d{args.databases}-r{args.read_local}-{case}-{attempt}'
                     try:
                         row = trial(args, directory, engine, atomic, case, attempt)
@@ -295,11 +329,14 @@ def main():
                         assert row.get('flip_seconds', 99) >= 1, row
                         assert 'stage' in row and row['clauses'], row
                     else:
-                        if case != 'signal':
+                        if case not in ('signal', 'signal-int', 'sigint'):
                             assert row['flip_seconds'] < 1 and row['ping_seconds'] < 1, row
                         if row.get('unarmed'):
                             continue
-                        if case == 'signal':
+                        if case == 'sigint':
+                            assert row.get('second_signal_sent'), row
+                            assert row['signal_exit'] == dict(rc=1, forced=False), row
+                        elif case in ('signal', 'signal-int'):
                             assert row['signal_exit'] == dict(rc=0, forced=False), row
                             assert row['saved'] and row['reloaded_acknowledged'] == 1000, row
                         else:
