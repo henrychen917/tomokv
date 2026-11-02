@@ -15,6 +15,7 @@ import re
 import resource
 import signal
 import socket
+import struct
 import subprocess
 import threading
 import time
@@ -364,6 +365,8 @@ def auth_case(a, mode, engine):
                         ready.wait(10)
                         while not stop.is_set():
                             with socket.create_connection(('127.0.0.1', a.port), timeout=5) as sock:
+                                # Close with RST: tens of thousands of probes leave no TIME_WAIT.
+                                sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
                                 sock.sendall(request)
                                 reply = b''
                                 while not reply.endswith(b'\r\n'):
@@ -409,8 +412,8 @@ def long_command(mode):
     # Each server's own multi-second single-key command: TomoKV executes a large
     # SUNIONSTORE slowly, Redis a large SORT ... STORE. Duration is calibrated.
     if mode == 'redis':
-        return 4000000, lambda dst: ('SORT', '{cc6}src', 'STORE', dst)
-    return 400000, lambda dst: ('SUNIONSTORE', dst, '{cc6}src')
+        return 6000000, lambda dst: ('SORT', '{cc6}src', 'STORE', dst)
+    return 300000, lambda dst: ('SUNIONSTORE', dst, '{cc6}src')
 
 
 def populate(c, members):
