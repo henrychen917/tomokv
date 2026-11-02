@@ -200,7 +200,7 @@ def wave8_inventory(binary):
     return Counter({'tomo': 164, 'tomo_db0': 162})
 
 
-def exec1s_inventory(binary, *, snapshot_capped=False):
+def exec1s_inventory(binary, *, snapshot_capped=False, wave14=False):
     """Keep wave8's inventory, explicitly account for fused sweep outlining.
 
     X1 emits one full fused sweep instead of two hot/cold clone pairs in each
@@ -228,10 +228,29 @@ def exec1s_inventory(binary, *, snapshot_capped=False):
                 for method in ('drain_tasks_capped', 'drain_tasks_unmasked_capped'):
                     expected[old.replace('::ThreadCtx::drain_tasks<false, ',
                                          '::ThreadCtx::' + method + '<false, 32u, ')] = 1
+    if wave14:
+        assert snapshot_capped
+        # XS-NOTIFY-1 replaces ScriptApplyPins with staged publication; both
+        # destructor bodies are also absent in frozen rootcompat f3511f86.
+        for ns in ('tomo', 'tomo_db0'):
+            retired = (f'{ns}::xshard_execute({ns}::Task const&, {ns}::Shard&, '
+                       f'{ns}::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()')
+            assert expected.pop(retired) == 1
+        # Keep clientcompat 346d035c's newly outlined DB0 scan, including its
+        # complete instruction comparison. No extra or missing clone is allowed.
+        scan = ('unsigned long tomo_db0::FlatStore::scan<tomo_db0::xshard_execute('
+                'tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)'
+                '::{lambda(tomo_db0::KvObj*)#1}>(unsigned long, unsigned int, '
+                'tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, '
+                'tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&&, bool)'
+                ' [clone .constprop.0]')
+        assert scan not in expected
+        expected[scan] = 1
     actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
-    label = 'wave10' if snapshot_capped else 'exec1s'
+    label = 'wave14' if wave14 else 'wave10' if snapshot_capped else 'exec1s'
     assert actual == expected, label + ' named inventory differs'
-    return Counter({'tomo': 164, 'tomo_db0': 162} if snapshot_capped else
+    return Counter({'tomo': 163, 'tomo_db0': 162} if wave14 else
+                   {'tomo': 164, 'tomo_db0': 162} if snapshot_capped else
                    {'tomo': 162, 'tomo_db0': 160})
 
 
@@ -240,7 +259,7 @@ if __name__ == '__main__':
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8', 'exec1s', 'wave10', 'wave14'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -320,9 +339,10 @@ if __name__ == '__main__':
         for binary in (pre, post): expected = latencyfix_inventory(binary)
     if args.inventory == 'wave8':
         for binary in (pre, post): expected = wave8_inventory(binary)
-    if args.inventory in ('exec1s', 'wave10'):
+    if args.inventory in ('exec1s', 'wave10', 'wave14'):
         for binary in (pre, post):
-            expected = exec1s_inventory(binary, snapshot_capped=args.inventory == 'wave10')
+            expected = exec1s_inventory(binary, snapshot_capped=args.inventory in ('wave10', 'wave14'),
+                                       wave14=args.inventory == 'wave14')
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):
