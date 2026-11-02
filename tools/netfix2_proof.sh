@@ -21,7 +21,11 @@ fi
 for engine in uring epoll; do
     export GATE_NET_IO=$engine GATE_ZC_NET_IO=$engine GATE_DIFFER_NET_IO=$engine
     export GATE_PROOF_NET_IO=$engine GATE_SHUTDOWN_NET_IO=$engine
-    GATE_ONLY_JOBS="$jobs" taskset -c 8-15 tests/gate.sh full \
+    selected_jobs="$jobs"
+    if [ "${1:-}" = --regression-only ] && [ "$engine" = uring ]; then
+        selected_jobs+=" differ-equivalence"
+    fi
+    GATE_ONLY_JOBS="$selected_jobs" taskset -c 8-15 tests/gate.sh full \
         --server-cores 8-15 --load-cores 8-15 --load-smt '' --ports 21100-21199 "${candidate[@]}" \
         >"build/netfix2/logs/regression-$engine.log" 2>&1
     echo "$engine regression exit=$?"

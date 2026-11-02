@@ -32,7 +32,8 @@ import socket
 import sys
 import time
 
-from _gate_process import (cpus, encode, info, install_signals, pin_driver, require, server)
+from _gate_process import (cpus, encode, info, install_signals, pin_driver, require, server,
+                           shared_correctness_cpus)
 from feature_gate import check_config, smoke
 from _differ_history import default_history, failing_seeds, record_leg
 from gateplan import permitted_cpus
@@ -166,9 +167,10 @@ def validate_geometry(server_cpus, load_cpus):
     # taskset mask is not the cgroup's allowed CPU set; probe and restore it just
     # as the main planner does, before the child server takes its own slot.
     require((servers | loads) <= permitted_cpus(servers | loads), 'requested CPUs unavailable')
+    shared = shared_correctness_cpus(servers, loads)
     for cpu in servers:
         siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list').read_text().strip()))
-        require(not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
+        require(shared or not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
         require(len(siblings & servers) == 1, 'server CPUs must name distinct physical cores')
 
 
@@ -221,6 +223,22 @@ def self_test():
             require('share a physical core' in str(exc), 'wrong SMT rejection')
         else:
             raise AssertionError('server SMT sibling was accepted as a load CPU')
+        guarded = dict(GATE_CORRECTNESS_SHARED_CPUS='1', GATE_PROOF_NO_RATES='1',
+                       GATE_ONLY_JOBS='differ-equivalence')
+        with mock.patch.dict(os.environ, guarded, clear=True), \
+             mock.patch.object(os, 'sched_setaffinity') as pin:
+            validate_geometry('0-7', '0-7')
+            pin_driver('0-7', '0-7')
+            pin.assert_called_once()
+            for missing in ('GATE_ONLY_JOBS', 'GATE_PROOF_NO_RATES', 'GATE_CORRECTNESS_SHARED_CPUS'):
+                with mock.patch.dict(os.environ, {missing: ''}):
+                    for check in (validate_geometry, pin_driver):
+                        try:
+                            check('0-7', '0-7')
+                        except AssertionError:
+                            pass
+                        else:
+                            raise AssertionError(f'unguarded shared CPUs accepted by {check.__name__}')
     print('MODE EQUIVALENCE self-test: seed/matrix/raw replay/divergence controls passed; no servers')
 
 
