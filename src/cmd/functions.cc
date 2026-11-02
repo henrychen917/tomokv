@@ -269,6 +269,11 @@ private:
 };
 
 FunctionRegistry g_functions;
+// Successful FUNCTION LOAD/DELETE/FLUSH/RESTORE commands, as Redis's server.dirty++. Each is
+// counted after its registry change: a snapshot reads the total before copying the registry,
+// so a counted change is always in that copy. Replay and snapshot loads are not changes.
+std::atomic<uint64_t> g_function_save_changes{0};
+void note_function_change() { g_function_save_changes.fetch_add(1, std::memory_order_relaxed); }
 
 // ---- the registration sandbox ------------------------------------------------------------------
 
@@ -1027,7 +1032,7 @@ void function_restore(Op& op) {
     }
     std::string detail;
     switch (g_functions.replace_all(std::move(incoming), flush_first, replace, detail)) {
-        case AddResult::Ok: reply_ok(op.sink()); return;
+        case AddResult::Ok: note_function_change(); reply_ok(op.sink()); return;
         // Redis quotes the library name for LOAD and leaves it bare for RESTORE. Both shapes are
         // reproduced here rather than unified.
         case AddResult::LibraryExists:
@@ -1093,7 +1098,7 @@ void cmd_function(Shard&, Op& op) {
         const std::string name = library.name;
         std::string detail;
         switch (g_functions.add(std::move(library), replace, detail)) {
-            case AddResult::Ok: reply_bulk_string(op, name); return;
+            case AddResult::Ok: note_function_change(); reply_bulk_string(op, name); return;
             case AddResult::LibraryExists:
                 reply_err_string(op, "Library '" + detail + "' already exists"); return;
             case AddResult::FunctionExists:
@@ -1109,6 +1114,7 @@ void cmd_function(Shard&, Op& op) {
             reply_text_error(op, "ERR", "Library not found");
             return;
         }
+        note_function_change();
         reply_ok(op.sink());
         return;
     }
@@ -1121,6 +1127,7 @@ void cmd_function(Shard&, Op& op) {
             return;
         }
         g_functions.flush();
+        note_function_change();   // even an empty registry, as Redis
         reply_ok(op.sink());
         return;
     }
@@ -1168,6 +1175,10 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+uint64_t function_save_changes() {
+    return g_function_save_changes.load(std::memory_order_relaxed);
+}
 
 bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
     try {

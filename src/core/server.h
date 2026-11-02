@@ -1980,7 +1980,7 @@ public:
                placement_.ifid_threads().front() == tid;
     }
     uint64_t save_change_total() const {
-        uint64_t total = 0;
+        uint64_t total = function_save_changes();
         for (const auto& shard : shards_) total += shard->save_changes();
         return total;
     }

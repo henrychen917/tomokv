@@ -420,6 +420,8 @@ bool command_prepare_scan_route(Server& server, Op& op);
 bool command_prepare_subcmd_route(Server& server, Op& op);
 // Lets the server-tail translation unit reach the bound Server without duplicating the binding.
 Server* command_server();
+// Successful FUNCTION registry commands; part of the configured save schedule's change count.
+uint64_t function_save_changes();
 uint64_t command_proto_max_bulk_len();
 // Bound handler context. ConnLocal runs on IO; EXEC's ConfigRoute stage temporarily binds its
 // parked client on shard 0's owner and restores the previous context afterwards.
