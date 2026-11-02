@@ -52,5 +52,11 @@
     "sha256": "f279dea2108518b31d0c3c1f5c2c61710d203bbe220581f62805cbc6f7bc38f7",
     "files": 96,
     "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-pad-a-before-strip-raw.tar.gz",
+    "sha256": "a432a05b4446d9f020cc0be9829d25b0e2574eef80372a7ab24cbdf71d34320f",
+    "files": 480,
+    "purpose": "PAD-A instruction traces before lossless probe debug stripping"
   }
 ]

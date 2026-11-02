@@ -1,0 +1,12 @@
+--- current
++++ generated
+@@ -2849,7 +2849,8 @@
+                 }
+                 read_local_demotion.commit_reads();
+             }
+-            // Same classification result as the ordinary parser; spec is unchanged here.
++            // The shared classifier sets this exactly for armed GET/MGET. No intervening
++            // path changes spec; reuse that result instead of testing its flags again.
+             if (read_local_enabled &&
+                 __builtin_expect(read_local_eligible_decided, false)) {
+                 if (read_local_eligible) {

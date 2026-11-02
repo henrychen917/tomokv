@@ -9,6 +9,15 @@ both namespaces: STRLEN 9 then GET old; SET OK then GET old across yes→no;
 GET new-value before the younger SET across no→yes. Live T10 also fails.
 Raw evidence: `docs/rlfix5/pre-gate.tar.gz`.
 
+Evidence corrections are retained, not counted as passes: one early gate attempt
+used a candidate while it was being linked and was discarded; the first MGET
+fixture incorrectly reused input storage while an operation still borrowed it.
+The fixture now appends input until the ROB retires. The corrected PRE MGET
+still returns the younger value and fails in both modes/namespaces
+(`docs/rlfix5/jobs/corrected-pre-mget.tar.gz`). Only the fixed fixture and frozen
+POST feed the final results. Intermediate instruction variants with added hit
+instructions were rejected; their traces remain in the labelled archives.
+
 RL5.7 adds six rows at the `collect_job rlfix5-*` lines, before the quick
 exit: **DQ +6 / DF +6**. The EXPECT literals would become **1052 / 1069** from PRE's 1046 / 1063
 by this lane's delta alone. However, PRE's source inventory already contains
@@ -20,7 +29,10 @@ Neither EXPECT constant is edited.
 The gate's explicit `--shared-correctness-cpus` option permits this eight-CPU
 allocation only with selected jobs and `GATE_PROOF_NO_RATES=1`. The server
 retains eight threads, 16 shards and ratio 6:2. Full/performance execution
-cannot use the option. Timing verdicts remain unavailable on shared CPUs.
+cannot use the option. Timing verdicts remain unavailable on shared CPUs. The feature-matrix driver now
+forwards the same gate engine selector and verifies INFO `net_io`; previously it
+ignored that selector and an epoll-labelled rerun still booted io_uring. This
+changes no row count or server behaviour.
 
 The final ordering jobs pass 7/7 including the release row: six RL5 rows,
 all controlled schedules in both namespaces, live uring/epoll in both modes,
@@ -52,11 +64,12 @@ GET/MGET predicate at enqueue, retaining the boot-enabled guard, and expresses
 the existing MGET/batch branches once. No queue, ring, ownership, grace,
 capacity or retry algorithm changes. Locked layouts are unchanged.
 
-The final linked census changes 29 hot bodies (including emitted clones),
+The final linked census changes 31 hot symbol groups (including emitted clones),
 listed individually in `docs/rlfix5/changed-hot-bodies.md`; the complete strict
 normalization inventory is `changed-bodies.json`. The changed families are the
 ordinary and R7 parsers in both namespaces, three `flush_ready` specializations,
-and two `run_loop` specializations. Identity is a proxy; no throughput merit is
+two `run_loop` specializations, and emitted `refine_current_write_hash` and
+`kvobj_external_bytes` clone groups. Identity is a proxy; no throughput merit is
 claimed from these identities or instruction counts.
 
 For the six non-GET reads with tracking off, batch-1 overhead is 5–12
@@ -81,13 +94,22 @@ POST is 1,344 bytes smaller than PRE. PAD-A recompiles only PRE's two cold
 bytes. It matches total `.text` size, **not individual function placement**;
 that limitation matters when interpreting the control. Source, link recipe,
 and digest are in `docs/rlfix5/pad-a.json`. It contains neither S1 fix.
+Cold-unit alignment changes 17 groups in the expanded hot-name inventory
+(`pad-a-changed-bodies.json`), so PAD-A is not a body-identity control. Its 160
+GET/SET/INCR/MGET/MSET scopes, across both modes/namespaces, both batch sizes
+and all four lane/tracking states, nevertheless have exactly PRE's instruction
+counts (`pad-a-count-deltas.json`). Its negative ordering witnesses are queued.
 
 Maintainer measurement request: use these three frozen arms with the gate's
 own instrument on a quiet box. Run the 14 generic cells, `d32g_l1`, `x9_32_l1`,
-the eight-instance read-local GET cell, and 2s GET/SET at p1/p32. Use matched
-offered loads and the established ABBA ordering; retain rate, cycles/op,
-instructions/op and IPC for every arm/cell. Rate at matched load decides merit;
-cycles and IPC explain it. A control-compatible gain requires POST to move while
+the eight-instance read-local GET cell, and 2s GET/SET at p1/p32.
+`docs/rlfix5/measure-cells.txt` freezes the 18 distinct cells; `d32g_l1` is
+explicitly pinned to eight load-generator instances and already belongs to
+generic14, as does `x9_32_l1`. The 2s cells are h53/h54/h21/h22. Run pairwise
+PRE↔POST and PRE↔PAD-A with matched offered loads and the established ABBA
+ordering and identical-arm controls; retain rate, cycles/op,
+instructions/op and IPC for every arm/cell. Rate at matched load (and each depth-one cell's declared latency score) decides
+merit; cycles and IPC explain it. A control-compatible gain requires POST to move while
 PAD-A stays flat relative to PRE. All performance cells, the full iteration,
 `flip_saturated` (memtier), and the tailgen client-LB outstanding-bound row
 (open-loop generator) are **NOT RUN** here: they remain maintainer-owned.

@@ -164,7 +164,13 @@
     "-lm",
     "/home/user/Projects/cx-rlfix5/build/rlfix5/counts/scopes/pre-scatter-normal/probe.o"
   ],
-  "probe_sha256": "d742056ded2f9a53b87f25aea1d93a995cc72a0f19fc405da2b461345d6f1727",
+  "probe_sha256": "cb5d9808e71a7265c8bde0ce08d12cb10a47fbe8d6d1f728a1d2f8d17ac84764",
   "server_sha256": "e5be4275748bb9efbec96362bb8f7fcf7286313a7439d958593063916a74068d",
-  "fixture_sha256": "e2b1b5ce3ee47eb7a23b713b66b4bf8412c01b47f2aaf55cda661b3c4a24bb8d"
+  "fixture_sha256": "e2b1b5ce3ee47eb7a23b713b66b4bf8412c01b47f2aaf55cda661b3c4a24bb8d",
+  "strip_debug": [
+    "objcopy",
+    "--strip-debug",
+    "build/rlfix5/counts/scopes/pre-scatter-normal/probe"
+  ],
+  "runtime_image_preserved": true
 }

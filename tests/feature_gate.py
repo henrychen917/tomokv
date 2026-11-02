@@ -260,9 +260,12 @@ def smoke(conn, port, knobs):
 
 def run_cell(args, cell):
     knobs, argv = config(cell, args.server_cpus, args.ratio)
+    engine = os.getenv('GATE_PROOF_NET_IO', os.getenv('GATE_NET_IO', 'uring'))
+    require(engine in ('uring', 'epoll'), 'gate engine must be uring or epoll')
+    argv += ['--net-io', engine]
     directory = Path(args.output) / cell
     start = time.monotonic()
-    evidence = dict(cell=cell, requested=knobs)
+    evidence = dict(cell=cell, requested=knobs, net_io=engine)
     if refuses_boot(cell):
         evidence['contract'] = 'refusal'
         try:
@@ -286,6 +289,7 @@ def run_cell(args, cell):
     try:
         with server(args.binary, args.server_cpus, args.port, directory, argv) as (conn, process):
             actual = info(conn, 'SERVER', 'STATS', 'FLIPCTL')
+            require(actual.get('net_io') == engine, 'feature cell booted the wrong network engine')
             check_config(actual, knobs, cell, args.server_cpus)
             masks = [sorted(os.sched_getaffinity(int(path.name)))
                      for path in Path(f'/proc/{process.pid}/task').iterdir()]

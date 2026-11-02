@@ -1,0 +1,42 @@
+[
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "probe_sha256": "04dc6b753a3f09180a4aefcac96385d1e3d35a67d4996b81d0a9d378df3f87ec",
+    "matches_metadata": true,
+    "matches_counts": true
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "probe_sha256": "bb7e2d6ffe0d29ddb3dc35070e1d32f0eb709d2024a345452f2556e0afcc9af4",
+    "matches_metadata": true,
+    "matches_counts": true
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "probe_sha256": "4543ac8d69c8a37413b84d1f7f22ed622711ea8cb17ad7bb8e771b76a8956a6f",
+    "matches_metadata": true,
+    "matches_counts": true
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "probe_sha256": "c72bc96505e60dd2558a88fb65e1565a0905f0bb5ad66c01da589b92f47fc4f0",
+    "matches_metadata": true,
+    "matches_counts": true
+  },
+  {
+    "arm": "pad-a",
+    "namespace": "normal",
+    "probe_sha256": "f2f2d7876bcb9eabeaf5f81bf91287a5d18e9dca783bdeda83e37ef44b2e25ca",
+    "matches_metadata": true
+  },
+  {
+    "arm": "pad-a",
+    "namespace": "db0",
+    "probe_sha256": "dbaad2dd7a0d769c2f880c12b34b8a6c2ac0a3cfc744bd53f533cd6c56c7132e",
+    "matches_metadata": true
+  }
+]

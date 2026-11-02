@@ -167,8 +167,14 @@
     "/home/user/Projects/cx-rlfix5/build/rlfix5/counts/scopes/pad-a-db0/probe.o",
     "/home/user/Projects/cx-rlfix5/build/rlfix5/pad-a/pad.o"
   ],
-  "probe_sha256": "dbaad2dd7a0d769c2f880c12b34b8a6c2ac0a3cfc744bd53f533cd6c56c7132e",
+  "probe_sha256": "6ed8545ecdcd4865003811b56cc7bb251deddeac6a40df656a69eebe53ef76b7",
   "server_sha256": "272ec9d4a68fb2f66ba5ec0b57385dcb0e158319247a513d4d9eb76653a889ce",
   "fixture_sha256": "a2101b6ba10e243072fa9d46527b69b896ca3dc5dc6f0dcf641b1b7b8898d379",
-  "pad_kind": "A: behaviour twin"
+  "pad_kind": "A: behaviour twin",
+  "strip_debug": [
+    "objcopy",
+    "--strip-debug",
+    "build/rlfix5/counts/scopes/pad-a-db0/probe"
+  ],
+  "runtime_image_preserved": true
 }

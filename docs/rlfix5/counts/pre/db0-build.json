@@ -166,7 +166,13 @@
     "-lm",
     "/home/user/Projects/cx-rlfix5/build/rlfix5/counts/scopes/pre-db0/probe.o"
   ],
-  "probe_sha256": "bb7e2d6ffe0d29ddb3dc35070e1d32f0eb709d2024a345452f2556e0afcc9af4",
+  "probe_sha256": "c44e8a4585a3c0821e2e6c1eb2cce7d9e0744b290e8c325832e412537b547c58",
   "server_sha256": "e5be4275748bb9efbec96362bb8f7fcf7286313a7439d958593063916a74068d",
-  "fixture_sha256": "a2101b6ba10e243072fa9d46527b69b896ca3dc5dc6f0dcf641b1b7b8898d379"
+  "fixture_sha256": "a2101b6ba10e243072fa9d46527b69b896ca3dc5dc6f0dcf641b1b7b8898d379",
+  "strip_debug": [
+    "objcopy",
+    "--strip-debug",
+    "build/rlfix5/counts/scopes/pre-db0/probe"
+  ],
+  "runtime_image_preserved": true
 }

@@ -75,14 +75,25 @@ def identity():
     arms = ('PRE', 'POST', 'PAD-A')
     with ThreadPoolExecutor(max_workers=3) as pool:
         data = dict(zip(arms, pool.map(lambda arm: census.inventory(BUILD / arm), arms)))
+    # Include every production body actually entered by our command scopes,
+    # beyond the gate's historical hot-name patterns.
+    for label in ('pre', 'post', 'pre-scatter', 'post-scatter'):
+        for row in json.loads((DOC / 'counts' / label / 'counts.json').read_text())['rows']:
+            census.COUNTED_HOT.update(census.audit.canonical(name) for name in row['functions'])
     changed = census.compare(data['POST'], {'headline': data['PRE']})
     changed = [r for r in changed if not r['equal']]
+    for row in changed:
+        row['pre_bodies'] = data['PRE']['groups'].get(row['name'], [])
+        row['post_bodies'] = data['POST']['groups'].get(row['name'], [])
     save(DOC / 'changed-bodies.json', changed)
     hot = [r for r in changed if r['hot']]
     save(DOC / 'changed-hot-bodies.json', hot)
+    pad_changed = [r for r in census.compare(data['PAD-A'], {'headline': data['PRE']}) if not r['equal']]
+    save(DOC / 'pad-a-changed-bodies.json', pad_changed)
     save(DOC / 'artifacts.json', {arm: dict(path=str(BUILD / arm), sha256=sha(BUILD / arm),
         text_bytes=text_size(BUILD / arm)) for arm in arms})
-    lines = ['Changed hot bodies (strict gate normalization; identity is a proxy):', '']
+    lines = ['Changed hot symbol groups (strict gate normalization; identity is a proxy):', '',
+             'Every emitted body has its address, size and normalized digest in changed-hot-bodies.json.', '']
     lines += [f"- `{r['name']}`: PRE {r['headline_sizes']}, POST {r['post_sizes']} bytes" for r in hot]
     (DOC / 'changed-hot-bodies.md').write_text('\n'.join(lines) + '\n')
     print('Changed bodies:', len(changed), 'hot:', len(hot), flush=True)

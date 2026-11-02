@@ -1,4 +1,6 @@
-Changed hot bodies (strict gate normalization; identity is a proxy):
+Changed hot symbol groups (strict gate normalization; identity is a proxy):
+
+Every emitted body has its address, size and normalized digest in changed-hot-bodies.json.
 
 - `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)`: PRE [19379], POST [19286] bytes
 - `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]`: PRE [19690], POST [19726] bytes
@@ -24,8 +26,10 @@ Changed hot bodies (strict gate normalization; identity is a proxy):
 - `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)`: PRE [21350], POST [21181] bytes
 - `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)`: PRE [18979], POST [18900] bytes
 - `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)`: PRE [18755], POST [18563] bytes
+- `tomo_db0::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]`: PRE [94, 94, 94], POST [94, 94] bytes
 - `unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()`: PRE [3303], POST [3223] bytes
 - `unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()`: PRE [2790], POST [2742] bytes
 - `unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()`: PRE [2790], POST [2742] bytes
+- `unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*, tomo::KvObj const*) [clone .isra.0]`: PRE [1606, 1351, 306, 306, 306, 1431, 618, 306, 410, 306, 826, 1306, 810, 602, 306, 746, 1606, 1447, 810, 1606, 1606, 810], POST [1606, 1351, 306, 306, 306, 1431, 618, 306, 410, 306, 826, 1306, 810, 602, 306, 746, 1606, 1447, 810, 1606, 1606, 810] bytes
 - `void tomo::IoLoop::run_loop<false, false, false, true, false>()`: PRE [5280], POST [5694] bytes
 - `void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()`: PRE [5382], POST [5543] bytes

@@ -11,7 +11,6 @@ release_batteries
 atomic_batteries
 asan_batteries
 bplus
-bugs5
 readonly
 datafix2_watch
 flip

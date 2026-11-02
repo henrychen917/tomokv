@@ -11,6 +11,7 @@ from pathlib import Path
 import subprocess
 
 import wave13_counts as census
+from rlfix5_elf import image as runtime_image
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / 'build/rlfix5/counts'
@@ -99,6 +100,19 @@ def main():
                 meta['server_sha256'] = pad['sha256']
                 meta['pad_kind'] = pad['kind']
                 census.save(meta_path, meta)
+            # The linked probes carry both production namespaces. Their debug
+            # information is unnecessary for the symbol-based instruction tracer.
+            # Keep every loader field and allocated section exactly unchanged.
+            binary = BUILD / 'scopes' / (label + '-' + ns) / 'probe'
+            before = runtime_image(binary)
+            strip = ['objcopy', '--strip-debug', str(binary)]
+            subprocess.run(strip, check=True)
+            assert runtime_image(binary) == before
+            meta_path = DOC / label / (ns + '-build.json')
+            meta = json.loads(meta_path.read_text())
+            meta.update(strip_debug=strip, runtime_image_preserved=True,
+                        probe_sha256=census.sha(binary))
+            census.save(meta_path, meta)
             continue
         binary = BUILD / 'scopes' / (label + '-' + ns) / 'probe'
         if not (BUILD / 'trace').exists():
