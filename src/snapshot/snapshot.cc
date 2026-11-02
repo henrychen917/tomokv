@@ -502,6 +502,9 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         // in order and are idempotent. Shards remain frozen throughout this cut.
         function_metadata_.clear();
         std::vector<uint8_t> functions;
+        // A final shutdown save holds later registry mutations from this copy on, as frozen
+        // owners hold post-cut key writes; the cut precedes the copy, so nothing falls between.
+        if (shutdown) function_final_cut(next_epoch);
         if (!function_snapshot_save(functions, error)) {
             fail(next_epoch, error.c_str());
         } else if (!functions.empty()) {

@@ -24,6 +24,7 @@
 #include <mutex>
 #include <new>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <vector>
 
@@ -129,7 +130,8 @@ void reply_bulk_string(Op& op, const std::string& value) {
 
 // ---- the process-wide library registry ---------------------------------------------------------
 
-enum class AddResult { Ok, LibraryExists, FunctionExists, Oom };
+// Held: the final shutdown snapshot already copied the registry (see final_cut).
+enum class AddResult { Ok, LibraryExists, FunctionExists, Oom, Held };
 
 thread_local bool t_function_replay = false;
 
@@ -142,11 +144,14 @@ public:
     // `detail` receives the offending library / function name.
     AddResult add(LibraryDef&& library, bool replace, std::string& detail) {
         std::lock_guard<std::mutex> lock(mu_);
+        if (final_cut_locked()) return AddResult::Held;
         return add_locked(std::move(library), replace, detail);
     }
 
-    bool remove(Slice name) {
+    bool remove(Slice name, bool& held) {
         std::lock_guard<std::mutex> lock(mu_);
+        held = final_cut_locked();
+        if (held) return false;
         const auto it = libraries_.find(std::string(name.p, name.n));
         if (it == libraries_.end()) return false;
         libraries_.erase(it);
@@ -154,18 +159,22 @@ public:
         return true;
     }
 
-    void flush() {
+    // Commands respect the final shutdown cut; snapshot loads run before any cut exists.
+    bool flush(bool respect_cut = false) {
         std::lock_guard<std::mutex> lock(mu_);
+        if (respect_cut && final_cut_locked()) return false;
         libraries_.clear();
         ++flush_generation_;
         bump();
+        return true;
     }
 
     // Replaces the whole set atomically (FUNCTION RESTORE): either every library in `incoming`
     // lands or the registry is untouched.
     AddResult replace_all(std::vector<LibraryDef>&& incoming, bool flush_first, bool replace,
-                          std::string& detail) {
+                          std::string& detail, bool respect_cut = false) {
         std::lock_guard<std::mutex> lock(mu_);
+        if (respect_cut && final_cut_locked()) return AddResult::Held;
         std::map<std::string, LibraryDef> saved;
         try { saved = libraries_; }
         catch (const std::bad_alloc&) { return AddResult::Oom; }
@@ -223,6 +232,19 @@ public:
         for (const auto& entry : libraries_) functions += entry.second.functions.size();
     }
 
+    // The final shutdown snapshot copies the registry once, at its cut. Registry commands are
+    // IO-local, so the frozen shard owners that hold post-cut key writes do not stop them: from
+    // this edge a command must wait, as a held key write does, until the server exits or the
+    // save fails. The epoch ties the cut to that save; a later save attempt starts unfrozen.
+    void final_cut(uint64_t epoch) {
+        std::lock_guard<std::mutex> lock(mu_);
+        final_cut_epoch_ = epoch;
+    }
+    bool frozen() const {
+        std::lock_guard<std::mutex> lock(mu_);
+        return final_cut_locked();
+    }
+
     bool writes(Slice name, bool unknown) const {
         std::lock_guard<std::mutex> lock(mu_);
         for (const auto& entry : libraries_)
@@ -235,6 +257,12 @@ public:
 
 private:
     void bump();
+    bool final_cut_locked() const {
+        if (!final_cut_epoch_) return false;
+        Server* server = command_server();
+        return server && server->shutdown_snapshot_active() &&
+               server->snapshot().epoch() == final_cut_epoch_;
+    }
 
     AddResult add_locked(LibraryDef&& library, bool replace, std::string& detail,
                          bool defer_bump = false) {
@@ -266,6 +294,7 @@ private:
     std::map<std::string, LibraryDef> libraries_;
     std::atomic<uint64_t> generation_{0};
     uint64_t flush_generation_ = 0; // guarded by mu_; published with the library snapshot
+    uint64_t final_cut_epoch_ = 0;  // guarded by mu_; the shutdown save that copied us
 };
 
 FunctionRegistry g_functions;
@@ -274,6 +303,24 @@ FunctionRegistry g_functions;
 // so a counted change is always in that copy. Replay and snapshot loads are not changes.
 std::atomic<uint64_t> g_function_save_changes{0};
 void note_function_change() { g_function_save_changes.fetch_add(1, std::memory_order_relaxed); }
+
+// A registry command that met the final shutdown cut. Wait without applying it: a successful
+// save stops the server, and the connection closes without an acknowledgement, as Redis never
+// runs a command during its final save. A failed save clears the cut and the caller retries.
+// A fused IO thread keeps its own executor's capture progressing while it waits.
+bool function_cut_wait() {
+    Server* server = command_server();
+    ThreadCtx* thread = command_local_thread();
+    while (g_functions.frozen()) {
+        if (!server || server->shutting_down().load(std::memory_order_relaxed)) {
+            if (Client* client = command_local_client()) client->mark_closing();
+            return false;
+        }
+        if (thread) thread->progress_fused_executor();
+        std::this_thread::yield();
+    }
+    return true;
+}
 
 // ---- the registration sandbox ------------------------------------------------------------------
 
@@ -1031,7 +1078,9 @@ void function_restore(Op& op) {
         incoming.push_back(std::move(library));
     }
     std::string detail;
-    switch (g_functions.replace_all(std::move(incoming), flush_first, replace, detail)) {
+    for (;;) switch (g_functions.replace_all(std::move(incoming), flush_first, replace, detail,
+                                             /*respect_cut=*/true)) {
+        case AddResult::Held: if (function_cut_wait()) continue; return;
         case AddResult::Ok: note_function_change(); reply_ok(op.sink()); return;
         // Redis quotes the library name for LOAD and leaves it bare for RESTORE. Both shapes are
         // reproduced here rather than unified.
@@ -1097,7 +1146,8 @@ void cmd_function(Shard&, Op& op) {
         }
         const std::string name = library.name;
         std::string detail;
-        switch (g_functions.add(std::move(library), replace, detail)) {
+        for (;;) switch (g_functions.add(std::move(library), replace, detail)) {
+            case AddResult::Held: if (function_cut_wait()) continue; return;
             case AddResult::Ok: note_function_change(); reply_bulk_string(op, name); return;
             case AddResult::LibraryExists:
                 reply_err_string(op, "Library '" + detail + "' already exists"); return;
@@ -1110,9 +1160,12 @@ void cmd_function(Shard&, Op& op) {
     }
     if (subcommand.eq_icase("delete")) {
         if (op.argc() != 3) { reply_wrong_args(op, "delete"); return; }
-        if (!g_functions.remove(op.arg(2))) {
-            reply_text_error(op, "ERR", "Library not found");
-            return;
+        for (bool held = false; !g_functions.remove(op.arg(2), held);) {
+            if (!held) {
+                reply_text_error(op, "ERR", "Library not found");
+                return;
+            }
+            if (!function_cut_wait()) return;
         }
         note_function_change();
         reply_ok(op.sink());
@@ -1126,7 +1179,8 @@ void cmd_function(Shard&, Op& op) {
             reply_text_error(op, "ERR", "FUNCTION FLUSH only supports SYNC|ASYNC option");
             return;
         }
-        g_functions.flush();
+        while (!g_functions.flush(/*respect_cut=*/true))
+            if (!function_cut_wait()) return;
         note_function_change();   // even an empty registry, as Redis
         reply_ok(op.sink());
         return;
@@ -1179,6 +1233,8 @@ static const CommandSpec kTable[] = {
 uint64_t function_save_changes() {
     return g_function_save_changes.load(std::memory_order_relaxed);
 }
+
+void function_final_cut(uint64_t epoch) { g_functions.final_cut(epoch); }
 
 bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error) {
     try {

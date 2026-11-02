@@ -117,6 +117,9 @@ FunctionStats function_stats();
 // Cold snapshot library image. Load compiles the whole image before publishing
 // the registry, so corrupt input cannot expose a partially restored library set.
 bool function_snapshot_save(std::vector<uint8_t>& image, std::string& error);
+// The final shutdown save's registry cut: later FUNCTION mutations wait until the server exits
+// or that save (named by its snapshot epoch) fails. Called before the copy above.
+void function_final_cut(uint64_t epoch);
 bool function_snapshot_load(Slice image, bool flush, bool replace, std::string& error);
 bool function_restore_journal(Slice payload, std::string& error);
 
