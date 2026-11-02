@@ -86,6 +86,23 @@ bool track_prefix_overlaps(const std::string& a, const std::string& b) {
     return std::memcmp(a.data(), b.data(), shortest) == 0;
 }
 
+// EVAL/EVALSHA/FCALL and their _RO forms: numkeys, then the declared KEYS. Dispatch owns any
+// grammar error and its reply; an invalid count simply registers nothing here.
+bool tracking_script_keys(const Op& op, uint32_t& count) {
+    if (op.argc() < 3) return false;
+    const Slice value = op.arg(2);
+    if (!value.n) return false;
+    uint64_t parsed = 0;
+    for (uint32_t i = 0; i < value.n; ++i) {
+        const uint8_t c = static_cast<uint8_t>(value.p[i]);
+        if (c < '0' || c > '9') return false;
+        parsed = parsed * 10 + (c - '0');
+        if (parsed > op.argc() - 3) return false;
+    }
+    count = static_cast<uint32_t>(parsed);
+    return true;
+}
+
 }  // namespace
 
 uint64_t tracking_clock_observe() {
@@ -133,6 +150,21 @@ void tracking_observe_wake(Shard& shard, Op& op) {
     woken = std::min(woken, tracking_clock_observe());
 }
 
+// The executing owner is the activation's only writer of these flags; the IO reads them at
+// retirement, after the reply's publication. Every nested command names exactly one key, and
+// the script layer already refused any undeclared one.
+void tracking_note_script_read(Op& parent, Slice key) {
+    if (!parent.spec || parent.spec->handler_notify != tracking_read_marker) return;
+    auto& read = *static_cast<IoLoop::TrackingRead*>(const_cast<CommandSpec*>(parent.spec));
+    for (size_t i = 0; i < read.script_reads.size(); ++i) {
+        const std::string& name = read.keys[i];
+        if (name.size() == key.n && std::memcmp(name.data(), key.p, key.n) == 0) {
+            read.script_reads[i] = 1;
+            return;
+        }
+    }
+}
+
 void tracking_observe_local(Server& server, Op& op) {
     (void)server;
     if (!op.spec || op.spec->handler_notify != tracking_read_marker) return;
@@ -167,8 +199,13 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
     const CommandSpec* spec = op.spec;
     if (!spec) return;
+    // Redis enrolls the keys of each read-only command a script runs, for its caller, in both the
+    // writable and _RO forms; never the script command's own argument range. A script can read
+    // only its declared KEYS, so those carry the pending obligations and retirement enrolls the
+    // ones its read commands actually read (tracking_note_script_read).
+    const bool script = (spec->flags & CmdFlags::ScriptRoute) != 0;
     // Only genuine reads register. A write from the tracking connection is not a subscription.
-    if (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write)) return;
+    if (!script && (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write))) return;
     // Writes consumed CACHING above, but cannot enroll in either tracking mode.
     if (state.bcast) return;
     // OPTIN: register only when the previous command was CLIENT CACHING yes.
@@ -190,6 +227,12 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
         first = parsed.first_key;
         end = first + parsed.key_count;
     }
+    if (script) {
+        uint32_t count = 0;
+        if (!tracking_script_keys(op, count) || !count) return;
+        first = 3;
+        end = first + count;
+    }
     if (!first) return;
     (void)client;
     const int32_t step = spec->key_step > 0 ? spec->key_step : 1;
@@ -208,6 +251,7 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
         // monotonic filter just because this read has not retired yet.
         track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
+    if (script) read->script_reads.assign(keys.size(), 0);
     read->handler_notify = tracking_read_marker;
     // A queued receipt is never selected for execution. POST bypasses this
     // function while collecting MULTI; the PAD-A control retains PRE's receipt.
@@ -271,7 +315,9 @@ void IoLoop::tracking_retire_read(Client& client, Op& op) {
         auto pending = state->tracking_pending.find(key);
         if (pending == state->tracking_pending.end()) std::abort();
         auto& obligation = pending->second;
-        if (stamp < obligation.invalidated) {
+        if (!receipt.script_reads.empty() && !receipt.script_reads[i]) {
+            // A declared key the script never read: neither enrolled nor owed a delivery.
+        } else if (stamp < obligation.invalidated) {
             if (obligation.delivered < obligation.invalidated) {
                 tracking_deliver_frame(*state, client.id(),
                     Slice(key.data(), static_cast<uint32_t>(key.size())), false);

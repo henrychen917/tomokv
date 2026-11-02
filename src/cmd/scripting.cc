@@ -755,8 +755,13 @@ __attribute__((always_inline)) inline bool script_nested_execute(
 __attribute__((noinline)) void script_nested_notified(
         ScriptContext& context, Op& nested, const CommandSpec& spec, Slice key) {
     notify_execute_source(*context.shard, nested, context.call_index++ * 0x10000u);
-    if (script_nested_execute(context, nested, spec, key))
+    if (script_nested_execute(context, nested, spec, key)) {
         notify_monitor_script(*context.shard, *context.parent, nested, context.monitor_multi_order);
+        // CLIENT TRACKING enrolls the key of each read-only command the script runs. A tracked
+        // activation always takes this armed path (the IO selected the notify variant).
+        if ((spec.flags & CmdFlags::Readonly) && !(spec.flags & CmdFlags::Write))
+            tracking_note_script_read(*context.parent, key);
+    }
     notify_execute_source(*context.shard, *context.parent, 0);
 }
 
