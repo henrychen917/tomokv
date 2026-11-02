@@ -29,7 +29,10 @@ The final gate-harness run passed **77/77** tests plus its embedded 14 process
 tests: [log](gates-test-closeout.log), [command and hash](gates-test-closeout.json).
 The core fixture passed ASAN/UBSAN and TSAN with all twelve new armed state
 witnesses. Main-command scopes passed **80/80** PRE/POST comparisons with no
-added instructions: [full table](command-counts.md).
+added instructions: [full table](command-counts.md). The
+[frozen-source receipt](frozen-source.json) records twenty exact PRE/POST source
+equality checks, including the mask implementation, executor transitions,
+listener and session handover, dispatch pause and precommit deadline.
 
 The new live rows contain **208 armed episodes from 219 fresh boots**. Eleven
 unarmed attempts triggered bounded fresh-state retries. Every attempted PING
