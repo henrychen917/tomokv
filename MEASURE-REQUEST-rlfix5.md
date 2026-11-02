@@ -29,16 +29,20 @@ Neither EXPECT constant is edited.
 The gate's explicit `--shared-correctness-cpus` option permits this eight-CPU
 allocation only with selected jobs and `GATE_PROOF_NO_RATES=1`. The server
 retains eight threads, 16 shards and ratio 6:2. Full/performance execution
-cannot use the option. Timing verdicts remain unavailable on shared CPUs. The feature-matrix driver now
+cannot use the option. Shared server/client CPUs limit interpretation of timing
+results; failed timing assertions remain failures in the receipts. The feature-matrix driver now
 forwards the same gate engine selector and verifies INFO `net_io`; previously it
 ignored that selector and an epoll-labelled rerun still booted io_uring. This
 changes no row count or server behaviour.
 
-The final ordering jobs pass 7/7 including the release row: six RL5 rows,
-all controlled schedules in both namespaces, live uring/epoll in both modes,
-and the Redis 7.4.10 oracle. `docs/rlfix5/jobs/final-ordering.json` binds the
-frozen candidate SHA. Every boot inherits `LC_ALL=C`.
-Those ordering and first broad receipts bind POST `ee33679b…`. Synchronizing
+All six RL5 rows pass against final POST `dbef1b73…` in the 69/69
+`family-completion` run: controlled schedules in both namespaces, live
+uring/epoll in both modes, and the Redis 7.4.10 oracle. The same final harness
+rejects PRE and PAD-A on all six rows, with actual wrong replies in every
+native mode/namespace leg, including the older MGET schedule. Every boot
+inherits `LC_ALL=C`.
+The earlier `final-ordering` run passed 7/7 including release, and it and the
+first broad receipts bind POST `ee33679b…`. Synchronizing
 one generated R7 comment and rebuilding produced `dbef1b73…`; every allocated
 runtime section and loader header is identical except the GNU build-ID note
 (`docs/rlfix5/comment-sync-runtime-image.json`). The refreshed instruction census
@@ -50,12 +54,12 @@ beside the production native helpers, with both paths and SHA in each receipt.
 | RL5.2 | STRLEN 9 followed by GET old; live T10 fails | Both modes/engines pass STRLEN, EXISTS, GETRANGE, TYPE, TTL, OBJECT | Always extend owner slots for non-GET owner reads; existing point/broad overlap rules | Broad routes remain conservative as specified |
 | RL5.1 yes→no | SET OK followed by GET old | Controlled schedules and pipelined toggles pass | Boot-latched bookkeeping continues while tracking is on; only lane eligibility is vetoed | Tracking-on bookkeeping cost is quantified separately |
 | RL5.1 no→yes | Older GET/MGET returns younger SET's new-value | Both older reads return old, before SET OK | Same write staging, demotion and MGET fence stay active | None in these schedules |
-| RL5.7 | Six new gate rows fail PRE | Six rows pass POST | Shared production-linked schedules plus live CONFIG pipelines and oracle | Broader matrix in progress; inherited EXPECT gap remains |
+| RL5.7 | Six new gate rows fail PRE and PAD-A | Six rows pass final POST | Shared production-linked schedules plus live CONFIG pipelines and oracle | Inherited EXPECT gap remains; broader proof limitations below |
 
 Instruction proof: 352 parser/owner/lane scopes plus 32 eight-shard scatter
 scopes, batch 1/32, both modes and both namespaces. All **128 protected
-comparisons have no added instructions**. The 80 read-local-off parser/owner
-cases, with tracking both on and off, are exactly identical. The 16 lane GET/MGET cases are unchanged or lower.
+comparisons have no added instructions: 112 identical and 16 lower**. The 80 read-local-off parser/owner
+cases, with tracking both on and off, are exactly identical. The 16 lane GET/MGET cases are lower.
 The other 32 protected cases cover eight-shard MGET/MSET with atomic 0/1.
 `docs/rlfix5/count-deltas.csv`, `scatter-deltas.json`, and `costs.md` contain
 absolute counts/deltas and the non-GET/latency-on costs. The single-key
@@ -109,7 +113,8 @@ Cold-unit alignment changes 17 groups in the expanded hot-name inventory
 (`pad-a-changed-bodies.json`), so PAD-A is not a body-identity control. Its 160
 GET/SET/INCR/MGET/MSET scopes, across both modes/namespaces, both batch sizes
 and all four lane/tracking states, nevertheless have exactly PRE's instruction
-counts (`pad-a-count-deltas.json`). Its negative ordering witnesses are queued.
+counts (`pad-a-count-deltas.json`). All six negative ordering rows fail as
+expected (`jobs/pad-a-witness.json`); its release row passes.
 
 Maintainer measurement request: use these three frozen arms with the gate's
 own instrument on a quiet box. Run the 14 generic cells, `d32g_l1`, `x9_32_l1`,
@@ -128,15 +133,56 @@ PAD-A stays flat relative to PRE. All performance cells, the full iteration,
 The first broad run completed 484 passing and 53 failing rows. Of the failures,
 52 were test setup problems resolved by the 104/104 retry run: the R7 generated comment, native
 transaction helpers expected beside the candidate, and feature drivers refusing
-the shared CPU allocation before boot. The FIFO live-fairness row fails its
-derived p99 bound; a complete matching PRE control is queued. These failures
-remain in the archived receipts. `setup-retry-verdict.json` matches every one of
-the 52 setup failures to its passing retry row. `docs/rlfix5/coverage.md` maps every requested
-family and names the excluded performance checks. Broader retry, differential,
-control and freshness results remain in progress; no full-gate or throughput
-verdict is claimed.
+the shared CPU allocation before boot. These failures remain in the archived
+receipts. `setup-retry-verdict.json` matches every one of the 52 setup failures
+to its passing retry row.
+
+| Completed gate batch | Passing rows | Failing rows |
+|---|---:|---:|
+| First broad uring | 484 | 53 (52 setup failures resolved below; FIFO timing remains) |
+| Additional uring / setup retries | 104 | 0 |
+| Broad epoll | 288 | 0 |
+| Standard differential, uring | 6 | 0 |
+| Standard differential, epoll | 6 | 0 |
+| Additional fused uring | 58 | 0 |
+| Additional fused epoll | 58 | 0 |
+| Nested tracking/INFO/MULTI families and final POST RL5 | 69 | 0 |
+| Remaining epoll family | 6 | 0 |
+| Remaining fused families | 33 | 0 |
+| Final PRE ordering control | 1 release | 6 expected negative rows |
+| PAD-A ordering control | 1 release | 6 expected negative rows |
+| Complete PRE FIFO control | 1 release | 1 FIFO timing row |
+
+Counts are per run, including their prerequisites and intentional repeats.
+Each standard differential run includes all five gate parts, seeds 7/19/20/23
+and the rotating seed (21 uring, 22 epoll), the accumulated-state MULTI repeats,
+armed read-local legs and the full mode-equivalence inventory. The standard
+suite excludes SORT from armed-fused geometry because that check requires
+split 6:2; both split-engine SORT legs ran. `docs/rlfix5/coverage.md` maps every
+requested family and all NOT RUN performance checks.
+
+The remaining failing POST row is `txnorder_fifo_live`: **11/16 POST and
+10/16 PRE** legs fail the unchanged derived p99 bound. The complete matching
+PRE job ran after all other jobs, with no concurrent lane build or archive
+processing. **All 32 legs have exact final values and zero
+`atomic_txn_order_violations`.** `fifo-timing-control.json` records every leg,
+bound and failure. These shared-CPU runs establish neither performance parity
+nor the cause of the timing failures. No timing threshold was weakened, and
+the FIFO row remains failed; no full-gate or throughput verdict is claimed.
 
 The new gate jobs reject failed or stale native-fixture builds; five serverless
 controls exercise the actual fixture-selection branch. An explicit PRE/PAD
-fixture remains supported. The final POST family run repeats all six ordering
-rows through that hardened interface.
+fixture remains supported. Final POST passes all six ordering rows through
+that hardened interface; final PRE and PAD-A fail them.
+
+Final build and harness proof passes: `make all` with all **55** targets from
+`job_production_units`, its additional native-arm prerequisites, and
+`python3 tests/gates_test.py` (**77 tests**). Every recorded `make -q` freshness
+check returns zero, including the release/55 targets, both QSBR control builds,
+blockfix helpers and RL5 scopes. The generated R7 envelope check passes.
+`final-production-build.json` and its log retain exact commands and results.
+All ten instruction-probe digests match their metadata, count rows and frozen
+server arms; all archived receipt/trace digests verify. Final raw traces are in
+the five `counts-*-final-raw.tar.gz` archives. `proof-summary.json` binds the
+completed runs and frozen arms. `build/` occupies 14.63 GiB; the owned port range
+21500–21599 has no remaining listeners (`listener-cleanup.json`).

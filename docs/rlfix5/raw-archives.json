@@ -58,5 +58,35 @@
     "sha256": "a432a05b4446d9f020cc0be9829d25b0e2574eef80372a7ab24cbdf71d34320f",
     "files": 480,
     "purpose": "PAD-A instruction traces before lossless probe debug stripping"
+  },
+  {
+    "archive": "counts-pre-final-raw.tar.gz",
+    "sha256": "bfd2407910009b4ff19a8237fd09d9dea418d9fe01f0d9ef8c2d43aba951c01a",
+    "files": 1056,
+    "purpose": "final frozen probes after verified debug stripping and R7 comment synchronization"
+  },
+  {
+    "archive": "counts-post-final-raw.tar.gz",
+    "sha256": "b3bbe08ca1fdd2664704d8b20fe1f1acb7aa2252aa4faa1e2442dbf035f960fc",
+    "files": 1056,
+    "purpose": "final frozen probes after verified debug stripping and R7 comment synchronization"
+  },
+  {
+    "archive": "counts-pad-a-final-raw.tar.gz",
+    "sha256": "4a4653e1133127ed634d9d1ddfd279c07aa207ccf523d07ba8e0efd783a98d4a",
+    "files": 480,
+    "purpose": "final frozen probes after verified debug stripping and R7 comment synchronization"
+  },
+  {
+    "archive": "counts-pre-scatter-final-raw.tar.gz",
+    "sha256": "3fc9a33bf066ddc6ea9a0c3ecf0deb0e2ee95e5a7918fb2dcd9a4a5a551b5b9e",
+    "files": 96,
+    "purpose": "final frozen probes after verified debug stripping and R7 comment synchronization"
+  },
+  {
+    "archive": "counts-post-scatter-final-raw.tar.gz",
+    "sha256": "7b67ee18e8af679e10c17151f4f1bbfb809da31ade274576f3f9b77c5d8b6c09",
+    "files": 96,
+    "purpose": "final frozen probes after verified debug stripping and R7 comment synchronization"
   }
 ]
