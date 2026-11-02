@@ -182,12 +182,16 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     if available is None:
         available = permitted_cpus(topology)
     defaults = default_physical(available, topology)
+    # A selected correctness job needs one 8+2 slot. Full gates retain their
+    # 16-core minimum; a partial ledger cannot run ABBA or earn a receipt.
+    minimum = SERVER_PER_SLOT + LOAD_PER_SLOT if (
+        purpose != "perf" and os.getenv("GATE_ONLY_JOBS")) else MIN_PHYSICAL
     server = None if args.server_cores is None else parse_cpu_range(args.server_cores, "--server-cores")
     load = None if args.load_cores is None else parse_cpu_range(args.load_cores, "--load-cores")
     if server is None and load is None:
-        if len(defaults) < MIN_PHYSICAL:
+        if len(defaults) < minimum:
             raise ValueError(f"physical core budget is {len(defaults)}; the gate requires "
-                             f"{MIN_PHYSICAL}-{MAX_PHYSICAL} distinct physical cores")
+                             f"{minimum}-{MAX_PHYSICAL} distinct physical cores")
         count = len(defaults) // (SERVER_PER_SLOT + LOAD_PER_SLOT) * SERVER_PER_SLOT
         server, load = defaults[:count], defaults[count:]
     elif server is None or load is None:
@@ -205,8 +209,8 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
     axes = validate_axes(server, args.server_smt, load, args.load_smt or "",
                          topology=topology, check_available=check_available)
     total = len(server) + len(load)
-    if not MIN_PHYSICAL <= total <= MAX_PHYSICAL:
-        raise ValueError(f"physical core budget is {total}; the gate requires {MIN_PHYSICAL}-"
+    if not minimum <= total <= MAX_PHYSICAL:
+        raise ValueError(f"physical core budget is {total}; the gate requires {minimum}-"
                          f"{MAX_PHYSICAL} distinct physical cores")
     count = min(len(server) // SERVER_PER_SLOT, len(load) // LOAD_PER_SLOT)
     if count < 1:

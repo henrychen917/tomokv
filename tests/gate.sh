@@ -1024,6 +1024,7 @@ job_body(){
     rootcompat-*) job_rootcompat "${name#rootcompat-}";;
     multifix-*) job_multifix "$name";;
     climonfix4-*) job_climonfix4 "$name";;
+    scriptfix4-*) job_scriptfix4 "${name#scriptfix4-}";;
     clientcompat-*) job_clientcompat "${name#clientcompat-}";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
@@ -1179,6 +1180,7 @@ plan_jobs(){
   fi
   JOB_NAMES+=(rootcore-inbox rootcore-eval rootcore-segments rootcore-notify rootcore-functions rootcore-waitaof rootcore-misconf)
   JOB_NAMES+=(wave14_functions)
+  for section in cap tracking blocked shutdown dirty; do JOB_NAMES+=("scriptfix4-$section"); done
   local atomic mode section slot FM FR FO FQ FF
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
@@ -5785,6 +5787,20 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
 # multifix: six directed roots in each mode/engine, before the quick exit.
 # Each row retains both atomic settings, both read-local settings and both
 # compiled namespace variants. DQ=DF=+24; EXPECT remains owner-owned.
+# scriptfix4: 5 findings x 2 modes x 2 engines; collected before quick exit.
+job_scriptfix4(){
+  local case=$1 mode engine label
+  for mode in 1s 2s; do for engine in uring epoll; do
+    label="scriptfix4 $case ($mode, $engine)"
+    row_begin "$label"
+    py tests/scriptfix4.py "$case" --binary "$CANDIDATE_BINARY" \
+        --redis "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
+        --mode "$mode" --engine "$engine" --ratio "$GATE_RATIO" \
+        --output "$TMPDIR/$mode-$engine" >"$TMPDIR/$mode-$engine.log" 2>&1 \
+        && ok "$label" || bad "$label" "see $TMPDIR/$mode-$engine.log"
+  done; done
+}
+
 job_wave14_functions(){
   local label="wave14 function snapshot and journal history" scheduled="${WAVE14_CAPTURE_BINARY:-}"
   local select=()
@@ -6463,6 +6479,7 @@ fi
 # EXPECT_QUICK / EXPECT_FULL are maintainer-owned.
 for root in inbox eval segments notify functions waitaof misconf; do collect_job "rootcore-$root"; done
 collect_job wave14_functions
+for SF4_CASE in cap tracking blocked shutdown dirty; do collect_job "scriptfix4-$SF4_CASE"; done
 collect_job release
 
 collect_job asan
