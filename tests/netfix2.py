@@ -244,10 +244,14 @@ def tls_idle(a, label, mode, engine, db):
 
 def boot(a, label, mode, engine, db):
     blocked = a.output / (label + '-not-directory')
-    blocked.write_bytes(b'not a directory')
+    blocked.mkdir(exist_ok=True)
+    blocked.chmod(0o555)
     with process(a, label + '-failure', mode, engine, db,
-                 ['--appendonly', 'yes', '--appenddirname', str(blocked)]) as p:
-        rc = p.wait(20)
+                 ['--appendonly', 'yes', '--dir', str(blocked)]) as p:
+        try:
+            rc = p.wait(20)
+        finally:
+            blocked.chmod(0o755)
         log = p.logpath.read_text()
         assert rc == 1, (rc, log)
         assert 'listening on' not in log and 'listening with TLS' not in log, log

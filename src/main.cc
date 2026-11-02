@@ -32,6 +32,7 @@
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
 #include "core/genthread.h"
+#include "core/fused_boot_gate.h"
 #include "core/signal_doorbell.h"
 #include "core/shutdown_report.h"
 #include "cmd/command.h"
@@ -382,6 +383,13 @@ int main(int argc, char** argv) {
     // load_ok (that barrier has passed); it stops every thread and records the failure here so
     // the exit status says what happened instead of a silent 0.
     std::atomic<bool> io_boot_failed{false};
+    FusedBootGate io_boot(static_cast<uint32_t>(srv.placement().ifid_threads().size()));
+    auto activation_failed = [&] {
+        io_boot_failed.store(true, std::memory_order_relaxed);
+        io_boot.stop();
+        for (uint32_t i = 0; i < nthreads; i++)
+            srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+    };
 
     auto pin_for = [&](uint32_t tid) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
@@ -473,7 +481,7 @@ int main(int argc, char** argv) {
                     exs[tid].run();
                     self.publish_ready_role(Role::Idle);
                 } else if (role == Role::Ifid) {
-                    if (!ios[tid].activate()) std::abort();
+                    if (!ios[tid].activate()) { activation_failed(); break; }
                     self.publish_ready_role(Role::Ifid);
                     ios[tid].run();
                     self.publish_ready_role(Role::Idle);
@@ -535,8 +543,9 @@ int main(int argc, char** argv) {
     }
 
     const uint32_t unix_owner = srv.unix_owner_tid();
+    uint32_t io_boot_slot = 0;
     for (uint32_t tid : srv.placement().ifid_threads())
-        pool.emplace_back([&, tid] {
+        pool.emplace_back([&, tid, slot = io_boot_slot++] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
             SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
@@ -547,9 +556,8 @@ int main(int argc, char** argv) {
             bind_thread_arena();
             auto boot_failed = [&](const char* what) {
                 std::fprintf(stderr, "%s failed on t%u\n", what, tid);
-                io_boot_failed.store(true, std::memory_order_relaxed);
-                for (uint32_t i = 0; i < nthreads; i++)
-                    srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+                io_boot.give_up(slot, what);
+                activation_failed();
             };
             if (!self.init_task_inbox_local(srv.placement().ifid_threads(),
                                             srv.placement().ex_threads())) {
@@ -595,11 +603,19 @@ int main(int argc, char** argv) {
                 [](void* p, uint32_t incoming) {
                     return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
                 });
+            if (!io_boot.arrive_loaded(slot, true, {}) ||
+                !io_boot.wait_until_ready(slot, self.stop_flag())) return;
+            if (!ios[tid].activate()) {
+                boot_failed("io listener activation");
+                return;
+            }
+            if (!io_boot.arrive_ready(slot) ||
+                !io_boot.wait_until_running(slot, self.stop_flag())) return;
             for (;;) {
                 if (self.stop_flag().load(std::memory_order_relaxed)) break;
                 const Role role = self.role();
                 if (role == Role::Ifid) {
-                    if (!ios[tid].activate()) std::abort();
+                    if (!ios[tid].activate()) { activation_failed(); break; }
                     self.publish_ready_role(Role::Ifid);
                     ios[tid].run();
                     self.publish_ready_role(Role::Idle);
@@ -616,6 +632,20 @@ int main(int argc, char** argv) {
             }
         });
 
+    if (!io_boot.wait_loaded(srv.shutting_down()) ||
+        !io_boot.advance_ready(srv.shutting_down()) ||
+        !io_boot.wait_ready(srv.shutting_down()) ||
+        !io_boot.advance_running(srv.shutting_down())) {
+        for (uint32_t i = 0; i < nthreads; i++)
+            srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+        io_boot.stop();
+        srv.databases().join_workers(srv, pool);
+        const std::string error = io_boot.error();
+        if (!error.empty()) std::fprintf(stderr, "io boot failed: %s\n", error.c_str());
+        const bool interrupted = srv.shutting_down().load(std::memory_order_relaxed);
+        if (interrupted) report_graceful_shutdown();
+        return interrupted && !io_boot_failed.load(std::memory_order_relaxed) ? 0 : 1;
+    }
     print_ready_listeners(cfg, unix_listener.bound());
 
     // Both controllers use the existing main/monitor thread.
