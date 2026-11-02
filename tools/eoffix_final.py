@@ -122,6 +122,11 @@ def main():
             gate('final-differ-'+engine, 'differ-split differ-armed', engine)
             maintenance()
     elif a.phase=='txn':
+        # Attribute the existing FIFO latency assertion at the same mandated
+        # shared eight-CPU geometry; retain every failure and all 16 legs.
+        if PASS == 'complete':
+            gate('pre-fifo-attribution', 'txnorder_fifo_live',
+                 binary=ROOT/'build/eoffix/pre-rebuilt')
         for engine in ['epoll','uring']:
             gate('txn-final-'+engine, 'txnorder-fused-0', engine, repeat=50, capture=True)
             maintenance()

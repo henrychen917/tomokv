@@ -54,3 +54,6 @@ complete-differ-epoll exit 0
 identical private tool copies shared: 550
 complete-differ-uring exit 0
 identical private tool copies shared: 550
+complete-internal exit 1
+data-gate-run.mWdVAh-persistfix2_commands.tar.gz preserved bytes 171677808
+identical private tool copies shared: 550

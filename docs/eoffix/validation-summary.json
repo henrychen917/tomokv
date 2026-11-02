@@ -36,6 +36,16 @@
       "captures": []
     },
     {
+      "tag": "complete-differ-uring",
+      "arm": "POST",
+      "engine": "uring",
+      "jobs": "differ-split differ-armed",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
       "tag": "complete-eof-aof",
       "arm": "POST",
       "engine": "epoll",
@@ -43,6 +53,19 @@
       "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
       "exit_code": 0,
       "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-internal",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "netcmd_units wb_rule_units wbland_units blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake persistfix_units tls netfix_tls slotless wb_mixed inline_quoted ntfix_input crlffix clientcompat-enable-race iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof wave14_functions rootcore-functions rootcore-segments rootcore-waitaof rootcore-misconf infofix_compat-loadaof",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 1,
+      "failures": [
+        "FAIL\t2.390000\twriteback policy clauses witnesses + negative controls",
+        "FAIL\t987.670000\ttxnorder FIFO live fairness"
+      ],
       "captures": []
     },
     {

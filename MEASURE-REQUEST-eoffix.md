@@ -199,6 +199,14 @@ and the unchanged `wbland_units`/`reorder_sync` jobs are queued at the final bui
 boundary. No runtime-equivalence or resolved-failure claim is made until those
 checks complete; the original red receipt will remain retained.
 
+The same broader run completed all 16 one-minute `txnorder_fifo_live` legs:
+five pass, ten fail the existing p99 bound, and one fails the existing 20 ms
+maximum-latency bound (21.348 ms). Exact final values, per-client progress,
+zero ordering violations, the real FIFO window and the share checks all pass
+before those latency assertions. `fifo-complete-post.json` preserves the per-leg
+results. The unchanged complete job on PRE at the same required CPU geometry is
+queued for attribution; this remains an unresolved result until that run completes.
+
 **Gate accounting.** DQ=0, DF=0. The existing netio rows are strengthened at their
 existing collection lines before the quick exit; private wave14 EOF jobs remain
 partial-only. The netio collection remains at line 6568, before the quick exit at line
