@@ -258,6 +258,23 @@ check(after - before >= CHURN, "F1 all %d churn connections accepted" % CHURN, a
 check(admin.cmd("PING") == b"+PONG", "F2 server still serving after churn")
 check(admin.cmd("GET", "netio:churn:0") == b"x", "F3 pre-RST write survived the reset")
 
+# A short read can consume a pipeline and its FIN edge together. If EOF is
+# forgotten, the first empty BRPOPLPUSH parks forever and no send discovers the
+# closed peer. The native wave14_epoll_eof job forces that exact single-edge
+# window; these real connections require teardown through the blocking fences.
+for i in range(32):
+    c = Conn(timeout=10)
+    cid = c.cmd("CLIENT", "ID")[1:].decode()
+    source = "netio:closed-source:%d" % i
+    target = "netio:closed-target:%d" % i
+    check(admin.cmd("DEL", source, target) == b":0", "F4 fresh closed-pipeline keys")
+    request = ("BRPOPLPUSH %s %s 0\r\n" % (source, target)).encode()
+    c.send_raw(request + request)
+    c.sock.shutdown(socket.SHUT_WR)
+    c.close()
+    wait_client_state(admin, cid, "gone")
+    check(True, "F5 closed blocking pipeline retired its exact client")
+
 # ---- G: close-after-reply --------------------------------------------------------------------
 victim = Conn(timeout=10)
 vid = victim.cmd("CLIENT", "ID")

@@ -1,30 +1,30 @@
 --- a/src/core/io_loop.h
 +++ b/src/core/io_loop.h
-@@ -1080,6 +1080,12 @@
-                     // the one path that already knows how to tear a connection down.
+@@ -1075,9 +1075,9 @@
+                     if (!c || c->ifid_thread() != self_->id() || c->dead() ||
+                         c->wb_slot() == Client::kWbMigrationInstalling ||
+                         find_client_migration(c)) break;
+-                    // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
+-                    // follows returns 0 or the real errno, and close_client is then reached through
+-                    // the one path that already knows how to tear a connection down.
++                    // A FIN edge can share a short read; retain it for the existing deferred
++                    // teardown so a parked command cannot wait forever for another edge.
++                    if (ev.events & EPOLLRDHUP) epoll_request_close(c);
                      if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                          c->set_recv_armed(false);
-+                    // A short recv may consume the data that shared this edge with FIN.
-+                    // It then records "edge owed", but EOF remains readable without a
-+                    // new edge. A parked command has no send to discover the dead peer.
-+                    // Preserve FIN independently; actual teardown stays after the active
-+                    // walk, with the existing blocking, ROB and FLIP close fences.
-+                    if (ev.events & EPOLLRDHUP) epoll_request_close(c);
                      if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
-                     // A TLS connection parked on WANT_READ/WANT_WRITE recorded that want on its
-                     // TlsConn (arm_tls_socket_poll has nothing to submit under this engine, since
 --- a/src/core/reorder.cc
 +++ b/src/core/reorder.cc
-@@ -1696,6 +1696,12 @@
-                 // the one path that already knows how to tear a connection down.
+@@ -1691,9 +1691,9 @@
+                 if (!c || c->ifid_thread() != self_->id() || c->dead() ||
+                     c->wb_slot() == Client::kWbMigrationInstalling ||
+                     find_client_migration(c)) break;
+-                // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
+-                // follows returns 0 or the real errno, and close_client is then reached through
+-                // the one path that already knows how to tear a connection down.
++                // A FIN edge can share a short read; retain it for the existing deferred
++                // teardown so a parked command cannot wait forever for another edge.
++                if (ev.events & EPOLLRDHUP) epoll_request_close(c);
                  if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                      c->set_recv_armed(false);
-+                // A short recv may consume the data that shared this edge with FIN.
-+                // It then records "edge owed", but EOF remains readable without a
-+                // new edge. A parked command has no send to discover the dead peer.
-+                // Preserve FIN independently; actual teardown stays after the active
-+                // walk, with the existing blocking, ROB and FLIP close fences.
-+                if (ev.events & EPOLLRDHUP) epoll_request_close(c);
                  if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
-                 // A TLS connection parked on WANT_READ/WANT_WRITE recorded that want on its
-                 // TlsConn (arm_tls_socket_poll has nothing to submit under this engine, since
