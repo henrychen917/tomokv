@@ -2006,5 +2006,29 @@
     "before_sha256": "6d937fd911769604bd3df593184fcd1c6bfb3e01d643957012918c930128327a",
     "after_sha256": "c64be0c7c75fe7439c52f3d11ead9de747b256de548b0d65f0355b721061ab14",
     "allocated_sections_identical": true
+  },
+  {
+    "path": "build/core-concurrency-mdbqsbr-asan",
+    "before_bytes": 348922912,
+    "after_bytes": 238528024,
+    "before_sha256": "c6192b1fba3023de1eff216489138e70fd342ff10fc9c61d1467d4034238859c",
+    "after_sha256": "124fc6543adf5991d65c4e5eba99e78a5acf51170d94a10784b4cdbc432479db",
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/core-concurrency-unit",
+    "before_bytes": 348922912,
+    "after_bytes": 238528024,
+    "before_sha256": "c6192b1fba3023de1eff216489138e70fd342ff10fc9c61d1467d4034238859c",
+    "after_sha256": "124fc6543adf5991d65c4e5eba99e78a5acf51170d94a10784b4cdbc432479db",
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/core-concurrency-mdbqsbr-asan",
+    "before_bytes": 348935920,
+    "after_bytes": 238536952,
+    "before_sha256": "0beb97c0f66992e5d62f625cf3661c8ab0862b6467f104267a377c469cddcf18",
+    "after_sha256": "c6ac46df9963ddbc3ed66cfe0502ece2bdbdcf580941dd60edf03bf266f32f17",
+    "allocated_sections_identical": true
   }
 ]

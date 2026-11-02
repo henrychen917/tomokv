@@ -1,0 +1,3110 @@
+[
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-armed-1/tomokv-servertail-jpt2nm5z/dump.tomo",
+    "bytes": 248,
+    "sha256": "41744aad5f28dba1e00faa4d426d4c277c16873a733e2db162072f297695bc21",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-armed-1/gate-data-fused.hXKsQ0/dump.tomo",
+    "bytes": 72711,
+    "sha256": "209da146698e8973cc1670ff8cb2589da07fd0c2c1118051c1394f645d947033",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "5eb056eaaafa0dc2a6d97c743f3c8e5a27b64d78c729c606d39a7f7b7bb523e9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 38985,
+    "sha256": "b72e8a8bb872819c778c0b429c079f2be9e8e06959eb49005f1df96a3f98aa01",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 118,
+    "sha256": "1b64557780aed19268e03db694cbfd0b926494ba9c9c6a58726e1f40a92d9a6d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "5494ac545cec0e135eaff633c6a1d46bcfd7c9e02068294a8af79db0e01f0367",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "3de3a604383806edc43e570f8b4b75a61d3422d46748fba89f0f0fbaa933a616",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 59073,
+    "sha256": "5cd4c3fdb544b1a00b04cbe54734a3c1fab893a9ee5a74b85d0a34a10e1346b1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/scheduled-1-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "38866473cb0cd3363c94a4a40d697b83c7027667bb0108c01217f89518e9dc38",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 158985,
+    "sha256": "5a9d0ddd9861391b4e229937e8736dfa3007945bd836aa960b5baa98b11272c7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/bgsave-grammar/data/dump.rdb",
+    "bytes": 89,
+    "sha256": "280ed765ae706f2c759f4d6bd8816462a72d92b38443189c7fa6f4f46b34a491",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/scheduled-0-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "bdd204549a94147fb06d3418978c884ebf7d3c9c399cd3e5464447f5980c3719",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 158985,
+    "sha256": "71f34374635d185a5bc4ff5cea81bc6995f0b5bd18b6262ec8802fa62b471b07",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "04e1ba9bc57e2e183361dcbf621f43f4bc0e7d5ac81d31b33fbeb166f9b5667a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 38985,
+    "sha256": "0ae35add6c320496c06041577c25c4cb5d3431e7ef3177f078c9eb08a93febb2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 118,
+    "sha256": "21348738d4eb8823c0627327a0ee01ff74e9a620f699e01c6a7e0fb784cb7512",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "019e9780abc074780fac4ac693bb16a0573c3254f0c9df4df77455988cb963b9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "3ffd84714ae3a43b20560dd197ff36da76cb3705eb7782f979789e6f4ec33cbe",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 59073,
+    "sha256": "5cd4c3fdb544b1a00b04cbe54734a3c1fab893a9ee5a74b85d0a34a10e1346b1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/scheduled-1-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "27cd840af4878ddc55572633ff7859b19150df12c98745ab01c18929da5bcaa0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 158985,
+    "sha256": "c242416dac8fb3e368d1266b154e27a180719e87cfb7773b87a5e18c66e46369",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/bgsave-grammar/data/dump.rdb",
+    "bytes": 89,
+    "sha256": "a4c8406833ed470a623cd699d64cf37bb469ebc081f8a68c725bec80c582ab6d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/scheduled-0-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "ff88ee75810b7abdc6afc4ed90f02929b2e1b1380a38e38371f8e5603bede236",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 158985,
+    "sha256": "f166b64bcff624f7b0b577069871f8d3dcd0fa242090019cc05597ecc630e212",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "a1a434af4cf7360688a3bf775387ed8af434e38b57404acb4504a0d0adc6770d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 38985,
+    "sha256": "d7b9fdb578d5d5204db80f34b221a37adc1306e6e18afee5164e43f6560e09f7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 118,
+    "sha256": "0be187e9b1c1f3510ed5ef650243e9ef2e0dfc6c88d799bf1580310cd14aef82",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "0de94d67240b4c77ce952501e523d1ab5774f8a30056a4caabefe857d9b0b6aa",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 38985,
+    "sha256": "cda1ab4ec2c9d8f12dc0d629d266469caa88f8badf7d3b98c3627214d871076a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/scheduled-1-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "e5c44a464b941c5e61cc6b397ecba874afad2ddfe0b63da9d64d0bad13b17f80",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 158985,
+    "sha256": "62e49b29508ac8c6a69b4796c5ca2bc4e231eff14ff86a0dd9f13e2b22c91d10",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/bgsave-grammar/data/dump.rdb",
+    "bytes": 89,
+    "sha256": "c1e5ce128733f248302c687ccbf8ed658c42ac40e21d678634d16e2ca4bdf799",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/scheduled-0-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "250f02c9169a5fd563c684c8a7ee6c2ad3b671724833f01a0092dd6508ddcc39",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 158985,
+    "sha256": "2e62a1a687b3bca86446f3671ca13a5f9b695d4c6efb2d4bdb333bcd8109106e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "adb7bd6e2fdbf62497b5392fd5af890b7fc013e32297a06d07d63289bea2bbb6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 38985,
+    "sha256": "7aba0e65ff05a2c2d933507c599f401cbbd1e8143ce42356c690837ba84b3407",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 118,
+    "sha256": "3ffce55c6bc9093f6b2a901bfa9e9d04361144637d6d75c3a7aaa768deb5b3b1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 38985,
+    "sha256": "934f2e071a436d625e98c0c2395244ca9f9918fb058e799e3c65ea04a7682a49",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "103af61bebfdebf105ba7d2dd0f8765069b7d8f334a79969cbac933213b82129",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 59073,
+    "sha256": "5cd4c3fdb544b1a00b04cbe54734a3c1fab893a9ee5a74b85d0a34a10e1346b1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/scheduled-1-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "df8d7ca80dc4a2da514252680f52997ef03cf71601618ba60a2eb64077170fb4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 158985,
+    "sha256": "353dc7258baffab1e9f8c091120efc6c3579d9c3bd7ffe686a42fc959830e15b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/bgsave-grammar/data/dump.rdb",
+    "bytes": 89,
+    "sha256": "cb81f8034a315aa5be11e2579e04e39ffded8f90ace55b39bef12489d4e39d8a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/scheduled-0-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "bac4364d8f45c466c67b0ee6da5373b93b6ff3c88d075072c8b3d3fac94e3115",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-oracle-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 158985,
+    "sha256": "b1d0ddd66ca327854eaf7d62243ccfa8ce9e7e3e484cc97a970947d4c74432c2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "559d218dc8ea3c4b8b640fb3626c2a16408b68ee9cab7300012eaf870823b0f0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "d7b7084a7ae4371361ebe5a6c371222f4e68ab2e11dacc8c5cf0a13cf1f43a34",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "dd8dc1c5ff22d7997868c10767cf4a617e2f010ece291164326ca27feb707687",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 677,
+    "sha256": "e32eaf21a5ba5bb7592556a6e986ead1a1c6318272aad270bc395bc6f38f1476",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "b36feb18a8a70d880b1a5f12c494e44da7b335e9002aeb39edf88df6cfa660b6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "d85c438ae1dd8165969b4a9a88577f08af04ea4b887f16f6851b6e977b20b309",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "b2e0459f69e65255c74bde393137f1abe5d05cf0417f899918930abe91b6ee96",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "30fc9a0cf824d51e1dbec84386faace278c2b6ed5d8921686d96e6a0ac1bc5da",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459786,
+    "sha256": "02870c94ea29112ca5b717d50347abe027d5ad83bdb741dcfde2fc548c9c08ee",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459786,
+    "sha256": "dd0ef5a4b10ec7efa432603113ac37fa12b36716641e10361acaf40057a1fa4e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "57d48c0f8f6c0cd398c93439b5b9b6e4856f55a695a12b37857b19db02018eed",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/bgsave-grammar/data/dump.rdb",
+    "bytes": 624,
+    "sha256": "f58bdd57631b7b024e07ecd420ef74dc752192cbb0a90815aa6980ed27d7539f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459754,
+    "sha256": "95023ae2385d01c5542bd86fdc62177025025a289aca64a949c640023c44311d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 80,
+    "sha256": "d24b0cb9fcb22276156f0b51f2c30d5c109b0538f8b0bf0d7085f1c9e06eb7bc",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459754,
+    "sha256": "d6e5b32af085e3672085b901b9249ce6ad1583cf5285b9ac83c9b7dbe0b13ce8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "3a4ea28ce820431ac38263baced01eb4abbd47086e134607bfdd26dcf7dbfdfd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "9bfe27652e3f2c91be24fa763bb83ba245a06cf038fd4e8a478fbec81ff07d66",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "9d37511e5aad56357d06e109da81c9ba4b7382e7c0d1b05ab0092c694320a647",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 677,
+    "sha256": "6ac833b279b34a8362d06d31c887da26ea30e10f823fec13284ef992d7d4be9f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "53d38cdc722d1465971d707897f9e4b92c09c669d2eafd3fb90a6ee88967618f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "f438985cc5439ccd0303477e948b7b926fb00edf920e38e13d2a9bd5fa5c88d9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "9ff30409d1f5625443e26562fb0b22bed6d59cc3c72773fdcad17facb65e0b9b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "555aed482622a12bb70a0a93affb4ede83a79710950f00880c680d0c9dd6aeb3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459754,
+    "sha256": "dc69f85304bacdd5e5cfa683bf4fbc85837ce3f0a31b2422579da08c098a67d5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459754,
+    "sha256": "90ba1ba85e321ce3ceecb8b26b4bfc679456749bab75795a40b5255d5c9a0276",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "e52cb0e065af4ee6e3c05897c9442512ba47bbc0a42bbeec75348d7672f1be89",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/bgsave-grammar/data/dump.rdb",
+    "bytes": 624,
+    "sha256": "be11ecd651d01c5aab793d3b652ad4e46449a196a02174f4a5bd42a73946ec67",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459690,
+    "sha256": "8e8c8314f70e17fd224cc4ea41a8ac674dbab43c7f4a66eb026b30203de9536f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 80,
+    "sha256": "b1eafb3676dcf1617e6845554d306efe829ca6aaa979957095ae4d13110ab3a4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459690,
+    "sha256": "20fe8486aebbd3da3f82c18e6bb6dc6f48ae5db2a31a2904d765b8bb1b12efd0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "36aa57c95f35adf6eec4c5d19d15ce5f5eee14b9b7ea98ff7298a965ae06ef8f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "dcc7ae8bdcccd8bf25bb9e1ee69cd3d4f1885117269db499b57cb465acd99cf4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "0bfc761d4a3cd7330a33136466296e43dddd483efb97a2d6cc52e0eb3fea5032",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 677,
+    "sha256": "ca481437f653dabb49c57008aa143a695d6c18c2764d144ac2233974836900a4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "94844477a496bbe1598c9f51727922b6decd4140d58543eef5b85f0229dbd522",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "e518d066f5efdc1c3eb48e55c8bef4d177b303042a5200f68024ea9ac9fcf201",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "c45e7fb8faff69851de70db0f5a51dd79da4edb720edd6384a380c2ac24428c1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "820de1e1b8df52d3a095ceae2789f94852724351ed5985a1e2f2efb2f50268d1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459690,
+    "sha256": "3cf520fe805393b677f646bc1732b97c0782e27f782503545989e6d97cbace1a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459690,
+    "sha256": "823a8036bc928b1471780038b2a39f668cf027284cff96593b93b8ec26fb299b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "61b6a33a442db7d7277d71e7469a5bca1b9e37ca89a9aa555f867c3f960cca1c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/bgsave-grammar/data/dump.rdb",
+    "bytes": 624,
+    "sha256": "dd70250cf1128c0d9bb113fae9f4d10d877c91fdfc6de7cf6668b22176ab057d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459754,
+    "sha256": "ead9bbeb29721ab9384c5e651afc442541a7c1344d4d68dc9ecf52cb2037980c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 80,
+    "sha256": "e905bdb2b23e376d58c403dcd51c490dd694c034dc3c3e0a753edf7e4166ef4f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-uring/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459754,
+    "sha256": "58a7a647b9f8524981842343a43dc8a6038f2c293e6d809ba7f7dc303072d804",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/save-during-rewrite-0/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "d7250d3759fb08cc55ffd2228740dead8c0f0ca82c7b3f7053195588aaf78e0c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "b0a38e406dbe17276d9f1bf9b7ccf0da9ae5d67d0698bba5ba7513004c865a9a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/save-during-rewrite-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "055377f7dbf94902723e9ffbcc0e7b21d8cc54eec6c5c5f43fbc88e9cae79a76",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 677,
+    "sha256": "3d34646496a78b1a19023e6c70a0e77fbf303d9258de5a85bf28ee0a83655da2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/aof-disabled/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "f9ad4a2ebefcbca1df7b5a4fbda195e2ac9875a6906c8ee1a2ecab2bc4962239",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/save-during-rewrite-1/data/dump.rdb",
+    "bytes": 97514,
+    "sha256": "ae6c7fdcac3f4b5cb51406d37cb6a7fe058df7b4b4a3bb2f6ff0bc83eb8888f1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 97514,
+    "sha256": "ccbd029d66f7bcd6e1fd11f25b7e9f1a8c6e774a468321763ec8f2c745030993",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/save-during-rewrite-1/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "142eccbdec46438a299151236a4653ce549557dc1ab7080599d1b2eeb6c02329",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-1-0/data/dump.rdb",
+    "bytes": 21459754,
+    "sha256": "d327b3376c3c7a813fcd5a190701d361a0a38a99aea81ddccbb858d3618770da",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 21459754,
+    "sha256": "6a811216a65e849cbd44407624c822fbc5a1f4b5c47437a84adad098ef52a307",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-1-0/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "c934226487649f52cff189a747623611b9f9e233d41d4e41ad18d537bc5ab8a3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/bgsave-grammar/data/dump.rdb",
+    "bytes": 624,
+    "sha256": "cb78afb5221158c9f2c42bc4aeb82b73b8cb756ff951467439cfa25ad5c1af45",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-0-0/data/dump.rdb",
+    "bytes": 21459658,
+    "sha256": "fabcb9dda429d860b4e8a03f442e7c31b902ecc37fc2a32180b5a593f04693b0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 80,
+    "sha256": "0d50779bd1bf082e61874f76bf1fd4a1d81e7303487a895123b25ee81471afe1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_commands/commands-target-1s-epoll/scheduled-0-0/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 21459658,
+    "sha256": "242faa19b6538fc386e82e634003906df299c25dad33efd2cbe9f18882a9d51e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-always-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "2531dabf1f1b7e8535fa941965b467f9515d149a6c5f05a7df40b8d4d9b14bfc",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-everysec-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "320e0585245a749440cd029894e0d95981c18ab3f26a739f90015281ce397a3d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-always-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "19bcfa3c956a7e9f19fc20903a5bd8c8c2b8fd9c3515f42a10a00483da4b51e9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-always-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73073,
+    "sha256": "4b4614d84557f9cb91f9910c8d1a06db519325d7bb0689f48205d4c2c67f0147",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-always-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "577e4227adf2cc35268149daf104d92f56ab926a66258232179aee22af81f607",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-always-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "56fe59145263f10f606ca31bb24515b3552b6eba6e4adfb1cb4c5ee6ba542304",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-everysec-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73073,
+    "sha256": "3d440fa7db0e8d6348c380f48611187f0e8ceefefeca62525d21550bd27e2d9f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-everysec-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "9582c801bcb45755f07e63aebaf7c0004698cff594d7b56f1873c2c9705b59f3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-everysec-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "b8b6cd975864dfe098c7117278ecb356fbd6f92e04cec707af5ed6809228ddef",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-always-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "e6e9ab325b495240b456ca358ff3237eca27f09403e2fbb456e62a8a6591558e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-always-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73073,
+    "sha256": "9af0e5d19eecf7cc48055d8933758fa33bfc12349176fb87095c5e15cf1cdcf0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-everysec-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "10f412c2ff67ac482eaa79298b44d4259d79d2df77458dcafd40e8424e30e582",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-everysec-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "959facc903add3ec4e7202c0c075d38965d2c4b6ae79140105c737a91b2e7e05",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-always-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "14f0085afcdfbc734d5e6f31c11c14b3da3e3ca2912eaf69b387d2537a2fdbe1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-always-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "7340080fe93b4b09937012583550bce37af400874193dfb9d76b61512b9c3979",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-always-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "388988667bd807d54f1bb7e1580aa8670d549d3a1117ac8934c41929290c05e7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-everysec-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "926de4676a8ee0b32cbc24303cdfbf2937366850260512c154064772ad457360",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-everysec-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "5308e0e330d130da707aa7f314f928667251f6ca0ae45789370d25364ab20fbf",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-everysec-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73073,
+    "sha256": "22bdd72fc9341199649f1d1fa458a370d842c9f20c0c8c64c5869b4c3f618c95",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/oracle-normal-everysec-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "d6470ea79f11ad2f2c3d13cc75fd66d59dc774e8369dc97e48b1cab4e55a31aa",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/oracle-normal-everysec-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 70539,
+    "sha256": "c197330ab7a933398d519e75a381ceaec5db25c3db9d40afc112fb242356f6dd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-epoll-always-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72933,
+    "sha256": "c18fe987845c6cf0fcf7fef1f0ef5248d5a8f7db7be61ca8fe78128002d63600",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-everysec-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "955220f1ab3e259a984212428b41bab1db6092948b9195fe0d3260d000dd674f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-always-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "9f706c13a448490202927e8638a197d4d9ba86ec733cf64d418d66ced489a8a0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-always-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "9ab7623e39090e35711fbdfd64e72c036afec29202a2920fc131ff8143f79470",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/oracle-normal-always-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "b243a25964ec7e21fd202fc8cd2b6b9020e9cd2cb2a0ea23ee6d713cb4ebcddf",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/oracle-normal-always-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 70539,
+    "sha256": "c197330ab7a933398d519e75a381ceaec5db25c3db9d40afc112fb242356f6dd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-everysec-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "e40ca4696fde7f786c8acdc9e94b50bffd2c51123cbc43d6a4e4505d34d14205",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-everysec-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "501133f7044a02b735604e20569ad3f58ba4728dfd528945a8f18ac0d54cbd62",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-everysec-db16-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73409,
+    "sha256": "2a4c606baeea0c7370d741b25df1f67f5c1dcb325d23c24603c41b6beb7c1621",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-always-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "1ab1ca8f937962df8f199cf586693abe3bb33a9c3cfd6d56a13efab9587dcdbf",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-always-db1-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 72973,
+    "sha256": "3a6cc962a6ad4ee0f209b86ab1aa312b6fe7b92ad1e0c4474048bbacdd02e657",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-epoll-always-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73073,
+    "sha256": "6e3af645253b2ad2fba23c66a8f180266c612a2726f81be43049202ff8290bad",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-everysec-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73073,
+    "sha256": "064cdd174f62a435134693fd89851e01f725824fc8999e4191b91e3e32b4ff14",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/1s-uring-everysec-db16-a0/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73309,
+    "sha256": "237834fc0886cbbdb6e04e71456fa56ee53c4e11cb5a6bd61632f1e0c90c9e83",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/rootcore-waitaof/rootcore-waitaof/2s-uring-everysec-db1-a1/waitaof/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 73073,
+    "sha256": "63e9371e7ef05fb2892f93ad19126afb01f7e72b8a7e98bd7787393247e7111d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-split-1/gate-data-main.7C4HAH/dump.tomo",
+    "bytes": 72711,
+    "sha256": "1a682a2a5218f9d7bc0571a9ec02a6f582dea01ef424bfed168a9c3a8cd79b87",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-split-1/tomokv-servertail-q97aak6h/dump.tomo",
+    "bytes": 248,
+    "sha256": "6e1cf71dce75f0b0dd271371787e9bf8120a852265a9a728d48eb09fec713d48",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-epoll-atomic1.eBfseM/dump.tomo",
+    "bytes": 394358,
+    "sha256": "360e833a595b08d2f08b5c3d1061f4770796ec047c5a1a0dd88fdbc5063af047",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-epoll-atomic0.ehndyx/dump.tomo",
+    "bytes": 394358,
+    "sha256": "028981b7f3897c4e41832f89efc589107b4563ebf80bbabd7b948d9d096c604a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-always-epoll.jsvKii/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 104188,
+    "sha256": "f6afd2f80ebf6d04243f78c26f15ed73c0f6d3ddad36aaead067292982fac1d3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-0.AGbF9k/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 173488,
+    "sha256": "9264a739f6e7189fa628073a86ff04c99001279f5bc7e5848d91886404445fd3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-0.AGbF9k/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 53380,
+    "sha256": "9a58f1e6cbad12bb441cd0807c0b1faa523709cd2356713169f14d75fae09125",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-error-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 168,
+    "sha256": "ddc11835ad2ccc58f189efcf0402c8c2e1d385cabc453bedbf961fb75e60d24e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-no-sync-epoll.SbVqcn/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 27156,
+    "sha256": "ef7f0ec1e915cab080f82574e51639db09694db7b2aad343daf0fce22a54b374",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-trigger-1.LsTENm/appendonlydir/appendonly.aof.4.incr.tomo",
+    "bytes": 80,
+    "sha256": "73dfb89155f539e644b4d2d894212ca19b8d81ffaa52989d6d4e883a5ffb1746",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-trigger-1.LsTENm/appendonlydir/appendonly.aof.4.base.tomo",
+    "bytes": 308112,
+    "sha256": "dfca7a32692eea66ba72d4df15f27eeb4073d56020d473b51cc8b9dc05ce4da8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-latency-always-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 4858,
+    "sha256": "d2d764bfdc88436d5bfae7c2bb2e25c50fc0a09c7909ebf5cbb91120cf575fe9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-snapshot-1s-epoll/data/dump.tomo",
+    "bytes": 669,
+    "sha256": "be409fd25df9d79d5c665d381146e47dd23d7e2db6f9d1543cb727fdd492b431",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-snapshot-1s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 168,
+    "sha256": "850cc54e40bbaff2617d21f83f18479c74a561712c4fa762ec15a23e7f8d7ef7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-snapshot-1s-epoll/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 669,
+    "sha256": "be409fd25df9d79d5c665d381146e47dd23d7e2db6f9d1543cb727fdd492b431",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135416118,
+    "sha256": "1543f79cff59eb73905b24e0546732fc60e30f25a76c716f34c623eec47959dd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 3683,
+    "sha256": "8db1ed41d560ecbc8d0ee6bb8f908c44f1339ef83134b63c08e36a09de460bf2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-latency-everysec-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 4858,
+    "sha256": "2ba1139cf3688454153cb49d36d1d23305c93b5ace2c7c18f867ea3346e5e5ac",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-latency-always-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 4858,
+    "sha256": "f2d8ad589a23f7284cd014b68a673f371866b9ee40b5561820cb9646f7296de7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-before-mark.ZR7L6Y/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 110648,
+    "sha256": "29a4870e9e4038f7f7444114395bb79c8bddb95ffeb7afe6021264cb87072693",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-resurrection-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 2800,
+    "sha256": "8a61aa2a493b615f5784d3a5caa7f25b73499edd1c8399ebf3c4bf76e79684db",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/persistfix/1s-term-66k2vm89/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 9883862,
+    "sha256": "8e21410819ab1ef8d053db7e6e26c269c02fe9847828bb36b6f825e9fc864344",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/persistfix/2s-kill-pb5p964o/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 6968,
+    "sha256": "1d94e81999525f5f4d5a79d09d8e9a05d8c7c8e85fa6dfc9c14dfbad2dcce561",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/persistfix/2s-term-u7veg8s7/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 5431720,
+    "sha256": "73f14f88900faa14ff64c01feeee39bfe47bc87e7ca35c9b5f1a94de6606ac50",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/persistfix/1s-kill-e1gjisir/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 6968,
+    "sha256": "86a741d1518e8c7ebdca364971a70bd91ab6562527ad407e48cd983d87179d14",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135366316,
+    "sha256": "0e6192754e812010ba5583c71fe68c3de9ce63495c2e219e5d89599d6598a7d5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 6512,
+    "sha256": "6b350b46c46e5526b247ddbb19c7e6c955706ff53fac881204e5c07c6505f679",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-manifest.riUP4a/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 173488,
+    "sha256": "b49c122c903bfcc2abb8c03a2520a78ec71dd19b17ccb475e3f60c21093a6800",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-manifest.riUP4a/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 64580,
+    "sha256": "1ddf7561310f9f18a8eb9bf8f72a030476e4c05117c70f593cd610d4da4dae2e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-record-length.NtDEDL/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 173488,
+    "sha256": "b49c122c903bfcc2abb8c03a2520a78ec71dd19b17ccb475e3f60c21093a6800",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-record-length.NtDEDL/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 64580,
+    "sha256": "3e9cf2d91dd96ecb14e1bb73962fa2dc8e1d4c2f519453a29dd2095e76c5b598",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-latency-everysec-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 4858,
+    "sha256": "5478779392eb0d08c01551064215ef9b38e9cd85f9ae68370eac16ad230a8b37",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-0/appendonlydir/has space.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "9a25e829a6e70fab55fe9d919fbdb9e5b175dd695840ef26377411a198b67061",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "6c2571cb55f3b0f58212293088b31deee7ab228d5a72be692d86e3ee2cafda3f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "adbfd74be59197c7615db80fed32b179fc01017a75ba70930aec77fa7856a7c0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "b586e3230c1d2b904c7accd341d561f90471d4cfe2d5c5a546c462c1121a2cf7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-2/appendonlydir/single'quote.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "4deb514e0abc4e43e5c723ef04b8c7dbfc3ffe9e6f72fa24b686064ac8c047af",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-2/appendonlydir/single'quote.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "3a5e0112436dd0141bd2344761cfa866640212e18363853eb8c765031a720bef",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "03b3bdb9f092e284e3e96ed52f758e209b0da68eebc3a5570e6da0936c801f98",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-1s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "e2833fbd85b72dcce2861a78c87fc654461ea955cc91c04321900e3e2140f535",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-manifest_missing-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 80,
+    "sha256": "f5c8c13306aa48d600be3595c6414d1b53e7e0bff0bea759a091898ac75882fe",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-manifest_missing-2s-epoll/data/appendonlydir/quarantine.pj9WXT/appendonly.aof.2.base.tomo",
+    "bytes": 665,
+    "sha256": "1b6650c60f2cdfdb2e470f5a0f4f87f08a65fc825c8a0c7b1c1b049339ffe6c9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-manifest_missing-2s-epoll/data/appendonlydir/quarantine.pj9WXT/appendonly.aof.2.incr.tomo",
+    "bytes": 171,
+    "sha256": "6523863c55d78b5ac033ccecccca524758f7377c086866a031885bc5901704bc",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-after-manifest.SdIIHE/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 92528,
+    "sha256": "30aefa7563e018d2e1a23ce2fa3235a9188b38027c938bf8cce646e528319faa",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-after-manifest.SdIIHE/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "9353604e5d2720d3a33b15de21b59f62ae1690b410b75e9fdd7e2a60b7bf47b9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-after-manifest.SdIIHE/appendonlydir/quarantine.5i6Zlm/appendonly.aof.1.incr.tomo",
+    "bytes": 112352,
+    "sha256": "c3049859531bfdc66df2a5dc727b1cf3ff4d2a6976406ecdc4e51198c45b2cf3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-epoll-atomic1.eBfseM/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 14330369,
+    "sha256": "ab0e7e5c748ff5bba943e42bcbd6ff70ea8bf7a7e5634cb46ba85201c1f47aa2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-0/appendonlydir/has space.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "55ef4ea1db4c97fd54a0ff9662b81df3675aa5768fa582501d2fa47f8b4425a5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "8b43f9002f5d5670f16af1c4ec568f6f6487f4292f189e0500d31eeead009e0e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "7771a877360e243d44013c017b4fc89eb7184c2bc09baeb0bc61d960c36b9c2d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-1/appendonlydir/quote\"slash\\.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "f3200eec85e41f72c47f3628fe2a9bf7f84fd67c5add4c315a1971cb6fa6462b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-2/appendonlydir/single'quote.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "42729f09532bc0e687f98617b99e8f78ce86a014185949f94d8abe96886823c2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-2/appendonlydir/single'quote.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "96a178247547739cd0a443e09aa614d107059496cd5e781a3b595ab56980aa1f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "e602174d5f880e56b1c03b13792992db9ece236be59066f6d9211e00fa76f475",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-filename-2s-epoll/filename-3/appendonlydir/tabs\tlines\n.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "63558da6c00a1f1a5918dcdb0ed8c7e031438fc6bbcb0cda3e7cabd0fa649bfa",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-exec_tickets-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 7598,
+    "sha256": "13c34f8b58af4251e7a7f7272344a9c7541538151388ac63a30aac2508c26a0f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-interior.eFao9O/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 110881,
+    "sha256": "81b80fb108c3ea149e8e24ef7bff2df76e04bc2f2294bb8ce7faa70418753ba9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-interior.eFao9O/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "752abad4fc8a8c4d4333137028525b7bc5f537dd118900046bdba50c3187538c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-interior.eFao9O/appendonlydir/quarantine.seG018/appendonly.aof.2.base.tomo",
+    "bytes": 92528,
+    "sha256": "28da580e7e034065e6b78cb8e1f69c4fee9f942f52229d97536e3782168156f5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-group-epoll.BE8LnT/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 23493,
+    "sha256": "f4a42c77deb21543b46abf7700d2e980c10e9ce7561e71ec6f0ccfc143213edd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-1.k5QOl8/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 173488,
+    "sha256": "b49c122c903bfcc2abb8c03a2520a78ec71dd19b17ccb475e3f60c21093a6800",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-1.k5QOl8/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 64580,
+    "sha256": "1ddf7561310f9f18a8eb9bf8f72a030476e4c05117c70f593cd610d4da4dae2e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-tickets-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 7310,
+    "sha256": "d11c86766ba61ef90fd7cc898de0db7b7db3e682748b74d60615385040bbe468",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-error-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 168,
+    "sha256": "3ef951612f64f0daed121dfa5b416233ebf8672d38a6ec26de58381a8ff64ed1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-manifest_missing-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 80,
+    "sha256": "d7ed4c8ab306752bc28c75f29e9a2e78a2d54ca5d316ca4971921e3c345f6107",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-manifest_missing-1s-epoll/data/appendonlydir/quarantine.njG1wJ/appendonly.aof.2.base.tomo",
+    "bytes": 665,
+    "sha256": "b996d059d2812534e7b9901635b0ee50770d241c931631d0e6e350151f28e8cf",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-manifest_missing-1s-epoll/data/appendonlydir/quarantine.njG1wJ/appendonly.aof.2.incr.tomo",
+    "bytes": 171,
+    "sha256": "d7bc1c206ecb83bf771b621cfd3821efb1b5042310837a8cfc8aaa571b74b054",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-base.PRz42G/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 173488,
+    "sha256": "c6834fa2f9137f82fb4b61ca2bc2d3eae10a8532fa8107887d43a2ee1b898a3b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-base.PRz42G/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 64580,
+    "sha256": "1ddf7561310f9f18a8eb9bf8f72a030476e4c05117c70f593cd610d4da4dae2e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-epoll-atomic0.ehndyx/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 14329997,
+    "sha256": "40ebbbf5cbbe4b6bb9bf443688b138ad52b4ff70780d956f5eb08cc996f71fdd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-large_placed-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 5246249,
+    "sha256": "cf76a40f6d675cf5d00dd5af5238b5e9a457079fc5d9ec13a9846c8e51498c2b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 665,
+    "sha256": "5706b72abaf65f27cadefd8312639e6646063ac9ffc9188dc9160d2938e94399",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 169,
+    "sha256": "89c418f8db9404d9d039506621b31751b84b89fc9619c137739bc5eeb93ae7e2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.3.incr.tomo",
+    "bytes": 169,
+    "sha256": "33d66f5531d2f1ae6e0734924a9f2c25d5a84b83bc8e65f5c5b3ad693c92a6b7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-1s-epoll/data/appendonlydir/appendonly.aof.4.incr.tomo",
+    "bytes": 171,
+    "sha256": "61f4c078ac93de01fa26a04c631e5a8acaf523b44c820b265f5cd835602ae3e6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-everysec-epoll.DIbKH7/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 104428,
+    "sha256": "728ac70b1e08a712e504a16ace5c48b44c705ff7af2c734c9a303962f2b18d76",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-exec_tickets-2s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 7886,
+    "sha256": "647fd7f43aaa04297737e35a6e0cefe5b220c816d42179c03c77bc18f6b2a5a6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-tickets-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 7598,
+    "sha256": "9d42a7dabe111bb880cc33786725c14099e9c972d44c84e4ab13c11099eb2716",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-trigger-0.IlsEXT/appendonlydir/appendonly.aof.4.incr.tomo",
+    "bytes": 80,
+    "sha256": "b95eb6b8d07665604b0da0f5d9fbafbdddcacf1a09f8d5f35e8a8bf177bf38cc",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-trigger-0.IlsEXT/appendonlydir/appendonly.aof.4.base.tomo",
+    "bytes": 308112,
+    "sha256": "6c95bd22213cd216021548c0d2f4f2a09a24143df34ad807db27af6b9d476f45",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-group-vector.7VGhIv/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 173488,
+    "sha256": "b49c122c903bfcc2abb8c03a2520a78ec71dd19b17ccb475e3f60c21093a6800",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-corrupt-group-vector.7VGhIv/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 64580,
+    "sha256": "ab61f78b1aff746e30bc9bdbc010e771b70e8b9cf8230b73564ec551639a2b57",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-resurrection-1s-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 2848,
+    "sha256": "08ebc3e53507a61f639ccd8503be488a514761f95a38a94da3090456364d3750",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 665,
+    "sha256": "bb4d53895902df8492bb83179ea909014d0eaf2a8b18cc1a45bf359b8a5297af",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 169,
+    "sha256": "c9cac570e23087d4e19517c8036f2c3ba560c82c57f5d81f9223426760b7f015",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.3.incr.tomo",
+    "bytes": 169,
+    "sha256": "2df33505ad66aac129a3929cd6a3a1447613104f98db8f0f87637145aa1bf317",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-rewrite_fail2-2s-epoll/data/appendonlydir/appendonly.aof.4.incr.tomo",
+    "bytes": 171,
+    "sha256": "c9a69221fa63fdaeb2e8383d20b5231f410bfa8704f8ffb8920772f96bc2f7ff",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-large-epoll/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 8464097,
+    "sha256": "189ad3d1e259e2834340f26e94eb2156dcef2904670704e047792be9f1feb762",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-before-manifest.anF6kw/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 110888,
+    "sha256": "db219558e0b819289c4eaaec26c8da958aabf84e56fa4236e42054bb7cfcf559",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-before-manifest.anF6kw/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "752abad4fc8a8c4d4333137028525b7bc5f537dd118900046bdba50c3187538c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/gate-aof-rewrite-before-manifest.anF6kw/appendonlydir/quarantine.seG018/appendonly.aof.2.base.tomo",
+    "bytes": 92528,
+    "sha256": "28da580e7e034065e6b78cb8e1f69c4fee9f942f52229d97536e3782168156f5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135347485,
+    "sha256": "3219afdb6e7f8f1cf09041aa8e40a90a0665531d181af16394cb237422c5e438",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 4820,
+    "sha256": "b9f412a9565f6e634ead46df8a3809d931b8cf7eae4f0b2514385a5220513378",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-snapshot-2s-epoll/data/dump.tomo",
+    "bytes": 669,
+    "sha256": "43ed09362e4ccd709c6cc39992dd046d3dd5a7593623664ced6caa6a64ad2201",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-snapshot-2s-epoll/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 168,
+    "sha256": "bc38f1a4996fbb1167eced445201c4f8f991820589681cff6492b635941dc499",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/aoffix2-snapshot-2s-epoll/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 669,
+    "sha256": "43ed09362e4ccd709c6cc39992dd046d3dd5a7593623664ced6caa6a64ad2201",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135414345,
+    "sha256": "38736bd6790aea1b23cec5159581dadd63398ef1f0ead726753d4b5a393faf4b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-epoll/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 7478,
+    "sha256": "6916f9f81e6d1944f6412c1f65f4e678505dd5788cf506ed2296aa31c4941750",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/data/dump.rdb",
+    "bytes": 105514,
+    "sha256": "9eeb563a5178369b22985db3550d8bb1347978ec09777904a0c42796d9b7cf0b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 105574,
+    "sha256": "1a9a63ba26eb8aa7f318ac6063c52ac6992f521cf326212e1df9ae6749260d12",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "fbd45bf1100912a6ee699d5c3e936d3f36b434185350049bdff72c2a60408461",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/data/dump.rdb",
+    "bytes": 105514,
+    "sha256": "eb3b64a00c346e6e4c8a8d5b215bbd6fa2018413efb2ae8e5fc46e15fa098a52",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 105574,
+    "sha256": "31905f1af5644d85705b83be4b01713080430d66692897794a5ee934c6ec0168",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "e0f2568cdff1fcacc1385b545dd62c408695529d2e0739c806107b099fe0fb97",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/data/dump.rdb",
+    "bytes": 46985,
+    "sha256": "7f38261977760879eb489d1c7f49674dd791f7e1c1574dbe7b049327778e39cf",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 47016,
+    "sha256": "d02823eaf9017ca27fd0e84d59931e6bf8f574fdcbdf71a6d79446d2b13b0b3f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/data/dump.rdb",
+    "bytes": 105514,
+    "sha256": "312d4a212171e54307c7980ef1a02f5eb956968bb04ff02de99c4e418d00ee95",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 105574,
+    "sha256": "ab8117b786b1c0e42318600e3edcfdc38c2211ee5ffa0a6259bc42fb363c2f40",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "8938144e250a50f3d40ce447de7199ebb4f2a18732de60ebef85b10ff9632b42",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/data/dump.rdb",
+    "bytes": 46985,
+    "sha256": "d45fcfabd0705a54bf7dfd2da78839a436944b226773de7f359ef5a51f33d6cd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 47016,
+    "sha256": "12297a755915e495587277d8063c90308ef9dfd83a866fd521cb0ceb31ab1e91",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-1s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/data/dump.rdb",
+    "bytes": 105514,
+    "sha256": "971a5d97cb32bc402c66fc6e02289fa316909b29062e39eeb9a6cd5fa37fee90",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 105574,
+    "sha256": "762f39c3863be3f082203fcab1df8e64d60ab32f75f2687068cc05884746020e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-target-1s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "effaca36dfd030258976fe46e38ce85bbef26b70c7cddb633080c356b4c6c286",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/data/dump.rdb",
+    "bytes": 46985,
+    "sha256": "78cd48d4092182b34e7f78b9ba9bcaf03a4c62f127fe1b990fecc02342190133",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 47016,
+    "sha256": "d139fada1c4cd7064e48922288131fddb2996914d0170e8b75d128557b66c0ca",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-2s-epoll/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/data/dump.rdb",
+    "bytes": 46985,
+    "sha256": "27a47eca8d175ca642784741f94c668fcf40ae7597087df2ac574742b9f4373a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.base.rdb",
+    "bytes": 47016,
+    "sha256": "b8c8a6a00928a36ebba9864ba36b9aaf9b72ed40288520046bf39ef8a235841b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_lastsave/lastsave-oracle-2s-uring/lastsave/data/appendonlydir/appendonly.aof.2.incr.aof",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-split-0/gate-data-main.4MUyPi/dump.tomo",
+    "bytes": 72711,
+    "sha256": "eb6ec11f37bc7e410af77c833ea3c77454ce8db7a729d8cb914ebedd16c5f63a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-split-0/tomokv-servertail-xnkknfur/dump.tomo",
+    "bytes": 248,
+    "sha256": "a88c263506cb335a3bbe8a65e73804d87502bf504c999073c88a74feb572ea69",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-4-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "03708adcac9832efbfc443c6d2e46561d87406f2c754b6329b5b4afcb0185d17",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-1-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "86cd9f26e3ffe2f185b69dd2c9ddf1e582b17e68a0a40b068ac2c09bef79754b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-0-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "5b856905eddc90212a549bb3fae36548d5601268640094e0196d951b21aa69a7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/wave7-blocked-save/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "5b775601863cf230226c54630af47bd703a1bbd70d63eb515c77d5027f1011d5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-7-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "78c73db1362565b08e0fad00eb10ebd40a99e6b8a72000762606dee3fa36baef",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-3-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "9f7dd96b617106a05b6d357401ec96b2bc410b5e2fa16b96ac2604b313faa408",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-2-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "f31fd9e79d9b4a13c119ef432425a29b391a4882d4418c3a16d5dd482b622a68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/active-save-0/data/dump.rdb",
+    "bytes": 21459754,
+    "sha256": "20db33e11a13d5d00799e67fc84e270722ae63fe4fcf472e3169cf23befe0df9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-6-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "305f31320076f819f9ba47c195b4f796ef8ddf98957982c50327492b5febff13",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-uring/command-10-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "d06b7e8cb2d4ad18094d21faa109088ccf0ff4d77f1c1525d3cc082dae103694",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-4-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "2cfa944c2163793ae976db5d2fe0f09ab08ba664fe8de9b78d6586a447d6532c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-1-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "05aa9808ca255335e9a406cfd88ea4a2e50dffddc611cb26a20481b330f83e39",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-0-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "559ef6c41d913157a8d8b84469cab8fed14fba8ca885f08e4ec3daa59014e1d8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/wave7-blocked-save/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "b5cf168357baa5b3b2c6760098a09b4226e0ad58dfe3cb6807d99eb5ecf87b48",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-7-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "966ef39ca9470b1c249db33818d98489f22cfa948c88eede48423068bd336048",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-3-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "b8201d3d95b9e3e53d76dbbe1e2bf490ba4d762ef5d651b0fd3c81a27a552372",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-2-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "cbe6d61510c5f56bdc1ec87c8dc16d79672ec0d24323dc7c73faaa8194b95aac",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/active-save-0/data/dump.rdb",
+    "bytes": 21459722,
+    "sha256": "5ad219f2619ed8543ca9689346f2f0d020afe77e116d5cc8cb09bdba6763d229",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-6-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "b54def30f57352539ea5729fc5ddee2ac93cfb12ebdf1fe03bea6968fed49bab",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-epoll/command-10-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "812b07f9244ab438923ef91410ca350a68917e83909788de99f3b0c147898a1b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-4-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "4e2fbb7ad15e30d18c3122ce6499d9812c568fb6490c199aa81244bc5169e44a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-1-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "1b68f3113cc37cbb4961f3efe68fdd530848566359ad03b803d87703bafff978",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-0-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "92f85aa67c0a7dd2d18eb86b5cf0d6a2359605aa7e886eacf9d8c79538aeec0b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/wave7-blocked-save/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "f599ae59743054715d456e9be06148943d354bce7d9d667e92c48e96a2a22baf",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-7-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "f5a9528eba949db620bfa807d60b51c7d7e7e7e196629aa778f4650942d4c7cc",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-3-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "e4cb9bbaa493fce2a97d2afab52adc908130fb7ecfcf026b58e433d167bbf2cd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-2-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "2e35d31c508b704e72c08853b4b136ae86fbc557d62531815f4e85494fe9f6d3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/active-save-0/data/dump.rdb",
+    "bytes": 21459754,
+    "sha256": "d04e88ec7d9fad0d1d89097e1a105db77545bf31100d717f0e98d56d97044153",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-6-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "0c2d24ecc11407507b68284877998c009a9ca6a51c74eaefc85e215ccd86dc26",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-2s-epoll/command-10-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "cf9ba1ccf035b744b54f630289a40d8e809c342ec88d85d803e775ee38d5ede6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-4-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "7049ede8f0f534d279391d3ed0cb668bb605c77b6cfb5013891329f9365d01e8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-1-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "f59d07379eb085470eba7e543f6c9bd9e3ba66604f8bd981158a086cb4cc9204",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-0-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "099966969af1b460e7c9465be20563e58f4a69b69095735658a0293bb6424cb7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/wave7-blocked-save/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "eee2137dc4d325ea3166bcff2d4828bdcca9bf258f0a58e12440cf58752e8011",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-7-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "f2a7f0351c1b8f198b47d81e0b921bc1a155a1ea676cd9f691f1155ef3038848",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-3-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "c2345e9081bf508b5fd00ad5a6888fda4bc0bc087186548ef18330abbae7a58c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-2-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "7e64a034f214ef41aff8d14240a38fc0773198f4bfa1662f4ddd5e1f33582716",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/active-save-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "bc956db4546d710d19954a0f0ea06bd9be95eb6e95a5327ffa6a695b59e76619",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-6-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "42c589ffa61771b79a737cafcc2178a964bd9a20dcc795341790cd76300172e6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-uring/command-10-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "f03fd1c5617e5aab10d2ad807e94ce4ac76108995f3530f44b704fff4ece7a82",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-4-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "904d9178984754cb4b0beae2364e23fc2bf69b1b269af6adba5977811c35e57f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-1-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "d2e59601b591529f2fa0bf5e1e8bbc9eb5cade33283a3ff6813779a71dc37ef2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-0-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "8c2f31de8272926aabc883afacc190a4638988bd30d4b7748fd321d211c6822b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/wave7-blocked-save/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "ff6c00b1dd12fda37c1a9dc1e5ad9dc8fb96930db52bbb1411d7566c099b70ca",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-7-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "6b0af81b9c50c3a434f0c2f9cfb14f0402243405fd379afe951005bb4272b20e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-3-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "3552e5e7c6f9a5efa2bd923b55339a115b913857cf32d068fc295cc7cfdd6721",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-2-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "43b1ec5023790276bf36059c61b338f81fd7fbe755468de4cf95a009bf0be44d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/active-save-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "e9cc90570fdc9592be4d6f85d4d48bab144dd0660665c192664a2b2c63de6003",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-6-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "ef4586524f17fff1060e74a734b53090a20fecdd5a7f6319b18b5874388b9dc6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-epoll/command-10-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "6b0af81b9c50c3a434f0c2f9cfb14f0402243405fd379afe951005bb4272b20e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-4-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "643728ef1cc6583bcfb6bca5a852282346a21d0b8f36da3fb788ff1b2f6e707a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-1-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "3e2201fb2acdcd0e627f1b288192feaa029f520a73afa6bf724b4bed005d2d85",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-0-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "050db2b5d51f28e94896d7a23d86ea12d641454f01e3f0b6059dce2055dc547e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/wave7-blocked-save/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "e529a116a90ef1fb02a5e1861ed773f54a7d31faef289926f988aa7786316c32",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-7-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "7c50c4670d0cd79a59a7c6e48c191b6dbac21d0ae56498709d026efb90181bb4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-3-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "6f60466b8335fa3d69bea315a618af182fb49a43593407c8fa4256ac2b1f6f48",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-2-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "3d28972c545d316ff40ab61eca195ce38ee7a59736faba8937af88558096d92a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/active-save-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "6d8483841751d65c72a1d104248c505e4e5444f47d783f48075b58c35a3422d5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-6-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "41cf17c8f6b26e45bf66267d91c32688b1d0f198829fb46addc4e7003a785a60",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-2s-epoll/command-10-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "ce284ee5342b62378a48bb6d942a58c36eb1985a94b4da8827afbb52f3b39e25",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-4-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "7a83defda4feb0506b7852f3c69f0b7a6aa8eeab4d174075a672d8d6d9eb744b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-1-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "ed907fb0596e1600e4ae54664571125214765e97c23a2e4f9176b045415f6ad8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-0-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "ffa716783e153f4bff5353b8026a6c3d10117b9e7e94bf6c017c93ca52020e03",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/wave7-blocked-save/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "90fbd0e931969e2f9ad9e232ee564986c880c74dcdceeadc19d79fad9c7c3cef",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-7-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "11b584a15ee2a7d2be9dec0ae5b86c4ca178d384489a1501a81bd3ee13553137",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-3-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "487d663ee1d617a333c19876541a5f3c669c612cfcff59e49429de2a575d32ec",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-2-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "325c27ac1bc6685fe92eb1428031e9bd304d9675adf7dab2a31fc475faa5d37e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/active-save-0/data/dump.rdb",
+    "bytes": 158985,
+    "sha256": "f0c2b99d3d0921c51ac0ec35d255aa054b00cde531dc605748123d76aa01157b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-6-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "5f79b4681c80c9cdbdd5889d262b4502d5d620eab30e29fe90ff3d77073cb92b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-oracle-1s-uring/command-10-0/data/dump.rdb",
+    "bytes": 120,
+    "sha256": "3485a24dbf65309ddc06530333f533ee50a68fba2efa5f3b7fa66d2331681b74",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-4-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "b31f6031fda4456648f4a54a59fbfb02069b272a7ce292bdc936721f1ccb9b66",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-1-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "d107f5080d4e080d3c6238c1bce4a931063f0bdf7fc0bb873147ccb7ab8cbc2e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-0-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "78351ac7b3deec6b3e4a30d1dc41965167ffc9813886cee4a75f180746b0f26c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/wave7-blocked-save/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "bb5df74de93d259d1ea9f49ce382fd1818d01f8a538bf7e5d63f23119c165b83",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-7-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "5b9ac346a1946a631b8b8d6db86c21d3d525b996c45c1073b3686114767ef0f8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-3-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "91761edb3adaa5f133882b569827247ecbf533008d13b7cea160fb1d10c42f8b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-2-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "ab513ed5ef4c3f7bf1225ce81f26783bca3999dc923724e36afcd7ca94afe090",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/active-save-0/data/dump.rdb",
+    "bytes": 21459754,
+    "sha256": "5daa3290ee2ffdff244a00b8b60c44121b5ece24d1e6845dd75ea105291b94d9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-6-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "f994c9daea0c03d60249e76db555f9c29145b91b4b43da90cc1a32b79227bf34",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_shutdown/shutdown-target-1s-uring/command-10-0/data/dump.rdb",
+    "bytes": 679,
+    "sha256": "f9aac72098e0a1101a8cd7dd2e8346bcdf462bc806ce775424108fad0e23e343",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-armed-0/gate-data-fused.e7S9dB/dump.tomo",
+    "bytes": 72711,
+    "sha256": "ec74eb7f2df62d389a871c30f1aaf41dc1ba22c7427d780a0310c0c75dc1984a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/feature-armed-0/tomokv-servertail-i_md27az/dump.tomo",
+    "bytes": 248,
+    "sha256": "7f1ef28f888bf1a5f7170224cbfe6e7467bf066a714a3b6d1cacd926d61e42df",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "8a87bc52ecfbe418b5cc5e37afc154c613cbd770876c1e352c286c68e261f705",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "a63807b4058859e340f9a57cd7afb51e28778cb5a6213166946420a1a1a75ba3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "839a809e9a6d37930fc0b846bf796a83f8f0585e1bbc35e17c4d5dc187289564",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "1a80f6a19d24690c6c31f5521e1f8c51ba4ef8362f55605a7f076f58bcc9cef5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "f02bd38d19f0cfb4e8f9b340635ba3d6fb7fd4c101559bedf409d431e8ee643b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "6771c1964e77d0f3f93355bc981f771735926f93cd6edde977ed9ac44ce878d4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "20d2d56fcea6b466402039fd5f4de89a3870f23a76cf2f71e4b1327dd6510694",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "ed0aeda5cb00d27cb61aeac090e66c037744c4477786990ccf1a18245667a9d0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "f35db73b0c0298b745619459877dc5a0ca3f1b50b0659e29e496f98d30dce4c3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "47c9d7bd9cb46ef110ddf598ee21c8678780c9d8427279069b7d700828692fd3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "0b0eca7a22cededc20e71b42f2982599c2e7ca03e39d30c30c06a95378afea60",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "8ec49c48692702b95bdc10599ce5d44525906f4fdc70b6431d1f3cd461dcda2e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "4372b4719b26dd87b4a240e42879deae1507c65f7a2d52387801dd470676528c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "e3acf7baf1d7c46e24b70ef3d970933cf8cc60c0b2cd86227152ef6becb7e607",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "d84f0103ecb4e8f83da0728350cb6e37fcf1e64bbb0c812b5c2edd3c5073bcf6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "4f2d47ad53a59f7631ecbd272bac864c908ee784fc916428da1729e1dcbfeed6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "9b230a368479e07da9e8c52f478e2bb9c747af4f511189bcdebe66cb6bba7519",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "76a826c28f94328f299b1551a849effe3e076af819733fbce2440d2cc3715c8d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "77e4045d3aae5d8ab90a9b3800e61b2c15903a8de7c448cac9cb39b9a70d0d55",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "5e9c89ea6569bd6f681773b235297287b125f9ac73b0e680309239131f0ae37d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "88d14f4921b3ac2c11adac587a721d410ba321140c1f0300a8477ce2a2e7773d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "de170fe72bb2db2db284569923989a746c8896438b41b5baa7b1e416531af014",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "06fcf60b5b59a6e9aa98ea001025796917ec7f4092765c49559a1c19932bd861",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "90abca365eb67fee3d33ac84db9678649030f9ef1248ba3e482ba96fa98fe43b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "cccb77d8beb59de380e4aa0852678a574aa12cdd35ae364c00139b31c0320bf5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "f01c3e48461007647ae6c79416fc154584ccea644b8019c893e0da3d8c4e4542",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "77c9dc14d173833f20d7842a1d4863ffa08a3650b5e5e7c6e02caf418a129de6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 773,
+    "sha256": "418d647bec7e270e3a7413b64650e35f476b7de6eb9a129c3c4822fa952db0a0",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "7f43026f9858f928e7f47291311302994d9ebd79bd359df84c2ca21153dd6c87",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "bae38e45a83e76aec0644ea0472c32976c4545ab19aa6c40b312bc887e59a23f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "30e9fbd1db7897276ef3502506c1d438ddee0f024837fea33c5726b114eeec5d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+    "bytes": 89,
+    "sha256": "e3c9fcf03fca2795552530b6ca5e01f4cd89945bca6919895429cb0199047f3b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+    "bytes": 398,
+    "sha256": "27fab4fc7e50fe32c274c28599124cca5a1714e157bca78867855c155ce44d68",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-uring-atomic1.YpEQuj/dump.tomo",
+    "bytes": 394358,
+    "sha256": "9cb8dcd152a25397db8f3a23581c750c7e68f8f79e32b0a17fbdee8c5f806e48",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-uring-atomic0.WlLQ0l/dump.tomo",
+    "bytes": 394358,
+    "sha256": "2f8a8bee55c55c7cba9e4d368d3d43f65f200a286bb27dcdc6a8b51668a2f80d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-error-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 131072,
+    "sha256": "30800f709d03fc531b7d9a1bd37d2edc8745ac7e5bc0dd4ca1f48c26e4ad350c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-no-sync-uring.WSVODl/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 27556,
+    "sha256": "8d8cc2097558107d4f334b6dab29ccb4ff3570332f111b2f8bbd4463565609b4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-after-manifest.ojfgS4/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 92528,
+    "sha256": "149a32c5cd537967f47472e0b698624acfef638441e331081269eb9e8640af7a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-after-manifest.ojfgS4/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "97cbc0da1770261b25c0368749a884011e5eab8d0b392cba1b17202b27b702f5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-after-manifest.ojfgS4/appendonlydir/quarantine.YckSzR/appendonly.aof.1.incr.tomo",
+    "bytes": 112344,
+    "sha256": "2efe1e264f3fb0c96e220caa429ffa9228a0a8661b6255a75f4d339310eeb5b2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135416433,
+    "sha256": "89cf22ad5a3fd6794dacff1bf64779735215065f58cfa51203a8123b9a37695d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 3272,
+    "sha256": "e835fe99fde6c34ed085901c6b5be9a85e7ad5ab0963c5b54f8b8e31abe12fd3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-2s-uring/filename-0/appendonlydir/has space.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "e2001756dfa5b783dfd12eb408e2fd47ae8eefdb3ab29476fd4da3ed0f209dd1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-2s-uring/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "0698f21b9886fe279ab6a203a58a8da44c20945dd5c7424a3ae34d3058571fb1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-snapshot-1s-uring/data/dump.tomo",
+    "bytes": 669,
+    "sha256": "d12359f0439a2834ed643a9d8fdff67a7c6bb7c75acc435a00d5f3c1cc02f0e4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-snapshot-1s-uring/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 168,
+    "sha256": "b343493f9bf16de04525237281788ba3e92e19790efa05db2b9c32a3b323a5df",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-snapshot-1s-uring/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 669,
+    "sha256": "d12359f0439a2834ed643a9d8fdff67a7c6bb7c75acc435a00d5f3c1cc02f0e4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-uring-atomic1.YpEQuj/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 14330209,
+    "sha256": "b0d9c69318a1d7b7236a78fe8fe603437103817f3b1a6c890312ba16c2c345a6",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/persistfix/1s-kill-9e3w8prb/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 6968,
+    "sha256": "4655d67d8e2b001a86e6f73ba297a81197db0f9d1d377b88ed326eeefcfdb0d9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/persistfix/1s-term-_m3olksj/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 7467030,
+    "sha256": "ce9376929ee11eebe947e105eed0f0c92865347b23d221ab7c007e91305d5bd2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/persistfix/2s-term-269son4b/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 6847262,
+    "sha256": "c80915170cb35a6a95e43e8505df72666d68859c2780daff6d135e7d5486706e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/persistfix/2s-kill-9ip94osw/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 6968,
+    "sha256": "58a01d384bef79b7a77ddd068c02fc3ca0131cf48a750abbc28c1ee13d3b9c37",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-manifest_missing-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 80,
+    "sha256": "0c730f7a7174d71ed80ef3d428c7182f9e304d8e3b5dd55212db8593f76f0c61",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-manifest_missing-1s-uring/data/appendonlydir/quarantine.nqvyHJ/appendonly.aof.2.base.tomo",
+    "bytes": 665,
+    "sha256": "4e8d865dc8987fe87e9dbb12ab7add2bf9ba82238b38cdd18b129052811030b3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-manifest_missing-1s-uring/data/appendonlydir/quarantine.nqvyHJ/appendonly.aof.2.incr.tomo",
+    "bytes": 171,
+    "sha256": "b024f9ec150943e9952f3dceb9213b240e7cb08ef7e23cd6b75332f96bfddd5c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-before-manifest.kYBhqz/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 112512,
+    "sha256": "0615df9de60d76788b3c94d733a84c2e4bef369f80ff4ca83b996d89f20bde3e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-before-manifest.kYBhqz/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "e79e1d66fcae8fb26c3e1d19efd4216293819ca379123457d6892d088ffad3d9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-before-manifest.kYBhqz/appendonlydir/quarantine.Ndy9qk/appendonly.aof.2.base.tomo",
+    "bytes": 92528,
+    "sha256": "4d6c03bd6212b77418297dcbc4f870cb2df4361986a00e13e9853c3fe10e3dde",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-before-mark.y43zZI/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 111992,
+    "sha256": "19fea3ae5a03d1411bc6f31a1038a624328135a861072d775a2a9a1616dea425",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-group-uring.7WoQtc/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 23401,
+    "sha256": "e26b536437d49d1a7e7b4bcefa8f2f8e5644f3cdd38b39046cbc421e3c5dc4da",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135355636,
+    "sha256": "bf4bbbd6252c5d1119915435ce16879dbaa16130692375a70312c462d20025e4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 7190,
+    "sha256": "887678b0706ea8282a1e97e7b5b9f4deb00db0d9467539145a4a2a98129d06ea",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-latency-always-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 4858,
+    "sha256": "38ad22115a46a5bee6593d7b44280cdda5507793a58de40fdfe66ce293d17dd4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-0/appendonlydir/has space.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "59d76990ede32c113e28302dcd69aca536cb51a065174939a41a9f85759c7089",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-0/appendonlydir/has space.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "c4fa560dcb839640bb916d446e5524c3b11a6365abc6e0717bc245a7c0469127",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-1/appendonlydir/quote\"slash\\.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "22a1dc858f8eb796d4f9519f4d74a3fcb745417011bdc614e03f5eab82dd6b2e",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-1/appendonlydir/quote\"slash\\.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "a3bb8b3569c5219db337ae5af50cb8b5b71353b30d73490b42a95e1365f5f986",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-2/appendonlydir/single'quote.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "9110ae557baaf0ad5917eb0f72c0608b698e36aa86d5e1476dc746e033d5d3e9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-2/appendonlydir/single'quote.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "6d1de84e26f833783a8710767b21ace7ed23e537f8f36241e6859538ac3b2b6f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-3/appendonlydir/tabs\tlines\n.aof.2.base.tomo",
+    "bytes": 662,
+    "sha256": "7ffcd52f51b4fb8f32fd415adb95d100c4ac613752268f76c7e04047573e54c4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-filename-1s-uring/filename-3/appendonlydir/tabs\tlines\n.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "cc5e50c8d7d32908fef44f997651e1caadce15111e0a238628e0fea8447740d5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-trigger-0.heWGwL/appendonlydir/appendonly.aof.4.incr.tomo",
+    "bytes": 80,
+    "sha256": "db8b117fe0e2d606347e788b748ac53db24958e6a52c2e58ff962d0b4df4bea9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-trigger-0.heWGwL/appendonlydir/appendonly.aof.4.base.tomo",
+    "bytes": 308112,
+    "sha256": "445da888759f0530462a8c39a0b12b40277424a3b832565516b29e3bfaa4b076",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-tickets-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 7886,
+    "sha256": "c715ef1294af4c64ccf4014e621a79daaa35f1c4023f91ad45fd9e51898596b8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-manifest.ik8JXG/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 169840,
+    "sha256": "7024698fb7ca9439ea5d38fd440321dc0c6091023535c2bf1991da385de0220f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-manifest.ik8JXG/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 70172,
+    "sha256": "f9ea4c62485f178c2c350370d281e064d49ca909485ea7ed9097d4d0cca347b3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-resurrection-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 5320,
+    "sha256": "6127f3b1bdddd0b3b212308587dfcac3e0c6b62b5490db9ef2ed5c83d945335a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-interior.SbBTXe/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 112505,
+    "sha256": "750bb0c876fc697870ecb9eb15b1f174cfda8e4f5c89b3e046e0a6e7319d9308",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-interior.SbBTXe/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 80,
+    "sha256": "e79e1d66fcae8fb26c3e1d19efd4216293819ca379123457d6892d088ffad3d9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-interior.SbBTXe/appendonlydir/quarantine.Ndy9qk/appendonly.aof.2.base.tomo",
+    "bytes": 92528,
+    "sha256": "4d6c03bd6212b77418297dcbc4f870cb2df4361986a00e13e9853c3fe10e3dde",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-base.VYB59k/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 169840,
+    "sha256": "dbefcdf5f5cfec3a9c068c016711407eaa6cc1e26c09fb9b43090a2ffe4e64b8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-base.VYB59k/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 70172,
+    "sha256": "f9ea4c62485f178c2c350370d281e064d49ca909485ea7ed9097d4d0cca347b3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-1.XbUvvX/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 169840,
+    "sha256": "7024698fb7ca9439ea5d38fd440321dc0c6091023535c2bf1991da385de0220f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-1.XbUvvX/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 70172,
+    "sha256": "f9ea4c62485f178c2c350370d281e064d49ca909485ea7ed9097d4d0cca347b3",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-record-length.150QAO/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 169840,
+    "sha256": "7024698fb7ca9439ea5d38fd440321dc0c6091023535c2bf1991da385de0220f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-record-length.150QAO/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 70172,
+    "sha256": "a2f3b777ebd0a4307d8831cafde7c1d016583698b65af6686a47722979fe7f8a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-trigger-1.wBVuxH/appendonlydir/appendonly.aof.4.incr.tomo",
+    "bytes": 80,
+    "sha256": "82c1c05b0a8d54cadec8f70427061fe11e64ed65f85e270e4c3a64a5536d758a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-trigger-1.wBVuxH/appendonlydir/appendonly.aof.4.base.tomo",
+    "bytes": 308112,
+    "sha256": "1cf25adb96ad475d01d8a18064b96f305b32ed2a96a04780680aa3b7ed555dee",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-everysec-uring.hod2WU/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 104868,
+    "sha256": "b418dbb241112e11d16a6c19ff9313c713983c8bd41902ed14ee74286518134b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-0.vYZ3Kg/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 169840,
+    "sha256": "eeeb6415289ea43f7dd93547df17a10e76dd50eab85ad87548db63bc81ba38c7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-0.vYZ3Kg/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 58220,
+    "sha256": "5ca960573f7b091ad2c3e51824965879e77cf12b928586260323904578fd5f96",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-snapshot-2s-uring/data/dump.tomo",
+    "bytes": 669,
+    "sha256": "9a9055683e0b9519e97812fa1972a150fdbb9de65da9519541b1e84f81eb4d32",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-snapshot-2s-uring/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 168,
+    "sha256": "8af8c42f0da75d14c933c7fda9bd51865177eb5293969577e64645535ad6c1d8",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-snapshot-2s-uring/data/appendonlydir/appendonly.aof.1.base.tomo",
+    "bytes": 669,
+    "sha256": "9a9055683e0b9519e97812fa1972a150fdbb9de65da9519541b1e84f81eb4d32",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-uring-atomic0.WlLQ0l/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 14330157,
+    "sha256": "57cdbbb66180fd86801ab803bd29acbbd3d696bfc93a91d2009f624119d1aa9b",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-exec_tickets-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 7886,
+    "sha256": "ae179a3e84310bdc31c1cf19f80d0959770ac36eee37f9d19ef523f21cd39237",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-latency-everysec-1s-uring/data/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 4858,
+    "sha256": "831a57f65ac4ac046118344d25fef8bc5d8e605884f9bc559211c73ae188b847",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 665,
+    "sha256": "3816b71181bf77e6bdd8bdd8c897a7e23df153049c205f9ddb744a1a8e8ac4dc",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 169,
+    "sha256": "671a7acf8181b7e049df7300dcaaef92be871375c3db2af4528e5a9f645e6214",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.3.incr.tomo",
+    "bytes": 169,
+    "sha256": "ea9ee4da60bd3de96b89e56030f39bb13f9714b584e6a7fa0bd7393ebae87b77",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring/data/appendonlydir/appendonly.aof.4.incr.tomo",
+    "bytes": 171,
+    "sha256": "52e3d43f039aad6e50dfe6e2dbeff9c46eb1939b6e0874b280421cb1a6c21153",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-group-vector.RLKmYD/appendonlydir/appendonly.aof.2.base.tomo",
+    "bytes": 169840,
+    "sha256": "7024698fb7ca9439ea5d38fd440321dc0c6091023535c2bf1991da385de0220f",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-rewrite-corrupt-group-vector.RLKmYD/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 70172,
+    "sha256": "d60f67fadc5ff2578f8df96ec62b1874751d97a1c182ef0517f0c08fa05b7c16",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/gate-aof-always-uring.P3aBcj/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 104788,
+    "sha256": "6728fee53a3a6fd18336e7fe7645b39731c2256fe66f71e7818877d981c14e42",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135368029,
+    "sha256": "1d25e15cc5742620dc57fc1eb6052ebc619d3c4f366ff2dc96140123b069ac70",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 11588,
+    "sha256": "2f2be49bc39296af2b41e1991ed7c19c73f6d1eccc803bd1f2d4acb9402a7b2c",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+    "bytes": 135410220,
+    "sha256": "53e5b35704e834bc91a02bb783135ba622d2dffcc86d57633be8f87b2efb5eea",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.Ag6m7A/jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.2.incr.tomo",
+    "bytes": 9512,
+    "sha256": "ac6362adc3ab1fa601362de0201afd2ce19375eaca4a07a1f2dbc7812b1a0af1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a0-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "ab1654c0c11826420a56a4fa876c445020ce384e190e3619a4402a9cc7c77fc1",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/uring-a0-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "e6a1faad84688542ff122324787d94504b3737dfd4e032d7152c587867a3197a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/uring-a1-d16-r0-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "03a70c549706e4b23cee343ae93d5e063145200862339916ef9ccb8299f8ca36",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a0-d16-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "3348b8c59edf23625213d6aa0e321a9421dbe4beddf616401eafbbcd3123ab2a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/uring-a1-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 35003082,
+    "sha256": "759045c99c5dd4eec005c607ca578d6f51cc2b1a30328f87d88298e6b2ac2bbb",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a1-d16-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "1397746132e035c6f1576e5ed084e04b65059c95bcf86b259eda157ea6587219",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/uring-a0-d16-r0-signal-0/dump.tomo",
+    "bytes": 35003082,
+    "sha256": "5bdd8f3952e92cc37e974d37aebf1d24097c22b9e95dc0176e0e8c0acba2e945",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r0/epoll-a1-d16-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "73c854503da1818a2c6a6a5b6e6bd4e481c37433d35cca065aafb9a745c37258",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a1-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "02b577a215e60047ac2c6ac6814fa7d27f6e4270c99a7360249322486fa32c03",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a1-d16-r1-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "570822f8db918ea87af0d88b206bf1d8f8feb50d9136bccd59e654966c8f6842",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a0-d16-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "d9571c60335c70bdac1ae1007e93c8f2cbdb6d976031c3f7510f0b2ae263b290",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/uring-a1-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 35003146,
+    "sha256": "16e63d5b16dfdfd601bc6d0c41ebd3344b16e24b05c7533b047f172ce78f9ddd",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/uring-a0-d16-r1-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "e4b9adf427e589d4e8f7ebf1378f9099ea0c9df1614d4be5cdc9f2b9b3718e56",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/epoll-a0-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 35003082,
+    "sha256": "7a825df471c9dd245e9b7cdac2e29d0c32f355eb8185c1b46d8b9e33d19f9cc9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/uring-a0-d16-r1-signal-int-0/dump.tomo",
+    "bytes": 35003082,
+    "sha256": "8482077ee8e634c999e16ebf6451ab5204a0da333913c808bf4a18691e969861",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d16-r1/uring-a1-d16-r1-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "931024f6daf64b21f6786159d7614f81b7e70958a85146dffa2b1bdd05356b95",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a0-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "ea39272dfcb7cb389739c832ef07abafb8f863f250b3c12aed92220aa5f96696",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a0-d1-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "20c47553ab0eb1666f6c0dbd1469dc0a9180100419750dcbb928aaaa839d9834",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/uring-a0-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "e39cf948efd6a10c7354d320987e4365330958a0b7a3338289f367e8aaead1af",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/uring-a1-d1-r0-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "71c30c106be0d0b00d7db7ca99611173eaed52e8040c9af030e5de5a05919c17",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/uring-a0-d1-r0-signal-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "8a39536663d2026ebd1d211371148877951d401d626d2100d18fa33c4e9ac47a",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a1-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "04274b5a2ae8f58036d10c582ae4fd562ccf3f355705c95aa14ad37ef5c422d2",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/epoll-a1-d1-r0-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "c4c3e57532be45d4639b41dfebde3f609b18ed00c1f9ebeab293b94d8b71a4b9",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r0/uring-a1-d1-r0-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "b4029ecc4ad97b3a267b3bd98361e006e5c872e04931efdba7b6e5db8956a368",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/uring-a1-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 35003050,
+    "sha256": "d995cde5ba7c5cbd957f77a932b9cf2ba332362a77af3def7f728d5dea367731",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a0-d1-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "18ed1748bde664a16b01fdf6faf31751e42a9b7c0a3f212140d72d3a473c9b74",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/uring-a0-d1-r1-signal-0/dump.tomo",
+    "bytes": 35003082,
+    "sha256": "edaadeaeb5de0d1bc6e422b2295d7d0359ee69453026dbb2b32e82abfaf4291d",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a1-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "e9adcce24e44984ec0ed89a7591aad5488f09aa57290b0b853ade310e1e76435",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/uring-a0-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "3fa706fd9838541d7bc14f8071e389f8abb8ab89988d0ac4e70c5752ee1158c4",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a0-d1-r1-signal-int-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "e7e195a7f4eaeb230cd8e2e7cbf73e042dc6115787043d676d271424980169d7",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/uring-a1-d1-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "9e65f89c32dd6b363f9a3aaf1eac9a9e8432a671a66839584fb727a134702882",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  },
+  {
+    "path": "build/gate-run.DlCRxK/jobs/flipfix7_output/flipfix7-d1-r1/epoll-a1-d1-r1-signal-0/dump.tomo",
+    "bytes": 53514,
+    "sha256": "c6ec2e7f1d317ea4aaa656657480c01bf3bc7d743cecaf4a07f87f2d37c6eab5",
+    "reason": "completed or superseded correctness run; textual evidence and saved-data assertions archived"
+  }
+]

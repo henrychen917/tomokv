@@ -43,5 +43,89 @@
     "path": "build/flipfix7/counts/command-post-normal/probe",
     "bytes": 240109928,
     "reason": "final 80 traces retained; regenerate with flipfix7_counts.py --arms post --build-only"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-db0/step-plan",
+    "bytes": 29381276,
+    "sha256": "8616ad98bd6dadc266aad2aa9e50f8282c26a6be217b68c17a456c5d07cb8677",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-db0/original-main.o",
+    "bytes": 27268088,
+    "sha256": "9c453608f880ae28be394c0d5aae23577c778fed404cc396b961102202dd1ef5",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-db0/probe",
+    "bytes": 240117392,
+    "sha256": "75d367efd5cd7f089b12012b0af004e56835ebc58a93ee0d9e23e08c7d41fbeb",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-db0/probe.o",
+    "bytes": 14385264,
+    "sha256": "3a3e7f70b06a060cefc625829def09ddc1f46f7bf4a606b028b4f4cdb48df0a0",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-db0/step-plan",
+    "bytes": 29272655,
+    "sha256": "021b6dfa5d1f14df8310a54e42ad7cc4fa196d9062fe255a34b7b98fc3666b06",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-db0/original-main.o",
+    "bytes": 27206720,
+    "sha256": "4b65e833cb1d053225b81e17e485a35757adf6ee9c40e6cd5413546712934c7b",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-db0/probe.o",
+    "bytes": 14345976,
+    "sha256": "a9a616434a14cfa53b5a5fad3eb8f8a1c34f1bdff5d388df5ac95138466387ae",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-normal/step-plan",
+    "bytes": 29337206,
+    "sha256": "e1f6535f810b8f380e54fcef019377b8fdfc31742783fe00d992a8d1d2173517",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-normal/original-main.o",
+    "bytes": 27268088,
+    "sha256": "9c453608f880ae28be394c0d5aae23577c778fed404cc396b961102202dd1ef5",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-normal/probe",
+    "bytes": 240109576,
+    "sha256": "7ac8dc45f7e0273885b721b24d06227b59b9937ae3d2274a7992fb9e31731792",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-normal/probe.o",
+    "bytes": 14257128,
+    "sha256": "d64da372c344260e4741a6a8607b9a5cfdc9e9faf9cd9df37d5d4191622f418c",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-normal/step-plan",
+    "bytes": 29228650,
+    "sha256": "d04d666395c5c2ab7dffe3fa1796af2af6522d60a4925acefe6218250d64690b",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-normal/original-main.o",
+    "bytes": 27206720,
+    "sha256": "4b65e833cb1d053225b81e17e485a35757adf6ee9c40e6cd5413546712934c7b",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-normal/probe.o",
+    "bytes": 14220488,
+    "sha256": "96a55ceb10417df1a89d7a6c74148d31520374b3a2d76a92b855444c1553f0d6",
+    "reason": "final 80-cell count results and build commands retained; probe reproducible"
   }
 ]

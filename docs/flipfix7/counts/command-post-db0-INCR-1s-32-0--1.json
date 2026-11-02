@@ -38,5 +38,5 @@
     "tomo_db0::FlatStore::publish_database_counts() const": 22,
     "tomo_db0::Shard::publish_size()": 54
   },
-  "probe_sha256": "20e46b9537ffc433c4f7cee3e311a8446738578e6a3248487481e40ec66bfbc5"
+  "probe_sha256": "75d367efd5cd7f089b12012b0af004e56835ebc58a93ee0d9e23e08c7d41fbeb"
 }

@@ -1,0 +1,5 @@
+PARTIAL	0	GATE_ONLY_JOBS=flipfix7_output flipfix7_blocked flipfix7_tls; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	41.520000	FLIP late and non-draining output (all 2s legs)
+FAIL	20.600000	FLIP blocked connection liveness (all 2s legs)
+FAIL	20.780000	FLIP TLS connection liveness (all 2s legs)

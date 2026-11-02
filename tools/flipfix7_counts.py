@@ -172,12 +172,14 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(args.jobs) as pool:
         rows = list(pool.map(lambda case: run(case, prepared), cases))
     save(OUT / ('results-' + args.arms + '-' + args.probes + '.json'), rows)
-    if {'pre', 'post'}.issubset(arms):
+    if 'post' in arms:
+        baseline = rows if 'pre' in arms else [row for probe in probes for row in
+            json.loads((OUT / f'results-pre-{probe}.json').read_text())]
         pairs = []
         for r in rows:
             if r['arm'] != 'post':
                 continue
-            old = next(o for o in rows if o['arm'] == 'pre' and o['probe'] == r['probe'] and
+            old = next(o for o in baseline if o['arm'] == 'pre' and o['probe'] == r['probe'] and
                        o['namespace'] == r['namespace'] and o['argv'] == r['argv'])
             pairs.append(dict(probe=r['probe'], namespace=r['namespace'], argv=r['argv'],
                               pre=old['total'], post=r['total'], delta=r['total'] - old['total'],
