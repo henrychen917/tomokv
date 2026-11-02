@@ -5,7 +5,7 @@ No push. Correctness boots/builds use CPUs 32–47, eight-thread gate server
 geometry with 16 shards and 6:2 for split, ports 20100–20199, and `LC_ALL=C`.
 The main jobs use server CPUs 32–39. Independent correctness phases use server
 CPUs 40–47 and ports 20150–20199; client work uses the opposite eight CPUs.
-The two pools overlap clock waits and the remaining fused/differential work.
+The two pools overlap clock waits and independent correctness work.
 Builds use `-j16` within CPUs 32–47. All jobs omit rate scoring.
 No performance workload or full `iteration` gate was run.
 
@@ -148,12 +148,27 @@ zero failures**. Epoll controls passed 13 rows; fused coverage passed 152, with
 9 further fused-uring and 3 split-uring frame rows. These are job executions,
 including repeated prerequisites, not full gate receipts.
 The additional unit/control pass recorded 52 passes and the one fixture failure
-described above. The repaired-row reruns, standard-seed differential matrices,
-quiet framework test and supplemental epoll coverage are pending. Completed receipts are in
-`docs/cfgfix/verification.json`. PRE was rebuilt with
-only a debug-directory prefix map and reproduces its original SHA-256 exactly. All 57 production targets pass `make -q` after rebuilding the TCP/TLS collision
-guard; `docs/cfgfix/freshness-provenance.json` binds the receipt to the final source
-and binary. The preceding receipt is archived separately. These final arms are built from source through
+described above; its repaired-row PRE/POST reruns are in progress. Supplemental
+epoll notification/multidb coverage passed 31 rows. Both differential engines
+passed all 938 suite/seed/atomic comparisons and 16 equivalence cells per engine.
+The permanent seeds are 7, 19, 20 and 23; the gate selected rotating seed 21 for
+io_uring and 22 for epoll. The gate's own fold verifies every planned leg.
+These individual jobs do not establish full-tier timing or EXPECT receipts.
+
+The quiet framework test originally timed out after all 289 jobs completed:
+its one logical slot pinned its worker and real watchdog children to one CPU,
+although that fixture owned four CPUs. The fixture now gives the same single
+worker its existing four-CPU allocation and checks that exact mask on every job.
+All rows, negative controls and the 45-second fixture deadline remain. The full
+`python3 tests/gates_test.py` now passes **83/83**. Failure and repair receipts
+are `docs/cfgfix/framework-deadline-witness.json` and `framework-fixed.json`.
+
+Completed receipts, including the original failed runs, are in
+`docs/cfgfix/verification.json`. PRE was rebuilt with only a debug-directory
+prefix map and reproduces its original SHA-256 exactly. All 57 production targets
+pass the final `make -q` recheck (`docs/cfgfix/freshness-final.json`);
+`freshness-provenance.json` binds the preceding receipt to the same final source
+and binary. These final arms are built from source through
 `80a7559fda` (later commits change tests/documentation only). `tests/gate.sh` EXPECT constants remain untouched.
 One public cfgfix row is collected at `tests/gate.sh:6336`, before the quick-tier
 exit at line 6574: DQ=+1, DF=+1.
