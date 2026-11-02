@@ -2645,6 +2645,10 @@ private:
                 // Only decrypted bytes enter the RESP buffer. Ciphertext counts are committed to
                 // the BIO in on_tls_recv and can never reach this cursor.
                 c->commit_read(result.bytes);
+                self_->sig().net_input_bytes.store(
+                    self_->sig().net_input_bytes.load(std::memory_order_relaxed) + result.bytes,
+                    std::memory_order_relaxed);
+                c->set_last_interaction_s(cached_now_s_);
                 if (query_buffer_exceeded(*c)) { close_client(c); return false; }
                 self_->sig().tls_plaintext_input_bytes += result.bytes;
                 decrypted = true;
@@ -2700,7 +2704,6 @@ private:
     template <bool kEp, bool Fused = false>
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
-        if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
         TlsConn* tls = tls_engine(c);
         if (!tls) { close_client(c); return; }
         if (c->dead()) { tls->abandon_input(); return; }

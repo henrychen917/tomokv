@@ -563,6 +563,10 @@ public:
                 conn.commit_write(plain_accepted);
             }
             tls_signals_->tls_plaintext_output_bytes += plain_accepted;
+            tls_signals_->net_output_bytes.store(
+                tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + plain_accepted,
+                std::memory_order_relaxed);
+            c.set_last_interaction_s(*cached_now_s_);
         } else if (encrypted.op == TlsOp::WantWrite) {
             tls_signals_->tls_want_write++;
         } else if (encrypted.op == TlsOp::WantRead) {
@@ -673,7 +677,6 @@ public:
                 return false;
             }
             stats_.bytes_sent += cipher_sent;
-            tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + cipher_sent, std::memory_order_relaxed);
             tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
             c.set_last_interaction_s(*cached_now_s_);
             if (cipher_sent < c.send_requested()) stats_.short_writes++;
@@ -723,7 +726,6 @@ public:
             const uint32_t cipher_sent = static_cast<uint32_t>(res);
             if (tls.consume_output(cipher_sent)) {
                 stats_.bytes_sent += cipher_sent;
-                tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + cipher_sent, std::memory_order_relaxed);
                 tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
             }
         }
@@ -956,7 +958,6 @@ private:
             const uint32_t sent = static_cast<uint32_t>(n);
             if (!tls.consume_output(sent)) { send_failed_ = true; return did; }
             stats_.bytes_sent += sent;
-            tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + sent, std::memory_order_relaxed);
             tls_signals_->tls_ciphertext_output_bytes += sent;
             c.set_last_interaction_s(*cached_now_s_);
             did = true;
