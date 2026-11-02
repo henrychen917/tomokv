@@ -38,11 +38,13 @@ def key(row):
     return tuple(row[k] for k in ('namespace', 'command', 'mode', 'batch', 'atomic', 'local'))
 
 
-def compare():
+def compare(post_tag='', output_tag=''):
     rows = []
     arms = {}
     for kind in KINDS:
-        sources = {arm: json.loads((wave14.DOC/'instructions'/f'{arm}-{kind}'/'counts.json').read_text())
+        sources = {arm: json.loads((wave14.DOC/'instructions'/
+                   (f'{arm}-{kind}' + ('-'+post_tag if arm == 'post' and post_tag else ''))/
+                   'counts.json').read_text())
                    for arm in ('pre', 'post')}
         arms[kind] = {arm: d['server_sha256'] for arm, d in sources.items()}
         pre = {key(r): r for r in sources['pre']['rows']}
@@ -59,21 +61,22 @@ def compare():
     result = dict(arms=arms, cells=len(rows),
         get_set_incr_added=[r for r in rows if r['cell'][1] in ('GET', 'SET', 'INCR') and r['added']>0],
         rows=rows)
-    wave14.save(wave14.DOC/'instruction-comparison.json', result)
+    stem = 'instruction-comparison' + ('-'+output_tag if output_tag else '')
+    wave14.save(wave14.DOC/(stem+'.json'), result)
     lines = ['# Serverless instruction census', '',
         'Finite command scopes; executable instructions include outlined STL and Lua. Shared libraries, fixture glue and synthetic clock calls are excluded. No rate or timing claim.', '',
         '| Kind | Namespace | Command | Mode | Batch | Atomic | Read-local | PRE | POST | Added |',
         '|---|---|---|---|---:|---:|---:|---:|---:|---:|']
     for r in rows:
         lines.append('| '+' | '.join(map(str, (r['kind'], *r['cell'], r['pre'], r['post'], r['added'])))+' |')
-    (wave14.DOC/'instruction-comparison.md').write_text('\n'.join(lines)+'\n')
+    (wave14.DOC/(stem+'.md')).write_text('\n'.join(lines)+'\n')
     print('cells', len(rows), 'GET/SET/INCR positive deltas', len(result['get_set_incr_added']))
 
 
 def binding(job):
-    arm, kind, ns = job
+    arm, kind, ns, tag = job
     audit = wave14.references()
-    folder = wave14.DOC/'instructions'/f'{arm}-{kind}'
+    folder = wave14.DOC/'instructions'/(f'{arm}-{kind}' + ('-'+tag if tag else ''))
     build = json.loads((folder/(ns+'-build.json')).read_text())
     probe = Path(build['link'][build['link'].index('-o')+1])
     server = wave14.PRE/'build/tomokv' if arm == 'pre' else wave14.ROOT/'build/tomokv'
@@ -112,20 +115,23 @@ def binding(job):
     result = dict(arm=arm, kind=kind, namespace=ns, server_sha256=production['sha256'],
         probe_sha256=fixture['sha256'], entered_groups=len(rows),
         matched=sum(r['equal'] for r in rows), unmatched=[r for r in rows if not r['equal']])
-    wave14.save(wave14.DOC/'scope-binding'/f'{arm}-{kind}-{ns}.json', result)
+    wave14.save(wave14.DOC/('scope-binding'+('-'+tag if tag else ''))/
+                f'{arm}-{kind}-{ns}.json', result)
     return result
 
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('phase', choices=('compare','bind'))
     p.add_argument('--arm', choices=('pre','post','both'), default='both')
+    p.add_argument('--tag', default='', help='Preserve an earlier census and binding attempt')
     a=p.parse_args()
-    if a.phase == 'compare': compare()
+    if a.phase == 'compare': compare(a.tag, a.tag)
     else:
         arms=('pre','post') if a.arm=='both' else (a.arm,)
         with ProcessPoolExecutor(max_workers=6) as pool:
-            rows=list(pool.map(binding, [(arm,kind,ns) for arm in arms for kind in KINDS for ns in ('normal','db0')]))
-        wave14.save(wave14.DOC/f'scope-binding-{a.arm}.json', rows)
+            rows=list(pool.map(binding, [(arm,kind,ns,a.tag if arm == 'post' else '')
+                for arm in arms for kind in KINDS for ns in ('normal','db0')]))
+        wave14.save(wave14.DOC/(f'scope-binding-{a.arm}'+('-'+a.tag if a.tag else '')+'.json'), rows)
         print([(r['arm'],r['kind'],r['namespace'],len(r['unmatched'])) for r in rows])
 
 
