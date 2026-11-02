@@ -1,0 +1,97 @@
+[
+  {
+    "file": "final-build-blockfix-cost.log",
+    "bytes": 5386,
+    "sha256": "d02b819f0c6ad7821f8fb2e47ab479f2f073bca1c782750bebea6f6a25c8c384"
+  },
+  {
+    "file": "final-build-blockfix2.log",
+    "bytes": 17045,
+    "sha256": "c0698a27fde7d7ea899df2c42428ecbf7b791a79efc6fb3ef59b900876176589"
+  },
+  {
+    "file": "final-build-live-arms.log",
+    "bytes": 13098,
+    "sha256": "8f73be4fb4a51ae181aac7be07d21b50aec20f3d612e3d4e02847cd126159e40"
+  },
+  {
+    "file": "final-build-production.log",
+    "bytes": 453765,
+    "sha256": "7bb23d608e1c4e826672b1602a4f919100514516c6627411afd25b6462a4dd14"
+  },
+  {
+    "file": "fresh-blockfix-cost.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "fresh-blockfix2.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "fresh-live-no-wake.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "fresh-live-park.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "fresh-production.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "freshness-final.log",
+    "bytes": 199,
+    "sha256": "3d51e0f72afd5544561341b4b7d65fddee4a25ef645d2c7ca190d38ed309819b"
+  },
+  {
+    "file": "gateplan-test.log",
+    "bytes": 5371,
+    "sha256": "c10e4af62034e0094c7e670f695ed075cbc970b13bf16e5505c6440462fbf76d"
+  },
+  {
+    "file": "gates-test-final.log",
+    "bytes": 2477,
+    "sha256": "77bddc4dd0c0b99b0736ff34079c3475a6598b1f95c9f269829bc42dec972da5"
+  },
+  {
+    "file": "gates-test-receipted.log",
+    "bytes": 2477,
+    "sha256": "d9431f7bf8d6997c616704b98a9b9425c64aac871dd60b6870333036de761708"
+  },
+  {
+    "file": "gates-test.log",
+    "bytes": 2477,
+    "sha256": "c70c40096de6e85d2839abfce98e0a331898d780ebd87adf64a79f663e5de5be"
+  },
+  {
+    "file": "more-jobs.json",
+    "bytes": 2529,
+    "sha256": "e6c5125e3e5d69783dec115cd3431b57f2876f837018fee5324d9bfdb37610c3"
+  },
+  {
+    "file": "redis-tcl-test-final.log",
+    "bytes": 2225,
+    "sha256": "1d69f56538a9e9bae7d42194c8be4adb31d0bd1d825a2124876abfbb2aacbed8"
+  },
+  {
+    "file": "redis-tcl-test.log",
+    "bytes": 1923,
+    "sha256": "02ebb1fae3f621a810e25b74644f3a298dc37d39ce86384198f1acbb6799500e"
+  },
+  {
+    "file": "whitespace-control-build.log",
+    "bytes": 405,
+    "sha256": "7f1acd701c04c8d0a6389cba9e780ca134b649b40bd0d52b91c53e622ded2aec"
+  },
+  {
+    "file": "whitespace-control-relink.log",
+    "bytes": 3734,
+    "sha256": "85ce6d150f6651acb980a539688cd31856161552251b0e8e264e0c8b278b6598"
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "change": "Remove four trailing whitespace sequences copied with the Redis GEO helper.",
+  "objects_byte_identical": true,
+  "post_binary_byte_identical": true,
+  "rows": [
+    {
+      "path": "src/cmd/geo.cc",
+      "backup": "build/cmdfix2/whitespace-control/0",
+      "sha256": "0ec19f81bf1b94db058f475b0902a9c82095bee4f5b468f0a7336587374bee63",
+      "after_sha256": "4fb84b333561406b21a4404d749b536f856bca05aaccbdf19e8f0efd11c5e50d"
+    },
+    {
+      "path": "build/src/cmd/geo.o",
+      "backup": "build/cmdfix2/whitespace-control/1",
+      "sha256": "00eaf4c1cd3d32e37924e99ab52f8995b6b1f9edc5c40f40d502d49d15fda8e5",
+      "after_sha256": "00eaf4c1cd3d32e37924e99ab52f8995b6b1f9edc5c40f40d502d49d15fda8e5"
+    },
+    {
+      "path": "build/db0/src/cmd/geo.o",
+      "backup": "build/cmdfix2/whitespace-control/2",
+      "sha256": "6f33f27540a93328a1fb08400e923ae1ad022a8021d4e511ccac318bbf390ffc",
+      "after_sha256": "6f33f27540a93328a1fb08400e923ae1ad022a8021d4e511ccac318bbf390ffc"
+    }
+  ],
+  "post_sha256": "7c054d71ac18728be4949c1c3ac916633e99201cf3796c3c60e30cffa61b6472"
+}

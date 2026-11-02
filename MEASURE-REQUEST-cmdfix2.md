@@ -4,7 +4,9 @@
 
 Branch `cx-cmdfix2`, PRE `9d6ab5526f8fff0c8617e94cf20fa837e15ab0f8`.
 The six production fixes end at `77c64b44ae`; subsequent commits contain proof,
-test integration and this report. No push. No layout lock or ownership protocol
+test integration, this report and whitespace-only GEO cleanup. Recompiling
+both cleaned GEO objects and relinking preserves their complete bytes and the
+POST SHA-256 (`docs/cmdfix2/whitespace-equivalence.json`). No push. No layout lock or ownership protocol
 changed. The GEO change is the explicitly requested Redis 7.4 helper port.
 
 Correctness work uses CPUs 100–111, servers 100–107, ports 21300–21399,
@@ -34,7 +36,9 @@ GEO uses the auditors' high-latitude and pole witnesses, plus a fixed randomized
 ASC/DESC/COUNT/ANY, and GEOSEARCHSTORE with and without STOREDIST. Stored
 member-to-score mappings must equal Redis's. Unsorted/ANY replies are compared
 in traversal order. All legacy radius verbs and their STORE/STOREDIST forms
-also have directed oracle comparisons.
+also have directed oracle comparisons. The distance helper disables floating
+point contraction to preserve the reference's arithmetic and exact STOREDIST
+scores under this tree's compiler flags.
 
 HLL placement is observed with DEBUG SHARDS: same shard, different shards on
 one owner, and different owners. LCS lowers the live bulk limit on PRE, making
@@ -85,6 +89,14 @@ The authoritative job/row inventory is `docs/cmdfix2/gate-summary.json`, with
 original logs and receipts for **every run, including failed controls**.
 These are selected correctness jobs, not a full-gate receipt. Final broad-job
 totals and build freshness are recorded below when all scheduled jobs finish.
+
+Both engines complete the gate's standard differential seeds 7, 19, 20 and 23,
+plus the standard rotating seed (21 for uring, 22 for epoll). Each engine has
+941 passing differential rows and zero failures, including mode equivalence:
+**8,504,602 recorded comparison witnesses** in total. Each lifetime observes
+232 of the 245 registered commands; the exact observed/unobserved inventory is
+retained, rather than claiming universal command coverage. See
+`docs/cmdfix2/differential.json` and the original differential receipts.
 
 The additional `rootcompat-stringlimit` job reports exactly the same 24
 failures on PRE and POST (SETRANGE/APPEND/SETBIT above the 32-bit representation,
@@ -218,6 +230,24 @@ rows.
 
 ### Final validation ledger
 
-Broad selected gate jobs, final Tcl runs, `tests/gates_test.py`, all
-`job_production_units` targets and final `make -q` checks are in progress.
-This paragraph will be replaced with their exact results before delivery.
+* Final directed witnesses: **233,056 checks across 192 legs, zero failures**;
+  the same six witnesses produce **24,576 differences on PRE**.
+* Final Tcl receipts: **311 required assertions per mode/engine leg**, 1,244
+  total, with exactly one verified PUNSUBSCRIBE completion fence per leg.
+* `python3 tests/gates_test.py`: **77 tests pass**. The Tcl runner's 14
+  serverless controls and gate planner self-tests also pass.
+* `make all` and every one of the **55 `job_production_units` targets** pass,
+  along with the live control arms and blockfix supplemental targets. All
+  **five `make -q` checks return 0**. The phony live-arm recipe is checked via
+  its two concrete build roots. See `freshness.json` and `local-checks`.
+* The epoll broad selection passes **202 rows, zero failures**. Supplemental
+  fused uring/epoll selections pass 45 rows each; the epoll mode/order
+  selection passes 57 rows. The separate extra selection has 12 passes and
+  the one unchanged PRE/POST string-limit failure described above.
+* `git diff 9d6ab5526 --check`, gate shell syntax, and Python syntax checks
+  pass. Debug compression of unit artifacts preserves every allocated ELF
+  section; it does not alter any delivered arm. `build/` is about 14 GiB.
+
+The remaining uring and related-job selections are in progress. Their final
+row counts will be added before delivery. Performance work remains NOT RUN
+for the maintainer as specified above.

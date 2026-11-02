@@ -33,7 +33,7 @@ def instruction_table():
     main = [r for r in rows if r[1] in ('GET', 'SET', 'INCR', 'MGET', 'MSET')]
     assert len(main) == 80 and all(r[-1] == 0 for r in main)
     with (DOC / 'instructions/table.csv').open('w') as out:
-        writer = csv.writer(out)
+        writer = csv.writer(out, lineterminator='\n')
         writer.writerow(('namespace', 'command', 'mode', 'batch', 'atomic', 'PRE', 'POST', 'delta'))
         writer.writerows(sorted(rows))
 
@@ -88,6 +88,23 @@ def witnesses(runs):
     save(DOC / 'witnesses.json', result)
 
 
+def differential_summary(runs):
+    result = []
+    for name in ('post-main-uring', 'post-main-epoll'):
+        root = Path(runs[name]['source'])
+        paths = sorted(root.glob('jobs/differ-*/output.log'))
+        assert {p.parent.name for p in paths} == {
+            'differ-split-0', 'differ-split-1', 'differ-armed-0',
+            'differ-armed-1', 'differ-equivalence'}
+        for path in paths:
+            lines = path.read_text(errors='replace').splitlines()
+            verdict = [line for line in lines if line.startswith((
+                'DIFFER GATE:', 'DIFFER COMMAND COVERAGE:', 'DIFFER matrix:'))]
+            assert any(line.startswith('DIFFER GATE:') and ' fail=0 ' in line for line in verdict)
+            result.append(dict(run=name, job=path.parent.name, verdict=verdict))
+    save(DOC / 'differential.json', result)
+
+
 def auditor_summary(archive):
     folder = BUILD / 'audit-post'; rows = []
     def objects(path):
@@ -116,6 +133,23 @@ def auditor_summary(archive):
                                     for label in ('audit-pre-T40', 'audit-post')])
 
 
+def local_check_receipts():
+    """Retain serverless checks and exact supplemental job invocations."""
+    output = DOC / 'local-checks'; output.mkdir(exist_ok=True)
+    selected = set()
+    for pattern in ('gates-test*.log', 'gateplan-test.log', 'redis-tcl-test*.log',
+                    'final-build-*.log', 'fresh-*.log', 'freshness-final.log',
+                    'more-jobs.json', 'related-jobs.json', 'whitespace-control/*.log'):
+        selected.update(BUILD.glob(pattern))
+    rows = []
+    for source in sorted(selected):
+        data = source.read_bytes()
+        name = source.relative_to(BUILD).as_posix().replace('/', '-')
+        (output / name).write_bytes(data)
+        rows.append(dict(file=name, bytes=len(data), sha256=hashlib.sha256(data).hexdigest()))
+    save(output / 'index.json', rows)
+
+
 def main():
     assert os.sched_getaffinity(0) <= set(range(100, 112))
     parser = argparse.ArgumentParser(); parser.add_argument('--archive', action='store_true')
@@ -126,7 +160,9 @@ def main():
     instruction_table()
     runs = gate_runs(args.archive)
     witnesses(runs)
+    differential_summary(runs)
     auditor_summary(args.archive)
+    if args.archive: local_check_receipts()
     with (DOC / 'arms.sha256').open('w') as out:
         for arm in ('PRE', 'POST', 'PAD-A', 'PAD-B'):
             path = BUILD / arm
