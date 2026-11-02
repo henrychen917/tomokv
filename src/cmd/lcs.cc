@@ -1,13 +1,11 @@
 // lcs.cc — the LCS dynamic program, its option grammar, and its reply shapes.
 //
-// Reply shapes were established by byte-probing a vanilla redis 7.4 binary; no redis source was
-// read. Note the two non-obvious ones:
+// Reply shapes were established by byte-probing a vanilla Redis 7.4 binary.
+// Allocation guards follow Redis 7.4 t_string.c (CD2). Note the reply details:
 //   - matches are emitted from the END of both strings backwards, not in reading order;
 //   - MINMATCHLEN filters the emitted runs but does NOT change the reported `len`.
 //
-// THE SIZE HAZARD IS REAL AND IS NOT PAPERED OVER. The table is n*m cells. Redis refuses the
-// command when the product overflows what it can index, and we refuse at the same boundary so the
-// differ stays exact; below it, both servers simply burn the CPU.
+// The complete table must fit the configured proto-max-bulk-len before allocation.
 #include "lcs.h"
 
 #include "command.h"
@@ -91,10 +89,7 @@ bool lcs_compute(const std::string& a, const std::string& b, const LcsOptions& o
     out = LcsResult{};
     error = nullptr;
     const size_t n = a.size(), m = b.size();
-    if (n == 0 || m == 0) return true;
-    // Redis refuses inputs whose product cannot be indexed rather than thrashing; matching the
-    // boundary keeps the differ exact on the refusal as well as on the answer.
-    if (n > UINT32_MAX / (m ? m : 1)) {
+    if (n >= UINT32_MAX - 1 || m >= UINT32_MAX - 1) {
         error = "ERR String too long for LCS";
         return false;
     }
@@ -103,10 +98,15 @@ bool lcs_compute(const std::string& a, const std::string& b, const LcsOptions& o
     // available for the IDX forms; LEN-only could use one, but keeping a single code path means
     // the answer can never differ between the forms.
     const size_t rows = n + 1, cols = m + 1;
-    if (rows > SIZE_MAX / cols || rows * cols > SIZE_MAX / sizeof(uint32_t)) {
-        error = "ERR String too long for LCS";
+    if (rows > SIZE_MAX / cols || rows * cols >= SIZE_MAX / sizeof(uint32_t)) {
+        error = "ERR Insufficient memory, failed allocating transient memory for LCS";
         return false;
     }
+    if (rows * cols * sizeof(uint32_t) > command_proto_max_bulk_len_configured()) {
+        error = "ERR Insufficient memory, transient memory for LCS exceeds proto-max-bulk-len";
+        return false;
+    }
+    if (n == 0 || m == 0) return true;
     uint32_t* table = nullptr;
     try {
         table = new uint32_t[rows * cols]();

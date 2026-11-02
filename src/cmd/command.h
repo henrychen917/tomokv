@@ -421,6 +421,8 @@ bool command_prepare_subcmd_route(Server& server, Op& op);
 // Lets the server-tail translation unit reach the bound Server without duplicating the binding.
 Server* command_server();
 uint64_t command_proto_max_bulk_len();
+// Transient command buffers have size_t indexing, not the string object's 32-bit ABI.
+uint64_t command_proto_max_bulk_len_configured();
 // Bound handler context. ConnLocal runs on IO; EXEC's ConfigRoute stage temporarily binds its
 // parked client on shard 0's owner and restores the previous context afterwards.
 ThreadCtx* command_local_thread();
