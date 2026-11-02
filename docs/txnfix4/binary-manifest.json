@@ -1,6 +1,7 @@
 {
   "kind": "A: behaviour twin",
-  "padding_bytes": 1728,
+  "padding_bytes": 3728,
+  "except_table_padding_bytes": 1000,
   "arms": {
     "PRE": {
       "path": "build/txnfix4/pre-source/build/tomokv",
@@ -12,30 +13,54 @@
         ".bss": 1189384,
         ".tbss": 768,
         ".tdata": 384
+      },
+      "addresses": {
+        ".text": "0x2cad0",
+        ".rodata": "0x8c8000",
+        ".data": "0xa56000",
+        ".bss": "0xa5ab80",
+        ".tbss": "0xa40270",
+        ".tdata": "0xa400f0"
       }
     },
     "POST": {
       "path": "build/tomokv",
-      "sha256": "eccb1812d6a4b38918784c6c85de479ba7b8bfebd3acb2f19d1e7944058a0e7d",
+      "sha256": "e23c2fb37cd0137a9287bcc7330ebb61d19796e0b7299b1d7e107e9018376198",
       "sections": {
-        ".text": 9023351,
+        ".text": 9025351,
         ".rodata": 639332,
         ".data": 19321,
         ".bss": 1189384,
         ".tbss": 768,
         ".tdata": 384
+      },
+      "addresses": {
+        ".text": "0x2cad0",
+        ".rodata": "0x8c9000",
+        ".data": "0xa58000",
+        ".bss": "0xa5cb80",
+        ".tbss": "0xa42270",
+        ".tdata": "0xa420f0"
       }
     },
     "PAD-A": {
       "path": "build/txnfix4/pad-a/tomokv",
-      "sha256": "9e378bb0a80e31d7b2321dc705f54f530f97a3a218a493ba849dd07c3b941e0b",
+      "sha256": "f1114465a039fcdbd4b9ae07b1731069d48cc985633bf944b2585fafd15e9bd4",
       "sections": {
-        ".text": 9023351,
+        ".text": 9025351,
         ".rodata": 639332,
         ".data": 19321,
         ".bss": 1189384,
         ".tbss": 768,
         ".tdata": 384
+      },
+      "addresses": {
+        ".text": "0x2cad0",
+        ".rodata": "0x8c9000",
+        ".data": "0xa58000",
+        ".bss": "0xa5cb80",
+        ".tbss": "0xa42270",
+        ".tdata": "0xa420f0"
       }
     }
   },
@@ -184,6 +209,6 @@
     "-lm"
   ],
   "source": "PRE objects from build/txnfix4/pre-source (git archive 9d6ab5526)",
-  "layout": "No struct, layout lock, TLS or global data changes in txnfix4; the twin keeps PRE objects and adds one inert NOP .text section.",
-  "limitation": "Controls total .text size, not function addresses or alignment."
+  "layout": "No struct, layout lock, TLS or global data changes in txnfix4; the twin keeps PRE objects, adds one inert NOP .text section (POST .text size and .rodata start) and unreferenced .gcc_except_table bytes (POST .tdata, .data and .bss starts).",
+  "limitation": "Controls section extents and data addresses, not individual function addresses or alignment; unwind-table contents differ."
 }

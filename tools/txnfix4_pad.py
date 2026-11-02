@@ -26,6 +26,15 @@ def size(binary, name):
     return elf.sections[elf.names.index(name)][5] if name in elf.names else 0
 
 
+def addr(binary, name):
+    elf = Elf(binary)
+    return elf.sections[elf.names.index(name)][3] if name in elf.names else 0
+
+
+def end(binary, name):
+    return addr(binary, name) + size(binary, name)
+
+
 def main():
     PAD.mkdir(parents=True, exist_ok=True)
     recipe = subprocess.check_output(['make', '-n', '-W', 'build/src/main.o', 'all'], cwd=PRE,
@@ -56,17 +65,38 @@ def main():
         subprocess.run(['gcc', '-c', str(assembly), '-o', str(PAD / 'padding.o')], check=True)
         subprocess.run(command, cwd=ROOT, check=True)
     assert size(PAD / 'tomokv', '.text') == size(ROOT / 'build/tomokv', '.text')
+    # POST's new functions also grow its unwind tables (.eh_frame_hdr, .eh_frame,
+    # .gcc_except_table), which moves its RELRO and data segments. Append the same number of
+    # never-referenced bytes to the twin's .gcc_except_table, so .tdata, .data and .bss start
+    # where POST's do. .rodata already starts at POST's address after the .text padding.
+    ro_padding = end(ROOT / 'build/tomokv', '.gcc_except_table') - end(PAD / 'tomokv', '.gcc_except_table')
+    assert ro_padding >= 0, ro_padding
+    if ro_padding:
+        assembly.write_text(assembly.read_text() +
+                            '.section .gcc_except_table.txnfix4_pad_a,"a",@progbits\n'
+                            f'.fill {ro_padding},1,0\n')
+        subprocess.run(['gcc', '-c', str(assembly), '-o', str(PAD / 'padding.o')], check=True)
+        subprocess.run(command, cwd=ROOT, check=True)
+    assert size(PAD / 'tomokv', '.text') == size(ROOT / 'build/tomokv', '.text')
+    placed = {name: (addr(PAD / 'tomokv', name), addr(ROOT / 'build/tomokv', name))
+              for name in ('.text', '.rodata', '.tdata', '.tbss', '.data', '.bss')}
+    assert all(a == b for a, b in placed.values()), placed
     arms = {}
     for arm, path in [('PRE', PRE / 'build/tomokv'), ('POST', ROOT / 'build/tomokv'),
                       ('PAD-A', PAD / 'tomokv')]:
         arms[arm] = dict(path=str(path.relative_to(ROOT)),
                          sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
-                         sections={s: size(path, s) for s in SECTIONS})
-    receipt = dict(kind='A: behaviour twin', padding_bytes=padding, arms=arms, link=command,
+                         sections={s: size(path, s) for s in SECTIONS},
+                         addresses={s: hex(addr(path, s)) for s in SECTIONS})
+    receipt = dict(kind='A: behaviour twin', padding_bytes=padding,
+                   except_table_padding_bytes=ro_padding, arms=arms, link=command,
                    source='PRE objects from build/txnfix4/pre-source (git archive 9d6ab5526)',
                    layout='No struct, layout lock, TLS or global data changes in txnfix4; the twin '
-                          'keeps PRE objects and adds one inert NOP .text section.',
-                   limitation='Controls total .text size, not function addresses or alignment.')
+                          'keeps PRE objects, adds one inert NOP .text section (POST .text size and '
+                          '.rodata start) and unreferenced .gcc_except_table bytes (POST .tdata, '
+                          '.data and .bss starts).',
+                   limitation='Controls section extents and data addresses, not individual '
+                              'function addresses or alignment; unwind-table contents differ.')
     (ROOT / 'docs/txnfix4/binary-manifest.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps(arms, indent=2))
 
