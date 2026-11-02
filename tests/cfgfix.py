@@ -283,6 +283,9 @@ def test(a, port, certs, proc, oracle):
 
         c.must('SET', 'cfgfix:before-aof', 'old')
         c.must('SET', 'cfgfix:deleted-in-gap', 'old')
+        c.must('SELECT', '1')
+        c.must('SET', 'cfgfix:namespace', 'before-aof')
+        c.must('SELECT', '0')
         appenddir = Path(proc.args[proc.args.index('--dir') + 1]) / 'appendonlydir'
         appenddir.write_text('not a directory\n')
         for fsync in ('no', 'everysec', 'always'):
@@ -305,8 +308,15 @@ def test(a, port, certs, proc, oracle):
         c.must('SET', 'cfgfix:before-aof', 'changed-while-off')
         c.must('DEL', 'cfgfix:deleted-in-gap')
         c.must('SET', 'cfgfix:gap', 'new-while-off')
+        c.must('SWAPDB', '1', '2')
+        c.must('SELECT', '2')
+        c.must('SET', 'cfgfix:namespace', 'changed-while-off')
+        c.must('SELECT', '0')
         command('CONFIG', 'SET', 'appendonly', 'yes')
         rewritten(2)
+        c.must('SELECT', '2')
+        c.must('SET', 'cfgfix:namespace', 'after-second-rewrite')
+        c.must('SELECT', '0')
         c.must('SET', 'cfgfix:last', 'durable')
         try:
             c.cmd('SHUTDOWN', 'NOSAVE')
@@ -322,6 +332,11 @@ def test(a, port, certs, proc, oracle):
                                         'cfgfix:deleted-in-gap', 'cfgfix:gap', 'cfgfix:last')
                 assert result == [b'changed-while-off', b'written', None, b'new-while-off', b'durable'], result
                 replies.append([['AOF restart across OFF gap'], plain(result)])
+                recovered.must('SELECT', '1')
+                assert recovered.must('GET', 'cfgfix:namespace') is None
+                recovered.must('SELECT', '2')
+                assert recovered.must('GET', 'cfgfix:namespace') == b'after-second-rewrite'
+                replies.append([['AOF namespace map across OFF gap'], 'preserved'])
         process_trial(a, mode, engine, oracle)
         # Only sorted key/value pairs are compared; Redis hash-table order is unspecified.
         for args, result in replies:
