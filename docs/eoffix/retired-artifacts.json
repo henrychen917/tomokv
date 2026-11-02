@@ -154,5 +154,53 @@
     "path": "build/eoffix/counts/scopes/post-parser-release-db0",
     "probe_sha256": "047f10eca331f810a3e5ec0d7b10a8e37abbfa23f49df00fe1082ed2fc875c0e",
     "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/aof-pre-native/normal",
+    "bytes": 91918600,
+    "sha256": "0e6d940861949bcd729c3ccec150283fbaa75672a7c19a84f894a7f922d28b7b",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/aof-pre-native/db0",
+    "bytes": 91917840,
+    "sha256": "1c9239437aeb3757e62fba06458c501355b4713b2836e31d27f7baaf73f853a4",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/final-aof-native/normal",
+    "bytes": 93835584,
+    "sha256": "6bece746b316cdc25f1fecfcec2e33b4391cfb3160a6d64933f4065059650cab",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/final-aof-native/db0",
+    "bytes": 93838624,
+    "sha256": "6b3fd37a728820aa08df50690137cd46a676b09919f0f66455c37300c0b0cc8b",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/final-aof-native-v2/normal",
+    "bytes": 93863544,
+    "sha256": "cf78835e086eb438f1cc0b931b6ce8cc2742b072142e10b08e359ed24fb15796",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/final-aof-native-v2/db0",
+    "bytes": 93856472,
+    "sha256": "5ccfc64e3f34ea18279e6edf0ede31cdd3aaeecee3ddf373352822714dbf6fca",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/final-eof-native/normal",
+    "bytes": 95298456,
+    "sha256": "97a81ba26230e59affb173988caef93e0cd72c932277f974849679ae656f3cd5",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/final-eof-native/db0",
+    "bytes": 95269152,
+    "sha256": "fec7b3b58111a440447fad80bd82862046d1e1c242cbcfa407d1eb4ed7267c0f",
+    "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
   }
 ]

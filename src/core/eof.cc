@@ -30,6 +30,9 @@ void IoLoop::receive_fin(Client* client, bool input_ended) {
             now_ns() / 1000000ull + kEofStallMs, client->buffered_output_bytes(), {},
             input_ended ? DeferredTimerKind::ReceiveEof : DeferredTimerKind::ReceiveFin});
     } catch (const std::bad_alloc&) {
+        // recv(0) already released the kernel pin. A handoff rollback may have
+        // left a synthetic hold which cannot outlive this failed insertion.
+        if (input_ended) client->set_recv_armed(false);
         // epoll receives can run inside the active-set walk.
         if (epoll_) epoll_request_close(client);
         else close_client(client);

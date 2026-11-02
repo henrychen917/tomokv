@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """Compare final production-bound instruction scopes without aggregating away a cell."""
+import argparse
 import json
 from pathlib import Path
 from wave14_summary import key
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT/'docs/eoffix'
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('--tag', default='release')
+a = p.parse_args()
 rows = []
 for kind, pre_tag, expected in [('ordinary','',80),('parser','-final',52),('receive','',12)]:
     before = json.loads((DOC/'instructions'/('pre-'+kind+pre_tag)/'counts.json').read_text())
-    after = json.loads((DOC/'instructions'/('post-'+kind+'-release')/'counts.json').read_text())
+    after = json.loads((DOC/'instructions'/('post-'+kind+'-'+a.tag)/'counts.json').read_text())
     pre = {key(r):r for r in before['rows']}
     post = {key(r):r for r in after['rows']}
     assert pre.keys()==post.keys() and len(pre)==expected

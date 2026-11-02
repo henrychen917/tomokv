@@ -4,6 +4,14 @@ Worktree `/home/user/Projects/cx-eoffix`, branch `cx-eoffix`, base
 `ea48a6b2721a1d9e5964ab24a32e8b54df611bd5`. No push. This report is being
 completed while the remaining correctness jobs run; pending entries are not passes.
 
+The `final-*` candidate below was superseded during cleanup review: an EOF-state
+allocation failure could retain the synthetic receive hold used during handoff
+rollback. `eof-oom-before` fails that exact assertion in both namespaces;
+`eof-oom-after` passes after clearing the hold in the cold allocation-error path.
+The `complete-*` arms and full final proof are being rebuilt. Earlier successful
+runs are retained as intermediate evidence, including all twelve Tcl legs and
+the complete epoll differential matrix; they are not passes for the new arm.
+
 The EOF production change is in `src/core/eof.cc`, with receive, timer and teardown
 wiring in `io_loop.h` and `reorder.cc`. The independent AOF deadlock fix is in
 `src/persist/aof.cc`. No command algorithm or object layout changes. The normal receive/parser path does not consult EOF state. A FIN creates

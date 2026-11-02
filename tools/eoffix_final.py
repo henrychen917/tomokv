@@ -13,7 +13,12 @@ from exec1s_pad import build as pad_build
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT/'docs/eoffix'
-FINAL = ROOT/'build/eoffix/post-final/tomokv'
+PASS = os.environ.get('EOFFIX_PASS', 'final')
+FINAL = ROOT/f'build/eoffix/post-{PASS}/tomokv'
+
+
+def tag_for_pass(tag):
+    return tag.replace('final', PASS, 1)
 
 
 def sha(path):
@@ -22,6 +27,7 @@ def sha(path):
 
 
 def run(command, tag, env=None, required=False):
+    tag = tag_for_pass(tag)
     receipt = DOC/(tag+'-driver.json')
     assert not receipt.exists(), receipt
     started = time.monotonic()
@@ -36,6 +42,7 @@ def run(command, tag, env=None, required=False):
 
 
 def gate(tag, jobs, engine='epoll', env=None, repeat=1, capture=False, binary=FINAL):
+    tag = tag_for_pass(tag)
     command = ['python3', 'tools/eoffix.py', '--tag', tag, '--jobs', jobs,
                '--binary', str(binary), '--engine', engine, '--port', '21900', '--keep-going']
     if repeat > 1: command += ['--repeat', str(repeat), '--archive-data']
@@ -49,26 +56,27 @@ def maintenance():
 
 
 def artifacts():
-    assert len(json.loads((DOC/'final-build.json').read_text())) == 4
+    assert len(json.loads((DOC/f'{PASS}-build.json').read_text())) == 4
     FINAL.parent.mkdir(exist_ok=True)
     assert not FINAL.exists()
     shutil.copy2(ROOT/'build/tomokv', FINAL)
     for fixture in ['aof','eof']:
-        run(['python3', 'tools/eoffix_aof.py', 'post', '--tag', 'final-'+fixture+'-native',
+        run(['python3', 'tools/eoffix_aof.py', 'post', '--tag', PASS+'-'+fixture+'-native',
              '--fixture', fixture], 'final-'+fixture+'-build', required=True)
+    census_tag = 'release' if PASS == 'final' else PASS
     for kind in ['ordinary', 'parser', 'receive']:
-        command = ['python3', 'tools/eoffix_receive_counts.py', 'post', '--tag', 'release']
+        command = ['python3', 'tools/eoffix_receive_counts.py', 'post', '--tag', census_tag]
         if kind != 'receive':
-            command = ['python3', 'tools/eoffix_counts.py', 'post', '--kind', kind, '--tag', 'release']
+            command = ['python3', 'tools/eoffix_counts.py', 'post', '--kind', kind, '--tag', census_tag]
             if kind == 'parser':
                 command += ['--only', 'PARSE-GET,PARSE-SET,PARSE-INCR,PARSE-MGET,PARSE-MSET']
         run(command, 'final-census-'+kind, required=True)
-    run(['python3', 'tools/eoffix_bind.py', '--arm', 'post', '--tag', 'release'],
+    run(['python3', 'tools/eoffix_bind.py', '--arm', 'post', '--tag', census_tag],
         'final-binding', required=True)
-    subprocess.run(['python3','tools/eoffix_retire_scopes.py','--arm','post','--tag','release'],check=True)
-    output = ROOT/'build/eoffix/layout-final'
+    subprocess.run(['python3','tools/eoffix_retire_scopes.py','--arm','post','--tag',census_tag],check=True)
+    output = ROOT/f'build/eoffix/layout-{PASS}'
     output.mkdir(exist_ok=True)
-    pad_build(ROOT/'build/eoffix/pre-source', ROOT, output, DOC/'pad-a-final.json')
+    pad_build(ROOT/'build/eoffix/pre-source', ROOT, output, DOC/f'pad-a-{PASS}.json')
     rows = []
     for arm, path in [('PRE',ROOT/'build/eoffix/pre-rebuilt'),('POST',FINAL),
                       ('POST-layout',output/'POST-layout'),('PAD-A',output/'PAD-A')]:
@@ -90,11 +98,11 @@ def main():
     assert sha(FINAL)==sha(ROOT/'build/tomokv')
     if a.phase=='cold':
         gate('final-eof-aof', 'wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s',
-             env=dict(WAVE14_EOF_DIRECTORY=str(ROOT/'build/eoffix/final-eof-native'),
-                      EOFFIX_AOF_DIRECTORY=str(ROOT/'build/eoffix/final-aof-native-v2')))
+             env=dict(WAVE14_EOF_DIRECTORY=str(ROOT/f'build/eoffix/{PASS}-eof-native'),
+                      EOFFIX_AOF_DIRECTORY=str(ROOT/(f'build/eoffix/{PASS}-aof-native'+('-v2' if PASS=='final' else '')))))
         gate('final-layout', 'netio-1s netio-2s wave14_eof_data',
-             binary=ROOT/'build/eoffix/layout-final/POST-layout')
-        gate('final-pad', 'netio-1s netio-2s', binary=ROOT/'build/eoffix/layout-final/PAD-A')
+             binary=ROOT/f'build/eoffix/layout-{PASS}/POST-layout')
+        gate('final-pad', 'netio-1s netio-2s', binary=ROOT/f'build/eoffix/layout-{PASS}/PAD-A')
     elif a.phase=='tcl':
         for engine in ['epoll','uring']:
             for index in range(1,4):

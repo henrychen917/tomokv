@@ -3,8 +3,23 @@
 #include "src/core/io_loop.h"
 #include <cstdio>
 #include <cstdlib>
+#include <new>
 #include <sys/socket.h>
 #include <unistd.h>
+
+namespace {
+bool fail_next_allocation = false;
+}
+__attribute__((noinline)) void* operator new(std::size_t size) {
+    if (fail_next_allocation) {
+        fail_next_allocation = false;
+        throw std::bad_alloc();
+    }
+    if (void* result = std::malloc(size ? size : 1)) return result;
+    throw std::bad_alloc();
+}
+__attribute__((noinline)) void operator delete(void* pointer) noexcept { std::free(pointer); }
+__attribute__((noinline)) void operator delete(void* pointer, std::size_t) noexcept { std::free(pointer); }
 
 namespace tomo {
 struct NetcmdRegression {
@@ -69,6 +84,31 @@ struct NetcmdRegression {
         ::close(pair[1]);
         std::printf("PASS epoll coalesced EOF mode=%s eof=%u\n", Fused ? "1s" : "2s", eof);
     }
+#ifdef TOMO_EOFFIX
+    static void allocation_failure() {
+        IoLoop loop;
+        // Queue the error close so this finite fixture can inspect its admission
+        // fence without constructing a live IO owner. The synthetic hold models
+        // recv(0) winning an io_uring handoff cancellation.
+        loop.epoll_ = true;
+        int pair[2];
+        need(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, pair) == 0,
+             "allocation-failure socketpair created");
+        Client client(pair[0]);
+        client.set_recv_armed(true);
+        need(loop.deferred_timers_.capacity() == 0, "EOF insertion must allocate");
+        fail_next_allocation = true;
+        loop.receive_fin(&client, true);
+        need(!fail_next_allocation, "EOF-state allocation actually failed");
+        need(loop.epoll_closes_.size() == 1 && loop.epoll_closes_[0] == &client,
+             "allocation failure requests normal teardown");
+        need(!client.recv_armed(), "failed EOF admission releases its synthetic receive hold");
+        need(!loop.receive_eof_pending(&client), "failed insertion leaves no EOF state");
+        ::close(pair[0]);
+        ::close(pair[1]);
+        std::puts("PASS EOF allocation failure releases synthetic receive hold");
+    }
+#endif
 };
 }
 int main() {
@@ -76,4 +116,7 @@ int main() {
     tomo::NetcmdRegression::edge<true>(false);
     tomo::NetcmdRegression::edge<false>(true);
     tomo::NetcmdRegression::edge<true>(true);
+#ifdef TOMO_EOFFIX
+    tomo::NetcmdRegression::allocation_failure();
+#endif
 }
