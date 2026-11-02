@@ -408,12 +408,18 @@ def auth_case(a, mode, engine):
             for r in results]
 
 
+# PRE aborts ~3.8 s after SIGTERM and SIGTERM lands 0.3 s into the command, so a
+# 5.0 s command keeps >= 0.9 s of margin. The start sizes are the ones the PRE
+# (fails) and POST (passes) receipts ran; both stop at >= 6.2 s there.
+MIN_LONG_SECONDS = 5.0
+
+
 def long_command(mode):
     # Each server's own multi-second single-key command: TomoKV executes a large
     # SUNIONSTORE slowly, Redis a large SORT ... STORE. Duration is calibrated.
     if mode == 'redis':
-        return 6000000, lambda dst: ('SORT', '{cc6}src', 'STORE', dst)
-    return 300000, lambda dst: ('SUNIONSTORE', dst, '{cc6}src')
+        return 4000000, lambda dst: ('SORT', '{cc6}src', 'STORE', dst)
+    return 400000, lambda dst: ('SUNIONSTORE', dst, '{cc6}src')
 
 
 def populate(c, members):
@@ -448,8 +454,11 @@ def shutdown_case(a, mode, engine):
     """SIGTERM while one long command runs: delay shutdown, never abort.
 
     Databases 16 (the default runtime) without a save clause. The command's
-    duration is calibrated to exceed PRE's 2.7 s worker-shutdown bound. The
-    AOF everysec leg adds a write burst; every acknowledged key must survive.
+    duration is calibrated to at least MIN_LONG_SECONDS: after the 0.3 s settle
+    it must outlast PRE's observed abort (~3.8 s after SIGTERM: the grace wait
+    plus the 2.7 s worker-shutdown bound) by a clear margin, or PRE could finish
+    the command before aborting and pass. The AOF everysec leg adds a write
+    burst; every acknowledged key must survive.
     """
     members, make = long_command(mode)
     result = dict(members=None, calibrated_seconds=None)
@@ -465,11 +474,11 @@ def shutdown_case(a, mode, engine):
                 began = time.monotonic()
                 c.must(*make('{cc6}calibrate'))
                 duration = time.monotonic() - began
-                if duration >= 3.5:
+                if duration >= MIN_LONG_SECONDS:
                     break
                 c.must('DEL', '{cc6}calibrate', '{cc6}src')
                 members *= 2
-            assert duration >= 3.5, ('long command too short', members, duration)
+            assert duration >= MIN_LONG_SECONDS, ('long command too short', members, duration)
             result.update(members=members, calibrated_seconds=round(duration, 2))
             rc, waited, reply = sigterm_during(child, c, make('{cc6}trial'))
     finally:

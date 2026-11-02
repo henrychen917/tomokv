@@ -22,7 +22,7 @@ in this base; conflicts with it are noted at the end.
 | 3 SV5.1 (WRONG REPLY) | Torn INFO LATENCYSTATS replies in every leg (mixed p10/p90 lists and non-ASCII reply bytes; 2s/uring db1 also SIGSEGV); Redis clean over ~6,400 reads/leg. | All legs clean; INFO copies one complete percentile list. | The percentile side vector is rebuilt into a fresh list and swapped under `g_config_mu`, the lock INFO copies it under (`t_server.cc`). | None. |
 | 4 SO5.1 (CRASH) | 0 -> N `CONFIG SET maxmemory` with one injected clock-allocation failure aborts the server (1s/uring rc -6) or answers `ERR out of memory` with the value published; Redis returns OK. | All 4 legs: CONFIG SET returns OK, no abort, server serves; the one owner that could not allocate logs a warning and its OBJECT IDLETIME reads 0. | `configure_object_idle` returns false instead of throwing and frees the partial clock; the limit/policy still apply (eviction uses the 5-bit LRU meta). **Deviation**: see note below -- a clean refuse-and-rollback needs an algorithm change, so this degrades instead of refusing. | That store's OBJECT IDLETIME reads 0 until the clock can be built; eviction and data are unaffected. |
 | 5 CC5.7 (SECURITY) | `CONFIG SET requirepass ""` with the default user off admits 84-128 of ~48,000 fresh unauthenticated connections per leg (GET answered instead of NOAUTH); Redis admits 0. | 0 of ~47,700 per leg admitted; every new connection gets NOAUTH. | The requirepass admission bit is published once, from the ACL default-user recompute under `g_acl_mu`, instead of being cleared before the recompute (`auth.inc`, `acl.inc`). | None. |
-| 6 SHUTDOWN ABORT (CRASH) | SIGTERM during a ~8.7 s command in the default databases-16 no-save runtime aborts (SIGABRT "worker shutdown timeout", rc -6) at ~3.8 s in all 4 legs; a 2s/epoll AOF-everysec run also lost 10 of 40 last-window acknowledged writes; Redis exits 0 after the command. | All 4 legs exit 0 after the whole command (~8.3-8.9 s waited); every acknowledged key and the in-flight command survive the AOF-everysec restart (0 missing of ~20,040). | `join_workers` restarts the worker-shutdown bound while a worker is still inside one pass (odd client-work epoch unchanged since the previous tick), as Redis waits for a running command (`multidb.cc`). | A pass that never ends still aborts after the bound. In multi-DB builds the epoch stays odd through a worker's 50 ms idle wait too, so the test means "a pass longer than one check interval"; a genuine hang that keeps cycling long passes would also delay the abort. A second SIGINT still forces exit, as on Redis. |
+| 6 SHUTDOWN ABORT (CRASH) | SIGTERM during an 8.5-8.7 s command in the default databases-16 no-save runtime aborts (SIGABRT "worker shutdown timeout", rc -6) 3.82 s after the signal in all 4 legs, with and without AOF; the 2s/uring AOF-everysec leg also lost 8 of its 20,040 acknowledged writes (40 written in the final everysec window) across the restart; Redis exits 0 after the command (`pre-shutdown`). | All 4 legs exit 0 after the whole command (8.2-8.8 s waited); every acknowledged key and the in-flight command survive the AOF-everysec restart (0 missing of 20,024-20,043) (`item6-shutdown`). | `join_workers` restarts the worker-shutdown bound while a worker is still inside one pass (odd client-work epoch unchanged since the previous tick), as Redis waits for a running command (`multidb.cc`). | A pass that never ends still aborts after the bound. In multi-DB builds the epoch stays odd through a worker's 50 ms idle wait too, so the test means "a pass longer than one check interval"; a genuine hang that keeps cycling long passes would also delay the abort. A second SIGINT still forces exit, as on Redis. The witness signals a fixed 0.3 s after sending the command, so a starved server can be signalled before the command starts (a false fail, seen once with a build on the lane's cores). |
 
 The witnesses are in `tests/cfgfix2.py` (cases `file`, `acl`, `latency`, `auth`,
 `shutdown`, `maxmemory`), driven by the gate jobs `cfgfix2-file/-acl/-latency/-auth/-shutdown/-maxmemory`,
@@ -126,16 +126,37 @@ unchanged across each run (`tools/cfgfix2_gate.py`). Receipts under
 `docs/cfgfix2/receipts/`.
 
 - Each item's PRE row fails and its POST row passes, both modes and engines:
-  `pre-{file,acl,latency,auth,shutdown,maxmemory}` vs `post-lane`,
-  `post-shutdown-clean` and `item4b-maxmem`.
+  `pre-file`/`pre-acl`/`pre-latency`/`pre-auth` vs `post-lane`; `pre-shutdown`
+  vs `item6-shutdown`; `pre-maxmemory` vs `item4b-maxmem`. Two committed
+  witnesses differ from the revision their PRE receipt ran: item 6 (corrected
+  back to the receipted revision, see below) and CC5.7, whose probes later
+  gained an RST close (`a685917614`) to avoid TIME_WAIT across ~48k
+  connections. That changes only how the client closes each probe, not the
+  server's admission check, and `post-lane` passes it on POST; a PRE run of
+  the final CC5.7 witness is listed under Not run.
 - `post-lane` on the final POST recorded 45/47. Its two reds were
   `cfgfix2-shutdown` -- a timing false-fail: a build I was running on the same
-  cores starved the ~8.7 s command so SIGTERM found none in flight; re-run with
-  the box idle (`post-shutdown-clean`) all four TomoKV legs exit 0 after the
-  whole command (waited 4.5-4.7 s), 0 acknowledged keys lost -- and `netcmd
+  cores starved the server, so SIGTERM (0.3 s after the command was sent) found
+  nothing in flight and the server exited after 0.11 s; re-run with the box idle
+  (`post-shutdown-clean`) all four TomoKV legs exit 0 after the whole command
+  (waited 4.5-4.7 s), 0 acknowledged keys lost. Both runs used the interim
+  lighter witness corrected below -- and `netcmd
   config regression`, the pre-SV5.2 "inline ACL survived rewrite" assertion the
   stopped codex lane left stale; corrected this lane and re-run green
   (`post-netcmd`, 17/17).
+- Item-6 witness correction (final commit of this lane). The interim lighter
+  witness (TomoKV 300k / Redis 6M start members, 3.5 s calibration floor) was
+  never run on PRE, and on a box fast enough to calibrate it at 3.5-4.1 s PRE
+  would finish the command before its abort (3.82 s after SIGTERM, which lands
+  0.3 s into the command) and pass. The committed witness restores the start
+  sizes `pre-shutdown` and `item6-shutdown` ran (400k / 4M) and raises the floor
+  to 5.0 s (>= 0.88 s margin). Against the code that produced those receipts the
+  only executable change in the case is that threshold, and every calibration
+  step they recorded (TomoKV 8.49-8.68 s at 400k; Redis 4M doubling to 8M at
+  6.22-6.74 s) decides the same under 5.0 s, so they are this witness's PRE-fail
+  and POST-pass proof. It was not re-run here because the arm binaries were
+  removed with `build/` (note at the end). The row's runtime returns to about
+  490 s (lighter witness: about 250 s).
 - Config/ACL/INFO adjacency on the final POST, all green: `config_unit`,
   `boot_grammar`, `serverfix_lines`, `serverfix_config`, `netcmd_units`,
   `authfix` (5), `auth` (7), `acl_metadata`.
@@ -163,6 +184,10 @@ unchanged across each run (`tools/cfgfix2_gate.py`). Receipts under
 
 ### Not run in this lane (reasons)
 
+- PRE runs of the final `cfgfix2-auth` (RST-close probes) and
+  `cfgfix2-shutdown` (restored sizes, 5.0 s floor) witnesses: the arm binaries
+  were removed with `build/` before these corrections; regenerate PRE (note at
+  the end) and run both rows on it -- each must fail.
 - Full `tests/gate.sh iteration`, ABBA, NIC cells and the 18 performance cells:
   maintainer-owned; this lane makes no throughput claim.
 - `flip_saturated`: its job launches `memtier_benchmark`; load generators stay
