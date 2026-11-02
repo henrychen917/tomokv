@@ -1,0 +1,2 @@
+PRE pass=36 fail=0 (12 atomic-1 geometries x 3)
+POST pass=36 fail=0 (12 atomic-1 geometries x 3)
