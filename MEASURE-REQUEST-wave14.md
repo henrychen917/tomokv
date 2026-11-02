@@ -58,7 +58,8 @@ documented observation, not Redis parity or a completed fix.
 **Release conditions still unmet:** the requested wake event/invalidation/
 slowlog ordering is red against Redis, universal headline/isolated-lane
 linked-body equality is not achieved, and the final epoll Tcl run found a
-parked connection left after peer close. Details and controls are below. Broad
+parked connection left after peer close. Additional half-close controls expose
+queued-input loss on both headline and merged POST. Details are below. Broad
 correctness validation is still running. No throughput claim is made.
 
 ### Epoll EOF finding; trial rejected
@@ -425,14 +426,14 @@ launches overlapped the instrumented R7 object build. Serial recompilation
 produced byte-identical objects in both namespaces and the installed TSAN image
 matches its source image (`tsan-build-overlap-verification.json`).
 
-The pre-R7 complete differential inventory passed on **both engines: 954 comparisons
-each**, with permanent seeds 7/19/20/23 and rotating seed 21 (uring) / 22
-(epoll), all four seed-19 MULTI replays in each atomic-1 lifetime, and every
-equivalence cell. The gate's strict folds validate 490 split/equivalence and
-464 armed comparisons per engine. `differ-final.json` binds each plan, source,
-ordered leg journal and completion. This is the selected-job proof, not a
-full-gate wall-time or landing receipt. Both complete inventories are running
-again on the final release.
+The final POST passes the complete differential inventory on **both engines:
+954 comparisons each**, with permanent seeds 7/19/20/23 and rotating seed 25
+(uring) / 24 (epoll), all four seed-19 MULTI replays in each atomic-1 lifetime,
+and every equivalence cell. Strict folds validate 490 split/equivalence and
+464 armed comparisons per engine. `differ-final-r7.json` binds each plan,
+source, ordered leg journal, completion and final binary. The earlier 954/engine
+pre-R7 inventory (rotating 21/22) remains in `differ-final.json`. These are
+selected-job proofs, not full-gate wall-time or landing receipts.
 
 The broad sweep exposed a test-only compiler-launch failure in `rob_portable`: its
 positive portable ROB unit passed, but the planted-control helper treated
