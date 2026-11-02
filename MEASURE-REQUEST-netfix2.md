@@ -11,7 +11,8 @@ test explicitly chooses another geometry. No throughput measurement was run.
 
 The five `netfix2-*` gate jobs each cover 1s/2s × uring/epoll × databases 1/16.
 The scripts assert that kTLS, descriptor exhaustion and suppression actually
-occur; absent windows fail. Raw gate results are in
+occur; absent windows fail. The byte-counter witness covers plaintext, TLS 1.3 fd BIO, TLS 1.2 kTLS, and
+TLS 1.2 CBC memory BIO (32 exact byte-accounting legs). Raw gate results are in
 [`docs/netfix2/witnesses`](docs/netfix2/witnesses).
 
 | Item | PRE witness | POST result | Mechanism changed | Residual |
@@ -29,6 +30,14 @@ with a genuinely unwritable directory. An initial FD stress attempt lowered
 RLIMIT after io_uring submission; that did not arm its captured-limit path.
 The final witness passes held FDs at exec time and requires nonzero EMFILE on
 every engine. Those initial attempts are not counted as proof.
+
+A follow-up boot injection fails the elected AOF writer's reuseport bind after
+its exclusive probe. The initial IO5.2 candidate hung in 2/8 legs because peer
+IO workers waited for a writer that could never publish ready. The boot-only
+AOF wait now checks its worker stop flag. All 8 injected failures exit 1,
+with no ready banner, in addition to the 8 unwritable-directory checks and
+40 banner connections. This is cancellation of an existing wait, not a new
+persistence protocol. The negative and corrected gate receipts are retained.
 
 The TLS registry audit found GET is the only ordinary command with a
 FlatStore-borrowing special TLS row; both rows are changed. Other handlers
@@ -97,9 +106,9 @@ stamp activity and add application bytes; the plaintext path is unchanged.
 | Arm | SHA-256 | .text bytes |
 | --- | --- | ---: |
 | `build/netfix2/PRE` | `bf7a8a616072d0c238117c0361cb189f7ed50ecc9232546c51c175c048b32c51` | 9021623 |
-| `build/netfix2/POST` | `54b135f7fe662e0561bb0c34e1a45d9281bf802543418b811f40722de1c07a7a` | 9028871 |
-| `build/netfix2/POST-layout` | `736bdcff0d827c730448d7eca43f2cd584e7549c1b2fe394a11ca13af5d05e38` | 18050119 |
-| `build/netfix2/PAD-A` | `ebb6d767398bebf99bd0d35dab956839e96439d59980903ad0677543cd9c5233` | 18050119 |
+| `build/netfix2/POST` | `7a533c7c46101494ddca402d484e775e531c6a6e2ca05dab48675fd32f00ca04` | 9028727 |
+| `build/netfix2/POST-layout` | `a66153b4a0c7ee945650503f53bb6fc320f85b9715206ce1d940ea23858bbce8` | 18049975 |
+| `build/netfix2/PAD-A` | `5b9b1734a58e655de5648646fed123852cc046263e7168b4169b45701ef67778` | 18049975 |
 
 **PAD-A is type A, a behaviour twin: PRE behaviour with the common-image
 candidate's text size/layout.** The existing common-image linker places POST
@@ -107,7 +116,7 @@ first and symbol-isolated PRE second. POST-layout and PAD-A differ only in the
 five-byte entry jump selecting the implementation; symbols and sections have
 identical layout. PAD-A is the exact twin of POST-layout, **not** the smaller
 production POST. [Link receipt](docs/netfix2/pad-a.json) records this limitation.
-Production .text grows 7248 bytes; no claim that plain instruction counts rule
+Production .text grows 7104 bytes; no claim that plain instruction counts rule
 out instruction-cache/layout effects. [Hashes](docs/netfix2/SHA256SUMS).
 
 Maintainer: use the gate's quiet-box instrument on the unchanged
@@ -125,7 +134,7 @@ these measurements are **NOT RUN: reserved to the maintainer**.
 ### Gate arithmetic and broader proof
 
 `DQ = +5`, `DF = +5`. The five-row collection loop is before the quick-tier
-exit (`tests/gate.sh`, collection near line 6597; quick exit near 6841).
+exit (`tests/gate.sh`, collection near line 6602; quick exit near 6848).
 The base constants are 1046/1063, so the maintainer's new counts should be
 1051/1068. `EXPECT_QUICK` and `EXPECT_FULL` were not edited. The maxclients Tcl
 promotion adds six assertions per mode/engine/namespace inside the existing
@@ -142,4 +151,4 @@ The reproducible selected-job driver is
 [`tools/netfix2_proof.sh`](tools/netfix2_proof.sh). Broader job ledgers, Tcl and
 differential results, production target freshness, and the final disk size
 will be appended after those checks finish. Current completed harness check:
-`python3 tests/gates_test.py`: 77/77 tests pass; gateplan self-tests pass.
+`python3 tests/gates_test.py`: 78/78 tests pass; gateplan self-tests pass.

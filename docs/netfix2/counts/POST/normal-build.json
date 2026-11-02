@@ -164,7 +164,7 @@
     "-lm",
     "/home/user/Projects/cx-netfix2/build/netfix2/counts/scopes/POST-normal/probe.o"
   ],
-  "probe_sha256": "1589ebba2ff236e90e0d19f99bd67365bff0a4312d73d4b2ebe50f002ec646ea",
-  "server_sha256": "54b135f7fe662e0561bb0c34e1a45d9281bf802543418b811f40722de1c07a7a",
+  "probe_sha256": "a6081e3228b536439d18f2d8dfdcd0cc23dae89113754ffd1f7676bb2c69cd62",
+  "server_sha256": "7a533c7c46101494ddca402d484e775e531c6a6e2ca05dab48675fd32f00ca04",
   "fixture_sha256": "12d54acb8d55b871576235ab607df25a0cce8eaf79a085c560190cf64a7a1727"
 }

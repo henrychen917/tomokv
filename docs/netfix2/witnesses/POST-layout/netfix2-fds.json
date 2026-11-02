@@ -2,7 +2,7 @@
   "fds-2s-uring-db1": {
     "fds_budget": {
       "maxclients": 136,
-      "own_fds": 32,
+      "own_fds": 33,
       "answered": 146,
       "rejected": 11
     },
@@ -16,22 +16,22 @@
       "maxclients": 128,
       "own_fds": 41,
       "answered": 138,
-      "rejected": 12
+      "rejected": 11
     },
     "fds_backoff": {
-      "forced_emfile_attempts": 36,
+      "forced_emfile_attempts": 27,
       "pending_connection": "resumed"
     }
   },
   "fds-2s-epoll-db1": {
     "fds_budget": {
       "maxclients": 128,
-      "own_fds": 40,
+      "own_fds": 41,
       "answered": 138,
       "rejected": 11
     },
     "fds_backoff": {
-      "forced_emfile_attempts": 30,
+      "forced_emfile_attempts": 36,
       "pending_connection": "resumed"
     }
   },
@@ -40,7 +40,7 @@
       "maxclients": 120,
       "own_fds": 49,
       "answered": 130,
-      "rejected": 12
+      "rejected": 11
     },
     "fds_backoff": {
       "forced_emfile_attempts": 36,
@@ -55,7 +55,7 @@
       "rejected": 11
     },
     "fds_backoff": {
-      "forced_emfile_attempts": 48,
+      "forced_emfile_attempts": 42,
       "pending_connection": "resumed"
     }
   },
@@ -91,7 +91,7 @@
       "rejected": 12
     },
     "fds_backoff": {
-      "forced_emfile_attempts": 49,
+      "forced_emfile_attempts": 54,
       "pending_connection": "resumed"
     }
   }
