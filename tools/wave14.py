@@ -160,8 +160,8 @@ def landing_selftest(a):
         GATE_PROOF_NO_RATES='1', GATE_LEDGER=str(source/'ledger'),
         REDIS74_ROOT='/home/user/Projects/redis', CXX='g++ -gz=zlib', CC='cc -gz=zlib')
     command = ['taskset', '-c', '0-31', 'tests/gate.sh', 'full',
-        '--server-cores', '16-23', '--load-cores', '0-7', '--server-smt', '',
-        '--load-smt', '', '--ports', '20093-20095', '--candidate-binary', str(a.binary.resolve())]
+        '--server-cores', a.server_cores, '--load-cores', a.load_cores, '--server-smt', '',
+        '--load-smt', '', '--ports', a.ports, '--candidate-binary', str(a.binary.resolve())]
     logfile = source / 'selftest.log'
     with logfile.open('w') as log:
         result = subprocess.run(command, cwd=source, env=env, stdout=log, stderr=subprocess.STDOUT)
@@ -204,6 +204,9 @@ def main():
     lp = sub.add_parser('landing-selftest')
     lp.add_argument('--tag', required=True)
     lp.add_argument('--binary', type=Path, default=BUILD/'post-r7/tomokv')
+    lp.add_argument('--server-cores', default='16-23')
+    lp.add_argument('--load-cores', default='0-7')
+    lp.add_argument('--ports', default='20093-20095')
     a = p.parse_args()
     if a.phase == 'inventory': inventory()
     elif a.phase == 'identity':

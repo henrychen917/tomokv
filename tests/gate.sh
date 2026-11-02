@@ -3264,7 +3264,7 @@ local AT=${1##*-} mode=2s
   # a "fix" that merely hid the group's candidate would fail there.
   for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript txn_nx txniso; do
     FEATURE_ARGS=()
-    [ "$t" = xmove ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
+    { [ "$t" = xmove ] || [ "$t" = xacct ]; } && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
     # TM4.1: earlier batteries change this live flag. Every label must describe
     # the next battery's actual starting configuration, including txniso.

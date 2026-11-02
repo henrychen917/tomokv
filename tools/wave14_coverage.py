@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Account for every declared public row without turning failures into passes."""
 from collections import Counter
+import argparse
 import json
 import os
 from pathlib import Path
@@ -32,6 +33,9 @@ def ledger(text):
 
 def main():
     assert os.sched_getaffinity(0) <= set(range(32))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--abba-tag', default='abba-landing-complete')
+    args = parser.parse_args()
     primary = phase('merged-final-uring', True)
     assert primary['state'] == 'COMPLETE' and not primary['unfinished']
     expected = Counter(source_labels((ROOT / 'tests/gate.sh').read_text()))
@@ -43,7 +47,7 @@ def main():
     directory = Path(companions['run_directory']) / 'jobs/atomic_floor'
     additions = ledger((directory / 'ledger').read_text())
     observed.update(row['label'] for row in additions)
-    abba = json.loads((DOC / 'jobs/abba-landing-complete.json').read_text())
+    abba = json.loads((DOC / 'jobs' / (args.abba_tag + '.json')).read_text())
     assert abba['exit_code'] == 0 and abba['binary_sha256'] == primary['binary_sha256']
     assert sha(abba['archive']) == abba['archive_sha256']
     with tarfile.open(abba['archive'], 'r:gz') as stored:
