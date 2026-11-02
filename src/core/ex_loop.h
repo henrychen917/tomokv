@@ -12,6 +12,7 @@
 // the blocked flag, re-check, and block. Producers only pay a wake syscall while that flag is armed.
 #pragma once
 #include "../cmd/txn_retry_queue.h"
+#include "atomic_parked.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -2607,7 +2608,7 @@ private:
         multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
     }
     void promote_deferred_writer(const void* token, int32_t sid) {
-        if (txn_promote_deferred_writer(atomic_deferred_, token, sid))
+        if (atomic_deferred_.promote_writer(token, sid))
             srv_->note_txn(self_->id(), TxnCounter::WriterPromotions);
     }
     void promote_multi_retry(MultiOwnerRetryNode& node) {
@@ -2644,24 +2645,32 @@ private:
     template <bool IofusedPrivateQueue = false>
     uint32_t service_atomic_deferred() {
         if (atomic_deferred_.empty()) return 0;
-        const Task task = atomic_deferred_.front();
-        atomic_deferred_.pop_front();
-        Op& op = task.client->rob().at(task.op_id);
-        const int32_t shard_id = task.shard >= 0 ? task.shard : op.shard;
-        Shard& shard = srv_->shard(shard_id);
-        shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
-        if (has_parked_predecessor(task, op, shard_id) ||
-            xshard_task_should_defer(*srv_, shard, task, op)) {
-            atomic_deferred_.push_back(task);
-            // Keep polling the decision without preventing normal inbox drains. At low traffic this
-            // also prevents an owner sleeping after another worker publishes the dependency.
-            return 1;
+        // One oldest operation per connection per pass, bounded by the ordinary
+        // owner batch. Followers cannot advance before this head's predecessor
+        // publishes its decision. Do not walk or rotate through those followers.
+        const uint32_t budget = std::min<size_t>(kExecBatch, atomic_deferred_.connections());
+        uint32_t work = 0;
+        while (work < budget && !atomic_deferred_.empty()) {
+            const Task task = atomic_deferred_.oldest();
+            ++exec1s_counters[self_->id()].parked_polls;
+            ++work;
+            Op& op = task.client->rob().at(task.op_id);
+            const int32_t shard_id = task.shard >= 0 ? task.shard : op.shard;
+            Shard& shard = srv_->shard(shard_id);
+            shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            if (has_parked_predecessor(task, op, shard_id) ||
+                xshard_task_should_defer(*srv_, shard, task, op)) {
+                atomic_deferred_.rotate_oldest();
+                continue;
+            }
+            atomic_deferred_.pop_oldest();
+            const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
+                ? execute_resumed<IofusedPrivateQueue>(task)
+                : execute_snapshot_task<IofusedPrivateQueue>(task, true);
+            if (!complete) xshard_retries_.push_back(task);
         }
-        const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute_resumed<IofusedPrivateQueue>(task)
-            : execute_snapshot_task<IofusedPrivateQueue>(task, true);
-        if (!complete) xshard_retries_.push_back(task);
-        return 1;
+        // Count held heads as work so a remote decision cannot leave us asleep.
+        return work;
     }
 
     // PROGRAM ORDER AGAINST EVERY PARKED PREDECESSOR, NOT JUST THE DEFERRED ONES.
@@ -2671,7 +2680,7 @@ private:
     // atomic_deferred_ because a bounded KEYS walk lives there between passes: service_atomic_
     // deferred() runs first in the loop, so a younger write parked earlier could install a key
     // behind the walker's cursor and be reported by a listing that must not see it yet.
-    // Both deques are empty on any path with no cross-shard atomic window open.
+    // Both indexes are empty on any path with no cross-shard atomic window open.
     __attribute__((always_inline)) bool has_parked_predecessor(const Task& task, Op& op, int32_t shard_id) {
         if (__builtin_expect(atomic_deferred_.empty() && xshard_retries_.empty(), true))
             return false;
@@ -2679,20 +2688,19 @@ private:
                parked_predecessor_in(xshard_retries_, task, op, shard_id);
     }
 
-    __attribute__((noinline)) bool parked_predecessor_in(const std::deque<Task>& parked,
+    __attribute__((noinline)) bool parked_predecessor_in(const AtomicParkedTasks& parked,
                                                          const Task& task, Op& op,
                                                          int32_t shard_id) {
-        for (const Task& older : parked) {
-            if (older.client != task.client || older.op_id >= task.op_id) continue;
+        return parked.older(task.client, task.op_id, [&](const Task& older) {
+            ++exec1s_counters[self_->id()].parked_visits;
             Op& older_op = older.client->rob().at(older.op_id);
-            if (!xshard_tasks_share_key(older, older_op, task, op, shard_id)) continue;
+            if (!xshard_tasks_share_key(older, older_op, task, op, shard_id)) return false;
             // Either direction is the scan-ordering hold: a walker held behind an older
             // write, or a younger write held behind a walk that is already in flight.
             if (xshard_task_is_whole_owner(older) || xshard_task_is_whole_owner(task))
                 self_->note_atomic_scan_hold();
             return true;
-        }
-        return false;
+        });
     }
 
     template <uint32_t BatchOps = kGenthreadExBatchOps,
@@ -2993,9 +3001,9 @@ private:
     std::vector<uint8_t> snapshot_done_shards_;
     std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
     std::vector<std::deque<Task>> snapshot_backlogs_;
-    std::deque<Task> atomic_deferred_;
+    AtomicParkedTasks atomic_deferred_;
     TxnRetryQueues multi_retries_;
-    std::deque<Task> xshard_retries_;
+    AtomicParkedTasks xshard_retries_;
     std::deque<Task> ordered_deferred_;
     // Backpressure cannot turn a stale route into a dropped request/release. These queues contain
     // objects for shards this loop no longer owns and are serviced before ordinary inbox work.
