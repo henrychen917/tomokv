@@ -1,0 +1,2 @@
+  row budget: 1440s; median=-s; fifo-16-legs-60s-plus-30s-setup-each; txnorder FIFO live fairness
+  txnorder FIFO live fairness                          FAIL (see /home/user/Projects/cx-atomfix6/build/gate-run.GVlsOG/jobs/txnorder_fifo_live/fifo-*)

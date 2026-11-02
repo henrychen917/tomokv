@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound group
+  txnorder wound group                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound exec
+  txnorder wound exec                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound oom
+  txnorder wound oom                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder wound d2
+  txnorder wound d2                                    ok

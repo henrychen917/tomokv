@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-atomfix6/tests/execfair.py", line 380, in <module>
+    main()
+  File "/home/user/Projects/cx-atomfix6/tests/execfair.py", line 376, in main
+    asyncio.run(run_fifo(args) if args.fifo else run(args))
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-atomfix6/tests/execfair.py", line 222, in run_fifo
+    assert p99 <= bound99, ("plain p99 exceeds three FIFO cycles", p99, bound99)
+           ^^^^^^^^^^^^^^
+AssertionError: ('plain p99 exceeds three FIFO cycles', 0.0010059429332613945, 0.0008134621613358004)

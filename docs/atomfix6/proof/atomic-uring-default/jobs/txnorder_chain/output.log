@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain local
+  txnorder chain local                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain boundary
+  txnorder chain boundary                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain serve
+  txnorder chain serve                                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; txnorder chain hot
+  txnorder chain hot                                   ok

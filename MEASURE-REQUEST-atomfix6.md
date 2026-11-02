@@ -100,7 +100,7 @@ under ASAN/UBSAN and TSAN; these are assertions within those existing rows.
 **DQ=+20, DF=+20**. Maintainer-owned EXPECT_QUICK=1046 and EXPECT_FULL=1063
 are untouched; the new totals should be **1066 / 1083**. Collection is at
 `tests/gate.sh`'s `collect_job atomfix6_units` and following eight-arm loop,
-at lines 6549-6552, above the quick-tier exit at line 6893. The gate planner now permits one unchanged
+at lines 6563-6566, above the quick-tier exit at line 6907. The gate planner now permits one unchanged
 8-server/2-load slot for selected correctness jobs on this 13-core allocation;
 complete/performance gates retain their 16-core minimum. Its positive and
 negative planner tests and `tests/gates_test.py` cover that distinction.
@@ -222,5 +222,15 @@ PRE/POST objects and all four delivered binary arms were left untouched.
 The initial broad live FIFO run overlapped debug-section compression on the lane
 cores and failed latency bounds in several legs despite zero reported ordering
 violations and exact final values. The latency failures are retained, not waived.
-Complete PRE and POST FIFO jobs are queued with no concurrent lane compilation
-or artifact compression to distinguish a candidate defect from that overlap.
+The complete isolated controls then ran with no concurrent lane compilation or
+artifact compression. PRE passed 13/16 legs and failed three maximum-latency
+assertions (30.6, 50.0 and 53.1 ms against 20 ms); POST passed 15/16 and failed
+one (41.3 ms, databases 16 / 2s / atomic 1 / epoll). All 32 isolated legs had
+exact final values and zero ordering violations; all met their p99 bounds.
+The latency criterion remains unmet. No threshold was changed; both the
+initial failures and the isolated-control failures remain in the record. `fifo-comparison.json` retains every leg and its original assertions.
+
+The broad atomic group completed 133 passing rows and one failed FIFO latency
+row. This includes all 18 AT412 jobs, the atomic/torn/RYOW/owner-hazard batteries,
+both group modes, execfair, exec1s, FIFO units and all other transaction-order
+jobs. The isolated PRE/POST FIFO controls above retain that residual explicitly.
