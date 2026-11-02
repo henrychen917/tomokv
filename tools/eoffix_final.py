@@ -110,11 +110,11 @@ def main():
             maintenance()
     elif a.phase=='regressions':
         # Jobs with an internal all-mode/all-engine matrix run once.
-        internal = 'netcmd_units blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake persistfix_units tls netfix_tls slotless wb_mixed inline_quoted clientcompat-enable-race iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof'
+        internal = 'netcmd_units wb_rule_units wbland_units blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake persistfix_units tls netfix_tls slotless wb_mixed inline_quoted ntfix_input crlffix clientcompat-enable-race iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof'
         gate('final-internal', internal, binary=ROOT/'build/tomokv')
         maintenance()
         for engine in ['epoll','uring']:
-            live = 'feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 blockfix4 aoforder ntfix_input respcompat crlffix clientfix climonfix txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 fused-0 fused-1 txn_group_fused txn_group_split wb_policy'
+            live = 'feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 blockfix4 aoforder respcompat clientfix climonfix txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 fused-0 fused-1 txn_group_fused txn_group_split wb_policy'
             live += ' '+ ' '.join(f'respresume-{case}-{mode}-{engine}' for case in ['fragment','cpu','neighbour'] for mode in ['1s','2s'])
             live += ' '+ ' '.join(f'{job}-{mode}-{engine}' for job in ['multifix','climonfix4'] for mode in ['1s','2s'])
             gate('final-live-'+engine,live,engine,dict(GATE_SHUTDOWN_NET_IO=engine))
