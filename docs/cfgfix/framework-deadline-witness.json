@@ -1,0 +1,2069 @@
+{
+  "kind": "quiet-framework-failure-before-fixture-cpu-fix",
+  "result": 124,
+  "deadline_seconds": 45,
+  "outer_deadline_seconds": 50,
+  "fixture_cpus": [
+    44,
+    45,
+    46,
+    47
+  ],
+  "worker_cpus": [
+    44
+  ],
+  "production_source": "80a7559fda832169bbb70a71af6512c9042fd360",
+  "test_sha256": "97a33d5a710286d765f5051fd3a9129a13a976ac4a9e3a7345a4ac23f096a1fa",
+  "artifact_directory": "build/scheduler-failure-p8bhiaia",
+  "files": {
+    "scheduler.sh": {
+      "bytes": 302676,
+      "sha256": "0af621ed9d02748370cf581e2cbd2129293e637e246c959550ceddf93e1ef8c7"
+    },
+    "fixture.sh": {
+      "bytes": 302676,
+      "sha256": "0af621ed9d02748370cf581e2cbd2129293e637e246c959550ceddf93e1ef8c7"
+    },
+    "command.stdout": {
+      "bytes": 35610,
+      "sha256": "2f44fe9b574bf1564efda769aaac88abcdbacc63e25a4d8ec2822b6a9411750b"
+    },
+    "command.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ledger": {
+      "bytes": 10414,
+      "sha256": "7a66fb9d41968442e5acfc3e2f809d964e9d107914fe1b8d58f95d5a1e460751"
+    }
+  },
+  "jobs": [
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "abba_selftest\t0\t1793595304.718224822\t1793595304.863886378\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family abba_selftest\n",
+      "job": "abba_selftest"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "acl_metadata\t0\t1793595304.411982696\t1793595304.556113278\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family acl_metadata\n",
+      "job": "acl_metadata"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "acl_recheck\t0\t1793595328.009938996\t1793595328.154657378\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family acl_recheck\n",
+      "job": "acl_recheck"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "acl_subcommands\t0\t1793595327.225011763\t1793595327.369256373\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family acl_subcommands\n",
+      "job": "acl_subcommands"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "aclfix\t0\t1793595328.166956481\t1793595328.313011027\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family aclfix\n",
+      "job": "aclfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "aof-epoll\t0\t1793595316.299336182\t1793595316.443026072\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family aof-epoll\n",
+      "job": "aof-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "aof-uring\t0\t1793595316.451655122\t1793595316.595021109\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family aof-uring\n",
+      "job": "aof-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "aof_frame\t0\t1793595334.133371542\t1793595334.280053031\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family aof_frame\n",
+      "job": "aof_frame"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "aoforder\t0\t1793595334.292611594\t1793595334.435330639\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family aoforder\n",
+      "job": "aoforder"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "asan\t0\t1793595300.404049411\t1793595300.548001492\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family asan\n",
+      "job": "asan"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "asan_batteries\t0\t1793595336.975136293\t1793595337.120586757\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family asan_batteries\n",
+      "job": "asan_batteries"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T1\t0\t1793595308.681841799\t1793595308.826305111\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-T1\n",
+      "job": "at412-T1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T10\t0\t1793595310.048990912\t1793595310.191400487\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T10\n",
+      "job": "at412-T10"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T11a\t0\t1793595310.199318815\t1793595310.341756670\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T11a\n",
+      "job": "at412-T11a"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T11b\t0\t1793595310.349994828\t1793595310.492880005\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T11b\n",
+      "job": "at412-T11b"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T12\t0\t1793595310.501242994\t1793595310.645124474\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T12\n",
+      "job": "at412-T12"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T13\t0\t1793595310.653844264\t1793595310.799489921\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-T13\n",
+      "job": "at412-T13"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T14\t0\t1793595310.808657942\t1793595310.953912047\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T14\n",
+      "job": "at412-T14"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T15\t0\t1793595310.962590158\t1793595311.105685385\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-T15\n",
+      "job": "at412-T15"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T16\t0\t1793595311.114426445\t1793595311.257814014\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-T16\n",
+      "job": "at412-T16"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T2\t0\t1793595308.834922671\t1793595308.978929522\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-T2\n",
+      "job": "at412-T2"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T3\t0\t1793595308.987475482\t1793595309.130853560\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T3\n",
+      "job": "at412-T3"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T4\t0\t1793595309.139077878\t1793595309.281691044\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T4\n",
+      "job": "at412-T4"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T5\t0\t1793595309.289993233\t1793595309.432550829\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T5\n",
+      "job": "at412-T5"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T6\t0\t1793595309.440503877\t1793595309.584182696\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T6\n",
+      "job": "at412-T6"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T7\t0\t1793595309.592575195\t1793595309.736185324\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-T7\n",
+      "job": "at412-T7"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T8\t0\t1793595309.745443866\t1793595309.889239057\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-T8\n",
+      "job": "at412-T8"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-T9\t0\t1793595309.897459355\t1793595310.040750513\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family at412-T9\n",
+      "job": "at412-T9"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "at412-owner\t0\t1793595311.266232963\t1793595311.409922812\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family at412-owner\n",
+      "job": "at412-owner"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "atomfix5_accounting\t0\t1793595319.993711983\t1793595320.140215902\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family atomfix5_accounting\n",
+      "job": "atomfix5_accounting"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "atomfix5_watch\t0\t1793595319.839182667\t1793595319.985083313\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family atomfix5_watch\n",
+      "job": "atomfix5_watch"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "atomic_batteries\t0\t1793595344.023655121\t1793595344.177489994\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family atomic_batteries\n",
+      "job": "atomic_batteries"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "atomic_floor\t0\t1793595333.975051523\t1793595334.120561138\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family atomic_floor\n",
+      "job": "atomic_floor"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "atomic_units\t0\t1793595322.898520808\t1793595323.042237577\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family atomic_units\n",
+      "job": "atomic_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "auth\t0\t1793595329.739492235\t1793595329.884879280\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family auth\n",
+      "job": "auth"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "authfix\t0\t1793595329.896832731\t1793595330.041656783\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family authfix\n",
+      "job": "authfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "blockfix2\t0\t1793595315.077005486\t1793595315.220292284\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family blockfix2\n",
+      "job": "blockfix2"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "blockfix_mkstream\t0\t1793595315.533398401\t1793595315.677138461\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family blockfix_mkstream\n",
+      "job": "blockfix_mkstream"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "blockfix_registry\t0\t1793595315.381162073\t1793595315.524882112\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family blockfix_registry\n",
+      "job": "blockfix_registry"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "blockfix_structure\t0\t1793595315.229038004\t1793595315.372544853\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family blockfix_structure\n",
+      "job": "blockfix_structure"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "boot_grammar\t0\t1793595324.415507943\t1793595324.558184579\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family boot_grammar\n",
+      "job": "boot_grammar"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "bplus\t0\t1793595327.537478077\t1793595327.682680781\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family bplus\n",
+      "job": "bplus"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "bugs5\t0\t1793595304.883809508\t1793595305.027786308\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family bugs5\n",
+      "job": "bugs5"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "cfgfix\t0\t1793595303.330778625\t1793595303.475326128\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family cfgfix\n",
+      "job": "cfgfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "clientfix\t0\t1793595320.921203144\t1793595321.067860993\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family clientfix\n",
+      "job": "clientfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "climonfix\t0\t1793595320.766623007\t1793595320.912064562\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family climonfix\n",
+      "job": "climonfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "climonfix4-1s-epoll\t0\t1793595301.356871757\t1793595301.499577923\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family climonfix4-1s-epoll\n",
+      "job": "climonfix4-1s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "climonfix4-1s-uring\t0\t1793595301.055949679\t1793595301.198278185\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family climonfix4-1s-uring\n",
+      "job": "climonfix4-1s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "climonfix4-2s-epoll\t0\t1793595301.961097849\t1793595302.105093250\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family climonfix4-2s-epoll\n",
+      "job": "climonfix4-2s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "climonfix4-2s-uring\t0\t1793595301.657437272\t1793595301.800996842\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family climonfix4-2s-uring\n",
+      "job": "climonfix4-2s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "cmd_metadata\t0\t1793595304.564738958\t1793595304.710297264\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family cmd_metadata\n",
+      "job": "cmd_metadata"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "compat2\t0\t1793595325.500659849\t1793595325.646382435\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family compat2\n",
+      "job": "compat2"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "compat3\t0\t1793595325.658487127\t1793595325.803690311\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family compat3\n",
+      "job": "compat3"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "config_unit\t0\t1793595303.483787927\t1793595303.626973485\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family config_unit\n",
+      "job": "config_unit"
+    },
+    {
+      "done": "0\t0\t0\n",
+      "family.tsv": "core_tsan_build\t0\t1793595300.555540178\t1793595300.559696792\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "",
+      "job": "core_tsan_build"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "core_units\t0\t1793595320.148662841\t1793595320.293537524\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family core_units\n",
+      "job": "core_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "crlffix\t0\t1793595324.264268849\t1793595324.406882724\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family crlffix\n",
+      "job": "crlffix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix1_bitfield\t0\t1793595302.569472906\t1793595302.715349844\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family datafix1_bitfield\n",
+      "job": "datafix1_bitfield"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix1_geo\t0\t1793595303.178522965\t1793595303.322651697\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family datafix1_geo\n",
+      "job": "datafix1_geo"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix1_hexpire\t0\t1793595302.417675778\t1793595302.560880166\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family datafix1_hexpire\n",
+      "job": "datafix1_hexpire"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix1_lists\t0\t1793595302.875207750\t1793595303.018552139\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family datafix1_lists\n",
+      "job": "datafix1_lists"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix1_locale\t0\t1793595302.723701673\t1793595302.866689830\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family datafix1_locale\n",
+      "job": "datafix1_locale"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix1_randscan\t0\t1793595302.265823049\t1793595302.408957418\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family datafix1_randscan\n",
+      "job": "datafix1_randscan"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix1_spop\t0\t1793595303.026369156\t1793595303.169950615\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family datafix1_spop\n",
+      "job": "datafix1_spop"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix2_encoding\t0\t1793595326.128463858\t1793595326.272710188\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family datafix2_encoding\n",
+      "job": "datafix2_encoding"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix2_idle\t0\t1793595326.598529809\t1793595326.743810763\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family datafix2_idle\n",
+      "job": "datafix2_idle"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix2_notouch\t0\t1793595325.971885065\t1793595326.116784278\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family datafix2_notouch\n",
+      "job": "datafix2_notouch"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix2_subkeys\t0\t1793595326.284562120\t1793595326.429839214\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family datafix2_subkeys\n",
+      "job": "datafix2_subkeys"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "datafix2_watch\t0\t1793595326.441790015\t1793595326.586589258\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family datafix2_watch\n",
+      "job": "datafix2_watch"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "dbdefault\t0\t1793595324.566770559\t1793595324.709440154\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family dbdefault\n",
+      "job": "dbdefault"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "debug-0\t0\t1793595317.525109550\t1793595317.667455294\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family debug-0\n",
+      "job": "debug-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "debug-1\t0\t1793595317.675952154\t1793595317.819483413\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family debug-1\n",
+      "job": "debug-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "differ-armed-0\t0\t1793595305.337859507\t1793595305.481273366\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tRedis 7.4 differential part (armed fused, atomic 0)\n",
+      "job": "differ-armed-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "differ-armed-1\t0\t1793595305.489984596\t1793595305.634363368\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+      "job": "differ-armed-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "differ-equivalence\t0\t1793595305.643317529\t1793595305.786992009\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tmode equivalence part (all execution modes and knobs)\n",
+      "job": "differ-equivalence"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "differ-split-0\t0\t1793595305.035522055\t1793595305.178838904\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tRedis 7.4 differential part (split, atomic 0)\n",
+      "job": "differ-split-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "differ-split-1\t0\t1793595305.186916952\t1793595305.330117890\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tRedis 7.4 differential part (split, atomic 1)\n",
+      "job": "differ-split-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "dispatch_arity\t0\t1793595326.755947175\t1793595326.900404026\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family dispatch_arity\n",
+      "job": "dispatch_arity"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "dispatch_children\t0\t1793595327.069022242\t1793595327.213351182\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family dispatch_children\n",
+      "job": "dispatch_children"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "dispatch_errors\t0\t1793595326.912375678\t1793595327.056727209\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family dispatch_errors\n",
+      "job": "dispatch_errors"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "dump_restore\t0\t1793595329.268769293\t1793595329.413636405\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family dump_restore\n",
+      "job": "dump_restore"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "efficiency\t0\t1793595329.111469827\t1793595329.256784231\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family efficiency\n",
+      "job": "efficiency"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lfu-armed-0\t0\t1793595306.556421565\t1793595306.700283815\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\teviction lfu battery (fused+armed, atomic 0)\n",
+      "job": "evict-lfu-armed-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lfu-armed-1\t0\t1793595306.859825050\t1793595307.002613847\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\teviction lfu battery (fused+armed, atomic 1)\n",
+      "job": "evict-lfu-armed-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lfu-split-0\t0\t1793595306.403956695\t1793595306.547662425\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\teviction lfu battery (split, atomic 0)\n",
+      "job": "evict-lfu-split-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lfu-split-1\t0\t1793595306.708677315\t1793595306.851847413\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\teviction lfu battery (split, atomic 1)\n",
+      "job": "evict-lfu-split-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lruclock-armed-0\t0\t1793595305.948844122\t1793595306.091815259\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\teviction lruclock battery (fused+armed, atomic 0)\n",
+      "job": "evict-lruclock-armed-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lruclock-armed-1\t0\t1793595306.251439145\t1793595306.395843217\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\teviction lruclock battery (fused+armed, atomic 1)\n",
+      "job": "evict-lruclock-armed-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lruclock-split-0\t0\t1793595305.795935490\t1793595305.940880214\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\teviction lruclock battery (split, atomic 0)\n",
+      "job": "evict-lruclock-split-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "evict-lruclock-split-1\t0\t1793595306.099901857\t1793595306.242859624\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\teviction lruclock battery (split, atomic 1)\n",
+      "job": "evict-lruclock-split-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "exbatch_live\t0\t1793595322.292179563\t1793595322.434491817\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family exbatch_live\n",
+      "job": "exbatch_live"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "exbatch_units\t0\t1793595322.141435810\t1793595322.283786934\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family exbatch_units\n",
+      "job": "exbatch_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "exec1s\t0\t1793595335.563808881\t1793595335.709169205\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family exec1s\n",
+      "job": "exec1s"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "execfair\t0\t1793595335.406063964\t1793595335.551083397\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family execfair\n",
+      "job": "execfair"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-armed-0\t0\t1793595313.395576353\t1793595313.541289410\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfused+armed boot line (atomic 0)\n",
+      "job": "feature-armed-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-armed-1\t0\t1793595313.700835994\t1793595313.844074052\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfused+armed boot line (atomic 1)\n",
+      "job": "feature-armed-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-0-0-0\t0\t1793595337.773379679\t1793595337.921698913\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-0-0-0-0\n",
+      "job": "feature-cell-1s-0-0-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-0-0-1\t0\t1793595337.934631758\t1793595338.078917698\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-0-0-0-1\n",
+      "job": "feature-cell-1s-0-0-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-0-1-0\t0\t1793595338.091530611\t1793595338.234355966\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 1s-0-0-1-0\n",
+      "job": "feature-cell-1s-0-0-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-0-1-1\t0\t1793595338.247398942\t1793595338.391040419\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 1s-0-0-1-1\n",
+      "job": "feature-cell-1s-0-0-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-1-0-0\t0\t1793595338.403617003\t1793595338.548676615\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-0-1-0-0\n",
+      "job": "feature-cell-1s-0-1-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-1-0-1\t0\t1793595338.561808261\t1793595338.709024621\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-0-1-0-1\n",
+      "job": "feature-cell-1s-0-1-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-1-1-0\t0\t1793595338.722017706\t1793595338.870152089\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-0-1-1-0\n",
+      "job": "feature-cell-1s-0-1-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-0-1-1-1\t0\t1793595338.884296718\t1793595339.035002421\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 1s-0-1-1-1\n",
+      "job": "feature-cell-1s-0-1-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-0-0-0\t0\t1793595339.048637078\t1793595339.197082312\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-1-0-0-0\n",
+      "job": "feature-cell-1s-1-0-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-0-0-1\t0\t1793595339.210313448\t1793595339.358472052\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-1-0-0-1\n",
+      "job": "feature-cell-1s-1-0-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-0-1-0\t0\t1793595339.372118409\t1793595339.520092092\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-1-0-1-0\n",
+      "job": "feature-cell-1s-1-0-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-0-1-1\t0\t1793595339.534127240\t1793595339.685787506\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 1s-1-0-1-1\n",
+      "job": "feature-cell-1s-1-0-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-1-0-0\t0\t1793595339.699761934\t1793595339.849586013\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-1-1-0-0\n",
+      "job": "feature-cell-1s-1-1-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-1-0-1\t0\t1793595339.863487641\t1793595340.012672778\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-1-1-0-1\n",
+      "job": "feature-cell-1s-1-1-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-1-1-0\t0\t1793595340.027703560\t1793595340.178456322\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-1-1-1-0\n",
+      "job": "feature-cell-1s-1-1-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-1s-1-1-1-1\t0\t1793595340.192554571\t1793595340.337295963\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 1s-1-1-1-1\n",
+      "job": "feature-cell-1s-1-1-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-0-0-0\t0\t1793595340.350415428\t1793595340.497094606\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 2s-0-0-0-0\n",
+      "job": "feature-cell-2s-0-0-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-0-0-1\t0\t1793595340.511625836\t1793595340.662971091\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-0-0-0-1\n",
+      "job": "feature-cell-2s-0-0-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-0-1-0\t0\t1793595340.677136830\t1793595340.826590698\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 2s-0-0-1-0\n",
+      "job": "feature-cell-2s-0-0-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-0-1-1\t0\t1793595340.839717303\t1793595340.986466962\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 2s-0-0-1-1\n",
+      "job": "feature-cell-2s-0-0-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-1-0-0\t0\t1793595341.001038072\t1793595341.148849724\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-0-1-0-0\n",
+      "job": "feature-cell-2s-0-1-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-1-0-1\t0\t1793595341.163243524\t1793595341.309430940\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-0-1-0-1\n",
+      "job": "feature-cell-2s-0-1-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-1-1-0\t0\t1793595341.322375215\t1793595341.467507858\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-0-1-1-0\n",
+      "job": "feature-cell-2s-0-1-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-0-1-1-1\t0\t1793595341.480533293\t1793595341.628656226\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-0-1-1-1\n",
+      "job": "feature-cell-2s-0-1-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-0-0-0\t0\t1793595341.641674022\t1793595341.788709641\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-1-0-0-0\n",
+      "job": "feature-cell-2s-1-0-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-0-0-1\t0\t1793595341.802113437\t1793595341.947485541\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-1-0-0-1\n",
+      "job": "feature-cell-2s-1-0-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-0-1-0\t0\t1793595341.960430635\t1793595342.104671915\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 2s-1-0-1-0\n",
+      "job": "feature-cell-2s-1-0-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-0-1-1\t0\t1793595342.117939931\t1793595342.265418052\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 2s-1-0-1-1\n",
+      "job": "feature-cell-2s-1-0-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-1-0-0\t0\t1793595342.278726718\t1793595342.426194319\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-1-1-0-0\n",
+      "job": "feature-cell-2s-1-1-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-1-0-1\t0\t1793595342.439236794\t1793595342.583320423\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tfeature 2s-1-1-0-1\n",
+      "job": "feature-cell-2s-1-1-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-1-1-0\t0\t1793595342.596169358\t1793595342.741337471\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-1-1-1-0\n",
+      "job": "feature-cell-2s-1-1-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-2s-1-1-1-1\t0\t1793595342.754589616\t1793595342.899299138\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature 2s-1-1-1-1\n",
+      "job": "feature-cell-2s-1-1-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-fused-home-max-nopin\t0\t1793595343.703530903\t1793595343.850878123\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature fused-home-max-nopin\n",
+      "job": "feature-cell-fused-home-max-nopin"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-split-home-min\t0\t1793595343.543451218\t1793595343.690585758\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature split-home-min\n",
+      "job": "feature-cell-split-home-min"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-cell-split-shards-auto\t0\t1793595343.863957159\t1793595344.011425349\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tfeature split-shards-auto\n",
+      "job": "feature-cell-split-shards-auto"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-split-0\t0\t1793595313.241715899\t1793595313.386759483\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\ts6 battery (atomic 0)\n",
+      "job": "feature-split-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "feature-split-1\t0\t1793595313.549774989\t1793595313.692522196\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\ts6 battery (atomic 1)\n",
+      "job": "feature-split-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "filter_unit\t0\t1793595303.787057982\t1793595303.931334234\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family filter_unit\n",
+      "job": "filter_unit"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flip\t0\t1793595333.185557716\t1793595333.331643563\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family flip\n",
+      "job": "flip"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flip_saturated\t0\t1793595333.501744042\t1793595333.644826698\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family flip_saturated\n",
+      "job": "flip_saturated"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flip_unit\t0\t1793595303.634749703\t1793595303.779049685\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family flip_unit\n",
+      "job": "flip_unit"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flipctl\t0\t1793595307.617393825\t1793595307.761090135\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tflip controller: ramp gate, hold, surge + mix re-maneuvers\n",
+      "job": "flipctl"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flipfix5\t0\t1793595333.657203731\t1793595333.802272624\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family flipfix5\n",
+      "job": "flipfix5"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flipfix5_units\t0\t1793595320.456606680\t1793595320.601891355\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family flipfix5_units\n",
+      "job": "flipfix5_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flipfix6\t0\t1793595333.815458700\t1793595333.962360809\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family flipfix6\n",
+      "job": "flipfix6"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flipfix6_units\t0\t1793595320.611506068\t1793595320.758161478\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family flipfix6_units\n",
+      "job": "flipfix6_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flipfix_units\t0\t1793595320.302544986\t1793595320.447536669\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family flipfix_units\n",
+      "job": "flipfix_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "fliplisten\t0\t1793595333.344423427\t1793595333.489460730\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family fliplisten\n",
+      "job": "fliplisten"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flushfix2\t0\t1793595307.312029533\t1793595307.455301131\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family flushfix2\n",
+      "job": "flushfix2"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flushfix2_units\t0\t1793595307.464063671\t1793595307.608395533\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family flushfix2_units\n",
+      "job": "flushfix2_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flushfix3\t0\t1793595307.010635135\t1793595307.153434521\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family flushfix3\n",
+      "job": "flushfix3"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "flushfix3_units\t0\t1793595307.161470779\t1793595307.303661764\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family flushfix3_units\n",
+      "job": "flushfix3_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "fused-0\t0\t1793595334.764095779\t1793595334.916193806\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family fused-0\n",
+      "job": "fused-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "fused-1\t0\t1793595334.928304388\t1793595335.076022070\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family fused-1\n",
+      "job": "fused-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "globcase\t0\t1793595337.614237697\t1793595337.760564955\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family globcase\n",
+      "job": "globcase"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "hexpread\t0\t1793595325.343382854\t1793595325.488877428\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family hexpread\n",
+      "job": "hexpread"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "infofix_compat-docs\t0\t1793595343.223035089\t1793595343.368162231\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family infofix_compat-docs\n",
+      "job": "infofix_compat-docs"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "infofix_compat-loadaof\t0\t1793595343.381378697\t1793595343.530017732\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family infofix_compat-loadaof\n",
+      "job": "infofix_compat-loadaof"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "infofix_compat-missing\t0\t1793595343.066580667\t1793595343.210037414\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family infofix_compat-missing\n",
+      "job": "infofix_compat-missing"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "infofix_latency\t0\t1793595342.912000222\t1793595343.053997953\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family infofix_latency\n",
+      "job": "infofix_latency"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "inline_quoted\t0\t1793595308.529163408\t1793595308.673135158\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family inline_quoted\n",
+      "job": "inline_quoted"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "iofix-deferred\t0\t1793595317.828883355\t1793595317.974347491\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family iofix-deferred\n",
+      "job": "iofix-deferred"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "iofix-hz\t0\t1793595317.983290542\t1793595318.129299139\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family iofix-hz\n",
+      "job": "iofix-hz"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "iofix-signal\t0\t1793595318.293028387\t1793595318.437586359\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family iofix-signal\n",
+      "job": "iofix-signal"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "iofix-sleep\t0\t1793595318.138462021\t1793595318.283580374\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family iofix-sleep\n",
+      "job": "iofix-sleep"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "latencyfix_grammar\t0\t1793595330.053933216\t1793595330.198602618\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family latencyfix_grammar\n",
+      "job": "latencyfix_grammar"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "latencyfix_off\t0\t1793595330.368268287\t1793595330.511586893\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family latencyfix_off\n",
+      "job": "latencyfix_off"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "latencyfix_shape\t0\t1793595330.210787850\t1793595330.355802753\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family latencyfix_shape\n",
+      "job": "latencyfix_shape"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "lb-stationary-1s\t0\t1793595319.063112662\t1793595319.207367473\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family lb-stationary-1s\n",
+      "job": "lb-stationary-1s"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "lb-stationary-2s\t0\t1793595319.216595525\t1793595319.362393131\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family lb-stationary-2s\n",
+      "job": "lb-stationary-2s"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "lbplanner_units\t0\t1793595321.990201175\t1793595322.132725030\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family lbplanner_units\n",
+      "job": "lbplanner_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "lualibs\t0\t1793595328.953397769\t1793595329.099097724\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family lualibs\n",
+      "job": "lualibs"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "maxmemrace\t0\t1793595300.755699814\t1793595300.898673262\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family maxmemrace\n",
+      "job": "maxmemrace"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "moverfix\t0\t1793595325.184780133\t1793595325.330966201\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family moverfix\n",
+      "job": "moverfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-1s-0-0\t0\t1793595313.852856153\t1793595313.995989430\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multidb-1s-0-0\n",
+      "job": "multidb-1s-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-1s-0-1\t0\t1793595314.004713230\t1793595314.149496153\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multidb-1s-0-1\n",
+      "job": "multidb-1s-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-1s-1-0\t0\t1793595314.158200483\t1793595314.301855573\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family multidb-1s-1-0\n",
+      "job": "multidb-1s-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-1s-1-1\t0\t1793595314.310500093\t1793595314.455051095\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family multidb-1s-1-1\n",
+      "job": "multidb-1s-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-2s-0-0\t0\t1793595314.464274557\t1793595314.610298284\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multidb-2s-0-0\n",
+      "job": "multidb-2s-0-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-2s-0-1\t0\t1793595314.619263425\t1793595314.764729721\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family multidb-2s-0-1\n",
+      "job": "multidb-2s-0-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-2s-1-0\t0\t1793595314.773615872\t1793595314.916792219\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multidb-2s-1-0\n",
+      "job": "multidb-2s-1-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multidb-2s-1-1\t0\t1793595314.925159759\t1793595315.068701337\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multidb-2s-1-1\n",
+      "job": "multidb-2s-1-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multifix-1s-epoll\t0\t1793595301.205815991\t1793595301.348388267\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multifix-1s-epoll\n",
+      "job": "multifix-1s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multifix-1s-uring\t0\t1793595300.906269278\t1793595301.048304893\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multifix-1s-uring\n",
+      "job": "multifix-1s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multifix-2s-epoll\t0\t1793595301.809404031\t1793595301.952815251\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family multifix-2s-epoll\n",
+      "job": "multifix-2s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "multifix-2s-uring\t0\t1793595301.507203440\t1793595301.649483805\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family multifix-2s-uring\n",
+      "job": "multifix-2s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netcap\t0\t1793595323.202527224\t1793595323.345294099\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family netcap\n",
+      "job": "netcap"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netcmd_units\t0\t1793595323.050615556\t1793595323.194244835\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family netcmd_units\n",
+      "job": "netcmd_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netfix_config\t0\t1793595323.657520013\t1793595323.800873400\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family netfix_config\n",
+      "job": "netfix_config"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netfix_idle_buffers\t0\t1793595323.960479904\t1793595324.104111363\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family netfix_idle_buffers\n",
+      "job": "netfix_idle_buffers"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netfix_query_stats\t0\t1793595323.354009579\t1793595323.497761298\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family netfix_query_stats\n",
+      "job": "netfix_query_stats"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netfix_tls\t0\t1793595323.809425830\t1793595323.951681254\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family netfix_tls\n",
+      "job": "netfix_tls"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netfix_unix\t0\t1793595323.506295708\t1793595323.648808122\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family netfix_unix\n",
+      "job": "netfix_unix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netio-1s\t0\t1793595318.601182577\t1793595318.746754453\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family netio-1s\n",
+      "job": "netio-1s"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "netio-2s\t0\t1793595318.755577114\t1793595318.900004915\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family netio-2s\n",
+      "job": "netio-2s"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "notify\t0\t1793595331.926236490\t1793595332.069477326\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family notify\n",
+      "job": "notify"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "notify_aof\t0\t1793595332.709290755\t1793595332.854737119\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family notify_aof\n",
+      "job": "notify_aof"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "notify_order\t0\t1793595332.551395417\t1793595332.696814842\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family notify_order\n",
+      "job": "notify_order"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "notifycompat\t0\t1793595332.081480598\t1793595332.224626674\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family notifycompat\n",
+      "job": "notifycompat"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "ntfix_input\t0\t1793595334.605248178\t1793595334.751134014\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family ntfix_input\n",
+      "job": "ntfix_input"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "ntnew4_live\t0\t1793595321.838767659\t1793595321.981618955\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family ntnew4_live\n",
+      "job": "ntnew4_live"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "perfex_live\t0\t1793595321.688490488\t1793595321.830620811\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family perfex_live\n",
+      "job": "perfex_live"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "perfex_units\t0\t1793595321.536507370\t1793595321.679990228\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family perfex_units\n",
+      "job": "perfex_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "perfio_stream\t0\t1793595318.909156127\t1793595319.053822249\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family perfio_stream\n",
+      "job": "perfio_stream"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "persistfix2_commands\t0\t1793595315.991505533\t1793595316.136355306\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family persistfix2_commands\n",
+      "job": "persistfix2_commands"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "persistfix2_errors\t0\t1793595316.145566948\t1793595316.290381451\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family persistfix2_errors\n",
+      "job": "persistfix2_errors"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "persistfix2_lastsave\t0\t1793595315.685881401\t1793595315.828892958\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family persistfix2_lastsave\n",
+      "job": "persistfix2_lastsave"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "persistfix2_shutdown\t0\t1793595315.837898359\t1793595315.982279651\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family persistfix2_shutdown\n",
+      "job": "persistfix2_shutdown"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "persistfix_units\t0\t1793595321.382916777\t1793595321.527194248\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family persistfix_units\n",
+      "job": "persistfix_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "persistfmt\t0\t1793595329.425502337\t1793595329.569644206\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family persistfmt\n",
+      "job": "persistfmt"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "persistfmt_aof_error\t0\t1793595329.581628258\t1793595329.727298413\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family persistfmt_aof_error\n",
+      "job": "persistfmt_aof_error"
+    },
+    {
+      "done": "0\t0\t0\n",
+      "family.tsv": "production_units\t0\t1793595304.247153943\t1793595304.251789739\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "",
+      "job": "production_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "pubtrackfix\t0\t1793595300.603948177\t1793595300.747030564\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family pubtrackfix\n",
+      "job": "pubtrackfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "racefix_climon\t0\t1793595321.229251953\t1793595321.373726595\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family racefix_climon\n",
+      "job": "racefix_climon"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "racefix_counters\t0\t1793595321.076933174\t1793595321.219972441\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family racefix_counters\n",
+      "job": "racefix_counters"
+    },
+    {
+      "done": "0\t0\t0\n",
+      "family.tsv": "racefix_tsan_build\t0\t1793595300.578942830\t1793595300.583156074\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "",
+      "job": "racefix_tsan_build"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "readonly\t0\t1793595324.872653200\t1793595325.017768674\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family readonly\n",
+      "job": "readonly"
+    },
+    {
+      "done": "0\t0\t0\n",
+      "family.tsv": "redis_tcl\t0\t1793595304.871971627\t1793595304.876237971\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "",
+      "job": "redis_tcl"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "release\t0\t1793595300.250016255\t1793595300.395798272\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family release\n",
+      "job": "release"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "release_batteries\t0\t1793595325.026326614\t1793595325.172717351\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family release_batteries\n",
+      "job": "release_batteries"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "reorder_bounds\t0\t1793595307.921288933\t1793595308.064279701\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family reorder_bounds\n",
+      "job": "reorder_bounds"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "reorder_engagement\t0\t1793595319.527576045\t1793595319.673887263\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family reorder_engagement\n",
+      "job": "reorder_engagement"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "reorder_identity\t0\t1793595319.682932754\t1793595319.830568627\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family reorder_identity\n",
+      "job": "reorder_identity"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "reorder_sync\t0\t1793595319.371696163\t1793595319.518306913\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family reorder_sync\n",
+      "job": "reorder_sync"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "replyoff\t0\t1793595337.133150100\t1793595337.277578421\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family replyoff\n",
+      "job": "replyoff"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respcompat\t0\t1793595324.112903913\t1793595324.255609228\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family respcompat\n",
+      "job": "respcompat"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-cpu-1s-epoll\t0\t1793595312.024355688\t1793595312.168000587\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family respresume-cpu-1s-epoll\n",
+      "job": "respresume-cpu-1s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-cpu-1s-uring\t0\t1793595312.177051299\t1793595312.321176020\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family respresume-cpu-1s-uring\n",
+      "job": "respresume-cpu-1s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-cpu-2s-epoll\t0\t1793595312.329890850\t1793595312.474212602\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family respresume-cpu-2s-epoll\n",
+      "job": "respresume-cpu-2s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-cpu-2s-uring\t0\t1793595312.482821541\t1793595312.625949739\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family respresume-cpu-2s-uring\n",
+      "job": "respresume-cpu-2s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-fragment-1s-epoll\t0\t1793595311.417993931\t1793595311.561404919\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family respresume-fragment-1s-epoll\n",
+      "job": "respresume-fragment-1s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-fragment-1s-uring\t0\t1793595311.570248280\t1793595311.713951049\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family respresume-fragment-1s-uring\n",
+      "job": "respresume-fragment-1s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-fragment-2s-epoll\t0\t1793595311.722488389\t1793595311.865602026\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family respresume-fragment-2s-epoll\n",
+      "job": "respresume-fragment-2s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-fragment-2s-uring\t0\t1793595311.873861265\t1793595312.016409800\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family respresume-fragment-2s-uring\n",
+      "job": "respresume-fragment-2s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-neighbour-1s-epoll\t0\t1793595312.634278378\t1793595312.777044124\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family respresume-neighbour-1s-epoll\n",
+      "job": "respresume-neighbour-1s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-neighbour-1s-uring\t0\t1793595312.785011912\t1793595312.929077852\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family respresume-neighbour-1s-uring\n",
+      "job": "respresume-neighbour-1s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-neighbour-2s-epoll\t0\t1793595312.937819703\t1793595313.080870680\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family respresume-neighbour-2s-epoll\n",
+      "job": "respresume-neighbour-2s-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "respresume-neighbour-2s-uring\t0\t1793595313.089435550\t1793595313.233111819\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family respresume-neighbour-2s-uring\n",
+      "job": "respresume-neighbour-2s-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "ring_unit\t0\t1793595303.939406832\t1793595304.086672005\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family ring_unit\n",
+      "job": "ring_unit"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "rlcache\t0\t1793595337.451149772\t1793595337.601424923\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family rlcache\n",
+      "job": "rlcache"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "rldbg\t0\t1793595302.113394029\t1793595302.257314600\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family rldbg\n",
+      "job": "rldbg"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "rlfix3_info\t0\t1793595327.852093698\t1793595327.997906854\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family rlfix3_info\n",
+      "job": "rlfix3_info"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "rlfix3_zc\t0\t1793595327.694790213\t1793595327.840082237\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family rlfix3_zc\n",
+      "job": "rlfix3_zc"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "rob_portable\t0\t1793595308.073206422\t1793595308.216945972\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family rob_portable\n",
+      "job": "rob_portable"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "router_uniform\t0\t1793595327.381144834\t1793595327.525707646\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family router_uniform\n",
+      "job": "router_uniform"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "script_bounds\t0\t1793595328.482310255\t1793595328.627978920\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family script_bounds\n",
+      "job": "script_bounds"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "scriptfix\t0\t1793595328.639879331\t1793595328.784916295\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family scriptfix\n",
+      "job": "scriptfix"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "scriptfix2\t0\t1793595328.796871476\t1793595328.941458527\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family scriptfix2\n",
+      "job": "scriptfix2"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_acllog\t0\t1793595331.771631593\t1793595331.913838276\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family serverfix_acllog\n",
+      "job": "serverfix_acllog"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_config\t0\t1793595330.987155913\t1793595331.132155476\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family serverfix_config\n",
+      "job": "serverfix_config"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_hello\t0\t1793595331.144155027\t1793595331.289006100\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family serverfix_hello\n",
+      "job": "serverfix_hello"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_hll\t0\t1793595331.457879065\t1793595331.602793028\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family serverfix_hll\n",
+      "job": "serverfix_hll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_lines\t0\t1793595330.677303538\t1793595330.819512421\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family serverfix_lines\n",
+      "job": "serverfix_lines"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_scalar\t0\t1793595330.831803074\t1793595330.974661250\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family serverfix_scalar\n",
+      "job": "serverfix_scalar"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_slowlog\t0\t1793595331.614895830\t1793595331.759593981\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family serverfix_slowlog\n",
+      "job": "serverfix_slowlog"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "serverfix_waitaof\t0\t1793595331.301209092\t1793595331.445717593\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family serverfix_waitaof\n",
+      "job": "serverfix_waitaof"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "slotless\t0\t1793595308.225432982\t1793595308.369048721\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family slotless\n",
+      "job": "slotless"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "snapfix2_tables\t0\t1793595317.372663671\t1793595317.516857342\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family snapfix2_tables\n",
+      "job": "snapfix2_tables"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "snapfix_bgsave_exec\t0\t1793595317.218770586\t1793595317.363232678\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family snapfix_bgsave_exec\n",
+      "job": "snapfix_bgsave_exec"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "snapfix_bgsave_script\t0\t1793595317.065771285\t1793595317.209468664\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family snapfix_bgsave_script\n",
+      "job": "snapfix_bgsave_script"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "snapfix_shutdown\t0\t1793595316.913119225\t1793595317.056943634\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family snapfix_shutdown\n",
+      "job": "snapfix_shutdown"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "snapshot-epoll\t0\t1793595316.604168331\t1793595316.748305652\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family snapshot-epoll\n",
+      "job": "snapshot-epoll"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "snapshot-uring\t0\t1793595316.757628154\t1793595316.903911653\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family snapshot-uring\n",
+      "job": "snapshot-uring"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "sort\t0\t1793595328.324907509\t1793595328.470229353\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family sort\n",
+      "job": "sort"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "source_identity\t0\t1793595304.259865267\t1793595304.403386356\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family source_identity\n",
+      "job": "source_identity"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "splitlocal_units\t0\t1793595322.748357887\t1793595322.890256329\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family splitlocal_units\n",
+      "job": "splitlocal_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "storage_units\t0\t1793595304.094929363\t1793595304.238387023\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family storage_units\n",
+      "job": "storage_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "streamfix\t0\t1793595325.815626842\t1793595325.959852063\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family streamfix\n",
+      "job": "streamfix"
+    },
+    {
+      "done": "0\t0\t0\n",
+      "family.tsv": "tailgen_build\t0\t1793595300.591199902\t1793595300.595980599\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "",
+      "job": "tailgen_build"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "tls\t0\t1793595334.448211674\t1793595334.592187973\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family tls\n",
+      "job": "tls"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "trackfix_accounting\t0\t1793595332.867160792\t1793595333.013378739\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family trackfix_accounting\n",
+      "job": "trackfix_accounting"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "trackfix_order\t0\t1793595333.026159863\t1793595333.172547131\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family trackfix_order\n",
+      "job": "trackfix_order"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "tracking_redirect\t0\t1793595332.237022917\t1793595332.381825009\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family tracking_redirect\n",
+      "job": "tracking_redirect"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "trackorder\t0\t1793595332.394057772\t1793595332.539213035\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family trackorder\n",
+      "job": "trackorder"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txn_group_fused\t0\t1793595335.088737304\t1793595335.234403979\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family txn_group_fused\n",
+      "job": "txn_group_fused"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txn_group_split\t0\t1793595335.247556585\t1793595335.393366790\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family txn_group_split\n",
+      "job": "txn_group_split"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder-fused-0\t0\t1793595336.349628445\t1793595336.491158985\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family txnorder-fused-0\n",
+      "job": "txnorder-fused-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder-fused-1\t0\t1793595336.503445428\t1793595336.647206296\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family txnorder-fused-1\n",
+      "job": "txnorder-fused-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder-split-0\t0\t1793595336.659593399\t1793595336.803849409\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family txnorder-split-0\n",
+      "job": "txnorder-split-0"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder-split-1\t0\t1793595336.816323962\t1793595336.962741890\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family txnorder-split-1\n",
+      "job": "txnorder-split-1"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder2\t0\t1793595336.037298532\t1793595336.181694483\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family txnorder2\n",
+      "job": "txnorder2"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder_index\t0\t1793595335.721854479\t1793595335.867190902\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family txnorder_index\n",
+      "job": "txnorder_index"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder_wake\t0\t1793595336.194014775\t1793595336.337396102\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family txnorder_wake\n",
+      "job": "txnorder_wake"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "txnorder_wound\t0\t1793595335.879984707\t1793595336.025010069\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family txnorder_wound\n",
+      "job": "txnorder_wound"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "wait_units\t0\t1793595324.718224944\t1793595324.863823090\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family wait_units\n",
+      "job": "wait_units"
+    },
+    {
+      "done": "0\t0\t0\n",
+      "family.tsv": "waits_tsan_build\t0\t1793595300.566830877\t1793595300.571264033\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "",
+      "job": "waits_tsan_build"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "wave8b_off\t0\t1793595330.523544995\t1793595330.665257277\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family wave8b_off\n",
+      "job": "wave8b_off"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "wb_mixed\t0\t1793595308.377026419\t1793595308.520702178\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family wb_mixed\n",
+      "job": "wb_mixed"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "wb_policy\t0\t1793595318.446904982\t1793595318.592478197\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family wb_policy\n",
+      "job": "wb_policy"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "wb_rule_units\t0\t1793595322.443383128\t1793595322.588004190\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family wb_rule_units\n",
+      "job": "wb_rule_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "wbland_units\t0\t1793595322.596544670\t1793595322.739538626\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.000000\tcorrectness family wbland_units\n",
+      "job": "wbland_units"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "witness_contracts\t0\t1793595307.769351024\t1793595307.913149835\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family witness_contracts\n",
+      "job": "witness_contracts"
+    },
+    {
+      "done": "0\t1\t0\n",
+      "family.tsv": "zc\t0\t1793595337.290258715\t1793595337.437921786\n",
+      "fixture-affinity": "0\t44\n",
+      "ledger": "ok\t0.010000\tcorrectness family zc\n",
+      "job": "zc"
+    }
+  ],
+  "started": 289,
+  "completed": 289,
+  "collected_ledger_rows": 229,
+  "framework_log_sha256": "a698cddd83cbff2c656fa1f07231b0394f098a4863ebd45545288afddf43e9d1"
+}
