@@ -247,8 +247,10 @@ rootcore functions, segments, WAITAOF and MISCONF jobs, plus
 unchanged. The function history checks cover the existing persistence drain's
 interaction with snapshot sealing.
 
-The broad `complete-live-epoll` matrix passes all 226 gate rows, covering the
+Both broad `complete-live-{epoll,uring}` matrices pass all 226 gate rows each, covering the
 four feature batteries, transaction/AOF ordering, client and monitor controls,
-blocking scripts, protocol errors, buffered parsing and reply policy. Its raw
-run is `build/gate-run.Sp1JIE`. Separate persistence/release matrices and the
-equivalent uring jobs are still running or queued.
+blocking scripts, protocol errors, buffered parsing and reply policy. Their raw
+runs are `build/gate-run.Sp1JIE` and `build/gate-run.uryRDw`. All four separate
+persistence/release matrices (both modes and both engines) pass all 85 rows each.
+The internal matrix reports 179 passing rows and the two retained failures
+described above: comment parity and FIFO latency.

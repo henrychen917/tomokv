@@ -63,3 +63,29 @@ data-gate-run.Sp1JIE-txnorder-fused-1.tar.gz preserved bytes 48651088
 data-gate-run.Sp1JIE-txnorder-split-0.tar.gz preserved bytes 50927556
 data-gate-run.Sp1JIE-txnorder-split-1.tar.gz preserved bytes 21315901
 identical private tool copies shared: 550
+complete-mode-epoll-0 exit 0
+data-gate-run.aVQDpt-aof-epoll.tar.gz preserved bytes 541583600
+data-gate-run.aVQDpt-aof_frame.tar.gz preserved bytes 35674362
+data-gate-run.aVQDpt-snapshot-epoll.tar.gz preserved bytes 130694632
+identical private tool copies shared: 550
+complete-mode-epoll-1 exit 0
+data-gate-run.wqcUMO-aof-epoll.tar.gz preserved bytes 541560806
+data-gate-run.wqcUMO-aof_frame.tar.gz preserved bytes 35674365
+data-gate-run.wqcUMO-snapshot-epoll.tar.gz preserved bytes 130694600
+identical private tool copies shared: 550
+complete-live-uring exit 0
+data-gate-run.uryRDw-txnorder-fused-0.tar.gz preserved bytes 42289432
+data-gate-run.uryRDw-txnorder-fused-1.tar.gz preserved bytes 43912540
+data-gate-run.uryRDw-txnorder-split-0.tar.gz preserved bytes 49908376
+data-gate-run.uryRDw-txnorder-split-1.tar.gz preserved bytes 19390509
+identical private tool copies shared: 550
+complete-mode-uring-0 exit 0
+data-gate-run.PBG3jG-aof-uring.tar.gz preserved bytes 541543672
+data-gate-run.PBG3jG-aof_frame.tar.gz preserved bytes 134300665
+data-gate-run.PBG3jG-snapshot-uring.tar.gz preserved bytes 130694600
+identical private tool copies shared: 550
+complete-mode-uring-1 exit 0
+data-gate-run.eYz4re-aof-uring.tar.gz preserved bytes 541570025
+data-gate-run.eYz4re-aof_frame.tar.gz preserved bytes 134300666
+data-gate-run.eYz4re-snapshot-uring.tar.gz preserved bytes 130694536
+identical private tool copies shared: 550

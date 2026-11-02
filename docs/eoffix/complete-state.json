@@ -1,9 +1,9 @@
 {
-  "phase": "regressions",
+  "phase": "txn",
   "command": [
     "python3",
     "tools/eoffix_final.py",
-    "regressions"
+    "txn"
   ],
-  "started": 1793619618.6545663
+  "started": 1793627231.89258
 }
