@@ -22,6 +22,7 @@
   ],
   "link": [
     "g++",
+    "-gz=zlib",
     "-std=c++20",
     "-O2",
     "-g",
@@ -164,13 +165,13 @@
     "-lm",
     "/home/user/Projects/cx-rlfix5/build/rlfix5/counts/scopes/post-scatter-normal/probe.o"
   ],
-  "probe_sha256": "240cf9627d4e6848982537847f19340bba2ea077dabea34bba0210dbbce3e2e5",
-  "server_sha256": "ee33679bab712d69b735539b1c13211e78ccc9a09dcecd18d668a098a5042a24",
+  "probe_sha256": "97d7ec965a4c795d9024927ee321a19fd775b391e7bcacee4a7849240069419f",
+  "server_sha256": "dbef1b730d298fda419e9d1787870837354d6c692bff99e1953da72d574ea5ab",
   "fixture_sha256": "e2b1b5ce3ee47eb7a23b713b66b4bf8412c01b47f2aaf55cda661b3c4a24bb8d",
   "strip_debug": [
     "objcopy",
     "--strip-debug",
-    "build/rlfix5/counts/scopes/post-scatter-normal/probe"
+    "/home/user/Projects/cx-rlfix5/build/rlfix5/counts/scopes/post-scatter-normal/probe"
   ],
   "runtime_image_preserved": true
 }

@@ -15,8 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / 'docs/rlfix5/jobs'
 
 
-def retire_private_builds(root):
-    """Drop archived, completed jobs' disposable ELF files; retain release outputs."""
+def retire_private_artifacts(root, archived_files=()):
+    """Drop completed jobs' throwaway builds/data after archiving their evidence."""
     assert root.parent == ROOT / 'build' and root.name.startswith('gate-run.')
     retired = []
     for path in sorted(root.rglob('*')):
@@ -25,9 +25,25 @@ def retire_private_builds(root):
         with path.open('rb') as file:
             if file.read(4) != b'\x7fELF':
                 continue
-        retired.append(dict(path=str(path.relative_to(root)), bytes=path.stat().st_size,
+        retired.append(dict(kind='elf', path=str(path.relative_to(root)), bytes=path.stat().st_size,
                             sha256=sha(path)))
         path.unlink()
+    for path in sorted(root.rglob('*'), key=lambda p: len(p.parts)):
+        if (path.is_dir() and not path.is_symlink() and
+                (path.name in ('data', 'appendonlydir') or path.name.startswith('gate-data-'))):
+            files = [p for p in path.rglob('*') if p.is_file() and not p.is_symlink()]
+            retired.append(dict(kind='generated-server-data', path=str(path.relative_to(root)),
+                                bytes=sum(p.stat().st_size for p in files), files=len(files)))
+            shutil.rmtree(path)
+    # Large trace/result files remain byte-for-byte in the checked archive.
+    # Small ledgers and FIFO control receipts stay directly available too.
+    for entry in archived_files:
+        path = root / entry['path']
+        if entry['size'] > 1024 * 1024 and path.is_file() and not path.is_symlink():
+            assert sha(path) == entry['sha256'], 'evidence changed after archiving'
+            retired.append(dict(kind='archived-duplicate', path=entry['path'],
+                                bytes=entry['size'], sha256=entry['sha256']))
+            path.unlink()
     return retired
 
 
@@ -94,7 +110,7 @@ def main():
     record.update(metadata, exit_code=result.returncode)
     assert sha(binary) == digest, 'candidate changed during proof'
     assert sha(boot_binary) == digest, 'boot copy changed during proof'
-    record['retired_build_artifacts'] = retire_private_builds(root)
+    record['retired_artifacts'] = retire_private_artifacts(root, record['files'])
     (DOC / (a.tag + '.json')).write_text(json.dumps(record, indent=2) + '\n')
     print(a.tag, 'exit', result.returncode, 'passed', sum(j['passed'] for j in record['jobs']),
           'failed', sum(j['failed'] for j in record['jobs']), flush=True)

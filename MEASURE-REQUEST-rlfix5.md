@@ -38,6 +38,12 @@ The final ordering jobs pass 7/7 including the release row: six RL5 rows,
 all controlled schedules in both namespaces, live uring/epoll in both modes,
 and the Redis 7.4.10 oracle. `docs/rlfix5/jobs/final-ordering.json` binds the
 frozen candidate SHA. Every boot inherits `LC_ALL=C`.
+Those ordering and first broad receipts bind POST `ee33679b…`. Synchronizing
+one generated R7 comment and rebuilding produced `dbef1b73…`; every allocated
+runtime section and loader header is identical except the GNU build-ID note
+(`docs/rlfix5/comment-sync-runtime-image.json`). The refreshed instruction census
+binds the rebuilt probes. Subsequent gate runs use a byte-identical POST copy
+beside the production native helpers, with both paths and SHA in each receipt.
 
 | Item | PRE witness | POST result | Mechanism | Residual |
 |---|---|---|---|---|
@@ -85,7 +91,7 @@ Frozen arms (all under `build/rlfix5/`):
 |---|---|---:|
 
 | PRE | `e5be4275748bb9efbec96362bb8f7fcf7286313a7439d958593063916a74068d` | 9,021,623 |
-| POST | `ee33679bab712d69b735539b1c13211e78ccc9a09dcecd18d668a098a5042a24` | 9,020,279 |
+| POST | `dbef1b730d298fda419e9d1787870837354d6c692bff99e1953da72d574ea5ab` | 9,020,279 |
 | PAD-A | `272ec9d4a68fb2f66ba5ec0b57385dcb0e158319247a513d4d9eb76653a889ce` | 9,020,279 |
 
 PAD-A is **(A) behaviour twin**: PRE behaviour with POST's total text size.
@@ -114,5 +120,12 @@ PAD-A stays flat relative to PRE. All performance cells, the full iteration,
 `flip_saturated` (memtier), and the tailgen client-LB outstanding-bound row
 (open-loop generator) are **NOT RUN** here: they remain maintainer-owned.
 
-Broader correctness receipts and freshness results follow when the queued
-selected jobs finish. No gate total or throughput verdict is claimed yet.
+The first broad run completed 484 passing and 53 failing rows. Of the failures,
+52 are test setup problems being retried: the R7 generated comment, native
+transaction helpers expected beside the candidate, and feature drivers refusing
+the shared CPU allocation before boot. The FIFO live-fairness row fails its
+derived p99 bound; a complete matching PRE control is queued. These failures
+remain in the archived receipts. `docs/rlfix5/coverage.md` maps every requested
+family and names the excluded performance checks. Broader retry, differential,
+control and freshness results remain in progress; no full-gate or throughput
+verdict is claimed.
