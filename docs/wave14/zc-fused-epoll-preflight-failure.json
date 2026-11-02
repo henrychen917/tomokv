@@ -1,0 +1,9 @@
+{
+  "job": "merged-final-fused-epoll/zc",
+  "receipt_sha256": "a4eeeffa0db9f5db85e9eae3b18c9f9e76332d67811673311a18eb32433f7904",
+  "log": "/home/user/Projects/cx-wave14/build/gate-run.pYtnL1/jobs/zc/output.log",
+  "log_sha256": "20a0faf425461232ce2f5741b3838cfe9cf509878cac78a84e07f311c0923885",
+  "reason": "Both candidate and ASAN boots refused the assigned-core quiet preflight during overlapping correctness work. No server booted; subsequent battery and shutdown failures are dependent failures.",
+  "status": "NOT RUN: both intended boots rejected before execution",
+  "supplement": "zc-fused-epoll-final-isolated"
+}

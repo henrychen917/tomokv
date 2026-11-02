@@ -50,6 +50,17 @@ def main():
              str(ROOT / 'build/wave14/post-r7/tomokv'), '8-15', '0-7'),
         ]
     results = []
+    if args.isolated_after_uring:
+        tag = 'zc-fused-epoll-final-isolated'
+        command = ['python3', 'tools/wave14.py', 'jobs', '--tag', tag,
+            '--engine', 'epoll', '--fused', '--jobs', 'zc',
+            '--binary', str(ROOT / 'build/wave14/post-r7/tomokv'),
+            '--server-cores', '0-7', '--load-cores', '8-15', '--ports', '20093-20095']
+        print('START', tag, flush=True)
+        result = subprocess.run(command, cwd=ROOT, env=dict(os.environ, LC_ALL='C'))
+        save(DOC / 'zc-isolated-control-result.json', dict(tag=tag, command=command,
+                                                        exit_code=result.returncode))
+        print('DONE', tag, result.returncode, flush=True)
     for tag, binary, load, server in plans:
         command = ['python3', 'tools/wave14.py', 'jobs', '--tag', tag,
             '--engine', 'uring', '--jobs', 'txnorder_fifo_live', '--binary', binary,

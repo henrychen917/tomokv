@@ -12,5 +12,6 @@
   },
   "ports": "20093-20095",
   "reason": "Completed share checks improve with eight client CPUs, but the overlapping run shows latency failures. Retain all mixed-allocation receipts and test unchanged bounds after CPUs0-15 are released. The separate epoll sweep uses server24-31/load16-23.",
-  "cancelled": "The earlier waiting-only valid-control coordinator was stopped before starting any gate job; no running leg was interrupted."
+  "cancelled": "The earlier waiting-only valid-control coordinator was stopped before starting any gate job; no running leg was interrupted.",
+  "before_fifo": "zc-fused-epoll-final-isolated, unchanged whole gate job after the same CPUs are released"
 }

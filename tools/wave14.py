@@ -158,6 +158,7 @@ def landing_selftest(a):
     gate.write_text(text)
     env = dict(os.environ, LC_ALL='C', GATE_ONLY_JOBS='abba_selftest',
         GATE_PROOF_NO_RATES='1', GATE_LEDGER=str(source/'ledger'),
+        GATE_TEST_PORT=str(int(a.ports.split('-')[0]) + 2),
         REDIS74_ROOT='/home/user/Projects/redis', CXX='g++ -gz=zlib', CC='cc -gz=zlib')
     command = ['taskset', '-c', '0-31', 'tests/gate.sh', 'full',
         '--server-cores', a.server_cores, '--load-cores', a.load_cores, '--server-smt', '',
@@ -172,6 +173,7 @@ def landing_selftest(a):
         binary_sha256=sha(a.binary), gate_before_sha256=before,
         gate_after_sha256=sha(gate), checked_in_gate_sha256=sha(ROOT/'tests/gate.sh'),
         expected_quick=1090, expected_full=1107)
+    record['unit_listener_port'] = env['GATE_TEST_PORT']
     save(DOC/'jobs'/(a.tag+'.json'), record)
     assert sha(ROOT/'tests/gate.sh') == before, 'checked-in EXPECT source changed'
     assert sha(Path(record['archive'])) == record['archive_sha256']
