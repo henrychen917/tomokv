@@ -1,0 +1,897 @@
+[
+  {
+    "name": "json_append_data",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1980
+    ],
+    "post_sizes": [
+      1980
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "luaV_execute",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6060
+    ],
+    "post_sizes": [
+      6060
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6332
+    ],
+    "post_sizes": [
+      6288
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      305
+    ],
+    "post_sizes": [
+      302
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      19379
+    ],
+    "post_sizes": [
+      19286
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      19690
+    ],
+    "post_sizes": [
+      19726
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      277
+    ],
+    "post_sizes": [
+      277
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      20043
+    ],
+    "post_sizes": [
+      19987
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      10628,
+      11201,
+      10508,
+      11910
+    ],
+    "post_sizes": [
+      10628,
+      11201,
+      10508,
+      11952
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      166,
+      244,
+      166,
+      244
+    ],
+    "post_sizes": [
+      166,
+      244,
+      166,
+      244
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      19331
+    ],
+    "post_sizes": [
+      19255
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      19888,
+      20531
+    ],
+    "post_sizes": [
+      19870,
+      20399
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      291,
+      283
+    ],
+    "post_sizes": [
+      291,
+      279
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      19946
+    ],
+    "post_sizes": [
+      19869
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      18986
+    ],
+    "post_sizes": [
+      19012
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      18866
+    ],
+    "post_sizes": [
+      18785
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra.0]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      395,
+      438,
+      597,
+      438,
+      395
+    ],
+    "post_sizes": [
+      395,
+      438,
+      597,
+      597,
+      395
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::IoLoop::refresh_notify_config()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      751
+    ],
+    "post_sizes": [
+      599
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      981
+    ],
+    "post_sizes": [
+      981
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::FlipListenerState::admit(tomo_db0::IoLoop&, int, tomo_db0::UrKind) [clone .isra.0]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5808
+    ],
+    "post_sizes": [
+      5824
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      19129
+    ],
+    "post_sizes": [
+      19047
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21008
+    ],
+    "post_sizes": [
+      20966
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      281
+    ],
+    "post_sizes": [
+      277
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21460
+    ],
+    "post_sizes": [
+      21247
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      10536,
+      12418,
+      10426,
+      12277
+    ],
+    "post_sizes": [
+      10536,
+      12453,
+      10426,
+      11983
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      166,
+      247,
+      166,
+      244
+    ],
+    "post_sizes": [
+      166,
+      244,
+      166,
+      247
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      19061
+    ],
+    "post_sizes": [
+      18927
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21074,
+      20280
+    ],
+    "post_sizes": [
+      21075,
+      20205
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      287,
+      279
+    ],
+    "post_sizes": [
+      291,
+      283
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21350
+    ],
+    "post_sizes": [
+      21181
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      18979
+    ],
+    "post_sizes": [
+      18900
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      18755
+    ],
+    "post_sizes": [
+      18563
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::IoLoop::refresh_notify_config()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      735
+    ],
+    "post_sizes": [
+      583
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21
+    ],
+    "post_sizes": [
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      94,
+      94,
+      94
+    ],
+    "post_sizes": [
+      94,
+      94
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::Rob<64u>::refine_current_write_hash(unsigned long) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6,
+      6,
+      6
+    ],
+    "post_sizes": [
+      6,
+      6
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "tomo_db0::info_stats_build_fields(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      981
+    ],
+    "post_sizes": [
+      981
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3303
+    ],
+    "post_sizes": [
+      3223
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2790
+    ],
+    "post_sizes": [
+      2742
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2790
+    ],
+    "post_sizes": [
+      2742
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "unsigned long tomo::kvobj_external_bytes<false>(tomo::KvObj const*, void const*, tomo::KvObj const*) [clone .isra.0]",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1606,
+      1351,
+      306,
+      306,
+      306,
+      1431,
+      618,
+      306,
+      410,
+      306,
+      826,
+      1306,
+      810,
+      602,
+      306,
+      746,
+      1606,
+      1447,
+      810,
+      1606,
+      1606,
+      810
+    ],
+    "post_sizes": [
+      1606,
+      1351,
+      306,
+      306,
+      306,
+      1431,
+      618,
+      306,
+      410,
+      306,
+      826,
+      1306,
+      810,
+      602,
+      306,
+      746,
+      1606,
+      1447,
+      810,
+      1606,
+      1606,
+      810
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5543
+    ],
+    "post_sizes": [
+      5567
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5543
+    ],
+    "post_sizes": [
+      5567
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5516
+    ],
+    "post_sizes": [
+      5543
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5516
+    ],
+    "post_sizes": [
+      5543
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5280
+    ],
+    "post_sizes": [
+      5694
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5365
+    ],
+    "post_sizes": [
+      5388
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5365
+    ],
+    "post_sizes": [
+      5388
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5896
+    ],
+    "post_sizes": [
+      5941
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5365
+    ],
+    "post_sizes": [
+      5388
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5365
+    ],
+    "post_sizes": [
+      5388
+    ],
+    "matches": [],
+    "changed_lanes": []
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+    "hot": true,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5382
+    ],
+    "post_sizes": [
+      5543
+    ],
+    "matches": [],
+    "changed_lanes": []
+  }
+]

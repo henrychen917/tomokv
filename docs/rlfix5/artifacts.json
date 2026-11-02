@@ -1,0 +1,17 @@
+{
+  "PRE": {
+    "path": "/home/user/Projects/cx-rlfix5/build/rlfix5/PRE",
+    "sha256": "e5be4275748bb9efbec96362bb8f7fcf7286313a7439d958593063916a74068d",
+    "text_bytes": 9021623
+  },
+  "POST": {
+    "path": "/home/user/Projects/cx-rlfix5/build/rlfix5/POST",
+    "sha256": "ee33679bab712d69b735539b1c13211e78ccc9a09dcecd18d668a098a5042a24",
+    "text_bytes": 9020279
+  },
+  "PAD-A": {
+    "path": "/home/user/Projects/cx-rlfix5/build/rlfix5/PAD-A",
+    "sha256": "272ec9d4a68fb2f66ba5ec0b57385dcb0e158319247a513d4d9eb76653a889ce",
+    "text_bytes": 9020279
+  }
+}

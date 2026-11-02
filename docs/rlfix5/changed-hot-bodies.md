@@ -1,0 +1,31 @@
+Changed hot bodies (strict gate normalization; identity is a proxy):
+
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)`: PRE [19379], POST [19286] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]`: PRE [19690], POST [19726] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]`: PRE [277], POST [277] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)`: PRE [20043], POST [19987] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]`: PRE [10628, 11201, 10508, 11910], POST [10628, 11201, 10508, 11952] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]`: PRE [166, 244, 166, 244], POST [166, 244, 166, 244] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)`: PRE [19331], POST [19255] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]`: PRE [19888, 20531], POST [19870, 20399] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]`: PRE [291, 283], POST [291, 279] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)`: PRE [19946], POST [19869] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)`: PRE [18986], POST [19012] bytes
+- `tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)`: PRE [18866], POST [18785] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)`: PRE [19129], POST [19047] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]`: PRE [21008], POST [20966] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]`: PRE [281], POST [277] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)`: PRE [21460], POST [21247] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]`: PRE [10536, 12418, 10426, 12277], POST [10536, 12453, 10426, 11983] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]`: PRE [166, 247, 166, 244], POST [166, 244, 166, 247] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)`: PRE [19061], POST [18927] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]`: PRE [21074, 20280], POST [21075, 20205] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]`: PRE [287, 279], POST [291, 283] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)`: PRE [21350], POST [21181] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)`: PRE [18979], POST [18900] bytes
+- `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)`: PRE [18755], POST [18563] bytes
+- `unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()`: PRE [3303], POST [3223] bytes
+- `unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()`: PRE [2790], POST [2742] bytes
+- `unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()`: PRE [2790], POST [2742] bytes
+- `void tomo::IoLoop::run_loop<false, false, false, true, false>()`: PRE [5280], POST [5694] bytes
+- `void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()`: PRE [5382], POST [5543] bytes

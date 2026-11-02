@@ -1,0 +1,56 @@
+[
+  {
+    "archive": "pre-gate.tar.gz",
+    "sha256": "aa54d5ad2737e8f7436b68271e849c81692f07f879413f3065b209668d8b8b36",
+    "files": 62,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-monotonic.tar.gz",
+    "sha256": "7b0b93d6d3585527f4404c67ef38d654e66c4aa816095407cfdb91b9e08210de",
+    "files": 363,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-toggle-initial.tar.gz",
+    "sha256": "f21a7ea3b9b1ec13213a58ef702e60111c34c6e6e5085b27afd0fc4a1551a9d1",
+    "files": 795,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-gate-reuse.tar.gz",
+    "sha256": "1fd54aa38ba6fccda1098bf28a270a446f6489e2477189d386a05339b235d632",
+    "files": 795,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-one-instruction-residual.tar.gz",
+    "sha256": "11097f74ddc64171ded3922c1ccab19df12c657c7408158620719a52316cc111",
+    "files": 795,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-pre-raw.tar.gz",
+    "sha256": "d9c66269628f77e8acdcde1bfab6b13bddd7a6df81190cf5c0fd53bf193a54be",
+    "files": 1056,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-post-raw.tar.gz",
+    "sha256": "7ab40f6eb3ac3b92baa369fc3df827f6cc038bfa9caa51f56a5c5f2ab679268a",
+    "files": 1056,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-pre-scatter-raw.tar.gz",
+    "sha256": "659ac0abdd4b4ec54bcfe4c33a9987b33ff565cb0c4543a08033895a319319f0",
+    "files": 96,
+    "purpose": "raw evidence retained without changing its bytes"
+  },
+  {
+    "archive": "counts-post-scatter-raw.tar.gz",
+    "sha256": "f279dea2108518b31d0c3c1f5c2c61710d203bbe220581f62805cbc6f7bc38f7",
+    "files": 96,
+    "purpose": "raw evidence retained without changing its bytes"
+  }
+]

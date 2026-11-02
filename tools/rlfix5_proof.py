@@ -68,7 +68,8 @@ def main():
             rows.append(dict(**{k: r[k] for k in keys}, pre=old['total'], post=r['total'],
                              delta=r['total'] - old['total'], protected=protected))
         with (DOC.parent / 'count-deltas.csv').open('w') as f:
-            writer = csv.DictWriter(f, fieldnames=list(rows[0])); writer.writeheader(); writer.writerows(rows)
+            writer = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator='\n')
+            writer.writeheader(); writer.writerows(rows)
         protected = [r for r in rows if r['protected']]
         result = dict(cases=len(rows), protected_cases=len(protected),
                       positive_protected=[r for r in protected if r['delta'] > 0], rows=rows)
@@ -84,6 +85,20 @@ def main():
         if a.action.endswith('build'):
             census.build(label, source, objects, ns,
                          'tests/blockfix4_scope.cc' if scatter else 'tests/rlfix5_scope.cc')
+            if a.arm == 'pad-a':
+                # Use the same PRE objects, cold alignment and unexecuted pad as
+                # the frozen behaviour twin; never pair it with a POST witness.
+                pad = json.loads((DOC.parent / 'pad-a.json').read_text())
+                meta_path = DOC / label / (ns + '-build.json')
+                meta = json.loads(meta_path.read_text())
+                replacements = {str(objects / name): str(ROOT / 'build/rlfix5/pad-a/objects' / name)
+                                for name in pad['cold_alignment_compacted']}
+                meta['link'] = [replacements.get(x, x) for x in meta['link']] + [pad['link'][-1]]
+                subprocess.run(meta['link'], check=True)
+                meta['probe_sha256'] = census.sha(BUILD / 'scopes' / (label + '-' + ns) / 'probe')
+                meta['server_sha256'] = pad['sha256']
+                meta['pad_kind'] = pad['kind']
+                census.save(meta_path, meta)
             continue
         binary = BUILD / 'scopes' / (label + '-' + ns) / 'probe'
         if not (BUILD / 'trace').exists():
@@ -100,7 +115,7 @@ def main():
                                                  'STRLEN', 'EXISTS', 'GETRANGE', 'TYPE', 'TTL', 'OBJECT')
         cases = [(cmd, mode, batch, local, tracking) for cmd in verbs
                  for mode in ('1s', '2s') for batch in (1, 32)
-                 for local, tracking in ((0, 0), (1, 0), (1, 1))]
+                 for local, tracking in ((0, 0), (0, 1), (1, 0), (1, 1))]
         with ThreadPoolExecutor(max_workers=8) as pool:
             rows += list(pool.map(lambda case: trace(prepared, a.arm, ns, case), cases))
     if rows:

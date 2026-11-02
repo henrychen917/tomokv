@@ -7,7 +7,7 @@ The PRE gate jobs `rlfix5-monotonic`, `rlfix5-yes-no`, and `rlfix5-no-yes`
 fail in both modes (six failing rows). Production-linked schedules fail in
 both namespaces: STRLEN 9 then GET old; SET OK then GET old across yes→no;
 GET new-value before the younger SET across no→yes. Live T10 also fails.
-Raw evidence: `docs/rlfix5/pre-gate/`.
+Raw evidence: `docs/rlfix5/pre-gate.tar.gz`.
 
 RL5.7 adds six rows at the `collect_job rlfix5-*` lines, before the quick
 exit: **DQ +6 / DF +6**. The EXPECT literals would become **1052 / 1069** from PRE's 1046 / 1063
@@ -34,10 +34,10 @@ frozen candidate SHA. Every boot inherits `LC_ALL=C`.
 | RL5.1 no→yes | Older GET/MGET returns younger SET's new-value | Both older reads return old, before SET OK | Same write staging, demotion and MGET fence stay active | None in these schedules |
 | RL5.7 | Six new gate rows fail PRE | Six rows pass POST | Shared production-linked schedules plus live CONFIG pipelines and oracle | Broader matrix in progress; inherited EXPECT gap remains |
 
-Instruction proof: 264 parser/owner/lane scopes plus 32 eight-shard scatter
-scopes, batch 1/32, both modes and both namespaces. All **88 protected
-comparisons have no added instructions**. The 40 read-local-off parser/owner
-cases are exactly identical. The 16 lane GET/MGET cases are unchanged or lower.
+Instruction proof: 352 parser/owner/lane scopes plus 32 eight-shard scatter
+scopes, batch 1/32, both modes and both namespaces. All **128 protected
+comparisons have no added instructions**. The 80 read-local-off parser/owner
+cases, with tracking both on and off, are exactly identical. The 16 lane GET/MGET cases are unchanged or lower.
 The other 32 protected cases cover eight-shard MGET/MSET with atomic 0/1.
 `docs/rlfix5/count-deltas.csv`, `scatter-deltas.json`, and `costs.md` contain
 absolute counts/deltas and the non-GET/latency-on costs. The single-key
@@ -52,5 +52,45 @@ GET/MGET predicate at enqueue, retaining the boot-enabled guard, and expresses
 the existing MGET/batch branches once. No queue, ring, ownership, grace,
 capacity or retry algorithm changes. Locked layouts are unchanged.
 
-Broader correctness receipts, final arm hashes and the maintainer's measurement
-instructions follow after remaining validation completes.
+The final linked census changes 29 hot bodies (including emitted clones),
+listed individually in `docs/rlfix5/changed-hot-bodies.md`; the complete strict
+normalization inventory is `changed-bodies.json`. The changed families are the
+ordinary and R7 parsers in both namespaces, three `flush_ready` specializations,
+and two `run_loop` specializations. Identity is a proxy; no throughput merit is
+claimed from these identities or instruction counts.
+
+For the six non-GET reads with tracking off, batch-1 overhead is 5–12
+instructions; batch-32 overhead is 281.125–997.156 instructions per command in
+the same-key fixture. Marking every owner read makes later reads inspect their
+older owner slots. With read-local and tracking both on, the full per-command
+cost table is `docs/rlfix5/costs.md`; this previously skipped ordering work is
+now performed. Those costs are not hidden in the protected hit-path comparison.
+
+Frozen arms (all under `build/rlfix5/`):
+
+| Arm | SHA-256 | .text bytes |
+|---|---|---:|
+
+| PRE | `e5be4275748bb9efbec96362bb8f7fcf7286313a7439d958593063916a74068d` | 9,021,623 |
+| POST | `ee33679bab712d69b735539b1c13211e78ccc9a09dcecd18d668a098a5042a24` | 9,020,279 |
+| PAD-A | `272ec9d4a68fb2f66ba5ec0b57385dcb0e158319247a513d4d9eb76653a889ce` | 9,020,279 |
+
+PAD-A is **(A) behaviour twin**: PRE behaviour with POST's total text size.
+POST is 1,344 bytes smaller than PRE. PAD-A recompiles only PRE's two cold
+`t_server` units with compact alignment, then adds 13,616 unreferenced NOP
+bytes. It matches total `.text` size, **not individual function placement**;
+that limitation matters when interpreting the control. Source, link recipe,
+and digest are in `docs/rlfix5/pad-a.json`. It contains neither S1 fix.
+
+Maintainer measurement request: use these three frozen arms with the gate's
+own instrument on a quiet box. Run the 14 generic cells, `d32g_l1`, `x9_32_l1`,
+the eight-instance read-local GET cell, and 2s GET/SET at p1/p32. Use matched
+offered loads and the established ABBA ordering; retain rate, cycles/op,
+instructions/op and IPC for every arm/cell. Rate at matched load decides merit;
+cycles and IPC explain it. A control-compatible gain requires POST to move while
+PAD-A stays flat relative to PRE. All performance cells, the full iteration,
+`flip_saturated` (memtier), and the tailgen client-LB outstanding-bound row
+(open-loop generator) are **NOT RUN** here: they remain maintainer-owned.
+
+Broader correctness receipts and freshness results follow when the queued
+selected jobs finish. No gate total or throughput verdict is claimed yet.

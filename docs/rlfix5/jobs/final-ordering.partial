@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=rlfix5-monotonic rlfix5-yes-no rlfix5-no-yes; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	12.210000	rlfix5 monotonic (1s)
+ok	12.570000	rlfix5 monotonic (2s)
+ok	3.240000	rlfix5 yes-no (1s)
+ok	3.110000	rlfix5 yes-no (2s)
+ok	3.180000	rlfix5 no-yes (1s)
+ok	3.130000	rlfix5 no-yes (2s)
