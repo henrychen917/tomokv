@@ -1,0 +1,117 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 2 L3 domain(s)
+  domain  0: 3 cpus [69,70,71]
+  domain  1: 2 cpus [72,73]
+tomokv-cpp: 5 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=unified cpu=69 L3=0 shards=4 send=self
+  thread t1: role=unified cpu=70 L3=0 shards=3 send=self
+  thread t2: role=unified cpu=71 L3=0 shards=3 send=self
+  thread t3: role=unified cpu=72 L3=1 shards=3 send=self
+  thread t4: role=unified cpu=73 L3=1 shards=3 send=self
+[New Thread 0x7ffff637f6c0 (LWP 243658)]
+[New Thread 0x7ffff5b7e6c0 (LWP 243659)]
+[New Thread 0x7ffff537d6c0 (LWP 243660)]
+[New Thread 0x7ffff3dff6c0 (LWP 243661)]
+[New Thread 0x7ffff2dff6c0 (LWP 243662)]
+listening on 127.0.0.1:21496
+
+Thread 1 "tomokv" received signal SIGINT, Interrupt.
+0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffa6d10, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+warning: 29	../sysdeps/unix/sysv/linux/poll.c: No such file or directory
+
+Thread 6 (Thread 0x7ffff2dff6c0 (LWP 243662) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555cf5a61 in tomo::Ring::submit_and_wait<false> (this=this@entry=0x7ffff651cd28, want=want@entry=1, timeout_ms=timeout_ms@entry=50, database_fd=database_fd@entry=-1) at src/core/../store/../persist/../core/../net/uring.h:313
+#3  0x0000555555d35f70 in tomo::IoLoop::run_loop<false, false, false, true, false> (this=0x7ffff651c260) at src/core/io_loop.h:777
+#4  0x0000555555cffc45 in operator() (__closure=<synthetic pointer>) at src/core/genthread.cc:60
+#5  tomo::IoLoop::run_fused (this=<optimized out>) at src/core/genthread.cc:66
+#6  0x0000555555d00afd in operator() (__closure=0x7ffff6530188) at src/core/genthread.cc:199
+#7  std::__invoke_impl<void, tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6530188) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=0x7ffff6530188) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x7ffff6530180) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 5 (Thread 0x7ffff3dff6c0 (LWP 243661) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555cf5a61 in tomo::Ring::submit_and_wait<false> (this=this@entry=0x7ffff651b100, want=want@entry=1, timeout_ms=timeout_ms@entry=50, database_fd=database_fd@entry=-1) at src/core/../store/../persist/../core/../net/uring.h:313
+#3  0x0000555555d35f70 in tomo::IoLoop::run_loop<false, false, false, true, false> (this=0x7ffff651a638) at src/core/io_loop.h:777
+#4  0x0000555555cffc45 in operator() (__closure=<synthetic pointer>) at src/core/genthread.cc:60
+#5  tomo::IoLoop::run_fused (this=<optimized out>) at src/core/genthread.cc:66
+#6  0x0000555555d00afd in operator() (__closure=0x7ffff6530128) at src/core/genthread.cc:199
+#7  std::__invoke_impl<void, tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6530128) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=0x7ffff6530128) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x7ffff6530120) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 4 (Thread 0x7ffff537d6c0 (LWP 243660) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555cf5a61 in tomo::Ring::submit_and_wait<false> (this=this@entry=0x7ffff65194d8, want=want@entry=1, timeout_ms=timeout_ms@entry=50, database_fd=database_fd@entry=-1) at src/core/../store/../persist/../core/../net/uring.h:313
+#3  0x0000555555d35f70 in tomo::IoLoop::run_loop<false, false, false, true, false> (this=0x7ffff6518a10) at src/core/io_loop.h:777
+#4  0x0000555555cffc45 in operator() (__closure=<synthetic pointer>) at src/core/genthread.cc:60
+#5  tomo::IoLoop::run_fused (this=<optimized out>) at src/core/genthread.cc:66
+#6  0x0000555555d00afd in operator() (__closure=0x7ffff65300c8) at src/core/genthread.cc:199
+#7  std::__invoke_impl<void, tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=0x7ffff65300c8) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=0x7ffff65300c8) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x7ffff65300c0) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 3 (Thread 0x7ffff5b7e6c0 (LWP 243659) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555cf5a61 in tomo::Ring::submit_and_wait<false> (this=this@entry=0x7ffff65178b0, want=want@entry=1, timeout_ms=timeout_ms@entry=50, database_fd=database_fd@entry=-1) at src/core/../store/../persist/../core/../net/uring.h:313
+#3  0x0000555555d35f70 in tomo::IoLoop::run_loop<false, false, false, true, false> (this=0x7ffff6516de8) at src/core/io_loop.h:777
+#4  0x0000555555cffc45 in operator() (__closure=<synthetic pointer>) at src/core/genthread.cc:60
+#5  tomo::IoLoop::run_fused (this=<optimized out>) at src/core/genthread.cc:66
+#6  0x0000555555d00afd in operator() (__closure=0x7ffff6530068) at src/core/genthread.cc:199
+#7  std::__invoke_impl<void, tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6530068) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=0x7ffff6530068) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x7ffff6530060) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 2 (Thread 0x7ffff637f6c0 (LWP 243658) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x0000555555cf5a61 in tomo::Ring::submit_and_wait<false> (this=this@entry=0x7ffff6515c88, want=want@entry=1, timeout_ms=timeout_ms@entry=50, database_fd=database_fd@entry=-1) at src/core/../store/../persist/../core/../net/uring.h:313
+#3  0x0000555555d35f70 in tomo::IoLoop::run_loop<false, false, false, true, false> (this=0x7ffff65151c0) at src/core/io_loop.h:777
+#4  0x0000555555cffc45 in operator() (__closure=<synthetic pointer>) at src/core/genthread.cc:60
+#5  tomo::IoLoop::run_fused (this=<optimized out>) at src/core/genthread.cc:66
+#6  0x0000555555d00afd in operator() (__closure=0x7ffff6530008) at src/core/genthread.cc:199
+#7  std::__invoke_impl<void, tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#8  std::__invoke<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#9  std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=0x7ffff6530008) at /usr/include/c++/13/bits/std_thread.h:292
+#10 std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=0x7ffff6530008) at /usr/include/c++/13/bits/std_thread.h:299
+#11 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x7ffff6530000) at /usr/include/c++/13/bits/std_thread.h:244
+#12 0x00007ffff72ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#13 0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#14 0x00007ffff6f29ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 1 (Thread 0x7ffff7ef3600 (LWP 243517) "tomokv"):
+#0  0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffa6d10, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1  0x0000555555d8d52c in poll (__timeout=50, __nfds=1, __fds=0x7ffffffa6d10) at /usr/include/x86_64-linux-gnu/bits/poll2.h:39
+#2  tomo::signal_doorbell_wait (timeout_ms=<optimized out>) at src/core/../store/../persist/../core/../net/../core/signal_doorbell.h:97
+#3  tomo::Server::monitor_controllers (this=this@entry=0x7ffffffaf9c0) at src/core/lbplanner.cc:582
+#4  0x00005555555ca140 in tomo::run_fused_server (srv=..., aof_base_plan=<optimized out>, aof_plans=std::vector of length 0, capacity 0, load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/genthread.cc:262
+#5  0x0000555555db7b73 in tomo::run_fused_server_selected (srv=..., aof_base_plan=<optimized out>, aof_plans=std::vector of length 0, capacity 0, load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/reorder.cc:3262
+#6  0x0000555555a09800 in tomokv_multidb_main (argc=argc@entry=25, argv=argv@entry=0x7fffffffd8b8) at /usr/include/c++/13/bits/unique_ptr.h:199
+#7  0x00005555555da8df in main (argc=25, argv=0x7fffffffd8b8) at src/main.cc:215

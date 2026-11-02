@@ -1,0 +1,10 @@
+tomo-2s-a0-db1-rl0 FAIL 401 mpop-watch-noexec-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+tomo-2s-a1-db1-rl0 FAIL 1 mpop-watch-then-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+tomo-2s-a0-db16-rl0 FAIL 401 mpop-watch-noexec-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+tomo-2s-a1-db16-rl0 FAIL 1 mpop-watch-then-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+tomo-1s-a0-db1-rl0 FAIL 401 mpop-watch-noexec-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+tomo-1s-a1-db1-rl0 FAIL 1 mpop-watch-then-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+tomo-1s-a0-db16-rl1 FAIL 401 mpop-watch-noexec-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+tomo-1s-a1-db16-rl1 FAIL 1 mpop-watch-then-tracking: died=True failed=1 coexist=0; Failure: server exit status -6
+redis74 PASS 12 
+txnfix4 crash: 1/9 legs passed

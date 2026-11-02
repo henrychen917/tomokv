@@ -1,0 +1,15 @@
+{
+  "case": "crash",
+  "engine": "uring",
+  "cores": "61-68",
+  "port": 21430,
+  "iterations": 200,
+  "binary": "/home/user/Projects/bench-bins/tomokv-headline-105c5818cc",
+  "binary_sha256": "2404be4919172bd5b273d8cb6bda720eeae176ea3e0bb151c9fe768ee96f0991",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "sources": {
+    "tests/txnfix4.py": "74383561d28f412b1510023924a63ee509491cd8030ead88653098b7f677b92a",
+    "tests/execfix.py": "b13e516582312ab5a3b3152fb547d783bd4d5d8cc07b1e969fed17fa205726e6",
+    "tests/_lib.py": "53bf885d263b2e8e220c0fbeaf4dd82ebb6029b57713d79eb80f5ace4cc379e4"
+  }
+}

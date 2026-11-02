@@ -1,0 +1,152 @@
+{
+  "probe": "exec-mpop-aof",
+  "label": "post",
+  "binary": "/home/user/Projects/cx-txnfix4/build/tomokv",
+  "binary_sha256": "e23c2fb37cd0137a9287bcc7330ebb61d19796e0b7299b1d7e107e9018376198",
+  "rows": [
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "LMPOP 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "ZMPOP 1 z MIN",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "LPOP l",
+      "queued": "b'QUEUED'",
+      "exec": "[b'a']",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    },
+    {
+      "mode": "2s",
+      "atomic": 0,
+      "command": "BLMPOP 0.05 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "[[b'l', [b'a']]]",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "LMPOP 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "ZMPOP 1 z MIN",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "LPOP l",
+      "queued": "b'QUEUED'",
+      "exec": "[b'a']",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    },
+    {
+      "mode": "2s",
+      "atomic": 1,
+      "command": "BLMPOP 0.05 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "[[b'l', [b'a']]]",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "LMPOP 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "ZMPOP 1 z MIN",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "LPOP l",
+      "queued": "b'QUEUED'",
+      "exec": "[b'a']",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    },
+    {
+      "mode": "1s",
+      "atomic": 0,
+      "command": "BLMPOP 0.05 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "[[b'l', [b'a']]]",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "LMPOP 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "ZMPOP 1 z MIN",
+      "queued": "b'QUEUED'",
+      "exec": "no reply in 3 s (TimeoutError)",
+      "fresh_ping": "no reply in 3 s (TimeoutError)",
+      "hung": true
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "LPOP l",
+      "queued": "b'QUEUED'",
+      "exec": "[b'a']",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    },
+    {
+      "mode": "1s",
+      "atomic": 1,
+      "command": "BLMPOP 0.05 1 l LEFT",
+      "queued": "b'QUEUED'",
+      "exec": "[[b'l', [b'a']]]",
+      "fresh_ping": "b'PONG'",
+      "hung": false
+    }
+  ]
+}
