@@ -766,10 +766,14 @@ GeoBuildResult run_search(const GeoSearchOptions& options,
         for (const ScoreInterval& interval : intervals) {
             auto entry = std::lower_bound(source.begin(), source.end(), interval.first,
                 [](const ZsetEntry& item, uint64_t score) {
-                    return static_cast<uint64_t>(item.score) < score;
+                    return item.score < static_cast<double>(score);
                 });
             for (; entry != source.end() &&
-                   static_cast<uint64_t>(entry->score) < interval.last; ++entry) {
+                   entry->score < static_cast<double>(interval.last); ++entry) {
+                // A GEO key is an ordinary zset. Reject scores outside the 52-bit
+                // domain before decoding; casting negative/huge doubles also breaks
+                // lower_bound's ordering and can hide every valid member (CD5.2).
+                if (!(entry->score >= 0 && entry->score < double(uint64_t{1} << 52))) continue;
                 double longitude = 0, latitude = 0;
                 geo_decode(entry->score, longitude, latitude);
                 double distance = 0;
