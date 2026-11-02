@@ -111,7 +111,12 @@ void cfgfix_loglevel(const char* value) {
 
 void cfgfix_key_load_delay(int32_t value) { load_delay.store(value, std::memory_order_relaxed); }
 void cfgfix_delay_loaded_key() {
-    const int32_t delay = load_delay.load(std::memory_order_relaxed);
+    int32_t delay = load_delay.load(std::memory_order_relaxed);
+    // Redis debugDelay: a negative value samples a one-microsecond delay.
+    // Widen before negation so the accepted INT32_MIN endpoint is defined.
+    if (delay < 0)
+        delay = (static_cast<uint32_t>(std::rand()) %
+                 static_cast<uint32_t>(-static_cast<int64_t>(delay))) == 0 ? 1 : 0;
     if (delay > 0) {
         timespec left{delay / 1000000, (delay % 1000000) * 1000L};
         while (::nanosleep(&left, &left) && errno == EINTR) {}

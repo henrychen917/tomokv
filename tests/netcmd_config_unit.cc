@@ -5,8 +5,56 @@
 #include <thread>
 #include <barrier>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 
 namespace {
+thread_local bool observe_load_delay = false;
+thread_local std::vector<timespec> load_delay_sleeps;
+}
+
+// Observe the real loader hook without wall-clock tolerances. Calls outside
+// this test retain the kernel nanosleep behavior; no workers are cancelled.
+extern "C" int nanosleep(const timespec* duration, timespec* remaining) {
+    if (observe_load_delay) {
+        load_delay_sleeps.push_back(*duration);
+        return 0;
+    }
+    return static_cast<int>(::syscall(SYS_nanosleep, duration, remaining));
+}
+
+namespace {
+void loader_delay_policy() {
+    observe_load_delay = true;
+    tomo::cfgfix_key_load_delay(0);
+    tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.empty(), "zero load delay issues no sleep");
+    tomo::cfgfix_key_load_delay(1700001);
+    tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.size() == 1 && load_delay_sleeps[0].tv_sec == 1 &&
+          load_delay_sleeps[0].tv_nsec == 700001000, "positive load delay uses microseconds");
+    load_delay_sleeps.clear();
+    tomo::cfgfix_key_load_delay(-1);
+    for (int i = 0; i != 4; ++i) tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.size() == 4, "negative one must open every delay window");
+    for (const auto& delay : load_delay_sleeps)
+        check(delay.tv_sec == 0 && delay.tv_nsec == 1000, "negative delay is one microsecond");
+    // The oracle's debug.c debugDelay samples rand() % -usec. A fixed seed
+    // makes the statistical arm deterministic and requires both outcomes.
+    unsigned expected = 0;
+    std::srand(68);
+    for (unsigned i = 0; i != 128; ++i) expected += std::rand() % 8 == 0;
+    check(expected > 0 && expected < 128, "sampling fixture contains both outcomes");
+    std::srand(68);
+    load_delay_sleeps.clear();
+    tomo::cfgfix_key_load_delay(-8);
+    for (unsigned i = 0; i != 128; ++i) tomo::cfgfix_delay_loaded_key();
+    check(load_delay_sleeps.size() == expected, "negative delay matches Redis sampling policy");
+    for (const auto& delay : load_delay_sleeps)
+        check(delay.tv_sec == 0 && delay.tv_nsec == 1000, "sampled delay is one microsecond");
+    tomo::cfgfix_key_load_delay(0);
+    observe_load_delay = false;
+    load_delay_sleeps.clear();
+}
 void listener_completion_filter() {
     using namespace tomo;
     // Invoke the production filter with terminal successes and errors. In
@@ -271,6 +319,7 @@ void test_config_bounds(const char* only) {
 
 void test_config_rewrite() {
     listener_completion_filter();
+    loader_delay_policy();
     knob_matrix();
     check(tomo::config_quote("77") == "77", "simple scalar keeps its original spelling");
     const std::string value = "pass with spaces\n\r\t\"'\\tail";
