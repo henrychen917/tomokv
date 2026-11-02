@@ -1,0 +1,135 @@
+ok	0.000000	release build (+footprint locks)
+ok	27.770000	RESP resumable fragment (1s, epoll)
+ok	23.180000	RESP resumable fragment (2s, epoll)
+ok	2.780000	RESP resumable cpu (1s, epoll)
+ok	2.760000	RESP resumable cpu (2s, epoll)
+ok	0.870000	RESP resumable neighbour (1s, epoll)
+ok	0.880000	RESP resumable neighbour (2s, epoll)
+ok	20.610000	blockfix4 scripts (all modes, read-local and atomic)
+ok	46.930000	blockfix4 moves (all modes, read-local and atomic)
+ok	7.170000	blockfix4 creators (all modes, read-local and atomic)
+ok	11.430000	blockfix4 removed (all modes, read-local and atomic)
+ok	10.190000	blockfix4 mpop (all modes, read-local and atomic)
+ok	35.590000	blockfix2 BLOCK-WAKE-RENAME-SORTSTORE
+ok	42.550000	blockfix2 BLOCK-STREAM-REMOVED-NO-UNBLOCK
+ok	36.060000	blockfix2 BLOCK-MOVE-WRONGTYPE-STRANDS
+ok	35.770000	blockfix2 MULTI-XREADGROUP-BLOCK-HANG
+ok	36.030000	blockfix2 INFO-TOTAL-BLOCKING-KEYS
+ok	34.870000	blockfix2 SLOWLOG-BLOCKED-NOT-LOGGED
+ok	0.100000	blockfix2 BLOCK-SERVE-REFUSED-DROP
+ok	76.910000	blockfix CC4.19 XINFO structural counts vs Redis 7.4
+ok	40.590000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	60.340000	blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+ok	8.080000	writeback policies 0/1: 22 standard fixtures
+ok	0.070000	shutdown policy + signal handoff serverless
+ok	0.630000	shutdown persistence (1s, command)
+ok	0.220000	shutdown persistence (1s, sigterm)
+ok	0.280000	shutdown persistence (1s, sigint)
+ok	0.600000	shutdown persistence (2s, command)
+ok	0.260000	shutdown persistence (2s, sigterm)
+ok	0.200000	shutdown persistence (2s, sigint)
+ok	0.200000	AOF publication/shutdown witnesses + negative controls
+ok	0.010000	netcmd regression build
+ok	0.100000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.010000	netcmd notify-retry regression
+ok	0.000000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.010000	netcmd pubsub regression
+ok	0.010000	netcmd receive regression
+ok	0.060000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.020000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.020000	encodingfix knob
+ok	0.000000	encodingfix precedence
+ok	0.040000	NET1 serverless bounds + scan + reclamation
+ok	12.280000	netfix NT4.7 TLS default cipher parity
+ok	0.690000	AOF control frame never inside a large record (atomic 0)
+ok	0.430000	AOF control frame never inside a large record (atomic 1)
+ok	10.150000	AOF commit order single
+ok	4.790000	AOF commit order crossing
+ok	5.620000	AOF commit order rewrite
+ok	1.570000	TLS ephemeral CA/server/client certificates
+ok	0.110000	NET2 serverless RX policy and KeyUpdate controls
+ok	0.010000	reject TLS listener without certificate
+ok	0.010000	reject invalid tls-protocols
+ok	0.010000	reject invalid tls-ciphers
+ok	0.090000	TLS client-auth yes matrix
+ok	0.030000	TLS yes shutdown invariants
+ok	0.070000	TLS client-auth optional matrix
+ok	0.050000	kTLS TLS 1.2 engaged live (default boot)
+ok	0.180000	TLS 1.3 KeyUpdate survives (NET2)
+ok	0.170000	TLS 1.3 userspace KeyUpdate survives (NET2)
+ok	0.030000	TLS optional shutdown invariants
+ok	14.390000	TLS pipeline/torn-record/coexistence battery
+ok	0.040000	TLS shutdown invariants
+ok	0.030000	TLS application send path error-free
+ok	0.110000	TLS connection slots all freed (33/33)
+ok	0.000000	TLS zc borrow gates fired (suppressed=21)
+ok	6.160000	TLS silent-peer close after reply (ntfix N2)
+ok	11.200000	RESP pre-AUTH limit errors (ntfix N3)
+ok	15.460000	RESP query-buffer frontier (ntfix N4)
+ok	0.360000	fused boot line (atomic 0)
+ok	17.320000	fused s6 battery (atomic 0)
+ok	2.460000	fused multi_exec battery (atomic 0)
+ok	0.880000	fused edgeproto battery (atomic 0)
+ok	0.540000	fused atomfix battery (atomic 0)
+ok	2.250000	fused spinprobe battery (atomic 0)
+ok	1.220000	fused shutdown report (atomic 0)
+ok	6.710000	fused txn_nx battery (atomic 0)
+ok	11.450000	fused txniso battery (atomic 0)
+ok	0.300000	fused boot line (atomic 1)
+ok	14.990000	fused s6 battery (atomic 1)
+ok	2.420000	fused multi_exec battery (atomic 1)
+ok	0.920000	fused edgeproto battery (atomic 1)
+ok	0.250000	fused atomfix battery (atomic 1)
+ok	2.250000	fused spinprobe battery (atomic 1)
+ok	1.210000	fused shutdown report (atomic 1)
+ok	49.270000	fused txn_nx battery (atomic 1)
+ok	11.970000	fused txniso battery (atomic 1)
+ok	24.810000	fused txngroup battery (atomic 1)
+ok	18.860000	txngroup battery (atomic 1)
+ok	0.230000	txnorder FIFO F1
+ok	0.160000	txnorder FIFO F2
+ok	0.160000	txnorder FIFO F3
+ok	0.220000	txnorder FIFO F4
+ok	0.190000	txnorder FIFO F5
+ok	0.340000	txnorder FIFO F6
+ok	0.240000	txnorder FIFO F7
+ok	0.190000	txnorder FIFO F8
+ok	0.150000	txnorder FIFO F9
+ok	0.170000	txnorder FIFO F10
+FAIL	995.210000	txnorder FIFO live fairness
+ok	0.080000	txnorder chain local
+ok	0.050000	txnorder chain boundary
+ok	0.060000	txnorder chain serve
+ok	0.040000	txnorder chain hot
+ok	111.700000	txnorder index oracle
+ok	4.770000	txnorder index complexity
+ok	0.210000	txnorder wound group
+ok	0.200000	txnorder wound exec
+ok	0.040000	txnorder wound oom
+ok	0.250000	txnorder wound d2
+ok	0.080000	txnorder2 writer episode R1
+ok	0.060000	txnorder2 writer episode R2
+ok	0.080000	txnorder2 writer episode R3
+ok	0.060000	txnorder2 writer episode R4
+ok	0.080000	txnorder2 writer episode R5
+ok	0.060000	txnorder2 writer episode R6
+ok	0.030000	txnorder2 writer episode R7
+ok	0.360000	txnorder2 writer episode R8
+ok	0.070000	txnorder2 writer episode R9
+ok	0.160000	txnorder2 writer episode R10
+ok	0.050000	txnorder2 writer episode R11
+ok	4.630000	txnorder2 writer episode R12
+ok	0.080000	txnorder2 direct RENAME owner join
+ok	23.920000	txnorder2 WATCH serve
+ok	32.620000	txnorder2 WATCH flush
+ok	36.930000	txnorder2 WATCH readonly
+ok	0.010000	txnorder2 busy owner inbox wake
+ok	49.940000	txnorder battery (fused, atomic 0)
+ok	50.990000	txnorder battery (fused, atomic 1)
+ok	53.040000	txnorder battery (split, atomic 0)
+ok	50.890000	txnorder battery (split, atomic 1)

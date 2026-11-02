@@ -4,9 +4,9 @@ Worktree `/home/user/Projects/cx-eoffix`, branch `cx-eoffix`, base
 `ea48a6b2721a1d9e5964ab24a32e8b54df611bd5`. No push. This report is being
 completed while the remaining correctness jobs run; pending entries are not passes.
 
-The production change is in `src/core/eof.cc`, with receive, timer and teardown
-wiring in `io_loop.h` and `reorder.cc`. No command algorithm or object layout
-changes. The normal receive/parser path does not consult EOF state. A FIN creates
+The EOF production change is in `src/core/eof.cc`, with receive, timer and teardown
+wiring in `io_loop.h` and `reorder.cc`. The independent AOF deadlock fix is in
+`src/persist/aof.cc`. No command algorithm or object layout changes. The normal receive/parser path does not consult EOF state. A FIN creates
 an entry in the existing IO-owned deferred-timer vector; an actual `recv(0)`
 stops receive admission while the ordinary parser, ROB and writeback drain.
 `recv_armed` then represents the EOF admission hold, with no outstanding kernel
@@ -16,8 +16,9 @@ back the handoff before draining on the original owner.
 
 Epoll retains RDHUP even when the edge also carries a short positive read. Its
 deferred FIN entry forces another receive attempt until actual EOF, without an
-extra syscall on an ordinary short read. Blocked clients use existing cancellation
-and teardown. A truncated final frame is classified with a temporary parser after
+extra syscall on an ordinary short read. Blocked list/stream waits use existing cancellation and teardown. Pending
+synchronous `DEBUG SLEEP` and `CLIENT TRACKING ON` completions are preserved,
+including their buffered command suffix. A truncated final frame is classified with a temporary parser after
 ROB quiescence; complete frames continue through ordinary admission. A half-closed
 peer whose pending output makes no progress for one second is closed; command
 retirement or a change in pending output restarts that grace period. TLS retains
@@ -27,8 +28,48 @@ its existing transport shutdown behavior.
 |---|---|---|---|---|
 | Epoll loses EOF | `pre-fin-complete`: both namespaces fail the missing-teardown assertion; open-peer controls pass. `pre-netio-coalesced`: both public epoll rows fail with the exact closed BRPOPLPUSH client still registered. | `post-native`, `post-first`: native controls and all four public mode/engine legs pass. | Retain RDHUP independently of a short read; use deferred receive/retirement. | Full Tcl ordering results are separate below. |
 | Half-close input loss | `pre-half-replies`: data/reply failures in 1s/2s, uring/epoll, databases 1/16. Redis applies and replies to every original 1/32/65/256/4096 frame. | `post-extended-fresh`: all 72 controls pass (64 TomoKV, 8 Redis), including depth 65,536, a truncated final frame, exact reply order, exact applied values, exact-client retirement and a non-reading peer. | Drain buffered commands and replies before normal close; bound stalled output. | The non-reading-peer grace is explicit above. |
-| Transaction-AOF timeout | First epoll attempt passes row d and exact AOF reload but its prerequisite build times out after 900 s; that is not a clean loop iteration. | Looped jobs and failure-only stack observer are in progress. | No AOF production change or root-cause attribution yet. | Original wave-14 hang remains unresolved until the loop evidence is complete. |
+| Transaction-AOF timeout | `txn-pre-epoll-cont-14`: row d TimeoutError and 30-second shutdown failure, with failure-only GDB stacks; deterministic `aof-pre-native` fails all four pressure cases and passes all four open-channel controls. | Candidate `aof-post-native` passes all eight native controls; final-arm repetition is pending. | Publish coarse QSBR progress while an AOF producer waits on its full channel; let GCMT use the existing writer-drain hook. | Independent of EOF. Final whole-job loops remain pending. |
 | Public regression jobs | Public netio fails PRE; the full PRE Tcl run also fails on tracking order, independently of this patch. | EOF/netio checks pass. Full Tcl, differential and broader job matrices are in progress. | Tests retain all 32 wave-14 EOF cases; the first queues data and FIN while every owned server thread is observably stopped. | Full Tcl tracking failures have also occurred on POST; no assertion or manifest has been weakened. |
+
+**AOF diagnosis.** PRE completed 38 epoll iterations with successful prerequisites;
+the original row-d/shutdown failure occurred on clean iteration 23 (nine
+`txn-pre-clean-epoll` jobs followed by continuation 14). The loop continued during
+stack analysis, yielding 37 AOF/reload passes and one AOF hang; 33 entire jobs
+passed and four additional jobs failed their row-b latency bound. One earlier
+attempt had a 900-second prerequisite build timeout and is excluded. The final
+interrupted continuation is also excluded. Uring completed 50 iterations: all 50
+AOF/reload/shutdown legs passed; 38 entire jobs passed and 12 failed their row-b
+latency bound. Every failed attempt and observer output is retained.
+
+In `build/gate-run.0yMfb5`, writer LWP 978298 waits in
+`ReadLocalDeferredQueue::force_oldest_grace` during immutable INCR replacement.
+Producer LWP 978310 waits in `aof_commit_group` posting ticket 691 to its full
+channel; the remaining workers are idle. The producer pins the old QSBR epoch,
+so the writer cannot finish replacement and drain the channel. SIGTERM cannot
+break that cycle. `txn-pre-epoll-cont-14.tar.gz` preserves stacks and the shutdown
+receipt. This is a real AOF/QSBR defect, not an unretired-connection inference.
+
+The existing `drain_for_producer` cold backpressure hook now refreshes the
+producer's read-local publication, and the GCMT retry calls that hook. Local
+capture buffers have been consumed/copied before owner mutation/AOF emission;
+queued lane entries do not retain captured store pointers. This uses the same
+quiescent publication as `force_oldest_grace`, preserving parked status. The
+hook drains persistence only when this producer is the writer. It adds no
+reader retry or per-operation publication. The native witness fills the real
+64-slot AOF channel and a real 4096-entry retire ring, proves the producer pins
+the grace, and requires reclamation before releasing one channel slot. Its
+open-channel control requires zero new QSBR publication. Both namespaces and
+both engines reject PRE and accept the candidate.
+
+**Tcl attribution.** `pre-tcl-attribution-06` reproduces the rejected trial's
+exact "Different clients using different protocols can track the same key"
+assertion on PRE. `pre-tcl-attribution-02` and `-05` reproduce the original two
+list-fairness assertions. Other retained PRE runs reproduce BCAST and shared
+redirection order failures, pubsub PUNSUBSCRIBE failures, and the scripting
+50,000-load loop's Tcl timeout. These are attribution receipts, not green full
+suite claims. The final full manifest will run three times per engine, both
+modes, without competing correctness jobs. No Tcl expectation or manifest was
+relaxed. All intermediate POST failures remain in `validation-summary.json`.
 
 PRE's 261 tracked production/third-party files and Makefile match `ea48a6b27`
 exactly (`docs/eoffix/pre-source-identity.json`). The rebuilt PRE was produced

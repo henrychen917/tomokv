@@ -58,5 +58,71 @@
     "path": "build/eoffix/counts/scopes/post-parser-final-db0",
     "probe_sha256": "78629fafbff9ecdfdc148949d96e3ac9464460e999380d9fbe2244091507b673",
     "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/layout/POST-layout",
+    "sha256": "d0e234cac6b75d51a121c335e168b641fbfcd12b82f679e6d88827732c1e6121",
+    "bytes": 460155592,
+    "reason": "Superseded intermediate layout arm; final EOF/AOF source requires a new pair. Original pad-a.json preserves construction and old correctness receipts."
+  },
+  {
+    "path": "build/eoffix/layout/PAD-A",
+    "sha256": "f7b1329bd253d9123a82f720f5565f67be3c981d33e40023897bfed8973ff435",
+    "bytes": 460155592,
+    "reason": "Superseded intermediate layout arm; final EOF/AOF source requires a new pair. Original pad-a.json preserves construction and old correctness receipts."
+  },
+  {
+    "path": "build/eoffix/pre/normal",
+    "bytes": 48131712,
+    "sha256": "6727707e6259f4e0eb42488710f43cf8576c2a4f7be6204e32d549f1a2344853",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/pre/db0",
+    "bytes": 93177344,
+    "sha256": "cc34e27771083177e4677557df93ab11cab2280006b817837d9b23b19f9b02f2",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/pre/tomokv",
+    "bytes": 99553672,
+    "sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/post/normal",
+    "bytes": 95119928,
+    "sha256": "7fb8b55ebbabb7bbf49b13eb420036c3119918dfaab8bb2572e85c8dbede445c",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/post/db0",
+    "bytes": 95110240,
+    "sha256": "9f75898db11fea9dd95dafa3c24385d129e5b991f3ac9bb47627ae3550d9d12a",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/aof-post-native/normal",
+    "bytes": 93837248,
+    "sha256": "279e7e609dd0cb0464445e6c2843dc53d5d4e7f50044482343b8a0f515ca6b4d",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/aof-post-native/db0",
+    "bytes": 93838416,
+    "sha256": "31ce4ce5c8bee3285bb6b5a893aae5101ccca7b8992cceb7944f8d49fc59aa0d",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/sleep-drain/tomokv",
+    "bytes": 101510304,
+    "sha256": "2fd6d4e2e986b221849a0d68dce562645c04766d0a858e627873c30d28d119af",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/aof-progress/tomokv",
+    "bytes": 101509408,
+    "sha256": "6412df54c8dfddcf5c088a26e5746887ebc655c27f6b5e990f00f1c38a3bd1f6",
+    "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
   }
 ]

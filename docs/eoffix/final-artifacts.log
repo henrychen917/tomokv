@@ -1,0 +1,5 @@
+final-aof-build exit 0
+final-eof-build exit 0
+final-census-ordinary exit 0
+final-census-parser exit 0
+final-census-receive exit 0

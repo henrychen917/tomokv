@@ -1,0 +1,12 @@
+post-receive-release normal EPOLL 1s 1 0 0 296
+post-receive-release normal EPOLL 1s 32 0 0 296
+post-receive-release normal EPOLL 2s 1 0 0 296
+post-receive-release normal EPOLL 2s 32 0 0 296
+post-receive-release normal EPOLL-R7 1s 1 0 0 296
+post-receive-release normal EPOLL-R7 1s 32 0 0 296
+post-receive-release db0 EPOLL 1s 1 0 0 296
+post-receive-release db0 EPOLL 1s 32 0 0 296
+post-receive-release db0 EPOLL 2s 1 0 0 296
+post-receive-release db0 EPOLL 2s 32 0 0 296
+post-receive-release db0 EPOLL-R7 1s 1 0 0 296
+post-receive-release db0 EPOLL-R7 1s 32 0 0 296
