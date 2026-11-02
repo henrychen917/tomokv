@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Link the EOF trial budgets against frozen production objects; compile-only."""
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import hashlib
 import json
+import multiprocessing
 import os
 from pathlib import Path
 import re
@@ -11,6 +12,11 @@ import shutil
 import subprocess
 
 from wave14 import ROOT, BUILD, DOC, references, save, sha
+
+
+def score_worker(selection):
+    # Forked compile-only workers inherit the immutable linked-image inventory.
+    return SCORE_IMPL(selection)
 
 
 def main():
@@ -38,7 +44,6 @@ def main():
     identity = references()
     before = identity.inventory(BUILD/'post-r7/tomokv')
     cache = {}
-    receipts = []
 
     def intentional(name):
         if '::epoll_pass<' in name or '::r7_epoll_pass<' in name:
@@ -51,6 +56,12 @@ def main():
             for k,v in selection.items())).encode()).hexdigest()
         if key in cache:
             return cache[key]
+        saved = DOC/'eof-budgets/links'/(key+'.json')
+        if saved.exists():
+            record = json.loads(saved.read_text())
+            assert record['selection'] == {k:v['budget'] for k,v in selection.items()}
+            cache[key] = record
+            return record
         binary = out/(key+'.tomokv')
         command = [selection[a[6:]]['output'] if a.startswith('build/') and a[6:] in selection
                    else str(base/a[6:]) if a.startswith('build/') and a.endswith('.o')
@@ -78,13 +89,17 @@ def main():
         return record
 
     current = score(chosen)
+    global SCORE_IMPL
+    SCORE_IMPL = score
     decisions = []
     for sweep in range(2):
         moved = False
         for obj, variants in candidates.items():
             options = [dict(chosen, **{obj:row}) for row in variants.values()]
-            with ThreadPoolExecutor(max_workers=4) as pool:
-                results = list(pool.map(score, options))
+            with ProcessPoolExecutor(max_workers=4,
+                    mp_context=multiprocessing.get_context('fork')) as pool:
+                results = list(pool.map(score_worker, options))
+            cache.update((record['key'], record) for record in results)
             ranked = list(zip(options, results)) + [(chosen, current)]
             winner, result = min(ranked, key=lambda pair:
                 (pair[1]['score'], pair[0][obj]['budget'] != chosen[obj]['budget'],

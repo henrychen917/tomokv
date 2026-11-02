@@ -23,6 +23,29 @@ proc send_data_packet {fd status data {elapsed 0}} {
     }
     harness5_send_data_packet $fd $status $data $elapsed
 }
+# Buffer a selected assertion's already-consumed replies. Emit them only when
+# that assertion ends, so diagnostic output cannot pace its protocol steps.
+if {[info exists ::env(GATE_TCL_REPLY_DIAGNOSTIC)]} {
+    set ::wave14_reply_receipts {}
+    rename ::redis::redis_read_reply ::redis::wave14_original_read_reply
+    proc ::redis::redis_read_reply {id fd} {
+        set code [catch {uplevel 1 [list ::redis::wave14_original_read_reply $id $fd]} result options]
+        if {$::cur_test eq $::env(GATE_TCL_REPLY_DIAGNOSTIC)} {
+            set command {}
+            if {[info exists ::redis::curr_argv($id)]} {set command $::redis::curr_argv($id)}
+            lappend ::wave14_reply_receipts [list $id $command $code $result]
+        }
+        return -options $options $result
+    }
+    rename send_data_packet wave14_reply_send_data_packet
+    proc send_data_packet {fd status data {elapsed 0}} {
+        if {$::cur_test eq $::env(GATE_TCL_REPLY_DIAGNOSTIC) && $status in {ok err exception}} {
+            puts "REPLY-DIAGNOSTIC $::wave14_reply_receipts"
+            set ::wave14_reply_receipts {}
+        }
+        wave14_reply_send_data_packet $fd $status $data $elapsed
+    }
+}
 # Optional failure receipt: query state only after the original bounded wait
 # has failed, then propagate its exact Tcl return options. Never retry it.
 if {[info exists ::env(GATE_TCL_BLOCKED_DIAGNOSTIC)] &&

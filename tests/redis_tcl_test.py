@@ -11,6 +11,44 @@ from redis_tcl import counts, load_manifest, sha, validate_passing, ROOT
 
 
 class Controls(unittest.TestCase):
+    def test_reply_receipt_preserves_reads_errors_and_defers_output(self):
+        from redis_tcl import HOOK
+        setup = r'''
+set ::client 0
+set ::cur_test selected
+set ::reads 0
+proc send_data_packet {args} {}
+namespace eval ::redis {}
+proc ::redis::redis_read_reply {id fd} {
+    incr ::reads
+    if {$id == 1} {return {invalidate key1}}
+    return -code error -errorcode {READ CONTROL} "original reply failure"
+}
+'''
+        check = r'''
+if {[catch {
+    if {[::redis::redis_read_reply 1 unused] ne "invalidate key1"} {error "reply changed"}
+    set code [catch {::redis::redis_read_reply 2 unused} result options]
+    if {$code != 1 || $result ne "original reply failure" ||
+        [dict get $options -errorcode] ne "READ CONTROL" || $::reads != 2} {
+        error "reply error changed or socket read repeated"
+    }
+    puts BEFORE-END
+    send_data_packet unused err original
+    puts AFTER-END
+} error]} {puts stderr $error; exit 1}
+'''
+        result = subprocess.run(['tclsh'], input=setup + HOOK + check,
+            text=True, capture_output=True, env=dict(os.environ,
+                GATE_TCL_REPLY_DIAGNOSTIC='selected', GATE_TCL_BLOCKED_DIAGNOSTIC='0'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        lines = result.stdout.splitlines()
+        self.assertEqual(lines[0], 'BEFORE-END')
+        self.assertTrue(lines[1].startswith('REPLY-DIAGNOSTIC '))
+        self.assertIn('invalidate key1', lines[1])
+        self.assertIn('original reply failure', lines[1])
+        self.assertEqual(lines[2:], ['AFTER-END'])
+
     def test_blocked_failure_receipt_preserves_verdict_and_never_retries(self):
         from redis_tcl import HOOK
         setup = r'''

@@ -1,0 +1,7 @@
+{
+  "pid": 2538335,
+  "start": "524007787",
+  "reason": "Completed per-image scores retained; replace GIL-bound audit threads with independent compile-only fork workers.",
+  "completed": 7,
+  "children": []
+}
