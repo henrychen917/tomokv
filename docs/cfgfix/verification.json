@@ -4422,6 +4422,27 @@
       "private_job_row_totals": {
         "ok": 2
       }
+    },
+    {
+      "phase": "gates-test-fixture-cpus",
+      "command": [
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "log": "build/cfgfix/gates-test-fixture-cpus.log",
+      "started": 1793595934.1297915,
+      "environment": {
+        "LC_ALL": "C",
+        "GATE_TEST_PORT": "20198"
+      },
+      "test_sha256": "5435b3a6b2e9e23dfa8b1270adc1c0955d88c6e103c49e2042230a9f3fd2d4c9",
+      "returncode": 0,
+      "finished": 1793596077.915741,
+      "log_sha256": "97e700bd4346908b0a2f1099457c5ab8346bdd0d923b39cb4bb1fa06bc5f2a3b",
+      "framework_tests": 83,
+      "framework_seconds": 143.678,
+      "framework_failure_artifacts": [],
+      "framework_note": "Serverless scheduler/watchdog negative controls, not production gate rows."
     }
   ]
 }
