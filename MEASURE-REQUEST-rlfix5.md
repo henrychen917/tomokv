@@ -89,7 +89,6 @@ Frozen arms (all under `build/rlfix5/`):
 
 | Arm | SHA-256 | .text bytes |
 |---|---|---:|
-
 | PRE | `e5be4275748bb9efbec96362bb8f7fcf7286313a7439d958593063916a74068d` | 9,021,623 |
 | POST | `dbef1b730d298fda419e9d1787870837354d6c692bff99e1953da72d574ea5ab` | 9,020,279 |
 | PAD-A | `272ec9d4a68fb2f66ba5ec0b57385dcb0e158319247a513d4d9eb76653a889ce` | 9,020,279 |
