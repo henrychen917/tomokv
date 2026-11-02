@@ -3881,11 +3881,11 @@
     "get_equal": false,
     "oracle": [
       "dir",
-      "/home/user/Projects/cx-cfgfix/build/gate-run.OPGxaR/jobs/cfgfix/proof/oracle-oracle-tcp"
+      "/home/user/Projects/cx-cfgfix/build/gate-run.Y9qgQ7/jobs/cfgfix/proof/oracle-oracle-tcp"
     ],
     "candidate": [
       "dir",
-      "/home/user/Projects/cx-cfgfix/build/gate-run.OPGxaR/jobs/cfgfix/proof/1s-epoll-tcp"
+      "/home/user/Projects/cx-cfgfix/build/gate-run.Y9qgQ7/jobs/cfgfix/proof/1s-epoll-tcp"
     ],
     "flags_equal": true,
     "reason": "Captured GET paths differ because each test server owns a private directory; both default to the current directory. UNFIXED: the persistence path is retained at boot and protected-config policy is not implemented."
