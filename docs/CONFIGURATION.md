@@ -351,7 +351,7 @@ reference: `tomokv.conf:202`, `:344`, `:376`.
 | `protected-mode` | R | `yes`, `no` (case insensitive) | `yes` | Live | — | Refuse non-loopback clients without a configured password; GET emits yes/no; `src/core/config.h:762`. |
 | `enable-debug-command` | R | `no`, `yes`, `local` (boot literals) | `no` | Boot/GET | — | DEBUG access policy; local allows loopback/Unix clients; `src/core/config.h:773`. |
 | `aclfile` | R | Path string | Unset | Boot/GET | — | ACL LOAD/SAVE path; mutually exclusive with inline users; `src/core/config.h:705`, `:1203`. |
-| `user` | R | Repeatable `name rule...` | No inline definitions | Boot | — | Redis root ACL rules; selectors are unsupported; use ACL SETUSER live; `src/core/config.h:706`, `tomokv.conf:356`. |
+| `user` | R | Repeatable `name rule...` | No inline definitions | Boot | — | Redis root ACL rules; selectors are unsupported; use ACL SETUSER live. CONFIG REWRITE writes the live ACL registry in ACL LIST form, or no user lines when `aclfile` owns the users; `src/core/config.h:706`, `tomokv.conf:356`. |
 | `acl-pubsub-default` | R | `allchannels` or `resetchannels` (case-insensitive) | `resetchannels` | Live | — | Channel permission of new/reset users; `src/core/config.h:724`. |
 | `acllog-max-len` | R | u64 | `128` | Live | — | ACL LOG capacity per IO thread; 0 disables storage; `src/core/config.h:733`. |
 | `notify-keyspace-events` | R | Flag string: `K E g $ l s h z x e t d m n A`; empty off | Empty | Live | — | K/E channel kinds, event classes; A expands to g$lshzxetd and excludes m/n; `src/core/config.h:889`, `src/cmd/notify.h:66`. |
@@ -366,7 +366,9 @@ reference: `tomokv.conf:202`, `:344`, `:376`.
 
 CONFIG GET/SET use the table in `src/cmd/t_server.cc:308`. REWRITE requires a
 startup file (`src/cmd/server_tail.cc:674`), preserves its directives outside
-that table (`:681`), canonicalizes encoding aliases (`:694`), and quotes/escapes
+that table (`:681`) except inline `user` lines, which it replaces with the live
+ACL registry as Redis's rewriteConfigUserOption does (none when `aclfile` is
+set), canonicalizes encoding aliases (`:694`), and quotes/escapes
 values (`:653`, `:723`). It writes save clauses separately and skips the fixed
 AOF preamble declaration (`:643`, `:707`). This is not an export of CLI-only
 placement overrides. See [FINDINGS](FINDINGS.md#configuration-round-tripping).
