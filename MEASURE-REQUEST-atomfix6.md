@@ -304,7 +304,10 @@ close refusals in the FLUSH/FLIP siblings. The fixture now discovers all six IO
 roles from DEBUG LBSIGNALS, preserves the session-move assertions, and keeps the
 FLUSH peer open until the final FLIP drains. Its accepted errors and time limits
 are unchanged. The gate runs both session scales even if the first fails; no
-new row is added. The complete corrected POST job is queued. All eight
+new row is added. The corrected POST job passes both gate rows (including its
+release row), all 56 primary session legs, all 16 larger-scale legs and all 10
+FLUSH/FLIP sibling legs. `proof/flipfix6-POST-topology/flip-results.json` retains
+the role coverage, transfer counts and timing assertions for all 82 legs. All eight
 eviction jobs, stationary LB in both modes, other FLIP jobs, read-local jobs and
 35 feature-matrix cells in this group pass.
 

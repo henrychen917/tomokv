@@ -544,6 +544,24 @@
     ]
   },
   {
+    "label": "flipfix6-POST-topology",
+    "rc": 0,
+    "passed": 2,
+    "failed": 0,
+    "failures": [],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.4SLOCN",
+    "jobs": [
+      {
+        "name": "flipfix6",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      }
+    ]
+  },
+  {
     "label": "flipfix6-PRE-original",
     "rc": 1,
     "passed": 1,

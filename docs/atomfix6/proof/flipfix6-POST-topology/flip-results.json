@@ -1,0 +1,2196 @@
+[
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 24042,
+    "flip_max": 0.003856607712805271,
+    "successful_flips": 24042,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0037752483040094376,
+    "ping_max": 0.0036157481372356415,
+    "sessions_moved": 48087,
+    "clients_moved": 48089,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db1-p1",
+    "passed": true,
+    "error": null,
+    "flips": 25243,
+    "flip_max": 0.0008078617975115776,
+    "successful_flips": 25243,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007427120581269264,
+    "ping_max": 0.0006191516295075417,
+    "sessions_moved": 50489,
+    "clients_moved": 50490,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db1-p2",
+    "passed": true,
+    "error": null,
+    "flips": 24987,
+    "flip_max": 0.0007349727675318718,
+    "successful_flips": 24987,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0009427312761545181,
+    "ping_max": 0.0006877109408378601,
+    "sessions_moved": 49977,
+    "clients_moved": 49978,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db1-p3",
+    "passed": true,
+    "error": null,
+    "flips": 25088,
+    "flip_max": 0.0029461458325386047,
+    "successful_flips": 25088,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0036034779623150826,
+    "ping_max": 0.002963496372103691,
+    "sessions_moved": 50179,
+    "clients_moved": 50181,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db1-watch",
+    "passed": true,
+    "error": null,
+    "flips": 24998,
+    "flip_max": 0.0007321126759052277,
+    "successful_flips": 24998,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007987814024090767,
+    "ping_max": 0.0006333617493510246,
+    "sessions_moved": 49999,
+    "clients_moved": 50001,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db1-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.0003152713179588318
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.00020021013915538788
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.00019040051847696304
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.00018257088959217072
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00017291028052568436
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.0001868298277258873
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.00018579978495836258
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.00016841012984514236
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.0001754211261868477
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 22153,
+    "flip_max": 0.0029962873086333275,
+    "successful_flips": 19776,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0031315069645643234,
+    "ping_max": 0.003100477159023285,
+    "sessions_moved": 40384,
+    "clients_moved": 45596,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 2377,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 24191,
+    "flip_max": 0.000746401958167553,
+    "successful_flips": 24191,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0008650720119476318,
+    "ping_max": 0.0006528310477733612,
+    "sessions_moved": 48385,
+    "clients_moved": 48386,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db1-p1",
+    "passed": true,
+    "error": null,
+    "flips": 25010,
+    "flip_max": 0.0007551824674010277,
+    "successful_flips": 25010,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.000679701566696167,
+    "ping_max": 0.0006603207439184189,
+    "sessions_moved": 50023,
+    "clients_moved": 50024,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db1-p2",
+    "passed": true,
+    "error": null,
+    "flips": 25034,
+    "flip_max": 0.000781182199716568,
+    "successful_flips": 25034,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007159709930419922,
+    "ping_max": 0.0006921608000993729,
+    "sessions_moved": 50071,
+    "clients_moved": 50073,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db1-p3",
+    "passed": true,
+    "error": null,
+    "flips": 25223,
+    "flip_max": 0.0008143922314047813,
+    "successful_flips": 25223,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0014348821714520454,
+    "ping_max": 0.0007788520306348801,
+    "sessions_moved": 50449,
+    "clients_moved": 50450,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db1-watch",
+    "passed": true,
+    "error": null,
+    "flips": 25005,
+    "flip_max": 0.0007030721753835678,
+    "successful_flips": 25005,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007466217502951622,
+    "ping_max": 0.0006456216797232628,
+    "sessions_moved": 50013,
+    "clients_moved": 50015,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db1-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.0003431411460042
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.00020364020019769669
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.00018038135021924973
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.00018564052879810333
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00019427109509706497
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.00018616020679473877
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.00019077118486166
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.0001833103597164154
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.00020297151058912277
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 22141,
+    "flip_max": 0.006652946583926678,
+    "successful_flips": 19610,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.00658720638602972,
+    "ping_max": 0.006632865406572819,
+    "sessions_moved": 39969,
+    "clients_moved": 45267,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 2531,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 23546,
+    "flip_max": 0.0007501719519495964,
+    "successful_flips": 23546,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007367320358753204,
+    "ping_max": 0.0006008613854646683,
+    "sessions_moved": 47095,
+    "clients_moved": 47097,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db1-p1",
+    "passed": true,
+    "error": null,
+    "flips": 23972,
+    "flip_max": 0.0006625624373555183,
+    "successful_flips": 23972,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007277615368366241,
+    "ping_max": 0.0006206203252077103,
+    "sessions_moved": 47947,
+    "clients_moved": 47949,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db1-p2",
+    "passed": true,
+    "error": null,
+    "flips": 23879,
+    "flip_max": 0.0010029729455709457,
+    "successful_flips": 23879,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0009473217651247978,
+    "ping_max": 0.0008228812366724014,
+    "sessions_moved": 47761,
+    "clients_moved": 47762,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db1-p3",
+    "passed": true,
+    "error": null,
+    "flips": 24303,
+    "flip_max": 0.0006964113563299179,
+    "successful_flips": 24303,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0012748027220368385,
+    "ping_max": 0.0006196005269885063,
+    "sessions_moved": 48609,
+    "clients_moved": 48611,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db1-watch",
+    "passed": true,
+    "error": null,
+    "flips": 23926,
+    "flip_max": 0.0006628911942243576,
+    "successful_flips": 23926,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0006640618667006493,
+    "ping_max": 0.0006300425156950951,
+    "sessions_moved": 47855,
+    "clients_moved": 47856,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db1-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.00030062999576330185
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.0002049403265118599
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.0002023410052061081
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.0001925993710756302
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00019933097064495087
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.00019745994359254837
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.0002023410052061081
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.00018770992755889893
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.0001972205936908722
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 21712,
+    "flip_max": 0.0008841119706630707,
+    "successful_flips": 18911,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0008675316348671913,
+    "ping_max": 0.0008639823645353317,
+    "sessions_moved": 38657,
+    "clients_moved": 43807,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 2801,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 23522,
+    "flip_max": 0.0008009821176528931,
+    "successful_flips": 23522,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007635615766048431,
+    "ping_max": 0.0006438111886382103,
+    "sessions_moved": 47047,
+    "clients_moved": 47048,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db1-p1",
+    "passed": true,
+    "error": null,
+    "flips": 24014,
+    "flip_max": 0.008574310690164566,
+    "successful_flips": 24014,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.008574659936130047,
+    "ping_max": 0.008379810489714146,
+    "sessions_moved": 48031,
+    "clients_moved": 48032,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db1-p2",
+    "passed": true,
+    "error": null,
+    "flips": 24151,
+    "flip_max": 0.0007762517780065536,
+    "successful_flips": 24151,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0006812615320086479,
+    "ping_max": 0.0005792621523141861,
+    "sessions_moved": 48305,
+    "clients_moved": 48306,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db1-p3",
+    "passed": true,
+    "error": null,
+    "flips": 24158,
+    "flip_max": 0.002258365973830223,
+    "successful_flips": 24158,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0032974984496831894,
+    "ping_max": 0.0018520737066864967,
+    "sessions_moved": 48319,
+    "clients_moved": 48321,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db1-watch",
+    "passed": true,
+    "error": null,
+    "flips": 23712,
+    "flip_max": 0.000780811533331871,
+    "successful_flips": 23712,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0006399909034371376,
+    "ping_max": 0.0006236424669623375,
+    "sessions_moved": 47427,
+    "clients_moved": 47428,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db1-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.00026623159646987915
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.0002068905159831047
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.0002034306526184082
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.00020711030811071396
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00020132120698690414
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.00019416958093643188
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.00019597075879573822
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.00019875075668096542
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.00019656121730804443
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 21526,
+    "flip_max": 0.0008770516142249107,
+    "successful_flips": 18745,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0008947020396590233,
+    "ping_max": 0.0007789013907313347,
+    "sessions_moved": 38364,
+    "clients_moved": 43510,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 2781,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 23716,
+    "flip_max": 0.0007279515266418457,
+    "successful_flips": 23716,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0008193710818886757,
+    "ping_max": 0.000748051330447197,
+    "sessions_moved": 47435,
+    "clients_moved": 47437,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db16-p1",
+    "passed": true,
+    "error": null,
+    "flips": 24392,
+    "flip_max": 0.0011069616302847862,
+    "successful_flips": 24392,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.001172172836959362,
+    "ping_max": 0.0006734216585755348,
+    "sessions_moved": 48787,
+    "clients_moved": 48789,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db16-p2",
+    "passed": true,
+    "error": null,
+    "flips": 24586,
+    "flip_max": 0.0007166517898440361,
+    "successful_flips": 24586,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0009011430665850639,
+    "ping_max": 0.0006050420925021172,
+    "sessions_moved": 49175,
+    "clients_moved": 49176,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db16-p3",
+    "passed": true,
+    "error": null,
+    "flips": 24541,
+    "flip_max": 0.010837697423994541,
+    "successful_flips": 24541,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.011434449814260006,
+    "ping_max": 0.010828068479895592,
+    "sessions_moved": 49085,
+    "clients_moved": 49086,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db16-watch",
+    "passed": true,
+    "error": null,
+    "flips": 24437,
+    "flip_max": 0.0011024931445717812,
+    "successful_flips": 24437,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0013225330039858818,
+    "ping_max": 0.0009602326899766922,
+    "sessions_moved": 48877,
+    "clients_moved": 48879,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db16-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.0003637513145804405
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.00020156987011432648
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.0002057412639260292
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.00021371990442276
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00024217087775468826
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.00020658038556575775
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.00023233052343130112
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.0001870403066277504
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.00020830146968364716
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-0-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 21557,
+    "flip_max": 0.0035627195611596107,
+    "successful_flips": 18906,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.004060870967805386,
+    "ping_max": 0.00345676951110363,
+    "sessions_moved": 38699,
+    "clients_moved": 43806,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 2651,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 23684,
+    "flip_max": 0.0011979229748249054,
+    "successful_flips": 23684,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0012391433119773865,
+    "ping_max": 0.0011419830843806267,
+    "sessions_moved": 47371,
+    "clients_moved": 47372,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db16-p1",
+    "passed": true,
+    "error": null,
+    "flips": 24430,
+    "flip_max": 0.0008330829441547394,
+    "successful_flips": 24430,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007311217486858368,
+    "ping_max": 0.000754781998693943,
+    "sessions_moved": 48863,
+    "clients_moved": 48864,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db16-p2",
+    "passed": true,
+    "error": null,
+    "flips": 24464,
+    "flip_max": 0.0007115621119737625,
+    "successful_flips": 24464,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.000931701622903347,
+    "ping_max": 0.0008571725338697433,
+    "sessions_moved": 48931,
+    "clients_moved": 48932,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db16-p3",
+    "passed": true,
+    "error": null,
+    "flips": 24310,
+    "flip_max": 0.0016564242541790009,
+    "successful_flips": 24310,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.002361115999519825,
+    "ping_max": 0.0015682755038142204,
+    "sessions_moved": 48623,
+    "clients_moved": 48624,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db16-watch",
+    "passed": true,
+    "error": null,
+    "flips": 24231,
+    "flip_max": 0.0008502518758177757,
+    "successful_flips": 24231,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007562711834907532,
+    "ping_max": 0.0006040912121534348,
+    "sessions_moved": 48465,
+    "clients_moved": 48466,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db16-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.00032860133796930313
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.00022779963910579681
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.00022019073367118835
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.00024161115288734436
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00020764954388141632
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.00019910931587219238
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.00019699055701494217
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.00020286068320274353
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.00020190048962831497
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-uring-1-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 21563,
+    "flip_max": 0.014621599577367306,
+    "successful_flips": 18966,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.01478932797908783,
+    "ping_max": 0.014306516386568546,
+    "sessions_moved": 38769,
+    "clients_moved": 43953,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 2597,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 23252,
+    "flip_max": 0.001131594181060791,
+    "successful_flips": 23252,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0011482331901788712,
+    "ping_max": 0.0008992422372102737,
+    "sessions_moved": 46507,
+    "clients_moved": 46509,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db16-p1",
+    "passed": true,
+    "error": null,
+    "flips": 23454,
+    "flip_max": 0.0007847314700484276,
+    "successful_flips": 23454,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007524825632572174,
+    "ping_max": 0.0005832510069012642,
+    "sessions_moved": 46911,
+    "clients_moved": 46912,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db16-p2",
+    "passed": true,
+    "error": null,
+    "flips": 23263,
+    "flip_max": 0.0006859526038169861,
+    "successful_flips": 23263,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.000641942024230957,
+    "ping_max": 0.0007433127611875534,
+    "sessions_moved": 46529,
+    "clients_moved": 46530,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db16-p3",
+    "passed": true,
+    "error": null,
+    "flips": 23750,
+    "flip_max": 0.0006789220497012138,
+    "successful_flips": 23750,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0013225432485342026,
+    "ping_max": 0.0005767522379755974,
+    "sessions_moved": 47503,
+    "clients_moved": 47505,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db16-watch",
+    "passed": true,
+    "error": null,
+    "flips": 23436,
+    "flip_max": 0.000743672251701355,
+    "successful_flips": 23436,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0007556425407528877,
+    "ping_max": 0.0006081918254494667,
+    "sessions_moved": 46875,
+    "clients_moved": 46877,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db16-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.00034185126423835754
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.0002338401973247528
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.00020159129053354263
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.00021502003073692322
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00022545084357261658
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.00020712148398160934
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.00021206960082054138
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.000208219513297081
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.0002146996557712555
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-0-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 21069,
+    "flip_max": 0.0011438718065619469,
+    "successful_flips": 17940,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0008163312450051308,
+    "ping_max": 0.0008008023723959923,
+    "sessions_moved": 36687,
+    "clients_moved": 41793,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 3129,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 23096,
+    "flip_max": 0.001482514664530754,
+    "successful_flips": 23096,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.00151012372225523,
+    "ping_max": 0.0012662028893828392,
+    "sessions_moved": 46195,
+    "clients_moved": 46196,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db16-p1",
+    "passed": true,
+    "error": null,
+    "flips": 23127,
+    "flip_max": 0.016555793583393097,
+    "successful_flips": 23127,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.01667607482522726,
+    "ping_max": 0.01658262498676777,
+    "sessions_moved": 46257,
+    "clients_moved": 46258,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db16-p2",
+    "passed": true,
+    "error": null,
+    "flips": 23330,
+    "flip_max": 0.000715312547981739,
+    "successful_flips": 23330,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.000743362121284008,
+    "ping_max": 0.0006245113909244537,
+    "sessions_moved": 46663,
+    "clients_moved": 46664,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db16-p3",
+    "passed": true,
+    "error": null,
+    "flips": 23875,
+    "flip_max": 0.0010389424860477448,
+    "successful_flips": 23875,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0014473842456936836,
+    "ping_max": 0.0008619623258709908,
+    "sessions_moved": 47753,
+    "clients_moved": 47754,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db16-watch",
+    "passed": true,
+    "error": null,
+    "flips": 23175,
+    "flip_max": 0.0038433512672781944,
+    "successful_flips": 23175,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.003942240960896015,
+    "ping_max": 0.0037187011912465096,
+    "sessions_moved": 46353,
+    "clients_moved": 46355,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db16-semantics",
+    "passed": true,
+    "error": null,
+    "semantics": [
+      {
+        "case": "watch-clean",
+        "session_moves": 1,
+        "flip_seconds": 0.00034034065902233124
+      },
+      {
+        "case": "watch-dirty",
+        "session_moves": 1,
+        "flip_seconds": 0.0002214508131146431
+      },
+      {
+        "case": "watch-flushall",
+        "session_moves": 1,
+        "flip_seconds": 0.00019452068954706192
+      },
+      {
+        "case": "watch-flushdb",
+        "session_moves": 1,
+        "flip_seconds": 0.00022637099027633667
+      },
+      {
+        "case": "watch-config",
+        "session_moves": 1,
+        "flip_seconds": 0.00022566132247447968
+      },
+      {
+        "case": "queue",
+        "session_moves": 1,
+        "flip_seconds": 0.00021116062998771667
+      },
+      {
+        "case": "queue-error",
+        "session_moves": 1,
+        "flip_seconds": 0.00020783115178346634
+      },
+      {
+        "case": "discard",
+        "session_moves": 1,
+        "flip_seconds": 0.0002100002020597458
+      },
+      {
+        "case": "reset",
+        "session_moves": 1,
+        "flip_seconds": 0.00021339952945709229
+      }
+    ]
+  },
+  {
+    "suite": "flipfix6",
+    "leg": "2s-epoll-1-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 20990,
+    "flip_max": 0.0023501766845583916,
+    "successful_flips": 17914,
+    "workers": 6,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0024138065055012703,
+    "ping_max": 0.0023200372233986855,
+    "sessions_moved": 36670,
+    "clients_moved": 41756,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 3076,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-0-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 6170,
+    "flip_max": 0.004226662218570709,
+    "successful_flips": 6170,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.006038636900484562,
+    "ping_max": 0.00459414254873991,
+    "sessions_moved": 98752,
+    "clients_moved": 98754,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-0-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 6008,
+    "flip_max": 0.0042791422456502914,
+    "successful_flips": 5890,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.006349856965243816,
+    "ping_max": 0.005129855126142502,
+    "sessions_moved": 94356,
+    "clients_moved": 95562,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 118,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-1-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 6160,
+    "flip_max": 0.004157251678407192,
+    "successful_flips": 6160,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0056379251182079315,
+    "ping_max": 0.004133930429816246,
+    "sessions_moved": 98592,
+    "clients_moved": 98594,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-1-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 5950,
+    "flip_max": 0.003970211371779442,
+    "successful_flips": 5851,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.006403926759958267,
+    "ping_max": 0.004660861566662788,
+    "sessions_moved": 93729,
+    "clients_moved": 94924,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 99,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-0-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 5978,
+    "flip_max": 0.0043532634153962135,
+    "successful_flips": 5978,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.006180897355079651,
+    "ping_max": 0.004671802744269371,
+    "sessions_moved": 95680,
+    "clients_moved": 95681,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-0-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 5953,
+    "flip_max": 0.0044888826087117195,
+    "successful_flips": 5831,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.00595005601644516,
+    "ping_max": 0.00430294219404459,
+    "sessions_moved": 93406,
+    "clients_moved": 94600,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 122,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-1-db1-exec",
+    "passed": true,
+    "error": null,
+    "flips": 6096,
+    "flip_max": 0.004573743790388107,
+    "successful_flips": 6096,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0066118985414505005,
+    "ping_max": 0.004614822566509247,
+    "sessions_moved": 97568,
+    "clients_moved": 97569,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-1-db1-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 5877,
+    "flip_max": 0.005305275321006775,
+    "successful_flips": 5781,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.007007819600403309,
+    "ping_max": 0.004668932408094406,
+    "sessions_moved": 92607,
+    "clients_moved": 93812,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 96,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-0-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 5989,
+    "flip_max": 0.005004393868148327,
+    "successful_flips": 5989,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.006176467053592205,
+    "ping_max": 0.004174821078777313,
+    "sessions_moved": 95856,
+    "clients_moved": 95858,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-0-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 5857,
+    "flip_max": 0.004919643513858318,
+    "successful_flips": 5712,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.005957587622106075,
+    "ping_max": 0.004537003114819527,
+    "sessions_moved": 91497,
+    "clients_moved": 92692,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 145,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-1-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 6051,
+    "flip_max": 0.004308992065489292,
+    "successful_flips": 6051,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.005453365854918957,
+    "ping_max": 0.0045808227732777596,
+    "sessions_moved": 96848,
+    "clients_moved": 96850,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-uring-1-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 5925,
+    "flip_max": 0.0043884022161364555,
+    "successful_flips": 5765,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.006320557557046413,
+    "ping_max": 0.004461602307856083,
+    "sessions_moved": 92352,
+    "clients_moved": 93567,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 160,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-0-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 5850,
+    "flip_max": 0.004637102596461773,
+    "successful_flips": 5850,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.005965657532215118,
+    "ping_max": 0.004635743796825409,
+    "sessions_moved": 93632,
+    "clients_moved": 93634,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-0-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 5654,
+    "flip_max": 0.004733404144644737,
+    "successful_flips": 5499,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.0061663175001740456,
+    "ping_max": 0.006200628355145454,
+    "sessions_moved": 88093,
+    "clients_moved": 89265,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 155,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-1-db16-exec",
+    "passed": true,
+    "error": null,
+    "flips": 5796,
+    "flip_max": 0.004810813814401627,
+    "successful_flips": 5796,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.005663455463945866,
+    "ping_max": 0.004252842627465725,
+    "sessions_moved": 92768,
+    "clients_moved": 92769,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 0,
+    "errors": []
+  },
+  {
+    "suite": "flipfix6-scale",
+    "leg": "2s-epoll-1-db16-exec-close",
+    "passed": true,
+    "error": null,
+    "flips": 5767,
+    "flip_max": 0.004051230847835541,
+    "successful_flips": 5617,
+    "workers": 48,
+    "io_before": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "worker_max_gap": 0.006239657290279865,
+    "ping_max": 0.004210231825709343,
+    "sessions_moved": 89966,
+    "clients_moved": 91190,
+    "flip_refused_s2": 0,
+    "flip_refused_close": 150,
+    "errors": []
+  },
+  {
+    "suite": "flush-live-flip-db1",
+    "leg": "redis-redis-0",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 68796,
+      "work": 0,
+      "saves": 0,
+      "flips": 0,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db1",
+    "leg": "2s-uring-0",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 24761,
+      "work": 0,
+      "saves": 0,
+      "flips": 24916,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db1",
+    "leg": "2s-uring-1",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 24881,
+      "work": 0,
+      "saves": 0,
+      "flips": 25038,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db1",
+    "leg": "2s-epoll-0",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 23861,
+      "work": 0,
+      "saves": 0,
+      "flips": 23861,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db1",
+    "leg": "2s-epoll-1",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 17933,
+      "work": 0,
+      "saves": 0,
+      "flips": 17934,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db16",
+    "leg": "redis-redis-0",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 68665,
+      "work": 0,
+      "saves": 0,
+      "flips": 0,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db16",
+    "leg": "2s-uring-0",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 21379,
+      "work": 0,
+      "saves": 0,
+      "flips": 21561,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db16",
+    "leg": "2s-uring-1",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 21479,
+      "work": 0,
+      "saves": 0,
+      "flips": 21655,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db16",
+    "leg": "2s-epoll-0",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 17773,
+      "work": 0,
+      "saves": 0,
+      "flips": 17775,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  },
+  {
+    "suite": "flush-live-flip-db16",
+    "leg": "2s-epoll-1",
+    "passed": true,
+    "error": null,
+    "value": {
+      "flushes": 17758,
+      "work": 0,
+      "saves": 0,
+      "flips": 17758,
+      "flip_refusals": 0,
+      "cancelled_saves": 0,
+      "snapshots_checked": 0,
+      "aof_sentinels": 0,
+      "aof_namespaces": 0
+    }
+  }
+]
