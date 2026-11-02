@@ -13,7 +13,7 @@ No throughput measurements or full iteration gate are authorized for this lane.
 | AT5.1 / AT5.2 | Direct audit schedule: 8/8 torn reads and 8/8 lost winners in each namespace | 0/8 torn, 0/8 lost in each namespace; ASAN/UBSAN and TSAN pass | Reject prefix collapse if any retained decided lower-ticket occurrence overlaps a selected key | Live detector and full job proofs pending; owner signs off at landing |
 | S1-SURVEY-MSET8 | Pending | Pending | Per-connection park index / head polling | Pending |
 | AT5.10 | Pending | Pending | Directed gate rows | EXPECT constants remain untouched |
-| AT5.8 | Pending | Pending | Configuration comments | Pending |
+| AT5.8 | Comments claimed atomic 0 was allocation-free | Claims now describe optional write groups, retained EXEC/script/read-cut machinery and winner preservation | `tomokv.conf`, `config.h` comments only | Base still implements live CONFIG SET atomic; this lane does not change that runtime policy |
 
 The record witness uses real FlatStore install, resolve and collapse methods.
 It covers an undecided or too-new unrelated boundary, replacement or tombstone

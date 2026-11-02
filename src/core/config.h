@@ -498,8 +498,10 @@ struct Config {
     uint64_t maxmemory      = 0;         // bytes; zero removes all eviction-path work.
     MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
     uint32_t maxmemory_samples = 5;
-    // ---- atomics (live via CONFIG SET) -----------------------------------------------------
-    uint32_t atomic = 0;               // 0 = fully off, no allocation; epoch-MVCC multi-key lane
+    // ---- optional cross-shard write groups ------------------------------------------------
+    // 1: one committed decision for multi-key writes and snapshot reads; collapse
+    // retains the winning committed value. 0 leaves EXEC/scripts/read cuts active.
+    uint32_t atomic = 0;
     // The in-flight credit window is always min(16 * resolved shards, 1024), derived at boot.
 
     // ---- scripting / collection encodings -------------------------------------------------
