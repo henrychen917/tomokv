@@ -914,7 +914,7 @@ feature_split_job(){
       || bad "feature battery boot (atomic $AT)"
   for t in $FEATURE_BATTERIES; do
     FEATURE_ARGS=()
-    [ "$t" = stream ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
+    [ "$t" = stream ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
     py tests/feature_atomic.py 127.0.0.1 "$PORT" "$AT" \
         python3 tests/$t.py 127.0.0.1 "$PORT" "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
@@ -967,7 +967,7 @@ feature_armed_job(){
   fi
   for t in $FEATURE_BATTERIES; do
     FEATURE_ARGS=()
-    [ "$t" = stream ] && [ "${GATE_PROOF_NO_RATES:-0}" != 1 ] && FEATURE_ARGS+=(--release-build)
+    [ "$t" = stream ] && FEATURE_ARGS+=(--release-build)
     row_begin "fused+armed $t battery (atomic $AT)"
     py tests/feature_atomic.py 127.0.0.1 "$PORT" "$AT" \
         python3 tests/$t.py 127.0.0.1 "$PORT" "${FEATURE_ARGS[@]}" >$TMPDIR/gate-fusedarmed-$t-$AT.txt 2>&1 \

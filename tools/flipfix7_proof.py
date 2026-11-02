@@ -24,7 +24,8 @@ feature-split-0 feature-split-1 feature-armed-0 feature-armed-1
 notify tls climonfix wb_policy aof_frame aoforder'''.split()
 NEW=['flipfix7_output','flipfix7_blocked','flipfix7_tls']
 UNITS=['core_units','flipfix_units','flipfix5_units','flipfix6_units','flipfix7_units','lbplanner_units','persistfix_units','flip_unit']
-CONTROLS=['wbland_units','reorder_sync','reorder_engagement','reorder_identity']
+CONTROLS=['wbland_units','reorder_sync','reorder_engagement','reorder_identity',
+          'feature-split-0','feature-split-1','feature-armed-0','feature-armed-1']
 SCOPE=['fused-0','fused-1','txn_group_fused','rootcore-notify',
        'rootcompat-xsnotify','rootcompat-tracking','rootcompat-xsexpiry',
        'clientfix','compat2','wb_mixed']

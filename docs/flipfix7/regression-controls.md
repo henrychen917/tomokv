@@ -23,3 +23,11 @@ that exact callback and change its opcode; neither is permitted to pass.
 
 The corrected jobs are rerun through `tests/gate.sh` using the `controls` phase
 of `tools/flipfix7_proof.py`. Their separate receipt determines the outcome.
+
+The native run also exposed an overbroad proof-only exclusion: omitting
+`stream.py --release-build` skipped its three memory assertions, despite those
+assertions containing no timing measurement. The original release flag is
+restored for both stream battery call sites. The `controls` phase repeats all
+four split/armed atomic feature jobs with those assertions enabled; the epoll
+regression selection also includes them. Only the separate `xmove` size-ratio
+timing subtest remains excluded by the proof-only flag.
