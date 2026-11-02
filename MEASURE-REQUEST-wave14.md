@@ -437,10 +437,11 @@ the memtier/floor branch explicitly records NOT RUN. Receipts are
 The final POST passes the 27 forced FUNCTION-history legs (3 Redis fsync
 policies plus 24 TomoKV mode/engine/namespace/policy legs), including every
 restart, and all 48 maxmemrace candidate legs plus the oracle.
-`directed-final-core.json` binds those completed jobs. The pre-R7 candidate
-also passed the expanded keyless-tracking matrix: 80 candidate overflow legs,
-including 32 EXEC-enrolment legs, each armed with zero missing invalidations;
-that matrix is repeating in the final sweep.
+`directed-final-core.json` binds those completed jobs. The final candidate
+also passes all 80 expanded keyless-tracking overflow legs, including all 32
+EXEC-enrolment legs, each armed with zero missing invalidations. All three
+Redis oracle legs pass too; `tracking-final-r7.json` binds the 240 candidate
+checks and their EXEC lifetimes. The earlier pre-R7 receipt remains separate.
 The first stricter cap attempt used the obsolete drop counter and was stopped
 as a fixture failure; the repaired predicate observes the null invalidation
 emitted by the fixed overflow branch. That failed receipt is retained.
@@ -500,3 +501,10 @@ with `shlex.split`, retaining direct argument execution. The same gate job
 passes on rerun, including the intended missing-fence-clear assertion failure
 (`jobs/portable-compiler-fixed.json`, two rows including release). The original
 broad-run row remains recorded as failed; this is not a production change.
+
+The declared-row audit accounts for **1,100 of 1,107 public source rows**,
+including failed executions, the two strict differential folds, atomic
+companions and the throwaway ABBA selftest. Exactly seven are **NOT RUN**
+because they require the reserved load/performance work or share its boot;
+`source-row-coverage.json` names each one and its reason. Private diagnostic
+rows and repeated engine/mode runs do not change the source count.
