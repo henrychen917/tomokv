@@ -74,6 +74,17 @@ PRE `.text` is 8,924,055 bytes at 0x2cc30; POST and PAD-A are 8,926,119 bytes at
 tree) reproduces the PRE SHA-256 exactly. Full linker receipt:
 `docs/cfgfix2/arms.json`.
 
+Reproducibility: the Makefile embeds `git rev-parse --short=8 HEAD` and the
+`src`/`Makefile` dirty flag into `info_stats.o` (INFO server `redis_git_sha1`/
+`redis_git_dirty`). The POST arm was built with the item-4 rework staged, so it
+embeds `a6859176` with `dirty:1`; a clean build of the identical final source
+(e.g. `git checkout c1b9b4f120 && make`, SHA-256
+`3ed5b2926e5cf54dabb7d64e433c1c8a01b5f90e7a4242fbab99ee1595da9347`) produces
+**byte-identical `.text`, `.data` and `.bss`** -- only that INFO git-sha `.rodata`
+field differs. The instruction census below (which measures `.text` execution)
+and every behavioural receipt are therefore identical for either binary. PRE
+embeds `bc80de80` (its own commit), built clean.
+
 PAD-A is type **A, behaviour twin**: PRE behaviour linked at POST's `.text` start
 and total size. It controls aggregate text extent only; internal function
 placement and data layout remain PRE, so it is not an exact symbol-layout twin
