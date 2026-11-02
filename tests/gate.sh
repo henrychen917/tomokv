@@ -5082,7 +5082,7 @@ job_atomic_floor(){
 # rate. Floor = 120k on the oversubscribed gate cores; healthy measures ~600k (5x margin), the
 # regression class this catches lands under 70k. Boots the harness posture on purpose -- debug
 # enabled, tripwire NOT armed -- because that is the posture every bench and gate row runs in.
-boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic mm floor boot"
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic mm floor boot"
 local run_floor=1
 case "${GATE_PROOF_NO_RATES:-0}" in
   0) ;;
