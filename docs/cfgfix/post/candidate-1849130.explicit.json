@@ -1,0 +1,454 @@
+{
+  "acl-pubsub-default": [
+    "acl-pubsub-default",
+    "resetchannels"
+  ],
+  "aclfile": [
+    "aclfile",
+    ""
+  ],
+  "acllog-max-len": [
+    "acllog-max-len",
+    "128"
+  ],
+  "active-defrag-cycle-max": [],
+  "active-defrag-cycle-min": [],
+  "active-defrag-ignore-bytes": [],
+  "active-defrag-max-scan-fields": [],
+  "active-defrag-threshold-lower": [],
+  "active-defrag-threshold-upper": [],
+  "active-expire-effort": [],
+  "activedefrag": [],
+  "activerehashing": [],
+  "always-show-logo": [],
+  "aof-disable-auto-gc": [],
+  "aof-load-truncated": [
+    "aof-load-truncated",
+    "yes"
+  ],
+  "aof-rewrite-cpulist": [],
+  "aof-rewrite-incremental-fsync": [],
+  "aof-timestamp-enabled": [
+    "aof-timestamp-enabled",
+    "no"
+  ],
+  "aof-use-rdb-preamble": [
+    "aof-use-rdb-preamble",
+    "yes"
+  ],
+  "aof_rewrite_cpulist": [],
+  "appenddirname": [
+    "appenddirname",
+    "appendonlydir"
+  ],
+  "appendfilename": [
+    "appendfilename",
+    "appendonly.aof"
+  ],
+  "appendfsync": [
+    "appendfsync",
+    "everysec"
+  ],
+  "appendonly": [
+    "appendonly",
+    "no"
+  ],
+  "auto-aof-rewrite-min-size": [
+    "auto-aof-rewrite-min-size",
+    "67108864"
+  ],
+  "auto-aof-rewrite-percentage": [
+    "auto-aof-rewrite-percentage",
+    "100"
+  ],
+  "bgsave-cpulist": [],
+  "bgsave_cpulist": [],
+  "bind": [
+    "bind",
+    "127.0.0.1"
+  ],
+  "bind-source-addr": [],
+  "bio-cpulist": [],
+  "bio_cpulist": [],
+  "busy-reply-threshold": [],
+  "client-default-resp": [],
+  "client-output-buffer-limit": [
+    "client-output-buffer-limit",
+    "normal 0 0 0 slave 268435456 67108864 60 pubsub 33554432 8388608 60"
+  ],
+  "client-query-buffer-limit": [
+    "client-query-buffer-limit",
+    "1073741824"
+  ],
+  "cluster-allow-pubsubshard-when-down": [],
+  "cluster-allow-reads-when-down": [],
+  "cluster-allow-replica-migration": [],
+  "cluster-announce-bus-port": [],
+  "cluster-announce-hostname": [],
+  "cluster-announce-human-nodename": [],
+  "cluster-announce-ip": [],
+  "cluster-announce-port": [],
+  "cluster-announce-tls-port": [],
+  "cluster-config-file": [],
+  "cluster-enabled": [],
+  "cluster-link-sendbuf-limit": [],
+  "cluster-migration-barrier": [],
+  "cluster-node-timeout": [],
+  "cluster-ping-interval": [],
+  "cluster-port": [],
+  "cluster-preferred-endpoint-type": [],
+  "cluster-replica-no-failover": [],
+  "cluster-replica-validity-factor": [],
+  "cluster-require-full-coverage": [],
+  "cluster-slave-no-failover": [],
+  "cluster-slave-validity-factor": [],
+  "crash-log-enabled": [],
+  "crash-memcheck-enabled": [],
+  "daemonize": [
+    "daemonize",
+    "no"
+  ],
+  "databases": [
+    "databases",
+    "16"
+  ],
+  "dbfilename": [
+    "dbfilename",
+    "dump.tomo"
+  ],
+  "dir": [
+    "dir",
+    "/home/user/Projects/cx-cfgfix/build/gate-run.SLOFlq/jobs/cfgfix/proof/1s-epoll-tcp"
+  ],
+  "disable-thp": [],
+  "dynamic-hz": [
+    "dynamic-hz",
+    "yes"
+  ],
+  "enable-debug-command": [
+    "enable-debug-command",
+    "yes"
+  ],
+  "enable-module-command": [],
+  "enable-protected-configs": [],
+  "hash-max-listpack-entries": [
+    "hash-max-listpack-entries",
+    "512"
+  ],
+  "hash-max-listpack-value": [
+    "hash-max-listpack-value",
+    "64"
+  ],
+  "hash-max-ziplist-entries": [
+    "hash-max-ziplist-entries",
+    "512"
+  ],
+  "hash-max-ziplist-value": [
+    "hash-max-ziplist-value",
+    "64"
+  ],
+  "hide-user-data-from-log": [],
+  "hll-sparse-max-bytes": [
+    "hll-sparse-max-bytes",
+    "3000"
+  ],
+  "hz": [
+    "hz",
+    "10"
+  ],
+  "ignore-warnings": [],
+  "io-threads": [],
+  "io-threads-do-reads": [],
+  "jemalloc-bg-thread": [],
+  "key-load-delay": [
+    "key-load-delay",
+    "0"
+  ],
+  "latency-monitor-threshold": [
+    "latency-monitor-threshold",
+    "0"
+  ],
+  "latency-tracking": [
+    "latency-tracking",
+    "no"
+  ],
+  "latency-tracking-info-percentiles": [
+    "latency-tracking-info-percentiles",
+    "50 99 99.9"
+  ],
+  "lazyfree-lazy-eviction": [],
+  "lazyfree-lazy-expire": [],
+  "lazyfree-lazy-server-del": [],
+  "lazyfree-lazy-user-del": [],
+  "lazyfree-lazy-user-flush": [],
+  "lfu-decay-time": [],
+  "lfu-log-factor": [],
+  "list-compress-depth": [],
+  "list-max-listpack-size": [
+    "list-max-listpack-size",
+    "-2"
+  ],
+  "list-max-ziplist-size": [
+    "list-max-ziplist-size",
+    "-2"
+  ],
+  "loading-process-events-interval-bytes": [],
+  "locale-collate": [
+    "locale-collate",
+    ""
+  ],
+  "logfile": [
+    "logfile",
+    ""
+  ],
+  "loglevel": [
+    "loglevel",
+    "notice"
+  ],
+  "lua-enable-deprecated-api": [],
+  "lua-time-limit": [],
+  "masterauth": [],
+  "masteruser": [],
+  "max-new-connections-per-cycle": [],
+  "max-new-tls-connections-per-cycle": [],
+  "maxclients": [
+    "maxclients",
+    "20032"
+  ],
+  "maxmemory": [
+    "maxmemory",
+    "0"
+  ],
+  "maxmemory-clients": [],
+  "maxmemory-eviction-tenacity": [],
+  "maxmemory-policy": [
+    "maxmemory-policy",
+    "noeviction"
+  ],
+  "maxmemory-samples": [
+    "maxmemory-samples",
+    "5"
+  ],
+  "min-replicas-max-lag": [],
+  "min-replicas-to-write": [],
+  "min-slaves-max-lag": [],
+  "min-slaves-to-write": [],
+  "no-appendfsync-on-rewrite": [],
+  "notify-keyspace-events": [
+    "notify-keyspace-events",
+    ""
+  ],
+  "oom-score-adj": [],
+  "oom-score-adj-values": [],
+  "pidfile": [
+    "pidfile",
+    ""
+  ],
+  "port": [
+    "port",
+    "20100"
+  ],
+  "proc-title-template": [],
+  "propagation-error-behavior": [],
+  "protected-mode": [
+    "protected-mode",
+    "no"
+  ],
+  "proto-max-bulk-len": [
+    "proto-max-bulk-len",
+    "536870912"
+  ],
+  "rdb-del-sync-files": [],
+  "rdb-key-save-delay": [],
+  "rdb-save-incremental-fsync": [],
+  "rdbchecksum": [],
+  "rdbcompression": [],
+  "repl-backlog-size": [],
+  "repl-backlog-ttl": [],
+  "repl-disable-tcp-nodelay": [],
+  "repl-diskless-load": [],
+  "repl-diskless-sync": [],
+  "repl-diskless-sync-delay": [],
+  "repl-diskless-sync-max-replicas": [],
+  "repl-ping-replica-period": [],
+  "repl-ping-slave-period": [],
+  "repl-timeout": [],
+  "replica-announce-ip": [],
+  "replica-announce-port": [],
+  "replica-announced": [],
+  "replica-ignore-disk-write-errors": [],
+  "replica-ignore-maxmemory": [],
+  "replica-lazy-flush": [],
+  "replica-priority": [],
+  "replica-read-only": [],
+  "replica-serve-stale-data": [],
+  "replicaof": [],
+  "req-res-logfile": [],
+  "requirepass": [
+    "requirepass",
+    ""
+  ],
+  "sanitize-dump-payload": [],
+  "save": [
+    "save",
+    ""
+  ],
+  "server-cpulist": [],
+  "server_cpulist": [],
+  "set-max-intset-entries": [
+    "set-max-intset-entries",
+    "512"
+  ],
+  "set-max-listpack-entries": [
+    "set-max-listpack-entries",
+    "128"
+  ],
+  "set-max-listpack-value": [
+    "set-max-listpack-value",
+    "64"
+  ],
+  "set-proc-title": [],
+  "shutdown-on-sigint": [
+    "shutdown-on-sigint",
+    "default"
+  ],
+  "shutdown-on-sigterm": [
+    "shutdown-on-sigterm",
+    "default"
+  ],
+  "shutdown-timeout": [],
+  "slave-announce-ip": [],
+  "slave-announce-port": [],
+  "slave-ignore-maxmemory": [],
+  "slave-lazy-flush": [],
+  "slave-priority": [],
+  "slave-read-only": [],
+  "slave-serve-stale-data": [],
+  "slaveof": [],
+  "slowlog-log-slower-than": [
+    "slowlog-log-slower-than",
+    "10000"
+  ],
+  "slowlog-max-len": [
+    "slowlog-max-len",
+    "128"
+  ],
+  "socket-mark-id": [],
+  "stop-writes-on-bgsave-error": [],
+  "stream-node-max-bytes": [
+    "stream-node-max-bytes",
+    "4096"
+  ],
+  "stream-node-max-entries": [
+    "stream-node-max-entries",
+    "100"
+  ],
+  "supervised": [
+    "supervised",
+    "no"
+  ],
+  "syslog-enabled": [
+    "syslog-enabled",
+    "no"
+  ],
+  "syslog-facility": [
+    "syslog-facility",
+    "local0"
+  ],
+  "syslog-ident": [
+    "syslog-ident",
+    "redis"
+  ],
+  "tcp-backlog": [
+    "tcp-backlog",
+    "511"
+  ],
+  "tcp-keepalive": [
+    "tcp-keepalive",
+    "300"
+  ],
+  "timeout": [
+    "timeout",
+    "0"
+  ],
+  "tls-auth-clients": [
+    "tls-auth-clients",
+    "yes"
+  ],
+  "tls-ca-cert-dir": [
+    "tls-ca-cert-dir",
+    ""
+  ],
+  "tls-ca-cert-file": [
+    "tls-ca-cert-file",
+    ""
+  ],
+  "tls-cert-file": [
+    "tls-cert-file",
+    ""
+  ],
+  "tls-ciphers": [
+    "tls-ciphers",
+    ""
+  ],
+  "tls-ciphersuites": [
+    "tls-ciphersuites",
+    ""
+  ],
+  "tls-client-cert-file": [],
+  "tls-client-key-file": [],
+  "tls-client-key-file-pass": [],
+  "tls-cluster": [],
+  "tls-dh-params-file": [],
+  "tls-key-file": [
+    "tls-key-file",
+    ""
+  ],
+  "tls-key-file-pass": [],
+  "tls-port": [
+    "tls-port",
+    "0"
+  ],
+  "tls-prefer-server-ciphers": [
+    "tls-prefer-server-ciphers",
+    "no"
+  ],
+  "tls-protocols": [
+    "tls-protocols",
+    ""
+  ],
+  "tls-replication": [],
+  "tls-session-cache-size": [],
+  "tls-session-cache-timeout": [],
+  "tls-session-caching": [],
+  "tracking-table-max-keys": [
+    "tracking-table-max-keys",
+    "1000000"
+  ],
+  "unixsocket": [
+    "unixsocket",
+    ""
+  ],
+  "unixsocketperm": [
+    "unixsocketperm",
+    "0"
+  ],
+  "use-exit-on-panic": [],
+  "watchdog-period": [],
+  "zset-max-listpack-entries": [
+    "zset-max-listpack-entries",
+    "128"
+  ],
+  "zset-max-listpack-value": [
+    "zset-max-listpack-value",
+    "64"
+  ],
+  "zset-max-ziplist-entries": [
+    "zset-max-ziplist-entries",
+    "128"
+  ],
+  "zset-max-ziplist-value": [
+    "zset-max-ziplist-value",
+    "64"
+  ]
+}
