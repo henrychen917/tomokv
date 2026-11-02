@@ -1,0 +1,17 @@
+GATE(full): 13 physical cores; 1 correctness slots = min(8/8 server, 5/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 5 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M
+PARTIAL jobs (including prerequisites): release txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement
+PARTIAL jobs (including prerequisites): release txnfix4-oom txnfix4-watch txnfix4-crash txnfix4-hash txnfix4-placement
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; correctness-plan-fallback; txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs)
+  txnfix4 CD5.4 movers under maxmemory change nothing or run (all legs) FAIL (see /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-oom/oom.log and /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-oom/oom/)
+  row budget: 900s; median=10.745s; correctness-plan-fallback; txnfix4 CD5.5 multi-key pops abort a WATCH (all legs)
+  txnfix4 CD5.5 multi-key pops abort a WATCH (all legs) FAIL (see /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-watch/watch.log and /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-watch/watch/)
+  row budget: 900s; median=19.715s; correctness-plan-fallback; txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs)
+  txnfix4 CD5.6 WATCH, multi-key pop, CLIENT TRACKING (all legs) FAIL (see /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-crash/crash.log and /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-crash/crash/)
+  row budget: 900s; median=19.49s; correctness-plan-fallback; txnfix4 CD5.3 lapsed hash fields during a capture (all legs)
+  txnfix4 CD5.3 lapsed hash fields during a capture (all legs) FAIL (see /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-hash/hash.log and /home/user/Projects/cx-txnfix4/build/gate-run.zgdY0M/jobs/txnfix4-hash/hash/)
+  row budget: 900s; median=3.97s; correctness-plan-fallback; txnfix4 TM5.1 execfix proves two owners (all legs)
+  txnfix4 TM5.1 execfix proves two owners (all legs)   ok
+GATE(PARTIAL): 2 ok, 4 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-txnfix4/docs/txnfix4/gate-receipts/pre-final2-witness-epoll.partial
