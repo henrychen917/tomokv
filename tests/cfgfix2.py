@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import resource
+import signal
 import socket
 import subprocess
 import threading
@@ -45,8 +46,8 @@ class Server:
                                   preexec_fn=lambda: resource.setrlimit(resource.RLIMIT_CORE, (0, 0)))
         self.record['pid'] = self.p.pid
 
-    def ready(self, *, may_refuse=False):
-        deadline = time.monotonic() + 15
+    def ready(self, *, may_refuse=False, timeout=15):
+        deadline = time.monotonic() + timeout
         while self.p.poll() is None and time.monotonic() < deadline:
             try:
                 with closing(n.connect(self.a.port)) as c:
@@ -402,9 +403,164 @@ def auth_case(a, mode, engine):
             for r in results]
 
 
+def long_command(mode):
+    # Each server's own multi-second single-key command: TomoKV executes a large
+    # SUNIONSTORE slowly, Redis a large SORT ... STORE. Duration is calibrated.
+    if mode == 'redis':
+        return 4000000, lambda dst: ('SORT', '{cc6}src', 'STORE', dst)
+    return 400000, lambda dst: ('SUNIONSTORE', dst, '{cc6}src')
+
+
+def populate(c, members):
+    batch = 20000
+    for first in range(0, members, batch):
+        c.must('SADD', '{cc6}src', *range(first, min(members, first + batch)))
+    assert c.must('SCARD', '{cc6}src') == members
+
+
+def sigterm_during(child, c, command, settle=0.3):
+    """Send COMMAND without waiting, SIGTERM once it runs, and time the exit."""
+    c.send(*command)
+    time.sleep(settle)
+    signalled = time.monotonic()
+    child.p.send_signal(signal.SIGTERM)
+    try:
+        child.p.wait(180)
+    except subprocess.TimeoutExpired:
+        child.record['forced_kill'] = True
+        child.p.kill()
+        child.p.wait(10)
+    waited = time.monotonic() - signalled
+    try:
+        reply = c.read()
+        reply = 'error' if isinstance(reply, Exception) else 'reply'
+    except (OSError, EOFError):
+        reply = 'closed'
+    return child.p.returncode, waited, reply
+
+
+def shutdown_case(a, mode, engine):
+    """SIGTERM while one long command runs: delay shutdown, never abort.
+
+    Databases 16 (the default runtime) without a save clause. The command's
+    duration is calibrated to exceed PRE's 2.7 s worker-shutdown bound. The
+    AOF everysec leg adds a write burst; every acknowledged key must survive.
+    """
+    members, make = long_command(mode)
+    result = dict(members=None, calibrated_seconds=None)
+    # Leg 1: no persistence. Calibrate first, so the trial provably overlaps.
+    directory = a.output / f'shutdown-{mode}-{engine}-none'
+    child = Server(a, directory.name, mode, engine, extra=['--databases', '16'])
+    try:
+        child.ready()
+        with closing(n.connect(a.port)) as c:
+            c.sock.settimeout(180)
+            for _ in range(4):
+                populate(c, members)
+                began = time.monotonic()
+                c.must(*make('{cc6}calibrate'))
+                duration = time.monotonic() - began
+                if duration >= 3.5:
+                    break
+                c.must('DEL', '{cc6}calibrate', '{cc6}src')
+                members *= 2
+            assert duration >= 3.5, ('long command too short', members, duration)
+            result.update(members=members, calibrated_seconds=round(duration, 2))
+            rc, waited, reply = sigterm_during(child, c, make('{cc6}trial'))
+    finally:
+        child.close()
+    log = child.logpath.read_text(errors='replace')
+    result['none'] = dict(exit_code=rc, waited_seconds=round(waited, 2), long_reply=reply,
+                          watchdog='worker shutdown timeout' in log)
+    # Leg 2: AOF everysec, write burst, long command, SIGTERM, restart.
+    directory = a.output / f'shutdown-{mode}-{engine}-aof'
+    extra = ['--databases', '16', '--appendonly', 'yes', '--appendfsync', 'everysec']
+    child = Server(a, directory.name, mode, engine, extra=extra, directory=directory)
+    acknowledged, tail = [], []
+    try:
+        child.ready()
+        with closing(n.connect(a.port)) as c:
+            c.sock.settimeout(180)
+            populate(c, members)
+            for first in range(0, 20000, 1000):
+                keys = [f'cc6-burst:{i}' for i in range(first, first + 1000)]
+                for key in keys:
+                    c.send('SET', key, key + '-value')
+                for key in keys:
+                    if c.read() == b'OK':
+                        acknowledged.append(key)
+            # A second client keeps writing until the server stops answering, so the
+            # final acknowledged writes sit inside the last everysec window at shutdown.
+            started = threading.Event()
+
+            def trickle():
+                try:
+                    with closing(n.connect(a.port)) as w:
+                        w.sock.settimeout(180)
+                        for i in range(10 ** 9):
+                            keys = [f'cc6-tail:{i}:{j}' for j in range(20)]
+                            for key in keys:
+                                w.send('SET', key, key + '-value')
+                            for key in keys:
+                                if w.read() == b'OK':
+                                    tail.append(key)
+                            started.set()
+                except (OSError, EOFError):
+                    pass
+                finally:
+                    started.set()
+
+            writer = threading.Thread(target=trickle)
+            writer.start()
+            started.wait(30)
+            rc, waited, reply = sigterm_during(child, c, make('{cc6}trial'))
+            writer.join(60)
+            assert not writer.is_alive()
+            acknowledged += tail
+    finally:
+        child.close()
+    log = child.logpath.read_text(errors='replace')
+    aof = dict(exit_code=rc, waited_seconds=round(waited, 2), long_reply=reply,
+               watchdog='worker shutdown timeout' in log, acknowledged=len(acknowledged),
+               tail_acknowledged=len(tail))
+    restart = Server(a, directory.name + '-restart', mode, engine, extra=extra, directory=directory)
+    try:
+        restart.ready(timeout=180)  # replays the populated set before listening
+        with closing(n.connect(a.port)) as c:
+            c.sock.settimeout(180)
+            deadline = time.monotonic() + 120
+            while True:
+                reply = c.cmd('PING')
+                if reply == b'PONG' or time.monotonic() > deadline:
+                    break
+                time.sleep(0.1)
+            missing = 0
+            for first in range(0, len(acknowledged), 1000):
+                keys = acknowledged[first:first + 1000]
+                values = c.must('MGET', *keys)
+                missing += sum(value != (key + '-value').encode() for key, value in zip(keys, values))
+            aof.update(missing=missing, source_members=c.must('SCARD', '{cc6}src'),
+                       trial_exists=c.must('EXISTS', '{cc6}trial'))
+    finally:
+        restart.close()
+    result['aof'] = aof
+    (a.output / f'shutdown-{mode}-{engine}-observations.json').write_text(json.dumps(result, indent=2))
+    floor = result['calibrated_seconds'] - 0.3 - 1.0
+    for leg in (result['none'], aof):
+        assert leg['exit_code'] == 0 and not leg['watchdog'], result
+        assert leg['waited_seconds'] >= floor, ('shutdown did not wait for the command', result)
+    assert aof['acknowledged'] >= 20000 + 20 and aof['missing'] == 0, result
+    assert aof['source_members'] == members, result
+    if aof['long_reply'] == 'reply':
+        assert aof['trial_exists'] == 1, result
+    return dict(members=members, calibrated_seconds=result['calibrated_seconds'],
+                waited=[result['none']['waited_seconds'], aof['waited_seconds']],
+                acknowledged=aof['acknowledged'])
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--case', required=True, choices=['file', 'acl', 'latency', 'auth'])
+    p.add_argument('--case', required=True, choices=['file', 'acl', 'latency', 'auth', 'shutdown'])
     p.add_argument('--binary', required=True)
     p.add_argument('--oracle', required=True)
     p.add_argument('--cores', required=True)
