@@ -210,7 +210,9 @@ bool command_registry_init(bool tls_enabled, bool fused_mode, bool read_local_ar
             for (size_t i = 0; i < g_registry.entries.size(); i++) {
                 if (std::strcmp(g_registry.entries[i].name, "GET")) continue;
                 g_registry.tls_entries[i].handler = cmd_get_tls;
+                g_registry.tls_entries[i].handler_notify = cmd_get_tls_notify;
                 g_registry.tls_notify_entries[i].handler = cmd_get_tls_notify;
+                g_registry.tls_notify_entries[i].handler_notify = cmd_get_tls_notify;
             }
         } catch (const std::bad_alloc&) {
             g_registry.entries.clear();

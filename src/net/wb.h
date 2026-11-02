@@ -338,7 +338,13 @@ private:
                 if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
-                conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+                if (conn.is_tls()) {
+                    conn.append_buf_segment(op.zc_ptr, op.zc_len);
+                    release(op.zc_shard, op.zc_ptr);
+                    note_zc_suppressed_tls();
+                } else {
+                    conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
+                }
                 conn.append_static_segment(kCrlf, sizeof(kCrlf));
                 return;
             }
