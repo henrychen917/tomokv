@@ -380,10 +380,13 @@ claim is made.
 
 ### Completed directed receipts
 
-The pre-R7 candidate passed the 27 forced FUNCTION-history legs (3 Redis fsync
-policies plus 24 TomoKV mode/engine/namespace/policy legs), all 48 maxmemrace
-legs, and the expanded keyless-tracking matrix: 80 candidate overflow legs,
-including 32 EXEC-enrolment legs, each armed with zero missing invalidations.
+The final POST passes the 27 forced FUNCTION-history legs (3 Redis fsync
+policies plus 24 TomoKV mode/engine/namespace/policy legs), including every
+restart, and all 48 maxmemrace candidate legs plus the oracle.
+`directed-final-core.json` binds those completed jobs. The pre-R7 candidate
+also passed the expanded keyless-tracking matrix: 80 candidate overflow legs,
+including 32 EXEC-enrolment legs, each armed with zero missing invalidations;
+that matrix is repeating in the final sweep.
 The first stricter cap attempt used the obsolete drop counter and was stopped
 as a fixture failure; the repaired predicate observes the null invalidation
 emitted by the fixed overflow branch. That failed receipt is retained.
