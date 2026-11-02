@@ -6,6 +6,9 @@ Base / PRE: `9d6ab5526f8fff0c8617e94cf20fa837e15ab0f8`.
 Worktree: `/home/user/Projects/cx-atomfix6`; branch `cx-atomfix6`; no push.
 All builds and correctness processes use CPUs 74-86. Correctness server ports
 are restricted to 21700-21799, with `LC_ALL=C` on every boot.
+The final harness self-test pins its loopback socket-pair fixture to port 21798.
+Earlier harness runs left `GATE_TEST_PORT` unset, so that one fixture used an
+ephemeral port; all actual TomoKV/Redis correctness servers used the assigned range.
 No throughput measurements or full iteration gate are authorized for this lane.
 
 | Item | PRE witness | POST result | Mechanism changed | Residual |

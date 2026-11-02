@@ -8,6 +8,7 @@ import subprocess
 
 assert set(os.sched_getaffinity(0)) <= set(range(74, 87))
 os.environ['LC_ALL'] = 'C'
+os.environ['GATE_TEST_PORT'] = '21798'
 out = Path('docs/atomfix6/final-checks')
 out.mkdir(parents=True, exist_ok=True)
 rows = []
