@@ -36,7 +36,8 @@ for namespace in ('normal', 'db0'):
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         (out / f'{namespace}-{mode}.log').write_text(result.stdout)
         valid = (result.returncode == 1 and
-                 result.stdout.count('polls=8 scans=2019') == 2 and
+                 sum(line.startswith('atomfix6 park ') and 'polls=8 scans=2019' in line
+                     for line in result.stdout.splitlines()) == 2 and
                  'read-local=0' in result.stdout and 'read-local=1' in result.stdout)
         rows.append(dict(namespace=namespace, mode=mode, rc=result.returncode,
                          expected_failure=valid, binary_sha256=digest))
