@@ -3235,6 +3235,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
     // `if (!stopping)` guard around these lines is now the gate's own postcondition.
     print_ready_listeners(cfg, unix_listener.bound());
+    cfgfix_process_ready();
     srv.monitor_controllers();
 
     srv.databases().join_workers(srv, pool);

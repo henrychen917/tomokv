@@ -304,6 +304,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
 
     // Reached only after every ring, sink and listener is ready and no stop edge was taken.
     print_ready_listeners(cfg, unix_listener.bound());
+    cfgfix_process_ready();
 
     srv.monitor_controllers();
 
