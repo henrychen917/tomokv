@@ -26,6 +26,16 @@
       "captures": []
     },
     {
+      "tag": "complete-differ-epoll",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "differ-split differ-armed",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
       "tag": "complete-eof-aof",
       "arm": "POST",
       "engine": "epoll",

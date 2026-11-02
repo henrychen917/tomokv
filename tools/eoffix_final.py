@@ -117,7 +117,8 @@ def main():
             gate('txn-final-'+engine, 'txnorder-fused-0', engine, repeat=50, capture=True)
             maintenance()
     elif a.phase=='harness':
-        run(['python3','tests/gates_test.py'],'gates-test-release-complete',required=True)
+        run(['python3','tests/gates_test.py'],'gates-test-release-complete',
+            env=dict(GATE_CORES='0-7'),required=True)
         previous=json.loads((DOC/'build-freshness-final.json').read_text())
         for index, row in enumerate(previous['commands']):
             run(row['command'],f'freshness-release-{index}',required=True)

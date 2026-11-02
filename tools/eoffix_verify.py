@@ -31,7 +31,7 @@ def main():
                  for mode in ('0', '1')]
     expected += [f'txn-complete-{engine}-{index:02d}' for engine in ('epoll', 'uring')
                  for index in range(1, 51)]
-    rows, errors, tcl = [], [], []
+    rows, errors, tcl, differential = [], [], [], []
     for tag in expected:
         if not (DOC / (tag + '.json')).exists():
             errors.append(tag + ': NOT RUN or incomplete')
@@ -64,6 +64,22 @@ def main():
         rows.append(dict(tag=tag, arm=arm, exit_code=record['exit_code'],
                          passed_rows=sum(line.startswith('ok\t') for line in lines),
                          failures=failures, jobs=record['jobs']))
+        if tag.startswith('complete-differ-'):
+            parts = ('differ-split-0', 'differ-split-1', 'differ-armed-0',
+                     'differ-armed-1', 'differ-equivalence')
+            fixed = {int(line.split('#')[0]) for line in
+                     (ROOT / 'tests/differ_seeds.txt').read_text().splitlines() if line.split('#')[0].strip()}
+            for part in parts:
+                path = Path(record['directory']) / 'jobs' / part / 'output.log'
+                text = path.read_text()
+                found = re.search(r'DIFFER matrix: .* seeds=\{([^}]*)\}', text)
+                seeds = [int(seed) for seed in found[1].split()] if found else []
+                if not fixed <= set(seeds) or len(seeds) <= len(fixed):
+                    errors.append(tag + ': standard seed inventory missing from ' + part)
+                differential.append(dict(tag=tag, part=part, seeds=seeds))
+            if any(record['env'].get(key) for key in
+                   ('GATE_DIFFER_PROOF_SUITES', 'GATE_DIFFER_PROOF_SEEDS', 'GATE_DIFFER_DRIVER')):
+                errors.append(tag + ': focused differential override was enabled')
         if tag.startswith('complete-tcl-'):
             summaries = list((Path(record['directory']) / 'jobs/redis_tcl').glob('*/summary.json'))
             if len(summaries) != 2:
@@ -122,7 +138,7 @@ def main():
                               aof_reload_passed=sum(row['aof_pass'] and row['exact_reload'] for row in selected),
                               shutdown_timeouts=sum(row['shutdown_failed'] for row in selected)))
     output = dict(expected_gate_invocations=len(expected), completed=len(rows), jobs=rows,
-                  tcl=tcl, transaction_loops=loop_rows, errors=errors,
+                  tcl=tcl, differential=differential, transaction_loops=loop_rows, errors=errors,
                   pre_transaction_loops=pre_loops,
                   performance='NOT RUN: owner-owned measurements and full iteration')
     (DOC / 'proof-complete.json').write_text(json.dumps(output, indent=2) + '\n')

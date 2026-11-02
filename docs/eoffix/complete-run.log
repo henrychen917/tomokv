@@ -50,3 +50,5 @@ complete-tcl-uring-2 exit 0
 identical private tool copies shared: 542
 complete-tcl-uring-3 exit 0
 identical private tool copies shared: 550
+complete-differ-epoll exit 0
+identical private tool copies shared: 550

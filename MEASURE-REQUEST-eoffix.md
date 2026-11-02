@@ -102,13 +102,14 @@ all 12 legs, 39 files per leg, serially on CPUs 0–7. See
 `complete-tcl-{epoll,uring}-{1,2,3}.json` and their raw archives. No Tcl expectation or manifest was
 relaxed. All intermediate POST failures remain in `validation-summary.json`.
 
-**Differential proof.** The earlier candidate passes epoll with the standard seeds 7/19/20/23/24:
-split atomic 0/1, fused read-local atomic 0/1, and mode equivalence. The four
-differential parts report 235/239/231/235 passing rows and zero failures; mode
-equivalence also passes. The original geometry-specific skips remain explicit
-in the logs. See `final-differ-epoll.json` and its raw archive. Its uring run was
-stopped after the allocation-error finding and is recorded as interrupted.
-Both engines are queued for the replacement arm.
+**Differential proof.** Final epoll passes the gate's standard seed selection:
+permanent seeds 7/19/20/23 plus rotating seed 26. Split atomic 0/1, fused read-local
+atomic 0/1, and mode equivalence all pass. The four differential parts report
+235/239/231/235 passing rows and zero failures; mode equivalence also passes.
+The original geometry-specific skips remain explicit in the logs. See
+`complete-differ-epoll.json` and its raw archive. Final uring is in progress.
+The earlier `final-differ-*` receipts remain intermediate: epoll passed, and
+uring was interrupted after the allocation-error finding.
 
 PRE's 261 tracked production/third-party files and Makefile match `ea48a6b27`
 exactly (`docs/eoffix/pre-source-identity.json`). The rebuilt PRE was produced
