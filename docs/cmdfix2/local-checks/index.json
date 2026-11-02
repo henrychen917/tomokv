@@ -7,17 +7,17 @@
   {
     "file": "final-build-blockfix2.log",
     "bytes": 17045,
-    "sha256": "c0698a27fde7d7ea899df2c42428ecbf7b791a79efc6fb3ef59b900876176589"
+    "sha256": "92b874e749496974781790d3d096947a100c312d36182ee2849bb39781fd32c4"
   },
   {
     "file": "final-build-live-arms.log",
     "bytes": 13098,
-    "sha256": "8f73be4fb4a51ae181aac7be07d21b50aec20f3d612e3d4e02847cd126159e40"
+    "sha256": "ab542e2a971b03c65d89430f9a465b10ef2c7c605008db9248007e0e59bd3cab"
   },
   {
     "file": "final-build-production.log",
     "bytes": 453765,
-    "sha256": "7bb23d608e1c4e826672b1602a4f919100514516c6627411afd25b6462a4dd14"
+    "sha256": "88e70f8dd876d99711280d8d3b9338032166129e37c845a0f1419060c0a89802"
   },
   {
     "file": "fresh-blockfix-cost.log",
@@ -65,6 +65,11 @@
     "sha256": "d9431f7bf8d6997c616704b98a9b9425c64aac871dd60b6870333036de761708"
   },
   {
+    "file": "gates-test-v2.log",
+    "bytes": 2477,
+    "sha256": "186eb4944ea7747bb3c1b582e46d6d23ca7391b1ded44b0efcc47b0ee597b442"
+  },
+  {
     "file": "gates-test.log",
     "bytes": 2477,
     "sha256": "c70c40096de6e85d2839abfce98e0a331898d780ebd87adf64a79f663e5de5be"
@@ -73,6 +78,26 @@
     "file": "more-jobs.json",
     "bytes": 2529,
     "sha256": "e6c5125e3e5d69783dec115cd3431b57f2876f837018fee5324d9bfdb37610c3"
+  },
+  {
+    "file": "pad-a-v2-final.json",
+    "bytes": 767,
+    "sha256": "2275875d2f7dbe00d1d135667215bb79bfcd297acb2ba2b96dffe00b4c21cf82"
+  },
+  {
+    "file": "pad-v2-final-build.log",
+    "bytes": 216,
+    "sha256": "6d79bd3da71a7a7639f756a352567f6aa40be1f8c11e404a5a6b67af360ce5d1"
+  },
+  {
+    "file": "post-v2-main-epoll.json",
+    "bytes": 1031,
+    "sha256": "30a6bea43c86cc42bd5fa7d04a64b6eca36cd3b9491f64b3d32a6d1b74d80408"
+  },
+  {
+    "file": "post-v2-main-uring.json",
+    "bytes": 1448,
+    "sha256": "3ab5187d25d5d260c864e1c8081e1c23a3229be74cc1ffd90b35c5b6154ae8c1"
   },
   {
     "file": "redis-tcl-test-final.log",

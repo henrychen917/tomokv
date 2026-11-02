@@ -30,11 +30,12 @@ def link_recipe(source, objects):
                            ' -c ' not in l and ' -o '+str(objects/'tomokv')+' ' in l))
 
 
-def padded(label, source, objects, replacements, target):
+def padded(label, source, objects, replacements, target, match_writable=False):
     link = [replacements.get(v, v) for v in link_recipe(source, objects)]
     assembly = OUT / (label + '.S'); obj = OUT / (label + '.o'); binary = OUT / label
     link.insert(link.index('-o'), str(obj)); link[link.index('-o') + 1] = str(binary)
     padding = 5
+    readonly_padding = 0
     for attempt in range(4):
         assert padding >= 5, (label, padding)
         assembly.write_text('.text\n.globl tomo_cmdfix2_pad\n.type tomo_cmdfix2_pad,@function\n'
@@ -42,15 +43,26 @@ def padded(label, source, objects, replacements, target):
             '.size tomo_cmdfix2_pad,.-tomo_cmdfix2_pad\n'
             '.section .note.GNU-stack,"",@progbits\n'
             '.section .note.gnu.property,"a",@note\n.balign 8\n'
-            '.long 4,16,5\n.asciz "GNU"\n.long 0xc0000002,4,3,0\n' % (padding - 5))
+            '.long 4,16,5\n.asciz "GNU"\n.long 0xc0000002,4,3,0\n'
+            '.section .rodata.cmdfix2pad,"a",@progbits\n.fill %d,1,0\n'
+            % (padding - 5, readonly_padding))
         subprocess.run(['g++', '-c', str(assembly), '-o', str(obj)], check=True)
         subprocess.run(link, cwd=source, check=True, stdout=subprocess.DEVNULL)
         actual = sections(binary)
         assert actual['.text']['address'] == target['.text']['address'], (actual, target)
-        if actual['.text'] == target['.text']: break
+        if actual['.text'] == target['.text']:
+            if match_writable and actual['.data']['address'] != target['.data']['address']:
+                delta = target['.data']['address'] - actual['.data']['address']
+                assert delta > 0, (label, actual, target)
+                readonly_padding += delta
+                continue
+            break
         padding += target['.text']['size'] - actual['.text']['size']
     assert actual['.text'] == target['.text']
-    return dict(padding_bytes=padding, sections=actual, target=target, link=link,
+    if match_writable:
+        assert all(actual[name]['address'] == target[name]['address'] for name in ('.data', '.bss'))
+    return dict(padding_bytes=padding, readonly_padding_bytes=readonly_padding,
+                sections=actual, target=target, link=link,
                 sha256=hashlib.sha256(binary.read_bytes()).hexdigest())
 
 
@@ -66,7 +78,7 @@ def main():
         if ns.startswith('db0'): command += ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0']
         command += ['-c', str(source/'src/cmd/geo.cc'), '-o', str(obj)]
         subprocess.run(command, check=True); compiles.append(command); replacements[str(original)] = str(obj)
-    a = padded('PAD-A', source, objects, replacements, sections(OUT/'POST'))
+    a = padded('PAD-A', source, objects, replacements, sections(OUT/'POST'), match_writable=True)
     a.update(kind='A: behaviour twin; total text extent control', source_commit='9d6ab5526',
         behavior='PRE source and objects; only PRE GEO compiled with alignment padding disabled', compiles=compiles,
         limitation='Not an exact symbol-layout twin. GEO code alignment/codegen can differ from PRE; do not attribute GEO rates from this control.')

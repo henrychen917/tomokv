@@ -621,5 +621,589 @@
       }
     ],
     "jobs": []
+  },
+  {
+    "label": "audit-post-v2",
+    "source": "/home/user/Projects/cx-cmdfix2/build/cmdfix2/audit-post-v2",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/auditor-receipts/audit-post-v2.tar.gz",
+    "archive_sha256": "0f5275db6d2b8e9f9a53b74ee0a396291afc3c15dc28f4baf2c4659c81139b92",
+    "files": [
+      {
+        "path": "G-T1-1s-midlat.jsonl",
+        "size": 64806,
+        "sha256": "ac44fa4adf63b6c3c2d1ac4fec3e6f36124e61a6ffc7c7ef21a1a43306a7f2e4"
+      },
+      {
+        "path": "G-T1-1s-polar.jsonl",
+        "size": 109308,
+        "sha256": "c5e9689cdcf714320799701662f1a80eab3bd7cd4988d85f869adf710ef617d7"
+      },
+      {
+        "path": "G-T1-2s-midlat.jsonl",
+        "size": 64824,
+        "sha256": "f59af3c17c18554cce983f7a5c4ddca95ec51b21ee47a2203d9a568992b667f9"
+      },
+      {
+        "path": "G-T1-2s-polar.jsonl",
+        "size": 109326,
+        "sha256": "c3eb7b17b4e474ccd47c7b79c1235ee0edcd4ce14ce8333a16c6128e880eb03c"
+      },
+      {
+        "path": "G-T2-T3-1s-cover_box.jsonl",
+        "size": 2504,
+        "sha256": "4bbc0700d27d3eae9d597932b6ab6aca5aafb637c42dfe93c4af8764e93bb426"
+      },
+      {
+        "path": "G-T2-T3-1s-cover_radius.jsonl",
+        "size": 4484,
+        "sha256": "9a153a52c2c77ecf8a14946498b7b74a12b61b59991377f8e9243b6ee7424667"
+      },
+      {
+        "path": "G-T2-T3-1s-mixed_scores.jsonl",
+        "size": 31366,
+        "sha256": "6bcd17a32461cdaf7882b25dab1995b878f275bc93490ad496fbbd00c87f4e73"
+      },
+      {
+        "path": "G-T2-T3-2s-cover_box.jsonl",
+        "size": 2522,
+        "sha256": "5dfafbef8a3c135d488c6ad63296af5616934094dd3eb22c22a72003f0961866"
+      },
+      {
+        "path": "G-T2-T3-2s-cover_radius.jsonl",
+        "size": 4502,
+        "sha256": "b88d6976fa1d4cbd95a88d86cbc10ea357aa13ea0ef1b9185bbd53c2f3774e39"
+      },
+      {
+        "path": "G-T2-T3-2s-mixed_scores.jsonl",
+        "size": 31384,
+        "sha256": "642468370d41e53b8529a08e7c437a51f3ac82b9318e491c5d2f195292e23540"
+      },
+      {
+        "path": "G-T3b-1s.jsonl",
+        "size": 1976,
+        "sha256": "604a80129cf656623bbe8579d527bbbde1ccce41fbab00cf923940e028c2b95d"
+      },
+      {
+        "path": "G-T3b-2s.jsonl",
+        "size": 1994,
+        "sha256": "7a2bc849ca8d3cc4d8149a764e999445dc41a2bcd152d08c8b82217691637976"
+      },
+      {
+        "path": "S-T22-T24-1s-multilocal-a0.jsonl",
+        "size": 9422,
+        "sha256": "fd52f6d4dbcd76ac7c42de67b8446a0a3c0bdccb5843170af70d8629563e176f"
+      },
+      {
+        "path": "S-T22-T24-1s-multilocal-a1.jsonl",
+        "size": 9419,
+        "sha256": "21a3ed95f8cdfdefa501c281192514445fcd0b5f0143b1c82b5bc0ddba39549c"
+      },
+      {
+        "path": "S-T22-T24-1s-pfmulti-a0.jsonl",
+        "size": 9097,
+        "sha256": "fe3ba3b403626eaa5d0ca778d6c2986b6376dc2702fb3e6a6192af5a8a08d7b1"
+      },
+      {
+        "path": "S-T22-T24-1s-pfmulti-a1.jsonl",
+        "size": 9085,
+        "sha256": "df837d09878547f5cbcc2d1875f6674159ae20749f4de4355ce10c564d3728e2"
+      },
+      {
+        "path": "S-T22-T24-1s-pfsame-a0.jsonl",
+        "size": 4515,
+        "sha256": "171783e1b8c31f034e655aa4671565a20f852b113685fb6d0ce26c6324b73f40"
+      },
+      {
+        "path": "S-T22-T24-1s-pfsame-a1.jsonl",
+        "size": 4516,
+        "sha256": "c07ac29cbd08dca88637abcaf26825454a6164bad28d18d5551f897c0bb699e2"
+      },
+      {
+        "path": "S-T22-T24-2s-multilocal-a0.jsonl",
+        "size": 9435,
+        "sha256": "c5a2b6ddad68d2bb317a6bf334ed0d36966fe611e47f74f772de5f7b28726f85"
+      },
+      {
+        "path": "S-T22-T24-2s-multilocal-a1.jsonl",
+        "size": 9461,
+        "sha256": "f9a4e6ccedfd8667fb670e4dd42eb63a309e8ccdf5194c6603a1ddf680dea89c"
+      },
+      {
+        "path": "S-T22-T24-2s-pfmulti-a0.jsonl",
+        "size": 9103,
+        "sha256": "92ecf461cabc37c90e741aadede8e289d9fb01c3947be7dfbf45aac962bd04d0"
+      },
+      {
+        "path": "S-T22-T24-2s-pfmulti-a1.jsonl",
+        "size": 9101,
+        "sha256": "edf5d90f6a7b98fe6259451684b846bcc4bf83f09b86809c72bcccde377f0bee"
+      },
+      {
+        "path": "S-T22-T24-2s-pfsame-a0.jsonl",
+        "size": 4530,
+        "sha256": "f49d388fdf8cc2be53705bbfbb09bbb2aa9f50d3d69efd711e678368bcddd110"
+      },
+      {
+        "path": "S-T22-T24-2s-pfsame-a1.jsonl",
+        "size": 4530,
+        "sha256": "28adaef633e5e9047926df521b97b40e51f3b80f7d54f615eea4fea1866ee7d6"
+      },
+      {
+        "path": "S-T6-1s.jsonl",
+        "size": 1870,
+        "sha256": "502d50d10c71af0a23fe81409a7a070938388bd56c92e8a71dd41f58f5f7a00a"
+      },
+      {
+        "path": "S-T6-2s.jsonl",
+        "size": 1615,
+        "sha256": "f71a529513258366053b2f740c6795879aa3a6da42d08567da30fa6f24427965"
+      },
+      {
+        "path": "T21-1s/server.log",
+        "size": 10694,
+        "sha256": "216ce6753fb035e9b6dc34f51ed36ea250ae98408be63cf43cbdcca5b897fe99"
+      },
+      {
+        "path": "T21-1s.jsonl",
+        "size": 4911,
+        "sha256": "d64674bf7f1f870d57e238b388c94218a0626571d8bc5dc0ee52f85570155311"
+      },
+      {
+        "path": "T21-2s/server.log",
+        "size": 9734,
+        "sha256": "365d939cf89fed71956b92e86cf4e584a7376ee020e6e97ec3179158ac647d25"
+      },
+      {
+        "path": "T21-2s.jsonl",
+        "size": 4929,
+        "sha256": "44b6933780c2e285bc8c8d7d0a822c8fe40e42aea46996b98188914f5cf0cb28"
+      },
+      {
+        "path": "T21-oracle/server.log",
+        "size": 1203,
+        "sha256": "80d6f9a878174992301d9f419f532d5b5f2e55d0f8166c036e0046fa7e93008b"
+      },
+      {
+        "path": "T21-oracle.jsonl",
+        "size": 4840,
+        "sha256": "ebebb62475654cdb713166d4d3be169fdd7965c28d72ea21b15735915b7cc01a"
+      },
+      {
+        "path": "T21b-1s/server.log",
+        "size": 10653,
+        "sha256": "a682f417e563787a7cc14ae6542db926d209dab437194f3a9e8b24d39e25f130"
+      },
+      {
+        "path": "T21b-1s.jsonl",
+        "size": 762,
+        "sha256": "90567abb5b519f76f97e84a0580b9d2dc2fed6de34fad6a2ba9f74b47cda6064"
+      },
+      {
+        "path": "T21b-2s/server.log",
+        "size": 9725,
+        "sha256": "ea63b1fc3bd970b268e401a0b11da868c083375b7e81520768e4e55da0408c99"
+      },
+      {
+        "path": "T21b-2s.jsonl",
+        "size": 780,
+        "sha256": "20d6d988e3cc5a4bc569ea46f257bb2a71deb7843b73435fbb8e9371e232c283"
+      },
+      {
+        "path": "T21b-oracle/server.log",
+        "size": 1203,
+        "sha256": "638d104e5abfd5c5dd4a1c951c5fb45d48e60f781133afaa984ffd05bf12c977"
+      },
+      {
+        "path": "T21b-oracle.jsonl",
+        "size": 690,
+        "sha256": "b62326d6d559152d8aa58e72e65a5e179010c7be93585931d5c0bc6be0ca4e0e"
+      },
+      {
+        "path": "T40-1s/server.log",
+        "size": 10719,
+        "sha256": "7bfc5f901b57671f7336de7dc6dbd3878a9102d37ab3ad865dc843eaf69d5504"
+      },
+      {
+        "path": "T40-1s.jsonl",
+        "size": 2189,
+        "sha256": "ced05ba6029f15680b7bf996bead60f2142b28c55eb8c88681c9b5eba52e597c"
+      },
+      {
+        "path": "T40-2s/server.log",
+        "size": 9792,
+        "sha256": "41dc0e02265666a309968dafed09cc1d0040b4bcf8426dbf0c1b1a20b0961966"
+      },
+      {
+        "path": "T40-2s.jsonl",
+        "size": 2207,
+        "sha256": "a5b83aef8d77a55414aba44a8fedb2e85686b1a86dfe3fc9b68b959a85ace039"
+      },
+      {
+        "path": "T40-oracle/server.log",
+        "size": 1203,
+        "sha256": "67440071e4f9c3cda6de566f7235d042e487b3521dded8e02f6733626699cb6c"
+      },
+      {
+        "path": "T40-oracle.jsonl",
+        "size": 3058,
+        "sha256": "8e5267d9b18aa2317c1523314ba320f29ecc455035ada7b52b56e39115656f4f"
+      },
+      {
+        "path": "T47-1s/server.log",
+        "size": 10711,
+        "sha256": "a38fb497a700abc2dfaf267a835039329cb09782f1c207bc75076ffcb6cec759"
+      },
+      {
+        "path": "T47-1s.jsonl",
+        "size": 2188,
+        "sha256": "1ae5a8f7efefc76b2a35e00dd7ae5a74bc28b3c1f3de2376e240aee18ecdb36f"
+      },
+      {
+        "path": "T47-2s/server.log",
+        "size": 9791,
+        "sha256": "918653e64809afd96ce8b8ebedac6510efadcb7bb5411fe87eb6a48d40ac4490"
+      },
+      {
+        "path": "T47-2s.jsonl",
+        "size": 2206,
+        "sha256": "f31ae6030b1f9b291f7812297b53c64e04f50b8f8c899a7fdeab55c3f012f0d7"
+      },
+      {
+        "path": "T47-oracle/server.log",
+        "size": 1203,
+        "sha256": "27e5660d8b808b339db9e1347de4bc26b5189b8b158aec713cf7500dfcd60129"
+      },
+      {
+        "path": "T47-oracle.jsonl",
+        "size": 3056,
+        "sha256": "01b9540bff4297ce127802f7a2c4305b904e20854965da776d22a6b776e16a53"
+      },
+      {
+        "path": "T8-1s.jsonl",
+        "size": 2781882,
+        "sha256": "c49b8f94f0b7a7637a105962400bb2f726e28ec99b06100f2d3fd56f7b9131b4"
+      },
+      {
+        "path": "T8-2s.jsonl",
+        "size": 2781900,
+        "sha256": "65551d963d43f84a7b55db3ec3d4b449a8c1f17c2a2e3728b71b50617798b4cf"
+      },
+      {
+        "path": "T9-T10-1s.jsonl",
+        "size": 2851,
+        "sha256": "2cc540deef10c7e40626e351f653b91789493402dad38cd367cea5d3cae4b7ea"
+      },
+      {
+        "path": "T9-T10-2s.jsonl",
+        "size": 2869,
+        "sha256": "cfeb9a141b17047f08944a2c7c7ad7a89f2d1dd08b20c25afddc115d3f9c7428"
+      },
+      {
+        "path": "runs/geo-cover-1s-a0-rl0-s20261102-db16-midlat/oracle/server.log",
+        "size": 1203,
+        "sha256": "d269a593c461b6e778deb009e4037bf4075228fe9c2d5a0566a801487d980aec"
+      },
+      {
+        "path": "runs/geo-cover-1s-a0-rl0-s20261102-db16-midlat/target/server.log",
+        "size": 10818,
+        "sha256": "2812cb2a0feb6534b362cede65b11da8579c836716fec37c2a14ddae6358ec3b"
+      },
+      {
+        "path": "runs/geo-cover-1s-a0-rl0-s20261102-db16-polar/oracle/server.log",
+        "size": 1203,
+        "sha256": "76c7a1d380bbb8b0ef413e6015dea1107cf9df4d67469c132830c1a871b6df07"
+      },
+      {
+        "path": "runs/geo-cover-1s-a0-rl0-s20261102-db16-polar/target/server.log",
+        "size": 10857,
+        "sha256": "5b17295849174a116fa5021437c0dbe87700ffa49b748acf297578c1ee521d34"
+      },
+      {
+        "path": "runs/geo-cover-2s-a0-rl0-s20261102-db16-midlat/oracle/server.log",
+        "size": 1203,
+        "sha256": "a4e6efbc7247ddb69ce0575fbf534585e62a086205f87ca2c1a562a9a75f72d3"
+      },
+      {
+        "path": "runs/geo-cover-2s-a0-rl0-s20261102-db16-midlat/target/server.log",
+        "size": 9830,
+        "sha256": "3506eb0a94ef1e3ddcc0628018a7e6984b35483f1a5c17c45e69ad3db7c9c9ad"
+      },
+      {
+        "path": "runs/geo-cover-2s-a0-rl0-s20261102-db16-polar/oracle/server.log",
+        "size": 1203,
+        "sha256": "027d3b14ca9e366685d3fece255e5aebca18fca62fddae9155b7c0beca30461c"
+      },
+      {
+        "path": "runs/geo-cover-2s-a0-rl0-s20261102-db16-polar/target/server.log",
+        "size": 9854,
+        "sha256": "c7924698dc253e22c5456795da24d9f4d5e7b9ce9b61f84a86e88ffea8b0333d"
+      },
+      {
+        "path": "runs/geo-mixed-random-1s-a1/oracle/server.log",
+        "size": 1203,
+        "sha256": "bf372207139516c0be6b8256f1a10d36cb7dd9d9a83a7117778ad75080ecca77"
+      },
+      {
+        "path": "runs/geo-mixed-random-1s-a1/target/server.log",
+        "size": 10794,
+        "sha256": "92321ec317f541573b7a6762080b53beaae2421430f9e943d53d278de2e00717"
+      },
+      {
+        "path": "runs/geo-mixed-random-2s-a1/oracle/server.log",
+        "size": 1203,
+        "sha256": "9e26d38a91fd1dc47457730b9c129a5dcd493b2a53bf155834d9d8a28f36f80d"
+      },
+      {
+        "path": "runs/geo-mixed-random-2s-a1/target/server.log",
+        "size": 9811,
+        "sha256": "69dfbafecfcd5b5b63653f90c2a5b28544b56fb8314f08c215cb9b443184c88f"
+      },
+      {
+        "path": "runs/geo-probe-1s/oracle/server.log",
+        "size": 1203,
+        "sha256": "097d528fa7ad11d421e907270c5e9a27d511be0efe2c11933357ca558e6712ab"
+      },
+      {
+        "path": "runs/geo-probe-1s/target/server.log",
+        "size": 10687,
+        "sha256": "94a8ec7b94c2b9e295f5696b298603b155fdb7aad73a9b9aab6b67ae8a546cc4"
+      },
+      {
+        "path": "runs/geo-probe-2s/oracle/server.log",
+        "size": 1203,
+        "sha256": "25b9228ae1af2a40911817252432b44df8a935228fbac35fcac9719f385293fe"
+      },
+      {
+        "path": "runs/geo-probe-2s/target/server.log",
+        "size": 9907,
+        "sha256": "c3c04edf8afdecb55e7e8616d6fa1e3f712b65b9d25331026b9f9caf320b2f17"
+      },
+      {
+        "path": "runs/geo-witness-cover_box-1s-uring-rl0-a0-db16/oracle/server.log",
+        "size": 1203,
+        "sha256": "2e6aa4f2d669b74773570bf9b0ab2c1037e6d655825b9aca20e7328e549560cc"
+      },
+      {
+        "path": "runs/geo-witness-cover_box-1s-uring-rl0-a0-db16/target/server.log",
+        "size": 10648,
+        "sha256": "ee1d55ab3e895dcc46253905b824d88af50d3186312fba8c807afbfada4ba93b"
+      },
+      {
+        "path": "runs/geo-witness-cover_box-2s-uring-rl0-a0-db16/oracle/server.log",
+        "size": 1203,
+        "sha256": "05ba237184851965a1ca9404976a5dda7115e375b2c37d46b795cf10cc57fa3a"
+      },
+      {
+        "path": "runs/geo-witness-cover_box-2s-uring-rl0-a0-db16/target/server.log",
+        "size": 9727,
+        "sha256": "30cd8c7318e393214bdf57db2fbd1d8a6f119f6897cfccb685ec0d8b656e1920"
+      },
+      {
+        "path": "runs/geo-witness-cover_radius-1s-uring-rl0-a0-db16/oracle/server.log",
+        "size": 1203,
+        "sha256": "2726a6021127fa3336ba802764cefb8028d3d292c087a5824f1f3f1c5fc82d6f"
+      },
+      {
+        "path": "runs/geo-witness-cover_radius-1s-uring-rl0-a0-db16/target/server.log",
+        "size": 10662,
+        "sha256": "01db4385235bda2e1d6aa0f7816f17fbf0b9afb974f4334fae498fa097706a48"
+      },
+      {
+        "path": "runs/geo-witness-cover_radius-2s-uring-rl0-a0-db16/oracle/server.log",
+        "size": 1203,
+        "sha256": "38ffc8d341e06f1b6b413cd36c136c8ecf2c409c904943a34003092735653272"
+      },
+      {
+        "path": "runs/geo-witness-cover_radius-2s-uring-rl0-a0-db16/target/server.log",
+        "size": 9751,
+        "sha256": "1b6f9f81d205a2b48cc7b8f439f3afeafd8d95deb463612869df64eb4a4a31f6"
+      },
+      {
+        "path": "runs/geo-witness-mixed_scores-1s-uring-rl0-a0-db16/oracle/server.log",
+        "size": 1203,
+        "sha256": "05e21a437bf81dfc41219be2e1a5a4b59ad9bb3613903aaf581065e0a3a46184"
+      },
+      {
+        "path": "runs/geo-witness-mixed_scores-1s-uring-rl0-a0-db16/target/server.log",
+        "size": 10735,
+        "sha256": "3e294c8aad5853881230e860c094d038dbc148ef6ce8b35a58331085a6c3ae61"
+      },
+      {
+        "path": "runs/geo-witness-mixed_scores-2s-uring-rl0-a0-db16/oracle/server.log",
+        "size": 1203,
+        "sha256": "43bf86b93b28d1ee7c776b521a4f442c482ce093fec2218a6d1ab22525e8b166"
+      },
+      {
+        "path": "runs/geo-witness-mixed_scores-2s-uring-rl0-a0-db16/target/server.log",
+        "size": 9775,
+        "sha256": "d3e9143715986530082dad5d2a2c8074f4ba1b176a6f744967dc77989f28ac4c"
+      },
+      {
+        "path": "runs/str-lcsdos-1s-30000/oracle/server.log",
+        "size": 1203,
+        "sha256": "c150ba5fe04f55845021d7a3f0cdef66484cf16fc3b1d419962908b0d2e91cbb"
+      },
+      {
+        "path": "runs/str-lcsdos-1s-30000/target/server.log",
+        "size": 10693,
+        "sha256": "d1d05204ffbbe3a487676f6db38ea049eb29de4b883ebb57285f090398ca2bdd"
+      },
+      {
+        "path": "runs/str-lcsdos-2s-30000/oracle/server.log",
+        "size": 1203,
+        "sha256": "34bc59169c32183b724bcbea6118cff948e0feb0a60e6fa9ae2174fa581d7b83"
+      },
+      {
+        "path": "runs/str-lcsdos-2s-30000/target/server.log",
+        "size": 9760,
+        "sha256": "f4129a8e1bcc2309d58574c3ab46f8876224eee78453cb041bc344fbc33a1c14"
+      },
+      {
+        "path": "runs/str-multilocal-1s-a0-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "03e38d13f78a5e72a0d25db439febf3e846a7f55cc408679ee05792abe82a9ba"
+      },
+      {
+        "path": "runs/str-multilocal-1s-a0-rl0/target/server.log",
+        "size": 10802,
+        "sha256": "6949cf2453b19d2470cb28634da55e934c539a3951e95110be5f4c9261dd6a56"
+      },
+      {
+        "path": "runs/str-multilocal-1s-a1-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "8f1f2eca237084ac40abff0e07d5af2008387956c270e5af2f0d56db8c7864e8"
+      },
+      {
+        "path": "runs/str-multilocal-1s-a1-rl0/target/server.log",
+        "size": 10807,
+        "sha256": "ba0746af7dbdf974a949d7989174fe96bb2731bd02f44f87995aad7ac328b6db"
+      },
+      {
+        "path": "runs/str-multilocal-2s-a0-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "1aa398369cbd4dc1cac2c10a24bca15fb3d503a4af54412818e0f5ec92c9cad6"
+      },
+      {
+        "path": "runs/str-multilocal-2s-a0-rl0/target/server.log",
+        "size": 9782,
+        "sha256": "297f46236c2dde6e7c3f35d315f88c5473486fe8e0fea72eafc822c895865858"
+      },
+      {
+        "path": "runs/str-multilocal-2s-a1-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "e08e972975e191a232214b72ab1d6614d8149952e16ff638a08ecbc221e2b1f8"
+      },
+      {
+        "path": "runs/str-multilocal-2s-a1-rl0/target/server.log",
+        "size": 9776,
+        "sha256": "021e0176f2eecd1bb2af8fd4b94c00935d528c1a57c25c285e98f6343aa85a6c"
+      },
+      {
+        "path": "runs/str-pfmulti-1s-a0-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "c5bf9a78e5e8f69b34597b01233a646f94a870f2611aa1992d789d052fe4b9b8"
+      },
+      {
+        "path": "runs/str-pfmulti-1s-a0-rl0/target/server.log",
+        "size": 10684,
+        "sha256": "6561256b5ca104a5664cc7a2b9351af36d67353a5f18d387a7d4e6f667a9c4c4"
+      },
+      {
+        "path": "runs/str-pfmulti-1s-a1-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "35d86cb404981e6256f076b7efc64cb9bf11722a3a1a75f32a54e2291e7a231f"
+      },
+      {
+        "path": "runs/str-pfmulti-1s-a1-rl0/target/server.log",
+        "size": 10688,
+        "sha256": "42049afc77140ba86f5cc7367e7e7b7cd91bf2c25e5219d15e0d74c4a1945541"
+      },
+      {
+        "path": "runs/str-pfmulti-2s-a0-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "03c7b472607cbc18ce530df1278eab2ace04fced59a08e2313186d89773fbc12"
+      },
+      {
+        "path": "runs/str-pfmulti-2s-a0-rl0/target/server.log",
+        "size": 9762,
+        "sha256": "1a0549b41974c8571c1216d6f859e162ffab8711d8353b0b1f09e0b9eeea08f0"
+      },
+      {
+        "path": "runs/str-pfmulti-2s-a1-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "a125f19868441ff7e6707cdbed5dcb6c50cf992f614b9011174c9bb56e972d86"
+      },
+      {
+        "path": "runs/str-pfmulti-2s-a1-rl0/target/server.log",
+        "size": 9756,
+        "sha256": "36acd1c498de62f7992e58ec721e837db5f0655f6b56811b68d6abef7bfa4076"
+      },
+      {
+        "path": "runs/str-pfsame-1s-a0-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "40784145605a4df2fe6214332cccf5b7906da654ac0b7eecf2586d178399adca"
+      },
+      {
+        "path": "runs/str-pfsame-1s-a0-rl0/target/server.log",
+        "size": 10683,
+        "sha256": "afdb99b02a68d2f406bc87bf00efda759d3fc00c7f19c874315c8de013bd7df5"
+      },
+      {
+        "path": "runs/str-pfsame-1s-a1-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "d0b8e620f43b9358ae78fa864d95063b122c00964294b5e50aa1449d039d7c7c"
+      },
+      {
+        "path": "runs/str-pfsame-1s-a1-rl0/target/server.log",
+        "size": 10706,
+        "sha256": "49fa28b3c6ace1025d67104a74a1dafdd38f1acd5e20d7bdf74ba6d1d4f73bed"
+      },
+      {
+        "path": "runs/str-pfsame-2s-a0-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "19002d6345d1c1162260c2f7b716d4a6a637b85e47ecb034e3d99c109b0bf01c"
+      },
+      {
+        "path": "runs/str-pfsame-2s-a0-rl0/target/server.log",
+        "size": 9768,
+        "sha256": "207775032dbad302a958bd791739da419226a8c9dc5f5cb1af1741e58309cc35"
+      },
+      {
+        "path": "runs/str-pfsame-2s-a1-rl0/oracle/server.log",
+        "size": 1203,
+        "sha256": "71b6cd9369777f9dbe73684fd7b1f4cc039cf006bf4e7698e8ce358f2a05f555"
+      },
+      {
+        "path": "runs/str-pfsame-2s-a1-rl0/target/server.log",
+        "size": 9765,
+        "sha256": "013845d9c77752cece7464935904543eac6010d25a7e578a09cdd22ce452e5fd"
+      },
+      {
+        "path": "runs/witness-geo_box-1s-uring-rl1-a1-dbs16-db7/oracle/server.log",
+        "size": 1203,
+        "sha256": "9bcbcbd801a02136896698a95e7ca43b1687b98a07c74db6ef4c7891742ef775"
+      },
+      {
+        "path": "runs/witness-geo_box-1s-uring-rl1-a1-dbs16-db7/target/server.log",
+        "size": 10634,
+        "sha256": "b6ac198c602462a24d18e694fb31d194da2468d77f925849d80c54eecbc81ad7"
+      },
+      {
+        "path": "runs/witness-geo_box-2s-uring-rl1-a1-dbs16-db7/oracle/server.log",
+        "size": 1203,
+        "sha256": "fb0ce382b9cbc156a326a51d3c287d32d577bc416f79a39bf04349173e1e81e7"
+      },
+      {
+        "path": "runs/witness-geo_box-2s-uring-rl1-a1-dbs16-db7/target/server.log",
+        "size": 9852,
+        "sha256": "ba09fc94b74e9893fd2f0c8a16862d04fa7f775a7bd16af91f5e770d34b4bbf4"
+      },
+      {
+        "path": "source-sha256.json",
+        "size": 1374,
+        "sha256": "fef3338affd62577b392120891749cfb0100e0fef57158d85702ff08d300f8b8"
+      }
+    ],
+    "jobs": []
   }
 ]

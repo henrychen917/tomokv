@@ -2,17 +2,16 @@
 
 ## cmdfix2
 
-**Proof refresh in progress:** final review found a GEO unit-conversion boundary
-in the first POST. The new witness fails that arm in all 32 legs. The adapter is
-corrected; final arms, instruction counts and broad job receipts are being
-refreshed. The tables below still describe the earlier arm until that completes.
+**Broad-job proof refresh in progress.** Directed witnesses, auditor reruns,
+instruction counts and builds below use the final POST. Final broad-job totals
+will be added when the scheduled correctness jobs finish.
 
 Branch `cx-cmdfix2`, PRE `9d6ab5526f8fff0c8617e94cf20fa837e15ab0f8`.
-The six production fixes end at `77c64b44ae`; subsequent commits contain proof,
-test integration, this report and whitespace-only GEO cleanup. Recompiling
-both cleaned GEO objects and relinking preserves their complete bytes and the
-POST SHA-256 (`docs/cmdfix2/whitespace-equivalence.json`). No push. No layout lock or ownership protocol
-changed. The GEO change is the explicitly requested Redis 7.4 helper port.
+The six initial production fixes end at `77c64b44ae`; `8f94e50a94` completes
+the GEO port's unit-conversion and floating-point operation order. Other
+commits contain proof, test integration and this report. No push. No layout
+lock or ownership protocol changed. The GEO change is the explicitly
+requested Redis 7.4 helper port.
 
 Correctness work uses CPUs 100–111, servers 100–107, ports 21300–21399,
 `LC_ALL=C`, 16 shards and split ratio 6:2. Builds use at most 12 jobs.
@@ -29,7 +28,7 @@ failures are in `docs/cmdfix2/witnesses.json`.
 
 | Item / job | PRE witness | POST result | Mechanism changed | Residual |
 |---|---|---|---|---|
-| CD5.1 / `cmdfix2-geo` | 649 differences in each of 32 legs; 20,768 total | 215,984 checks, zero differences | Redis WGS84 bounding box, step selection/decrease, neighbor exclusion/traversal, radius and rectangle predicates | Pre-existing boundary-coordinate encoding differences, CD5.9, remain |
+| CD5.1 / `cmdfix2-geo` | 679 differences in each of 32 legs; 21,728 total | 222,704 checks, zero differences | Redis WGS84 bounding box, step selection/decrease, neighbor exclusion/traversal, radius and rectangle predicates, retaining raw shape units and reference arithmetic | Pre-existing boundary-coordinate encoding differences, CD5.9, remain |
 | CD5.2 / `cmdfix2-scores` | 35 differences per leg; 1,120 total | 5,008 checks, zero differences | Compare sorted scores as doubles; exclude values outside `[0, 2^52)` before decoding | GEOPOS/FROMMEMBER decoding of invalid scores, CD5.8, remains |
 | CD5.7 / `cmdfix2-hll` | 14 differences per leg; 448 total | 4,656 checks, zero differences | Send PFMERGE and multi-key PFCOUNT through the existing EXEC scatter lowering, including same-shard placement | Existing script command restrictions are unchanged |
 | CD2 / `cmdfix2-lcs` | 25 differences per leg; 800 total | 2,800 checks, zero differences | Redis dimension/overflow/bulk-limit checks before table allocation; read the raw live limit, preserving the separate string-size clamp | The quadratic LCS algorithm is unchanged |
@@ -41,9 +40,13 @@ GEO uses the auditors' high-latitude and pole witnesses, plus a fixed randomized
 ASC/DESC/COUNT/ANY, and GEOSEARCHSTORE with and without STOREDIST. Stored
 member-to-score mappings must equal Redis's. Unsorted/ANY replies are compared
 in traversal order. All legacy radius verbs and their STORE/STOREDIST forms
-also have directed oracle comparisons. The distance helper disables floating
+also have directed oracle comparisons. The ported helpers disable floating
 point contraction to preserve the reference's arithmetic and exact STOREDIST
-scores under this tree's compiler flags.
+scores under this tree's compiler flags. Shape dimensions remain in their
+original units until the same point as Redis's conversion. Dedicated km/ft/mi
+box-step boundary cases catch premature conversion: the first POST fails
+30 comparisons per leg, 960 total. Its receipts and instruction counts remain
+explicitly superseded under `docs/cmdfix2/v1` and `instructions/POST-v1`.
 
 HLL placement is observed with DEBUG SHARDS: same shard, different shards on
 one owner, and different owners. LCS lowers the live bulk limit on PRE, making
@@ -177,8 +180,8 @@ table initialization. Batch 32 means one transaction with 32 children.
 
 | Namespace / scope | 1s PRE → POST, batch 1 | 2s PRE → POST, batch 1 | Batch 32 added instructions, either mode |
 |---|---:|---:|---:|
-| normal GEOSEARCH | 74,407 → 72,152 | 75,027 → 72,772 | -72,160 |
-| db0 GEOSEARCH | 75,104 → 72,038 | 75,337 → 72,271 | -98,112 |
+| normal GEOSEARCH | 74,407 → 73,106 | 75,027 → 73,726 | -41,632 |
+| db0 GEOSEARCH | 75,104 → 72,282 | 75,337 → 72,515 | -90,304 |
 | normal EXEC | 23,968 → 24,520 | 23,923 → 24,475 | +986 |
 | db0 EXEC | 22,588 → 23,144 | 22,530 → 23,086 | +1,114 |
 
@@ -194,25 +197,29 @@ witnesses and the broad jobs. All footprint locks retain their base values.
 | Arm | SHA-256 |
 |---|---|
 | PRE | `79f8ca525f3a2050367d84ad74b6413087ed7a67e119b9eb23a47197c0d49f88` |
-| POST | `7c054d71ac18728be4949c1c3ac916633e99201cf3796c3c60e30cffa61b6472` |
-| PAD-A | `27b134ed8e3c0b51bbb6078f52bbd140554c16112861d3e913ebefc9d75cc03f` |
-| PAD-B | `775f59571a010ceb2c52a07618dcd1ec26342870e3db79d2b028a8c8b3afb04a` |
+| POST | `204cc07b6b3da1d35e17d09aa5bbff4e9a26654a281cf46766e2162d66f30b7f` |
+| PAD-A | `68431818fe79fff1fdfabde597922c898af41bc3cdc06d8e6bda77ee39cb6255` |
+| PAD-B | `05a5f8e2853bb7734e313e5a9b62f5c8884e78ccbce017c2af2e25cf4492cb56` |
 
-PRE `.text` is 9,021,623 bytes; POST is 9,019,767 bytes, **-1,856 bytes**.
+PRE `.text` is 9,021,623 bytes; POST is 9,019,927 bytes, **-1,696 bytes**.
 Both begin at `0x2cad0`.
 
 * **PAD-A, kind A: PRE behaviour with POST's total text extent.** Only PRE's
   GEO translation units are recompiled with alignment padding disabled; all
-  other objects remain PRE. Unreachable padding brings `.text` to POST's
-  address/size. It also matches POST's `.rodata` and writable section starts.
+  other objects remain PRE. Unreachable text padding (12,320 bytes) brings
+  `.text` to POST's address/size. A further 4,096 bytes of read-only padding
+  matches POST's `.rodata`, `.data` and `.bss` start addresses (the `.rodata`
+  sizes differ).
   It is an extent control, **not an exact individual-symbol layout twin**;
   GEO alignment/code generation may differ, so this arm cannot attribute a
   GEO rate difference to semantics alone. `pad-a.json` records this limitation,
   exact recipes, padding and section sizes. Its six witnesses retain PRE's
   failing behavior.
 * **PAD-B, kind B: inverse control.** Unmodified POST objects plus unreachable
-  padding restore PRE's `.text` extent. Included because the text-size change
-  exceeds a few hundred bytes. All six witnesses pass, 32 legs each.
+  padding (1,696 bytes) restore PRE's `.text` extent and `.rodata` start.
+  Its `.data`/`.bss` starts remain 4,096 bytes later than PRE's; it does not
+  control that placement. Included because the text-size change exceeds a
+  few hundred bytes. All six witnesses pass, 32 legs each.
 
 Maintainer: run the **14 generic cells plus 2s GET/SET at p1/p32** with the
 gate's own instrument and these arms on the quiet scheduled box. Retain
@@ -243,8 +250,8 @@ rows.
 
 ### Final validation ledger
 
-* Final directed witnesses: **233,056 checks across 192 legs, zero failures**;
-  the same six witnesses produce **24,576 differences on PRE**.
+* Final directed witnesses: **239,776 checks across 192 legs, zero failures**;
+  the same six witnesses produce **25,536 differences on PRE**.
 * Final Tcl receipts: **311 required assertions per mode/engine leg**, 1,244
   total, with exactly one verified PUNSUBSCRIBE completion fence per leg.
 * `python3 tests/gates_test.py`: **77 tests pass**. The Tcl runner's 14

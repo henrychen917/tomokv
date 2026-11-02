@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import tarfile
 import blockfix2_receipts as receipts
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,11 +71,11 @@ def gate_runs(archive):
 
 
 def witnesses(runs):
-    selected = {'geo': 'pre-final-geo', 'channels': 'pre-channels-final'}
+    selected = {'geo': 'pre-unit-geo', 'channels': 'pre-channels-final'}
     result = []
     for case in ('geo', 'scores', 'hll', 'lcs', 'channels', 'xsetid'):
         item = dict(case=case)
-        for arm, run in [('PRE', selected.get(case, 'pre-gate')), ('POST', 'post-final-witness')]:
+        for arm, run in [('PRE', selected.get(case, 'pre-gate')), ('POST', 'post-v2-witness')]:
             path = Path(runs[run]['source']) / 'jobs' / ('cmdfix2-' + case) / 'proof/summary.json'
             rows = json.loads(path.read_text())
             assert len(rows) == len({r['leg'] for r in rows}) == 32
@@ -88,25 +89,67 @@ def witnesses(runs):
     save(DOC / 'witnesses.json', result)
 
 
-def differential_summary(runs):
+def differential_summary(runs, require_complete):
     result = []
-    for name in ('post-main-uring', 'post-main-epoll'):
+    for name in ('post-v2-main-uring', 'post-v2-main-epoll'):
         root = Path(runs[name]['source'])
         paths = sorted(root.glob('jobs/differ-*/output.log'))
-        assert {p.parent.name for p in paths} == {
-            'differ-split-0', 'differ-split-1', 'differ-armed-0',
-            'differ-armed-1', 'differ-equivalence'}
+        if require_complete:
+            assert {p.parent.name for p in paths} == {
+                'differ-split-0', 'differ-split-1', 'differ-armed-0',
+                'differ-armed-1', 'differ-equivalence'}
         for path in paths:
             lines = path.read_text(errors='replace').splitlines()
             verdict = [line for line in lines if line.startswith((
                 'DIFFER GATE:', 'DIFFER COMMAND COVERAGE:', 'DIFFER matrix:'))]
-            assert any(line.startswith('DIFFER GATE:') and ' fail=0 ' in line for line in verdict)
+            if require_complete:
+                assert any(line.startswith('DIFFER GATE:') and ' fail=0 ' in line for line in verdict)
             result.append(dict(run=name, job=path.parent.name, verdict=verdict))
     save(DOC / 'differential.json', result)
 
 
+def final_jobs(runs):
+    """Require completed final-arm jobs and expose the unchanged baseline failure."""
+    names = ['post-v2-witness', 'post-v2-main-uring', 'post-v2-main-epoll',
+             'post-v2-related', 'post-v2-modes-epoll', 'post-v2-extra-uring']
+    for engine in ('uring', 'epoll'):
+        names += [f'post-v2-fused-{engine}', f'post-v2-tcl-receipted-{engine}']
+        names += [f'post-v2-notify-{engine}-{mode}' for mode in ('1s', '2s')]
+    assert len(names) == len(set(names)) == 14
+    rows = []
+    for name in names:
+        run = runs[name]
+        assert run['complete'] and run['rows'], name
+        failures = [row for row in run['rows'] if row['status'] != 'ok']
+        if name == 'post-v2-extra-uring':
+            assert len(failures) == 1 and failures[0]['job'] == 'rootcompat-stringlimit', failures
+        else:
+            assert not failures, (name, failures)
+        rows.append(dict(run=name, passed=run['passed'], failed=run['failed'],
+                         jobs=sorted({row['job'] for row in run['rows']})))
+    old_index = json.loads((DOC/'gate-receipts/index.json').read_text())
+    old = next(row for row in old_index if row['label'] == 'pre-stringlimit')
+    archive = Path(old['archive'])
+    assert hashlib.sha256(archive.read_bytes()).hexdigest() == old['archive_sha256']
+    member = 'jobs/rootcompat-stringlimit/rootcompat.log'
+    with tarfile.open(archive) as source:
+        pre = source.extractfile(member).read().decode()
+    post = (Path(runs['post-v2-extra-uring']['source'])/member).read_text()
+    failures = lambda text: [line for line in text.splitlines() if line.startswith('FAIL ')]
+    assert len(failures(pre)) == 24 and failures(pre) == failures(post)
+    for name, expected in [('pad-a-v2-final', 6), ('pad-b-v2-gate', 0)]:
+        assert runs[name]['complete'] and runs[name]['failed'] == expected
+        if expected:
+            assert {row['job'] for row in runs[name]['rows'] if row['status'] != 'ok'} == {
+                'cmdfix2-'+case for case in ('geo', 'scores', 'hll', 'lcs', 'channels', 'xsetid')}
+    save(DOC/'final-jobs.json', dict(
+        post_sha256=hashlib.sha256((BUILD/'POST').read_bytes()).hexdigest(),
+        runs=rows, unchanged_stringlimit_failures=failures(post),
+        pad_a_run='pad-a-v2-final', pad_b_run='pad-b-v2-gate'))
+
+
 def auditor_summary(archive):
-    folder = BUILD / 'audit-post'; rows = []
+    folder = BUILD / 'audit-post-v2'; rows = []
     def objects(path):
         return [json.loads(line) for line in path.read_text().splitlines() if line.startswith('{')]
     for path in sorted(folder.glob('*.jsonl')):
@@ -129,8 +172,11 @@ def auditor_summary(archive):
     save(DOC / 'auditors.json', dict(data=rows, complex=comparisons))
     if archive:
         output = DOC / 'auditor-receipts'; output.mkdir(exist_ok=True)
-        save(output / 'index.json', [receipts.collect(label, BUILD / label, output)
-                                    for label in ('audit-pre-T40', 'audit-post')])
+        old = json.loads((output / 'index.json').read_text()) if (output / 'index.json').exists() else []
+        labels = {row['label'] for row in old}
+        for label in ('audit-pre-T40', 'audit-post', 'audit-post-v2'):
+            if label not in labels: old.append(receipts.collect(label, BUILD / label, output))
+        save(output / 'index.json', old)
 
 
 def local_check_receipts():
@@ -139,7 +185,9 @@ def local_check_receipts():
     selected = set()
     for pattern in ('gates-test*.log', 'gateplan-test.log', 'redis-tcl-test*.log',
                     'final-build-*.log', 'fresh-*.log', 'freshness-final.log',
-                    'more-jobs.json', 'related-jobs.json', 'whitespace-control/*.log'):
+                    '*jobs*.json', 'final-supplemental-v2.json', 'post-v2-main-*.json',
+                    'pad-a-v2-final.json', 'pad-v2-final-build.log',
+                    'whitespace-control/*.log'):
         selected.update(BUILD.glob(pattern))
     rows = []
     for source in sorted(selected):
@@ -153,6 +201,7 @@ def local_check_receipts():
 def main():
     assert os.sched_getaffinity(0) <= set(range(100, 112))
     parser = argparse.ArgumentParser(); parser.add_argument('--archive', action='store_true')
+    parser.add_argument('--final', action='store_true')
     args = parser.parse_args()
     original = receipts.selected
     receipts.selected = lambda path, root: original(path, root) or (
@@ -160,7 +209,8 @@ def main():
     instruction_table()
     runs = gate_runs(args.archive)
     witnesses(runs)
-    differential_summary(runs)
+    differential_summary(runs, args.final)
+    if args.final: final_jobs(runs)
     auditor_summary(args.archive)
     if args.archive: local_check_receipts()
     with (DOC / 'arms.sha256').open('w') as out:

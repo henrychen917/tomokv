@@ -1,0 +1,31 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "100-111",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "100-107",
+    "--load-cores",
+    "108-111",
+    "--load-smt",
+    "",
+    "--ports",
+    "21310-21319",
+    "--candidate-binary",
+    "/home/user/Projects/cx-cmdfix2/build/cmdfix2/POST"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 acl_metadata acl_subcommands acl_recheck aclfix auth serverfix_hll serverfix_acllog streamfix blockfix_mkstream blockfix4 release_batteries atomic_batteries differ-split differ-armed authfix atomic_floor perfio_stream",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "CXX": "g++ -gz=zlib",
+    "CC": "cc -gz=zlib",
+    "GATE_LEDGER": "/home/user/Projects/cx-cmdfix2/build/cmdfix2/post-v2-main-epoll"
+  },
+  "candidate_sha256": "204cc07b6b3da1d35e17d09aa5bbff4e9a26654a281cf46766e2162d66f30b7f"
+}

@@ -1,13 +1,14 @@
 {
-  "padding_bytes": 12160,
+  "padding_bytes": 12320,
+  "readonly_padding_bytes": 4096,
   "sections": {
     ".text": {
       "address": 182992,
-      "size": 9019767
+      "size": 9019927
     },
     ".rodata": {
       "address": 9203712,
-      "size": 639332
+      "size": 643428
     },
     ".plt": {
       "address": 172064,
@@ -18,18 +19,18 @@
       "size": 5440
     },
     ".data": {
-      "address": 10833920,
+      "address": 10838016,
       "size": 19321
     },
     ".bss": {
-      "address": 10853248,
+      "address": 10857344,
       "size": 1189384
     }
   },
   "target": {
     ".text": {
       "address": 182992,
-      "size": 9019767
+      "size": 9019927
     },
     ".rodata": {
       "address": 9203712,
@@ -44,11 +45,11 @@
       "size": 5440
     },
     ".data": {
-      "address": 10833920,
+      "address": 10838016,
       "size": 19321
     },
     ".bss": {
-      "address": 10853248,
+      "address": 10857344,
       "size": 1189384
     }
   },
@@ -196,7 +197,7 @@
     "-lcrypto",
     "-lm"
   ],
-  "sha256": "27b134ed8e3c0b51bbb6078f52bbd140554c16112861d3e913ebefc9d75cc03f",
+  "sha256": "68431818fe79fff1fdfabde597922c898af41bc3cdc06d8e6bda77ee39cb6255",
   "kind": "A: behaviour twin; total text extent control",
   "source_commit": "9d6ab5526",
   "behavior": "PRE source and objects; only PRE GEO compiled with alignment padding disabled",

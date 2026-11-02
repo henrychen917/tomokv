@@ -1,5 +1,6 @@
 {
-  "padding_bytes": 1856,
+  "padding_bytes": 1696,
+  "readonly_padding_bytes": 0,
   "sections": {
     ".text": {
       "address": 182992,
@@ -18,11 +19,11 @@
       "size": 5440
     },
     ".data": {
-      "address": 10838016,
+      "address": 10842112,
       "size": 19321
     },
     ".bss": {
-      "address": 10857344,
+      "address": 10861440,
       "size": 1189384
     }
   },
@@ -196,7 +197,7 @@
     "-lcrypto",
     "-lm"
   ],
-  "sha256": "775f59571a010ceb2c52a07618dcd1ec26342870e3db79d2b028a8c8b3afb04a",
+  "sha256": "05a5f8e2853bb7734e313e5a9b62f5c8884e78ccbce017c2af2e25cf4492cb56",
   "kind": "B: inverse control",
   "behavior": "Unmodified POST objects plus unreachable text padding"
 }

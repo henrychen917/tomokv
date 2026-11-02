@@ -88,5 +88,107 @@
     "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.kOXyV8",
     "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-tcl-pubsub-isolated.tar.gz",
     "archive_sha256": "a4437c360cc63ba232906c1b82bdc14eef8aad3a1c56c14c92734f46a1cc9f02"
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-main-uring.tar.gz",
+    "archive_sha256": "0a859e6196ae8b5309a14687c20a9ac3e6ec914f975ed1e860e33c4505b101fe",
+    "reason": "Superseded V1 run, complete raw receipts archived before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.kvgxvK",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-related.tar.gz",
+    "archive_sha256": "1f18f1f6a7642bd51b5a2cdc23926d3b135cdd8c823e745c5e17bd10d546cc1a",
+    "reason": "Superseded V1 run, complete raw receipts archived before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ePd3F7",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pad-a-gate.tar.gz",
+    "archive_sha256": "e568ed2e063f31dd63cd80adccf55c50599c08abd6242de6d4bd3d30ed0e33d5",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.2vp1ow",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pad-b-gate.tar.gz",
+    "archive_sha256": "e84656acf37c3fbd649da645d2ceffd41a420654a8d35eb357a029ae1b5fe1a0",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.puyAE2",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-final-witness.tar.gz",
+    "archive_sha256": "aa7ff1651ffc141c2d47c34ead9d6ade2a807aeb55f96bd7dfa84ead5c7ffd9f",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.G2KgZV",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-final-geo.tar.gz",
+    "archive_sha256": "385570e2e0b6e177449d314ea97b841c153b16c2c912d16c1b87c1a7cbb39fc8",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.OykgPF",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pad-a-final-geo.tar.gz",
+    "archive_sha256": "eec3f7198f326059064cce9229d58368b247761d78a696a5acbf798f6f8e7384",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.4oOeK7",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pad-b-final-geo.tar.gz",
+    "archive_sha256": "5f87abe06c91ad64eea7ea752104cb0c191857ecd071e47e1be03db16c5f61ff",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.RNhi09",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-extra-uring.tar.gz",
+    "archive_sha256": "7663da42b04ee77f84a385763a406c91a021b327c54b1dae8bf7d3183f5d9d58",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.5fytxD",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-fused-uring.tar.gz",
+    "archive_sha256": "676e3cc18b9152da273c6922e916032df6e3f21dbfad0ae81eda55890e533600",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ZFkKz9",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-receipted-epoll.tar.gz",
+    "archive_sha256": "20ed28fbc904089872e10580838760e8c220bbd63a74eddc461bbcc014639c31",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.lUgweL",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-tcl-receipted-uring.tar.gz",
+    "archive_sha256": "898c209872eb6e94891a9a79fa3c30c7cd8961b8885d96cbb48c61e8f679328c",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.TOpylq",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-stringlimit.tar.gz",
+    "archive_sha256": "e1db46dff8c499ccb5cd372c9aad43b6a9c6199a2edc77386160ce1983aedfb1",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.RWUUkQ",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/pre-tcl-pubsub-receipted.tar.gz",
+    "archive_sha256": "4bf267b1d0def928cb8bc64a6e31429ddb7d8ad6fd3f25f5ab0995680e9ed7ee",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.eWzFwZ",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-fused-epoll.tar.gz",
+    "archive_sha256": "57b16e82a5b7cde885acde40c60b1fcccd8b0b3a6176f5b6d2f6d0313f0f6cd2",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.ElLbdF",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-modes-epoll.tar.gz",
+    "archive_sha256": "c580a4cd190474c08943381faf6878991def6d887fceb0b94cc9165203ee1d96",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
+  },
+  {
+    "source": "/home/user/Projects/cx-cmdfix2/build/gate-run.WMelbt",
+    "archive": "/home/user/Projects/cx-cmdfix2/docs/cmdfix2/gate-receipts/post-main-epoll.tar.gz",
+    "archive_sha256": "f8a5dbf38f6cea2c1ee848689193bed03ba1d10e46bac3e129a7fe8effec1bf3",
+    "reason": "Superseded V1 or duplicate control receipts archived and verified before pruning."
   }
 ]

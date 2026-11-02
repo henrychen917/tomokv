@@ -26,8 +26,11 @@ if __name__ == '__main__':
     jobs = [('post-related', 'uring', 0, selected)]
     jobs.extend((f'post-notify-{engine}-{mode}', engine, mode == '1s', 'notify')
                 for engine in ('uring', 'epoll') for mode in ('1s', '2s'))
+    tag = os.environ.get('CMDFIX2_RUN_TAG', '')
+    assert not tag or tag == 'v2'
     results = []
     for label, engine, fused, selection in jobs:
+        if tag: label = label.replace('post-', 'post-'+tag+'-', 1)
         command = ['taskset', '-c', '100-111', 'tests/gate.sh', 'quick',
                    '--server-cores', '100-107', '--load-cores', '108-111', '--load-smt', '',
                    '--ports', '21380-21389', '--candidate-binary', str(ROOT/'build/tomokv')]
@@ -40,7 +43,8 @@ if __name__ == '__main__':
             result = subprocess.run(command, cwd=ROOT, env=dict(os.environ, **changes),
                                     stdout=log, stderr=subprocess.STDOUT)
         results.append(dict(label=label, command=command, environment=changes,
+                            candidate_sha256=digest(OUT/'POST'),
                             exit_code=result.returncode))
-        (OUT/'related-jobs.json').write_text(json.dumps(results, indent=2)+'\n')
+        (OUT/('related-jobs'+('-'+tag if tag else '')+'.json')).write_text(json.dumps(results, indent=2)+'\n')
         print(label, result.returncode, flush=True)
     raise SystemExit(int(any(row['exit_code'] for row in results)))

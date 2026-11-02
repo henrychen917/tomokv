@@ -1,90 +1,27 @@
 [
   {
-    "run": "post-main-uring",
+    "run": "post-v2-main-epoll",
     "job": "differ-armed-0",
     "verdict": [
-      "DIFFER matrix: atomic={0} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/differ-armed-0/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1042458 recorded comparison witnesses, 230 legs)",
-      "DIFFER GATE: pass=231 fail=0 runtime=9m35s"
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-armed-0/differ"
     ]
   },
   {
-    "run": "post-main-uring",
-    "job": "differ-armed-1",
-    "verdict": [
-      "DIFFER matrix: atomic={1} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/differ-armed-1/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1059744 recorded comparison witnesses, 234 legs)",
-      "DIFFER GATE: pass=235 fail=0 runtime=10m06s"
-    ]
-  },
-  {
-    "run": "post-main-uring",
-    "job": "differ-equivalence",
-    "verdict": [
-      "DIFFER matrix: atomic={} seeds={7 19 20 23 21} legs=0 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/differ-equivalence/differ",
-      "DIFFER GATE: pass=1 fail=0 runtime=0m34s"
-    ]
-  },
-  {
-    "run": "post-main-uring",
+    "run": "post-v2-main-epoll",
     "job": "differ-split-0",
     "verdict": [
-      "DIFFER matrix: atomic={0} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/differ-split-0/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1065295 recorded comparison witnesses, 235 legs)",
-      "DIFFER GATE: pass=235 fail=0 runtime=9m37s"
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-split-0/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1065600 recorded comparison witnesses, 235 legs)",
+      "DIFFER GATE: pass=235 fail=0 runtime=10m25s"
     ]
   },
   {
-    "run": "post-main-uring",
+    "run": "post-v2-main-epoll",
     "job": "differ-split-1",
     "verdict": [
-      "DIFFER matrix: atomic={1} seeds={7 19 20 23 21} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.j7OW7X/jobs/differ-split-1/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1082731 recorded comparison witnesses, 239 legs)",
-      "DIFFER GATE: pass=239 fail=0 runtime=9m15s"
-    ]
-  },
-  {
-    "run": "post-main-epoll",
-    "job": "differ-armed-0",
-    "verdict": [
-      "DIFFER matrix: atomic={0} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.WMelbt/jobs/differ-armed-0/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1042418 recorded comparison witnesses, 230 legs)",
-      "DIFFER GATE: pass=231 fail=0 runtime=9m29s"
-    ]
-  },
-  {
-    "run": "post-main-epoll",
-    "job": "differ-armed-1",
-    "verdict": [
-      "DIFFER matrix: atomic={1} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.WMelbt/jobs/differ-armed-1/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1059440 recorded comparison witnesses, 234 legs)",
-      "DIFFER GATE: pass=235 fail=0 runtime=9m06s"
-    ]
-  },
-  {
-    "run": "post-main-epoll",
-    "job": "differ-equivalence",
-    "verdict": [
-      "DIFFER matrix: atomic={} seeds={7 19 20 23 22} legs=0 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.WMelbt/jobs/differ-equivalence/differ",
-      "DIFFER GATE: pass=1 fail=0 runtime=0m23s"
-    ]
-  },
-  {
-    "run": "post-main-epoll",
-    "job": "differ-split-0",
-    "verdict": [
-      "DIFFER matrix: atomic={0} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.WMelbt/jobs/differ-split-0/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1069630 recorded comparison witnesses, 235 legs)",
-      "DIFFER GATE: pass=235 fail=0 runtime=12m11s"
-    ]
-  },
-  {
-    "run": "post-main-epoll",
-    "job": "differ-split-1",
-    "verdict": [
-      "DIFFER matrix: atomic={1} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.WMelbt/jobs/differ-split-1/differ",
-      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1082886 recorded comparison witnesses, 239 legs)",
-      "DIFFER GATE: pass=239 fail=0 runtime=11m16s"
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 24} legs=235 logs=/home/user/Projects/cx-cmdfix2/build/gate-run.QcKx3L/jobs/differ-split-1/differ",
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1083053 recorded comparison witnesses, 239 legs)",
+      "DIFFER GATE: pass=239 fail=0 runtime=9m31s"
     ]
   }
 ]

@@ -3,23 +3,14 @@ g++ -gz=zlib -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMAL
 In file included from ./src/cmd/xshard.cc:59,
                  from ./tests/atomic_survivors_unit.cc:6,
                  from tests/blockfix2_unit.cc:3:
-./src/cmd/xshard_commands.inc: In function 'bool tomo_db0::{anonymous}::classify_keys(const tomo_db0::Op&, Kind, const XshardKeyHints&, XshardKeyPlan&)':
+./src/cmd/xshard_commands.inc: In function 'bool tomo::{anonymous}::classify_keys(const tomo::Op&, Kind, const XshardKeyHints&, XshardKeyPlan&)':
 ./src/cmd/xshard_commands.inc:340:12: warning: enumeration value 'Flush' not handled in switch [-Wswitch]
   340 |     switch (kind) {
       |            ^
-In file included from ./src/cmd/xshard.cc:64:
-./src/cmd/multi.inc: In function 'void tomo_db0::{anonymous}::txn_add_claim(std::vector<tomo_db0::TxnClaim>&, tomo_db0::Slice, tomo_db0::TxnClaimMode, bool)':
-./src/cmd/multi.inc:882:21: warning: missing initializer for member 'tomo_db0::TxnClaim::waiter' [-Wmissing-field-initializers]
-  882 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
-      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./src/cmd/multi.inc: In function 'void tomo_db0::{anonymous}::txn_cap_claims(std::vector<tomo_db0::TxnClaim>&)':
-./src/cmd/multi.inc:891:21: warning: missing initializer for member 'tomo_db0::TxnClaim::waiter' [-Wmissing-field-initializers]
-  891 |     claims.push_back({{}, 0, mode});
-      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
 In file included from ./src/cmd/xshard.cc:59,
                  from ./tests/atomic_survivors_unit.cc:6,
                  from tests/blockfix2_unit.cc:3:
-./src/cmd/xshard_commands.inc: In function 'bool tomo::{anonymous}::classify_keys(const tomo::Op&, Kind, const XshardKeyHints&, XshardKeyPlan&)':
+./src/cmd/xshard_commands.inc: In function 'bool tomo_db0::{anonymous}::classify_keys(const tomo_db0::Op&, Kind, const XshardKeyHints&, XshardKeyPlan&)':
 ./src/cmd/xshard_commands.inc:340:12: warning: enumeration value 'Flush' not handled in switch [-Wswitch]
   340 |     switch (kind) {
       |            ^
@@ -32,23 +23,15 @@ In file included from ./src/cmd/xshard.cc:64:
 ./src/cmd/multi.inc:891:21: warning: missing initializer for member 'tomo::TxnClaim::waiter' [-Wmissing-field-initializers]
   891 |     claims.push_back({{}, 0, mode});
       |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
-./tests/atomic_survivors_unit.cc: In function 'int atomic_survivors_unused_main(int, char**)':
-./tests/atomic_survivors_unit.cc:981:1: warning: no return statement in function returning non-void [-Wreturn-type]
-  981 | }
-      | ^
-In file included from ./src/cmd/../store/kv_block_cache.h:31,
-                 from ./src/cmd/../store/flatstore.h:82,
-                 from ./src/cmd/lookup_notouch.h:2,
-                 from ./src/cmd/xshard.cc:1:
-./src/cmd/../store/kvobj.h: In instantiation of 'size_t tomo_db0::kvobj_external_bytes(const KvObj*, const void*, const KvObj*) [with bool Retiring = true; size_t = long unsigned int]':
-./src/cmd/../store/flatstore.h:3318:41:   required from here
-./src/cmd/../store/kvobj.h:1126:21: warning: the address of 'void tomo_db0::blocking_stream_removed(const void*, Slice, const KvObj*)' will never be NULL [-Waddress]
- 1126 |                 if (blocking_stream_removed) blocking_stream_removed(store, o->key(), replacement);
-      |                     ^~~~~~~~~~~~~~~~~~~~~~~
-In file included from ./src/cmd/xshard.cc:63:
-./src/cmd/blocking.inc:1417:6: note: 'void tomo_db0::blocking_stream_removed(const void*, Slice, const KvObj*)' declared here
- 1417 | void blocking_stream_removed(const void* store, Slice key, const KvObj* replacement) {
-      |      ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from ./src/cmd/xshard.cc:64:
+./src/cmd/multi.inc: In function 'void tomo_db0::{anonymous}::txn_add_claim(std::vector<tomo_db0::TxnClaim>&, tomo_db0::Slice, tomo_db0::TxnClaimMode, bool)':
+./src/cmd/multi.inc:882:21: warning: missing initializer for member 'tomo_db0::TxnClaim::waiter' [-Wmissing-field-initializers]
+  882 |     claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./src/cmd/multi.inc: In function 'void tomo_db0::{anonymous}::txn_cap_claims(std::vector<tomo_db0::TxnClaim>&)':
+./src/cmd/multi.inc:891:21: warning: missing initializer for member 'tomo_db0::TxnClaim::waiter' [-Wmissing-field-initializers]
+  891 |     claims.push_back({{}, 0, mode});
+      |     ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
 In file included from ./src/cmd/xshard.cc:70:
 ./src/cmd/notify.inc: In function 'void tomo::notify_elapsed_set(Shard&, Op&, Slice)':
 ./src/cmd/notify.inc:621:78: warning: narrowing conversion of 'key.tomo::Slice::ns' from 'uint32_t' {aka 'unsigned int'} to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
@@ -58,6 +41,10 @@ In file included from ./src/cmd/xshard.cc:70:
 ./src/cmd/notify.inc:656:93: warning: narrowing conversion of '(uint32_t)key.tomo::Slice::ns' from 'uint32_t' {aka 'unsigned int'} to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
   656 |             slot->elapsed_sets.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, ready});
       |                                                                                         ~~~~^~
+./tests/atomic_survivors_unit.cc: In function 'int atomic_survivors_unused_main(int, char**)':
+./tests/atomic_survivors_unit.cc:981:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  981 | }
+      | ^
 ./tests/atomic_survivors_unit.cc: In function 'int atomic_survivors_unused_main(int, char**)':
 ./tests/atomic_survivors_unit.cc:981:1: warning: no return statement in function returning non-void [-Wreturn-type]
   981 | }
@@ -75,24 +62,19 @@ In file included from ./src/cmd/xshard.cc:63:
 ./src/cmd/blocking.inc:1417:6: note: 'void tomo::blocking_stream_removed(const void*, Slice, const KvObj*)' declared here
  1417 | void blocking_stream_removed(const void* store, Slice key, const KvObj* replacement) {
       |      ^~~~~~~~~~~~~~~~~~~~~~~
-In function 'void operator delete(void*, const std::nothrow_t&)',
-    inlined from 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)' at ./src/cmd/notify.inc:244:44:
-./tests/atomic_survivors_unit.cc:45:74: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
-   45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
-      |                                                                 ~~~~~~~~~^~~
-./src/cmd/notify.inc: In function 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)':
-./src/cmd/notify.inc:244:44: note: returned from 'void* operator new(std::size_t, const std::nothrow_t&)'
-  244 |         auto* created = new (std::nothrow) NotifyBatch;
-      |                                            ^~~~~~~~~~~
-In function 'void operator delete(void*, const std::nothrow_t&)',
-    inlined from 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)' at ./src/cmd/notify.inc:255:38:
-./tests/atomic_survivors_unit.cc:45:74: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
-   45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
-      |                                                                 ~~~~~~~~~^~~
-./src/cmd/notify.inc: In function 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)':
-./src/cmd/notify.inc:255:38: note: returned from 'void* operator new(std::size_t, const std::nothrow_t&)'
-  255 |     auto* batch = new (std::nothrow) NotifyBatch;
-      |                                      ^~~~~~~~~~~
+In file included from ./src/cmd/../store/kv_block_cache.h:31,
+                 from ./src/cmd/../store/flatstore.h:82,
+                 from ./src/cmd/lookup_notouch.h:2,
+                 from ./src/cmd/xshard.cc:1:
+./src/cmd/../store/kvobj.h: In instantiation of 'size_t tomo_db0::kvobj_external_bytes(const KvObj*, const void*, const KvObj*) [with bool Retiring = true; size_t = long unsigned int]':
+./src/cmd/../store/flatstore.h:3318:41:   required from here
+./src/cmd/../store/kvobj.h:1126:21: warning: the address of 'void tomo_db0::blocking_stream_removed(const void*, Slice, const KvObj*)' will never be NULL [-Waddress]
+ 1126 |                 if (blocking_stream_removed) blocking_stream_removed(store, o->key(), replacement);
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from ./src/cmd/xshard.cc:63:
+./src/cmd/blocking.inc:1417:6: note: 'void tomo_db0::blocking_stream_removed(const void*, Slice, const KvObj*)' declared here
+ 1417 | void blocking_stream_removed(const void* store, Slice key, const KvObj* replacement) {
+      |      ^~~~~~~~~~~~~~~~~~~~~~~
 In function 'void operator delete(void*, const std::nothrow_t&)',
     inlined from 'tomo_db0::NotifyBatch* tomo_db0::{anonymous}::notify_get_or_create_batch(tomo_db0::Op&)' at ./src/cmd/notify.inc:244:44:
 ./tests/atomic_survivors_unit.cc:45:74: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
@@ -113,20 +95,38 @@ In function 'void operator delete(void*, const std::nothrow_t&)',
   255 |     auto* batch = new (std::nothrow) NotifyBatch;
       |                                      ^~~~~~~~~~~
 In function 'void operator delete(void*, const std::nothrow_t&)',
-    inlined from 'bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)' at ./src/cmd/notify.inc:543:39:
+    inlined from 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)' at ./src/cmd/notify.inc:244:44:
 ./tests/atomic_survivors_unit.cc:45:74: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
    45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
       |                                                                 ~~~~~~~~~^~~
-./src/cmd/notify.inc: In function 'bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)':
-./src/cmd/notify.inc:543:39: note: returned from 'void* operator new(std::size_t, const std::nothrow_t&)'
-  543 |         slot.reset(new (std::nothrow) NotifyShardState);
-      |                                       ^~~~~~~~~~~~~~~~
+./src/cmd/notify.inc: In function 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)':
+./src/cmd/notify.inc:244:44: note: returned from 'void* operator new(std::size_t, const std::nothrow_t&)'
+  244 |         auto* created = new (std::nothrow) NotifyBatch;
+      |                                            ^~~~~~~~~~~
+In function 'void operator delete(void*, const std::nothrow_t&)',
+    inlined from 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)' at ./src/cmd/notify.inc:255:38:
+./tests/atomic_survivors_unit.cc:45:74: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function 'tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)':
+./src/cmd/notify.inc:255:38: note: returned from 'void* operator new(std::size_t, const std::nothrow_t&)'
+  255 |     auto* batch = new (std::nothrow) NotifyBatch;
+      |                                      ^~~~~~~~~~~
 In function 'void operator delete(void*, const std::nothrow_t&)',
     inlined from 'bool tomo_db0::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)' at ./src/cmd/notify.inc:543:39:
 ./tests/atomic_survivors_unit.cc:45:74: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
    45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
       |                                                                 ~~~~~~~~~^~~
 ./src/cmd/notify.inc: In function 'bool tomo_db0::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)':
+./src/cmd/notify.inc:543:39: note: returned from 'void* operator new(std::size_t, const std::nothrow_t&)'
+  543 |         slot.reset(new (std::nothrow) NotifyShardState);
+      |                                       ^~~~~~~~~~~~~~~~
+In function 'void operator delete(void*, const std::nothrow_t&)',
+    inlined from 'bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)' at ./src/cmd/notify.inc:543:39:
+./tests/atomic_survivors_unit.cc:45:74: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   45 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+./src/cmd/notify.inc: In function 'bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)':
 ./src/cmd/notify.inc:543:39: note: returned from 'void* operator new(std::size_t, const std::nothrow_t&)'
   543 |         slot.reset(new (std::nothrow) NotifyShardState);
       |                                       ^~~~~~~~~~~~~~~~
