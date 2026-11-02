@@ -1949,6 +1949,7 @@ job_clientfix(){
       row_begin "$label"
       if py tests/clientfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" \
           --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --case "$case" \
+          --net-io "${GATE_NET_IO:-uring}" \
           >"$TMPDIR/clientfix-$case-$mode.log" 2>&1; then
         ok "$label"
       else
@@ -5701,6 +5702,7 @@ job_feature_cell(){
   row_begin "feature $FEATURE_CELL"
   py tests/feature_gate.py --cell "$FEATURE_CELL" --binary "$CANDIDATE_BINARY" \
         --server-cpus "$CORES" --load-cpus "${GATE_LOAD_CORES:-96-127}" --ratio "$GATE_RATIO" \
+        --net-io "${GATE_NET_IO:-uring}" \
         --port "$PORT" --output "$FEATURE_OUTPUT" \
         >"$FEATURE_OUTPUT/$FEATURE_CELL.log" 2>&1 \
         && ok "feature $FEATURE_CELL" \

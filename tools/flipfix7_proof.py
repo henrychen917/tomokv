@@ -39,7 +39,8 @@ def main():
  jobs={'new':NEW,'regression':JOBS,'differ':['differ-split','differ-armed'],
        'controls':CONTROLS,'scope':SCOPE,'units':UNITS}[args.phase]
  if args.phase=='regression' and args.engine=='epoll':jobs=EPOLL
- if args.phase=='scope' and args.engine=='epoll':jobs=['fused-0','fused-1','txn_group_fused']
+ if args.phase=='scope' and args.engine=='epoll':
+  jobs=['fused-0','fused-1','txn_group_fused','clientfix'] + [job for job in SCOPE if job.startswith('feature-cell-')]
  out=ROOT/'build/flipfix7';tag=f'gate-{args.phase}-{args.engine}'
  if args.phase=='regression':
   assert hashlib.sha256((ROOT/'build/tomokv').read_bytes()).digest()==hashlib.sha256((out/'POST').read_bytes()).digest()
