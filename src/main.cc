@@ -514,13 +514,13 @@ int main(int argc, char** argv) {
     }
 
     // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
-    if (!probe_boot_listener(cfg, cfg.port, false, IoLoop::make_reuseport_listener)) {
+    if (!probe_boot_listener(cfg, cfg.port, false, make_exclusive_boot_listener)) {
         std::perror("bind");
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
         srv.databases().join_workers(srv, pool);
         return 1;
     }
-    if (!probe_boot_listener(cfg, cfg.tls_port, true, IoLoop::make_reuseport_listener)) {
+    if (!probe_boot_listener(cfg, cfg.tls_port, true, make_exclusive_boot_listener)) {
         std::perror("bind tls-port");
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
         srv.databases().join_workers(srv, pool);
