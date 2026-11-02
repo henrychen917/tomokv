@@ -225,8 +225,10 @@ The companion now shares flipfix6's exact reply policy, requires every FLIP to
 return below one second, and matches S2/close reply counts to both server
 counter deltas. Seven negative controls reject legacy/unknown errors, slow
 replies, absent counters and forged counter counts. Existing exec-close legs
-still require actual close refusals to occur. The complete live job is running
-again as `flip-refusal-contract-final`; the original red receipt remains in
+still require actual close refusals to occur. The complete live job passes as `flip-refusal-contract-final`: 56 normal
+session legs, 16 scaled legs, eight FLUSH/FLIP candidate legs and two oracle
+legs. All 16 exec-close cases arm real close refusals. The original red
+receipt and all 64 detailed session witnesses remain in
 `flip-refusal-contract.json`. No public row or EXPECT change is needed.
 
 ### Tcl reconciliation and negative control
