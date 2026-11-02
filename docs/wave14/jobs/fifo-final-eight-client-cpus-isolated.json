@@ -1,0 +1,370 @@
+{
+  "label": "fifo-final-eight-client-cpus-isolated",
+  "source": "/home/user/Projects/cx-wave14/build/gate-run.xMgIAF",
+  "archive": "/home/user/Projects/cx-wave14/docs/wave14/jobs/fifo-final-eight-client-cpus-isolated.tar.gz",
+  "archive_sha256": "162d91d35591199231b743858cd27b335d8014165373d5b556046524148e672a",
+  "files": [
+    {
+      "path": "families.tsv",
+      "size": 115,
+      "sha256": "d500f3226fe1c382c7745dc09b666e2bbe5c5a0f48eed300646cfcc3b59d8973"
+    },
+    {
+      "path": "jobs/release/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "size": 52,
+      "sha256": "f59497a4e5b095992d4b0f5a4388326f12b9731595ab5659b0a5705992668817"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "size": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "size": 45,
+      "sha256": "309c13c2922aae5ea759e31f5aee12f47b67cb6b06c5e43555af42a805f491c5"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/done",
+      "size": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/family.tsv",
+      "size": 63,
+      "sha256": "7802c686e87cc0d13426bd1706b1b708fe7af6e33ff25e786c7d15f736989698"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-0-epoll.json",
+      "size": 65087,
+      "sha256": "9e0f70d9bbf7a332051dbe55fbe29dad313264acb57831b6aa48b16fd66abe59"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-0-epoll.log",
+      "size": 1213,
+      "sha256": "5b0aea92a2c8a0e28b155b55f144049b3bab9f181835eb8884653595df431a31"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-0-uring.json",
+      "size": 65098,
+      "sha256": "44f3813cfbcb710addfb5b76973db52f4ac5f8218193f0fa42dfe62bf625ca4a"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-0-uring.log",
+      "size": 1215,
+      "sha256": "714e18b9090187bb5dd72e6bcaa0cfc7b98995cbe4bdca89be6ffa468acfcfd5"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-1-epoll.json",
+      "size": 65092,
+      "sha256": "698c311f844594595f266894e089ac2de0de963fedbcd8feff0c291bc7a07d49"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-1-epoll.log",
+      "size": 1215,
+      "sha256": "992c02060b6d039a41207027d4dc40fab3e67bee14e5ca4bf84087bfc55aa459"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-1-uring.json",
+      "size": 65094,
+      "sha256": "bf99edb9fbfd1a53011b7594dd404459a596732fdf093735f9f785be6c41fb7f"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-1s-1-uring.log",
+      "size": 1215,
+      "sha256": "1c7b73627573db7a5223b1ecfb4f591616180115108d10f69710d41c5d5b0287"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-0-epoll.json",
+      "size": 65088,
+      "sha256": "9406f79c4005f71c1e4d049eb20cc853dda1955b44aed7b9040170b4ca6e0e11"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-0-epoll.log",
+      "size": 1219,
+      "sha256": "a535b317b84a63588dd951af7b81407785923d4a3c1d5403844f8b66f62928e1"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-0-uring.json",
+      "size": 65107,
+      "sha256": "5484fe90a11160e84866070331fb01769e23d6533af4620ce838a053109edd0f"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-0-uring.log",
+      "size": 1219,
+      "sha256": "cb845c1c56e2cbd472f90c11be8a212a276948c4761e4db81907dc254afad7b9"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-1-epoll.json",
+      "size": 65106,
+      "sha256": "0888369c11f6a3702e1d1fbb7b4d3700ab07f9a332d45addf2daac87065bae6f"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-1-epoll.log",
+      "size": 1219,
+      "sha256": "2aaa20fac53d494eaf91f9dcfc5a55a61c696f7c3d6d0f8ccdad6d86be2b119f"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-1-uring.json",
+      "size": 65099,
+      "sha256": "7c2c8781bfe795d1ac350de3207a00fa3008f3ad7c6079edc52407d07ca05edd"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-1-2s-1-uring.log",
+      "size": 1217,
+      "sha256": "6c2629caed1e458f7f97732c52f3596320588b1ad65708a5e1bbfa186b179a73"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-0-epoll.json",
+      "size": 65096,
+      "sha256": "73bb8b10b473d93387be7f9a3abb5713b2b74bfd45d072dd5297235f39c9ce50"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-0-epoll.log",
+      "size": 1215,
+      "sha256": "dac684bb67aefefbb5fdcee6c0de0381dbdee33bd3ccbdff6b413c0d3ed818c3"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-0-uring.json",
+      "size": 65098,
+      "sha256": "c34206be2cf7a24706013c2c79ead80b736423c1e212cf14d54ac55b1667d438"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-0-uring.log",
+      "size": 1215,
+      "sha256": "3570c0039f9065e2830b41e54925643d2ae2d3835443f60760d495939e9a69f2"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-1-epoll.json",
+      "size": 65099,
+      "sha256": "5153166e5d7a7200e6a828e9e393ac64dc6ee2a421cd5ce94ac691b1a7ab4428"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-1-epoll.log",
+      "size": 1215,
+      "sha256": "4de2afcb52dd930b2e3fac6cdae866c2cfcf84fee19b41f66d9f7b00d23bf131"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-1-uring.json",
+      "size": 65090,
+      "sha256": "c6578bbda514308c77b3c8df1fb4e8451c1ec40f7ede484fc75c9044b3cc54a9"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-1s-1-uring.log",
+      "size": 1213,
+      "sha256": "0f66ed15f8b426fb2dd36efecf10d5a5962f3f30ea0e40cbe5f1fa1156614837"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-0-epoll.json",
+      "size": 65098,
+      "sha256": "c1cb82c533930d76028f2953b1af0da91e5ce961efdc595dc1525692cc8a46a4"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-0-epoll.log",
+      "size": 1217,
+      "sha256": "4dcc976755953724a79d496dae9927e48ec944eb296bb464b84b3887b7dca3b8"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-0-uring.json",
+      "size": 65099,
+      "sha256": "b99265ad99702dbaeb026c8d48f496f92549a9a7f4ad81e3dbcd6420751bf09d"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-0-uring.log",
+      "size": 1217,
+      "sha256": "76434d73ce173d273621e54f27f103471c804aa9022e21424f45df0f341dc005"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-1-epoll.json",
+      "size": 65105,
+      "sha256": "5d40f6834636219f34ab44d04c62a36e7f0ce1646f9e60b0282e489a31cd8137"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-1-epoll.log",
+      "size": 1219,
+      "sha256": "2450988535ab6285a1792c38df74ede375791ade2e36c9b86d3480b1bb2ede17"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-1-uring.json",
+      "size": 65100,
+      "sha256": "bfe3ab2f6f6151077a2d519e22cea17a1e950a7845f068fe320212012be10380"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/fifo-16-2s-1-uring.log",
+      "size": 1217,
+      "sha256": "1e7cefeaf2d771cb5f1e5d798971ae7b89a42cd4f09443d75ab90211552ff981"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.0Eo9pU",
+      "size": 11281,
+      "sha256": "458aaa03cdb2fb42263f2c6acbeb7c8f3483c5db3f54399bc295c2bef3c73f98"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.IWLTH4",
+      "size": 11374,
+      "sha256": "32a28d60c8b928d3755cd54584caec63278649cf07d0b481433ab6b83832d50d"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.NxCUeS",
+      "size": 11365,
+      "sha256": "ff18aba0ba60abae8b4d378d3a98f0f46c8becde76f8a40c924a7e3a746d0f31"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.Ui0ooB",
+      "size": 11270,
+      "sha256": "9c8e5d263ee52b9ddcfc92ffe173fc953234a04cf7af280dab7c2f484178e41e"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.XoDbM1",
+      "size": 11368,
+      "sha256": "7417cd2097173b679b45c9a774c2941b88823dffd861bfc8cf3f8277f46a9740"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.gDPGdk",
+      "size": 11275,
+      "sha256": "1e639b81e60b6a0e8a34c7c5c2179a4eb28e35cc4bee1c62d919e3f192b0d00b"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.gacmQa",
+      "size": 11275,
+      "sha256": "3b5943fe286aad9062dc81cd50561ffe033c552cc80c74c4b7f99b6f637f9dcb"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-fused.oWinYI",
+      "size": 11370,
+      "sha256": "930a67640fffe7b67312a30bd490527819dad01922b8d8330e2d908b2fde0e15"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.06BeNn",
+      "size": 10355,
+      "sha256": "45ed6039e711b199fb5cdecfdb379bbee39d9f89e398a62995fed4532743b1d2"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.4CaRCV",
+      "size": 10347,
+      "sha256": "162fcfe88db5fd57a545fd73842d8ed03baed9f8db9957dca13719a5185b0ab1"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.8ldShY",
+      "size": 10358,
+      "sha256": "7a5f7279cbe9b6baf1d7475f599bc3a118a3446c18a39cee968644e36894256a"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.K3GsWN",
+      "size": 10271,
+      "sha256": "54978baaa00092846fd4ffdfcaf8b868b6f68069b22cd68a5cfc58152a6bedf7"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.YWZYdR",
+      "size": 10287,
+      "sha256": "0fdeff0c32635b491cbdfabb67732b5e35c45db72eb6260e28b3995683216b9e"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.nCNbMC",
+      "size": 10354,
+      "sha256": "7f057e3c44615b8857c5d2ea6ada10acde021f0d04fc0e7a3355d626bb617d5d"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.pIPaS3",
+      "size": 10278,
+      "sha256": "46dccf6cf23ba239323586cc3db42faba0efc697fb37cb9065b914d4af066a23"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/gate-srv-main.qFwyfv",
+      "size": 10274,
+      "sha256": "0191133caa01017cc74c5d246b7972d9e7431701a1fd1493479df48cf75ffc72"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/ledger",
+      "size": 42,
+      "sha256": "8c78b76061ef466b43efb4bf9a22e2e0c89a8616c6922b03d8027a7303b417a5"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/output.log",
+      "size": 156,
+      "sha256": "0a228eac7e46bbe3c6e9a5e7ea46320497c26b886eaf5fad38c85443fdbed1e4"
+    },
+    {
+      "path": "jobs/txnorder_fifo_live/timings",
+      "size": 42,
+      "sha256": "8c78b76061ef466b43efb4bf9a22e2e0c89a8616c6922b03d8027a7303b417a5"
+    },
+    {
+      "path": "phases.tsv",
+      "size": 88,
+      "sha256": "5d3cce06a7aa7415909b63cddf14831df4d20c2836e9c90214c3ac5c5b98b832"
+    },
+    {
+      "path": "plan.sh",
+      "size": 1185,
+      "sha256": "718128bb55d7e7a97ddfa2250d223cb3af7924d4d5eebde611a7ff14a1574456"
+    },
+    {
+      "path": "row-timeouts.json",
+      "size": 290690,
+      "sha256": "171580c0d46faf7f2e391df83f8e8968a7f7b3df613336a44a99d1f72d6fa13b"
+    }
+  ],
+  "jobs": [
+    {
+      "job": "release",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "txnorder_fifo_live",
+      "done": "0\t1\t0",
+      "passed": 1,
+      "failed": 0,
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "989.300000",
+          "label": "txnorder FIFO live fairness"
+        }
+      ]
+    }
+  ],
+  "command": [
+    "taskset",
+    "-c",
+    "0-31",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "8-15",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "20093-20095",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave14/build/wave14/post-r7/tomokv"
+  ],
+  "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
+  "exit_code": 0,
+  "run_directory": "/home/user/Projects/cx-wave14/build/gate-run.xMgIAF",
+  "engine": "uring",
+  "fused": false
+}

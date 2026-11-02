@@ -8,7 +8,7 @@ condition to `ExDrain` so TRACKING acknowledgements can progress during
 `IoDrain`, but its generated R7 copy still froze during both stages. The copy
 is now regenerated from the ordinary owner. Both the source parity check and
 the actual owner fixture reject the old condition. The new release is frozen
-at `a0e4d122e8`; complete selected correctness sweeps are running again.
+at `a0e4d122e8`; all selected correctness sweeps have completed on that image.
 Earlier receipts remain historical, including the explicitly interrupted
 superseded sweeps. No EXPECT or public row count changes accompany this fix.
 
@@ -17,8 +17,11 @@ lane reports were read before integration. Merge order: witnessfix, rootcore,
 blockfix4, rootcompat, clientcompat, execfifo3. The maintainer's two merit
 addenda authorize every merge. Lane branches are read-only inputs.
 
-Builds and correctness work use CPUs 0–31, builds at most `-j32`, ports
-20000–20099, and `LC_ALL=C` on every boot. Only selected correctness jobs,
+Builds and correctness work use CPUs 0–31, builds at most `-j32`, TomoKV/Redis
+ports 20000–20099, and `LC_ALL=C` on every boot. Earlier harness selftests used
+the unit listener's ephemeral default; the final standalone harness and
+throwaway selftest explicitly pin it to 20099 and 20098, respectively.
+Only selected correctness jobs,
 oracles, differential suites, and finite serverless instruction scopes run
 here. Performance/load generators and the full iteration remain maintainer work.
 
@@ -59,9 +62,58 @@ documented observation, not Redis parity or a completed fix.
 slowlog ordering is red against Redis, universal headline/isolated-lane
 linked-body equality is not achieved, and the final epoll Tcl run found a
 parked connection left after peer close. Additional half-close controls expose
-queued-input loss on both headline and merged POST. FIFO live allocation controls
-are also investigating failed share/latency bounds. Details are below. Broad
-correctness validation is still running. No throughput claim is made.
+queued-input loss on both headline and merged POST. One fused atomic-0 epoll
+AOF transaction job timed out and hung during shutdown; three complete reruns
+passed without explaining the original failure. These findings remain open:
+**the integration is not landing-ready**. FIFO allocation controls have completed
+without changing any bound; both merged eight-client-CPU jobs pass all sixteen
+legs, while isolated execfifo3 reproduces the four-client-CPU share failures.
+No throughput claim is made.
+
+### Completed selected sweeps
+
+`validation-final.json` verifies completion, raw ledgers, archive hashes,
+CPU/port/locale allocation and differential folds. Counts below include
+prerequisites and repeated public rows; they are not additions to 1090/1107.
+
+| Final phase | Jobs completed | Passing rows | Failed rows |
+|---|---:|---:|---:|
+| Broad uring selection | 303 | 1098 | 4 |
+| Fused uring supplements | 21 | 226 | 1 |
+| Fused epoll supplements | 17 | 83 | 6 |
+| Four atomic-0 script-bound supplements, combined | 8 | 12 | 0 |
+| Broad epoll selection | 202 | 621 | 4 |
+| Three blockfix4 engine/namespace supplements, combined | 6 | 18 | 0 |
+
+The original failures stay in those ledgers. Separate completed controls
+establish the corrected FLUSH/FLIP test contract, XACCT's correctness-only
+policy, ZC's refused-boot retry, and FIFO's allocation dependence. They do not
+erase the original observations. Netio and Tcl's epoll EOF failures and the
+unexplained transaction-AOF failure remain unresolved. The earlier pre-R7
+sweeps are explicitly marked SUPERSEDED, including their unfinished work;
+every final planned job is complete. Private wake-order diagnostics remain red
+outside the public census.
+
+### Transaction-AOF timeout: unresolved
+
+The final broad epoll `txnorder-fused-0` job passes rows a/b/c/armed and all
+nine native transaction controls, then row d reports `TimeoutError('timed
+out')` on its AOF-enabled boot. The owned server also fails the gate's
+30-second shutdown deadline and is killed. There is no successful d summary
+or replay receipt in that attempt. Its logs and AOF files remain preserved;
+the increment generation alone does not establish whether a rewrite caused
+the hang. See `txnorder-aof-original-failure.json`.
+
+Three fresh complete executions of that same gate job pass all fourteen
+assertions and exact two-key AOF restart replay. They execute the exact frozen
+native POST bytes through a small launcher that permits same-user diagnostic
+attachment. An opt-in test observer would capture a bounded thread backtrace
+only after an assertion fails, then rethrow the original failure. It never
+fires in these passing reruns; no server backtrace was obtained. A separate
+sleep-process control validates attachment without changing global ptrace
+policy. `txnorder-aof-diagnostics.json` binds every attempt and the native
+image. The original timeout remains unexplained, with no production fix or
+attribution claim.
 
 ### Epoll EOF finding; trial rejected
 
@@ -208,8 +260,11 @@ and rejected counts are retained, not presented as the integration cost proof.
 - The blockfix4 creator row now includes RESTORE-stream. Its existing raw
   fixture was excluded pending D9, which wave13 persistfmt supplies. The
   merged row requires two parked/woken XREAD hits and oracle-exact values
-  per declared geometry, without adding a public row. Both network engines
-  and namespace builds are selected in the validation plan.
+  per declared geometry, without adding a public row. All five blockfix4
+  collectors pass on both engines and both namespace builds. RESTORE-stream
+  completes 64 candidate geometries with 128 armed parked-and-served attempts,
+  plus four oracle geometries with eight attempts; `blockfix4-final-matrix.json`
+  records every unchanged case collector and added stream witness.
 - The maxmemrace Redis oracle assumed `maxmemory 1` immediately implies OOM.
   Redis's eviction time slice may instead return `EVICT_RUNNING`, admitting a
   write before a later eviction attempt reports failure. Oracle setup now waits
@@ -268,12 +323,15 @@ share bound with four client CPUs per gate slot. Their later latency assertions
 are **NOT RUN in that attempt** because the share assertion stops validation.
 `fifo-final-original-failure.json` preserves every leg and exact failure.
 
-A complete rerun with eight client CPUs is in progress. Its completed split
-legs satisfy share but expose latency failures while those CPUs overlap other
-correctness work. Neither outcome is relabelled as a pass. Unchanged whole-job
-controls on the isolated execfifo3 arm at four client CPUs and merged POST at
-eight are queued after the uring followthrough releases CPUs 0–15; the other
-sweep uses CPUs 16–31. `fifo-isolated-control-plan.json` records the allocation.
+A complete eight-client-CPU rerun overlapping other correctness work finishes
+9/16 passing, with seven latency failures. That attempt remains failed.
+The isolated execfifo3 POST with four client CPUs reproduces all eight split
+share failures while all eight fused legs pass. The isolated merged POST with
+eight client CPUs passes 16/16; the broad epoll selection also passes 16/16
+with eight client CPUs. Every attempt retains 60 windows, progress by all
+68 clients, exact final values, FIFO engagement and zero ordering violations.
+`fifo-allocation-audit.json` binds all five complete runs and unchanged bounds.
+These controls support allocation dependence, not a performance merit claim.
 No fairness bound or production predicate is changed. The first small-allocation
 control was refused by the gate's 16-physical-core preflight and booted nothing;
 `fifo-control-preflight-refused.json` records that **NOT RUN** attempt.
@@ -505,7 +563,7 @@ rows including release.
 
 All 55 primary `job_production_units` targets built, plus mdbqsbr live controls,
 blockfix-cost and both blockfix2 units. `make -q all` and all four target-group
-freshness checks returned zero; `production-freshness-final.json` records the exact
+freshness checks returned zero; `production-freshness-landing.json` records the exact
 lists. Matching native companions are bound beside the frozen POST with their
 hashes in `companions-r7.json`; the release bytes remain unchanged. Two gate
 launches overlapped the instrumented R7 object build. Serial recompilation

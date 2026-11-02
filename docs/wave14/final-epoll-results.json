@@ -1,0 +1,18 @@
+[
+  {
+    "tag": "merged-final-epoll",
+    "exit_code": 1
+  },
+  {
+    "tag": "merged-final-blockfix4-epoll-db1",
+    "exit_code": 0
+  },
+  {
+    "tag": "merged-final-blockfix4-uring-db16",
+    "exit_code": 0
+  },
+  {
+    "tag": "merged-final-blockfix4-epoll-db16",
+    "exit_code": 0
+  }
+]
