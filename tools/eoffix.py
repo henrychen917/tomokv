@@ -28,6 +28,8 @@ def main():
     p.add_argument('--repeat', type=int, default=1)
     p.add_argument('--capture', action='store_true')
     p.add_argument('--keep-going', action='store_true')
+    p.add_argument('--archive-data', action='store_true',
+                   help='Archive completed large AOF data between repeated correctness jobs')
     a = p.parse_args()
     assert os.sched_getaffinity(0) <= set(range(8))
     assert 21900 <= a.port <= 21997 and a.repeat >= 1
@@ -90,6 +92,8 @@ int main(int argc, char **argv) {
         assert sha(native) == record['native_sha256'], 'native arm changed during proof'
         receipt.write_text(json.dumps(record, indent=2)+'\n')
         print(tag, 'exit', result.returncode, 'captures', record.get('captures', []), flush=True)
+        if a.archive_data:
+            subprocess.run(['python3', 'tools/eoffix_archive_data.py'], cwd=ROOT, check=True)
         if result.returncode:
             failed = True
             if not a.keep_going:

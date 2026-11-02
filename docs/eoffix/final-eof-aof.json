@@ -1,0 +1,47 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21900-21902",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/post-final/tomokv"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/post-final/tomokv",
+  "native_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+  "launcher_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+  "engine": "epoll",
+  "jobs": "wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s",
+  "env": {
+    "LC_ALL": "C",
+    "WAVE14_EOF_DIRECTORY": "/home/user/Projects/cx-eoffix/build/eoffix/final-eof-native",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/final-eof-aof"
+  },
+  "exit_code": 0,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.q0knke",
+  "ledgers": {
+    "jobs/wave14_epoll_eof/ledger": "ok\t0.010000\twave14 epoll coalesced EOF (normal)\nok\t0.000000\twave14 epoll coalesced EOF (db0)\n",
+    "jobs/wave14_eof_data/ledger": "ok\t21.890000\twave14 half-close accepted input\n",
+    "jobs/eoffix_aof/ledger": "ok\t0.000000\teoffix AOF QSBR (normal, epoll, open)\nok\t0.010000\teoffix AOF QSBR (normal, epoll, pressure)\nok\t0.000000\teoffix AOF QSBR (normal, epoll, writer)\nok\t0.010000\teoffix AOF QSBR (normal, uring, open)\nok\t0.000000\teoffix AOF QSBR (normal, uring, pressure)\nok\t0.010000\teoffix AOF QSBR (normal, uring, writer)\nok\t0.000000\teoffix AOF QSBR (db0, epoll, open)\nok\t0.000000\teoffix AOF QSBR (db0, epoll, pressure)\nok\t0.010000\teoffix AOF QSBR (db0, epoll, writer)\nok\t0.000000\teoffix AOF QSBR (db0, uring, open)\nok\t0.010000\teoffix AOF QSBR (db0, uring, pressure)\nok\t0.000000\teoffix AOF QSBR (db0, uring, writer)\n",
+    "jobs/netio-2s/ledger": "ok\t2.950000\tepoll directed correctness (2s)\n",
+    "jobs/release/ledger": "ok\t0.010000\trelease build (+footprint locks)\n",
+    "jobs/netio-1s/ledger": "ok\t2.980000\tepoll directed correctness (1s)\n"
+  },
+  "captures": [],
+  "archive_sha256": "d0c78185cfc7ab7b23f8791b751a9541f21a2663a3af9c51a5b0900991a47ee2"
+}

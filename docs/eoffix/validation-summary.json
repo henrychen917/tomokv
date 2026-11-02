@@ -2,6 +2,7 @@
   "jobs": [
     {
       "tag": "aof-post-native",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "eoffix_aof",
       "binary_sha256": "6412df54c8dfddcf5c088a26e5746887ebc655c27f6b5e990f00f1c38a3bd1f6",
@@ -11,6 +12,7 @@
     },
     {
       "tag": "aof-pre-native",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "eoffix_aof",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -24,7 +26,101 @@
       "captures": []
     },
     {
+      "tag": "final-eof-aof",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-layout",
+      "arm": "POST-layout",
+      "engine": "epoll",
+      "jobs": "netio-1s netio-2s wave14_eof_data",
+      "binary_sha256": "0df0c25368ad9a9ed18bb9c3195b154a900978276e717374cbce53a3d09b46b5",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-pad",
+      "arm": "PAD-A",
+      "engine": "epoll",
+      "jobs": "netio-1s netio-2s",
+      "binary_sha256": "bb48b1eb370440d3c05770d6f7dbeefaf3abafff696e909783a6d6a790c5e963",
+      "exit_code": 1,
+      "failures": [
+        "FAIL\t7.960000\tepoll directed correctness (2s)",
+        "FAIL\t7.980000\tepoll directed correctness (1s)"
+      ],
+      "captures": []
+    },
+    {
+      "tag": "final-tcl-epoll-1",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "redis_tcl",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-tcl-epoll-2",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "redis_tcl",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-tcl-epoll-3",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "redis_tcl",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-tcl-uring-1",
+      "arm": "POST",
+      "engine": "uring",
+      "jobs": "redis_tcl",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-tcl-uring-2",
+      "arm": "POST",
+      "engine": "uring",
+      "jobs": "redis_tcl",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-tcl-uring-3",
+      "arm": "POST",
+      "engine": "uring",
+      "jobs": "redis_tcl",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
       "tag": "pad-a-netio",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "netio-1s netio-2s",
       "binary_sha256": "f7b1329bd253d9123a82f720f5565f67be3c981d33e40023897bfed8973ff435",
@@ -37,6 +133,7 @@
     },
     {
       "tag": "post-differ-epoll",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "differ-split differ-armed",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -49,6 +146,7 @@
     },
     {
       "tag": "post-differ-uring",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "differ-split differ-armed",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -58,6 +156,7 @@
     },
     {
       "tag": "post-eof-controls",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "wave14_eof_data",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -69,6 +168,7 @@
     },
     {
       "tag": "post-extended-fresh",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "wave14_eof_data",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -78,6 +178,7 @@
     },
     {
       "tag": "post-extended",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "netio-1s netio-2s wave14_eof_data",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -90,6 +191,7 @@
     },
     {
       "tag": "post-first",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "netio-1s netio-2s wave14_eof_data",
       "binary_sha256": "63a26629c2b91c37db26f7430b80fcc4953732e9d4bc7152bd802d76cd783bb9",
@@ -99,6 +201,7 @@
     },
     {
       "tag": "post-layout-netio",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "netio-1s netio-2s wave14_eof_data",
       "binary_sha256": "d0e234cac6b75d51a121c335e168b641fbfcd12b82f679e6d88827732c1e6121",
@@ -108,6 +211,7 @@
     },
     {
       "tag": "post-live-epoll",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "release_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap ntfix_input respcompat crlffix clientfix clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof aof-uring aof-epoll snapshot-uring snapshot-epoll",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -117,6 +221,7 @@
     },
     {
       "tag": "post-live-uring",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "release_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap ntfix_input respcompat crlffix clientfix clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -129,6 +234,7 @@
     },
     {
       "tag": "post-native",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "wave14_epoll_eof",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -138,6 +244,7 @@
     },
     {
       "tag": "post-sleep-drain",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "wave14_eof_data",
       "binary_sha256": "2fd6d4e2e986b221849a0d68dce562645c04766d0a858e627873c30d28d119af",
@@ -147,6 +254,7 @@
     },
     {
       "tag": "post-tcl-epoll-1",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -159,6 +267,7 @@
     },
     {
       "tag": "post-tcl-epoll-2",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -171,6 +280,7 @@
     },
     {
       "tag": "post-tcl-epoll-3",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -183,6 +293,7 @@
     },
     {
       "tag": "post-tcl-uring-1",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "redis_tcl",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -195,6 +306,7 @@
     },
     {
       "tag": "post-tcl-uring-2",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "redis_tcl",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -207,6 +319,7 @@
     },
     {
       "tag": "post-tcl-uring-3",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "redis_tcl",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -219,6 +332,7 @@
     },
     {
       "tag": "post-units-epoll",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "netcmd_units climonfix blockfix4 blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake aof_frame aoforder persistfix_units fused-0 fused-1 txn_group_fused txn_group_split tls netfix_tls wb_policy respresume-fragment-1s-epoll respresume-fragment-2s-epoll respresume-cpu-1s-epoll respresume-cpu-2s-epoll respresume-neighbour-1s-epoll respresume-neighbour-2s-epoll",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -230,6 +344,7 @@
     },
     {
       "tag": "post-units-uring",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "netcmd_units climonfix blockfix4 blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake aof_frame aoforder persistfix_units fused-0 fused-1 txn_group_fused txn_group_split tls netfix_tls wb_policy respresume-fragment-1s-uring respresume-fragment-2s-uring respresume-cpu-1s-uring respresume-cpu-2s-uring respresume-neighbour-1s-uring respresume-neighbour-2s-uring",
       "binary_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
@@ -241,7 +356,27 @@
       "captures": []
     },
     {
+      "tag": "pre-aof-progress-complete",
+      "arm": "PRE",
+      "engine": "epoll",
+      "jobs": "eoffix_aof",
+      "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
+      "exit_code": 1,
+      "failures": [
+        "FAIL\t5.000000\teoffix AOF QSBR (normal, epoll, pressure)",
+        "FAIL\t5.010000\teoffix AOF QSBR (normal, epoll, writer)",
+        "FAIL\t5.000000\teoffix AOF QSBR (normal, uring, pressure)",
+        "FAIL\t5.000000\teoffix AOF QSBR (normal, uring, writer)",
+        "FAIL\t5.010000\teoffix AOF QSBR (db0, epoll, pressure)",
+        "FAIL\t5.010000\teoffix AOF QSBR (db0, epoll, writer)",
+        "FAIL\t5.000000\teoffix AOF QSBR (db0, uring, pressure)",
+        "FAIL\t5.010000\teoffix AOF QSBR (db0, uring, writer)"
+      ],
+      "captures": []
+    },
+    {
       "tag": "pre-half-replies",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "wave14_eof_data",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -253,6 +388,7 @@
     },
     {
       "tag": "pre-netio-coalesced",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "netio-1s netio-2s",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -265,6 +401,7 @@
     },
     {
       "tag": "pre-pubsub-01",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -277,6 +414,7 @@
     },
     {
       "tag": "pre-pubsub-02",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -286,6 +424,7 @@
     },
     {
       "tag": "pre-pubsub-03",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -295,6 +434,7 @@
     },
     {
       "tag": "pre-pubsub-04",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -304,6 +444,7 @@
     },
     {
       "tag": "pre-pubsub-05",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -315,6 +456,7 @@
     },
     {
       "tag": "pre-pubsub-06",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -324,6 +466,7 @@
     },
     {
       "tag": "pre-pubsub-07",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -333,6 +476,7 @@
     },
     {
       "tag": "pre-pubsub-08",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -344,6 +488,7 @@
     },
     {
       "tag": "pre-pubsub-09",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -355,6 +500,7 @@
     },
     {
       "tag": "pre-pubsub-10",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -366,6 +512,7 @@
     },
     {
       "tag": "pre-pubsub-11",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -377,6 +524,7 @@
     },
     {
       "tag": "pre-pubsub-12",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -388,6 +536,7 @@
     },
     {
       "tag": "pre-pubsub-13",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -397,6 +546,7 @@
     },
     {
       "tag": "pre-pubsub-14",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -409,6 +559,7 @@
     },
     {
       "tag": "pre-pubsub-15",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -418,6 +569,7 @@
     },
     {
       "tag": "pre-pubsub-16",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -427,6 +579,7 @@
     },
     {
       "tag": "pre-pubsub-17",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -436,6 +589,7 @@
     },
     {
       "tag": "pre-pubsub-18",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -447,6 +601,7 @@
     },
     {
       "tag": "pre-pubsub-19",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -456,6 +611,7 @@
     },
     {
       "tag": "pre-pubsub-20",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -467,6 +623,7 @@
     },
     {
       "tag": "pre-pubsub-21",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -478,6 +635,7 @@
     },
     {
       "tag": "pre-pubsub-22",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -487,6 +645,7 @@
     },
     {
       "tag": "pre-pubsub-23",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -498,6 +657,7 @@
     },
     {
       "tag": "pre-pubsub-24",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -509,6 +669,7 @@
     },
     {
       "tag": "pre-pubsub-25",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -520,6 +681,7 @@
     },
     {
       "tag": "pre-pubsub-26",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -529,6 +691,7 @@
     },
     {
       "tag": "pre-pubsub-27",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -538,6 +701,7 @@
     },
     {
       "tag": "pre-pubsub-28",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -547,6 +711,7 @@
     },
     {
       "tag": "pre-pubsub-29",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -556,6 +721,7 @@
     },
     {
       "tag": "pre-pubsub-30",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -565,6 +731,7 @@
     },
     {
       "tag": "pre-tcl-attribution-01",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -577,6 +744,7 @@
     },
     {
       "tag": "pre-tcl-attribution-02",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -589,6 +757,7 @@
     },
     {
       "tag": "pre-tcl-attribution-03",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -601,6 +770,7 @@
     },
     {
       "tag": "pre-tcl-attribution-04",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -613,6 +783,7 @@
     },
     {
       "tag": "pre-tcl-attribution-05",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -625,6 +796,7 @@
     },
     {
       "tag": "pre-tcl-attribution-06",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -637,6 +809,7 @@
     },
     {
       "tag": "pre-tcl-attribution-07",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -649,6 +822,7 @@
     },
     {
       "tag": "pre-tcl-attribution-08",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -661,6 +835,7 @@
     },
     {
       "tag": "pre-tcl-attribution-09",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -673,6 +848,7 @@
     },
     {
       "tag": "pre-tcl-attribution-10",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -685,6 +861,7 @@
     },
     {
       "tag": "pre-tracking-01",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -696,6 +873,7 @@
     },
     {
       "tag": "pre-tracking-02",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -707,6 +885,7 @@
     },
     {
       "tag": "pre-tracking-03",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -719,6 +898,7 @@
     },
     {
       "tag": "pre-tracking-04",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -728,6 +908,7 @@
     },
     {
       "tag": "pre-tracking-05",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -737,6 +918,7 @@
     },
     {
       "tag": "pre-tracking-06",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -748,6 +930,7 @@
     },
     {
       "tag": "pre-tracking-07",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -757,6 +940,7 @@
     },
     {
       "tag": "pre-tracking-08",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -769,6 +953,7 @@
     },
     {
       "tag": "pre-tracking-09",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -780,6 +965,7 @@
     },
     {
       "tag": "pre-tracking-10",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -792,6 +978,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-01",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -801,6 +988,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-02",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -810,6 +998,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-03",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -819,6 +1008,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-04",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -828,6 +1018,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-05",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -837,6 +1028,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-06",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -846,6 +1038,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-07",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -855,6 +1048,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-08",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -864,6 +1058,7 @@
     },
     {
       "tag": "txn-pre-clean-epoll-09",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -877,6 +1072,7 @@
     },
     {
       "tag": "txn-pre-epoll-01",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -889,6 +1085,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-01",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -898,6 +1095,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-02",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -907,6 +1105,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-03",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -916,6 +1115,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-04",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -925,6 +1125,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-05",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -934,6 +1135,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-06",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -943,6 +1145,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-07",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -952,6 +1155,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-08",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -961,6 +1165,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-09",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -970,6 +1175,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-10",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -983,6 +1189,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-11",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -996,6 +1203,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-12",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1005,6 +1213,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-13",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1014,6 +1223,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-14",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1028,6 +1238,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-15",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1037,6 +1248,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-16",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1046,6 +1258,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-17",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1059,6 +1272,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-18",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1068,6 +1282,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-19",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1077,6 +1292,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-20",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1086,6 +1302,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-21",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1095,6 +1312,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-22",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1104,6 +1322,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-23",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1113,6 +1332,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-24",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1122,6 +1342,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-25",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1131,6 +1352,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-26",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1140,6 +1362,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-27",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1149,6 +1372,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-28",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1158,6 +1382,7 @@
     },
     {
       "tag": "txn-pre-epoll-cont-29",
+      "arm": "PRE",
       "engine": "epoll",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1167,6 +1392,7 @@
     },
     {
       "tag": "txn-pre-uring-01",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1176,6 +1402,7 @@
     },
     {
       "tag": "txn-pre-uring-02",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1185,6 +1412,7 @@
     },
     {
       "tag": "txn-pre-uring-03",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1194,6 +1422,7 @@
     },
     {
       "tag": "txn-pre-uring-04",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1203,6 +1432,7 @@
     },
     {
       "tag": "txn-pre-uring-05",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1212,6 +1442,7 @@
     },
     {
       "tag": "txn-pre-uring-06",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1221,6 +1452,7 @@
     },
     {
       "tag": "txn-pre-uring-07",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1230,6 +1462,7 @@
     },
     {
       "tag": "txn-pre-uring-08",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1239,6 +1472,7 @@
     },
     {
       "tag": "txn-pre-uring-09",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1248,6 +1482,7 @@
     },
     {
       "tag": "txn-pre-uring-10",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1257,6 +1492,7 @@
     },
     {
       "tag": "txn-pre-uring-11",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1266,6 +1502,7 @@
     },
     {
       "tag": "txn-pre-uring-12",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1275,6 +1512,7 @@
     },
     {
       "tag": "txn-pre-uring-13",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1284,6 +1522,7 @@
     },
     {
       "tag": "txn-pre-uring-14",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1293,6 +1532,7 @@
     },
     {
       "tag": "txn-pre-uring-15",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1302,6 +1542,7 @@
     },
     {
       "tag": "txn-pre-uring-16",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1311,6 +1552,7 @@
     },
     {
       "tag": "txn-pre-uring-17",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1320,6 +1562,7 @@
     },
     {
       "tag": "txn-pre-uring-18",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1329,6 +1572,7 @@
     },
     {
       "tag": "txn-pre-uring-19",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1338,6 +1582,7 @@
     },
     {
       "tag": "txn-pre-uring-20",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1347,6 +1592,7 @@
     },
     {
       "tag": "txn-pre-uring-21",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1356,6 +1602,7 @@
     },
     {
       "tag": "txn-pre-uring-22",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1369,6 +1616,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-01",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1378,6 +1626,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-02",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1387,6 +1636,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-03",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1396,6 +1646,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-04",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1405,6 +1656,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-05",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1418,6 +1670,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-06",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1427,6 +1680,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-07",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1436,6 +1690,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-08",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1445,6 +1700,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-09",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1454,6 +1710,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-10",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1463,6 +1720,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-11",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1472,6 +1730,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-12",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1481,6 +1740,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-13",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1494,6 +1754,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-14",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1507,6 +1768,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-15",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1520,6 +1782,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-16",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1533,6 +1796,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-17",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1542,6 +1806,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-18",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1551,6 +1816,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-19",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1560,6 +1826,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-20",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1569,6 +1836,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-21",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1582,6 +1850,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-22",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1595,6 +1864,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-23",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1608,6 +1878,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-24",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1621,6 +1892,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-25",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1634,6 +1906,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-26",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1647,6 +1920,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-27",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1656,6 +1930,7 @@
     },
     {
       "tag": "txn-pre-uring-cont-28",
+      "arm": "PRE",
       "engine": "uring",
       "jobs": "txnorder-fused-0",
       "binary_sha256": "35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a",
@@ -1667,86 +1942,103 @@
   "transaction_loops": [
     {
       "tag": "txn-pre-clean-epoll-01",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-02",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-03",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-04",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-05",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-06",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-07",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-08",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-clean-epoll-09",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 1,
       "aof_pass": true,
@@ -1757,110 +2049,132 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-573965/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-01",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 1,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "124\t0\t1"
+      "build_done": "124\t0\t1",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-01",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-02",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-03",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-04",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-05",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-06",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-07",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-08",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-09",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-10",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 1,
       "aof_pass": true,
@@ -1871,10 +2185,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-845793/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-11",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 1,
       "aof_pass": true,
@@ -1885,30 +2201,36 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-872935/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-12",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-13",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-14",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 1,
       "aof_pass": false,
@@ -1919,30 +2241,36 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-d-978262/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": true
     },
     {
       "tag": "txn-pre-epoll-cont-15",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-16",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-17",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 1,
       "aof_pass": true,
@@ -1953,340 +2281,408 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-1143110/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-18",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-19",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-20",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-21",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-22",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-23",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-24",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-25",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-26",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-27",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-28",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-epoll-cont-29",
+      "arm": "PRE",
       "engine": "epoll",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-01",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-02",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-03",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-04",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-05",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-06",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-07",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-08",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-09",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-10",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-11",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-12",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-13",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-14",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-15",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-16",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-17",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-18",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-19",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-20",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-21",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-22",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2297,50 +2693,60 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-195354/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-01",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-02",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-03",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-04",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-05",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2351,80 +2757,96 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-573804/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-06",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-07",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-08",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-09",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-10",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-11",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-12",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-13",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2435,10 +2857,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-773614/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-14",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2449,10 +2873,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-807467/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-15",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2463,10 +2889,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-834845/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-16",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2477,50 +2905,60 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-862446/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-17",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-18",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-19",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-20",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-21",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2531,10 +2969,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-1007492/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-22",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2545,10 +2985,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-1069171/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-23",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2559,10 +3001,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-1148540/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-24",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2573,10 +3017,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-1230089/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-25",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2587,10 +3033,12 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-1290463/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-26",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 1,
       "aof_pass": true,
@@ -2601,32 +3049,254 @@
       "captures": [
         "jobs/txnorder-fused-0/txnorder-failure-b-1337897/capture.json"
       ],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-27",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     },
     {
       "tag": "txn-pre-uring-cont-28",
+      "arm": "PRE",
       "engine": "uring",
       "exit_code": 0,
       "aof_pass": true,
       "exact_reload": true,
       "failures": [],
       "captures": [],
-      "build_done": "0\t0\t0"
+      "build_done": "0\t0\t0",
+      "shutdown_failed": false
     }
   ],
   "tcl": [
     {
+      "tag": "final-tcl-epoll-1",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-epoll-1",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-epoll-2",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-epoll-2",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-epoll-3",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-epoll-3",
+      "arm": "POST",
+      "engine": "epoll",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-uring-1",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-uring-1",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-uring-2",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-uring-2",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-uring-3",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "1s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "final-tcl-uring-3",
+      "arm": "POST",
+      "engine": "uring",
+      "mode": "2s",
+      "files": 39,
+      "errors": [],
+      "fairness": [
+        {
+          "test": "Unblock fairness is kept while pipelining in tests/unit/type/list.tcl",
+          "status": "ok"
+        },
+        {
+          "test": "Unblock fairness is kept during nested unblock in tests/unit/type/list.tcl",
+          "status": "ok"
+        }
+      ]
+    },
+    {
       "tag": "post-tcl-epoll-1",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "1s",
       "files": 39,
@@ -2670,6 +3340,7 @@
     },
     {
       "tag": "post-tcl-epoll-1",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "2s",
       "files": 39,
@@ -2709,6 +3380,7 @@
     },
     {
       "tag": "post-tcl-epoll-2",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "1s",
       "files": 39,
@@ -2752,6 +3424,7 @@
     },
     {
       "tag": "post-tcl-epoll-2",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "2s",
       "files": 39,
@@ -2791,6 +3464,7 @@
     },
     {
       "tag": "post-tcl-epoll-3",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "1s",
       "files": 39,
@@ -2817,6 +3491,7 @@
     },
     {
       "tag": "post-tcl-epoll-3",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "2s",
       "files": 39,
@@ -2856,6 +3531,7 @@
     },
     {
       "tag": "post-tcl-uring-1",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "1s",
       "files": 39,
@@ -2895,6 +3571,7 @@
     },
     {
       "tag": "post-tcl-uring-1",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "2s",
       "files": 39,
@@ -2921,6 +3598,7 @@
     },
     {
       "tag": "post-tcl-uring-2",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "1s",
       "files": 39,
@@ -2947,6 +3625,7 @@
     },
     {
       "tag": "post-tcl-uring-2",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "2s",
       "files": 39,
@@ -3360,6 +4039,7 @@
     },
     {
       "tag": "post-tcl-uring-3",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "1s",
       "files": 39,
@@ -3386,6 +4066,7 @@
     },
     {
       "tag": "post-tcl-uring-3",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "2s",
       "files": 39,
@@ -3412,6 +4093,7 @@
     },
     {
       "tag": "pre-pubsub-01",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3429,6 +4111,7 @@
     },
     {
       "tag": "pre-pubsub-01",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3446,6 +4129,7 @@
     },
     {
       "tag": "pre-pubsub-02",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3454,6 +4138,7 @@
     },
     {
       "tag": "pre-pubsub-02",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3462,6 +4147,7 @@
     },
     {
       "tag": "pre-pubsub-03",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3470,6 +4156,7 @@
     },
     {
       "tag": "pre-pubsub-03",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3478,6 +4165,7 @@
     },
     {
       "tag": "pre-pubsub-04",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3486,6 +4174,7 @@
     },
     {
       "tag": "pre-pubsub-04",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3494,6 +4183,7 @@
     },
     {
       "tag": "pre-pubsub-05",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3516,6 +4206,7 @@
     },
     {
       "tag": "pre-pubsub-05",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3524,6 +4215,7 @@
     },
     {
       "tag": "pre-pubsub-06",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3532,6 +4224,7 @@
     },
     {
       "tag": "pre-pubsub-06",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3540,6 +4233,7 @@
     },
     {
       "tag": "pre-pubsub-07",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3548,6 +4242,7 @@
     },
     {
       "tag": "pre-pubsub-07",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3556,6 +4251,7 @@
     },
     {
       "tag": "pre-pubsub-08",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3564,6 +4260,7 @@
     },
     {
       "tag": "pre-pubsub-08",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3586,6 +4283,7 @@
     },
     {
       "tag": "pre-pubsub-09",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3594,6 +4292,7 @@
     },
     {
       "tag": "pre-pubsub-09",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3616,6 +4315,7 @@
     },
     {
       "tag": "pre-pubsub-10",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3624,6 +4324,7 @@
     },
     {
       "tag": "pre-pubsub-10",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3646,6 +4347,7 @@
     },
     {
       "tag": "pre-pubsub-11",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3668,6 +4370,7 @@
     },
     {
       "tag": "pre-pubsub-11",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3676,6 +4379,7 @@
     },
     {
       "tag": "pre-pubsub-12",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3684,6 +4388,7 @@
     },
     {
       "tag": "pre-pubsub-12",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3706,6 +4411,7 @@
     },
     {
       "tag": "pre-pubsub-13",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3714,6 +4420,7 @@
     },
     {
       "tag": "pre-pubsub-13",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3722,6 +4429,7 @@
     },
     {
       "tag": "pre-pubsub-14",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3744,6 +4452,7 @@
     },
     {
       "tag": "pre-pubsub-14",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3766,6 +4475,7 @@
     },
     {
       "tag": "pre-pubsub-15",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3774,6 +4484,7 @@
     },
     {
       "tag": "pre-pubsub-15",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3782,6 +4493,7 @@
     },
     {
       "tag": "pre-pubsub-16",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3790,6 +4502,7 @@
     },
     {
       "tag": "pre-pubsub-16",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3798,6 +4511,7 @@
     },
     {
       "tag": "pre-pubsub-17",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3806,6 +4520,7 @@
     },
     {
       "tag": "pre-pubsub-17",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3814,6 +4529,7 @@
     },
     {
       "tag": "pre-pubsub-18",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3836,6 +4552,7 @@
     },
     {
       "tag": "pre-pubsub-18",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3844,6 +4561,7 @@
     },
     {
       "tag": "pre-pubsub-19",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3852,6 +4570,7 @@
     },
     {
       "tag": "pre-pubsub-19",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3860,6 +4579,7 @@
     },
     {
       "tag": "pre-pubsub-20",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3882,6 +4602,7 @@
     },
     {
       "tag": "pre-pubsub-20",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3890,6 +4611,7 @@
     },
     {
       "tag": "pre-pubsub-21",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3912,6 +4634,7 @@
     },
     {
       "tag": "pre-pubsub-21",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3920,6 +4643,7 @@
     },
     {
       "tag": "pre-pubsub-22",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3928,6 +4652,7 @@
     },
     {
       "tag": "pre-pubsub-22",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3936,6 +4661,7 @@
     },
     {
       "tag": "pre-pubsub-23",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3944,6 +4670,7 @@
     },
     {
       "tag": "pre-pubsub-23",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3966,6 +4693,7 @@
     },
     {
       "tag": "pre-pubsub-24",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -3988,6 +4716,7 @@
     },
     {
       "tag": "pre-pubsub-24",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -3996,6 +4725,7 @@
     },
     {
       "tag": "pre-pubsub-25",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -4018,6 +4748,7 @@
     },
     {
       "tag": "pre-pubsub-25",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -4026,6 +4757,7 @@
     },
     {
       "tag": "pre-pubsub-26",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -4034,6 +4766,7 @@
     },
     {
       "tag": "pre-pubsub-26",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -4042,6 +4775,7 @@
     },
     {
       "tag": "pre-pubsub-27",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -4050,6 +4784,7 @@
     },
     {
       "tag": "pre-pubsub-27",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -4058,6 +4793,7 @@
     },
     {
       "tag": "pre-pubsub-28",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -4066,6 +4802,7 @@
     },
     {
       "tag": "pre-pubsub-28",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -4074,6 +4811,7 @@
     },
     {
       "tag": "pre-pubsub-29",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -4082,6 +4820,7 @@
     },
     {
       "tag": "pre-pubsub-29",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -4090,6 +4829,7 @@
     },
     {
       "tag": "pre-pubsub-30",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -4098,6 +4838,7 @@
     },
     {
       "tag": "pre-pubsub-30",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -4106,6 +4847,7 @@
     },
     {
       "tag": "pre-tcl-attribution-01",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4132,6 +4874,7 @@
     },
     {
       "tag": "pre-tcl-attribution-01",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4157,6 +4900,7 @@
     },
     {
       "tag": "pre-tcl-attribution-02",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4356,6 +5100,7 @@
     },
     {
       "tag": "pre-tcl-attribution-02",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4382,6 +5127,7 @@
     },
     {
       "tag": "pre-tcl-attribution-03",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4408,6 +5154,7 @@
     },
     {
       "tag": "pre-tcl-attribution-03",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4519,6 +5266,7 @@
     },
     {
       "tag": "pre-tcl-attribution-04",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4545,6 +5293,7 @@
     },
     {
       "tag": "pre-tcl-attribution-04",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4571,6 +5320,7 @@
     },
     {
       "tag": "pre-tcl-attribution-05",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4614,6 +5364,7 @@
     },
     {
       "tag": "pre-tcl-attribution-05",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4640,6 +5391,7 @@
     },
     {
       "tag": "pre-tcl-attribution-06",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4679,6 +5431,7 @@
     },
     {
       "tag": "pre-tcl-attribution-06",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4718,6 +5471,7 @@
     },
     {
       "tag": "pre-tcl-attribution-07",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4744,6 +5498,7 @@
     },
     {
       "tag": "pre-tcl-attribution-07",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4783,6 +5538,7 @@
     },
     {
       "tag": "pre-tcl-attribution-08",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4835,6 +5591,7 @@
     },
     {
       "tag": "pre-tcl-attribution-08",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4861,6 +5618,7 @@
     },
     {
       "tag": "pre-tcl-attribution-09",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4887,6 +5645,7 @@
     },
     {
       "tag": "pre-tcl-attribution-09",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4926,6 +5685,7 @@
     },
     {
       "tag": "pre-tcl-attribution-10",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 4,
@@ -4952,6 +5712,7 @@
     },
     {
       "tag": "pre-tcl-attribution-10",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 4,
@@ -4978,6 +5739,7 @@
     },
     {
       "tag": "pre-tracking-01",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -4986,6 +5748,7 @@
     },
     {
       "tag": "pre-tracking-01",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5008,6 +5771,7 @@
     },
     {
       "tag": "pre-tracking-02",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5030,6 +5794,7 @@
     },
     {
       "tag": "pre-tracking-02",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5038,6 +5803,7 @@
     },
     {
       "tag": "pre-tracking-03",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5060,6 +5826,7 @@
     },
     {
       "tag": "pre-tracking-03",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5082,6 +5849,7 @@
     },
     {
       "tag": "pre-tracking-04",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5090,6 +5858,7 @@
     },
     {
       "tag": "pre-tracking-04",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5098,6 +5867,7 @@
     },
     {
       "tag": "pre-tracking-05",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5106,6 +5876,7 @@
     },
     {
       "tag": "pre-tracking-05",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5114,6 +5885,7 @@
     },
     {
       "tag": "pre-tracking-06",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5122,6 +5894,7 @@
     },
     {
       "tag": "pre-tracking-06",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5148,6 +5921,7 @@
     },
     {
       "tag": "pre-tracking-07",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5156,6 +5930,7 @@
     },
     {
       "tag": "pre-tracking-07",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5164,6 +5939,7 @@
     },
     {
       "tag": "pre-tracking-08",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5186,6 +5962,7 @@
     },
     {
       "tag": "pre-tracking-08",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5208,6 +5985,7 @@
     },
     {
       "tag": "pre-tracking-09",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5216,6 +5994,7 @@
     },
     {
       "tag": "pre-tracking-09",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5238,6 +6017,7 @@
     },
     {
       "tag": "pre-tracking-10",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 1,
@@ -5260,6 +6040,7 @@
     },
     {
       "tag": "pre-tracking-10",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 1,
@@ -5286,6 +6067,7 @@
     },
     {
       "tag": "pre-tcl",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "1s",
       "files": 39,
@@ -5305,6 +6087,7 @@
     },
     {
       "tag": "pre-tcl",
+      "arm": "PRE",
       "engine": "epoll",
       "mode": "2s",
       "files": 39,

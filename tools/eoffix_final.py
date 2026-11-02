@@ -38,7 +38,7 @@ def run(command, tag, env=None, required=False):
 def gate(tag, jobs, engine='epoll', env=None, repeat=1, capture=False, binary=FINAL):
     command = ['python3', 'tools/eoffix.py', '--tag', tag, '--jobs', jobs,
                '--binary', str(binary), '--engine', engine, '--port', '21900', '--keep-going']
-    if repeat > 1: command += ['--repeat', str(repeat)]
+    if repeat > 1: command += ['--repeat', str(repeat), '--archive-data']
     if capture: command += ['--capture']
     run(command, tag, env)
 
@@ -82,7 +82,7 @@ def artifacts():
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('phase', choices=['artifacts','cold','tcl','differ','regressions','txn'])
+    p.add_argument('phase', choices=['artifacts','cold','tcl','differ','regressions','txn','harness'])
     a=p.parse_args()
     assert os.sched_getaffinity(0) <= set(range(8))
     os.environ.update(LC_ALL='C', CXX='g++ -gz=zlib', CC='cc -gz=zlib')
@@ -108,6 +108,11 @@ def main():
         for engine in ['epoll','uring']:
             gate('txn-final-'+engine, 'txnorder-fused-0', engine, repeat=50, capture=True)
             maintenance()
+    elif a.phase=='harness':
+        run(['python3','tests/gates_test.py'],'gates-test-release-complete',required=True)
+        previous=json.loads((DOC/'build-freshness-final.json').read_text())
+        for index, row in enumerate(previous['commands']):
+            run(row['command'],f'freshness-release-{index}',required=True)
     elif a.phase=='regressions':
         # Jobs with an internal all-mode/all-engine matrix run once.
         internal = 'netcmd_units wb_rule_units wbland_units blockfix2 blockfix_registry blockfix_structure blockfix_mkstream txnorder_fifo txnorder_fifo_live txnorder_chain txnorder_index txnorder_wound txnorder2 txnorder_wake persistfix_units tls netfix_tls slotless wb_mixed inline_quoted ntfix_input crlffix clientcompat-enable-race iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_idle_buffers netcap clientcompat-pause clientcompat-disconnect clientcompat-multi-tracking clientcompat-multi-controls persistfix2_shutdown persistfix2_lastsave persistfix2_commands persistfix2_errors persistfmt persistfmt_aof_error snapfix_shutdown notify_aof serverfix_waitaof'

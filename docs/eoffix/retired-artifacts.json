@@ -124,5 +124,35 @@
     "bytes": 101509408,
     "sha256": "6412df54c8dfddcf5c088a26e5746887ebc655c27f6b5e990f00f1c38a3bd1f6",
     "reason": "Superseded diagnostic binary; construction and complete raw correctness receipts retained. Final production/native arms replace it; rebuilt PRE and its negative AOF witness remain available."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-ordinary-release-normal",
+    "probe_sha256": "5802433e80d9be33bd7ebb69025f5a8c85df61416333f78a59fb6ee595f87e95",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-ordinary-release-db0",
+    "probe_sha256": "3b74551b2bfd99d53f8f9d710b4160e26f3b43dc152317fd6fca0eab2ac824b6",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-receive-release-normal",
+    "probe_sha256": "0222d360842c7b6acef29c99341579442d46c826e452277afb8d911be8478cc2",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-receive-release-db0",
+    "probe_sha256": "e9c6c777d565b07712bb182ddf554a9e5db2364b880d6304f76234d9d8bc9449",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-parser-release-normal",
+    "probe_sha256": "81d52bfeda955000ae839691f747264fd01da2a9433e1edf88b4557219b75162",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-parser-release-db0",
+    "probe_sha256": "047f10eca331f810a3e5ec0d7b10a8e37abbfa23f49df00fe1082ed2fc875c0e",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
   }
 ]
