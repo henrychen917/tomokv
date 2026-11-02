@@ -1,0 +1,47 @@
+[
+  {
+    "path": "build/flipfix7/budget-counts",
+    "bytes": 900733931,
+    "reason": "completed instruction trials; receipts and traces archived under docs/flipfix7; PRE/POST/PAD-A retained"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-normal/probe",
+    "bytes": 239517576,
+    "reason": "completed instruction trials; receipts and traces archived under docs/flipfix7; PRE/POST/PAD-A retained"
+  },
+  {
+    "path": "build/flipfix7/counts/command-pre-db0/probe",
+    "bytes": 239525288,
+    "reason": "completed instruction trials; receipts and traces archived under docs/flipfix7; PRE/POST/PAD-A retained"
+  },
+  {
+    "path": "build/flipfix7/pre-source/build",
+    "bytes": 923039664,
+    "reason": "completed count/quick-unit artifacts; retain PRE/POST/PAD-A and all proof receipts; counts --arms pre --build-only recreates PRE objects"
+  },
+  {
+    "path": "build/signalacct-core-unit",
+    "bytes": 119462320,
+    "reason": "completed count/quick-unit artifacts; retain PRE/POST/PAD-A and all proof receipts; counts --arms pre --build-only recreates PRE objects"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-normal/probe",
+    "bytes": 240102072,
+    "reason": "completed count/quick-unit artifacts; retain PRE/POST/PAD-A and all proof receipts; counts --arms pre --build-only recreates PRE objects"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-db0/probe",
+    "bytes": 240109888,
+    "reason": "completed count/quick-unit artifacts; retain PRE/POST/PAD-A and all proof receipts; counts --arms pre --build-only recreates PRE objects"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-db0/probe",
+    "bytes": 240117744,
+    "reason": "final 80 traces retained; regenerate with flipfix7_counts.py --arms post --build-only"
+  },
+  {
+    "path": "build/flipfix7/counts/command-post-normal/probe",
+    "bytes": 240109928,
+    "reason": "final 80 traces retained; regenerate with flipfix7_counts.py --arms post --build-only"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "path": "build/flipfix7/blockfix-cost",
+    "target": "build/blockfix-cost",
+    "sha256": "e7ebc326863abc76d4e2c66f416af7dfd3197beca16cc27ce32b30c1f4652db7"
+  },
+  {
+    "path": "build/flipfix7/blockfix2-unit",
+    "target": "build/blockfix2-unit",
+    "sha256": "061dbd6b10f9d2f5f15997ac59860a1a4d4dbcbfc81efbb1a7ed38bf88f0d249"
+  },
+  {
+    "path": "build/flipfix7/blockfix2-db0-unit",
+    "target": "build/blockfix2-db0-unit",
+    "sha256": "c51330281ef3908b6afd21d3e225a5bf1a54c8548110c4198196db0e6f4f477c"
+  },
+  {
+    "path": "build/flipfix7/moverfix-unit",
+    "target": "build/moverfix-unit",
+    "sha256": "c68dc34fad031ab2ff0c1b19b95e2703553cca27ef816be2a751814e6722faa7"
+  },
+  {
+    "path": "build/flipfix7/moverfix-db0-unit",
+    "target": "build/moverfix-db0-unit",
+    "sha256": "c8538a7e4a8d79cc23e0676978b055d8631b9fc535639f065d64d588b2914d1c"
+  }
+]
