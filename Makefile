@@ -316,7 +316,10 @@ $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 # clientcompat notification capture adds cold code; the 161773 neighbour keeps
 # the ordinary hash routing inlined (finite trial receipts in budgets/).
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=165926 --param max-inline-insns-auto=18 --param early-inlining-insns=8
+# atomfix6: the cold collapse guard adds 158 IPA instructions (131034 -> 131192).
+# Compensate that growth to retain PRE's ordinary DB0 xshard_execute body;
+# derived and neighbouring trials, plus executed scopes: docs/atomfix6/budgets/.
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=166084 --param max-inline-insns-auto=18 --param early-inlining-insns=8
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this

@@ -1,0 +1,21 @@
+{
+  "arm": "PRE",
+  "namespace": "normal",
+  "domain": "complete",
+  "command": "MSET",
+  "mode": "2s",
+  "batch": 1,
+  "atomic": 1,
+  "probe_sha256": "7f9c5ee00b5ce3794acca78ad6f0354e99090c1698ae919e0d95b87b42c7d86c",
+  "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+  "total": 3640,
+  "functions": {
+    "void std::deque<tomo::Task, std::allocator<tomo::Task> >::_M_push_back_aux<tomo::Task const&>(tomo::Task const&)": 66,
+    "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 144,
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 1480,
+    "tomo::ExLoopT<false>::atomfix6_observed_predecessor(std::deque<tomo::Task, std::allocator<tomo::Task> > const&, tomo::Task const&, tomo::Op&, int)": 1152,
+    "void tomo::CoreConcurrencyTest::poll<false>(tomo::ExLoopT<false>&)": 798
+  },
+  "clock_calls": 0,
+  "excluded_calls": 1
+}

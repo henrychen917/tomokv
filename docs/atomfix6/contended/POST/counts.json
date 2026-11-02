@@ -1,0 +1,338 @@
+[
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27792,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 896,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12736,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 3456,
+      "tomo::ExLoopT<true>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27984,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 896,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12736,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 3456,
+      "tomo::ExLoopT<true>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27792,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 896,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12736,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 3456,
+      "tomo::ExLoopT<false>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<false>(tomo::ExLoopT<false>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 28608,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 896,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12736,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 4080,
+      "tomo::ExLoopT<false>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<false>(tomo::ExLoopT<false>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27152,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 1152,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 11840,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 3456,
+      "tomo::ExLoopT<true>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27968,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 1152,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 11840,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 4080,
+      "tomo::ExLoopT<true>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27152,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 1152,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 11840,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 3456,
+      "tomo::ExLoopT<false>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<false>(tomo::ExLoopT<false>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "normal",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27968,
+    "functions": {
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 1152,
+      "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 11840,
+      "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 4080,
+      "tomo::ExLoopT<false>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+      "void tomo::CoreConcurrencyTest::poll<false>(tomo::ExLoopT<false>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27664,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 896,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12608,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3456,
+      "tomo_db0::ExLoopT<true>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<true>(tomo_db0::ExLoopT<true>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27856,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 896,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12608,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3456,
+      "tomo_db0::ExLoopT<true>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<true>(tomo_db0::ExLoopT<true>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27664,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 896,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12608,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3456,
+      "tomo_db0::ExLoopT<false>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<false>(tomo_db0::ExLoopT<false>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27856,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 896,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 12608,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3456,
+      "tomo_db0::ExLoopT<false>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<false>(tomo_db0::ExLoopT<false>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27024,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 1152,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 11712,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3456,
+      "tomo_db0::ExLoopT<true>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<true>(tomo_db0::ExLoopT<true>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27528,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 1152,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 11712,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3768,
+      "tomo_db0::ExLoopT<true>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<true>(tomo_db0::ExLoopT<true>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27024,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 1152,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 11712,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3456,
+      "tomo_db0::ExLoopT<false>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<false>(tomo_db0::ExLoopT<false>&)": 6288
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  },
+  {
+    "arm": "POST",
+    "namespace": "db0",
+    "domain": "complete",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "probe_sha256": "2240372bfe31281399102d5ab715d4fd4d28baa5720e61d00b3000e2d7f9d643",
+    "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+    "total": 27216,
+    "functions": {
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 1152,
+      "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 11712,
+      "std::_Hashtable<tomo_db0::Client*, std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo_db0::Client* const, tomo_db0::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo_db0::Client*>, std::hash<tomo_db0::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo_db0::Client* const&) [clone .isra.0]": 3456,
+      "tomo_db0::ExLoopT<false>::atomfix6_observed_predecessor(tomo_db0::AtomicParkedTasks const&, tomo_db0::Task const&, tomo_db0::Op&, int)": 4416,
+      "void tomo_db0::CoreConcurrencyTest::poll<false>(tomo_db0::ExLoopT<false>&)": 6480
+    },
+    "clock_calls": 0,
+    "excluded_calls": 128
+  }
+]

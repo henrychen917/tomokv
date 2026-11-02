@@ -1,0 +1,21 @@
+{
+  "arm": "POST",
+  "namespace": "normal",
+  "domain": "complete",
+  "command": "MGET",
+  "mode": "1s",
+  "batch": 32,
+  "atomic": 1,
+  "probe_sha256": "9eaadb48bbe2abd4640d5809c0996627b11c08ba407800576a4a654d66a4ef8f",
+  "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
+  "total": 27984,
+  "functions": {
+    "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 896,
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 12736,
+    "std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection>, std::allocator<std::pair<tomo::Client* const, tomo::AtomicParkedTasks::Connection> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(tomo::Client* const&) [clone .isra.0]": 3456,
+    "tomo::ExLoopT<true>::atomfix6_observed_predecessor(tomo::AtomicParkedTasks const&, tomo::Task const&, tomo::Op&, int)": 4416,
+    "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 6480
+  },
+  "clock_calls": 0,
+  "excluded_calls": 128
+}

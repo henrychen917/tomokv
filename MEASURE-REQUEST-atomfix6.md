@@ -58,3 +58,26 @@ increments in a private source copy. Renamed fixture instantiations prevent link
 weak production copies from hiding those observations. It constructs actual MSET8
 scatter tasks and actual own-connection undecided store records. Its assertions
 fail on PRE and pass on POST without timing or throughput thresholds.
+
+Instruction preservation: `docs/atomfix6/counts/comparison-final.json` contains
+all 80 PRE/POST command scopes. Every one of the 40 atomic-0 scopes is exactly
+unchanged: GET/SET/INCR/MGET/MSET, 1s/2s, normal/db0, batches 1/32. All 16 atomic-1
+MGET/MSET uncontended scopes are also unchanged. The scope follows all executable
+production functions, including outlined STL wrappers, excluding fixture glue
+and shared-library internals. These are instruction counts, not cycles or rates;
+they do not establish a throughput result or price asynchronous reclamation.
+The initial candidate added 8 instructions per atomic-0 DB0 MSET. The cold guard
+increased GCC's initial IPA size by 158 (131034 -> 131192); changing that unit's
+budget from 165926 to 166084 restores the PRE xshard_execute body and all scopes.
+The derived budget and both neighbouring trials are retained in `budgets/`.
+
+`docs/atomfix6/contended/comparison.json` prices a separate held-predecessor
+scheduler slice, using actual MGET8/MSET8 groups, eight connections and eight
+owner passes. It is not a completed-command count: no held command can finish.
+At depth 32 PRE polls 8 tasks, POST polls 64 heads, with all 256 tasks still held.
+MGET takes 28372-28374 PRE versus 27856-28608 POST executable instructions over
+those passes (3546.5-3546.75 versus 435.25-447 per poll); MSET takes 28418-28420
+versus 27216-27968 (3552.25-3552.5 versus 425.25-437 per poll). Depth-1 and all
+individual mode/namespace observations are included. Hash-index probe costs can
+vary with allocation addresses. Completed contended operation cycles/IPC remain
+for the maintainer's matched-load measurement.
