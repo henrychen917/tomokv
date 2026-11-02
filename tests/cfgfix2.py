@@ -589,14 +589,14 @@ def clock_ranges(binary):
 
 
 def maxmemory_case(a, mode, engine):
-    """SO5.1: a failed idle-clock allocation refuses CONFIG SET maxmemory 0 -> N.
+    """SO5.1: enabling maxmemory never aborts when an idle clock cannot allocate.
 
-    TomoKV legs preload tests/cfgfix2_alloc_fail.cc, which fails one clock allocation
-    on one owner after every owner has started building its clock. The CONFIG SET must
-    fail with an apply error, every allocated node must be freed, maxmemory must stay 0
-    and the server must keep serving; disarmed, the same CONFIG SET then succeeds. PRE
-    either aborts on std::bad_alloc or answers ERR out of memory with the new value already
-    published. The oracle has no per-key allocation to fail.
+    TomoKV legs preload tests/cfgfix2_alloc_fail.cc, which fails one clock allocation on one
+    owner after every owner has started building its clock. CONFIG SET maxmemory 0 -> N must
+    still return OK and the server stay up, like Redis; the affected store's OBJECT IDLETIME
+    degrades to 0 (eviction uses the five-bit LRU meta, not the clock) and a warning is logged.
+    PRE either aborts on std::bad_alloc or returns ERR out of memory. The oracle has no
+    per-key allocation to fail.
     """
     hook = a.output / 'cfgfix2_alloc_fail.so'
     if mode != 'redis' and not hook.exists():
@@ -651,37 +651,25 @@ def maxmemory_case(a, mode, engine):
                     reply = error
                 finally:
                     marker.unlink(missing_ok=True)
-                result['refused'] = repr(reply)
-                try:  # Retained for PRE: an OOM reply can coexist with a published value.
-                    result['after_get'] = repr(c.cmd('CONFIG', 'GET', 'maxmemory'))
-                except (OSError, EOFError) as error:
-                    result['after_get'] = type(error).__name__
-                assert getattr(reply, 'message', None) == (
-                    b"ERR CONFIG SET failed (possibly related to argument 'maxmemory') - "
-                    b"Out of memory building the object idle clock. Check server logs."), result
-                # Every allocated clock node is freed; read-local retirement may defer it.
-                deadline = time.monotonic() + 20
-                while True:
-                    events = [line.split() for line in receipt.read_text().splitlines()]
-                    allocated = {e[1] for e in events if e[0] == '+'}
-                    freed = {e[1] for e in events if e[0] == '-'}
-                    if allocated <= freed or time.monotonic() > deadline:
-                        break
-                    c.must('PING')
-                    time.sleep(0.05)
-                result.update(failures=sum(e[0] == 'F' for e in events), allocated=len(allocated),
-                              freed=len(allocated & freed),
-                              owner_cpus=len({e[2] for e in events if e[0] == '+'}))
-                assert result['failures'] == 1 and allocated <= freed, result
-                assert result['owner_cpus'] >= owners, result
+                result['set'] = repr(reply)
+                events = [line.split() for line in receipt.read_text().splitlines()]
+                result.update(failures=sum(e[0] == 'F' for e in events),
+                              owner_cpus=len({e[2] for e in events if e[0] == '+'}),
+                              warned=sum('idle clock allocation failed' in ln
+                                         for ln in child.logpath.read_text(errors='replace').splitlines()),
+                              terminated='terminate called' in child.logpath.read_text(errors='replace'))
+                # The injected failure fired once, after every owner had begun its clock.
+                assert result['failures'] == 1 and result['owner_cpus'] >= owners, result
+                # Never aborts, returns OK like Redis, stays up, and keeps maxmemory enabled.
+                assert reply == b'OK' and not result['terminated'], result
                 assert c.must('PING') == b'PONG'
-                assert c.must('CONFIG', 'GET', 'maxmemory') == [b'maxmemory', b'0'], result
+                assert c.must('CONFIG', 'GET', 'maxmemory') == [b'maxmemory', b'104857600'], result
                 assert c.must('DBSIZE') == keys and c.must('GET', 'so51:7') == b'v7'
-                # Disarmed, the same change succeeds and builds every clock.
-                assert c.must('CONFIG', 'SET', 'maxmemory', '100mb') == b'OK'
-                assert c.must('CONFIG', 'GET', 'maxmemory') == [b'maxmemory', b'104857600']
-                assert isinstance(c.must('OBJECT', 'IDLETIME', 'so51:7'), int)
-                assert c.must('CONFIG', 'SET', 'maxmemory', '0') == b'OK'
+                # The one store without a clock reports 0; every other store times normally.
+                idles = [c.must('OBJECT', 'IDLETIME', f'so51:{i}') for i in range(0, keys, 997)]
+                assert all(isinstance(v, int) for v in idles), result
+                result['warned_shards'] = result['warned']
+                assert result['warned'] >= 1, result
         results.append(result)
     (a.output / f'maxmemory-{mode}-{engine}-observations.json').write_text(json.dumps(results, indent=2))
     if mode == 'redis':

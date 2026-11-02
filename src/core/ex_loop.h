@@ -1728,14 +1728,13 @@ private:
     // that refresh, from the latest committed copy, to every store this owner holds and to its
     // owner-local caches, so later fragments of any order converge on the last publication.
     // live_config_version_ is untouched: the next pass entry still performs its full refresh.
-    // False when a store could not allocate its idle clock; that store keeps no clock.
-    [[gnu::cold, gnu::noinline]] bool apply_memory_config() {
+    [[gnu::cold, gnu::noinline]] void apply_memory_config() {
         const LiveConfigSnapshot snapshot = srv_->live_config_snapshot(self_->id());
         const bool enabled = snapshot.maxmemory != 0;
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
-        bool clocks = true;
         for (Shard* sh : self_->shards())
-            clocks &= sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+            if (!sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples))
+                report_idle_clock_unavailable(*sh);
         maxmemory_enabled_ = enabled;
         foreign_touch_policy_ =
             !enabled                                    ? kForeignTouchNone
@@ -1751,11 +1750,10 @@ private:
             if (read_local_enabled())
                 set_read_local_point_writes_precise(
                     !enabled || snapshot.policy == MaxmemoryPolicy::NoEviction);
-        return clocks;
     }
 
-    // Outside CONFIG's prepared enable (an ownership edge, or a CONFIG fallback that could not
-    // stop the world) a failed clock cannot refuse anything: keep the limit, report the loss.
+    // A failed idle-clock allocation cannot refuse anything here: keep the limit (eviction uses
+    // the five-bit LRU meta) and report that this store's OBJECT IDLETIME is degraded to 0.
     [[gnu::cold, gnu::noinline]] static void report_idle_clock_unavailable(const Shard& sh) {
         std::fprintf(stderr, "WARNING: maxmemory idle clock allocation failed for shard %u; "
                      "OBJECT IDLETIME reports 0 for its keys\n", static_cast<unsigned>(sh.id()));
@@ -1766,7 +1764,7 @@ private:
     public:
         explicit MemoryConfigBinding(ExLoopT* loop) : previous_(owner_memory_config_hook) {
             owner_memory_config_hook = OwnerMemoryConfigHook{
-                loop, [](void* owner) { return static_cast<ExLoopT*>(owner)->apply_memory_config(); }};
+                loop, [](void* owner) { static_cast<ExLoopT*>(owner)->apply_memory_config(); }};
         }
         ~MemoryConfigBinding() { owner_memory_config_hook = previous_; }
         MemoryConfigBinding(const MemoryConfigBinding&) = delete;

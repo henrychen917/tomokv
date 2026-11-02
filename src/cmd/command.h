@@ -345,7 +345,7 @@ void reply_maxmemory_oom(Op& op);  // defined in t_string.cc, tomo:: linkage
 // before that fragment completes, and therefore before the barrier's +OK. Cold: CONFIG only.
 struct OwnerMemoryConfigHook {
     void* owner = nullptr;
-    bool (*apply)(void*) = nullptr;  // false: some store could not allocate its idle clock
+    void (*apply)(void*) = nullptr;
 };
 inline constinit thread_local OwnerMemoryConfigHook owner_memory_config_hook{};
 // Lets the connection-local admin commands read published per-shard counters.

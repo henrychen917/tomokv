@@ -1468,6 +1468,7 @@ public:
     }
     // False only when enabling cannot allocate the clock (SO5.1). Nothing escapes: the partial
     // clock is freed here and the slot stays empty, so OBJECT IDLETIME reads 0 for this store.
+    // Eviction is unaffected: the victim chooser reads the five-bit LRU meta, not this clock.
     [[gnu::noinline, gnu::cold]] bool configure_object_idle(bool enabled) {
         auto* current = object_idle_slot()->load(std::memory_order_relaxed);
         if (enabled == (current != nullptr)) return true;
@@ -1490,8 +1491,8 @@ public:
         }
         return true;
     }
-    // Returns the idle clock's allocation result. The limit and policy always apply: CONFIG SET
-    // refuses a failed enable before publishing it; other paths degrade to OBJECT IDLETIME 0.
+    // Returns the idle clock's allocation result. The limit and policy always apply: enabling
+    // never aborts and never refuses; a failed clock leaves OBJECT IDLETIME at 0 for this store.
     bool configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
         const bool clock = configure_object_idle(enabled);
