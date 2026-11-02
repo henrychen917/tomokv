@@ -310,6 +310,12 @@ bool cfgfix_rebind(Server& server, uint32_t caller, uint16_t port,
                    const std::string& bind, std::string& error, int appendonly) {
     if (port == server.cfg().port && bind == server.cfg().bind_addr &&
         (appendonly < 0 || (appendonly != 0) == server.aof().configured())) return true;
+    // SO_REUSEPORT is needed for per-IO sockets, but must not merge the
+    // plaintext listener with our live TLS group. Redis's bind rejects this.
+    if (port && port == server.cfg().tls_port) {
+        error = std::strerror(EADDRINUSE);
+        return false;
+    }
     if (!cfgfix_control_begin(server)) { error = "listener control path is busy"; return false; }
     struct Finish {
         Server& server; bool held = true;
