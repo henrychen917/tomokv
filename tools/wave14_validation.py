@@ -10,6 +10,15 @@ import sys
 from wave14 import ROOT, DOC, save, sha
 
 
+SUPPLEMENTS = [
+    'flip-refusal-contract-final', 'netio-final-all-cases',
+    'atomic-companions-final-uring', 'atomic-companions-final-epoll',
+    'xacct-policy-final-uring-2s', 'xacct-policy-final-epoll-2s',
+    'xacct-policy-final-uring-1s', 'zc-fused-epoll-final-isolated',
+    'fifo-lane-four-client-cpus-isolated', 'fifo-final-eight-client-cpus-isolated',
+]
+
+
 def planned():
     names = ['merged-uring-consumers', 'merged-epoll']
     for filename in ('final-uring-plan.json', 'final-epoll-plan.json'):
@@ -98,16 +107,18 @@ def main():
     assert os.sched_getaffinity(0) <= set(range(32))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--verify-archives', action='store_true')
+    parser.add_argument('--include-supplements', action='store_true')
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     phases = [phase(name, args.verify_archives) for name in planned()]
-    result = dict(phases=phases, differential=differential(phases),
+    supplements = [phase(name, args.verify_archives) for name in SUPPLEMENTS] if args.include_supplements else []
+    result = dict(phases=phases, supplements=supplements, differential=differential(phases),
         note='Repeated/prerequisite/private rows are not additions to the public gate count. '
              'Differential folds validate every seed, suite and equivalence cell; they do not '
              'publish or replace a full-gate timing/landing receipt.')
     if args.output:
         save(args.output, result)
-    for item in phases:
+    for item in phases + supplements:
         print(item['tag'], item['state'],
               f"{len(item.get('jobs', []))} jobs, {item.get('passed', 0)} pass, {item.get('failed', 0)} fail",
               'active=' + ','.join(item.get('active', [])),

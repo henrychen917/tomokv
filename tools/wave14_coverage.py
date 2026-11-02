@@ -68,6 +68,12 @@ def main():
                  for name, count in missing.items()],
         supplemental_atomic_rows=additions, throwaway_landing_rows=abba_rows,
         differential_aggregate_labels=aggregate_labels, differential_folds=folds,
+        assertion_exclusions_inside_executed_rows=[
+            'atomic_torn / atomic_ryow / stream / xmove quantitative release guards: '
+            'NOT RUN with GATE_PROOF_NO_RATES=1; functional commands and witnesses retained.',
+            'XACCT XADD and MULTI-prepare timing ratios: NOT RUN in the corrected '
+            'policy reruns. Original timing observations, including the failed ratio, remain recorded.',
+        ],
         private_labels_outside_public_census=list((observed-expected).elements()),
         note='Coverage is execution evidence, not a green verdict. Every original failure is retained. '
              'Partial differential part ledgers are folded into the two declared matrix rows. '

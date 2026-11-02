@@ -130,6 +130,10 @@
       }
     }
   ],
+  "assertion_exclusions_inside_executed_rows": [
+    "atomic_torn / atomic_ryow / stream / xmove quantitative release guards: NOT RUN with GATE_PROOF_NO_RATES=1; functional commands and witnesses retained.",
+    "XACCT XADD and MULTI-prepare timing ratios: NOT RUN in the corrected policy reruns. Original timing observations, including the failed ratio, remain recorded."
+  ],
   "private_labels_outside_public_census": [
     "Redis 7.4 differential part (armed fused, atomic 0)",
     "Redis 7.4 differential part (armed fused, atomic 1)",
