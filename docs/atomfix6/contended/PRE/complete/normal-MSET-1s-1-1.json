@@ -6,15 +6,15 @@
   "mode": "1s",
   "batch": 1,
   "atomic": 1,
-  "probe_sha256": "c2709c8edd54d5a3a1b16a993b3be8357a4449ba9148eb589be8efbe8b10f671",
+  "probe_sha256": "026a6ff9feb3b12806c9b92dce6c960e892d38eb4f5c3e41b069f8b66405c045",
   "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
-  "total": 3640,
+  "total": 3360,
   "functions": {
     "void std::deque<tomo::Task, std::allocator<tomo::Task> >::_M_push_back_aux<tomo::Task const&>(tomo::Task const&)": 66,
     "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 144,
     "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 1480,
-    "tomo::ExLoopT<true>::atomfix6_observed_predecessor(std::deque<tomo::Task, std::allocator<tomo::Task> > const&, tomo::Task const&, tomo::Op&, int)": 1152,
-    "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 798
+    "tomo::ExLoopT<true>::atomfix6_observed_predecessor(std::deque<tomo::Task, std::allocator<tomo::Task> > const&, tomo::Task const&, tomo::Op&, int)": 912,
+    "void tomo::CoreConcurrencyTest::poll<true>(tomo::ExLoopT<true>&)": 758
   },
   "clock_calls": 0,
   "excluded_calls": 1

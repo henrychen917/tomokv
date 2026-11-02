@@ -7,7 +7,7 @@
     "-march=native",
     "-pthread",
     "-DTOMO_JEMALLOC",
-    "-I/home/user/Projects/cx-atomfix6/build/pre-park-source",
+    "-I/home/user/Projects/cx-atomfix6/build/pre-source",
     "-DTOMO_SINGLE_DATABASE=1",
     "-Dtomo=tomo_db0",
     "-c",
@@ -167,7 +167,7 @@
     "-lm",
     "/home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/PRE-db0/probe.o"
   ],
-  "probe_sha256": "f0d7177ba4d92357f3d0682c97d031e186301276812843d19b59620108338f5b",
+  "probe_sha256": "a70f77fb198e62af127e6f8acfd299bd50ca0172b4b2f5aff69b445f0f8e7e1f",
   "server_sha256": "b09a48348a2f8483f4cf53a07801483edf4962853ee031310b9839da9dfc91ae",
-  "fixture_sha256": "4461ca850bcacc21ca8bbb776bf43ee1ce3be5fd76f6711b869af1e6d043e729"
+  "fixture_sha256": "a21fa7960128def56f3cd1b1b4d8474a0b44fa17d6df7ea95f167995384f0737"
 }

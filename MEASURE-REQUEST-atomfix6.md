@@ -75,11 +75,13 @@ The derived budget and both neighbouring trials are retained in `budgets/`.
 scheduler slice, using actual MGET8/MSET8 groups, eight connections and eight
 owner passes. It is not a completed-command count: no held command can finish.
 At depth 32 PRE polls 8 tasks, POST polls 64 heads, with all 256 tasks still held.
-MGET takes 28372-28374 PRE versus 27856-28608 POST executable instructions over
-those passes (3546.5-3546.75 versus 435.25-447 per poll); MSET takes 28418-28420
-versus 27216-27968 (3552.25-3552.5 versus 425.25-437 per poll). Depth-1 and all
-individual mode/namespace observations are included. Hash-index probe costs can
-vary with allocation addresses. Completed contended operation cycles/IPC remain
+MGET takes 20219-20221 PRE versus 27856-28608 POST executable instructions over
+those passes (2527.375-2527.625 versus 435.25-447 per poll); MSET takes 20265-20267
+versus 27216-27968 (2533.125-2533.375 versus 425.25-437 per poll). Depth-1 and all
+individual mode/namespace observations are included. These final costs use unmodified PRE, without the witness-only observation
+increments; PRE poll cardinality comes from the separately instrumented witness.
+POST does more work per pass because it polls eight heads rather than one task.
+Hash-index probe costs can vary with allocation addresses. Completed contended operation cycles/IPC remain
 for the maintainer's matched-load measurement.
 
 Gate inventory: 12 serverless rows (6 collapse, 4 parked-head, 2 index-lifetime)
@@ -189,3 +191,6 @@ for `make all`. The gate helper also built its mdbqsbr live controls and blockfi
 auxiliary targets. Target inventory and individual freshness results are in
 `docs/atomfix6/production-{targets.txt,freshness.json}`. The broader serverless
 job group passes 54/54 rows; detailed per-job ledgers are retained under `proof/`.
+
+All 18 AT412 jobs completed successfully in the broad atomic group, including
+their complete built-in matrices; T6 and T10 each passed all 27 legs.

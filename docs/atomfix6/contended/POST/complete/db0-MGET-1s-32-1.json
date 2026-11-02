@@ -6,7 +6,7 @@
   "mode": "1s",
   "batch": 32,
   "atomic": 1,
-  "probe_sha256": "e84ed5482d2f00b49996560a45b18f381ef43273dd6fe7be666732122f07fd40",
+  "probe_sha256": "4e9ffd965391907ba7d89fd32be4e0fd1ba34180cdc8b2d579f4f554139c71ff",
   "tracer_sha256": "540633a1c267dfa3ac59e6ef95f787e80a0f7a8cf8bfa09580b43682680ff3bd",
   "total": 27856,
   "functions": {

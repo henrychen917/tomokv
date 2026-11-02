@@ -1,5 +1,5 @@
-/home/user/Projects/cx-atomfix6/build/atomfix6/contended/trace /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/POST-db0/probe /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/POST-db0/all-executable.ranges 8cc590 8cc5a0 000000000002bb30 MSET 1s 1 1 -1
+/home/user/Projects/cx-atomfix6/build/atomfix6/contended/trace /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/POST-db0/probe /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/POST-db0/all-executable.ranges 8cc5b0 8cc5c0 000000000002bb30 MSET 1s 1 1 -1
 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
 park observed polls=64 scans=0 retained=8
-atomfix6 park mode=1s namespace=db0 tasks=8 passes=8 polls=64 scans=0
+atomfix6 park scope mode=1s namespace=db0 tasks=8 passes=8
 COUNT 27024

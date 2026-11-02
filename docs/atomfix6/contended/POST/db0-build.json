@@ -167,7 +167,7 @@
     "-lm",
     "/home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/POST-db0/probe.o"
   ],
-  "probe_sha256": "e84ed5482d2f00b49996560a45b18f381ef43273dd6fe7be666732122f07fd40",
+  "probe_sha256": "4e9ffd965391907ba7d89fd32be4e0fd1ba34180cdc8b2d579f4f554139c71ff",
   "server_sha256": "a0c8b0d8678e7732bcef579972b35dbb1071ddfdb2e741900d3f4892918d421c",
-  "fixture_sha256": "4461ca850bcacc21ca8bbb776bf43ee1ce3be5fd76f6711b869af1e6d043e729"
+  "fixture_sha256": "a21fa7960128def56f3cd1b1b4d8474a0b44fa17d6df7ea95f167995384f0737"
 }

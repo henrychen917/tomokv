@@ -14,6 +14,16 @@ using namespace tomo;
 [[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
 namespace tomo {
 struct CoreConcurrencyTest {
+    template<class Counters> static void reset_observation(Counters& stats) {
+        if constexpr (requires { stats.parked_polls; stats.parked_visits; })
+            stats.parked_polls = stats.parked_visits = 0;
+    }
+    template<class Counters> static auto observation(const Counters& stats) {
+        if constexpr (requires { stats.parked_polls; stats.parked_visits; })
+            return std::pair{stats.parked_polls, stats.parked_visits};
+        else
+            return std::pair{UINT64_MAX, UINT64_MAX}; // uninstrumented PRE
+    }
     static void need(bool ok, const char* why) {
         if (!ok) { std::fprintf(stderr, "FAIL atomfix6 park: %s\n", why); std::exit(1); }
     }
@@ -85,14 +95,18 @@ struct CoreConcurrencyTest {
             }
         }
         auto& stats = exec1s_counters[owner];
-        stats.parked_polls = stats.parked_visits = 0;
+        reset_observation(stats);
         scope_begin();
         for (unsigned pass = 0; pass < passes; ++pass) poll(*loop);
         scope_end();
-        const auto polls = stats.parked_polls, visits = stats.parked_visits;
-        std::printf("park observed polls=%llu scans=%llu retained=%zu\n",
-                    (unsigned long long)polls, (unsigned long long)visits,
-                    loop->atomic_deferred_.size());
+        const auto [polls, visits] = observation(stats);
+        if (polls == UINT64_MAX)
+            std::printf("park counters absent in unmodified PRE; retained=%zu\n",
+                        loop->atomic_deferred_.size());
+        else
+            std::printf("park observed polls=%llu scans=%llu retained=%zu\n",
+                        (unsigned long long)polls, (unsigned long long)visits,
+                        loop->atomic_deferred_.size());
         need(loop->atomic_deferred_.size() == connections * depth, "held tasks remain parked");
         while (!loop->atomic_deferred_.empty()) loop->atomic_deferred_.pop_front();
         for (auto& epoch : epochs) epoch.store(1, std::memory_order_release);
@@ -101,9 +115,8 @@ struct CoreConcurrencyTest {
         for (auto* state : states) xshard_abandon_unpublished(state, pool, 0);
         pool.reap_deferred();
         command_bind_server(nullptr);
-        std::printf("atomfix6 park mode=%s namespace=%s tasks=%u passes=%u polls=%llu scans=%llu\n",
-            Fused ? "1s" : "2s", kSingleDatabase ? "db0" : "normal", connections * depth, passes,
-            (unsigned long long)polls, (unsigned long long)visits);
+        std::printf("atomfix6 park scope mode=%s namespace=%s tasks=%u passes=%u\n",
+            Fused ? "1s" : "2s", kSingleDatabase ? "db0" : "normal", connections * depth, passes);
         return true; // Exact held cardinality/hazard assertions apply to both arms.
     }
 };

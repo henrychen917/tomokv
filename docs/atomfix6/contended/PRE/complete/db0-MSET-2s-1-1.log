@@ -1,5 +1,5 @@
-/home/user/Projects/cx-atomfix6/build/atomfix6/contended/trace /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/PRE-db0/probe /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/PRE-db0/all-executable.ranges 8cae70 8cae80 000000000002bb20 MSET 2s 1 1 -1
+/home/user/Projects/cx-atomfix6/build/atomfix6/contended/trace /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/PRE-db0/probe /home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/PRE-db0/all-executable.ranges 8cadc0 8cadd0 000000000002bb20 MSET 2s 1 1 -1
 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-park observed polls=8 scans=56 retained=8
-atomfix6 park mode=2s namespace=db0 tasks=8 passes=8 polls=8 scans=56
-COUNT 3624
+park counters absent in unmodified PRE; retained=8
+atomfix6 park scope mode=2s namespace=db0 tasks=8 passes=8
+COUNT 3344

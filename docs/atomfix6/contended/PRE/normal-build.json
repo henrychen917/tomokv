@@ -7,7 +7,7 @@
     "-march=native",
     "-pthread",
     "-DTOMO_JEMALLOC",
-    "-I/home/user/Projects/cx-atomfix6/build/pre-park-source",
+    "-I/home/user/Projects/cx-atomfix6/build/pre-source",
     "-c",
     "/home/user/Projects/cx-atomfix6/tests/atomfix6_park_scope.cc",
     "-o",
@@ -165,7 +165,7 @@
     "-lm",
     "/home/user/Projects/cx-atomfix6/build/atomfix6/contended/scopes/PRE-normal/probe.o"
   ],
-  "probe_sha256": "c2709c8edd54d5a3a1b16a993b3be8357a4449ba9148eb589be8efbe8b10f671",
+  "probe_sha256": "026a6ff9feb3b12806c9b92dce6c960e892d38eb4f5c3e41b069f8b66405c045",
   "server_sha256": "b09a48348a2f8483f4cf53a07801483edf4962853ee031310b9839da9dfc91ae",
-  "fixture_sha256": "4461ca850bcacc21ca8bbb776bf43ee1ce3be5fd76f6711b869af1e6d043e729"
+  "fixture_sha256": "a21fa7960128def56f3cd1b1b4d8474a0b44fa17d6df7ea95f167995384f0737"
 }
