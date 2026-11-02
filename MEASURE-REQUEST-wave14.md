@@ -59,7 +59,8 @@ documented observation, not Redis parity or a completed fix.
 slowlog ordering is red against Redis, universal headline/isolated-lane
 linked-body equality is not achieved, and the final epoll Tcl run found a
 parked connection left after peer close. Additional half-close controls expose
-queued-input loss on both headline and merged POST. Details are below. Broad
+queued-input loss on both headline and merged POST. FIFO live allocation controls
+are also investigating failed share/latency bounds. Details are below. Broad
 correctness validation is still running. No throughput claim is made.
 
 ### Epoll EOF finding; trial rejected
@@ -230,6 +231,25 @@ session legs, 16 scaled legs, eight FLUSH/FLIP candidate legs and two oracle
 legs. All 16 exec-close cases arm real close refusals. The original red
 receipt and all 64 detailed session witnesses remain in
 `flip-refusal-contract.json`. No public row or EXPECT change is needed.
+
+### FIFO live allocation controls
+
+The broad final FIFO live row completes all sixteen 60-second legs, all 68
+clients progress in every one-second window, final values match, and ordering
+violation counters stay zero. All eight split legs fail the unchanged writer
+share bound with four client CPUs per gate slot. Their later latency assertions
+are **NOT RUN in that attempt** because the share assertion stops validation.
+`fifo-final-original-failure.json` preserves every leg and exact failure.
+
+A complete rerun with eight client CPUs is in progress. Its completed split
+legs satisfy share but expose latency failures while those CPUs overlap other
+correctness work. Neither outcome is relabelled as a pass. Unchanged whole-job
+controls on the isolated execfifo3 arm at four client CPUs and merged POST at
+eight are queued after the uring followthrough releases CPUs 0–15; the other
+sweep uses CPUs 16–31. `fifo-isolated-control-plan.json` records the allocation.
+No fairness bound or production predicate is changed. The first small-allocation
+control was refused by the gate's 16-physical-core preflight and booted nothing;
+`fifo-control-preflight-refused.json` records that **NOT RUN** attempt.
 
 ### Tcl reconciliation and negative control
 
@@ -403,10 +423,14 @@ while other lanes run. EXEC/storm use their `--reference`, `--candidate`,
 Keep `LC_ALL=C`. `measurement-inputs.json` binds the cells, drivers and anchors.
 
 Performance/load generators, saturated-FLIP, quantitative atomic floors,
-stream/xmove rate checks and full iteration are **NOT RUN: maintainer-only**.
+stream/xmove rate checks, the open-loop tailgen row, release timing guards,
+cross-shard scaling, and full iteration are **NOT RUN: maintainer-only**.
 `GATE_PROOF_NO_RATES=1` preserves their correctness assertions where supported;
-the standalone efficiency and saturated-load jobs are excluded. No throughput
-claim is made.
+the standalone efficiency and saturated-load jobs are excluded. The two
+finite companions inside `atomic_floor` do run through the unchanged job on
+both engines: tripwire arm/disarm and all 400 pipelined ordering rolls pass;
+the memtier/floor branch explicitly records NOT RUN. Receipts are
+`jobs/atomic-companions-final-{uring,epoll}.json`. No throughput claim is made.
 
 ### Completed directed receipts
 
@@ -421,8 +445,11 @@ The first stricter cap attempt used the obsolete drop counter and was stopped
 as a fixture failure; the repaired predicate observes the null invalidation
 emitted by the fixed overflow branch. That failed receipt is retained.
 
-The pre-R7 full Tcl manifest passed in both modes on both uring and epoll;
-these jobs are running again on the final release. Final named-skip probes
+The final full Tcl manifest passes both modes on uring and fused mode on
+epoll. Split epoll retains the two required list-assertion failures described
+above; its dependent compat2 autharity row also fails. The pre-R7 full manifest
+passed all four mode/engine combinations, which does not replace the final
+release verdict. Final named-skip probes
 retain their red diagnostic results; all three lane promotions pass 3/3 in
 each mode and engine. `MONITOR log blocked command only once`, for example, was PFP in
 the earlier split-mode probes and is PPP in the final probes; the earlier
@@ -450,7 +477,7 @@ rows including release.
 
 All 55 primary `job_production_units` targets built, plus mdbqsbr live controls,
 blockfix-cost and both blockfix2 units. `make -q all` and all four target-group
-freshness checks returned zero; `production-freshness-r7.json` records the exact
+freshness checks returned zero; `production-freshness-final.json` records the exact
 lists. Matching native companions are bound beside the frozen POST with their
 hashes in `companions-r7.json`; the release bytes remain unchanged. Two gate
 launches overlapped the instrumented R7 object build. Serial recompilation

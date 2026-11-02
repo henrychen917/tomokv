@@ -299,7 +299,7 @@
   ],
   "separate_or_excluded": {
     "flip_saturated": "performance load generator",
-    "atomic_floor": "performance load generator",
+    "atomic_floor": "The throughput branch is excluded; finite tripwire and 400-roll ordering companions run separately on both engines with GATE_PROOF_NO_RATES=1.",
     "efficiency": "rate and scaling benchmarks",
     "abba_selftest": "landing-copy check scheduled separately",
     "redis_tcl": "full manifest and controls scheduled separately",
