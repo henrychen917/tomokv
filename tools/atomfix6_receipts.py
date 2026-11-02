@@ -37,6 +37,9 @@ for folder in sorted((DOC / 'proof').iterdir()):
             dest.mkdir(parents=True, exist_ok=True)
             for name in ('ledger', 'done', 'output.log', 'timings', 'family.tsv'):
                 if (job / name).exists(): shutil.copyfile(job / name, dest / name)
+            if job.name == 'wave14_order':
+                for source, name in [('proof/results.json', 'results.json'), ('proof.log', 'proof.log')]:
+                    if (job / source).exists(): shutil.copyfile(job / source, dest / name)
             completion = (job / 'done').read_text().strip() if (job / 'done').exists() else 'MISSING'
             record['jobs'].append(dict(name=job.name, completion=completion))
         live = []

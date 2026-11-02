@@ -222,6 +222,204 @@
     ]
   },
   {
+    "label": "expanded-units-final",
+    "rc": 0,
+    "passed": 13,
+    "failed": 0,
+    "failures": [],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.4oSaYK",
+    "jobs": [
+      {
+        "name": "atomfix6_units",
+        "completion": "0\t12\t0"
+      },
+      {
+        "name": "core_tsan_build",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "production_units",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      }
+    ]
+  },
+  {
+    "label": "features-uring-default",
+    "rc": 1,
+    "passed": 299,
+    "failed": 5,
+    "failures": [
+      "atomfix6 parked MSET8 heads (1s, normal)",
+      "atomfix6 parked MSET8 heads (2s, normal)",
+      "atomfix6 parked MSET8 heads (1s, db0)",
+      "atomfix6 parked MSET8 heads (2s, db0)",
+      "wave14 script EXEC wake publication order"
+    ],
+    "run": "/home/user/Projects/cx-atomfix6/build/gate-run.gMqgzY",
+    "jobs": [
+      {
+        "name": "asan",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "asan_batteries",
+        "completion": "0\t5\t0"
+      },
+      {
+        "name": "atomfix6_units",
+        "completion": "0\t8\t4"
+      },
+      {
+        "name": "bugs5",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "clientcompat-multi-controls",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "clientcompat-multi-tracking",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "core_tsan_build",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "datafix2_watch",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "feature-armed-0",
+        "completion": "0\t35\t0"
+      },
+      {
+        "name": "feature-armed-1",
+        "completion": "0\t35\t0"
+      },
+      {
+        "name": "feature-split-0",
+        "completion": "0\t34\t0"
+      },
+      {
+        "name": "feature-split-1",
+        "completion": "0\t34\t0"
+      },
+      {
+        "name": "filter_unit",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "lualibs",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "moverfix",
+        "completion": "0\t8\t0"
+      },
+      {
+        "name": "multidb-1s-0-0",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multidb-1s-0-1",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multidb-1s-1-0",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multidb-1s-1-1",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multidb-2s-0-0",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multidb-2s-0-1",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multidb-2s-1-0",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multidb-2s-1-1",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "multifix-1s-epoll",
+        "completion": "0\t6\t0"
+      },
+      {
+        "name": "multifix-1s-uring",
+        "completion": "0\t6\t0"
+      },
+      {
+        "name": "multifix-2s-epoll",
+        "completion": "0\t6\t0"
+      },
+      {
+        "name": "multifix-2s-uring",
+        "completion": "0\t6\t0"
+      },
+      {
+        "name": "production_units",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "release",
+        "completion": "0\t1\t0"
+      },
+      {
+        "name": "ring_unit",
+        "completion": "0\t3\t0"
+      },
+      {
+        "name": "script_bounds",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "scriptfix",
+        "completion": "0\t8\t0"
+      },
+      {
+        "name": "scriptfix2",
+        "completion": "0\t48\t0"
+      },
+      {
+        "name": "storage_units",
+        "completion": "0\t13\t0"
+      },
+      {
+        "name": "wait_units",
+        "completion": "0\t2\t0"
+      },
+      {
+        "name": "waits_tsan_build",
+        "completion": "0\t0\t0"
+      },
+      {
+        "name": "wave14_order",
+        "completion": "0\t0\t1"
+      },
+      {
+        "name": "wb_rule_units",
+        "completion": "0\t4\t0"
+      },
+      {
+        "name": "wbland_units",
+        "completion": "0\t2\t0"
+      }
+    ]
+  },
+  {
     "label": "fifo-POST-idle",
     "rc": 1,
     "passed": 1,
