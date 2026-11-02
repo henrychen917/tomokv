@@ -53,5 +53,90 @@
       "measured": false,
       "output": "  NOT RUN control -- requires --release-build; correctness checks remain active\n"
     }
-  ]
+  ],
+  "final_functional_legs": [
+    {
+      "job": "xacct-policy-final-uring-2s",
+      "atomic": 0,
+      "log": "build/gate-run.8izKGi/jobs/debug-0/gate-xacct-0.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    },
+    {
+      "job": "xacct-policy-final-uring-2s",
+      "atomic": 1,
+      "log": "build/gate-run.8izKGi/jobs/debug-1/gate-xacct-1.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    },
+    {
+      "job": "xacct-policy-final-epoll-2s",
+      "atomic": 0,
+      "log": "build/gate-run.tYdmgW/jobs/debug-0/gate-xacct-0.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    },
+    {
+      "job": "xacct-policy-final-epoll-2s",
+      "atomic": 1,
+      "log": "build/gate-run.tYdmgW/jobs/debug-1/gate-xacct-1.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    },
+    {
+      "job": "xacct-policy-final-uring-1s",
+      "atomic": 0,
+      "log": "build/gate-run.uXSSEH/jobs/debug-0/gate-xacct-0.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    },
+    {
+      "job": "xacct-policy-final-uring-1s",
+      "atomic": 1,
+      "log": "build/gate-run.uXSSEH/jobs/debug-1/gate-xacct-1.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    },
+    {
+      "job": "merged-final-fused-epoll",
+      "atomic": 0,
+      "log": "build/gate-run.pYtnL1/jobs/debug-0/gate-xacct-0.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    },
+    {
+      "job": "merged-final-fused-epoll",
+      "atomic": 1,
+      "log": "build/gate-run.pYtnL1/jobs/debug-1/gate-xacct-1.txt",
+      "sha256": "5de7b84b7c2bc1ba20ac74821eceebec8dabbe47e315bb9cfb3438c960d7820a",
+      "passed_checks": 9,
+      "timing_assertions_not_run": 2,
+      "watch_armed": true,
+      "pel_armed": true
+    }
+  ],
+  "gate_sha256": "5fce50c0ada39b5af753719ba1455011ba48c913ecdfcc6e5d0644ea0a105b57",
+  "landing_selftest": "jobs/abba-xacct-policy-final.json",
+  "harness_tests": "gate-unit-xacct-final.json"
 }

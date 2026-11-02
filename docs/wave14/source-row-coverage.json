@@ -1,7 +1,7 @@
 {
   "declared_rows": 1107,
   "observed_declared_rows": 1100,
-  "gate_sha256": "720398e2d4a4591156469c274d437b430befbaa8723d1efaf97904f3fff49c51",
+  "gate_sha256": "5fce50c0ada39b5af753719ba1455011ba48c913ecdfcc6e5d0644ea0a105b57",
   "binary_sha256": "c1ed04ec304d1ef2863c37fd072a20c1bd134808cd8d0c42094dc7bb17a2763e",
   "main_job": "jobs/merged-final-uring.json",
   "main_failed_jobs": [
@@ -69,7 +69,7 @@
   "throwaway_landing_rows": [
     {
       "status": "ok",
-      "seconds": 429.74,
+      "seconds": 445.76,
       "label": "ABBA comparison + saturation negative controls"
     }
   ],

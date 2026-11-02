@@ -248,8 +248,16 @@ Selected correctness-only jobs retain every original operation and repeat,
 all PEL/WATCH arming checks, and exact final accounting; they do not read a
 clock and explicitly print NOT RUN for the two timing assertions. No threshold
 is widened, no production code changes, and no public row changes. Complete
-debug jobs in both modes and engines and a fresh throwaway landing selftest
-are running against this corrected test policy. The earlier red row remains.
+debug jobs now pass all eight XACCT mode/engine/atomic legs, with both
+arming checks and all nine functional assertions retained per leg. All 77
+harness tests and the updated throwaway landing selftest also pass. The
+earlier red row remains; its timing failure is not a production fix claim.
+
+The fused epoll ZC attempt was refused by the assigned-core quiet preflight;
+neither release nor ASAN server booted. Its six dependent failures remain in
+the original ledger. The unchanged complete job passes after those CPUs are
+released, including both boots, borrow checks, an actual send witness and ASAN
+shutdown. `zc-fused-epoll-preflight-failure.json` binds both attempts.
 
 ### FIFO live allocation controls
 
