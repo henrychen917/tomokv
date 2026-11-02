@@ -479,7 +479,7 @@
     },
     {
       "path": "src/core/eof.cc",
-      "sha256": "abe19afec1199d9b21066b7e251f8d2ec5903cd79e480302ea466bd6ec35ebaa"
+      "sha256": "fadeae11162ecf8b1706ef47fdfb8ce828deaa2c2ab2fe49240ec187128f6ab1"
     },
     {
       "path": "src/core/ex_execute.inc",
@@ -1057,5 +1057,5 @@
     "src/core/reorder.cc",
     "src/persist/aof.cc"
   ],
-  "release_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48"
+  "release_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501"
 }

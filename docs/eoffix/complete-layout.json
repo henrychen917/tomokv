@@ -1,0 +1,44 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "0-7",
+    "--load-cores",
+    "0-7",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21900-21902",
+    "--candidate-binary",
+    "/home/user/Projects/cx-eoffix/build/eoffix/layout-complete/POST-layout"
+  ],
+  "native": "/home/user/Projects/cx-eoffix/build/eoffix/layout-complete/POST-layout",
+  "native_sha256": "962a727251beab9c84ae6d288bc726b2b2a873aed1663b00fc698e3a19f3ac38",
+  "launcher_sha256": "962a727251beab9c84ae6d288bc726b2b2a873aed1663b00fc698e3a19f3ac38",
+  "engine": "epoll",
+  "jobs": "netio-1s netio-2s wave14_eof_data",
+  "env": {
+    "LC_ALL": "C",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis/src/redis-server",
+    "GATE_CORRECTNESS_SHARED_CPUS": "1",
+    "GATE_PROOF_NO_RATES": "1",
+    "GATE_ONLY_JOBS": "netio-1s netio-2s wave14_eof_data",
+    "GATE_NET_IO": "epoll",
+    "GATE_PROOF_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_LEDGER": "/home/user/Projects/cx-eoffix/docs/eoffix/complete-layout"
+  },
+  "exit_code": 0,
+  "directory": "/home/user/Projects/cx-eoffix/build/gate-run.wAbQQd",
+  "ledgers": {
+    "jobs/wave14_eof_data/ledger": "ok\t21.950000\twave14 half-close accepted input\n",
+    "jobs/netio-2s/ledger": "ok\t2.960000\tepoll directed correctness (2s)\n",
+    "jobs/release/ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+    "jobs/netio-1s/ledger": "ok\t2.970000\tepoll directed correctness (1s)\n"
+  },
+  "captures": [],
+  "archive_sha256": "a26e3eb5398859a157d51a3a8c9694c3804170f626a1ef8178b6c073bab83a4e"
+}

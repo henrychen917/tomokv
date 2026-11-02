@@ -26,8 +26,84 @@
       "captures": []
     },
     {
-      "tag": "final-eof-aof",
+      "tag": "complete-eof-aof",
       "arm": "POST",
+      "engine": "epoll",
+      "jobs": "wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-layout",
+      "arm": "POST-layout",
+      "engine": "epoll",
+      "jobs": "netio-1s netio-2s wave14_eof_data",
+      "binary_sha256": "962a727251beab9c84ae6d288bc726b2b2a873aed1663b00fc698e3a19f3ac38",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "complete-pad",
+      "arm": "PAD-A",
+      "engine": "epoll",
+      "jobs": "netio-1s netio-2s",
+      "binary_sha256": "000ed013b20f8f6b0614f39ffda7f6ea823494a3df03ac44b8e7d9c40a874171",
+      "exit_code": 1,
+      "failures": [
+        "FAIL\t7.950000\tepoll directed correctness (2s)",
+        "FAIL\t7.990000\tepoll directed correctness (1s)"
+      ],
+      "captures": []
+    },
+    {
+      "tag": "eof-oom-after",
+      "arm": "POST",
+      "engine": "epoll",
+      "jobs": "wave14_epoll_eof",
+      "binary_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "eof-oom-before",
+      "arm": "intermediate",
+      "engine": "epoll",
+      "jobs": "wave14_epoll_eof",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 1,
+      "failures": [
+        "FAIL\t0.010000\twave14 epoll coalesced EOF (normal)",
+        "FAIL\t0.010000\twave14 epoll coalesced EOF (db0)"
+      ],
+      "captures": []
+    },
+    {
+      "tag": "final-differ-epoll",
+      "arm": "intermediate",
+      "engine": "epoll",
+      "jobs": "differ-split differ-armed",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 0,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-differ-uring",
+      "arm": "intermediate",
+      "engine": "uring",
+      "jobs": "differ-split differ-armed",
+      "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
+      "exit_code": 130,
+      "failures": [],
+      "captures": []
+    },
+    {
+      "tag": "final-eof-aof",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "wave14_epoll_eof eoffix_aof wave14_eof_data netio-1s netio-2s",
       "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
@@ -37,7 +113,7 @@
     },
     {
       "tag": "final-layout",
-      "arm": "POST-layout",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "netio-1s netio-2s wave14_eof_data",
       "binary_sha256": "0df0c25368ad9a9ed18bb9c3195b154a900978276e717374cbce53a3d09b46b5",
@@ -47,7 +123,7 @@
     },
     {
       "tag": "final-pad",
-      "arm": "PAD-A",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "netio-1s netio-2s",
       "binary_sha256": "bb48b1eb370440d3c05770d6f7dbeefaf3abafff696e909783a6d6a790c5e963",
@@ -60,7 +136,7 @@
     },
     {
       "tag": "final-tcl-epoll-1",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
@@ -70,7 +146,7 @@
     },
     {
       "tag": "final-tcl-epoll-2",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
@@ -80,7 +156,7 @@
     },
     {
       "tag": "final-tcl-epoll-3",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "jobs": "redis_tcl",
       "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
@@ -90,7 +166,7 @@
     },
     {
       "tag": "final-tcl-uring-1",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "redis_tcl",
       "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
@@ -100,7 +176,7 @@
     },
     {
       "tag": "final-tcl-uring-2",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "redis_tcl",
       "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
@@ -110,7 +186,7 @@
     },
     {
       "tag": "final-tcl-uring-3",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "jobs": "redis_tcl",
       "binary_sha256": "29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48",
@@ -3080,7 +3156,7 @@
   "tcl": [
     {
       "tag": "final-tcl-epoll-1",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "1s",
       "files": 39,
@@ -3098,7 +3174,7 @@
     },
     {
       "tag": "final-tcl-epoll-1",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "2s",
       "files": 39,
@@ -3116,7 +3192,7 @@
     },
     {
       "tag": "final-tcl-epoll-2",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "1s",
       "files": 39,
@@ -3134,7 +3210,7 @@
     },
     {
       "tag": "final-tcl-epoll-2",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "2s",
       "files": 39,
@@ -3152,7 +3228,7 @@
     },
     {
       "tag": "final-tcl-epoll-3",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "1s",
       "files": 39,
@@ -3170,7 +3246,7 @@
     },
     {
       "tag": "final-tcl-epoll-3",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "epoll",
       "mode": "2s",
       "files": 39,
@@ -3188,7 +3264,7 @@
     },
     {
       "tag": "final-tcl-uring-1",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "1s",
       "files": 39,
@@ -3206,7 +3282,7 @@
     },
     {
       "tag": "final-tcl-uring-1",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "2s",
       "files": 39,
@@ -3224,7 +3300,7 @@
     },
     {
       "tag": "final-tcl-uring-2",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "1s",
       "files": 39,
@@ -3242,7 +3318,7 @@
     },
     {
       "tag": "final-tcl-uring-2",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "2s",
       "files": 39,
@@ -3260,7 +3336,7 @@
     },
     {
       "tag": "final-tcl-uring-3",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "1s",
       "files": 39,
@@ -3278,7 +3354,7 @@
     },
     {
       "tag": "final-tcl-uring-3",
-      "arm": "POST",
+      "arm": "intermediate",
       "engine": "uring",
       "mode": "2s",
       "files": 39,

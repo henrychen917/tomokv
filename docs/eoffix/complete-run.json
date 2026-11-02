@@ -1,0 +1,22 @@
+[
+  {
+    "phase": "artifacts",
+    "command": [
+      "python3",
+      "tools/eoffix_final.py",
+      "artifacts"
+    ],
+    "exit_code": 0,
+    "seconds": 680.9245346449316
+  },
+  {
+    "phase": "cold",
+    "command": [
+      "python3",
+      "tools/eoffix_final.py",
+      "cold"
+    ],
+    "exit_code": 0,
+    "seconds": 82.08967300876975
+  }
+]

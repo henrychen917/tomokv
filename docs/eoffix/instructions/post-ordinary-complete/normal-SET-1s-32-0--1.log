@@ -1,0 +1,3 @@
+/home/user/Projects/cx-eoffix/build/eoffix/counts/trace /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/post-ordinary-complete-normal/probe /home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/post-ordinary-complete-normal/lua.ranges 8ccc00 8ccc10 000000000002bb30 SET 1s 32 0 -1
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope

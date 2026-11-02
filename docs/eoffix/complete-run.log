@@ -1,0 +1,40 @@
+complete-aof-build exit 0
+complete-eof-build exit 0
+complete-census-ordinary exit 0
+complete-census-parser exit 0
+complete-census-receive exit 0
+complete-binding exit 0
+{
+  "kind": "A: PRE behaviour with the exact POST-layout image",
+  "release_candidate": "/home/user/Projects/cx-eoffix/build/tomokv",
+  "release_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
+  "post_layout": "/home/user/Projects/cx-eoffix/build/eoffix/layout-complete/POST-layout",
+  "post_sha256": "962a727251beab9c84ae6d288bc726b2b2a873aed1663b00fc698e3a19f3ac38",
+  "pad_a": "/home/user/Projects/cx-eoffix/build/eoffix/layout-complete/PAD-A",
+  "pad_sha256": "000ed013b20f8f6b0614f39ffda7f6ea823494a3df03ac44b8e7d9c40a874171",
+  "matching_sections": true,
+  "matching_symbols": true,
+  "patch_offset": 1042340,
+  "before": "4c8d542408",
+  "after": "e927d00000",
+  "changed_bytes": 5,
+  "entry_source": {
+    "name": "main",
+    "info": 18,
+    "sec": 16,
+    "value": 1042336,
+    "size": 8743
+  },
+  "entry_target": {
+    "name": "exec1s_pre_main",
+    "info": 18,
+    "sec": 16,
+    "value": 1095632,
+    "size": 8743
+  },
+  "limitation": "The exact twin is POST-layout, not the smaller release image. Measure the release null separately."
+}
+cells 144 command/parser nonzero 0 receive deltas [2]
+complete-eof-aof exit 0
+complete-layout exit 0
+complete-pad exit 1

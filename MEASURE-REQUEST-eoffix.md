@@ -8,7 +8,7 @@ The `final-*` candidate below was superseded during cleanup review: an EOF-state
 allocation failure could retain the synthetic receive hold used during handoff
 rollback. `eof-oom-before` fails that exact assertion in both namespaces;
 `eof-oom-after` passes after clearing the hold in the cold allocation-error path.
-The `complete-*` arms and full final proof are being rebuilt. Earlier successful
+The `complete-*` arms are frozen and pass the directed EOF/AOF checks; the broader final proof is running. Earlier successful
 runs are retained as intermediate evidence, including all twelve Tcl legs and
 the complete epoll differential matrix; they are not passes for the new arm.
 
@@ -34,10 +34,10 @@ its existing transport shutdown behavior.
 
 | Item | PRE witness | POST result | Mechanism changed | Residual |
 |---|---|---|---|---|
-| Epoll loses EOF | `pre-fin-complete`: both namespaces fail the missing-teardown assertion; open-peer controls pass. `pre-netio-coalesced`: both public epoll rows fail with the exact closed BRPOPLPUSH client still registered. | `final-eof-aof`: native controls and all four public mode/engine legs pass, 101 checks per netio leg. | Retain RDHUP independently of a short read; use deferred receive/retirement. | Full Tcl ordering results are separate below. |
-| Half-close input loss | `pre-half-replies`: data/reply failures in 1s/2s, uring/epoll, databases 1/16. Redis applies and replies to every original 1/32/65/256/4096 frame. | `final-eof-aof`: all 90 controls pass (80 TomoKV, 10 Redis), including depth 65,536, a truncated final frame, exact reply order, applied values, client retirement, a non-reading peer and two synchronous-control prefixes. | Drain buffered commands and replies before normal close; bound stalled output. | The non-reading-peer grace is explicit above. |
-| Transaction-AOF timeout | `txn-pre-epoll-cont-14`: row d TimeoutError and 30-second shutdown failure, with failure-only GDB stacks; deterministic `pre-aof-progress-complete` fails all eight pressure/self-writer cases and passes all four open-channel controls. | `final-eof-aof` passes all 12 native controls; final whole-job repetition is pending. | Publish coarse QSBR progress while an AOF producer waits on its full channel; let GCMT use the existing writer-drain hook. | Independent of EOF. Final whole-job loops remain pending. |
-| Public regression jobs | Public netio fails PRE; the full PRE Tcl run also fails on tracking order, independently of this patch. | EOF/netio checks pass. All 12 final Tcl legs pass (three runs per mode/engine); differential and broader job matrices are in progress. | Tests retain all 32 wave-14 EOF cases; the first queues data and FIN while every owned server thread is observably stopped. | Intermediate POST tracking failures are retained separately; no assertion or manifest has been weakened. |
+| Epoll loses EOF | `pre-fin-complete`: both namespaces fail the missing-teardown assertion; open-peer controls pass. `pre-netio-coalesced`: both public epoll rows fail with the exact closed BRPOPLPUSH client still registered. | `complete-eof-aof`: native controls and all four public mode/engine legs pass, 101 checks per netio leg. | Retain RDHUP independently of a short read; use deferred receive/retirement. | Full Tcl ordering results are separate below. |
+| Half-close input loss | `pre-half-replies`: data/reply failures in 1s/2s, uring/epoll, databases 1/16. Redis applies and replies to every original 1/32/65/256/4096 frame. | `complete-eof-aof`: all 90 controls pass (80 TomoKV, 10 Redis), including depth 65,536, a truncated final frame, exact reply order, applied values, client retirement, a non-reading peer and two synchronous-control prefixes. | Drain buffered commands and replies before normal close; bound stalled output. | The non-reading-peer grace is explicit above. |
+| Transaction-AOF timeout | `txn-pre-epoll-cont-14`: row d TimeoutError and 30-second shutdown failure, with failure-only GDB stacks; deterministic `pre-aof-progress-complete` fails all eight pressure/self-writer cases and passes all four open-channel controls. | `complete-eof-aof` passes all 12 native controls; final whole-job repetition is pending. | Publish coarse QSBR progress while an AOF producer waits on its full channel; let GCMT use the existing writer-drain hook. | Independent of EOF. Final whole-job loops remain pending. |
+| Public regression jobs | Public netio fails PRE; the full PRE Tcl run also fails on tracking order, independently of this patch. | EOF/netio checks pass. All 12 earlier Tcl legs passed; the replacement-arm Tcl, differential and broader job matrices are in progress. | Tests retain all 32 wave-14 EOF cases; the first queues data and FIN while every owned server thread is observably stopped. | Intermediate POST tracking failures are retained separately; no assertion or manifest has been weakened. |
 
 PRE data-loss examples from `pre-half-replies` (both database namespaces):
 
@@ -96,16 +96,18 @@ assertion on PRE. `pre-tcl-attribution-02` and `-05` reproduce the original two
 list-fairness assertions. Other retained PRE runs reproduce BCAST and shared
 redirection order failures, pubsub PUNSUBSCRIBE failures, and the scripting
 50,000-load loop's Tcl timeout. These are attribution receipts, not green full
-suite claims. The final full manifest passed three times per engine in both modes: all
-12 legs, 39 files per leg, without competing correctness jobs. See
-`final-tcl-{epoll,uring}-{1,2,3}.json` and their raw archives. No Tcl expectation or manifest was
+suite claims. The earlier candidate passed the full manifest three times per engine in both modes: all
+12 legs, 39 files per leg, serially on CPUs 0–7. See
+`final-tcl-{epoll,uring}-{1,2,3}.json` and their raw archives. Replacement-arm repeats are in progress. No Tcl expectation or manifest was
 relaxed. All intermediate POST failures remain in `validation-summary.json`.
 
-**Differential proof.** Final epoll passes the standard seeds 7/19/20/23/24:
+**Differential proof.** The earlier candidate passes epoll with the standard seeds 7/19/20/23/24:
 split atomic 0/1, fused read-local atomic 0/1, and mode equivalence. The four
 differential parts report 235/239/231/235 passing rows and zero failures; mode
 equivalence also passes. The original geometry-specific skips remain explicit
-in the logs. See `final-differ-epoll.json` and its raw archive. Uring is pending.
+in the logs. See `final-differ-epoll.json` and its raw archive. Its uring run was
+stopped after the allocation-error finding and is recorded as interrupted.
+Both engines are queued for the replacement arm.
 
 PRE's 261 tracked production/third-party files and Makefile match `ea48a6b27`
 exactly (`docs/eoffix/pre-source-identity.json`). The rebuilt PRE was produced
@@ -122,7 +124,7 @@ still rejects overlap. All work uses CPUs 0–7, builds use `-j8`, and boots use
 each job retains its own explicit geometry overrides, including txnorder's 4:4
 split shape. These are partial correctness receipts, not a full iteration receipt.
 
-**Instruction evidence (final release SHA `29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48`).** Finite serverless scopes enter linked production
+**Instruction evidence (final release SHA `4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501`).** Finite serverless scopes enter linked production
 bodies. Counts exclude fixture glue, shared libraries, syscalls and synthetic
 clock calls. Raw traces and exact per-cell totals are in
 `docs/eoffix/instructions/`; `instruction-comparison-final.json` and `.md` retain
@@ -148,15 +150,15 @@ retired to meet the disk budget. See `retired-artifacts.json`.
 | Arm | Path | SHA-256 |
 |---|---|---|
 | PRE | `build/eoffix/pre-rebuilt` | `35874756cda5cc4918fe0b6f6a715c1a0e7f1b87d4b8f4098d041d1c7839314a` |
-| POST | `build/eoffix/post-final/tomokv` | `29aba3d6255e06909c61faa42aba891c9e47ae0d2020dd00de3e0b39c9e94a48` |
-| POST-layout | `build/eoffix/layout-final/POST-layout` | `0df0c25368ad9a9ed18bb9c3195b154a900978276e717374cbce53a3d09b46b5` |
-| PAD-A | `build/eoffix/layout-final/PAD-A` | `bb48b1eb370440d3c05770d6f7dbeefaf3abafff696e909783a6d6a790c5e963` |
+| POST | `build/eoffix/post-complete/tomokv` | `4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501` |
+| POST-layout | `build/eoffix/layout-complete/POST-layout` | `962a727251beab9c84ae6d288bc726b2b2a873aed1663b00fc698e3a19f3ac38` |
+| PAD-A | `build/eoffix/layout-complete/PAD-A` | `000ed013b20f8f6b0614f39ffda7f6ea823494a3df03ac44b8e7d9c40a874171` |
 
 PAD is **type A: behavior twin**, PRE behavior in the common POST-layout image.
 POST-layout and PAD-A have identical section/symbol layouts and function addresses;
 only the five-byte main entry jump differs. Its exact comparison arm is
 POST-layout, not the smaller release POST. `.text` sizes: PRE 9,021,623 bytes,
-POST 9,035,847 bytes, both layout twins 18,057,111 bytes. `pad-a-final.json`
+POST 9,035,879 bytes, both layout twins 18,057,127 bytes. `pad-a-complete.json`
 preserves link/patch proof. Final POST-layout passes public netio and all 90 half-close controls; PAD-A
 fails both public netio rows on the exact coalesced BRPOPLPUSH retirement
 assertion, while its uring legs pass, matching PRE.
@@ -178,9 +180,9 @@ under the task's runtime authorization. No throughput claim is attached to this 
 
 **Build and harness proof.** Final `make all` plus all 55
 `job_production_units` targets and its additional mdbqsbr, blockfix cost and
-blockfix2 targets pass (`final-build.json`). Every corresponding `make -q`
-check passes (`build-freshness-final.json`). `python3 tests/gates_test.py`
-passes 14 + 77 tests (`gates-test-final.json` and `.log`).
+blockfix2 targets pass (`complete-build.json`). Final `make -q` freshness and
+`python3 tests/gates_test.py` are queued after the remaining jobs. Earlier
+freshness and 14 + 77 harness tests passed; those receipts remain retained.
 
 **Gate accounting.** DQ=0, DF=0. The existing netio rows are strengthened at their
 existing collection lines before the quick exit; private wave14 EOF jobs remain

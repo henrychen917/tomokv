@@ -202,5 +202,51 @@
     "bytes": 95269152,
     "sha256": "fec7b3b58111a440447fad80bd82862046d1e1c242cbcfa407d1eb4ed7267c0f",
     "reason": "Superseded native helper. Complete source/recipe and raw receipts retained; PRE v2 remains, and the post-OOM helper is rebuilt from the final objects."
+  },
+  {
+    "path": "build/eoffix/layout-final/POST-layout",
+    "bytes": 197675336,
+    "sha256": "0df0c25368ad9a9ed18bb9c3195b154a900978276e717374cbce53a3d09b46b5",
+    "reason": "Pre-OOM layout twin superseded. Construction, identities and passing/negative receipts retained; new complete twins will replace it."
+  },
+  {
+    "path": "build/eoffix/layout-final/PAD-A",
+    "bytes": 197675336,
+    "sha256": "bb48b1eb370440d3c05770d6f7dbeefaf3abafff696e909783a6d6a790c5e963",
+    "reason": "Pre-OOM layout twin superseded. Construction, identities and passing/negative receipts retained; new complete twins will replace it."
+  },
+  {
+    "path": "build/eoffix/layout-final/pad-objects",
+    "reason": "Superseded layout objects; exact inventory retained in retired-pad-objects-before-oom.json."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-ordinary-complete-normal",
+    "probe_sha256": "88db7f71d39d034ea4f2552b692a297ad58fdb977d03852ed75011699b3561c5",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-ordinary-complete-db0",
+    "probe_sha256": "dd128447ca0e50076036e87ba6652af4492f6abc50eaceefe6160ebec6ed7548",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-receive-complete-normal",
+    "probe_sha256": "2d666ae0e0bbfd413d3dad871fcce511d2f80e344e6421a2a6323735ebf61560",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-receive-complete-db0",
+    "probe_sha256": "201c494f4d0afee140fd22dad1aa94342832712fab849bc3781005ce00f247e3",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-parser-complete-normal",
+    "probe_sha256": "4bd55f32f51cd380211adad25ff9bd2c27abd431ba83b27efa9894faae68dd3f",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
+  },
+  {
+    "path": "build/eoffix/counts/scopes/post-parser-complete-db0",
+    "probe_sha256": "1f8fe4d907be985a5907cf4f6675908a004ab83c0a6fd3f9edac83ed61554a5d",
+    "reason": "All entered bodies bound; retain counts, raw traces, build recipe and binding. Disk budget: transient probe and objects retired."
   }
 ]

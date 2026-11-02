@@ -22,6 +22,7 @@
   ],
   "link": [
     "g++",
+    "-gz=zlib",
     "-std=c++20",
     "-O2",
     "-g",
@@ -166,7 +167,7 @@
     "-lm",
     "/home/user/Projects/cx-eoffix/build/eoffix/counts/scopes/post-parser-complete-normal/probe.o"
   ],
-  "probe_sha256": "20ef4ca77776ea8b33efb245c94fa2bc99e4d73402c63550b78bb7a0332b470e",
-  "server_sha256": "d44999cd4592475d8ec10701ab5e867bc03b4af4d7b1171b615b99973ae9eb69",
+  "probe_sha256": "4bd55f32f51cd380211adad25ff9bd2c27abd431ba83b27efa9894faae68dd3f",
+  "server_sha256": "4129a20c7571e5c1894cbfb2bf6d338e546b3c6f63aa0a692a9f9c10b97cf501",
   "fixture_sha256": "594a6761c53686f3cfb02f185b7ba1b5bc9fb0b47bb0c17e6d05db9630ae9c81"
 }
