@@ -24,12 +24,24 @@ WATCH, notification and debug batteries with `GATE_TXN_FUSED=1`, on both
 engines. `jobs-additional.txt` also repeats splitlocal and RL5 after the R7
 comment synchronization. The feature-matrix driver now verifies the requested
 engine from INFO instead of silently ignoring the gate selector.
+The planner exports its explicit shared-CPU mode to the feature/equivalence
+drivers. Only those correctness callers can use it, with a selected job list,
+rate assertions disabled, and identical sets of eight CPUs. Performance callers
+retain the separate-CPU requirement. Serverless negative controls cover those
+boundaries.
 
 Every completed attempt has its own JSON receipt, raw archive and ledger under
 `jobs/`. Failed attempts remain failed evidence. In particular, the first broad
 run's splitlocal failure is the generated R7 comment-parity check; its C++ unit
 passed. The source synchronization and rebuilt runtime-image comparison are
 recorded separately before the retry.
+The first broad run also records feature cells refused before boot because their
+driver still required separate CPUs, and transaction episode/WATCH helpers that
+were missing beside the frozen subdirectory candidate. The retry uses the
+explicit correctness-only allocation and a byte-identical POST copy beside the
+production helpers. Both failed attempts remain evidence. The FIFO live row's
+latency-bound failures receive a complete matching PRE control; their status is
+separate from exact-value and ordering-invariant checks.
 
 | Exclusion | Status and reason |
 |---|---|

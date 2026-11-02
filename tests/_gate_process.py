@@ -36,8 +36,20 @@ def cpu_spec(values):
     return ','.join(map(str, sorted(values)))
 
 
-def pin_driver(server_cpus, load_cpus):
-    require(not set(cpus(server_cpus)) & set(cpus(load_cpus)),
+def shared_correctness_cpus(server_cpus, load_cpus):
+    servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
+    if not servers & loads or os.getenv('GATE_SHARED_CORRECTNESS_CPUS') != '1':
+        return False
+    require(os.getenv('GATE_PROOF_NO_RATES') == '1' and os.getenv('GATE_ONLY_JOBS'),
+            'shared CPUs require selected correctness jobs without rate assertions')
+    require(servers == loads and len(servers) == 8,
+            'shared correctness requires the same eight server and load CPUs')
+    return True
+
+
+def pin_driver(server_cpus, load_cpus, *, correctness_only=False):
+    shared = correctness_only and shared_correctness_cpus(server_cpus, load_cpus)
+    require(shared or not set(cpus(server_cpus)) & set(cpus(load_cpus)),
             'server and load CPUs overlap')
     os.sched_setaffinity(0, cpus(load_cpus))
 

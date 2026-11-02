@@ -289,6 +289,7 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
         header = (f"shared correctness CPUs {cpu_string(server)}; one 8-thread server at "
                   f"ratio {correctness_ratio}; selected jobs only, no rates or performance tier")
     return {"tier": tier, "purpose": purpose, "subset": subset,
+            "shared_correctness": shared,
             "physical_cores": total, "slot_count": count, "correctness_ratio": correctness_ratio,
             "server_per_slot": SERVER_PER_SLOT, "load_min_per_slot": LOAD_PER_SLOT,
             "ports_per_slot": PORTS_PER_SLOT, "ports_first": first, "ports_last": last,
@@ -301,6 +302,7 @@ def make_plan(args, *, topology=None, available=None, check_available=True):
 
 def shell_plan(plan):
     scalars = {"TIER": plan["tier"], "GATE_PURPOSE": plan["purpose"],
+               "GATE_SHARED_CORRECTNESS_CPUS": int(plan.get("shared_correctness", False)),
                "GATE_PHYSICAL_CORES": plan["physical_cores"], "GATE_RATIO": plan["correctness_ratio"],
                "GATE_SLOTS": plan["slot_count"], "GATE_PORT_FIRST": plan["ports_first"],
                "GATE_PORT_LAST": plan["ports_last"], "CANDIDATE_BINARY": plan["candidate_binary"],
@@ -310,6 +312,7 @@ def shell_plan(plan):
     scalars.update({"GATE_" + key.upper(): value for key, value in plan["axes"].items()})
     scalars.update({"PERF_" + key.upper(): value for key, value in plan["perf"].items()})
     lines = [f"{key}={shlex.quote(str(value))}" for key, value in scalars.items()]
+    lines.append("export GATE_SHARED_CORRECTNESS_CPUS")
     for name, field in (("SLOT_CORES", "server_cores"), ("SLOT_LOAD_CORES", "load_cpus"),
                         ("SLOT_LOAD_PHYSICAL", "load_cores"), ("SLOT_LOAD_SMT", "load_smt"),
                         ("SLOT_PORTS", "port")):
@@ -504,6 +507,8 @@ def self_test():
                 self.assertEqual(plan["slots"][0]["server_cores"], "24-31")
                 self.assertEqual(plan["slots"][0]["load_cpus"], "24-31")
                 self.assertEqual(plan["perf"]["split_ratio"], "")
+                self.assertIn("GATE_SHARED_CORRECTNESS_CPUS=1", shell_plan(plan))
+                self.assertIn("export GATE_SHARED_CORRECTNESS_CPUS", shell_plan(plan))
                 for bad in (["perf", *flags[1:]], [*flags, "--load-cores", "32-39"],
                             [*flags, "--server-smt", "1072"]):
                     with self.assertRaises(ValueError):

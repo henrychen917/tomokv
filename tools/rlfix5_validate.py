@@ -59,6 +59,21 @@ def main():
     runs = re.findall(r'^  artifacts: (.+)$', (DOC / (a.tag + '.log')).read_text(), re.M)
     assert len(runs) == 1, runs
     root = Path(runs[0]); assert root.parent == ROOT / 'build'
+    # The gate's feature cells use a shared artifact directory outside RUN_DIR.
+    # Bring their raw result/boot evidence into this attempt's archive as well.
+    output = (DOC / (a.tag + '.log')).read_text()
+    for path in root.glob('jobs/feature-cell-*/output.log'):
+        output += path.read_text()
+    feature_roots = sorted(set(re.findall(re.escape(str(ROOT / 'build')) +
+                                         r'/gate-feature\.[A-Za-z0-9]+', output)))
+    for name in feature_roots:
+        directory = Path(name)
+        assert directory.parent == ROOT / 'build'
+        for path in directory.rglob('*'):
+            if path.is_file() and not path.is_symlink() and receipts.selected(path, directory):
+                target = root / 'feature-matrix' / directory.name / path.relative_to(directory)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(path, target)
     record = receipts.collect(a.tag, root, DOC)
     record.update(metadata, exit_code=result.returncode)
     assert sha(binary) == digest, 'candidate changed during proof'

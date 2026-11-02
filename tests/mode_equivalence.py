@@ -160,7 +160,9 @@ def configuration(cell):
 
 
 def validate_geometry(server_cpus, load_cpus):
+    from _gate_process import shared_correctness_cpus
     servers, loads = set(cpus(server_cpus)), set(cpus(load_cpus))
+    shared = shared_correctness_cpus(server_cpus, load_cpus)
     require(len(servers) == 8, 'equivalence fixture requires eight server CPUs and split ratio 6:2')
     # The coordinator deliberately inherits only its load slot. That temporary
     # taskset mask is not the cgroup's allowed CPU set; probe and restore it just
@@ -168,7 +170,7 @@ def validate_geometry(server_cpus, load_cpus):
     require((servers | loads) <= permitted_cpus(servers | loads), 'requested CPUs unavailable')
     for cpu in servers:
         siblings = set(cpus(Path(f'/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list').read_text().strip()))
-        require(not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
+        require(shared or not siblings & loads, 'server/load CPUs share a physical core (including SMT siblings)')
         require(len(siblings & servers) == 1, 'server CPUs must name distinct physical cores')
 
 
@@ -259,7 +261,7 @@ def main(argv=None):
                   f'{failed} failing streams')
             return int(failed != 0)
     validate_geometry(args.server_cpus, args.load_cpus)
-    pin_driver(args.server_cpus, args.load_cpus)
+    pin_driver(args.server_cpus, args.load_cpus, correctness_only=True)
     install_signals()
     args.output.mkdir(parents=True, exist_ok=False)
     operations = command_stream(args.seed)
