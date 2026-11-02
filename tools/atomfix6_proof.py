@@ -35,6 +35,7 @@ GROUPS = {
         notify_aof rootcore-waitaof serverfix_waitaof climonfix'''.split(),
     'placement': '''flip fliplisten flipfix5 flipfix6 flipctl
         lb-stationary-1s lb-stationary-2s readonly rlfix3_info rlfix3_zc rlcache
+        bplus hexpread compat3 notify
         reorder_engagement reorder_sync exbatch_live rldbg wb_mixed slotless rob_portable replyoff zc'''.split()
         + [f'evict-{section}-{mode}-{a}' for section in ('lfu', 'lruclock')
            for mode in ('split', 'armed') for a in (0, 1)]
