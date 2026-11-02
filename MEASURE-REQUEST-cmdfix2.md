@@ -93,8 +93,9 @@ and comparisons are in `docs/cmdfix2/auditor-receipts` and `auditors.json`.
 
 ### Existing gate and Tcl proof
 
-The authoritative job/row inventory is `docs/cmdfix2/gate-summary.json`, with
-original logs and receipts for **every run, including failed controls**.
+The final job inventory will be `docs/cmdfix2/final-jobs.json`.
+`docs/cmdfix2/gate-summary.json` retains the history, with original logs and
+receipts for **every run, including failed controls and superseded arms**.
 These are selected correctness jobs, not a full-gate receipt. Final broad-job
 totals and build freshness are recorded below when all scheduled jobs finish.
 
@@ -106,12 +107,12 @@ observes 232 of the 245 registered commands. The exact observed/unobserved
 inventory is retained in `docs/cmdfix2/differential.json` and the original
 receipts; these counts do not claim universal command coverage.
 
-The additional `rootcompat-stringlimit` job reported exactly the same 24
-failures on PRE and the first POST (SETRANGE/APPEND/SETBIT above the 32-bit representation,
+The additional `rootcompat-stringlimit` job reports exactly the same 24
+failures on PRE and final POST (SETRANGE/APPEND/SETBIT above the 32-bit representation,
 three checks × eight mode/engine/namespace legs). The raw failure lines are
 identical. This is the already documented CD5.20/NETFIX-POST-2 clamp, outside
-this lane's S1 scope; its failing row remains visible. The final POST rerun is
-pending and must match all 24 original failure lines.
+this lane's S1 scope; its failing row remains visible. All 24 final failure
+lines equal the archived PRE lines (`docs/cmdfix2/stringlimit-baseline.json`).
 
 Tcl runs the gate's `redis_tcl` job in both modes against unchanged upstream
 `unit/geo`, `unit/hyperloglog`, `unit/acl`, `unit/pubsub`, `unit/type/stream`,
@@ -235,8 +236,8 @@ normal payloads, connections and load placement. Begin with a PRE/PRE null
 and preserve the gate's ABBA ordering and acceptance bands per cell.
 Rate at matched offered load, or the cell's declared latency score, decides
 regression; instructions and IPC explain it. Ordinary-command
-serverless counts above establish zero added instructions only. No measurement
-has been run by this lane.
+serverless counts above establish zero added instructions only. The requested
+rate/latency measurements are NOT RUN by this lane.
 
 ### Gate row accounting
 
@@ -253,9 +254,12 @@ rows.
 
 * Final directed witnesses: **239,776 checks across 192 legs, zero failures**;
   the same six witnesses produce **25,536 differences on PRE**.
-* Final Tcl reruns are pending: the manifest requires **311 assertions per
-  mode/engine leg**, 1,244 total, with exactly one verified PUNSUBSCRIBE
-  completion fence per leg.
+* Final Tcl receipts contain **311 required assertion occurrences per
+  mode/engine leg**, **1,244 total**, with exactly one verified PUNSUBSCRIBE
+  completion fence per leg. `tcl-summary.json` checks the exact assertion-name
+  multiplicities, source receipt hashes and named setup errors against the
+  manifest. The stream-group suite intentionally runs one XCLAIM assertion
+  name twice; both occurrences are required.
 * `python3 tests/gates_test.py`: **77 tests pass**. The Tcl runner's 14
   serverless controls and gate planner self-tests also pass.
 * `make all` and every one of the **55 `job_production_units` targets** pass,
@@ -265,11 +269,14 @@ rows.
 * The final epoll broad selection passes **202 rows, zero failures**. Its
   differential subjobs pass **941 rows** (235 split/atomic=0, 239 split/atomic=1,
   231 fused/atomic=0, 235 fused/atomic=1, one mode-equivalence row), with zero
-  failures. Final uring and supplemental fused/notification/Tcl selections
-  are running; their exact rows and failures will be recorded before delivery.
+  failures. The final uring broad selection is still running; its exact rows
+  and failures will be recorded before delivery.
 * The final related selection passes **82 rows, zero failures**. Each of the
   four notification selections (uring/epoll × 1s/2s) passes **7 rows**, 28
   total, with zero failures.
+* Supplemental fused uring/epoll selections pass **45 rows each**. The epoll
+  mode/order selection passes **57 rows**. The extra selection has **12 passes
+  and one unchanged baseline string-limit failure**, detailed above.
 * `git diff 9d6ab5526 --check`, gate shell syntax, and Python syntax checks
   pass. Debug compression of unit artifacts preserves every allocated ELF
   section; it does not alter any delivered arm. `build/` is about 14 GiB.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Summarize original receipts; archive red controls as well as green runs."""
 import argparse
+from collections import Counter
 import csv
 import hashlib
 import json
@@ -158,6 +159,39 @@ def final_jobs(runs):
         pad_controls=pad_rows))
 
 
+def tcl_summary(runs):
+    manifest = json.loads((DOC/'tcl-manifest.json').read_text())['files']
+    digest = hashlib.sha256((BUILD/'POST').read_bytes()).hexdigest()
+    result = []
+    for engine in ('uring', 'epoll'):
+        run = 'post-v2-tcl-receipted-' + engine
+        assert runs[run]['complete'] and runs[run]['failed'] == 0
+        root = Path(runs[run]['source'])/'jobs/redis_tcl'
+        for mode in ('1s', '2s'):
+            path = root/('redis-tcl-'+mode)/'summary.json'
+            summary = json.loads(path.read_text())
+            assert summary['binary_sha256'] == digest and summary['mode'] == mode
+            rows = summary['rows']
+            assert all(row['complete'] and row['error'] is None for row in rows)
+            assert all(row['server_argv'][row['server_argv'].index('--net-io')+1] == engine
+                       for row in rows)
+            files = []
+            for name, expected in manifest.items():
+                group = [row for row in rows if row['file'] == name]
+                passed = [event['test'] for row in group for event in row['events']
+                          if event['status'] == 'ok']
+                assert Counter(passed) == Counter(expected['passed_tests']), (run, mode, name)
+                errors = [error for row in group for error in row.get('setup_errors', [])]
+                assert errors == expected.get('known_setup_errors', []), (run, mode, name, errors)
+                files.append(dict(file=name, required_passes=len(passed), known_setup_errors=errors))
+            assert sum(row['required_passes'] for row in files) == 311
+            fences = sum(row.get('pubsub_fences', 0) for row in rows)
+            assert fences == 1
+            result.append(dict(engine=engine, mode=mode, files=files, pubsub_fences=fences,
+                               summary_sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    save(DOC/'tcl-summary.json', result)
+
+
 def auditor_summary(archive):
     folder = BUILD / 'audit-post-v2'; rows = []
     def objects(path):
@@ -220,7 +254,9 @@ def main():
     runs = gate_runs(args.archive)
     witnesses(runs)
     differential_summary(runs, args.final)
-    if args.final: final_jobs(runs)
+    if args.final:
+        final_jobs(runs)
+        tcl_summary(runs)
     auditor_summary(args.archive)
     if args.archive: local_check_receipts()
     with (DOC / 'arms.sha256').open('w') as out:

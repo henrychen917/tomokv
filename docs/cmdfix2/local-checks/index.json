@@ -21,8 +21,8 @@
   },
   {
     "file": "final-supplemental-v2.json",
-    "bytes": 189,
-    "sha256": "836a98830d10f7dac94a8f809dd517a8d27be798d4047075d3d1fb51033e7d71"
+    "bytes": 372,
+    "sha256": "66fe8b9f3188ebdde5b64a7c039ba6a27352b8ac50ac08e0f4886d89e52fdcfd"
   },
   {
     "file": "fresh-blockfix-cost.log",
@@ -78,6 +78,11 @@
     "file": "gates-test.log",
     "bytes": 2477,
     "sha256": "c70c40096de6e85d2839abfce98e0a331898d780ebd87adf64a79f663e5de5be"
+  },
+  {
+    "file": "more-jobs-v2.json",
+    "bytes": 5919,
+    "sha256": "05bb8feea396224413c4172204421b88a7eacb512d70e5f138eb7a667a6cd1c5"
   },
   {
     "file": "more-jobs.json",
