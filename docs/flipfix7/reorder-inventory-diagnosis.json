@@ -4,8 +4,8 @@
   "differences": [
     {
       "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}::operator()(tomo_db0::KvObj*) const",
-      "pre": 0,
-      "post": 1
+      "expected": 0,
+      "actual": 1
     }
   ],
   "actual": {
@@ -323,5 +323,6 @@
     "tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)": 1,
     "tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)": 1,
     "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const": 1
-  }
+  },
+  "comparison": "expected wave14 named inventory versus final POST, not a PRE disassembly comparison"
 }

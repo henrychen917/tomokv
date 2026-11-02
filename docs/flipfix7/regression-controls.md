@@ -31,3 +31,11 @@ restored for both stream battery call sites. The `controls` phase repeats all
 four split/armed atomic feature jobs with those assertions enabled; the epoll
 regression selection also includes them. Only the separate `xmove` size-ratio
 timing subtest remains excluded by the proof-only flag.
+
+Corrected result: `gate-run.IWv7UP`, **144 passed / 0 failed**. Writeback clauses
+passed 95/95 strict outcomes and paths passed 16/16; all four new FLIP source
+mutants failed with the required assertion and exit 1. The FIFO twin matched
+326/326 required bodies and passed the identity negative controls. All twelve
+stream memory assertions passed across the four repeated feature batteries.
+See `gate-controls-uring-delivery.ledger`, its evidence archive, and
+`stream-memory-verification.json`.

@@ -2694,5 +2694,37 @@
     "before_sha256": "c9cbc899fe9c725e9e64c73137253f8fba8128662bb83b5423672d3c3ecbabb2",
     "after_sha256": "c9cbc899fe9c725e9e64c73137253f8fba8128662bb83b5423672d3c3ecbabb2",
     "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wbland-controls/flushall/unit",
+    "before_bytes": 1000576,
+    "after_bytes": 398880,
+    "before_sha256": "0fc5204b91ffee5d8d0310b594e1cd16c8e6f3528f62b0050dbb69be73f0b142",
+    "after_sha256": "612a41d3267ad95384b4e12324077b2ec1089b090b031026acc0afbca944a8a7",
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wbland-controls/byte-limit/unit",
+    "before_bytes": 999496,
+    "after_bytes": 398392,
+    "before_sha256": "09a64026c039abbd7c9bb4a44cce461b3aa9be81aec395d049ebdd338191fca7",
+    "after_sha256": "5515524a1e2f8c6e4b15c0cfc2300860c16c9535eb4203ccc088f2721ebf7dbe",
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wbland-controls/empty/unit",
+    "before_bytes": 999480,
+    "after_bytes": 398432,
+    "before_sha256": "18662ba20deec11e3cec21dd45cc662a405f02e928b48732b0c5f6dbf0cbe67f",
+    "after_sha256": "6dfc290b073929e6502ce0e14c9af123a8092885e83b6962dff41c693f54605e",
+    "allocated_sections_identical": true
+  },
+  {
+    "path": "build/wbland-controls/half/unit",
+    "before_bytes": 999400,
+    "after_bytes": 398376,
+    "before_sha256": "cfc9a9fe563d58bf445fd903aad8c1d6c8992eabb2755aa0d8eb7a65656be9c0",
+    "after_sha256": "7bdb38050bcb62c0750724ec2d46c5f4270354707f03a2411def4896450b885f",
+    "allocated_sections_identical": true
   }
 ]
