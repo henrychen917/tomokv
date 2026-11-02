@@ -48,6 +48,29 @@ def probe(port, version, cipher, admin):
 
 
 def test(a, port, certs, proc, oracle):
+    # TCP must not join the existing TLS SO_REUSEPORT group. Redis rejects
+    # this apply and restores earlier scalar values and the old TCP listener.
+    with closing(n.connect(a.port)) as admin, closing(n.connect(port, certs)) as established:
+        def settings():
+            values = admin.must('CONFIG', 'GET', 'port', 'maxmemory')
+            return dict(zip((v.decode() for v in values[::2]),
+                            (v.decode() for v in values[1::2])))
+        before = settings()
+        reply = admin.cmd('CONFIG', 'SET', 'maxmemory', '12345678', 'port', str(port))
+        record = dict(before=before, after=settings(),
+                      error=isinstance(reply, n._lib.RespError),
+                      reply=str(reply) if isinstance(reply, n._lib.RespError) else reply.decode())
+        (a.output / f'port-collision-{proc.pid}.json').write_text(json.dumps(record, indent=2))
+        reference = a.output / 'oracle-port-collision.json'
+        if oracle:
+            reference.write_text(json.dumps(record, indent=2))
+        assert record['error'], ('TCP port collided with TLS listener', record)
+        assert record['after'] == record['before'], ('TLS collision did not roll back CONFIG', record)
+        if not oracle:
+            assert record == json.loads(reference.read_text()), record
+        assert established.must('PING') == b'PONG'
+        with closing(n.connect(a.port)) as fresh, closing(n.connect(port, certs)) as fresh_tls:
+            assert fresh.must('PING') == fresh_tls.must('PING') == b'PONG'
     suites = []
     for version, flag in (('TLSv1.2', '-tls1_2'), ('TLSv1.3', '-tls1_3')):
         names = subprocess.check_output(['openssl', 'ciphers', '-s', flag, 'DEFAULT'], text=True)
