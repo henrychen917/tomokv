@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""FUNCTION rewrite-capture/journal interaction; a required forced window per leg."""
+"""FUNCTION rewrite-capture/journal interaction; a required forced window per leg.
+
+PS5.3: every registry mutation (LOAD REPLACE, a new LOAD, DELETE, RESTORE and FLUSH)
+lands while BGREWRITEAOF holds its copied library image, in both modes, both engines
+and every appendfsync policy, and must survive restart replay.
+"""
 import argparse
 import contextlib
 import copy
@@ -11,6 +16,35 @@ from _lib import Conn
 from persistfix2 import boot, emit, wait, rewrite_done
 
 SOURCE = "#!lua name=wave14\nredis.register_function('wave14',function() return %d end)"
+EXTRA = "#!lua name=wave14b\nredis.register_function('wave14b',function() return 7 end)"
+KINDS = ('replace', 'load', 'delete', 'restore', 'flush')
+
+
+def registry_empty(c):
+    return c.must('FUNCTION', 'LIST') == []
+
+
+def mutation(kind, c):
+    """Arm one mutation on this server; returns (argv, reply, state check)."""
+    if kind == 'replace':
+        return (['FUNCTION', 'LOAD', 'REPLACE', SOURCE % 2], b'wave14',
+                lambda x: x.must('FCALL', 'wave14', 0) == 2)
+    if kind == 'load':
+        return (['FUNCTION', 'LOAD', EXTRA], b'wave14b',
+                lambda x: x.must('FCALL', 'wave14b', 0) == 7 and x.must('FCALL', 'wave14', 0) == 1)
+    if kind == 'delete':
+        return (['FUNCTION', 'DELETE', 'wave14'], b'OK', registry_empty)
+    if kind == 'restore':
+        # This server's own frame for {wave14 v3}. Arming mutations precede the rewrite.
+        assert c.must('FUNCTION', 'LOAD', 'REPLACE', SOURCE % 3) == b'wave14'
+        payload = c.must('FUNCTION', 'DUMP')
+        assert c.must('FUNCTION', 'LOAD', 'REPLACE', SOURCE % 1) == b'wave14'
+        assert c.must('FCALL', 'wave14', 0) == 1
+        return (['FUNCTION', 'RESTORE', payload, 'REPLACE'], b'OK',
+                lambda x: x.must('FCALL', 'wave14', 0) == 3)
+    assert kind == 'flush'
+    return (['FUNCTION', 'FLUSH'], b'OK', registry_empty)
+
 
 def probe(a):
     opts = ['--appendonly', 'yes', '--appendfsync', a.fsync, '--databases', str(a.databases)]
@@ -19,6 +53,7 @@ def probe(a):
     with boot(a, 'write', opts) as (_, c, data), contextlib.ExitStack() as stack:
         assert c.must('FUNCTION', 'LOAD', SOURCE % 1) == b'wave14'
         assert c.must('SET', 'wave14:key', 'before') == b'OK'
+        argv, reply, check = mutation(a.kind, c)
         if a.oracle:
             control = c
         else:
@@ -36,29 +71,28 @@ def probe(a):
             assert control.must('BGREWRITEAOF').startswith(b'Background append only file rewriting')
             if not a.oracle:
                 wait(lambda: Path(str(hold)+'.ready').exists(), 'library image copied before mutation')
-            control.send('FUNCTION', 'LOAD', 'REPLACE', SOURCE % 2)
+            control.send(*argv)
             # always/everysec hold this IO's sends behind the writer. The
             # test-only journal wrapper proves enqueueing in the held window
             # without requiring a reply through that same send gate.
             if a.oracle:
-                assert control.read() == b'wave14'
+                assert control.read() == reply
             else:
                 wait(lambda: Path(str(hold)+'.journal').exists(),
-                     'replacement journal enqueued while capture is held')
-            emit('risky moment', case='FUNCTION replaced after rewrite library capture',
+                     'mutation journal enqueued while capture is held')
+            emit('risky moment', case='FUNCTION ' + a.kind + ' after rewrite library capture',
                  hits=1, scheduled=not a.oracle, fsync=a.fsync)
         finally:
             hold.unlink(missing_ok=True)
         if not a.oracle:
-            assert control.read() == b'wave14'
-        assert b'return 2' in control.must('FUNCTION', 'LIST', 'WITHCODE')[0][-1]
+            assert control.read() == reply
+        assert check(control), ('live registry does not show the mutation', a.kind)
         wait(lambda: rewrite_done(control), 'rewrite completed')
         assert control.must('SET', 'wave14:key', 'after') == b'OK'
-        assert control.must('FCALL', 'wave14', 0) == 2
     with boot(a, 'restart', opts, existing_data=data) as (_, c, _):
         assert c.must('GET', 'wave14:key') == b'after'
-        result = c.must('FCALL', 'wave14', 0)
-        assert result == 2, ('rewrite discarded post-capture FUNCTION journal', result)
+        state = c.must('FUNCTION', 'LIST', 'WITHCODE')
+        assert check(c), ('rewrite discarded post-capture FUNCTION journal', a.kind, state)
     os.environ.pop('WAVE14_CAPTURE_HOLD', None)
 
 def main():
@@ -71,15 +105,21 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--single', action='store_true')
     a = p.parse_args(); a.output.mkdir(parents=True, exist_ok=True)
-    legs = [(True, 'oracle', 'normal', 1, policy) for policy in ('always','everysec','no')]
-    legs += [(False, mode, engine, db, policy) for mode in ('1s','2s')
-             for engine in ('uring','epoll') for db in (1,16) for policy in ('always','everysec','no')]
-    if a.single: legs = [(False, '2s', 'epoll', 16, 'no')]
+    policies = ('always', 'everysec', 'no')
+    # The original LOAD REPLACE matrix keeps both namespaces; the other kinds cover
+    # PS5.3's specification: both modes, both engines and every fsync policy.
+    legs = [(True, 'oracle', 'normal', 1, policy, kind) for kind in KINDS for policy in policies]
+    legs += [(False, mode, engine, db, policy, 'replace') for mode in ('1s','2s')
+             for engine in ('uring','epoll') for db in (1,16) for policy in policies]
+    legs += [(False, mode, engine, 16, policy, kind) for kind in KINDS[1:] for mode in ('1s','2s')
+             for engine in ('uring','epoll') for policy in policies]
+    if a.single: legs = [(False, '2s', 'epoll', 16, 'no', 'replace')]
     failures = []
-    for oracle, mode, engine, db, policy in legs:
+    for oracle, mode, engine, db, policy, kind in legs:
         leg = copy.copy(a)
-        leg.oracle, leg.mode, leg.engine, leg.databases, leg.fsync = oracle, mode, engine, db, policy
-        leg.output = a.output/f'{mode}-{engine}-db{db}-{policy}'
+        leg.oracle, leg.mode, leg.engine, leg.databases, leg.fsync, leg.kind = oracle, mode, engine, db, policy, kind
+        suffix = '' if kind == 'replace' else '-' + kind
+        leg.output = a.output/f'{mode}-{engine}-db{db}-{policy}{suffix}'
         leg.output.mkdir()
         if oracle: leg.binary = a.oracle
         try:
