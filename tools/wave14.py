@@ -103,7 +103,9 @@ def jobs(a):
     out.mkdir(parents=True, exist_ok=True)
     assert not (out / (a.tag + '.json')).exists(), 'never overwrite an attempt'
     names = a.jobs or Path(a.jobs_file).read_text().strip()
-    assert names and not {'flip_saturated', 'atomic_floor'} & set(names.split())
+    assert names and not {'flip_saturated', 'efficiency'} & set(names.split())
+    # atomic_floor already honors GATE_PROOF_NO_RATES below: retain its finite
+    # tripwire and 400-roll ordering checks without starting the rate workload.
     binary = a.binary.resolve()
     env = dict(os.environ, LC_ALL='C', REDIS74_ROOT='/home/user/Projects/redis',
         GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis/src/redis-server',
