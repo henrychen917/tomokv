@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import time
 from _lib import Conn, encode
 from persistfix2 import boot, wait
 
@@ -15,17 +16,27 @@ def probe(a, admin, count):
     assert admin.must('DEL', key) == 0
     client = Conn('127.0.0.1', a.port)
     identity = client.must('CLIENT', 'ID')
+    replies = []
+    error = None
     try:
         client.sock.sendall(encode('INCR', key) * count)
         client.sock.shutdown(socket.SHUT_WR)
         # Keep the read half open, so an RST cannot explain discarded input.
+        client._read_deadline = time.monotonic() + 10
+        try:
+            for _ in range(count):
+                replies.append(client.read())
+            assert client.file.read(1) == b'', 'reply stream did not end'
+        except Exception as failure:
+            error = repr(failure)
         wait(lambda: not any(line.startswith(f'id={identity} '.encode())
                              for line in admin.must('CLIENT', 'LIST').splitlines()),
              'half-closed client retired', 10)
         value = admin.must('GET', key)
     finally:
         client.close()
-    return dict(count=count, applied=int(value or b'0'))
+    return dict(count=count, applied=int(value or b'0'), replies=len(replies),
+                ordered=replies == list(range(1, count + 1)), error=error)
 
 
 def main():
@@ -51,7 +62,8 @@ def main():
                     try:
                         row = dict(leg=leg.output.name, **probe(leg, admin, count))
                         rows.append(row); print(row, flush=True)
-                        if row['count'] != row['applied']: failures.append(row)
+                        if row['count'] != row['applied'] or not row['ordered'] or row['error']:
+                            failures.append(row)
                     except Exception as error:
                         row = dict(leg=leg.output.name, count=count, error=repr(error))
                         rows.append(row); failures.append(row); print(row, flush=True)

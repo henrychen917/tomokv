@@ -125,10 +125,10 @@ struct CoreConcurrencyTest {
             for(unsigned turn=0;turn<turns;++turn) {
                 Task tasks[32];
                 if(parse) {
-                    std::string frame="*"+std::to_string(command=="SET"?3:2)+"\r\n";
+                    std::string frame="*"+std::to_string(command=="SET"||command=="MSET"?3:2)+"\r\n";
                     for(const auto& arg:std::vector<std::string>{command,keys[w]})
                         frame+="$"+std::to_string(arg.size())+"\r\n"+arg+"\r\n";
-                    if(command=="SET")frame+="$"+std::to_string(value.size())+"\r\n"+value+"\r\n";
+                    if(command=="SET"||command=="MSET")frame+="$"+std::to_string(value.size())+"\r\n"+value+"\r\n";
                     std::string wire;for(unsigned i=0;i<batch;++i)wire+=frame;
                     client.reset_rbuf_at_quiescence();size_t available=0;
                     need(client.read_space_impl<false>(wire.size(),available,true,1u<<20,0));
@@ -143,7 +143,7 @@ struct CoreConcurrencyTest {
                         need(count<batch);tasks[count++]=task;
                     });
                     if constexpr(Fused) {
-                        if(local&&command=="GET") {
+                        if(local&&(command=="GET"||command=="MGET")) {
                             need(count==0);need(production_local_drain(&loops[io],batch)==batch);
                         } else need(count==batch);
                     } else need(count==batch);
@@ -151,7 +151,7 @@ struct CoreConcurrencyTest {
                     auto* op=client.rob().template acquire<false>();need(op);
                     need(op->push_arg(Slice(command.data(),command.size())));
                     need(op->push_arg(Slice(keys[w].data(),keys[w].size())));
-                    if(command=="SET")need(op->push_arg(Slice(value.data(),value.size())));
+                    if(command=="SET"||command=="MSET")need(op->push_arg(Slice(value.data(),value.size())));
                     op->spec=command_lookup(op->arg(0));need(op->spec);
                     op->hash=FlatStore::hash_key(op->arg(1));op->shard=shards[w];
                     op->state.store(OpState::Issued,std::memory_order_relaxed);
@@ -160,12 +160,13 @@ struct CoreConcurrencyTest {
                 // In a traced run there is exactly one turn and one owner.
                 if(!parse)scope_begin();
                 if constexpr(Fused) {
-                    if(!(parse&&local&&command=="GET"))production_fused(&loop,tasks,batch);
+                    if(!(parse&&local&&(command=="GET"||command=="MGET")))production_fused(&loop,tasks,batch);
                 } else production_split(&loop,tasks,batch);
                 if(!parse)scope_end();
                 need(client.rob().drain([&](Op& op) {
                     const std::string want=command=="INCR"?":"+std::to_string(++completed)+"\r\n"
-                        :command=="SET"?"+OK\r\n":"$64\r\n"+value+"\r\n";
+                        :(command=="SET"||command=="MSET")?"+OK\r\n"
+                        :(command=="MGET"?"*1\r\n":"")+std::string("$64\r\n")+value+"\r\n";
                     std::string reply;if(op.direct_len)reply.assign(op.direct,op.direct_len);
                     reply.append(op.reply.data(),op.reply.size());
                     if(op.reply_code_) { char buf[64];reply.append(buf,format_reply_code(buf,op.reply_code_,op.reply_ival_)); }

@@ -2199,7 +2199,7 @@ job_netio(){
   row_begin "$label"
   for engine in uring epoll; do
     if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" &&
-        py tests/netio.py 127.0.0.1 "$PORT" "$engine" >"$TMPDIR/$engine.log" 2>&1; then :; else rc=1; fi
+        py tests/netio.py 127.0.0.1 "$PORT" "$engine" --coalesced-eof >"$TMPDIR/$engine.log" 2>&1; then :; else rc=1; fi
     stop
   done
   [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{uring,epoll}.log"

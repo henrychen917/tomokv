@@ -330,6 +330,10 @@ public:
             error = "TLS connection has owner-local engine state";
             return false;
         }
+        if (receive_eof_pending(client)) {
+            error = "connection is draining its end of stream";
+            return false;
+        }
         const auto protocol_idle = [&] {
             return hold_for_commit ? client->flip_migration_protocol_idle()
                                    : client->migration_protocol_idle();
@@ -925,7 +929,11 @@ private:
                 if (static_cast<size_t>(n) < avail) { c->set_recv_armed(true); return; }
                 continue;                  // filled the offer: there may be more behind it
             }
-            if (n == 0) { epoll_request_close(c); return; }   // orderly peer close
+            if (n == 0) {
+                if (c->is_tls()) epoll_request_close(c);
+                else receive_fin(c, true);
+                return;
+            }
             if (errno == EINTR) continue;
             if (errno == EAGAIN || errno == EWOULDBLOCK) { c->set_recv_armed(true); return; }
             epoll_request_close(c);
@@ -1078,7 +1086,7 @@ private:
                     // EPOLLERR/EPOLLHUP are folded into the read side on purpose: the recv that
                     // follows returns 0 or the real errno, and close_client is then reached through
                     // the one path that already knows how to tear a connection down.
-                    if (ev.events & EPOLLRDHUP) epoll_request_close(c);
+                    if ((ev.events & EPOLLRDHUP) && !c->is_tls()) receive_fin(c, false);
                     if (ev.events & (EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP))
                         c->set_recv_armed(false);
                     if (ev.events & (EPOLLOUT | EPOLLERR | EPOLLHUP)) enqueue_serve(c);
@@ -2518,8 +2526,13 @@ private:
             } else if (res == -ECANCELED) {
                 (void)finish_client_transfer<kEp>(c);
             } else {
+                // Rollback normally re-arms reception. EOF already released the
+                // original kernel pin; hold admission across that rollback.
+                const bool eof = res == 0 && !c->is_tls() && !c->closing();
+                if (eof) c->set_recv_armed(true);
                 cancel_client_transfer<kEp>(c);
-                close_client(c);
+                if (eof) receive_fin(c, true);
+                else close_client(c);
             }
             return;
         }
@@ -2539,7 +2552,9 @@ private:
             connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
                             std::source_location::current(), res);
 #endif
-            close_client(c); return;
+            if (res == 0 && !c->is_tls() && !c->closing()) receive_fin(c, true);
+            else close_client(c);
+            return;
         }
         c->commit_read(static_cast<size_t>(res));
         if (query_buffer_exceeded(*c)) { close_client(c); return; }
@@ -4745,7 +4760,7 @@ ordinary_shard_ready:
         else          sig.clear_oldest_age();
     }
 
-    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk, TrackingOn };
+    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk, TrackingOn, ReceiveFin, ReceiveEof };
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -4754,6 +4769,14 @@ ordinary_shard_ready:
         SlowlogArm slowlog_arm{};
         DeferredTimerKind kind = DeferredTimerKind::WaitZero;
     };
+
+    // Cold EOF lifecycle. ReceiveFin keeps retrying an epoll short read until recv(0).
+    // ReceiveEof holds recv_armed as an admission fence, with no kernel buffer pin.
+    // For these two kinds op_id/slow_started_ns snapshot flush_id/output bytes.
+    void receive_fin(Client* client, bool input_ended);
+    bool receive_eof_pending(const Client* client) const;
+    void receive_eof_forget(Client* client);
+    bool receive_eof_pass(size_t index, uint64_t now_ms);
 
     int debug_sleep_timer_start(Client* client, uint64_t op_id, uint64_t delay_us,
                                 uint64_t slow_started_ns, const SlowlogArm& arm) {
@@ -4789,6 +4812,12 @@ ordinary_shard_ready:
         uint32_t completed = 0;
         for (size_t i = 0; i < deferred_timers_.size();) {
             const DeferredTimer timer = deferred_timers_[i];
+            if (timer.kind == DeferredTimerKind::ReceiveFin ||
+                timer.kind == DeferredTimerKind::ReceiveEof) {
+                if (receive_eof_pass(i, now_ms)) completed++;
+                else i++;
+                continue;
+            }
             const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
                 ? srv_->debug_sleep_complete(timer.deadline_ms)
                 : timer.kind == DeferredTimerKind::TrackingOn
@@ -5042,6 +5071,7 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
+        receive_eof_forget(c);
         command_client_closing(c);
         climon_unpark_paused(c);
         if (!c->closing()) {

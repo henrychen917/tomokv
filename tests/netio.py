@@ -33,6 +33,9 @@ because "nothing broke" is not evidence:
   G  clean teardown          CLIENT KILL on self must deliver its reply and then close.
 """
 import socket
+import os
+from pathlib import Path
+import signal
 import struct
 import sys
 import time
@@ -297,9 +300,27 @@ for i in range(32):
     target = "netio:closed-target:%d" % i
     check(admin.cmd("DEL", source, target) == b":0", "F4 fresh closed-pipeline keys")
     request = ("BRPOPLPUSH %s %s 0\r\n" % (source, target)).encode()
-    c.send_raw(request + request)
-    c.sock.shutdown(socket.SHUT_WR)
-    c.close()
+    # The gate owns a local server. Stop its threads for the first fresh case,
+    # observe the stop, then queue data and FIN before allowing epoll to poll.
+    # The remaining 31 cases retain the original naturally scheduled coverage.
+    stopped = None
+    try:
+        if i == 0 and '--coalesced-eof' in sys.argv:
+            raw = admin.cmd('INFO', 'SERVER').decode()
+            stopped = int(next(line.split(':', 1)[1] for line in raw.splitlines()
+                               if line.startswith('process_id:')))
+            os.kill(stopped, signal.SIGSTOP)
+            deadline = time.monotonic() + 2
+            while not all('\nState:\tT' in p.read_text()
+                          for p in Path(f'/proc/{stopped}/task').glob('*/status')):
+                assert time.monotonic() < deadline, 'server threads did not stop'
+                time.sleep(.001)
+        c.send_raw(request + request)
+        c.sock.shutdown(socket.SHUT_WR)
+        c.close()
+    finally:
+        if stopped is not None:
+            os.kill(stopped, signal.SIGCONT)
     try:
         wait_client_state(admin, cid, "gone")
     except AssertionError as error:

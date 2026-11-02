@@ -39,8 +39,19 @@ struct NetcmdRegression {
         need(client.rlen() == sizeof(payload)-1, "short read consumed every queued byte");
         need(loop.ep_.wait(0) == 0, "no replacement edge is available");
         if (eof) {
+#ifdef TOMO_EOFFIX
+            need(loop.receive_eof_pending(&client), "coalesced FIN retained after short read");
+            client.set_blocked(false); // Exercise draining separately from live blocking cancellation.
+            need(!loop.receive_eof_pass(0, 0), "buffered input is not discarded at FIN");
+            loop.arm_recv<true>(&client);
+            need(loop.deferred_timers_[0].kind == IoLoop::DeferredTimerKind::ReceiveEof &&
+                 client.recv_armed(), "actual EOF stops receive admission until input drains");
+            need(client.rlen() == sizeof(payload)-1 && !client.closing(),
+                 "all buffered input remains available to the ordinary parser");
+#else
             need(loop.epoll_closes_.size() == 1 && loop.epoll_closes_[0] == &client,
                  "coalesced EOF queues the parked client for teardown");
+#endif
         } else {
             need(loop.epoll_closes_.empty() && client.recv_armed(),
                  "an open peer remains armed and is not closed");
